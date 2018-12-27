@@ -30,7 +30,8 @@ public class AdvancedGlobalBlockPalette {
                 new AdvancedGlobalBlockPalette("block_state_list_17_netease.json")
         });
         put(AbstractProtocol.PROTOCOL_18, new AdvancedGlobalBlockPalette[]{
-                new AdvancedGlobalBlockPalette("block_state_list_18.json")
+                new AdvancedGlobalBlockPalette("block_state_list_18.json"),
+                new AdvancedGlobalBlockPalette("block_state_list_18_netease.json")
         });
     }};
 
