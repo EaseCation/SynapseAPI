@@ -14,13 +14,100 @@
         <java.version>1.8</java.version>
         <junit.jupiter.version>5.0.0-M4</junit.jupiter.version>
         <junit.platform.version>1.0.0-M4</junit.platform.version>
-        <!-- 本地测试服务端插件目录 -->
-        <dir.api>../_api</dir.api>
-        <dir.server>../_server</dir.server>
-        <dir.login>../_login</dir.login>
-        <dir.proxy>../_proxy</dir.proxy>
-        <dir.login-proxy>../_proxy0</dir.login-proxy>
     </properties>
+
+    <profiles>
+        <profile>
+            <id>default</id>
+            <activation>
+                <activeByDefault>true</activeByDefault>
+            </activation>
+
+            <properties>
+                <!-- 本地测试服务端插件目录 -->
+                <dir.api>../_api</dir.api>
+                <dir.server>../_server</dir.server>
+                <dir.login>../_login</dir.login>
+                <dir.proxy>../_proxy</dir.proxy>
+                <dir.login-proxy>../_proxy0</dir.login-proxy>
+            </properties>
+
+            <build>
+                <plugins>
+                    <plugin>
+                        <artifactId>maven-antrun-plugin</artifactId>
+                        <executions>
+                            <execution>
+                                <id>copy</id>
+                                <phase>package</phase>
+                                <configuration>
+                                    <tasks>
+                                        <echo message="正在复制 ${project.build.finalName} 至本地测试服务端插件目录..."/>
+                                        <mkdir dir="${dir.server}"/>
+                                        <mkdir dir="${dir.server}/plugins"/>
+                                        <copy todir="${dir.server}/plugins" overwrite="true">
+                                            <fileset dir="${project.build.directory}">
+                                                <include name="${project.build.finalName}.jar" />
+                                            </fileset>
+                                        </copy>
+                                        <mkdir dir="${dir.login}"/>
+                                        <mkdir dir="${dir.login}/plugins"/>
+                                        <copy todir="${dir.login}/plugins" overwrite="true">
+                                            <fileset dir="${project.build.directory}">
+                                                <include name="${project.build.finalName}.jar" />
+                                            </fileset>
+                                        </copy>
+                                    </tasks>
+                                </configuration>
+                                <goals>
+                                    <goal>run</goal>
+                                </goals>
+                            </execution>
+                        </executions>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+
+        <profile>
+            <id>homeland</id>
+
+            <properties>
+                <!-- 本地测试服务端插件目录 -->
+                <dir.server>${basedir}/../_server</dir.server>
+                <dir.proxy>${basedir}/../_proxy</dir.proxy>
+            </properties>
+
+            <build>
+                <plugins>
+                    <plugin>
+                        <artifactId>maven-antrun-plugin</artifactId>
+                        <executions>
+                            <execution>
+                                <id>copy</id>
+                                <phase>package</phase>
+                                <configuration>
+                                    <tasks>
+                                        <echo message="正在复制 ${project.build.finalName} 至本地测试服务端插件目录..."/>
+                                        <mkdir dir="${dir.server}"/>
+                                        <mkdir dir="${dir.server}/plugins"/>
+                                        <copy todir="${dir.server}/plugins" overwrite="true">
+                                            <fileset dir="${project.build.directory}">
+                                                <include name="${project.build.finalName}.jar" />
+                                            </fileset>
+                                        </copy>
+                                    </tasks>
+                                </configuration>
+                                <goals>
+                                    <goal>run</goal>
+                                </goals>
+                            </execution>
+                        </executions>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+    </profiles>
 
     <dependencies>
         <dependency>
@@ -50,7 +137,7 @@
             <groupId>net.easecation</groupId>
             <artifactId>AuthLibPackage</artifactId>
             <version>1.0.0</version>
-            <scope>provided</scope>
+            <!--<scope>provided</scope>-->
         </dependency>
     </dependencies>
 
@@ -75,37 +162,6 @@
                         <version>${junit.platform.version}</version>
                     </dependency>
                 </dependencies>
-            </plugin>
-            <plugin>
-                <artifactId>maven-antrun-plugin</artifactId>
-                <executions>
-                    <execution>
-                        <id>copy</id>
-                        <phase>package</phase>
-                        <configuration>
-                            <tasks>
-                                <echo message="正在复制 ${project.build.finalName} 至本地测试服务端插件目录..."/>
-                                <mkdir dir="${dir.server}"/>
-                                <mkdir dir="${dir.server}/plugins"/>
-                                <copy todir="${dir.server}/plugins" overwrite="true">
-                                    <fileset dir="${project.build.directory}">
-                                        <include name="${project.build.finalName}.jar" />
-                                    </fileset>
-                                </copy>
-                                <mkdir dir="${dir.login}"/>
-                                <mkdir dir="${dir.login}/plugins"/>
-                                <copy todir="${dir.login}/plugins" overwrite="true">
-                                    <fileset dir="${project.build.directory}">
-                                        <include name="${project.build.finalName}.jar" />
-                                    </fileset>
-                                </copy>
-                            </tasks>
-                        </configuration>
-                        <goals>
-                            <goal>run</goal>
-                        </goals>
-                    </execution>
-                </executions>
             </plugin>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
