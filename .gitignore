@@ -9,3 +9,4 @@ server.properties
 .idea/*
 *.iml
 rebel.xml
+/dependency-reduced-pom.xml
