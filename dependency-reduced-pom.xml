@@ -87,8 +87,40 @@
       <scope>provided</scope>
       <exclusions>
         <exclusion>
+          <artifactId>fastutil</artifactId>
+          <groupId>it.unimi.dsi</groupId>
+        </exclusion>
+        <exclusion>
+          <artifactId>jansi</artifactId>
+          <groupId>org.fusesource.jansi</groupId>
+        </exclusion>
+        <exclusion>
+          <artifactId>guava</artifactId>
+          <groupId>com.google.guava</groupId>
+        </exclusion>
+        <exclusion>
+          <artifactId>gson</artifactId>
+          <groupId>com.google.code.gson</groupId>
+        </exclusion>
+        <exclusion>
+          <artifactId>snakeyaml</artifactId>
+          <groupId>org.yaml</groupId>
+        </exclusion>
+        <exclusion>
+          <artifactId>jline</artifactId>
+          <groupId>jline</groupId>
+        </exclusion>
+        <exclusion>
+          <artifactId>leveldb</artifactId>
+          <groupId>com.tinfoiled.mcpe.leveldb</groupId>
+        </exclusion>
+        <exclusion>
           <artifactId>oshi-core</artifactId>
           <groupId>com.github.oshi</groupId>
+        </exclusion>
+        <exclusion>
+          <artifactId>slf4j-nop</artifactId>
+          <groupId>org.slf4j</groupId>
         </exclusion>
       </exclusions>
     </dependency>
@@ -125,6 +157,12 @@
       <artifactId>AuthLibPackage</artifactId>
       <version>1.0.0</version>
       <scope>provided</scope>
+      <exclusions>
+        <exclusion>
+          <artifactId>authlib</artifactId>
+          <groupId>com.netease.mc</groupId>
+        </exclusion>
+      </exclusions>
     </dependency>
   </dependencies>
   <properties>
