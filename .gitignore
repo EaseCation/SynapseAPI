@@ -9,4 +9,7 @@ server.properties
 .idea/*
 *.iml
 rebel.xml
+
+# Maven template
+target/
 /dependency-reduced-pom.xml
