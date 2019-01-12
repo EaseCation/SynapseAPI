@@ -95,6 +95,8 @@ public class PacketRegister {
         registerPacket(AbstractProtocol.PROTOCOL_18, ProtocolInfo.RESOURCE_PACK_STACK_PACKET, ResourcePackStackPacket18.class);
         registerPacket(AbstractProtocol.PROTOCOL_18, ProtocolInfo.START_GAME_PACKET, StartGamePacket18.class);
         registerPacket(AbstractProtocol.PROTOCOL_18, ProtocolInfo.LEVEL_SOUND_EVENT_PACKET, LevelSoundEventPacket18.class);
+
+        checkNeteaseSpecailExtend();
     }
 
     public static void registerPacket(AbstractProtocol protocol, int id, Class<? extends IterationProtocolPacket> clazz) {
@@ -159,6 +161,20 @@ public class PacketRegister {
                 MainLogger.getLogger().logException(e);
             }
         }
+    }
+
+    private static void checkNeteaseSpecailExtend() {
+        neteaseSpecail.forEach(((protocol, data) -> {
+            AbstractProtocol next = protocol;
+            while ((next = next.next()) != null) {
+                if (neteaseSpecail.containsKey(next)) {
+                    boolean[] array = neteaseSpecail.get(next);
+                    for (int i = 0; i < 1024; i++) {
+                        if (data[i]) array[i] = true;
+                    }
+                }
+            }
+        }));
     }
 
     public static DataPacket getPacket(int id, int protocol) {
