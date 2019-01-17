@@ -192,15 +192,12 @@ public class SynapsePlayer16 extends SynapsePlayer14 {
 	}
 
 	protected void doFirstSpawn() {
-		this.spawned = true;
 
 		this.setEnableClientCommand(true);
 		this.getAdventureSettings().update();
 
 		this.sendPotionEffects(this);
 		this.sendData(this);
-		this.inventory.sendContents(this);
-		this.inventory.sendArmorContents(this);
 
 		SetTimePacket setTimePacket = new SetTimePacket();
 		setTimePacket.time = this.level.getTime();
@@ -215,16 +212,16 @@ public class SynapsePlayer16 extends SynapsePlayer14 {
 		pos = respawnEvent.getRespawnPosition();
 
 		if (this.getHealth() <= 0) {
-			RespawnPacket  respawnPacket = new RespawnPacket();
+			RespawnPacket respawnPacket = new RespawnPacket();
 			pos = this.getSpawn();
 			respawnPacket.x = (float) pos.x;
-			respawnPacket.y = (float) pos.y;
+			respawnPacket.y = (float) pos.y + this.getEyeHeight();
 			respawnPacket.z = (float) pos.z;
 			this.dataPacket(respawnPacket);
 		} else {
 			RespawnPacket respawnPacket = new RespawnPacket();
 			respawnPacket.x = (float) pos.x;
-			respawnPacket.y = (float) pos.y;
+			respawnPacket.y = (float) pos.y + this.getEyeHeight();
 			respawnPacket.z = (float) pos.z;
 			this.dataPacket(respawnPacket);
 		}
@@ -239,9 +236,14 @@ public class SynapsePlayer16 extends SynapsePlayer14 {
 
 		this.server.getPluginManager().callEvent(playerJoinEvent);
 
+		this.spawned = true;
+
 		if (playerJoinEvent.getJoinMessage().toString().trim().length() > 0) {
 			this.server.broadcastMessage(playerJoinEvent.getJoinMessage());
 		}
+
+		this.inventory.sendContents(this);
+		this.inventory.sendArmorContents(this);
 
 		this.noDamageTicks = 60;
 
