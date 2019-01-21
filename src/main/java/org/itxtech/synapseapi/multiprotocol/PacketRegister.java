@@ -265,7 +265,7 @@ public class PacketRegister {
                 // 协议之间暂无转换方法）
                 return check16ProtocolCompatible(packet, endpointProtocol);
             } else {
-                Server.getInstance().getLogger().warning("[SynapseAPI] PacketRegister::getCompatiblePacket 版本不对应：" + packet.getClass().getName() + " => " + endpointProtocol.name());
+                Server.getInstance().getLogger().debug("[SynapseAPI] PacketRegister::getCompatiblePacket 版本不对应：" + packet.getClass().getName() + " => " + endpointProtocol.name());
                 return null;
             }
         }
