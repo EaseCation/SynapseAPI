@@ -259,11 +259,28 @@ public class SynapsePlayer extends Player {
             super.completeLoginSequence();
             return;
         }
-        PlayerLoginEvent ev;
-        this.server.getPluginManager().callEvent(ev = new PlayerLoginEvent(this, "Plugin reason"));
+        PlayerLoginEvent ev = new PlayerLoginEvent(this, "Plugin reason");
+        try {
+            this.server.getPluginManager().callEvent(ev);
+        } catch (EventException e) {
+            Server.getInstance().getLogger().logException(e);
+            ev.setCancelled();
+            StringBuilder sb = new StringBuilder();
+            sb.append(e.getClass().getName());
+            sb.append(": ");
+            sb.append(e.getMessage());
+            if (e.getCause() != null) {
+                sb.append("\n");
+                sb.append(e.getCause().getClass().getName());
+                sb.append(": ");
+                sb.append(e.getCause().getMessage());
+            }
+            ev.setKickMessage(sb.toString());
+            this.sendMessage(sb.toString());
+        }
+
         if (ev.isCancelled()) {
             this.close(this.getLeaveMessage(), ev.getKickMessage());
-
             return;
         }
 
