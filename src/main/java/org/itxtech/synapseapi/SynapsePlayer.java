@@ -509,10 +509,12 @@ public class SynapsePlayer extends Player {
             }
 
             if (this.isLevelChange) { //TODO: remove this
-                PlayStatusPacket statusPacket0 = new PlayStatusPacket();//Weather
+                //Weather
                 this.getLevel().sendWeather(this);
                 //Update time
                 this.getLevel().sendTime(this);
+
+                PlayStatusPacket statusPacket0 = new PlayStatusPacket();
                 statusPacket0.status = PlayStatusPacket.PLAYER_SPAWN;
                 this.dataPacket(statusPacket0);
 
@@ -535,6 +537,7 @@ public class SynapsePlayer extends Player {
     }
 
     protected boolean isLevelChange = false;
+    protected boolean allowOrderChunks = true;
 
     public boolean isLevelChange() {
         return isLevelChange;
@@ -560,7 +563,7 @@ public class SynapsePlayer extends Player {
             if (from.getLevel().getId() != location.level.getId() && this.spawned) {
                 this.isLevelChange = true;
                 //this.nextAllowSendTop = System.currentTimeMillis() + 2000;  //2秒后才运行发送Top
-                this.nextChunkOrderRun = 10000;
+                this.allowOrderChunks = false;
 
                 ChangeDimensionPacket changeDimensionPacket1 = new ChangeDimensionPacket();
                 changeDimensionPacket1.dimension = 2;
@@ -583,13 +586,19 @@ public class SynapsePlayer extends Player {
                     changeDimensionPacket.y = (float) this.getY() + this.getEyeHeight();
                     changeDimensionPacket.z = (float) this.getZ();
                     dataPacket(changeDimensionPacket);
-                    nextChunkOrderRun = 0;
+                    this.allowOrderChunks = true;
                 }, 20);
             }
             return true;
         }
 
         return false;
+    }
+
+    @Override
+    protected boolean orderChunks() {
+        if (!allowOrderChunks) return false;
+        return super.orderChunks();
     }
 
     public void forceSpawn() {
