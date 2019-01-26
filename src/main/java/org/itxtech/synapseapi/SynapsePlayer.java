@@ -54,6 +54,7 @@ public class SynapsePlayer extends Player {
     protected boolean isFirstTimeLogin = false;
     protected long synapseSlowLoginUntil = 0;
     protected boolean levelChangeLoadScreen = true;
+    private boolean cleanTextColor = false;
 
     protected LoginChainData loginChainData;
     protected boolean isNetEaseClient = false;
@@ -835,6 +836,15 @@ public class SynapsePlayer extends Player {
         this.dataPacket(pk, true);
     }
 
+    public SynapsePlayer setCleanTextColor(boolean cleanTextColor) {
+        this.cleanTextColor = cleanTextColor;
+        return this;
+    }
+
+    public boolean isCleanTextColor() {
+        return cleanTextColor;
+    }
+
     @Override
     public int dataPacket(DataPacket packet, boolean needACK) {
         if (!this.isSynapseLogin) return super.dataPacket(packet, needACK);
@@ -852,6 +862,25 @@ public class SynapsePlayer extends Player {
 
         //packet.encode(); encoded twice?
         //this.server.getLogger().warning("Send to player: " + Binary.bytesToHexString(new byte[]{packet.getBuffer()[0]}) + "  len: " + packet.getBuffer().length);
+        if (this.cleanTextColor) {
+            if (packet.pid() == ProtocolInfo.TEXT_PACKET && packet instanceof TextPacket) {
+                ((TextPacket) packet).message = TextFormat.clean(((TextPacket) packet).message);
+            } else if (packet.pid() == ProtocolInfo.ADD_PLAYER_PACKET && packet instanceof AddPlayerPacket) {
+                ((AddPlayerPacket) packet).username = TextFormat.clean(((AddPlayerPacket) packet).username);
+                if (((AddPlayerPacket) packet).metadata.getMap().containsKey(Entity.DATA_NAMETAG)) {
+                    StringEntityData data = (StringEntityData) ((AddPlayerPacket) packet).metadata.get(Entity.DATA_NAMETAG);
+                    if (data != null) data.setData(TextFormat.clean(data.getData()));
+                }
+            } else if (packet.pid() == ProtocolInfo.SET_ENTITY_DATA_PACKET && packet instanceof SetEntityDataPacket) {
+                if (((SetEntityDataPacket) packet).metadata.getMap().containsKey(Entity.DATA_NAMETAG)) {
+                    StringEntityData data = (StringEntityData) ((SetEntityDataPacket) packet).metadata.get(Entity.DATA_NAMETAG);
+                    if (data != null) data.setData(TextFormat.clean(data.getData()));
+                }
+            } else if (packet.pid() == ProtocolInfo.SET_TITLE_PACKET && packet instanceof SetTitlePacket) {
+                ((SetTitlePacket) packet).text = TextFormat.clean(((SetTitlePacket) packet).text);
+            }
+        }
+
         return this.interfaz.putPacket(this, packet, needACK);
     }
 
