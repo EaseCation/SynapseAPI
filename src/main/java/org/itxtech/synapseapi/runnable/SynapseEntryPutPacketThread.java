@@ -69,7 +69,13 @@ public class SynapseEntryPutPacketThread extends Thread {
 
     public void addMainToThread(SynapsePlayer player, DataPacket packet, boolean needACK, boolean immediate) {
         this.queue.offer(new Entry(player, packet, needACK, immediate));
-        //Server.getInstance().getLogger().debug("SynapseEntryPutPacketThread Offer: " + packet.getClass().getSimpleName());
+        /*
+        if (!(packet instanceof MovePlayerPacket)) {
+            Server.getInstance().getLogger().debug("SynapseEntryPutPacketThread Offer: " + packet.getClass().getSimpleName());
+            if (packet instanceof UpdateAttributesPacket) {
+                int i = 0;
+            }
+        }*/
     }
 
     public void addMainToThreadBroadcast(SynapsePlayer[] players, DataPacket[] packets) {

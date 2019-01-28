@@ -34,6 +34,7 @@ import org.itxtech.synapseapi.multiprotocol.protocol12.protocol.LoginPacket;
 import org.itxtech.synapseapi.multiprotocol.protocol12.utils.ClientChainData12;
 import org.itxtech.synapseapi.multiprotocol.protocol12.utils.ClientChainData12NetEase;
 import org.itxtech.synapseapi.multiprotocol.protocol12.utils.ClientChainData12Urgency;
+import org.itxtech.synapseapi.multiprotocol.protocol17.protocol.TextPacket17;
 import org.itxtech.synapseapi.network.protocol.spp.FastPlayerListPacket;
 import org.itxtech.synapseapi.network.protocol.spp.PlayerLoginPacket;
 import org.itxtech.synapseapi.utils.ClientData;
@@ -525,6 +526,8 @@ public class SynapsePlayer extends Player {
                 this.getLevel().sendTime(this);
                 //DummyBossBar
                 this.getDummyBossBars().values().forEach(DummyBossBar::reshow);
+                //防止切换世界后的玩家实体因为被客户端卸载而消失问题
+                this.getLevel().getPlayers().values().stream().filter(p -> p instanceof SynapsePlayer && p.getViewers().containsKey(this.getLoaderId())).forEach(p -> ((SynapsePlayer) p).forceSpawnTo(this));
             }
 
             this.spawnToAll();
@@ -636,6 +639,44 @@ public class SynapsePlayer extends Player {
                 pk1.riding = this.getId();
                 pk1.type = SetEntityLinkPacket.TYPE_RIDE;
                 Server.broadcastPacket(this.getViewers().values(), pk1);
+            });
+        }
+    }
+
+    public void forceSpawnTo(Player player) {
+        if (!this.skin.isValid()) {
+            throw new IllegalStateException(this.getClass().getSimpleName() + " must have a valid skin set");
+        }
+
+        //this.server.updatePlayerListData(this.getUniqueId(), this.getId(), this.getName(), this.skin, this.getLoginChainData().getXUID(), this.getViewers().values());
+
+        AddPlayerPacket pk = new AddPlayerPacket();
+        pk.uuid = this.getUniqueId();
+        pk.username = this.getNameTag();
+        pk.entityUniqueId = this.getId();
+        pk.entityRuntimeId = this.getId();
+        pk.x = (float)this.x;
+        pk.y = (float)this.y;
+        pk.z = (float)this.z;
+        pk.speedX = (float)this.motionX;
+        pk.speedY = (float)this.motionY;
+        pk.speedZ = (float)this.motionZ;
+        pk.yaw = (float)this.yaw;
+        pk.pitch = (float)this.pitch;
+        pk.item = this.getInventory().getItemInHand();
+        pk.metadata = this.dataProperties;
+        player.dataPacket(pk);
+
+        this.inventory.sendArmorContents(player);
+
+        if (this.riding != null) {
+            Server.getInstance().getScheduler().scheduleTask(SynapseAPI.getInstance(), () -> {
+                if (this.riding == null) return;
+                SetEntityLinkPacket pk1 = new SetEntityLinkPacket();
+                pk1.rider = this.riding.getId();
+                pk1.riding = this.getId();
+                pk1.type = SetEntityLinkPacket.TYPE_RIDE;
+                player.dataPacket(pk1);
             });
         }
     }
@@ -863,8 +904,12 @@ public class SynapsePlayer extends Player {
         //packet.encode(); encoded twice?
         //this.server.getLogger().warning("Send to player: " + Binary.bytesToHexString(new byte[]{packet.getBuffer()[0]}) + "  len: " + packet.getBuffer().length);
         if (this.cleanTextColor) {
-            if (packet.pid() == ProtocolInfo.TEXT_PACKET && packet instanceof TextPacket) {
-                ((TextPacket) packet).message = TextFormat.clean(((TextPacket) packet).message);
+            if (packet.pid() == ProtocolInfo.TEXT_PACKET) {
+                if (packet instanceof TextPacket) {
+                    ((TextPacket) packet).message = TextFormat.clean(((TextPacket) packet).message);
+                } else if (packet instanceof TextPacket17) {
+                    ((TextPacket17) packet).message = TextFormat.clean(((TextPacket17) packet).message);
+                }
             } else if (packet.pid() == ProtocolInfo.ADD_PLAYER_PACKET && packet instanceof AddPlayerPacket) {
                 ((AddPlayerPacket) packet).username = TextFormat.clean(((AddPlayerPacket) packet).username);
                 if (((AddPlayerPacket) packet).metadata.getMap().containsKey(Entity.DATA_NAMETAG)) {
