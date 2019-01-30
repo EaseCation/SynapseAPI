@@ -37,7 +37,7 @@ public class SynapsePlayer18 extends SynapsePlayer17 {
 						break;
 					case ResourcePackClientResponsePacket.STATUS_SEND_PACKS:
 						for (ResourcePackClientResponsePacket16.Entry entry : responsePacket.packEntries) {
-							ResourcePack resourcePack = this.server.getResourcePackManager().getPackById(entry.uuid);
+							ResourcePack resourcePack = this.resourcePacks.getOrDefault(entry.uuid, this.behaviourPacks.get(entry.uuid));
 							if (resourcePack == null) {
 								this.close("", "disconnectionScreen.resourcePack");
 								break;
@@ -54,8 +54,9 @@ public class SynapsePlayer18 extends SynapsePlayer17 {
 						break;
 					case ResourcePackClientResponsePacket.STATUS_HAVE_ALL_PACKS:
 						ResourcePackStackPacket18 stackPacket = new ResourcePackStackPacket18();
-						stackPacket.mustAccept = this.server.getForceResources();
-						stackPacket.resourcePackStack = this.server.getResourcePackManager().getResourceStack();
+						stackPacket.mustAccept = this.forceResources;
+						stackPacket.resourcePackStack = this.resourcePacks.values().toArray(new ResourcePack[0]);
+						stackPacket.behaviourPackStack = this.behaviourPacks.values().toArray(new ResourcePack[0]);
 						this.dataPacket(stackPacket);
 						break;
 					case ResourcePackClientResponsePacket.STATUS_COMPLETED:

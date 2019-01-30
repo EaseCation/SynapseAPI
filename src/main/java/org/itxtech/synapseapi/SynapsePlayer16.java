@@ -116,7 +116,7 @@ public class SynapsePlayer16 extends SynapsePlayer14 {
 						break;
 					case ResourcePackClientResponsePacket.STATUS_HAVE_ALL_PACKS:
 						ResourcePackStackPacket16 stackPacket = new ResourcePackStackPacket16();
-						stackPacket.mustAccept = this.server.getForceResources();
+						stackPacket.mustAccept = this.forceResources;
 						stackPacket.resourcePackStack = this.server.getResourcePackManager().getResourceStack();
 						this.dataPacket(stackPacket);
 						break;
@@ -186,8 +186,9 @@ public class SynapsePlayer16 extends SynapsePlayer14 {
 	@Override
 	protected DataPacket generateResourcePackInfoPacket() {
 		ResourcePacksInfoPacket16 resoucePacket = new ResourcePacksInfoPacket16();
-		resoucePacket.resourcePackEntries = this.server.getResourcePackManager().getResourceStack();
-		resoucePacket.mustAccept = this.server.getForceResources();
+		resoucePacket.resourcePackEntries = this.resourcePacks.values().toArray(new ResourcePack[0]);
+		resoucePacket.behaviourPackEntries = this.behaviourPacks.values().toArray(new ResourcePack[0]);
+		resoucePacket.mustAccept = this.forceResources;
 		return resoucePacket;
 	}
 

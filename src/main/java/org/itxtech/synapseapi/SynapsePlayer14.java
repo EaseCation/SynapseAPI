@@ -12,6 +12,7 @@ import cn.nukkit.level.particle.PunchBlockParticle;
 import cn.nukkit.math.BlockFace;
 import cn.nukkit.math.Vector3;
 import cn.nukkit.network.protocol.*;
+import cn.nukkit.resourcepacks.ResourcePack;
 import cn.nukkit.utils.DummyBossBar;
 import cn.nukkit.utils.MainLogger;
 import org.itxtech.synapseapi.event.player.SynapsePlayerConnectEvent;
@@ -481,8 +482,9 @@ public class SynapsePlayer14 extends SynapsePlayer {
 	@Override
 	protected DataPacket generateResourcePackInfoPacket() {
 		ResourcePacksInfoPacket14 resoucePacket = new ResourcePacksInfoPacket14();
-		resoucePacket.resourcePackEntries = this.server.getResourcePackManager().getResourceStack();
-		resoucePacket.mustAccept = this.server.getForceResources();
+		resoucePacket.resourcePackEntries = this.resourcePacks.values().toArray(new ResourcePack[0]);
+		resoucePacket.behaviourPackEntries = this.behaviourPacks.values().toArray(new ResourcePack[0]);
+		resoucePacket.mustAccept = this.forceResources;
 		return resoucePacket;
 	}
 

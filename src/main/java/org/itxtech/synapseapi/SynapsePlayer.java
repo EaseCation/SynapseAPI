@@ -22,6 +22,7 @@ import cn.nukkit.math.NukkitMath;
 import cn.nukkit.nbt.tag.*;
 import cn.nukkit.network.SourceInterface;
 import cn.nukkit.network.protocol.*;
+import cn.nukkit.resourcepacks.ResourcePack;
 import cn.nukkit.scheduler.AsyncTask;
 import cn.nukkit.scheduler.Task;
 import cn.nukkit.utils.*;
@@ -240,6 +241,12 @@ public class SynapsePlayer extends Player {
         this.forceMovement = this.teleportPosition = this.getPosition();
 
         if (this.isFirstTimeLogin) {
+            PlayerRequestResourcePackEvent resourcePackEvent = new PlayerRequestResourcePackEvent(this, this.server.getResourcePackManager().getResourcePacksMap(), new HashMap<>(), this.server.getForceResources());
+            this.server.getPluginManager().callEvent(resourcePackEvent);
+            this.resourcePacks = resourcePackEvent.getResourcePacks();
+            this.behaviourPacks = resourcePackEvent.getBehaviourPacks();
+            this.forceResources = resourcePackEvent.isMustAccept();
+
             DataPacket infoPacket = generateResourcePackInfoPacket();
             this.dataPacket(infoPacket);
         } else {
@@ -249,8 +256,9 @@ public class SynapsePlayer extends Player {
 
 	protected DataPacket generateResourcePackInfoPacket() {
 		ResourcePacksInfoPacket infoPacket = new ResourcePacksInfoPacket();
-		infoPacket.resourcePackEntries = this.server.getResourcePackManager().getResourceStack();
-		infoPacket.mustAccept = this.server.getForceResources();
+		infoPacket.resourcePackEntries = this.resourcePacks.values().toArray(new ResourcePack[0]);
+		infoPacket.behaviourPackEntries = this.behaviourPacks.values().toArray(new ResourcePack[0]);
+		infoPacket.mustAccept = this.forceResources;
 		return infoPacket;
 	}
 
