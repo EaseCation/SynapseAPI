@@ -2,6 +2,7 @@ package org.itxtech.synapseapi.multiprotocol.protocol14.protocol;
 
 import cn.nukkit.math.BlockVector3;
 import cn.nukkit.network.protocol.DataPacket;
+import cn.nukkit.network.protocol.PlayerActionPacket;
 import cn.nukkit.network.protocol.ProtocolInfo;
 
 /**
@@ -73,4 +74,15 @@ public class PlayerActionPacket14 extends Packet14 {
         return cn.nukkit.network.protocol.PlayerActionPacket.class;
     }
 
+    @Override
+    public DataPacket toDefault() {
+        PlayerActionPacket pk = new PlayerActionPacket();
+        pk.action = this.action;
+        pk.entityId = this.entityId;
+        pk.face = this.face;
+        pk.x = this.x;
+        pk.y = this.y;
+        pk.z = this.z;
+        return pk;
+    }
 }

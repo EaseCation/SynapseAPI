@@ -7,6 +7,7 @@ import cn.nukkit.block.BlockAir;
 import cn.nukkit.block.BlockNoteblock;
 import cn.nukkit.entity.data.ShortEntityData;
 import cn.nukkit.event.player.*;
+import cn.nukkit.event.server.DataPacketReceiveEvent;
 import cn.nukkit.level.Location;
 import cn.nukkit.level.particle.PunchBlockParticle;
 import cn.nukkit.math.BlockFace;
@@ -74,6 +75,9 @@ public class SynapsePlayer14 extends SynapsePlayer {
 		switch (packet.pid()) {
 			// 1.4协议的PID仍然相同
 			case ProtocolInfo.LOGIN_PACKET:
+
+				if (!this.callPacketRecieveEvent(((LoginPacket14) packet).toDefault())) break;
+
 				if (this.loggedIn) {
 					break;
 				}
@@ -165,7 +169,10 @@ public class SynapsePlayer14 extends SynapsePlayer {
 				break;
 
 			case ProtocolInfo.PLAYER_ACTION_PACKET:
-				org.itxtech.synapseapi.multiprotocol.protocol14.protocol.PlayerActionPacket14 playerActionPacket = (org.itxtech.synapseapi.multiprotocol.protocol14.protocol.PlayerActionPacket14) packet;
+				PlayerActionPacket14 playerActionPacket = (PlayerActionPacket14) packet;
+
+				if (!this.callPacketRecieveEvent(((PlayerActionPacket14) packet).toDefault())) break;
+
 				if (!this.spawned || (!this.isAlive() && playerActionPacket.action != PlayerActionPacket14.ACTION_RESPAWN && playerActionPacket.action != PlayerActionPacket14.ACTION_DIMENSION_CHANGE_REQUEST)) {
 					break;
 				}
@@ -176,6 +183,7 @@ public class SynapsePlayer14 extends SynapsePlayer {
 
 				switch (playerActionPacket.action) {
 					case PlayerActionPacket14.ACTION_START_BREAK:
+
 						if (this.lastBreak != Long.MAX_VALUE || pos.distanceSquared(this) > 100) {
 							break;
 						}
@@ -360,6 +368,7 @@ public class SynapsePlayer14 extends SynapsePlayer {
 				this.setDataFlag(Player.DATA_FLAGS, Player.DATA_FLAG_ACTION, false);
 				break;
             case ProtocolInfo.TEXT_PACKET:
+				if (!this.callPacketRecieveEvent(((TextPacket14) packet).toDefault())) break;
                 if (!this.spawned || !this.isAlive()) {
                     break;
                 }

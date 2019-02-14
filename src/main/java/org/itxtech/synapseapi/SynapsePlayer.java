@@ -12,6 +12,7 @@ import cn.nukkit.entity.Entity;
 import cn.nukkit.entity.data.EntityMetadata;
 import cn.nukkit.entity.data.StringEntityData;
 import cn.nukkit.event.player.*;
+import cn.nukkit.event.server.DataPacketReceiveEvent;
 import cn.nukkit.event.server.DataPacketSendEvent;
 import cn.nukkit.item.Item;
 import cn.nukkit.item.ItemMap;
@@ -842,7 +843,13 @@ public class SynapsePlayer extends Player {
             handlePlayerDataPacketTimings.put(packet.pid(), dataPacketTiming);
 
     }
-    
+
+    protected boolean callPacketRecieveEvent(DataPacket packet) {
+        DataPacketReceiveEvent ev = new DataPacketReceiveEvent(this, packet);
+        this.server.getPluginManager().callEvent(ev);
+        return !ev.isCancelled();
+    }
+
     protected void setLoginChainData(LoginChainData loginChainData) {
     	this.loginChainData = loginChainData;
     }
