@@ -292,18 +292,7 @@ public class SynapseEntry {
     }
 
     private Class<? extends SynapsePlayer> determinePlayerClass(int protocol) {
-        AbstractProtocol endpointProtocol = AbstractProtocol.fromRealProtocol(protocol);
-        if (AbstractProtocol.PROTOCOL_18.equals(endpointProtocol)) {
-            return SynapsePlayer18.class;
-        } else if (AbstractProtocol.PROTOCOL_17.equals(endpointProtocol)) {
-            return SynapsePlayer17.class;
-        } else if (AbstractProtocol.PROTOCOL_16.equals(endpointProtocol)) {
-            return SynapsePlayer16.class;
-        } else if (AbstractProtocol.PROTOCOL_14.equals(endpointProtocol) || AbstractProtocol.PROTOCOL_15.equals(endpointProtocol)) {
-            return SynapsePlayer14.class;
-        } else {
-            return SynapsePlayer.class;
-        }
+        return AbstractProtocol.fromRealProtocol(protocol).getPlayerClass();
     }
 
     public void threadTick(){

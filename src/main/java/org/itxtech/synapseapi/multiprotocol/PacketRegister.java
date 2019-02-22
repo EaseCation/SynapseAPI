@@ -8,12 +8,13 @@ import cn.nukkit.utils.MainLogger;
 import org.itxtech.synapseapi.multiprotocol.protocol15.protocol.AddEntityPacket15;
 import org.itxtech.synapseapi.multiprotocol.protocol15.protocol.ClientboundMapItemDataPacket15;
 import org.itxtech.synapseapi.multiprotocol.protocol15.protocol.MoveEntityAbsolutePacket15;
-import org.itxtech.synapseapi.multiprotocol.protocol15.protocol.Packet15;
-import org.itxtech.synapseapi.multiprotocol.protocol12.protocol.Packet12;
 import org.itxtech.synapseapi.multiprotocol.protocol14.protocol.*;
 import org.itxtech.synapseapi.multiprotocol.protocol16.protocol.*;
 import org.itxtech.synapseapi.multiprotocol.protocol17.protocol.*;
 import org.itxtech.synapseapi.multiprotocol.protocol18.protocol.*;
+import org.itxtech.synapseapi.multiprotocol.protocol19.protocol.NetworkStackLatencyPacket19;
+import org.itxtech.synapseapi.multiprotocol.protocol19.protocol.ResourcePacksInfoPacket19;
+import org.itxtech.synapseapi.multiprotocol.protocol19.protocol.StartGamePacket19;
 
 import java.lang.reflect.Method;
 import java.util.*;
@@ -30,7 +31,7 @@ public class PacketRegister {
      */
     private static Map<AbstractProtocol, Map<Class<? extends DataPacket>, Class<? extends IterationProtocolPacket>>> replacements = new HashMap<>();
 
-    private static Map<AbstractProtocol, boolean[]> neteaseSpecail = new HashMap<>();
+    private static Map<AbstractProtocol, boolean[]> neteaseSpecial = new HashMap<>();
 
     public static void init() {
         registerPacket(AbstractProtocol.PROTOCOL_12, ProtocolInfo.LOGIN_PACKET, org.itxtech.synapseapi.multiprotocol.protocol12.protocol.LoginPacket.class);
@@ -96,42 +97,26 @@ public class PacketRegister {
         registerPacket(AbstractProtocol.PROTOCOL_18, ProtocolInfo.START_GAME_PACKET, StartGamePacket18.class);
         registerPacket(AbstractProtocol.PROTOCOL_18, ProtocolInfo.LEVEL_SOUND_EVENT_PACKET, LevelSoundEventPacket18.class);
 
-        checkNeteaseSpecailExtend();
+        registerPacket(AbstractProtocol.PROTOCOL_19, ProtocolInfo.START_GAME_PACKET, StartGamePacket19.class);
+        registerPacket(AbstractProtocol.PROTOCOL_19, ProtocolInfo.RESOURCE_PACKS_INFO_PACKET, ResourcePacksInfoPacket19.class);
+        registerPacket(AbstractProtocol.PROTOCOL_19, ProtocolInfo.NETWORK_STACK_LATENCY_PACKET, NetworkStackLatencyPacket19.class);
+
+        checkNeteaseSpecialExtend();
     }
 
     public static void registerPacket(AbstractProtocol protocol, int id, Class<? extends IterationProtocolPacket> clazz) {
         if (!packetPool.containsKey(protocol)) packetPool.put(protocol, new Class[1024]);
-        if (!neteaseSpecail.containsKey(protocol)) neteaseSpecail.put(protocol, new boolean[1024]);
+        if (!neteaseSpecial.containsKey(protocol)) neteaseSpecial.put(protocol, new boolean[1024]);
         Class<? extends DataPacket>[] pool = packetPool.get(protocol);
         pool[id & 0xff] = clazz;
-        boolean addToReplace = false;
-        switch (protocol) {
-            case PROTOCOL_12:
-                addToReplace = Packet12.class.isAssignableFrom(clazz);
-                break;
-            case PROTOCOL_14:
-            	addToReplace = Packet14.class.isAssignableFrom(clazz);
-                break;
-            case PROTOCOL_15:
-            	addToReplace = Packet15.class.isAssignableFrom(clazz);
-                break;
-            case PROTOCOL_16:
-                addToReplace = Packet16.class.isAssignableFrom(clazz);
-                break;
-            case PROTOCOL_17:
-                addToReplace = Packet17.class.isAssignableFrom(clazz);
-                break;
-            case PROTOCOL_18:
-                addToReplace = Packet18.class.isAssignableFrom(clazz);
-                break;
-        }
+        boolean addToReplace = protocol.getPacketClass() != null && protocol.getPacketClass().isAssignableFrom(clazz);
         try {
             Method method;
 
             try {
                 method = clazz.getDeclaredMethod("fromDefault", DataPacket.class, AbstractProtocol.class, boolean.class);
                 if (method != null) {
-                    neteaseSpecail.get(protocol)[id] = true;
+                    neteaseSpecial.get(protocol)[id] = true;
                 }
             } catch (NoSuchMethodException ex) {
                 //ignore
@@ -163,12 +148,12 @@ public class PacketRegister {
         }
     }
 
-    private static void checkNeteaseSpecailExtend() {
-        neteaseSpecail.forEach(((protocol, data) -> {
+    private static void checkNeteaseSpecialExtend() {
+        neteaseSpecial.forEach(((protocol, data) -> {
             AbstractProtocol next = protocol;
             while ((next = next.next()) != null) {
-                if (neteaseSpecail.containsKey(next)) {
-                    boolean[] array = neteaseSpecail.get(next);
+                if (neteaseSpecial.containsKey(next)) {
+                    boolean[] array = neteaseSpecial.get(next);
                     for (int i = 0; i < 1024; i++) {
                         if (data[i]) array[i] = true;
                     }
@@ -184,6 +169,8 @@ public class PacketRegister {
                 Class<? extends DataPacket> clazz = packetPool.get(ptl)[id];
                 if (clazz != null) {
                     return clazz.newInstance();
+                } else if (ptl == AbstractProtocol.PROTOCOL_19) {
+                    return getPacket(id, 312); //按照1.8匹配
                 } else if (ptl == AbstractProtocol.PROTOCOL_18) {
                     return getPacket(id, 290); //按照1.7匹配
                 } else if (ptl == AbstractProtocol.PROTOCOL_17) {
@@ -291,8 +278,8 @@ public class PacketRegister {
     }
 
     public static boolean isNetEaseSpecial(AbstractProtocol protocol, int pid) {
-        if (neteaseSpecail.containsKey(protocol)) {
-            return neteaseSpecail.get(protocol)[pid];
+        if (neteaseSpecial.containsKey(protocol)) {
+            return neteaseSpecial.get(protocol)[pid];
         }
         return false;
     }

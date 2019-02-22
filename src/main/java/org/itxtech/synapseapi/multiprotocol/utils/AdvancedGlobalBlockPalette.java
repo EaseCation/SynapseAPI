@@ -33,6 +33,10 @@ public class AdvancedGlobalBlockPalette {
                 new AdvancedGlobalBlockPalette("block_state_list_18.json"),
                 new AdvancedGlobalBlockPalette("block_state_list_18_netease.json")
         });
+        put(AbstractProtocol.PROTOCOL_19, new AdvancedGlobalBlockPalette[]{
+                new AdvancedGlobalBlockPalette("block_state_list_19.json"),
+                new AdvancedGlobalBlockPalette("block_state_list_19_netease.json")
+        });
     }};
 
     private final Int2IntArrayMap legacyToRuntimeId = new Int2IntArrayMap();

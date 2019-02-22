@@ -4,11 +4,13 @@ import cn.nukkit.Server;
 import cn.nukkit.network.protocol.BatchPacket;
 import cn.nukkit.network.protocol.DataPacket;
 import cn.nukkit.utils.BinaryStream;
+import org.itxtech.synapseapi.*;
 import org.itxtech.synapseapi.multiprotocol.protocol14.protocol.Packet14;
 import org.itxtech.synapseapi.multiprotocol.protocol15.protocol.Packet15;
 import org.itxtech.synapseapi.multiprotocol.protocol16.protocol.Packet16;
 import org.itxtech.synapseapi.multiprotocol.protocol17.protocol.Packet17;
 import org.itxtech.synapseapi.multiprotocol.protocol18.protocol.Packet18;
+import org.itxtech.synapseapi.multiprotocol.protocol19.protocol.Packet19;
 
 /**
  * org.itxtech.synapseapi.multiprotocol
@@ -20,24 +22,30 @@ import org.itxtech.synapseapi.multiprotocol.protocol18.protocol.Packet18;
  */
 public enum AbstractProtocol {
 
-    PROTOCOL_11, PROTOCOL_12, PROTOCOL_14, PROTOCOL_15, PROTOCOL_16, PROTOCOL_17, PROTOCOL_18;
+    PROTOCOL_11(0, null, null),
+    PROTOCOL_12(114, DataPacket.class, SynapsePlayer.class),
+    PROTOCOL_14(261, Packet14.class, SynapsePlayer14.class),
+    PROTOCOL_15(270, Packet15.class, SynapsePlayer14.class),
+    PROTOCOL_16(282, Packet16.class, SynapsePlayer16.class),
+    PROTOCOL_17(290, Packet17.class, SynapsePlayer17.class),
+    PROTOCOL_18(312, Packet18.class, SynapsePlayer18.class),
+    PROTOCOL_19(332, Packet19.class, SynapsePlayer19.class);
 
-	public static AbstractProtocol fromRealProtocol(int protocol) {
-		if (protocol <= 113) {
-			return PROTOCOL_11;
-		} else if (protocol < 261) { //1.4.0 starts at 261.
-			return PROTOCOL_12;
-		} else if (protocol < 270) {
-			return PROTOCOL_14; // in future, 1.5.0 maybe start at270 
-		} else if (protocol < 282) {
-            return PROTOCOL_15;
-        } else if (protocol < 290) {
-            return PROTOCOL_16;
-        } else if (protocol < 312) {
-            return PROTOCOL_17;
-        } else {
-            return PROTOCOL_18;
+    private final int protocolStart;
+    private final Class<? extends DataPacket> packetClass;
+    private final Class<? extends SynapsePlayer> playerClass;
+
+    AbstractProtocol(int protocolStart, Class<? extends DataPacket> packetClass, Class<? extends SynapsePlayer> playerClass) {
+        this.protocolStart = protocolStart;
+        this.packetClass = packetClass;
+        this.playerClass = playerClass;
+    }
+
+    public static AbstractProtocol fromRealProtocol(int protocol) {
+        for (int i = values().length - 1; i >= 0; i--) {
+            if (protocol >= values()[i].protocolStart) return values()[i];
         }
+        return PROTOCOL_12; //Might never happen
 	}
 
     /**
@@ -46,56 +54,17 @@ public enum AbstractProtocol {
      * @return 前一个协议版本
      */
     public AbstractProtocol previous() {
-        switch (this) {
-            case PROTOCOL_15:
-                return PROTOCOL_14;
-            case PROTOCOL_16:
-                return PROTOCOL_15;
-            case PROTOCOL_17:
-                return PROTOCOL_16;
-            case PROTOCOL_18:
-                return PROTOCOL_17;
-            default:
-                return null;
-        }
+        int previous = this.ordinal() - 1;
+        return previous > 1 ? values()[previous] : null;
     }
 
     public AbstractProtocol next() {
-        switch (this) {
-            case PROTOCOL_11:
-                return PROTOCOL_12;
-            case PROTOCOL_12:
-                return PROTOCOL_14;
-            case PROTOCOL_14:
-                return PROTOCOL_15;
-            case PROTOCOL_15:
-                return PROTOCOL_16;
-            case PROTOCOL_16:
-                return PROTOCOL_17;
-            case PROTOCOL_17:
-                return PROTOCOL_18;
-            default:
-                return null;
-        }
+        int next = this.ordinal() + 1;
+        return next < values().length ? values()[next] : null;
     }
 
     public Class<? extends DataPacket> getPacketClass() {
-        switch (this) {
-            case PROTOCOL_12:
-                return DataPacket.class;
-            case PROTOCOL_14:
-                return Packet14.class;
-            case PROTOCOL_15:
-                return Packet15.class;
-            case PROTOCOL_16:
-                return Packet16.class;
-            case PROTOCOL_17:
-                return Packet17.class;
-            case PROTOCOL_18:
-                return Packet18.class;
-            default:
-                return null;
-        }
+        return this.packetClass;
     }
 
     public static boolean isPacketOriginal(DataPacket packet) {
@@ -116,6 +85,7 @@ public enum AbstractProtocol {
                 case PROTOCOL_16:
                 case PROTOCOL_17:
                 case PROTOCOL_18:
+                case PROTOCOL_19:
                     int pid1 = (int) stream.getUnsignedVarInt();
                     return new PacketHeadData(pid1, stream.offset);
             }
@@ -142,6 +112,10 @@ public enum AbstractProtocol {
         public int getStartOffset() {
             return startOffset;
         }
+    }
+
+    public Class<? extends SynapsePlayer> getPlayerClass() {
+        return playerClass;
     }
 
 }
