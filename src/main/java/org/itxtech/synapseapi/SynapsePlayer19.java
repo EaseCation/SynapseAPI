@@ -1,18 +1,11 @@
 package org.itxtech.synapseapi;
 
 import cn.nukkit.Player;
-import cn.nukkit.level.GameRules;
 import cn.nukkit.level.Position;
 import cn.nukkit.network.SourceInterface;
 import cn.nukkit.network.protocol.DataPacket;
-import cn.nukkit.network.protocol.ProtocolInfo;
-import cn.nukkit.network.protocol.ResourcePackClientResponsePacket;
-import cn.nukkit.network.protocol.ResourcePackDataInfoPacket;
 import cn.nukkit.resourcepacks.ResourcePack;
-import org.itxtech.synapseapi.multiprotocol.protocol16.protocol.ResourcePackClientResponsePacket16;
-import org.itxtech.synapseapi.multiprotocol.protocol18.protocol.NetworkChunkPublisherUpdatePacket18;
-import org.itxtech.synapseapi.multiprotocol.protocol18.protocol.ResourcePackStackPacket18;
-import org.itxtech.synapseapi.multiprotocol.protocol18.protocol.StartGamePacket18;
+import org.itxtech.synapseapi.multiprotocol.protocol19.protocol.ResourcePacksInfoPacket19;
 import org.itxtech.synapseapi.multiprotocol.protocol19.protocol.StartGamePacket19;
 
 public class SynapsePlayer19 extends SynapsePlayer18 {
@@ -53,6 +46,15 @@ public class SynapsePlayer19 extends SynapsePlayer18 {
 		startGamePacket.gameRules = getSupportedRules();
 
 		return startGamePacket;
+	}
+
+	@Override
+	protected DataPacket generateResourcePackInfoPacket() {
+		ResourcePacksInfoPacket19 resourcePacket = new ResourcePacksInfoPacket19();
+		resourcePacket.resourcePackEntries = this.resourcePacks.values().toArray(new ResourcePack[0]);
+		resourcePacket.behaviourPackEntries = this.behaviourPacks.values().toArray(new ResourcePack[0]);
+		resourcePacket.mustAccept = this.forceResources;
+		return resourcePacket;
 	}
 
 	/**

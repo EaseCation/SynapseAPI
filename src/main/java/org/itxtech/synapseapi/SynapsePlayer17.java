@@ -2,22 +2,14 @@ package org.itxtech.synapseapi;
 
 import cn.nukkit.Player;
 import cn.nukkit.Server;
-import cn.nukkit.entity.Entity;
 import cn.nukkit.level.GameRules;
 import cn.nukkit.level.Position;
 import cn.nukkit.network.SourceInterface;
-import cn.nukkit.network.protocol.ChangeDimensionPacket;
 import cn.nukkit.network.protocol.DataPacket;
-import cn.nukkit.network.protocol.PlayStatusPacket;
 import cn.nukkit.network.protocol.ProtocolInfo;
-import cn.nukkit.scheduler.Task;
-import cn.nukkit.utils.DummyBossBar;
-import org.itxtech.synapseapi.event.player.SynapsePlayerTransferEvent;
 import org.itxtech.synapseapi.event.player.netease.SynapsePlayerNetEaseStoreBuySuccEvent;
 import org.itxtech.synapseapi.multiprotocol.protocol17.protocol.StartGamePacket17;
 import org.itxtech.synapseapi.multiprotocol.protocol17.protocol.TextPacket17;
-import org.itxtech.synapseapi.network.protocol.spp.TransferPacket;
-import org.itxtech.synapseapi.utils.ClientData;
 
 public class SynapsePlayer17 extends SynapsePlayer16 {
 
