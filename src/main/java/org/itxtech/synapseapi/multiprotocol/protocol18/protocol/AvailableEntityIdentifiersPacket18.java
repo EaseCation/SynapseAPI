@@ -1,0 +1,25 @@
+package org.itxtech.synapseapi.multiprotocol.protocol18.protocol;
+
+import cn.nukkit.network.protocol.ProtocolInfo;
+
+public class AvailableEntityIdentifiersPacket18 extends Packet18 {
+    public static final byte NETWORK_ID = ProtocolInfo.AVAILABLE_ENTITY_IDENTIFIERS_PACKET;
+
+    public byte[] tag;
+
+    @Override
+    public int pid() {
+        return NETWORK_ID;
+    }
+
+    @Override
+    public void decode() {
+        this.tag = this.get();
+    }
+
+    @Override
+    public void encode() {
+        this.reset();
+        this.put(this.tag);
+    }
+}

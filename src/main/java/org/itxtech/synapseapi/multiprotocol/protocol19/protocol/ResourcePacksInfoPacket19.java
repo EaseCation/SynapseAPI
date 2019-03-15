@@ -9,7 +9,7 @@ public class ResourcePacksInfoPacket19 extends Packet19 {
 	public static final int NETWORK_ID = ProtocolInfo.RESOURCE_PACKS_INFO_PACKET;
 
     public boolean mustAccept = false;
-    public boolean unknownBool;
+    public boolean hasScripts = false;
     public ResourcePack[] behaviourPackEntries = new ResourcePack[0];
     public ResourcePack[] resourcePackEntries = new ResourcePack[0];
 
@@ -22,7 +22,7 @@ public class ResourcePacksInfoPacket19 extends Packet19 {
     public void encode() {
         this.reset();
         this.putBoolean(this.mustAccept);
-        this.putBoolean(this.unknownBool);
+        this.putBoolean(this.hasScripts);
         encodePacks(this.behaviourPackEntries);
         encodePacks(this.resourcePackEntries);
     }
@@ -36,7 +36,7 @@ public class ResourcePacksInfoPacket19 extends Packet19 {
             this.putString(""); // encryption key
             this.putString(""); // sub-pack name
             this.putString(""); // content identity
-            this.putBoolean(false); // ???
+            this.putBoolean(false); // has scripts
         }
     }
 

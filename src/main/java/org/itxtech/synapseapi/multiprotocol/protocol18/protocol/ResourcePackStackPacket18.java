@@ -28,12 +28,14 @@ public class ResourcePackStackPacket18 extends Packet18 {
         for (ResourcePack entry : this.behaviourPackStack) {
             this.putString(entry.getPackId());
             this.putString(entry.getPackVersion());
+            this.putString("");
         }
 
         this.putUnsignedVarInt(this.resourcePackStack.length);
         for (ResourcePack entry : this.resourcePackStack) {
             this.putString(entry.getPackId());
             this.putString(entry.getPackVersion());
+            this.putString("");
         }
 
         this.putBoolean(isExperimental);

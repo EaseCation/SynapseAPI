@@ -1,6 +1,7 @@
 package org.itxtech.synapseapi;
 
 import cn.nukkit.Player;
+import cn.nukkit.Server;
 import cn.nukkit.level.GameRules;
 import cn.nukkit.level.Position;
 import cn.nukkit.network.SourceInterface;
@@ -9,10 +10,13 @@ import cn.nukkit.network.protocol.ProtocolInfo;
 import cn.nukkit.network.protocol.ResourcePackClientResponsePacket;
 import cn.nukkit.network.protocol.ResourcePackDataInfoPacket;
 import cn.nukkit.resourcepacks.ResourcePack;
+import org.itxtech.synapseapi.multiprotocol.AbstractProtocol;
 import org.itxtech.synapseapi.multiprotocol.protocol16.protocol.ResourcePackClientResponsePacket16;
+import org.itxtech.synapseapi.multiprotocol.protocol18.protocol.AvailableEntityIdentifiersPacket18;
 import org.itxtech.synapseapi.multiprotocol.protocol18.protocol.NetworkChunkPublisherUpdatePacket18;
 import org.itxtech.synapseapi.multiprotocol.protocol18.protocol.ResourcePackStackPacket18;
 import org.itxtech.synapseapi.multiprotocol.protocol18.protocol.StartGamePacket18;
+import org.itxtech.synapseapi.multiprotocol.utils.AvailableEntityIdentifiersPalette;
 
 public class SynapsePlayer18 extends SynapsePlayer17 {
 
@@ -101,6 +105,20 @@ public class SynapsePlayer18 extends SynapsePlayer17 {
 		startGamePacket.gameRules = getSupportedRules();
 
 		return startGamePacket;
+	}
+
+	@Override
+	protected void completeLoginSequence() {
+		super.completeLoginSequence();
+		if (this.loggedIn) {
+			AvailableEntityIdentifiersPacket18 pk = new AvailableEntityIdentifiersPacket18();
+			pk.tag = AvailableEntityIdentifiersPalette.getData(AbstractProtocol.fromRealProtocol(this.getProtocol()));
+			if (pk.tag != null) {
+				this.dataPacket(new AvailableEntityIdentifiersPacket18());
+			} else {
+				Server.getInstance().getLogger().warning("Null AvailableEntityIdentifiersPacket data to player " + this.getName() + "!");
+			}
+		}
 	}
 
 	protected GameRules getSupportedRules() {

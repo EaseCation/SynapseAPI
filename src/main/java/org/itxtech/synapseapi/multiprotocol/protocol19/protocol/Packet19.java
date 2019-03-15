@@ -7,7 +7,7 @@ public abstract class Packet19 extends IterationProtocolPacket {
 
 	@Override
 	public AbstractProtocol getAbstractProtocol() {
-		return AbstractProtocol.PROTOCOL_18;
+		return AbstractProtocol.PROTOCOL_19;
 	}
 
 	@Override

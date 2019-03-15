@@ -5,6 +5,7 @@ import cn.nukkit.level.Position;
 import cn.nukkit.network.SourceInterface;
 import cn.nukkit.network.protocol.DataPacket;
 import cn.nukkit.resourcepacks.ResourcePack;
+import cn.nukkit.utils.Binary;
 import org.itxtech.synapseapi.multiprotocol.protocol19.protocol.ResourcePacksInfoPacket19;
 import org.itxtech.synapseapi.multiprotocol.protocol19.protocol.StartGamePacket19;
 
@@ -44,7 +45,8 @@ public class SynapsePlayer19 extends SynapsePlayer18 {
 		startGamePacket.worldName = this.getServer().getNetwork().getName();
 		startGamePacket.generator = 1; // 0 old, 1 infinite, 2 flat
 		startGamePacket.gameRules = getSupportedRules();
-
+		startGamePacket.encode();
+		System.out.println(Binary.bytesToHexString(startGamePacket.getBuffer(), true));
 		return startGamePacket;
 	}
 

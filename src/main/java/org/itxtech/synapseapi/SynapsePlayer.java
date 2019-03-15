@@ -19,7 +19,9 @@ import cn.nukkit.item.ItemMap;
 import cn.nukkit.level.Level;
 import cn.nukkit.level.Location;
 import cn.nukkit.level.Position;
+import cn.nukkit.level.sound.SoundEnum;
 import cn.nukkit.math.NukkitMath;
+import cn.nukkit.math.Vector3;
 import cn.nukkit.nbt.tag.*;
 import cn.nukkit.network.SourceInterface;
 import cn.nukkit.network.protocol.*;
@@ -70,6 +72,10 @@ public class SynapsePlayer extends Player {
 
     public boolean isSynapseLogin() {
         return isSynapseLogin;
+    }
+
+    public boolean isFirstTimeLogin() {
+        return isFirstTimeLogin;
     }
 
     /**
@@ -585,6 +591,20 @@ public class SynapsePlayer extends Player {
                 changeDimensionPacket1.z = (float) this.getZ();
                 this.dataPacket(changeDimensionPacket1);
 
+                StopSoundPacket stopSoundPacket = new StopSoundPacket();
+                stopSoundPacket.name = "portal.travel";
+                stopSoundPacket.stopAll = false;
+                this.dataPacket(stopSoundPacket);
+
+                PlaySoundPacket playSoundPacket0 = new PlaySoundPacket();
+                playSoundPacket0.name = "random.screenshot";
+                playSoundPacket0.x = this.getFloorX();
+                playSoundPacket0.y = this.getFloorY();
+                playSoundPacket0.z = this.getFloorZ();
+                playSoundPacket0.pitch = 1;
+                playSoundPacket0.volume = 1;
+                dataPacket(playSoundPacket0);
+
                 this.forceSendEmptyChunks();
                 this.getServer().getScheduler().scheduleDelayedTask(() -> {
                     PlayStatusPacket statusPacket0 = new PlayStatusPacket();
@@ -599,6 +619,18 @@ public class SynapsePlayer extends Player {
                     changeDimensionPacket.y = (float) this.getY() + this.getEyeHeight();
                     changeDimensionPacket.z = (float) this.getZ();
                     dataPacket(changeDimensionPacket);
+
+                    dataPacket(stopSoundPacket);
+
+                    PlaySoundPacket playSoundPacket = new PlaySoundPacket();
+                    playSoundPacket.name = "camera.take_picture";
+                    playSoundPacket.x = this.getFloorX();
+                    playSoundPacket.y = this.getFloorY();
+                    playSoundPacket.z = this.getFloorZ();
+                    playSoundPacket.pitch = 1;
+                    playSoundPacket.volume = 1;
+                    dataPacket(playSoundPacket);
+
                     this.allowOrderChunks = true;
                 }, 20);
             }
