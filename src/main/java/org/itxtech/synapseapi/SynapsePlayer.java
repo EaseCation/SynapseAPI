@@ -340,6 +340,20 @@ public class SynapsePlayer extends Player {
                 changeDimensionPacket.y = (float) this.getY() + this.getEyeHeight();
                 changeDimensionPacket.z = (float) this.getZ();
                 dataPacket(changeDimensionPacket);
+
+                StopSoundPacket stopSoundPacket = new StopSoundPacket();
+                stopSoundPacket.name = "portal.travel";
+                stopSoundPacket.stopAll = false;
+                dataPacket(stopSoundPacket);
+
+                PlaySoundPacket playSoundPacket = new PlaySoundPacket();
+                playSoundPacket.name = "camera.take_picture";
+                playSoundPacket.x = this.getFloorX();
+                playSoundPacket.y = this.getFloorY();
+                playSoundPacket.z = this.getFloorZ();
+                playSoundPacket.pitch = 1;
+                playSoundPacket.volume = 1;
+                dataPacket(playSoundPacket);
             } else {
                 long flags = (long) (1 << Entity.DATA_FLAG_IMMOBILE);
                 this.sendData(this, new EntityMetadata().putLong(Entity.DATA_FLAGS, flags));
@@ -462,6 +476,20 @@ public class SynapsePlayer extends Player {
                         changeDimensionPacket1.y = (float) getY() + getEyeHeight();
                         changeDimensionPacket1.z = (float) getZ();
                         dataPacket(changeDimensionPacket1);
+
+                        StopSoundPacket stopSoundPacket = new StopSoundPacket();
+                        stopSoundPacket.name = "portal.travel";
+                        stopSoundPacket.stopAll = false;
+                        dataPacket(stopSoundPacket);
+
+                        PlaySoundPacket playSoundPacket0 = new PlaySoundPacket();
+                        playSoundPacket0.name = "random.screenshot";
+                        playSoundPacket0.x = getFloorX();
+                        playSoundPacket0.y = getFloorY();
+                        playSoundPacket0.z = getFloorZ();
+                        playSoundPacket0.pitch = 1;
+                        playSoundPacket0.volume = 1;
+                        dataPacket(playSoundPacket0);
 
                         forceSendEmptyChunks(3);
                         SynapseAPI.getInstance().getTransferDimensionTaskThread().queue(player, hash);
