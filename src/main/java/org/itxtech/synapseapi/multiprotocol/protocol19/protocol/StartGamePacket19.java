@@ -81,7 +81,6 @@ public class StartGamePacket19 extends Packet19 {
 	@Override
 	public void encode() {
 		this.reset();
-		this.put(new byte[]{0, 0});
 		this.putEntityUniqueId(this.entityUniqueId);
 		this.putEntityRuntimeId(this.entityRuntimeId);
 		this.putVarInt(this.playerGamemode);

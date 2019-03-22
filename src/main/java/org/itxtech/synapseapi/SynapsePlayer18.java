@@ -4,19 +4,16 @@ import cn.nukkit.Player;
 import cn.nukkit.Server;
 import cn.nukkit.level.GameRules;
 import cn.nukkit.level.Position;
+import cn.nukkit.math.Vector3;
 import cn.nukkit.network.SourceInterface;
-import cn.nukkit.network.protocol.DataPacket;
-import cn.nukkit.network.protocol.ProtocolInfo;
-import cn.nukkit.network.protocol.ResourcePackClientResponsePacket;
-import cn.nukkit.network.protocol.ResourcePackDataInfoPacket;
+import cn.nukkit.network.protocol.*;
 import cn.nukkit.resourcepacks.ResourcePack;
+import org.itxtech.synapseapi.event.player.SynapsePlayerBroadcastLevelSoundEvent;
 import org.itxtech.synapseapi.multiprotocol.AbstractProtocol;
 import org.itxtech.synapseapi.multiprotocol.protocol16.protocol.ResourcePackClientResponsePacket16;
-import org.itxtech.synapseapi.multiprotocol.protocol18.protocol.AvailableEntityIdentifiersPacket18;
-import org.itxtech.synapseapi.multiprotocol.protocol18.protocol.NetworkChunkPublisherUpdatePacket18;
-import org.itxtech.synapseapi.multiprotocol.protocol18.protocol.ResourcePackStackPacket18;
-import org.itxtech.synapseapi.multiprotocol.protocol18.protocol.StartGamePacket18;
+import org.itxtech.synapseapi.multiprotocol.protocol18.protocol.*;
 import org.itxtech.synapseapi.multiprotocol.utils.AvailableEntityIdentifiersPalette;
+import org.itxtech.synapseapi.multiprotocol.utils.LevelSoundEventEnum;
 
 public class SynapsePlayer18 extends SynapsePlayer17 {
 
@@ -66,6 +63,31 @@ public class SynapsePlayer18 extends SynapsePlayer17 {
 					case ResourcePackClientResponsePacket.STATUS_COMPLETED:
 						this.completeLoginSequence();
 						break;
+				}
+				break;
+			case ProtocolInfo.LEVEL_SOUND_EVENT_PACKET_V2:
+				LevelSoundEventPacketV218 levelSoundEventPacket = (LevelSoundEventPacketV218) packet;
+				SynapsePlayerBroadcastLevelSoundEvent event = new SynapsePlayerBroadcastLevelSoundEvent(this,
+						LevelSoundEventEnum.fromV18(levelSoundEventPacket.sound),
+						new Vector3(levelSoundEventPacket.x, levelSoundEventPacket.y, levelSoundEventPacket.z),
+						levelSoundEventPacket.extraData,
+						0,
+						levelSoundEventPacket.entityIdentifier,
+						levelSoundEventPacket.isBabyMob,
+						levelSoundEventPacket.isGlobal);
+				this.getServer().getPluginManager().callEvent(event);
+				if (!event.isCancelled()) {
+					this.getLevel().getChunkPlayers(this.getFloorX() >> 4, this.getFloorZ() >> 4).values().stream()
+							.filter(p -> p instanceof SynapsePlayer)
+							.forEach(p -> ((SynapsePlayer) p).sendLevelSoundEvent(
+									event.getLevelSound(),
+									event.getPos(),
+									event.getExtraData(),
+									event.getPitch(),
+									event.getEntityIdentifier(),
+									event.isBabyMob(),
+									event.isGlobal()
+							));
 				}
 				break;
 			default:
@@ -152,6 +174,21 @@ public class SynapsePlayer18 extends SynapsePlayer17 {
 			return Player.CREATIVE;
 		}
 		return gamemode;
+	}
+
+	@Override
+	public void sendLevelSoundEvent(LevelSoundEventEnum levelSound, Vector3 pos, int extraData, int pitch, String entityIdentifier, boolean isBabyMob, boolean isGlobal) {
+		if (levelSound == null || levelSound.getV18() == -1) return;
+		LevelSoundEventPacketV218 pk = new LevelSoundEventPacketV218();
+		pk.sound = levelSound.getV18();
+		pk.x = (float) pos.x;
+		pk.y = (float) pos.y;
+		pk.z = (float) pos.z;
+		pk.extraData = levelSound.translateTo18ExtraData(extraData, pitch, AbstractProtocol.fromRealProtocol(this.protocol), this.isNetEaseClient);
+		pk.entityIdentifier = entityIdentifier;
+		pk.isBabyMob = isBabyMob;
+		pk.isGlobal = isGlobal;
+		this.dataPacket(pk);
 	}
 
 }

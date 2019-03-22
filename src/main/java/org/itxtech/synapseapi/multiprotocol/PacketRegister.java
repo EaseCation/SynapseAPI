@@ -12,9 +12,7 @@ import org.itxtech.synapseapi.multiprotocol.protocol14.protocol.*;
 import org.itxtech.synapseapi.multiprotocol.protocol16.protocol.*;
 import org.itxtech.synapseapi.multiprotocol.protocol17.protocol.*;
 import org.itxtech.synapseapi.multiprotocol.protocol18.protocol.*;
-import org.itxtech.synapseapi.multiprotocol.protocol19.protocol.NetworkStackLatencyPacket19;
-import org.itxtech.synapseapi.multiprotocol.protocol19.protocol.ResourcePacksInfoPacket19;
-import org.itxtech.synapseapi.multiprotocol.protocol19.protocol.StartGamePacket19;
+import org.itxtech.synapseapi.multiprotocol.protocol19.protocol.*;
 
 import java.lang.reflect.Method;
 import java.util.*;
@@ -88,7 +86,6 @@ public class PacketRegister {
         registerPacket(AbstractProtocol.PROTOCOL_17, ProtocolInfo.TEXT_PACKET, TextPacket17.class);
         registerPacket(AbstractProtocol.PROTOCOL_17, ProtocolInfo.UPDATE_BLOCK_PACKET, UpdateBlockPacket17.class);
         registerPacket(AbstractProtocol.PROTOCOL_17, ProtocolInfo.LEVEL_EVENT_PACKET, LevelEventPacket17.class);
-        registerPacket(AbstractProtocol.PROTOCOL_17, ProtocolInfo.LEVEL_SOUND_EVENT_PACKET, LevelSoundEventPacket17.class);
         registerPacket(AbstractProtocol.PROTOCOL_17, ProtocolInfo.SET_SCORE_PACKET, SetScorePacket17.class);
 
         registerPacket(AbstractProtocol.PROTOCOL_18, ProtocolInfo.ADD_ENTITY_PACKET, AddEntityPacket18.class);
@@ -96,10 +93,12 @@ public class PacketRegister {
         registerPacket(AbstractProtocol.PROTOCOL_18, ProtocolInfo.RESOURCE_PACK_STACK_PACKET, ResourcePackStackPacket18.class);
         registerPacket(AbstractProtocol.PROTOCOL_18, ProtocolInfo.START_GAME_PACKET, StartGamePacket18.class);
         registerPacket(AbstractProtocol.PROTOCOL_18, ProtocolInfo.LEVEL_SOUND_EVENT_PACKET, LevelSoundEventPacket18.class);
+        registerPacket(AbstractProtocol.PROTOCOL_18, ProtocolInfo.LEVEL_SOUND_EVENT_PACKET_V2, LevelSoundEventPacketV218.class);
 
         registerPacket(AbstractProtocol.PROTOCOL_19, ProtocolInfo.START_GAME_PACKET, StartGamePacket19.class);
         registerPacket(AbstractProtocol.PROTOCOL_19, ProtocolInfo.RESOURCE_PACKS_INFO_PACKET, ResourcePacksInfoPacket19.class);
         registerPacket(AbstractProtocol.PROTOCOL_19, ProtocolInfo.NETWORK_STACK_LATENCY_PACKET, NetworkStackLatencyPacket19.class);
+        registerPacket(AbstractProtocol.PROTOCOL_19, ProtocolInfo.LEVEL_SOUND_EVENT_PACKET_V3, LevelSoundEventPacketV319.class);
 
         checkNeteaseSpecialExtend();
     }
@@ -268,7 +267,7 @@ public class PacketRegister {
      * @return 检查，兼容后的数据包
      */
     private static DataPacket check16ProtocolCompatible(DataPacket packet, AbstractProtocol endpointProtocol) {
-        if ((endpointProtocol.ordinal() >= AbstractProtocol.PROTOCOL_16.ordinal() && !(packet instanceof Packet16) && !(packet instanceof Packet17) && !(packet instanceof Packet18))) {
+        if ((endpointProtocol.ordinal() >= AbstractProtocol.PROTOCOL_16.ordinal() && !(packet instanceof Packet16) && !(packet instanceof Packet17) && !(packet instanceof Packet18) && !(packet instanceof Packet19))) {
             CompatibilityPacket16 cp = new CompatibilityPacket16();
             cp.origin = packet;
             return cp;

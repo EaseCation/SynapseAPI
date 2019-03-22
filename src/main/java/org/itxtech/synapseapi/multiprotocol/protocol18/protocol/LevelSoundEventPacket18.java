@@ -4,8 +4,11 @@ import cn.nukkit.math.Vector3f;
 import cn.nukkit.network.protocol.DataPacket;
 import cn.nukkit.network.protocol.ProtocolInfo;
 import org.itxtech.synapseapi.multiprotocol.AbstractProtocol;
+import org.itxtech.synapseapi.multiprotocol.utils.LevelSoundEventEnum;
 import org.itxtech.synapseapi.multiprotocol.utils.LevelSoundEventIDTranslator;
 import org.itxtech.synapseapi.utils.ClassUtils;
+
+import java.util.Optional;
 
 public class LevelSoundEventPacket18 extends Packet18 {
     public static final int NETWORK_ID = ProtocolInfo.LEVEL_SOUND_EVENT_PACKET;
@@ -48,22 +51,4 @@ public class LevelSoundEventPacket18 extends Packet18 {
         return NETWORK_ID;
     }
 
-	@Override
-    public DataPacket fromDefault(DataPacket pk, AbstractProtocol protocol, boolean netease) {
-		ClassUtils.requireInstance(pk, cn.nukkit.network.protocol.LevelSoundEventPacket.class);
-		cn.nukkit.network.protocol.LevelSoundEventPacket packet = (cn.nukkit.network.protocol.LevelSoundEventPacket) pk;
-		this.sound = LevelSoundEventIDTranslator.translateTo14Id(packet.sound);
-		this.x = packet.x;
-		this.y = packet.y;
-		this.z = packet.z;
-		this.extraData = LevelSoundEventIDTranslator.translateTo18ExtraData(this.sound, packet.extraData, packet.pitch, protocol, netease);
-		this.pitch = packet.pitch;
-		this.isBabyMob = packet.isBabyMob;
-		this.isGlobal = packet.isGlobal;
-		return this;
-	}
-
-    public static Class<? extends DataPacket> getDefaultPacket() {
-        return cn.nukkit.network.protocol.LevelSoundEventPacket.class;
-    }
 }

@@ -31,6 +31,7 @@ import cn.nukkit.scheduler.Task;
 import cn.nukkit.utils.*;
 import co.aikar.timings.Timing;
 import co.aikar.timings.TimingsManager;
+import org.itxtech.synapseapi.event.player.SynapsePlayerBroadcastLevelSoundEvent;
 import org.itxtech.synapseapi.event.player.SynapsePlayerConnectEvent;
 import org.itxtech.synapseapi.event.player.SynapsePlayerTransferEvent;
 import org.itxtech.synapseapi.multiprotocol.PacketRegister;
@@ -39,6 +40,7 @@ import org.itxtech.synapseapi.multiprotocol.protocol12.utils.ClientChainData12;
 import org.itxtech.synapseapi.multiprotocol.protocol12.utils.ClientChainData12NetEase;
 import org.itxtech.synapseapi.multiprotocol.protocol12.utils.ClientChainData12Urgency;
 import org.itxtech.synapseapi.multiprotocol.protocol17.protocol.TextPacket17;
+import org.itxtech.synapseapi.multiprotocol.utils.LevelSoundEventEnum;
 import org.itxtech.synapseapi.network.protocol.spp.FastPlayerListPacket;
 import org.itxtech.synapseapi.network.protocol.spp.PlayerLoginPacket;
 import org.itxtech.synapseapi.utils.ClientData;
@@ -893,6 +895,31 @@ public class SynapsePlayer extends Player {
                 }
 
                 break;
+            case ProtocolInfo.LEVEL_SOUND_EVENT_PACKET:
+                LevelSoundEventPacket levelSoundEventPacket = (LevelSoundEventPacket) packet;
+                SynapsePlayerBroadcastLevelSoundEvent event = new SynapsePlayerBroadcastLevelSoundEvent(this,
+                        LevelSoundEventEnum.fromV12(levelSoundEventPacket.sound),
+                        new Vector3(levelSoundEventPacket.x, levelSoundEventPacket.y, levelSoundEventPacket.z),
+                        levelSoundEventPacket.extraData,
+                        levelSoundEventPacket.pitch,
+                        "minecraft:player",
+                        levelSoundEventPacket.isBabyMob,
+                        levelSoundEventPacket.isGlobal);
+                this.getServer().getPluginManager().callEvent(event);
+                if (!event.isCancelled()) {
+                    this.getLevel().getChunkPlayers(this.getFloorX() >> 4, this.getFloorZ() >> 4).values().stream()
+                            .filter(p -> p instanceof SynapsePlayer)
+                            .forEach(p -> ((SynapsePlayer) p).sendLevelSoundEvent(
+                                    event.getLevelSound(),
+                                    event.getPos(),
+                                    event.getExtraData(),
+                                    event.getPitch(),
+                                    event.getEntityIdentifier(),
+                                    event.isBabyMob(),
+                                    event.isGlobal()
+                            ));
+                }
+                break;
             default:
                 //Server.getInstance().getLogger().notice("Received Data Packet: " + packet.getClass().getSimpleName());
                 super.handleDataPacket(packet);
@@ -1034,6 +1061,20 @@ public class SynapsePlayer extends Player {
         pk.entries = entries.stream().toArray(FastPlayerListPacket.Entry[]::new);
 
         this.getSynapseEntry().sendDataPacket(pk);
+    }
+
+    public void sendLevelSoundEvent(LevelSoundEventEnum levelSound, Vector3 pos, int extraData, int pitch, String entityIdentifier, boolean isBabyMob, boolean isGlobal) {
+        if (levelSound == null || levelSound.getV12() == -1) return;
+        LevelSoundEventPacket pk = new LevelSoundEventPacket();
+        pk.sound = levelSound.getV12();
+        pk.x = (float) pos.x;
+        pk.y = (float) pos.y;
+        pk.z = (float) pos.z;
+        pk.extraData = extraData;
+        pk.pitch = pitch;
+        pk.isBabyMob = isBabyMob;
+        pk.isGlobal = isGlobal;
+        this.dataPacket(pk);
     }
 
     /*

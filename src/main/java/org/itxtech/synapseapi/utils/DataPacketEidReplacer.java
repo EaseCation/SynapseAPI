@@ -1,5 +1,8 @@
 package org.itxtech.synapseapi.utils;
 
+import cn.nukkit.entity.Entity;
+import cn.nukkit.entity.data.EntityData;
+import cn.nukkit.entity.data.EntityMetadata;
 import cn.nukkit.network.protocol.*;
 import cn.nukkit.network.protocol.AdventureSettingsPacket;
 import cn.nukkit.network.protocol.AnimatePacket;
@@ -20,6 +23,7 @@ import cn.nukkit.network.protocol.TakeItemEntityPacket;
 import cn.nukkit.network.protocol.UpdateAttributesPacket;
 
 import java.util.Arrays;
+import java.util.Map;
 
 /**
  * DataPacketEidReplacer
@@ -53,7 +57,12 @@ public class DataPacketEidReplacer {
                 break;
             case SetEntityDataPacket.NETWORK_ID:
                 if (((SetEntityDataPacket) packet).eid == from) ((SetEntityDataPacket) packet).eid = to;
-                break;
+                if (((SetEntityDataPacket) packet).metadata.exists(Entity.DATA_OWNER_EID)) {
+                    ((SetEntityDataPacket) packet).metadata = cloneEntityMetadata(((SetEntityDataPacket) packet).metadata);
+                    if (((SetEntityDataPacket) packet).metadata.getLong(Entity.DATA_OWNER_EID) == from) {
+                        ((SetEntityDataPacket) packet).metadata.putLong(Entity.DATA_OWNER_EID, to);
+                    }
+                }                break;
             case UpdateAttributesPacket.NETWORK_ID:
                 if (((UpdateAttributesPacket) packet).entityId == from) ((UpdateAttributesPacket) packet).entityId = to;
                 break;
@@ -91,6 +100,15 @@ public class DataPacketEidReplacer {
                 for (ClientboundMapItemDataPacket.MapTrackedObject object : ((ClientboundMapItemDataPacket) packet).trackedEntities) {
                     if (object.entityUniqueId == from) object.entityUniqueId = to;
                 }
+                break;
+            case AddEntityPacket.NETWORK_ID:
+                if (((AddEntityPacket) packet).metadata.exists(Entity.DATA_OWNER_EID)) {
+                    ((AddEntityPacket) packet).metadata = cloneEntityMetadata(((AddEntityPacket) packet).metadata);
+                    if (((AddEntityPacket) packet).metadata.getLong(Entity.DATA_OWNER_EID) == from) {
+                        ((AddEntityPacket) packet).metadata.putLong(Entity.DATA_OWNER_EID, to);
+                    }
+                }
+                break;
             default:
                 change = false;
         }
@@ -102,7 +120,10 @@ public class DataPacketEidReplacer {
         return packet;
     }
 
-    /*public void replaceMetadata(EntityMetadata data, long from, long to) {
-        if(data.getLong(Entity.DATA_OWNER_EID) == from) data.set
-    }*/
+    private static EntityMetadata cloneEntityMetadata(EntityMetadata metadata) {
+        Map<Integer, EntityData> map = metadata.getMap();
+        EntityMetadata re = new EntityMetadata();
+        map.forEach((i, data) -> re.put(data));
+        return re;
+    }
 }

@@ -1,11 +1,13 @@
 package org.itxtech.synapseapi.multiprotocol.protocol14.protocol;
 
-
 import cn.nukkit.math.Vector3f;
 import cn.nukkit.network.protocol.DataPacket;
 import cn.nukkit.network.protocol.ProtocolInfo;
+import org.itxtech.synapseapi.multiprotocol.utils.LevelSoundEventEnum;
 import org.itxtech.synapseapi.multiprotocol.utils.LevelSoundEventIDTranslator;
 import org.itxtech.synapseapi.utils.ClassUtils;
+
+import java.util.Optional;
 
 public class LevelSoundEventPacket14 extends Packet14 {
     public static final int NETWORK_ID = ProtocolInfo.LEVEL_SOUND_EVENT_PACKET;
@@ -52,11 +54,12 @@ public class LevelSoundEventPacket14 extends Packet14 {
 	public DataPacket fromDefault(DataPacket pk) {
 		ClassUtils.requireInstance(pk, cn.nukkit.network.protocol.LevelSoundEventPacket.class);
 		cn.nukkit.network.protocol.LevelSoundEventPacket packet = (cn.nukkit.network.protocol.LevelSoundEventPacket) pk;
-		this.sound = LevelSoundEventIDTranslator.translateTo14Id(packet.sound);
+		LevelSoundEventEnum sound = LevelSoundEventEnum.fromV12(packet.sound);
+		this.sound = Optional.ofNullable(sound).orElse(LevelSoundEventEnum.SOUND_UNDEFINED).getV14();
 		this.x = packet.x;
 		this.y = packet.y;
 		this.z = packet.z;
-		this.extraData = LevelSoundEventIDTranslator.translateTo14ExtraData(this.sound, packet.extraData);
+		this.extraData = Optional.ofNullable(sound).orElse(LevelSoundEventEnum.SOUND_UNDEFINED).translateTo14ExtraData(packet.extraData);
 		this.pitch = packet.pitch;
 		this.isBabyMob = packet.isBabyMob;
 		this.isGlobal = packet.isGlobal;

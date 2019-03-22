@@ -14,6 +14,7 @@ import cn.nukkit.lang.TranslationContainer;
 import cn.nukkit.level.GameRules;
 import cn.nukkit.level.Level;
 import cn.nukkit.level.Position;
+import cn.nukkit.math.Vector3;
 import cn.nukkit.network.SourceInterface;
 import cn.nukkit.network.protocol.*;
 import cn.nukkit.network.protocol.types.ContainerIds;
@@ -21,9 +22,11 @@ import cn.nukkit.resourcepacks.ResourcePack;
 import cn.nukkit.utils.MainLogger;
 import cn.nukkit.utils.TextFormat;
 import org.itxtech.synapseapi.event.player.SynapsePlayerConnectEvent;
+import org.itxtech.synapseapi.multiprotocol.AbstractProtocol;
 import org.itxtech.synapseapi.multiprotocol.PacketRegister;
 import org.itxtech.synapseapi.multiprotocol.protocol14.protocol.*;
 import org.itxtech.synapseapi.multiprotocol.protocol16.protocol.*;
+import org.itxtech.synapseapi.multiprotocol.utils.LevelSoundEventEnum;
 import org.itxtech.synapseapi.network.protocol.spp.PlayerLoginPacket;
 
 import java.util.zip.Deflater;
@@ -299,6 +302,19 @@ public class SynapsePlayer16 extends SynapsePlayer14 {
 		}
 	}
 
-
+	@Override
+	public void sendLevelSoundEvent(LevelSoundEventEnum levelSound, Vector3 pos, int extraData, int pitch, String entityIdentifier, boolean isBabyMob, boolean isGlobal) {
+		if (levelSound == null || levelSound.getV14() == -1) return;
+		LevelSoundEventPacket pk = new LevelSoundEventPacket();
+		pk.sound = levelSound.getV14();
+		pk.x = (float) pos.x;
+		pk.y = (float) pos.y;
+		pk.z = (float) pos.z;
+		pk.extraData = levelSound.translateTo16ExtraData(extraData, AbstractProtocol.fromRealProtocol(this.protocol), this.isNetEaseClient);
+		pk.pitch = pitch;
+		pk.isBabyMob = isBabyMob;
+		pk.isGlobal = isGlobal;
+		this.dataPacket(pk);
+	}
 
 }

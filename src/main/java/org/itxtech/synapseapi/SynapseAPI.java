@@ -8,13 +8,18 @@ import cn.nukkit.event.server.BatchPacketsEvent;
 import cn.nukkit.network.RakNetInterface;
 import cn.nukkit.network.SourceInterface;
 import cn.nukkit.network.protocol.DataPacket;
+import cn.nukkit.network.protocol.LevelSoundEventPacket;
 import org.itxtech.synapseapi.multiprotocol.PacketRegister;
 import cn.nukkit.plugin.PluginBase;
 import cn.nukkit.utils.ConfigSection;
 import org.itxtech.synapseapi.messaging.Messenger;
 import org.itxtech.synapseapi.messaging.StandardMessenger;
+import org.itxtech.synapseapi.multiprotocol.protocol19.protocol.LevelSoundEventPacketV319;
+import org.itxtech.synapseapi.multiprotocol.utils.LevelSoundEventIDTranslator;
 import org.itxtech.synapseapi.runnable.TransferDimensionTaskThread;
 
+import java.lang.reflect.Field;
+import java.lang.reflect.Modifier;
 import java.util.*;
 import java.util.Map.Entry;
 
@@ -65,6 +70,58 @@ public class SynapseAPI extends PluginBase implements Listener {
 
         this.transferDimensionTaskThread = new TransferDimensionTaskThread();
         this.transferDimensionTaskThread.start();
+
+        /*
+        Map<String, int[]> data = new LinkedHashMap<>();
+
+        Field[] fields = LevelSoundEventPacketV319.class.getDeclaredFields();
+        LevelSoundEventPacketV319 pk = new LevelSoundEventPacketV319();
+        for (Field field : fields) {
+            try {
+                if (Modifier.isStatic(field.getModifiers())) {
+                    if (field.getName().startsWith("SOUND_")) {
+                        if (!data.containsKey(field.getName())) data.put(field.getName(), new int[]{-1, -1, -1});
+                        data.get(field.getName())[2] = (int) field.get(pk);
+                    }
+                }
+            } catch (Exception e) {
+                //ignore
+            }
+        }
+        Field[] fields1 = LevelSoundEventPacket.class.getDeclaredFields();
+        LevelSoundEventPacket pk1 = new LevelSoundEventPacket();
+        for (Field field : fields1) {
+            try {
+                if (Modifier.isStatic(field.getModifiers())) {
+                    if (field.getName().startsWith("SOUND_")) {
+                        if (!data.containsKey(field.getName())) data.put(field.getName(), new int[]{-1, -1, -1});
+                        data.get(field.getName())[0] = (int) field.get(pk1);
+                    }
+                }
+            } catch (Exception e) {
+                //ignore
+            }
+        }
+
+        Field[] fields2 = LevelSoundEventIDTranslator.class.getDeclaredFields();
+        LevelSoundEventIDTranslator pk2 = new LevelSoundEventIDTranslator();
+        for (Field field : fields2) {
+            try {
+                if (Modifier.isStatic(field.getModifiers())) {
+                    if (field.getName().startsWith("SOUND_")) {
+                        if (!data.containsKey(field.getName())) data.put(field.getName(), new int[]{-1, -1, -1});
+                        data.get(field.getName())[1] = (int) field.get(pk2);
+                    }
+                }
+            } catch (Exception e) {
+                //ignore
+            }
+        }
+
+        data.forEach((n, v) -> {
+            System.out.println(n + "(" + v[0] + ", " +  v[1] + ", " + v[2] + "),");
+        });*/
+
     }
 
     public TransferDimensionTaskThread getTransferDimensionTaskThread() {

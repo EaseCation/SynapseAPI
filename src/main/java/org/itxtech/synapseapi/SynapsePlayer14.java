@@ -16,6 +16,7 @@ import cn.nukkit.network.protocol.*;
 import cn.nukkit.resourcepacks.ResourcePack;
 import cn.nukkit.utils.DummyBossBar;
 import cn.nukkit.utils.MainLogger;
+import org.itxtech.synapseapi.event.player.SynapsePlayerBroadcastLevelSoundEvent;
 import org.itxtech.synapseapi.event.player.SynapsePlayerConnectEvent;
 import org.itxtech.synapseapi.multiprotocol.PacketRegister;
 import org.itxtech.synapseapi.multiprotocol.protocol12.utils.ClientChainData12;
@@ -30,6 +31,7 @@ import cn.nukkit.level.Position;
 import cn.nukkit.network.SourceInterface;
 import cn.nukkit.utils.Binary;
 import cn.nukkit.utils.TextFormat;
+import org.itxtech.synapseapi.multiprotocol.utils.LevelSoundEventEnum;
 import org.itxtech.synapseapi.network.protocol.spp.PlayerLoginPacket;
 
 public class SynapsePlayer14 extends SynapsePlayer {
@@ -379,6 +381,31 @@ public class SynapsePlayer14 extends SynapsePlayer {
                     this.chat(textPacket.message);
                 }
                 break;
+			case ProtocolInfo.LEVEL_SOUND_EVENT_PACKET:
+				LevelSoundEventPacket levelSoundEventPacket = (LevelSoundEventPacket) packet;
+				SynapsePlayerBroadcastLevelSoundEvent event = new SynapsePlayerBroadcastLevelSoundEvent(this,
+						LevelSoundEventEnum.fromV14(levelSoundEventPacket.sound),
+						new Vector3(levelSoundEventPacket.x, levelSoundEventPacket.y, levelSoundEventPacket.z),
+						levelSoundEventPacket.extraData,
+						levelSoundEventPacket.pitch,
+						"minecraft:player",
+						levelSoundEventPacket.isBabyMob,
+						levelSoundEventPacket.isGlobal);
+				this.getServer().getPluginManager().callEvent(event);
+				if (!event.isCancelled()) {
+					this.getLevel().getChunkPlayers(this.getFloorX() >> 4, this.getFloorZ() >> 4).values().stream()
+							.filter(p -> p instanceof SynapsePlayer)
+							.forEach(p -> ((SynapsePlayer) p).sendLevelSoundEvent(
+									event.getLevelSound(),
+									event.getPos(),
+									event.getExtraData(),
+									event.getPitch(),
+									event.getEntityIdentifier(),
+									event.isBabyMob(),
+									event.isGlobal()
+							));
+				}
+				break;
 			default:
 				super.handleDataPacket(packet);
 		}
@@ -530,5 +557,20 @@ public class SynapsePlayer14 extends SynapsePlayer {
             sendPosition(getPosition(), yaw, pitch, MovePlayerPacket.MODE_RESET);
         }, 20);
     }
+
+    @Override
+	public void sendLevelSoundEvent(LevelSoundEventEnum levelSound, Vector3 pos, int extraData, int pitch, String entityIdentifier, boolean isBabyMob, boolean isGlobal) {
+		if (levelSound == null || levelSound.getV14() == -1) return;
+		LevelSoundEventPacket pk = new LevelSoundEventPacket();
+		pk.sound = levelSound.getV14();
+		pk.x = (float) pos.x;
+		pk.y = (float) pos.y;
+		pk.z = (float) pos.z;
+		pk.extraData = levelSound.translateTo14ExtraData(extraData);
+		pk.pitch = pitch;
+		pk.isBabyMob = isBabyMob;
+		pk.isGlobal = isGlobal;
+		this.dataPacket(pk);
+	}
 
 }
