@@ -62,7 +62,8 @@ public class DataPacketEidReplacer {
                     if (((SetEntityDataPacket) packet).metadata.getLong(Entity.DATA_OWNER_EID) == from) {
                         ((SetEntityDataPacket) packet).metadata.putLong(Entity.DATA_OWNER_EID, to);
                     }
-                }                break;
+                }
+                break;
             case UpdateAttributesPacket.NETWORK_ID:
                 if (((UpdateAttributesPacket) packet).entityId == from) ((UpdateAttributesPacket) packet).entityId = to;
                 break;
@@ -113,7 +114,7 @@ public class DataPacketEidReplacer {
                 change = false;
         }
 
-        if(change) {
+        if (change) {
             packet.isEncoded = false;
         }
 

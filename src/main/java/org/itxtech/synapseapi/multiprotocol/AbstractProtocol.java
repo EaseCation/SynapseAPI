@@ -5,6 +5,7 @@ import cn.nukkit.network.protocol.BatchPacket;
 import cn.nukkit.network.protocol.DataPacket;
 import cn.nukkit.utils.BinaryStream;
 import org.itxtech.synapseapi.*;
+import org.itxtech.synapseapi.multiprotocol.protocol110.protocol.Packet110;
 import org.itxtech.synapseapi.multiprotocol.protocol14.protocol.Packet14;
 import org.itxtech.synapseapi.multiprotocol.protocol15.protocol.Packet15;
 import org.itxtech.synapseapi.multiprotocol.protocol16.protocol.Packet16;
@@ -29,7 +30,8 @@ public enum AbstractProtocol {
     PROTOCOL_16(282, Packet16.class, SynapsePlayer16.class),
     PROTOCOL_17(290, Packet17.class, SynapsePlayer17.class),
     PROTOCOL_18(312, Packet18.class, SynapsePlayer18.class),
-    PROTOCOL_19(332, Packet19.class, SynapsePlayer19.class);
+    PROTOCOL_19(332, Packet19.class, SynapsePlayer19.class),
+    PROTOCOL_110(340, Packet110.class, SynapsePlayer19.class);
 
     private final int protocolStart;
     private final Class<? extends DataPacket> packetClass;
@@ -76,18 +78,12 @@ public enum AbstractProtocol {
         if (this == PROTOCOL_11) return null;
         BinaryStream stream = new BinaryStream(data);
         try {
-            switch (this) {
-                case PROTOCOL_12:
-                case PROTOCOL_14:
-                case PROTOCOL_15:
-                    int pid = (int) stream.getUnsignedVarInt();
-                    return new PacketHeadData(pid, 3);
-                case PROTOCOL_16:
-                case PROTOCOL_17:
-                case PROTOCOL_18:
-                case PROTOCOL_19:
-                    int pid1 = (int) stream.getUnsignedVarInt();
-                    return new PacketHeadData(pid1, stream.offset);
+            if (this.ordinal() <= PROTOCOL_15.ordinal()) {
+                int pid = (int) stream.getUnsignedVarInt();
+                return new PacketHeadData(pid, 3);
+            } else {
+                int pid1 = (int) stream.getUnsignedVarInt();
+                return new PacketHeadData(pid1, stream.offset);
             }
         } catch (Exception e) {
             Server.getInstance().getLogger().logException(e);

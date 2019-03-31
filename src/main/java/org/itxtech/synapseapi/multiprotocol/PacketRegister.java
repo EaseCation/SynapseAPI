@@ -5,6 +5,10 @@ import cn.nukkit.network.protocol.*;
 import cn.nukkit.network.protocol.BatchPacket;
 import cn.nukkit.utils.BinaryStream;
 import cn.nukkit.utils.MainLogger;
+import org.itxtech.synapseapi.multiprotocol.protocol110.protocol.AvailableCommandsPacket110;
+import org.itxtech.synapseapi.multiprotocol.protocol110.protocol.LecternUpdatePacket110;
+import org.itxtech.synapseapi.multiprotocol.protocol110.protocol.Packet110;
+import org.itxtech.synapseapi.multiprotocol.protocol110.protocol.VideoStringConnectPacket110;
 import org.itxtech.synapseapi.multiprotocol.protocol15.protocol.AddEntityPacket15;
 import org.itxtech.synapseapi.multiprotocol.protocol15.protocol.ClientboundMapItemDataPacket15;
 import org.itxtech.synapseapi.multiprotocol.protocol15.protocol.MoveEntityAbsolutePacket15;
@@ -100,6 +104,9 @@ public class PacketRegister {
         registerPacket(AbstractProtocol.PROTOCOL_19, ProtocolInfo.NETWORK_STACK_LATENCY_PACKET, NetworkStackLatencyPacket19.class);
         registerPacket(AbstractProtocol.PROTOCOL_19, ProtocolInfo.LEVEL_SOUND_EVENT_PACKET_V3, LevelSoundEventPacketV319.class);
 
+        registerPacket(AbstractProtocol.PROTOCOL_110, ProtocolInfo.AVAILABLE_COMMANDS_PACKET, AvailableCommandsPacket110.class);
+        registerPacket(AbstractProtocol.PROTOCOL_110, ProtocolInfo.LECTERN_UPDATE_PACKET, LecternUpdatePacket110.class);
+        registerPacket(AbstractProtocol.PROTOCOL_110, ProtocolInfo.VIDEO_STREAM_CONNECT_PACKET, VideoStringConnectPacket110.class);
         checkNeteaseSpecialExtend();
     }
 
@@ -168,6 +175,8 @@ public class PacketRegister {
                 Class<? extends DataPacket> clazz = packetPool.get(ptl)[id];
                 if (clazz != null) {
                     return clazz.newInstance();
+                } else if (ptl == AbstractProtocol.PROTOCOL_110) {
+                    return getPacket(id, 332); //按照1.9匹配
                 } else if (ptl == AbstractProtocol.PROTOCOL_19) {
                     return getPacket(id, 312); //按照1.8匹配
                 } else if (ptl == AbstractProtocol.PROTOCOL_18) {
@@ -267,7 +276,7 @@ public class PacketRegister {
      * @return 检查，兼容后的数据包
      */
     private static DataPacket check16ProtocolCompatible(DataPacket packet, AbstractProtocol endpointProtocol) {
-        if ((endpointProtocol.ordinal() >= AbstractProtocol.PROTOCOL_16.ordinal() && !(packet instanceof Packet16) && !(packet instanceof Packet17) && !(packet instanceof Packet18) && !(packet instanceof Packet19))) {
+        if ((endpointProtocol.ordinal() >= AbstractProtocol.PROTOCOL_16.ordinal() && !(packet instanceof Packet16) && !(packet instanceof Packet17) && !(packet instanceof Packet18) && !(packet instanceof Packet19) && !(packet instanceof Packet110))) {
             CompatibilityPacket16 cp = new CompatibilityPacket16();
             cp.origin = packet;
             return cp;

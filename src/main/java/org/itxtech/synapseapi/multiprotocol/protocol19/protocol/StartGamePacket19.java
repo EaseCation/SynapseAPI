@@ -73,6 +73,8 @@ public class StartGamePacket19 extends Packet19 {
 	public int enchantmentSeed;
 	public String multiplayerCorrelationId = ""; //TODO: this should be filled with a UUID of some sort
 
+	public byte[] blockPalette = null;
+
 	@Override
 	public void decode() {
 
@@ -124,7 +126,7 @@ public class StartGamePacket19 extends Packet19 {
 		this.putBoolean(this.isTrial);
 		this.putLLong(this.currentTick);
 		this.putVarInt(this.enchantmentSeed);
-		this.put(AdvancedGlobalBlockPalette.getCompiledTable(AbstractProtocol.PROTOCOL_19, netease));
+		this.put(blockPalette == null ? AdvancedGlobalBlockPalette.getCompiledTable(AbstractProtocol.PROTOCOL_19, netease) : blockPalette);
 		this.putString(this.multiplayerCorrelationId);
 	}
 

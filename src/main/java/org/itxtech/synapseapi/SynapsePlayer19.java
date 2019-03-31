@@ -18,6 +18,7 @@ import org.itxtech.synapseapi.multiprotocol.protocol18.protocol.ResourcePackStac
 import org.itxtech.synapseapi.multiprotocol.protocol19.protocol.LevelSoundEventPacketV319;
 import org.itxtech.synapseapi.multiprotocol.protocol19.protocol.ResourcePacksInfoPacket19;
 import org.itxtech.synapseapi.multiprotocol.protocol19.protocol.StartGamePacket19;
+import org.itxtech.synapseapi.multiprotocol.utils.AdvancedGlobalBlockPalette;
 import org.itxtech.synapseapi.multiprotocol.utils.LevelSoundEventEnum;
 
 public class SynapsePlayer19 extends SynapsePlayer18 {
@@ -94,6 +95,7 @@ public class SynapsePlayer19 extends SynapsePlayer18 {
 		startGamePacket.worldName = this.getServer().getNetwork().getName();
 		startGamePacket.generator = 1; // 0 old, 1 infinite, 2 flat
 		startGamePacket.gameRules = getSupportedRules();
+		startGamePacket.blockPalette = AdvancedGlobalBlockPalette.getCompiledTable(AbstractProtocol.fromRealProtocol(this.protocol), this.isNetEaseClient());
 		return startGamePacket;
 	}
 
