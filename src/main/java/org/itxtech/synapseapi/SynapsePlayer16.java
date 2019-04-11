@@ -21,6 +21,7 @@ import cn.nukkit.network.protocol.types.ContainerIds;
 import cn.nukkit.resourcepacks.ResourcePack;
 import cn.nukkit.utils.MainLogger;
 import cn.nukkit.utils.TextFormat;
+import org.itxtech.synapseapi.event.player.SynapsePlayerBroadcastLevelSoundEvent;
 import org.itxtech.synapseapi.event.player.SynapsePlayerConnectEvent;
 import org.itxtech.synapseapi.multiprotocol.AbstractProtocol;
 import org.itxtech.synapseapi.multiprotocol.PacketRegister;
@@ -126,6 +127,31 @@ public class SynapsePlayer16 extends SynapsePlayer14 {
 					case ResourcePackClientResponsePacket.STATUS_COMPLETED:
 						this.completeLoginSequence();
 						break;
+				}
+				break;
+			case ProtocolInfo.LEVEL_SOUND_EVENT_PACKET:
+				LevelSoundEventPacket16 levelSoundEventPacket = (LevelSoundEventPacket16) packet;
+				SynapsePlayerBroadcastLevelSoundEvent event = new SynapsePlayerBroadcastLevelSoundEvent(this,
+						LevelSoundEventEnum.fromV14(levelSoundEventPacket.sound),
+						new Vector3(levelSoundEventPacket.x, levelSoundEventPacket.y, levelSoundEventPacket.z),
+						levelSoundEventPacket.extraData,
+						levelSoundEventPacket.pitch,
+						"minecraft:player",
+						levelSoundEventPacket.isBabyMob,
+						levelSoundEventPacket.isGlobal);
+				this.getServer().getPluginManager().callEvent(event);
+				if (!event.isCancelled()) {
+					this.getLevel().getChunkPlayers(this.getFloorX() >> 4, this.getFloorZ() >> 4).values().stream()
+							.filter(p -> p instanceof SynapsePlayer)
+							.forEach(p -> ((SynapsePlayer) p).sendLevelSoundEvent(
+									event.getLevelSound(),
+									event.getPos(),
+									event.getExtraData(),
+									event.getPitch(),
+									event.getEntityIdentifier(),
+									event.isBabyMob(),
+									event.isGlobal()
+							));
 				}
 				break;
 			default:

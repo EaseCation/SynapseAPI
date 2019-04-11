@@ -2,7 +2,7 @@ package org.itxtech.synapseapi.multiprotocol.protocol110.protocol;
 
 import cn.nukkit.network.protocol.ProtocolInfo;
 
-public class VideoStringConnectPacket110 extends Packet110 {
+public class VideoStreamConnectPacket110 extends Packet110 {
 
     public static final byte NETWORK_ID = ProtocolInfo.VIDEO_STREAM_CONNECT_PACKET;
 
@@ -24,6 +24,7 @@ public class VideoStringConnectPacket110 extends Packet110 {
 
     @Override
     public void encode() {
+        this.reset();
         this.putString(address);
         this.putLFloat(screenshotFrequency);
         this.putByte(action);

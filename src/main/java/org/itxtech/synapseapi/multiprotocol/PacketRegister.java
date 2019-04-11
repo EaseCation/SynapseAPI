@@ -8,7 +8,7 @@ import cn.nukkit.utils.MainLogger;
 import org.itxtech.synapseapi.multiprotocol.protocol110.protocol.AvailableCommandsPacket110;
 import org.itxtech.synapseapi.multiprotocol.protocol110.protocol.LecternUpdatePacket110;
 import org.itxtech.synapseapi.multiprotocol.protocol110.protocol.Packet110;
-import org.itxtech.synapseapi.multiprotocol.protocol110.protocol.VideoStringConnectPacket110;
+import org.itxtech.synapseapi.multiprotocol.protocol110.protocol.VideoStreamConnectPacket110;
 import org.itxtech.synapseapi.multiprotocol.protocol15.protocol.AddEntityPacket15;
 import org.itxtech.synapseapi.multiprotocol.protocol15.protocol.ClientboundMapItemDataPacket15;
 import org.itxtech.synapseapi.multiprotocol.protocol15.protocol.MoveEntityAbsolutePacket15;
@@ -106,7 +106,7 @@ public class PacketRegister {
 
         registerPacket(AbstractProtocol.PROTOCOL_110, ProtocolInfo.AVAILABLE_COMMANDS_PACKET, AvailableCommandsPacket110.class);
         registerPacket(AbstractProtocol.PROTOCOL_110, ProtocolInfo.LECTERN_UPDATE_PACKET, LecternUpdatePacket110.class);
-        registerPacket(AbstractProtocol.PROTOCOL_110, ProtocolInfo.VIDEO_STREAM_CONNECT_PACKET, VideoStringConnectPacket110.class);
+        registerPacket(AbstractProtocol.PROTOCOL_110, ProtocolInfo.VIDEO_STREAM_CONNECT_PACKET, VideoStreamConnectPacket110.class);
         checkNeteaseSpecialExtend();
     }
 
