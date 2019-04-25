@@ -208,11 +208,15 @@ public class SynapseEntryPutPacketThread extends Thread {
                         }
 
                         needPackets.forEach((protocol, packets) -> {
-                            DataPacket packet = PacketRegister.getCompatiblePacket(targetPk, protocol, false);
-                            DataPacket neteaseVersion = (haveNetEasePlayer && PacketRegister.isNetEaseSpecial(protocol, targetPk.pid())) ? PacketRegister.getCompatiblePacket(targetPk, protocol, true) : null;
-                            //System.out.println("packet: "+packet.getClass().getName());
-                            if (neteaseVersion != null) haveNetEasePacket[0] = true;
-                            if (packet != null) packets.add(new BatchPacketEntry(packet, neteaseVersion));
+                            try {
+                                DataPacket packet = PacketRegister.getCompatiblePacket(targetPk, protocol, false);
+                                DataPacket neteaseVersion = (haveNetEasePlayer && PacketRegister.isNetEaseSpecial(protocol, targetPk.pid())) ? PacketRegister.getCompatiblePacket(targetPk, protocol, true) : null;
+                                //System.out.println("packet: "+packet.getClass().getName());
+                                if (neteaseVersion != null) haveNetEasePacket[0] = true;
+                                if (packet != null) packets.add(new BatchPacketEntry(packet, neteaseVersion));
+                            } catch (Exception e) {
+                                MainLogger.getLogger().logException(e);
+                            }
                         });
                     }
 
