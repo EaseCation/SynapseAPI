@@ -7,7 +7,8 @@ import cn.nukkit.entity.Entity;
 
 public class EntityDataItemIDTranslator {
 
-	public final static Map<Integer, Integer> v12ToV14Book;
+	public final static Map<Integer, Integer> v12ToV14Book = new HashMap<>();
+	public final static Map<Integer, Integer> v12ToV111Book = new HashMap<>();
 
 	public final static int FLAGS = 0;
 	public final static int STRUCTURAL_INTEGRITY = 1;
@@ -95,9 +96,58 @@ public class EntityDataItemIDTranslator {
 	public final static int SCORE = 83;
 	public final static int BALLOON_ANCHOR = 84;
 	public final static int PUFFED_STATE = 85;
-	
+
+	public static final int V111_SKIN_ID = 40; // int ???
+	public static final int V111_NPC_SKIN_ID = 41; //string
+	public static final int V111_URL_TAG = 42; //string
+	public static final int V111_MAX_AIR = 43; //short
+	public static final int V111_MARK_VARIANT = 44; //int
+	public static final int V111_CONTAINER_TYPE = 45; //byte
+	public static final int V111_CONTAINER_BASE_SIZE = 46; //int
+	public static final int V111_CONTAINER_EXTRA_SLOTS_PER_STRENGTH = 47; //int
+	public static final int V111_BLOCK_TARGET = 48; //block coords (ender crystal)
+	public static final int V111_WITHER_INVULNERABLE_TICKS = 49; //int
+	public static final int V111_WITHER_TARGET_1 = 50; //long
+	public static final int V111_WITHER_TARGET_2 = 51; //long
+	public static final int V111_WITHER_TARGET_3 = 52; //long
+	/* 53 (short) */
+	public static final int V111_BOUNDING_BOX_WIDTH = 54; //float
+	public static final int V111_BOUNDING_BOX_HEIGHT = 55; //float
+	public static final int V111_FUSE_LENGTH = 56; //int
+	public static final int V111_RIDER_SEAT_POSITION = 57; //vector3f
+	public static final int V111_RIDER_ROTATION_LOCKED = 58; //byte
+	public static final int V111_RIDER_MAX_ROTATION = 59; //float
+	public static final int V111_RIDER_MIN_ROTATION = 60; //float
+	public static final int V111_AREA_EFFECT_CLOUD_RADIUS = 61; //float
+	public static final int V111_AREA_EFFECT_CLOUD_WAITING = 62; //int
+	public static final int V111_AREA_EFFECT_CLOUD_PARTICLE_ID = 63; //int
+	/* 64 (int) shulker-related */
+	public static final int V111_SHULKER_ATTACH_FACE = 65; //byte
+	/* 66 (short) shulker-related */
+	public static final int V111_SHULKER_ATTACH_POS = 67; //block coords
+	public static final int V111_TRADING_PLAYER_EID = 68; //long
+
+	/* 70 (byte) command-block */
+	public static final int V111_COMMAND_BLOCK_COMMAND = 71; //string
+	public static final int V111_COMMAND_BLOCK_LAST_OUTPUT = 72; //string
+	public static final int V111_COMMAND_BLOCK_TRACK_OUTPUT = 73; //byte
+	public static final int V111_CONTROLLING_RIDER_SEAT_NUMBER = 74; //byte
+	public static final int V111_STRENGTH = 75; //int
+	public static final int V111_MAX_STRENGTH = 76; //int
+	// 77 (int)
+	public static final int V111_LIMITED_LIFE = 78;
+	public static final int V111_ARMOR_STAND_POSE_INDEX = 79; // int
+	public static final int V111_ENDER_CRYSTAL_TIME_OFFSET = 80; // int
+	public static final int V111_ALWAYS_SHOW_NAMETAG = 81; // byte
+	public static final int V111_COLOR_2 = 82; // byte
+	// 83 unknown
+	public static final int V111_SCORE_TAG = 84; //String
+	public static final int V111_BALLOON_ATTACHED_ENTITY = 85; // long
+	public static final int V111_PUFFERFISH_SIZE = 86;
+
+	public static final int V111_FLAGS_EXTENDED = 92;
+
 	static {
-		v12ToV14Book = new HashMap<>();
 		v12ToV14Book.put(Entity.DATA_FLAGS, FLAGS);
 		v12ToV14Book.put(Entity.DATA_HEALTH, STRUCTURAL_INTEGRITY);
 		v12ToV14Book.put(Entity.DATA_VARIANT, VARIANT);
@@ -160,9 +210,45 @@ public class EntityDataItemIDTranslator {
 		v12ToV14Book.put(Entity.DATA_STRENGTH, STRENGTH );
 		v12ToV14Book.put(Entity.DATA_MAX_STRENGTH, STRENGTH_MAX );
 		v12ToV14Book.put(Entity.DATA_ALWAYS_SHOW_NAMETAG, NAMETAG_ALWAYS_SHOW );
+
+		v12ToV14Book.forEach((from, to) -> {
+			if (to < 40) v12ToV111Book.put(from, to);
+		});
+		v12ToV111Book.put(Entity.DATA_NPC_SKIN_ID, V111_SKIN_ID );
+		v12ToV111Book.put(Entity.DATA_MAX_AIR, V111_MAX_AIR );
+		v12ToV111Book.put(Entity.DATA_MARK_VARIANT, V111_MARK_VARIANT );
+		v12ToV111Book.put(Entity.DATA_BLOCK_TARGET, V111_BLOCK_TARGET );
+		v12ToV111Book.put(Entity.DATA_WITHER_INVULNERABLE_TICKS, V111_WITHER_INVULNERABLE_TICKS );
+		v12ToV111Book.put(Entity.DATA_WITHER_TARGET_1, V111_WITHER_TARGET_1 );
+		v12ToV111Book.put(Entity.DATA_WITHER_TARGET_2, V111_WITHER_TARGET_1 );
+		v12ToV111Book.put(Entity.DATA_WITHER_TARGET_3, V111_WITHER_TARGET_1 );
+		v12ToV111Book.put(Entity.DATA_BOUNDING_BOX_WIDTH, V111_BOUNDING_BOX_WIDTH);
+		v12ToV111Book.put(Entity.DATA_BOUNDING_BOX_HEIGHT, V111_BOUNDING_BOX_HEIGHT);
+		v12ToV111Book.put(Entity.DATA_FUSE_LENGTH, V111_FUSE_LENGTH);
+		v12ToV111Book.put(Entity.DATA_RIDER_SEAT_POSITION, V111_RIDER_SEAT_POSITION);
+		v12ToV111Book.put(Entity.DATA_RIDER_ROTATION_LOCKED, V111_RIDER_ROTATION_LOCKED);
+		v12ToV111Book.put(Entity.DATA_SEAT_LOCK_RIDER_ROTATION_DEGREES, V111_RIDER_MAX_ROTATION);
+		v12ToV111Book.put(Entity.DATA_SEAT_ROTATION_OFFSET, V111_RIDER_MIN_ROTATION);
+		v12ToV111Book.put(Entity.DATA_AREA_EFFECT_CLOUD_RADIUS, V111_AREA_EFFECT_CLOUD_RADIUS);
+		v12ToV111Book.put(Entity.DATA_AREA_EFFECT_CLOUD_WAITING, V111_AREA_EFFECT_CLOUD_WAITING);
+		v12ToV111Book.put(Entity.DATA_AREA_EFFECT_CLOUD_PARTICLE_ID, V111_AREA_EFFECT_CLOUD_PARTICLE_ID);;
+		v12ToV111Book.put(Entity.DATA_SHULKER_ATTACH_FACE, V111_SHULKER_ATTACH_FACE);
+		v12ToV111Book.put(Entity.DATA_SHULKER_ATTACH_POS, V111_SHULKER_ATTACH_POS);
+		v12ToV111Book.put(Entity.DATA_TRADING_PLAYER_EID, V111_TRADING_PLAYER_EID);
+		v12ToV111Book.put(Entity.DATA_COMMAND_BLOCK_COMMAND, V111_COMMAND_BLOCK_COMMAND);
+		v12ToV111Book.put(Entity.DATA_COMMAND_BLOCK_LAST_OUTPUT, V111_COMMAND_BLOCK_LAST_OUTPUT);
+		v12ToV111Book.put(Entity.DATA_COMMAND_BLOCK_TRACK_OUTPUT, V111_COMMAND_BLOCK_TRACK_OUTPUT);
+		v12ToV111Book.put(Entity.DATA_CONTROLLING_RIDER_SEAT_NUMBER, V111_CONTROLLING_RIDER_SEAT_NUMBER);
+		v12ToV111Book.put(Entity.DATA_STRENGTH, V111_STRENGTH);
+		v12ToV111Book.put(Entity.DATA_MAX_STRENGTH, V111_MAX_STRENGTH);
+		v12ToV111Book.put(Entity.DATA_ALWAYS_SHOW_NAMETAG, V111_ALWAYS_SHOW_NAMETAG);
 	}
 	
 	public static Integer translateTo14Id(int v12Id) {
 		return v12ToV14Book.get(v12Id);
+	}
+
+	public static Integer translateTo111Id(int v12Id) {
+		return v12ToV111Book.get(v12Id);
 	}
 }

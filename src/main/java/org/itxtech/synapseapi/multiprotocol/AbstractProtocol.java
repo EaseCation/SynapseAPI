@@ -6,6 +6,7 @@ import cn.nukkit.network.protocol.DataPacket;
 import cn.nukkit.utils.BinaryStream;
 import org.itxtech.synapseapi.*;
 import org.itxtech.synapseapi.multiprotocol.protocol110.protocol.Packet110;
+import org.itxtech.synapseapi.multiprotocol.protocol111.protocol.Packet111;
 import org.itxtech.synapseapi.multiprotocol.protocol14.protocol.Packet14;
 import org.itxtech.synapseapi.multiprotocol.protocol15.protocol.Packet15;
 import org.itxtech.synapseapi.multiprotocol.protocol16.protocol.Packet16;
@@ -31,7 +32,8 @@ public enum AbstractProtocol {
     PROTOCOL_17(290, Packet17.class, SynapsePlayer17.class),
     PROTOCOL_18(312, Packet18.class, SynapsePlayer18.class),
     PROTOCOL_19(332, Packet19.class, SynapsePlayer19.class),
-    PROTOCOL_110(340, Packet110.class, SynapsePlayer19.class);
+    PROTOCOL_110(340, Packet110.class, SynapsePlayer19.class),
+    PROTOCOL_111(354, Packet111.class, SynapsePlayer19.class);
 
     private final int protocolStart;
     private final Class<? extends DataPacket> packetClass;

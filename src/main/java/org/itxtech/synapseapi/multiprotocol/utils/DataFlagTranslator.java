@@ -6,8 +6,8 @@ import java.util.Map;
 import cn.nukkit.entity.Entity;
 
 public class DataFlagTranslator {
-	public final static Map<Integer, Integer> v12ToV14Book = new HashMap<>();;
-	public final static Map<Integer, Integer> v12ToV17Book = new HashMap<>();;
+	public final static Map<Integer, Integer> v12ToV14Book = new HashMap<>();
+	public final static Map<Integer, Integer> v12ToV17Book = new HashMap<>();
 
 	public static final int ONFIRE = 0;
 	public static final int SNEAKING = 1;
