@@ -39,6 +39,7 @@ import org.itxtech.synapseapi.multiprotocol.protocol12.protocol.LoginPacket;
 import org.itxtech.synapseapi.multiprotocol.protocol12.utils.ClientChainData12;
 import org.itxtech.synapseapi.multiprotocol.protocol12.utils.ClientChainData12NetEase;
 import org.itxtech.synapseapi.multiprotocol.protocol12.utils.ClientChainData12Urgency;
+import org.itxtech.synapseapi.multiprotocol.protocol14.protocol.TextPacket14;
 import org.itxtech.synapseapi.multiprotocol.protocol17.protocol.TextPacket17;
 import org.itxtech.synapseapi.multiprotocol.utils.LevelSoundEventEnum;
 import org.itxtech.synapseapi.network.protocol.spp.FastPlayerListPacket;
@@ -1007,23 +1008,29 @@ public class SynapsePlayer extends Player {
         //this.server.getLogger().warning("Send to player: " + Binary.bytesToHexString(new byte[]{packet.getBuffer()[0]}) + "  len: " + packet.getBuffer().length);
         if (this.cleanTextColor) {
             if (packet.pid() == ProtocolInfo.TEXT_PACKET) {
+                packet = packet.clone();
                 if (packet instanceof TextPacket) {
                     ((TextPacket) packet).message = TextFormat.clean(((TextPacket) packet).message);
+                } else if (packet instanceof TextPacket14) {
+                    ((TextPacket14) packet).message = TextFormat.clean(((TextPacket14) packet).message);
                 } else if (packet instanceof TextPacket17) {
                     ((TextPacket17) packet).message = TextFormat.clean(((TextPacket17) packet).message);
                 }
             } else if (packet.pid() == ProtocolInfo.ADD_PLAYER_PACKET && packet instanceof AddPlayerPacket) {
+                packet = packet.clone();
                 ((AddPlayerPacket) packet).username = TextFormat.clean(((AddPlayerPacket) packet).username);
                 if (((AddPlayerPacket) packet).metadata.getMap().containsKey(Entity.DATA_NAMETAG)) {
                     StringEntityData data = (StringEntityData) ((AddPlayerPacket) packet).metadata.get(Entity.DATA_NAMETAG);
                     if (data != null) data.setData(TextFormat.clean(data.getData()));
                 }
             } else if (packet.pid() == ProtocolInfo.SET_ENTITY_DATA_PACKET && packet instanceof SetEntityDataPacket) {
+                packet = packet.clone();
                 if (((SetEntityDataPacket) packet).metadata.getMap().containsKey(Entity.DATA_NAMETAG)) {
                     StringEntityData data = (StringEntityData) ((SetEntityDataPacket) packet).metadata.get(Entity.DATA_NAMETAG);
                     if (data != null) data.setData(TextFormat.clean(data.getData()));
                 }
             } else if (packet.pid() == ProtocolInfo.SET_TITLE_PACKET && packet instanceof SetTitlePacket) {
+                packet = packet.clone();
                 ((SetTitlePacket) packet).text = TextFormat.clean(((SetTitlePacket) packet).text);
             }
         }
