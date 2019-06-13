@@ -11,6 +11,7 @@ import cn.nukkit.network.protocol.DataPacket;
 import cn.nukkit.network.protocol.ProtocolInfo;
 import cn.nukkit.utils.BinaryStream;
 import org.itxtech.synapseapi.multiprotocol.protocol16.protocol.Packet16;
+import org.itxtech.synapseapi.utils.ClassUtils;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -172,6 +173,18 @@ public class CraftingDataPacket111 extends Packet111 {
     @Override
     public int pid() {
         return NETWORK_ID;
+    }
+
+    @Override
+    public DataPacket fromDefault(DataPacket pk) {
+        ClassUtils.requireInstance(pk, cn.nukkit.network.protocol.CraftingDataPacket.class);
+
+        cn.nukkit.network.protocol.CraftingDataPacket packet = (cn.nukkit.network.protocol.CraftingDataPacket) pk;
+
+        this.entries = packet.entries;
+        this.cleanRecipes = packet.cleanRecipes;
+
+        return this;
     }
 
     public static Class<? extends DataPacket> getDefaultPacket() {
