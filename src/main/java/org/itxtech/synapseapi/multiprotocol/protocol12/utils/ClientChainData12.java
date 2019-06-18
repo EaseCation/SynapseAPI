@@ -206,4 +206,25 @@ public final class ClientChainData12 implements LoginChainData {
         return new Gson().fromJson(json, JsonObject.class);
     }
 
+    @Override
+    public String toString() {
+        return "ClientChainData12{" +
+                "username='" + username + '\'' +
+                ", clientUUID=" + clientUUID +
+                ", xuid='" + xuid + '\'' +
+                ", identityPublicKey='" + identityPublicKey + '\'' +
+                ", clientId=" + clientId +
+                ", serverAddress='" + serverAddress + '\'' +
+                ", deviceModel='" + deviceModel + '\'' +
+                ", deviceOS=" + deviceOS +
+                ", gameVersion='" + gameVersion + '\'' +
+                ", guiScale=" + guiScale +
+                ", languageCode='" + languageCode + '\'' +
+                ", currentInputMode=" + currentInputMode +
+                ", defaultInputMode=" + defaultInputMode +
+                ", UIProfile=" + UIProfile +
+                ", capeData='" + capeData + '\'' +
+                ", bs=" + bs +
+                '}';
+    }
 }
