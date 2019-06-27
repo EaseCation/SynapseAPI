@@ -6,25 +6,21 @@ import cn.nukkit.math.Vector3;
 import cn.nukkit.network.SourceInterface;
 import cn.nukkit.network.protocol.DataPacket;
 import cn.nukkit.network.protocol.ProtocolInfo;
-import cn.nukkit.network.protocol.ResourcePackClientResponsePacket;
-import cn.nukkit.network.protocol.ResourcePackDataInfoPacket;
 import cn.nukkit.resourcepacks.ResourcePack;
-import cn.nukkit.utils.Binary;
 import org.itxtech.synapseapi.event.player.SynapsePlayerBroadcastLevelSoundEvent;
 import org.itxtech.synapseapi.multiprotocol.AbstractProtocol;
-import org.itxtech.synapseapi.multiprotocol.protocol16.protocol.ResourcePackClientResponsePacket16;
-import org.itxtech.synapseapi.multiprotocol.protocol18.protocol.LevelSoundEventPacketV218;
-import org.itxtech.synapseapi.multiprotocol.protocol18.protocol.ResourcePackStackPacket18;
 import org.itxtech.synapseapi.multiprotocol.protocol19.protocol.LevelSoundEventPacketV319;
 import org.itxtech.synapseapi.multiprotocol.protocol19.protocol.ResourcePacksInfoPacket19;
 import org.itxtech.synapseapi.multiprotocol.protocol19.protocol.StartGamePacket19;
 import org.itxtech.synapseapi.multiprotocol.utils.AdvancedGlobalBlockPalette;
 import org.itxtech.synapseapi.multiprotocol.utils.LevelSoundEventEnum;
 
+import java.net.InetSocketAddress;
+
 public class SynapsePlayer19 extends SynapsePlayer18 {
 
-	public SynapsePlayer19(SourceInterface interfaz, SynapseEntry synapseEntry, Long clientID, String ip, int port) {
-		super(interfaz, synapseEntry, clientID, ip, port);
+	public SynapsePlayer19(SourceInterface interfaz, SynapseEntry synapseEntry, Long clientID, InetSocketAddress socketAddress) {
+		super(interfaz, synapseEntry, clientID, socketAddress);
 		this.levelChangeLoadScreen = true;
 	}
 

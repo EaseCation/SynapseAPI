@@ -15,10 +15,12 @@ import org.itxtech.synapseapi.multiprotocol.protocol18.protocol.*;
 import org.itxtech.synapseapi.multiprotocol.utils.AvailableEntityIdentifiersPalette;
 import org.itxtech.synapseapi.multiprotocol.utils.LevelSoundEventEnum;
 
+import java.net.InetSocketAddress;
+
 public class SynapsePlayer18 extends SynapsePlayer17 {
 
-	public SynapsePlayer18(SourceInterface interfaz, SynapseEntry synapseEntry, Long clientID, String ip, int port) {
-		super(interfaz, synapseEntry, clientID, ip, port);
+	public SynapsePlayer18(SourceInterface interfaz, SynapseEntry synapseEntry, Long clientID, InetSocketAddress socketAddress) {
+		super(interfaz, synapseEntry, clientID, socketAddress);
 		this.levelChangeLoadScreen = true;
 	}
 

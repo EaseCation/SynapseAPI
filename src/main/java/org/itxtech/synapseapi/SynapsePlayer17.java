@@ -11,10 +11,12 @@ import org.itxtech.synapseapi.event.player.netease.SynapsePlayerNetEaseStoreBuyS
 import org.itxtech.synapseapi.multiprotocol.protocol17.protocol.StartGamePacket17;
 import org.itxtech.synapseapi.multiprotocol.protocol17.protocol.TextPacket17;
 
+import java.net.InetSocketAddress;
+
 public class SynapsePlayer17 extends SynapsePlayer16 {
 
-	public SynapsePlayer17(SourceInterface interfaz, SynapseEntry synapseEntry, Long clientID, String ip, int port) {
-		super(interfaz, synapseEntry, clientID, ip, port);
+	public SynapsePlayer17(SourceInterface interfaz, SynapseEntry synapseEntry, Long clientID, InetSocketAddress socketAddress) {
+		super(interfaz, synapseEntry, clientID, socketAddress);
 	}
 
 	@Override

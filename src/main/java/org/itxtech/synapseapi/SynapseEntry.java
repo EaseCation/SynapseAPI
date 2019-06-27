@@ -32,6 +32,7 @@ import org.itxtech.synapseapi.utils.PlayerNetworkLatencyData;
 
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
+import java.net.InetSocketAddress;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.LinkedBlockingQueue;
@@ -256,18 +257,19 @@ public class SynapseEntry {
             PlayerLoginPacket playerLoginPacket;
             while ((playerLoginPacket = playerLoginQueue.poll()) != null) {
                 int protocol = playerLoginPacket.protocol;
+                InetSocketAddress socketAddress = new InetSocketAddress(playerLoginPacket.address, playerLoginPacket.port);
 
                 Class<? extends SynapsePlayer> clazz = determinePlayerClass(protocol);
-                SynapsePlayerCreationEvent ev = new SynapsePlayerCreationEvent(synLibInterface, clazz, clazz, new Random().nextLong(), playerLoginPacket.address, playerLoginPacket.port);
+                SynapsePlayerCreationEvent ev = new SynapsePlayerCreationEvent(synLibInterface, clazz, clazz, new Random().nextLong(), socketAddress);
                 getSynapse().getServer().getPluginManager().callEvent(ev);
                 clazz = ev.getPlayerClass();
 
                 try {
-                    Constructor constructor = clazz.getConstructor(SourceInterface.class, SynapseEntry.class, Long.class, String.class, int.class);
-                    SynapsePlayer player = (SynapsePlayer) constructor.newInstance(synLibInterface, this.entry, ev.getClientId(), ev.getAddress(), ev.getPort());
+                    Constructor constructor = clazz.getConstructor(SourceInterface.class, SynapseEntry.class, Long.class, InetSocketAddress.class);
+                    SynapsePlayer player = (SynapsePlayer) constructor.newInstance(synLibInterface, this.entry, ev.getClientId(), ev.getSocketAddress());
                     player.setUniqueId(playerLoginPacket.uuid);
                     players.put(playerLoginPacket.uuid, player);
-                    getSynapse().getServer().addPlayer(playerLoginPacket.uuid.toString(), player);
+                    getSynapse().getServer().addPlayer(socketAddress, player);
                     player.handleLoginPacket(playerLoginPacket);
                 } catch (Exception e) {
                     Server.getInstance().getLogger().logException(e);

@@ -1,21 +1,24 @@
 package org.itxtech.synapseapi;
 
-import java.util.Objects;
-
+import cn.nukkit.Player;
 import cn.nukkit.block.Block;
 import cn.nukkit.block.BlockAir;
 import cn.nukkit.block.BlockNoteblock;
 import cn.nukkit.entity.data.ShortEntityData;
+import cn.nukkit.entity.data.StringEntityData;
 import cn.nukkit.event.player.*;
-import cn.nukkit.event.server.DataPacketReceiveEvent;
-import cn.nukkit.level.Location;
+import cn.nukkit.level.GameRules;
+import cn.nukkit.level.Position;
 import cn.nukkit.level.particle.PunchBlockParticle;
 import cn.nukkit.math.BlockFace;
 import cn.nukkit.math.Vector3;
+import cn.nukkit.network.SourceInterface;
 import cn.nukkit.network.protocol.*;
 import cn.nukkit.resourcepacks.ResourcePack;
+import cn.nukkit.utils.Binary;
 import cn.nukkit.utils.DummyBossBar;
 import cn.nukkit.utils.MainLogger;
+import cn.nukkit.utils.TextFormat;
 import org.itxtech.synapseapi.event.player.SynapsePlayerBroadcastLevelSoundEvent;
 import org.itxtech.synapseapi.event.player.SynapsePlayerConnectEvent;
 import org.itxtech.synapseapi.multiprotocol.PacketRegister;
@@ -23,21 +26,16 @@ import org.itxtech.synapseapi.multiprotocol.protocol12.utils.ClientChainData12;
 import org.itxtech.synapseapi.multiprotocol.protocol12.utils.ClientChainData12NetEase;
 import org.itxtech.synapseapi.multiprotocol.protocol12.utils.ClientChainData12Urgency;
 import org.itxtech.synapseapi.multiprotocol.protocol14.protocol.*;
-
-import cn.nukkit.Player;
-import cn.nukkit.entity.data.StringEntityData;
-import cn.nukkit.level.GameRules;
-import cn.nukkit.level.Position;
-import cn.nukkit.network.SourceInterface;
-import cn.nukkit.utils.Binary;
-import cn.nukkit.utils.TextFormat;
 import org.itxtech.synapseapi.multiprotocol.utils.LevelSoundEventEnum;
 import org.itxtech.synapseapi.network.protocol.spp.PlayerLoginPacket;
 
+import java.net.InetSocketAddress;
+import java.util.Objects;
+
 public class SynapsePlayer14 extends SynapsePlayer {
 
-	public SynapsePlayer14(SourceInterface interfaz, SynapseEntry synapseEntry, Long clientID, String ip, int port) {
-		super(interfaz, synapseEntry, clientID, ip, port);
+	public SynapsePlayer14(SourceInterface interfaz, SynapseEntry synapseEntry, Long clientID, InetSocketAddress socketAddress) {
+		super(interfaz, synapseEntry, clientID, socketAddress);
 	}
 
 	public void handleLoginPacket(PlayerLoginPacket packet) {

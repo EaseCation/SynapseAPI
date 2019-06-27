@@ -30,6 +30,7 @@ import org.itxtech.synapseapi.multiprotocol.protocol16.protocol.*;
 import org.itxtech.synapseapi.multiprotocol.utils.LevelSoundEventEnum;
 import org.itxtech.synapseapi.network.protocol.spp.PlayerLoginPacket;
 
+import java.net.InetSocketAddress;
 import java.util.zip.Deflater;
 
 public class SynapsePlayer16 extends SynapsePlayer14 {
@@ -56,8 +57,8 @@ public class SynapsePlayer16 extends SynapsePlayer14 {
 		craftingDataPacket = pk.compress(Deflater.BEST_COMPRESSION);
 	}
 
-	public SynapsePlayer16(SourceInterface interfaz, SynapseEntry synapseEntry, Long clientID, String ip, int port) {
-		super(interfaz, synapseEntry, clientID, ip, port);
+	public SynapsePlayer16(SourceInterface interfaz, SynapseEntry synapseEntry, Long clientID, InetSocketAddress socketAddress) {
+		super(interfaz, synapseEntry, clientID, socketAddress);
 	}
 
 	public void handleLoginPacket(PlayerLoginPacket packet) {

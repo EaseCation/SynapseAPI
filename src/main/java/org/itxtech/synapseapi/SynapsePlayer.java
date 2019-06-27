@@ -19,7 +19,6 @@ import cn.nukkit.item.ItemMap;
 import cn.nukkit.level.Level;
 import cn.nukkit.level.Location;
 import cn.nukkit.level.Position;
-import cn.nukkit.level.sound.SoundEnum;
 import cn.nukkit.math.NukkitMath;
 import cn.nukkit.math.Vector3;
 import cn.nukkit.nbt.tag.*;
@@ -67,8 +66,8 @@ public class SynapsePlayer extends Player {
     protected LoginChainData loginChainData;
     protected boolean isNetEaseClient = false;
 
-    public SynapsePlayer(SourceInterface interfaz, SynapseEntry synapseEntry, Long clientID, String ip, int port) {
-        super(interfaz, clientID, ip, port);
+    public SynapsePlayer(SourceInterface interfaz, SynapseEntry synapseEntry, Long clientID, InetSocketAddress socketAddress) {
+        super(interfaz, clientID, socketAddress);
         this.synapseEntry = synapseEntry;
         this.isSynapseLogin = this.synapseEntry != null;
     }
@@ -375,8 +374,8 @@ public class SynapsePlayer extends Player {
 
         this.server.getLogger().info(this.getServer().getLanguage().translateString("nukkit.player.logIn",
                 TextFormat.AQUA + this.username + TextFormat.WHITE,
-                this.ip,
-                String.valueOf(this.port),
+                this.getAddress(),
+                String.valueOf(this.getPort()),
                 String.valueOf(this.id),
                 this.level.getName(),
                 String.valueOf(NukkitMath.round(this.x, 4)),
