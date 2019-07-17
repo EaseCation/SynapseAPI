@@ -34,28 +34,6 @@ import java.util.zip.Deflater;
 
 public class SynapsePlayer16 extends SynapsePlayer14 {
 
-	private final static BatchPacket craftingDataPacket;
-
-	static {
-		CraftingDataPacket16 pk = new CraftingDataPacket16();
-		pk.cleanRecipes = true;
-
-		for (Recipe recipe : Server.getInstance().getCraftingManager().getRecipes()) {
-			if (recipe instanceof ShapedRecipe) {
-				pk.addShapedRecipe((ShapedRecipe) recipe);
-			} else if (recipe instanceof ShapelessRecipe) {
-				pk.addShapelessRecipe((ShapelessRecipe) recipe);
-			}
-		}
-
-		for (FurnaceRecipe recipe : Server.getInstance().getCraftingManager().getFurnaceRecipes().values()) {
-			pk.addFurnaceRecipe(recipe);
-		}
-		pk.encode();
-
-		craftingDataPacket = pk.compress(Deflater.BEST_COMPRESSION);
-	}
-
 	public SynapsePlayer16(SourceInterface interfaz, SynapseEntry synapseEntry, Long clientID, String ip, int port) {
 		super(interfaz, synapseEntry, clientID, ip, port);
 	}
@@ -277,7 +255,7 @@ public class SynapsePlayer16 extends SynapsePlayer14 {
 
 		this.noDamageTicks = 60;
 
-		this.dataPacket(craftingDataPacket);
+		this.sendRecipeList();
 
 		if (this.gamemode == Player.SPECTATOR) {
 			InventoryContentPacket inventoryContentPacket = new InventoryContentPacket();
