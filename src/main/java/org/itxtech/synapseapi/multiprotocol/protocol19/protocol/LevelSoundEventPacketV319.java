@@ -61,7 +61,7 @@ public class LevelSoundEventPacketV319 extends Packet19 {
         this.y = packet.y;
         this.z = packet.z;
         this.extraData = Optional.ofNullable(sound).orElse(LevelSoundEventEnum.SOUND_UNDEFINED).translateTo18ExtraData(packet.extraData, packet.pitch, protocol, netease);
-        this.entityIdentifier = ":";
+        this.entityIdentifier = packet.entityIdentifier;
         this.isBabyMob = packet.isBabyMob;
         this.isGlobal = packet.isGlobal;
         return this;
