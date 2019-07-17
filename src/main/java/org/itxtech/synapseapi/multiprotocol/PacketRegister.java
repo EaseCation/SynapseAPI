@@ -18,6 +18,7 @@ import org.itxtech.synapseapi.multiprotocol.protocol16.protocol.*;
 import org.itxtech.synapseapi.multiprotocol.protocol17.protocol.*;
 import org.itxtech.synapseapi.multiprotocol.protocol18.protocol.*;
 import org.itxtech.synapseapi.multiprotocol.protocol19.protocol.*;
+import org.itxtech.synapseapi.multiprotocol.utils.CraftingPacketManager;
 
 import java.lang.reflect.Method;
 import java.util.*;
@@ -116,7 +117,9 @@ public class PacketRegister {
         registerPacket(AbstractProtocol.PROTOCOL_111, ProtocolInfo.UPDATE_TRADE_PACKET, UpdateTradePacket111.class);
         registerPacket(AbstractProtocol.PROTOCOL_111, ProtocolInfo.MAP_CREATE_LOCKED_COPY_PACKET, MapCreateLockedCopyPacket111.class);
         registerPacket(AbstractProtocol.PROTOCOL_111, ProtocolInfo.ON_SCREEN_TEXTURE_ANIMATION_PACKET, OnScreenTextureAnimationPacket111.class);
+
         checkNeteaseSpecialExtend();
+        CraftingPacketManager.rebuildPacket();
     }
 
     public static void registerPacket(AbstractProtocol protocol, int id, Class<? extends IterationProtocolPacket> clazz) {
