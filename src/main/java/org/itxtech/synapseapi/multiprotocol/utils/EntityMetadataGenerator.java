@@ -1,16 +1,6 @@
 package org.itxtech.synapseapi.multiprotocol.utils;
 
-import cn.nukkit.entity.data.ByteEntityData;
-import cn.nukkit.entity.data.EntityData;
-import cn.nukkit.entity.data.EntityMetadata;
-import cn.nukkit.entity.data.FloatEntityData;
-import cn.nukkit.entity.data.IntEntityData;
-import cn.nukkit.entity.data.IntPositionEntityData;
-import cn.nukkit.entity.data.LongEntityData;
-import cn.nukkit.entity.data.ShortEntityData;
-import cn.nukkit.entity.data.SlotEntityData;
-import cn.nukkit.entity.data.StringEntityData;
-import cn.nukkit.entity.data.Vector3fEntityData;
+import cn.nukkit.entity.data.*;
 import cn.nukkit.item.Item;
 import cn.nukkit.math.BlockVector3;
 import cn.nukkit.math.Vector3f;
@@ -80,7 +70,14 @@ public class EntityMetadataGenerator {
 		EntityMetadata entityMetadata = new EntityMetadata();
 		for(@SuppressWarnings("rawtypes") EntityData entityData : v12Metadata.getMap().values()) {
 			int v12Id = entityData.getId();
-			Integer newId = protocol.ordinal() >= AbstractProtocol.PROTOCOL_111.ordinal() ? EntityDataItemIDTranslator.translateTo111Id(v12Id) : EntityDataItemIDTranslator.translateTo14Id(v12Id);
+			Integer newId = protocol.ordinal() >= AbstractProtocol.PROTOCOL_111.ordinal()
+					? (
+					protocol.ordinal() >= AbstractProtocol.PROTOCOL_112.ordinal()
+							?
+							EntityDataItemIDTranslator.translateTo112Id(v12Id)
+							:
+							EntityDataItemIDTranslator.translateTo111Id(v12Id)
+			) : EntityDataItemIDTranslator.translateTo14Id(v12Id);
 			if(newId == null) {
 				MainLogger.getLogger().warning("Unable to translate to version " + protocol.name() + " with id " + v12Id);
 				continue;
@@ -124,8 +121,14 @@ public class EntityMetadataGenerator {
 				entityMetadata.put(shortEntityData);
 			} else if(entityData instanceof SlotEntityData) {
 				Item data = ((SlotEntityData)entityData).getData();
-				SlotEntityData slotEntityData = new SlotEntityData(newId, data);
-				entityMetadata.put(slotEntityData);
+				if (protocol.ordinal() >= AbstractProtocol.PROTOCOL_112.ordinal()) {
+					//转换为1.12后的NBTEntityData
+					NBTEntityData nbtEntityData = new NBTEntityData(newId, data.getNamedTag());
+					entityMetadata.put(nbtEntityData);
+				} else {
+					SlotEntityData slotEntityData = new SlotEntityData(newId, data);
+					entityMetadata.put(slotEntityData);
+				}
 			} else if(entityData instanceof StringEntityData) {
 				String data = ((StringEntityData)entityData).getData();
 				StringEntityData stringEntityData = new StringEntityData(newId, data);
