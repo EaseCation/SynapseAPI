@@ -9,6 +9,7 @@ public class EntityDataItemIDTranslator {
 
 	public final static Map<Integer, Integer> v12ToV14Book = new HashMap<>();
 	public final static Map<Integer, Integer> v12ToV111Book = new HashMap<>();
+	public final static Map<Integer, Integer> v12ToV112Book = new HashMap<>();
 
 	public final static int FLAGS = 0;
 	public final static int STRUCTURAL_INTEGRITY = 1;
@@ -147,6 +148,57 @@ public class EntityDataItemIDTranslator {
 
 	public static final int V111_FLAGS_EXTENDED = 92;
 
+	public static final int V112_NPC_SKIN_ID = 40; //string
+	public static final int V112_URL_TAG = 41; //string
+	public static final int V112_MAX_AIR = 42; //short
+	public static final int V112_MARK_VARIANT = 43; //int
+	public static final int V112_CONTAINER_TYPE = 44; //byte
+	public static final int V112_CONTAINER_BASE_SIZE = 45; //int
+	public static final int V112_CONTAINER_EXTRA_SLOTS_PER_STRENGTH = 46; //int
+	public static final int V112_BLOCK_TARGET = 47; //block coords (ender crystal)
+	public static final int V112_WITHER_INVULNERABLE_TICKS = 48; //int
+	public static final int V112_WITHER_TARGET_1 = 49; //long
+	public static final int V112_WITHER_TARGET_2 = 50; //long
+	public static final int V112_WITHER_TARGET_3 = 51; //long
+	/* 52 (short) */
+	public static final int V112_BOUNDING_BOX_WIDTH = 53; //float
+	public static final int V112_BOUNDING_BOX_HEIGHT = 54; //float
+	public static final int V112_FUSE_LENGTH = 55; //int
+	public static final int V112_RIDER_SEAT_POSITION = 56; //vector3f
+	public static final int V112_RIDER_ROTATION_LOCKED = 57; //byte
+	public static final int V112_RIDER_MAX_ROTATION = 58; //float
+	public static final int V112_RIDER_MIN_ROTATION = 59; //float
+	public static final int V112_AREA_EFFECT_CLOUD_RADIUS = 60; //float
+	public static final int V112_AREA_EFFECT_CLOUD_WAITING = 61; //int
+	public static final int V112_AREA_EFFECT_CLOUD_PARTICLE_ID = 62; //int
+	/* 63 (int) shulker-related */
+	public static final int V112_SHULKER_ATTACH_FACE = 64; //byte
+	/* 65 (short) shulker-related */
+	public static final int V112_SHULKER_ATTACH_POS = 66; //block coords
+	public static final int V112_TRADING_PLAYER_EID = 67; //long
+
+	/* 69 (byte) command-block */
+	public static final int V112_COMMAND_BLOCK_COMMAND = 70; //string
+	public static final int V112_COMMAND_BLOCK_LAST_OUTPUT = 71; //string
+	public static final int V112_COMMAND_BLOCK_TRACK_OUTPUT = 72; //byte
+	public static final int V112_CONTROLLING_RIDER_SEAT_NUMBER = 73; //byte
+	public static final int V112_STRENGTH = 74; //int
+	public static final int V112_MAX_STRENGTH = 75; //int
+	// 76 (int)
+	public static final int V112_LIMITED_LIFE = 77;
+	public static final int V112_ARMOR_STAND_POSE_INDEX = 78; // int
+	public static final int V112_ENDER_CRYSTAL_TIME_OFFSET = 79; // int
+	public static final int V112_ALWAYS_SHOW_NAMETAG = 80; // byte
+	public static final int V112_COLOR_2 = 81; // byte
+	// 82 unknown
+	public static final int V112_SCORE_TAG = 83; //String
+	public static final int V112_BALLOON_ATTACHED_ENTITY = 84; // long
+	public static final int V112_PUFFERFISH_SIZE = 85;
+
+	public static final int V112_FLAGS_EXTENDED = 91;
+
+	public static final int V112_SKIN_ID = 103; // int ???
+
 	static {
 		v12ToV14Book.put(Entity.DATA_FLAGS, FLAGS);
 		v12ToV14Book.put(Entity.DATA_HEALTH, STRUCTURAL_INTEGRITY);
@@ -242,6 +294,37 @@ public class EntityDataItemIDTranslator {
 		v12ToV111Book.put(Entity.DATA_STRENGTH, V111_STRENGTH);
 		v12ToV111Book.put(Entity.DATA_MAX_STRENGTH, V111_MAX_STRENGTH);
 		v12ToV111Book.put(Entity.DATA_ALWAYS_SHOW_NAMETAG, V111_ALWAYS_SHOW_NAMETAG);
+
+		v12ToV111Book.forEach(v12ToV112Book::put);
+
+		v12ToV112Book.put(V111_NPC_SKIN_ID, V112_SKIN_ID );
+		v12ToV112Book.put(V111_MAX_AIR, V112_MAX_AIR );
+		v12ToV112Book.put(V111_MARK_VARIANT, V112_MARK_VARIANT );
+		v12ToV112Book.put(V111_BLOCK_TARGET, V112_BLOCK_TARGET );
+		v12ToV112Book.put(V111_WITHER_INVULNERABLE_TICKS, V112_WITHER_INVULNERABLE_TICKS );
+		v12ToV112Book.put(V111_WITHER_TARGET_1, V112_WITHER_TARGET_1 );
+		v12ToV112Book.put(V111_WITHER_TARGET_2, V112_WITHER_TARGET_1 );
+		v12ToV112Book.put(V111_WITHER_TARGET_3, V112_WITHER_TARGET_1 );
+		v12ToV112Book.put(V111_BOUNDING_BOX_WIDTH, V112_BOUNDING_BOX_WIDTH);
+		v12ToV112Book.put(V111_BOUNDING_BOX_HEIGHT, V112_BOUNDING_BOX_HEIGHT);
+		v12ToV112Book.put(V111_FUSE_LENGTH, V112_FUSE_LENGTH);
+		v12ToV112Book.put(V111_RIDER_SEAT_POSITION, V112_RIDER_SEAT_POSITION);
+		v12ToV112Book.put(V111_RIDER_ROTATION_LOCKED, V112_RIDER_ROTATION_LOCKED);
+		v12ToV112Book.put(V111_RIDER_MAX_ROTATION, V112_RIDER_MAX_ROTATION);
+		v12ToV112Book.put(V111_RIDER_MIN_ROTATION, V112_RIDER_MIN_ROTATION);
+		v12ToV112Book.put(V111_AREA_EFFECT_CLOUD_RADIUS, V112_AREA_EFFECT_CLOUD_RADIUS);
+		v12ToV112Book.put(V111_AREA_EFFECT_CLOUD_WAITING, V112_AREA_EFFECT_CLOUD_WAITING);
+		v12ToV112Book.put(V111_AREA_EFFECT_CLOUD_PARTICLE_ID, V112_AREA_EFFECT_CLOUD_PARTICLE_ID);;
+		v12ToV112Book.put(V111_SHULKER_ATTACH_FACE, V112_SHULKER_ATTACH_FACE);
+		v12ToV112Book.put(V111_SHULKER_ATTACH_POS, V112_SHULKER_ATTACH_POS);
+		v12ToV112Book.put(V111_TRADING_PLAYER_EID, V112_TRADING_PLAYER_EID);
+		v12ToV112Book.put(V111_COMMAND_BLOCK_COMMAND, V112_COMMAND_BLOCK_COMMAND);
+		v12ToV112Book.put(V111_COMMAND_BLOCK_LAST_OUTPUT, V112_COMMAND_BLOCK_LAST_OUTPUT);
+		v12ToV112Book.put(V111_COMMAND_BLOCK_TRACK_OUTPUT, V112_COMMAND_BLOCK_TRACK_OUTPUT);
+		v12ToV112Book.put(V111_CONTROLLING_RIDER_SEAT_NUMBER, V112_CONTROLLING_RIDER_SEAT_NUMBER);
+		v12ToV112Book.put(V111_STRENGTH, V112_STRENGTH);
+		v12ToV112Book.put(V111_MAX_STRENGTH, V112_MAX_STRENGTH);
+		v12ToV112Book.put(V111_ALWAYS_SHOW_NAMETAG, V112_ALWAYS_SHOW_NAMETAG);
 	}
 	
 	public static Integer translateTo14Id(int v12Id) {
@@ -250,5 +333,9 @@ public class EntityDataItemIDTranslator {
 
 	public static Integer translateTo111Id(int v12Id) {
 		return v12ToV111Book.get(v12Id);
+	}
+
+	public static Integer translateTo112Id(int v12Id) {
+		return v12ToV112Book.get(v12Id);
 	}
 }

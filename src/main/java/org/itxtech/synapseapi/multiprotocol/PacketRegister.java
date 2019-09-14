@@ -10,6 +10,7 @@ import org.itxtech.synapseapi.multiprotocol.protocol110.protocol.LecternUpdatePa
 import org.itxtech.synapseapi.multiprotocol.protocol110.protocol.Packet110;
 import org.itxtech.synapseapi.multiprotocol.protocol110.protocol.VideoStreamConnectPacket110;
 import org.itxtech.synapseapi.multiprotocol.protocol111.protocol.*;
+import org.itxtech.synapseapi.multiprotocol.protocol112.protocol.*;
 import org.itxtech.synapseapi.multiprotocol.protocol15.protocol.AddEntityPacket15;
 import org.itxtech.synapseapi.multiprotocol.protocol15.protocol.ClientboundMapItemDataPacket15;
 import org.itxtech.synapseapi.multiprotocol.protocol15.protocol.MoveEntityAbsolutePacket15;
@@ -118,6 +119,13 @@ public class PacketRegister {
         registerPacket(AbstractProtocol.PROTOCOL_111, ProtocolInfo.MAP_CREATE_LOCKED_COPY_PACKET, MapCreateLockedCopyPacket111.class);
         registerPacket(AbstractProtocol.PROTOCOL_111, ProtocolInfo.ON_SCREEN_TEXTURE_ANIMATION_PACKET, OnScreenTextureAnimationPacket111.class);
 
+        registerPacket(AbstractProtocol.PROTOCOL_112, ProtocolInfo.ADD_PAINTING_PACKET, AddPaintingPacket112.class);
+        registerPacket(AbstractProtocol.PROTOCOL_112, ProtocolInfo.CLIENT_CACHE_STATUS_PACKET, ClientCacheStatusPacket112.class);
+        registerPacket(AbstractProtocol.PROTOCOL_112, ProtocolInfo.CRAFTING_DATA_PACKET, CraftingDataPacket112.class);
+        registerPacket(AbstractProtocol.PROTOCOL_112, ProtocolInfo.LEVEL_EVENT_GENERIC_PACKET, LevelEventGenericPacket112.class);
+        registerPacket(AbstractProtocol.PROTOCOL_112, ProtocolInfo.RESOURCE_PACK_DATA_INFO_PACKET, ResourcePackDataInfoPacket112.class);
+        registerPacket(AbstractProtocol.PROTOCOL_112, ProtocolInfo.START_GAME_PACKET, StartGamePacket112.class);
+
         checkNeteaseSpecialExtend();
         CraftingPacketManager.rebuildPacket();
     }
@@ -187,6 +195,8 @@ public class PacketRegister {
                 Class<? extends DataPacket> clazz = packetPool.get(ptl)[id];
                 if (clazz != null) {
                     return clazz.newInstance();
+                }/* else if (ptl == AbstractProtocol.PROTOCOL_112) {
+                    return getPacket(id, 354); //按照1.11匹配
                 } else if (ptl == AbstractProtocol.PROTOCOL_111) {
                     return getPacket(id, 340); //按照1.10匹配
                 } else if (ptl == AbstractProtocol.PROTOCOL_110) {
@@ -201,8 +211,13 @@ public class PacketRegister {
                     return getPacket(id, 270); //按照1.5匹配
                 } else if (ptl == AbstractProtocol.PROTOCOL_15) {
                     return getPacket(id, 261); //按照1.4匹配
-                } else if (ptl == AbstractProtocol.PROTOCOL_12) {
+                }*/else if (ptl == AbstractProtocol.PROTOCOL_12) {
                     return Server.getInstance().getNetwork().getPacket(id);
+                } else {
+                    AbstractProtocol previous = ptl.previous();
+                    if (previous != null)
+                        return getPacket(id, previous.getProtocolStart());
+                    else return Server.getInstance().getNetwork().getPacket(id);
                 }
             } catch (Exception e) {
                 MainLogger.getLogger().logException(e);
@@ -290,7 +305,7 @@ public class PacketRegister {
      * @return 检查，兼容后的数据包
      */
     private static DataPacket check16ProtocolCompatible(DataPacket packet, AbstractProtocol endpointProtocol) {
-        if ((endpointProtocol.ordinal() >= AbstractProtocol.PROTOCOL_16.ordinal() && !(packet instanceof Packet16) && !(packet instanceof Packet17) && !(packet instanceof Packet18) && !(packet instanceof Packet19) && !(packet instanceof Packet110) && !(packet instanceof Packet111))) {
+        if (endpointProtocol.ordinal() >= AbstractProtocol.PROTOCOL_16.ordinal() && (!(packet instanceof IterationProtocolPacket) || !((IterationProtocolPacket) packet).is16Newer())) {
             CompatibilityPacket16 cp = new CompatibilityPacket16();
             cp.origin = packet;
             return cp;

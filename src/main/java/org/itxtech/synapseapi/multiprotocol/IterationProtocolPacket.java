@@ -18,4 +18,9 @@ public abstract class IterationProtocolPacket extends DataPacket {
 
     public abstract AbstractProtocol getAbstractProtocol();
 
+    //区分数据包是否为1.6之后的新版，用于解决包头大改的包区分问题
+    public boolean is16Newer() {
+        return getAbstractProtocol().ordinal() >= AbstractProtocol.PROTOCOL_16.ordinal();
+    }
+
 }
