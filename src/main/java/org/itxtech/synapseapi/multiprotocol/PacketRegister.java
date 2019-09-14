@@ -240,7 +240,11 @@ public class PacketRegister {
             }
 
             pk.setBuffer(data, head.getStartOffset());
-            pk.decode();
+            try {
+                pk.decode();
+            } catch (Exception e) {
+                MainLogger.getLogger().logException(e);
+            }
 
             return pk;
         }
