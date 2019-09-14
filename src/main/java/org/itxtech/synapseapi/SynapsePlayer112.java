@@ -27,7 +27,7 @@ public class SynapsePlayer112 extends SynapsePlayer19 {
 
 	public SynapsePlayer112(SourceInterface interfaz, SynapseEntry synapseEntry, Long clientID, String ip, int port) {
 		super(interfaz, synapseEntry, clientID, ip, port);
-		this.levelChangeLoadScreen = true;
+		this.levelChangeLoadScreen = false;
 	}
 
 	@Override
