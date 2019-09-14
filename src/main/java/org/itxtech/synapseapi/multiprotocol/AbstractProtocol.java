@@ -35,7 +35,7 @@ public enum AbstractProtocol {
     PROTOCOL_19(332, Packet19.class, SynapsePlayer19.class),
     PROTOCOL_110(340, Packet110.class, SynapsePlayer19.class),
     PROTOCOL_111(354, Packet111.class, SynapsePlayer19.class),
-    PROTOCOL_112(361, Packet112.class, SynapsePlayer19.class);
+    PROTOCOL_112(361, Packet112.class, SynapsePlayer112.class);
 
     private final int protocolStart;
     private final Class<? extends DataPacket> packetClass;
@@ -53,6 +53,10 @@ public enum AbstractProtocol {
         }
         return PROTOCOL_12; //Might never happen
 	}
+
+    public int getProtocolStart() {
+        return protocolStart;
+    }
 
     /**
      * 获取前一个协议版本
@@ -95,7 +99,7 @@ public enum AbstractProtocol {
         return null;
     }
 
-    public class PacketHeadData {
+    public static class PacketHeadData {
 
         private final int pid;
         private final int startOffset;

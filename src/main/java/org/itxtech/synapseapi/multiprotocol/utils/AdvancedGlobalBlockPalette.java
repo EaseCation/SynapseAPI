@@ -22,27 +22,30 @@ public class AdvancedGlobalBlockPalette {
 
     private static final Map<AbstractProtocol, AdvancedGlobalBlockPalette[]> palettes = new HashMap<AbstractProtocol, AdvancedGlobalBlockPalette[]>(){{
         put(AbstractProtocol.PROTOCOL_16, new AdvancedGlobalBlockPalette[]{
-                new AdvancedGlobalBlockPalette("block_state_list_16.json"),
-                new AdvancedGlobalBlockPalette("block_state_list_16_netease.json")
+                new AdvancedGlobalBlockPalette(AbstractProtocol.PROTOCOL_16, "block_state_list_16.json"),
+                new AdvancedGlobalBlockPalette(AbstractProtocol.PROTOCOL_16, "block_state_list_16_netease.json")
         });
         put(AbstractProtocol.PROTOCOL_17, new AdvancedGlobalBlockPalette[]{
-                new AdvancedGlobalBlockPalette("block_state_list_17.json"),
-                new AdvancedGlobalBlockPalette("block_state_list_17_netease.json")
+                new AdvancedGlobalBlockPalette(AbstractProtocol.PROTOCOL_17, "block_state_list_17.json"),
+                new AdvancedGlobalBlockPalette(AbstractProtocol.PROTOCOL_17, "block_state_list_17_netease.json")
         });
         put(AbstractProtocol.PROTOCOL_18, new AdvancedGlobalBlockPalette[]{
-                new AdvancedGlobalBlockPalette("block_state_list_18.json"),
-                new AdvancedGlobalBlockPalette("block_state_list_18_netease.json")
+                new AdvancedGlobalBlockPalette(AbstractProtocol.PROTOCOL_18, "block_state_list_18.json"),
+                new AdvancedGlobalBlockPalette(AbstractProtocol.PROTOCOL_18, "block_state_list_18_netease.json")
         });
         put(AbstractProtocol.PROTOCOL_19, new AdvancedGlobalBlockPalette[]{
-                new AdvancedGlobalBlockPalette("block_state_list_19.json"),
-                new AdvancedGlobalBlockPalette("block_state_list_19_netease.json")
+                new AdvancedGlobalBlockPalette(AbstractProtocol.PROTOCOL_19, "block_state_list_19.json"),
+                new AdvancedGlobalBlockPalette(AbstractProtocol.PROTOCOL_19, "block_state_list_19_netease.json")
         });
         put(AbstractProtocol.PROTOCOL_110, new AdvancedGlobalBlockPalette[]{
-                new AdvancedGlobalBlockPalette("block_state_list_110.json")
+                new AdvancedGlobalBlockPalette(AbstractProtocol.PROTOCOL_110, "block_state_list_110.json")
         });
         put(AbstractProtocol.PROTOCOL_111, new AdvancedGlobalBlockPalette[]{
-                new AdvancedGlobalBlockPalette("block_state_list_111.json"),
-                new AdvancedGlobalBlockPalette("block_state_list_111_netease.json")
+                new AdvancedGlobalBlockPalette(AbstractProtocol.PROTOCOL_111, "block_state_list_111.json"),
+                new AdvancedGlobalBlockPalette(AbstractProtocol.PROTOCOL_111, "block_state_list_111_netease.json")
+        });
+        put(AbstractProtocol.PROTOCOL_112, new AdvancedGlobalBlockPalette[]{
+                new AdvancedGlobalBlockPalette(AbstractProtocol.PROTOCOL_112, "block_state_list_112.json", "runtime_item_ids_112.json")
         });
     }};
 
@@ -50,8 +53,13 @@ public class AdvancedGlobalBlockPalette {
     private final Int2IntArrayMap runtimeIdToLegacy = new Int2IntArrayMap();
     private final AtomicInteger runtimeIdAllocator = new AtomicInteger(0);
     private final byte[] compiledTable;
+    private final byte[] itemDataPalette;
 
-    public AdvancedGlobalBlockPalette(String jsonFile) {
+    public AdvancedGlobalBlockPalette(AbstractProtocol protocol, String jsonFile) {
+        this(protocol, jsonFile, null);
+    }
+
+    public AdvancedGlobalBlockPalette(AbstractProtocol protocol, String jsonFile, String itemDataPaletteJsonFile) {
         Server.getInstance().getLogger().info("Loading Advanced Global Block Palette from " + jsonFile);
         legacyToRuntimeId.defaultReturnValue(-1);
         runtimeIdToLegacy.defaultReturnValue(-1);
@@ -74,9 +82,71 @@ public class AdvancedGlobalBlockPalette {
             registerMapping((entry.id << 4) | entry.data);
             table.putString(entry.name);
             table.putLShort(entry.data);
+            if (protocol.ordinal() >= AbstractProtocol.PROTOCOL_112.ordinal()) table.putLShort(entry.id);
         }
 
         compiledTable = table.getBuffer();
+
+        itemDataPalette = loadItemDataPalette(itemDataPaletteJsonFile);
+    }
+
+    private byte[] loadItemDataPalette(String jsonFile) {
+        if (jsonFile == null || jsonFile.isEmpty()) return new byte[0];
+        InputStream stream = SynapseAPI.class.getClassLoader().getResourceAsStream(jsonFile);
+        if (stream == null) {
+            throw new AssertionError("Unable to locate RuntimeID table: " + jsonFile);
+        }
+        Reader reader = new InputStreamReader(stream, StandardCharsets.UTF_8);
+
+        Gson gson = new Gson();
+        Type collectionType = new TypeToken<Collection<ItemData>>() {
+        }.getType();
+        Collection<ItemData> entries = gson.fromJson(reader, collectionType);
+        BinaryStream paletteBuffer = new BinaryStream();
+
+        paletteBuffer.putUnsignedVarInt(entries.size());
+
+        for (ItemData data : entries) {
+            paletteBuffer.putString(data.name);
+            paletteBuffer.putLShort(data.id);
+        }
+
+        return paletteBuffer.getBuffer();
+    }
+
+    private static class ItemData {
+        private String name;
+        private int id;
+    }
+
+    private int getOrCreateRuntimeId0(int id, int meta) {
+        return getOrCreateRuntimeId0((id << 4) | meta);
+    }
+
+    private int getOrCreateRuntimeId0(int legacyId) {
+        int runtimeId = legacyToRuntimeId.get(legacyId);
+        if (runtimeId == -1) {
+            //runtimeId = registerMapping(runtimeIdAllocator.incrementAndGet(), legacyId);
+            throw new RuntimeException("Unmapped block registered");
+        }
+        return runtimeId;
+    }
+
+    private int registerMapping(int legacyId) {
+        int runtimeId = runtimeIdAllocator.getAndIncrement();
+        runtimeIdToLegacy.put(runtimeId, legacyId);
+        legacyToRuntimeId.put(legacyId, runtimeId);
+        return runtimeId;
+    }
+
+    public byte[] getCompiledTable0() {
+        return compiledTable;
+    }
+
+    private static class TableEntry {
+        private int id;
+        private int data;
+        private String name;
     }
 
     public static int getOrCreateRuntimeId(AbstractProtocol protocol, boolean netease, int legacyId) {
@@ -95,19 +165,6 @@ public class AdvancedGlobalBlockPalette {
         return getOrCreateRuntimeId(protocol, netease, (id << 4) | meta);
     }
 
-    private int getOrCreateRuntimeId0(int id, int meta) {
-        return getOrCreateRuntimeId0((id << 4) | meta);
-    }
-
-    private int getOrCreateRuntimeId0(int legacyId) {
-        int runtimeId = legacyToRuntimeId.get(legacyId);
-        if (runtimeId == -1) {
-            //runtimeId = registerMapping(runtimeIdAllocator.incrementAndGet(), legacyId);
-            throw new RuntimeException("Unmapped block registered");
-        }
-        return runtimeId;
-    }
-
     public static byte[] getCompiledTable(AbstractProtocol protocol, boolean netease) {
         if (palettes.containsKey(protocol)) {
             AdvancedGlobalBlockPalette[] versions = palettes.get(protocol);
@@ -120,20 +177,15 @@ public class AdvancedGlobalBlockPalette {
         }
     }
 
-    private int registerMapping(int legacyId) {
-        int runtimeId = runtimeIdAllocator.getAndIncrement();
-        runtimeIdToLegacy.put(runtimeId, legacyId);
-        legacyToRuntimeId.put(legacyId, runtimeId);
-        return runtimeId;
-    }
-
-    public byte[] getCompiledTable0() {
-        return compiledTable;
-    }
-
-    private static class TableEntry {
-        private int id;
-        private int data;
-        private String name;
+    public static byte[] getCompiledItemDataPalette(AbstractProtocol protocol, boolean netease) {
+        if (palettes.containsKey(protocol)) {
+            AdvancedGlobalBlockPalette[] versions = palettes.get(protocol);
+            if (versions.length > 1) {
+                return netease ? versions[1].itemDataPalette : versions[0].itemDataPalette;
+            }
+            return versions[0].itemDataPalette;
+        } else {
+            throw new RuntimeException("Item data palette protocol " + protocol.name() + " not found");
+        }
     }
 }
