@@ -996,8 +996,8 @@ public class SynapsePlayer extends Player {
     }
 
     @Override
-    public int dataPacket(DataPacket packet, boolean needACK) {
-        if (!this.isSynapseLogin) return super.dataPacket(packet, needACK);
+    public boolean dataPacket(DataPacket packet) {
+        if (!this.isSynapseLogin) return super.dataPacket(packet);
         /*if (!this.isFirstTimeLogin && packet instanceof ResourcePacksInfoPacket) {
             this.processLogin();
             return -1;
@@ -1007,7 +1007,7 @@ public class SynapsePlayer extends Player {
         DataPacketSendEvent ev = new DataPacketSendEvent(this, packet);
         this.server.getPluginManager().callEvent(ev);
         if (ev.isCancelled()) {
-            return -1;
+            return false;
         }
 
         //packet.encode(); encoded twice?
@@ -1041,22 +1041,24 @@ public class SynapsePlayer extends Player {
             }
         }
 
-        return this.interfaz.putPacket(this, packet, needACK);
+        this.interfaz.putPacket(this, packet);
+        return true;
     }
 
     @Override
-    public int directDataPacket(DataPacket packet, boolean needACK) {
-        if (!this.isSynapseLogin) return super.directDataPacket(packet, needACK);
+    public boolean directDataPacket(DataPacket packet) {
+        if (!this.isSynapseLogin) return super.directDataPacket(packet);
 
         packet = DataPacketEidReplacer.replace(packet, this.getId(), Long.MAX_VALUE);
 
         DataPacketSendEvent ev = new DataPacketSendEvent(this, packet);
         this.server.getPluginManager().callEvent(ev);
         if (ev.isCancelled()) {
-            return -1;
+            return false;
         }
 
-        return this.interfaz.putPacket(this, packet, needACK, true);
+        this.interfaz.putPacket(this, packet, false, true);
+        return true;
     }
 
     public void sendFullPlayerListData(boolean self) {

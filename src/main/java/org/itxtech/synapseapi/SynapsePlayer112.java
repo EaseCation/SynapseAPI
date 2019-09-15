@@ -69,14 +69,6 @@ public class SynapsePlayer112 extends SynapsePlayer19 {
 		super.completeLoginSequence();
 		if (this.loggedIn) {
 			this.dataPacket(new BiomeDefinitionListPacket18());
-
-			AvailableEntityIdentifiersPacket18 pk = new AvailableEntityIdentifiersPacket18();
-			pk.tag = AvailableEntityIdentifiersPalette.getData(AbstractProtocol.fromRealProtocol(this.getProtocol()));
-			if (pk.tag != null) {
-				this.dataPacket(new AvailableEntityIdentifiersPacket18());
-			} else {
-				Server.getInstance().getLogger().warning("Null AvailableEntityIdentifiersPacket data to player " + this.getName() + "!");
-			}
 		}
 	}
 

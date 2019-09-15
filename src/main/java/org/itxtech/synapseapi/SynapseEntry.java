@@ -13,6 +13,7 @@ import cn.nukkit.plugin.Plugin;
 import cn.nukkit.scheduler.Task;
 import cn.nukkit.utils.Binary;
 import cn.nukkit.utils.BinaryStream;
+import cn.nukkit.utils.MainLogger;
 import cn.nukkit.utils.Zlib;
 import cn.nukkit.utils.bugreport.BugReportGenerator;
 import co.aikar.timings.Timing;
@@ -414,8 +415,7 @@ public class SynapseEntry {
                     //Server.getInstance().getLogger().info("to server : " + pk0.getClass().getName());
                     if (pk0 != null) {
                         this.handleRedirectPacketTiming.startTiming();
-                        if (pk0.pid() == ProtocolInfo.BATCH_PACKET) pk0.setOffset(1);
-                        pk0.decode();
+                        //pk0.decode();
                         SynapsePlayer player = this.players.get(uuid);
                         if (pk0.pid() == ProtocolInfo.BATCH_PACKET) {
                             this.processBatch((BatchPacket) pk0, redirectPacket.protocol).forEach(subPacket -> {
