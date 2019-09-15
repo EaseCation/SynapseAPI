@@ -459,11 +459,7 @@ public class SynapsePlayer extends Player {
                 return false;
             }
 
-            for (Entity entity : this.getLevel().getEntities()) {
-                if (entity.getViewers().containsKey(this.getLoaderId())) {
-                    entity.despawnFrom(this);
-                }
-            }
+            this.removeAllChunks();
 
             this.getDummyBossBars().values().forEach(DummyBossBar::destroy);
             this.getDummyBossBars().clear();
@@ -516,10 +512,15 @@ public class SynapsePlayer extends Player {
                     task.onRun(0);
                 }
             } else {
-                org.itxtech.synapseapi.network.protocol.spp.TransferPacket pk = new org.itxtech.synapseapi.network.protocol.spp.TransferPacket();
-                pk.uuid = getUniqueId();
-                pk.clientHash = hash;
-                getSynapseEntry().sendDataPacket(pk);
+                Server.getInstance().getScheduler().scheduleDelayedTask(new Task() {
+                    @Override
+                    public void onRun(int currentTick) {
+                        org.itxtech.synapseapi.network.protocol.spp.TransferPacket pk = new org.itxtech.synapseapi.network.protocol.spp.TransferPacket();
+                        pk.uuid = getUniqueId();
+                        pk.clientHash = hash;
+                        getSynapseEntry().sendDataPacket(pk);
+                    }
+                }, 1);
             }
 
             return true;
@@ -572,10 +573,6 @@ public class SynapsePlayer extends Player {
                 statusPacket0.status = PlayStatusPacket.PLAYER_SPAWN;
                 this.dataPacket(statusPacket0);
 
-                //Weather
-                this.getLevel().sendWeather(this);
-                //Update time
-                this.getLevel().sendTime(this);
                 //DummyBossBar
                 this.getDummyBossBars().values().forEach(DummyBossBar::reshow);
                 //防止切换世界后的玩家实体因为被客户端卸载而消失问题
@@ -614,10 +611,11 @@ public class SynapsePlayer extends Player {
                     entity.despawnFrom(this);
                 }
             }
+            this.isLevelChange = true;
         }
         if (super.teleport(location, cause) && this.levelChangeLoadScreen) {
             if (from.getLevel().getId() != location.level.getId() && this.spawned) {
-                this.isLevelChange = true;
+                //this.isLevelChange = true;
                 //this.nextAllowSendTop = System.currentTimeMillis() + 2000;  //2秒后才运行发送Top
                 this.allowOrderChunks = false;
 
