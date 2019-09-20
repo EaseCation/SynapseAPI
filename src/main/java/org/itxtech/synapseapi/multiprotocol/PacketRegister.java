@@ -230,7 +230,7 @@ public class PacketRegister {
 
     public static DataPacket getFullPacket(byte[] data, int protocol) {
         AbstractProtocol ptl = AbstractProtocol.fromRealProtocol(protocol);
-        AbstractProtocol.PacketHeadData head = ptl.tryDecodePacketHead(data);
+        AbstractProtocol.PacketHeadData head = ptl.tryDecodePacketHead(data, true);
 
         if (head != null) {
             DataPacket pk = getPacket(head.getPid(), protocol);

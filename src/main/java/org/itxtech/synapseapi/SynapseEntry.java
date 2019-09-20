@@ -477,16 +477,19 @@ public class SynapseEntry {
             List<DataPacket> packets = new ArrayList<>();
             while (stream.offset < len) {
                 byte[] buf = stream.getByteArray();
-                AbstractProtocol.PacketHeadData head = apl.tryDecodePacketHead(buf);
+                AbstractProtocol.PacketHeadData head = apl.tryDecodePacketHead(buf, false);
                 if (head != null) {
-                    DataPacket pk;
-                    if ((pk = PacketRegister.getPacket(head.getPid(), protocol)) != null) {
-                        pk.setBuffer(buf, head.getStartOffset());
-                        pk.decode();
-                        packets.add(pk);
+                    try {
+                        DataPacket pk;
+                        if ((pk = PacketRegister.getPacket(head.getPid(), protocol)) != null) {
+                            pk.setBuffer(buf, head.getStartOffset());
+                            pk.decode();
+                            packets.add(pk);
+                        }
+                    } catch (Exception e) {
+                        MainLogger.getLogger().logException(e);
                     }
                 }
-
         }
             return packets;
         } catch (Exception e) {

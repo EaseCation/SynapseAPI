@@ -81,11 +81,13 @@ public enum AbstractProtocol {
 	    return !(packet instanceof IterationProtocolPacket);
     }
 
-    public PacketHeadData tryDecodePacketHead(byte[] data) {
-        if (data[0] == (byte) 0xfe) {
-            return new PacketHeadData(BatchPacket.NETWORK_ID, 1);
-        } else if (data.length > 1 && data[0] == (byte) 0x78 && data[1] == (byte) 0xda) {
-            return new PacketHeadData(BatchPacket.NETWORK_ID, 0);
+    public PacketHeadData tryDecodePacketHead(byte[] data, boolean maybeBatch) {
+        if (maybeBatch) {
+            if (data[0] == (byte) 0xfe) {
+                return new PacketHeadData(BatchPacket.NETWORK_ID, 1);
+            } else if (data[0] == (byte) 0x78) {
+                return new PacketHeadData(BatchPacket.NETWORK_ID, 0);
+            }
         }
         if (this == PROTOCOL_11) return null;
         BinaryStream stream = new BinaryStream(data);
