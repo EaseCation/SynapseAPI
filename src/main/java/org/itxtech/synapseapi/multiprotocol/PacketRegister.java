@@ -7,7 +7,6 @@ import cn.nukkit.utils.BinaryStream;
 import cn.nukkit.utils.MainLogger;
 import org.itxtech.synapseapi.multiprotocol.protocol110.protocol.AvailableCommandsPacket110;
 import org.itxtech.synapseapi.multiprotocol.protocol110.protocol.LecternUpdatePacket110;
-import org.itxtech.synapseapi.multiprotocol.protocol110.protocol.Packet110;
 import org.itxtech.synapseapi.multiprotocol.protocol110.protocol.VideoStreamConnectPacket110;
 import org.itxtech.synapseapi.multiprotocol.protocol111.protocol.*;
 import org.itxtech.synapseapi.multiprotocol.protocol112.protocol.*;
@@ -125,6 +124,7 @@ public class PacketRegister {
         registerPacket(AbstractProtocol.PROTOCOL_112, ProtocolInfo.LEVEL_EVENT_GENERIC_PACKET, LevelEventGenericPacket112.class);
         registerPacket(AbstractProtocol.PROTOCOL_112, ProtocolInfo.RESOURCE_PACK_DATA_INFO_PACKET, ResourcePackDataInfoPacket112.class);
         registerPacket(AbstractProtocol.PROTOCOL_112, ProtocolInfo.START_GAME_PACKET, StartGamePacket112.class);
+        registerPacket(AbstractProtocol.PROTOCOL_112, ProtocolInfo.LEVEL_EVENT_PACKET, LevelEventPacket112.class);
 
         checkNeteaseSpecialExtend();
         CraftingPacketManager.rebuildPacket();
