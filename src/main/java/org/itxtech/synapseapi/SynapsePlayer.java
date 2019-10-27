@@ -563,12 +563,12 @@ public class SynapsePlayer extends Player {
                 }
             }
 
-            if (this.isLevelChange) { //TODO: remove this
-                //Weather
-                this.getLevel().sendWeather(this);
-                //Update time
-                this.getLevel().sendTime(this);
+            //Weather
+            this.getLevel().sendWeather(this);
+            //Update time
+            this.getLevel().sendTime(this);
 
+            if (this.isLevelChange) { //TODO: remove this
                 PlayStatusPacket statusPacket0 = new PlayStatusPacket();
                 statusPacket0.status = PlayStatusPacket.PLAYER_SPAWN;
                 this.dataPacket(statusPacket0);
