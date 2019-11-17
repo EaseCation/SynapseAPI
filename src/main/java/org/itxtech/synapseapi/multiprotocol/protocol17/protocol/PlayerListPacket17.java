@@ -3,7 +3,6 @@ package org.itxtech.synapseapi.multiprotocol.protocol17.protocol;
 import cn.nukkit.entity.data.Skin;
 import cn.nukkit.network.protocol.DataPacket;
 import cn.nukkit.network.protocol.ProtocolInfo;
-import org.itxtech.synapseapi.multiprotocol.protocol14.protocol.Packet14;
 import org.itxtech.synapseapi.utils.ClassUtils;
 
 import java.util.ArrayList;
@@ -38,7 +37,7 @@ public class PlayerListPacket17 extends Packet17 {
             if (type == TYPE_ADD) {
                 this.putVarLong(entry.entityId);
                 this.putString(entry.name);
-                this.putSkin(entry.skin);
+                this.putSkinLegacy(entry.skin);
                 this.putString(entry.xboxUserId);
                 this.putString(entry.platformChatId);
             }

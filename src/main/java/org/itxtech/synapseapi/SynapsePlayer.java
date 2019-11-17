@@ -711,8 +711,8 @@ public class SynapsePlayer extends Player {
             Server.getInstance().getScheduler().scheduleTask(SynapseAPI.getInstance(), () -> {
                 if (this.riding == null) return;
                 SetEntityLinkPacket pk1 = new SetEntityLinkPacket();
-                pk1.rider = this.riding.getId();
-                pk1.riding = this.getId();
+                pk1.vehicleUniqueId = this.riding.getId();
+                pk1.riderUniqueId = this.getId();
                 pk1.type = SetEntityLinkPacket.TYPE_RIDE;
                 Server.broadcastPacket(this.getViewers().values(), pk1);
             });
@@ -749,8 +749,8 @@ public class SynapsePlayer extends Player {
             Server.getInstance().getScheduler().scheduleTask(SynapseAPI.getInstance(), () -> {
                 if (this.riding == null) return;
                 SetEntityLinkPacket pk1 = new SetEntityLinkPacket();
-                pk1.rider = this.riding.getId();
-                pk1.riding = this.getId();
+                pk1.vehicleUniqueId = this.riding.getId();
+                pk1.riderUniqueId = this.getId();
                 pk1.type = SetEntityLinkPacket.TYPE_RIDE;
                 player.dataPacket(pk1);
             });
@@ -849,7 +849,7 @@ public class SynapsePlayer extends Player {
                     this.close("", "disconnectionScreen.invalidSkin");
                     break;
                 } else {
-                    this.setSkin(loginPacket.getSkin());
+                    this.setSkin(loginPacket.getSkinLegacy());
                 }
 
                 PlayerPreLoginEvent playerPreLoginEvent;

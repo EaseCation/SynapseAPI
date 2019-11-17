@@ -1,4 +1,4 @@
-package org.itxtech.synapseapi.multiprotocol.protocol112.protocol;
+package org.itxtech.synapseapi.multiprotocol.protocol113.protocol;
 
 import cn.nukkit.network.protocol.DataPacket;
 import cn.nukkit.network.protocol.ProtocolInfo;
@@ -6,18 +6,20 @@ import org.itxtech.synapseapi.utils.ClassUtils;
 
 import java.util.UUID;
 
-public class ResourcePackDataInfoPacket112 extends Packet112 {
+public class ResourcePackDataInfoPacket113 extends Packet113 {
 
     public static final int NETWORK_ID = ProtocolInfo.RESOURCE_PACK_DATA_INFO_PACKET;
 
     public static final int TYPE_INVALID = 0;
-    public static final int TYPE_RESOURCE = 1;
-    public static final int TYPE_BEHAVIOR = 2;
-    public static final int TYPE_WORLD_TEMPLATE = 3;
-    public static final int TYPE_ADDON = 4;
-    public static final int TYPE_SKINS = 5;
-    public static final int TYPE_CACHED = 6;
-    public static final int TYPE_COPY_PROTECTED = 7;
+    public static final int TYPE_ADDON = 1;
+    public static final int TYPE_CACHED = 2;
+    public static final int TYPE_COPY_PROTECTED = 3;
+    public static final int TYPE_BEHAVIOR = 4;
+    public static final int TYPE_PERSONA_PIECE = 5;
+    public static final int TYPE_RESOURCE = 6;
+    public static final int TYPE_SKINS = 7;
+    public static final int TYPE_WORLD_TEMPLATE = 8;
+    public static final int TYPE_COUNT = 9;
 
     public UUID packId;
     public int maxChunkSize;
@@ -72,4 +74,5 @@ public class ResourcePackDataInfoPacket112 extends Packet112 {
     public static Class<? extends DataPacket> getDefaultPacket() {
         return cn.nukkit.network.protocol.ResourcePackDataInfoPacket.class;
     }
+
 }

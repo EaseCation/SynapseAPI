@@ -1,18 +1,18 @@
-package org.itxtech.synapseapi.multiprotocol.protocol14.protocol;
-
-import java.util.ArrayList;
-import java.util.List;
-import java.util.UUID;
+package org.itxtech.synapseapi.multiprotocol.protocol113.protocol;
 
 import cn.nukkit.entity.data.Skin;
 import cn.nukkit.network.protocol.DataPacket;
 import cn.nukkit.network.protocol.ProtocolInfo;
 import org.itxtech.synapseapi.utils.ClassUtils;
 
+import java.util.ArrayList;
+import java.util.List;
+import java.util.UUID;
+
 /**
  * @author Nukkit Project Team
  */
-public class PlayerListPacket14 extends Packet14 {
+public class PlayerListPacket113 extends Packet113 {
 
     public static final int NETWORK_ID = ProtocolInfo.PLAYER_LIST_PACKET;
 
@@ -37,14 +37,14 @@ public class PlayerListPacket14 extends Packet14 {
             if (type == TYPE_ADD) {
                 this.putVarLong(entry.entityId);
                 this.putString(entry.name);
-                this.putString(entry.thirdPartyName);
-                this.putVarInt(entry.platformId);
-                this.putSkinLegacy(entry.skin);
                 this.putString(entry.xboxUserId);
                 this.putString(entry.platformChatId);
+                this.putLInt(entry.buildPlatform);
+                this.putSkin(entry.skin);
+                this.putBoolean(entry.isTeacher);
+                this.putBoolean(entry.isHost);
             }
         }
-
     }
 
     @Override
@@ -57,11 +57,12 @@ public class PlayerListPacket14 extends Packet14 {
         public final UUID uuid;
         public long entityId = 0;
         public String name = "";
-        public String thirdPartyName = "";
-        public int platformId = 0;
-        public Skin skin;
         public String xboxUserId = ""; //TODO
         public String platformChatId = ""; //TODO
+        public int buildPlatform = -1;
+        public Skin skin;
+        public boolean isTeacher;
+        public boolean isHost;
 
         public Entry(UUID uuid) {
             this.uuid = uuid;

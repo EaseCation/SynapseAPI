@@ -16,7 +16,7 @@ import java.util.stream.Collectors;
  */
 public class CraftingDataPacket112 extends Packet112 {
 
-    public static final byte NETWORK_ID = ProtocolInfo.CRAFTING_DATA_PACKET;
+    public static final int NETWORK_ID = ProtocolInfo.CRAFTING_DATA_PACKET;
 
     public static final String CRAFTING_TAG_CRAFTING_TABLE = "crafting_table";
     public static final String CRAFTING_TAG_CARTOGRAPHY_TABLE = "cartography_table";

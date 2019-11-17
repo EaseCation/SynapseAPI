@@ -1,6 +1,9 @@
 package org.itxtech.synapseapi.multiprotocol.utils;
 
 import cn.nukkit.Server;
+import cn.nukkit.nbt.NBTIO;
+import cn.nukkit.nbt.tag.CompoundTag;
+import cn.nukkit.nbt.tag.ListTag;
 import cn.nukkit.utils.BinaryStream;
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
@@ -8,13 +11,16 @@ import it.unimi.dsi.fastutil.ints.Int2IntArrayMap;
 import org.itxtech.synapseapi.SynapseAPI;
 import org.itxtech.synapseapi.multiprotocol.AbstractProtocol;
 
+import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.Reader;
 import java.lang.reflect.Type;
+import java.nio.ByteOrder;
 import java.nio.charset.StandardCharsets;
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -47,6 +53,9 @@ public class AdvancedGlobalBlockPalette {
         put(AbstractProtocol.PROTOCOL_112, new AdvancedGlobalBlockPalette[]{
                 new AdvancedGlobalBlockPalette(AbstractProtocol.PROTOCOL_112, "block_state_list_112.json", "runtime_item_ids_112.json")
         });
+        put(AbstractProtocol.PROTOCOL_113, new AdvancedGlobalBlockPalette[]{
+                new AdvancedGlobalBlockPalette(AbstractProtocol.PROTOCOL_113, "block_state_list_113.dat", "runtime_item_ids_112.json")
+        });
     }};
 
     private final Int2IntArrayMap legacyToRuntimeId = new Int2IntArrayMap();
@@ -55,18 +64,28 @@ public class AdvancedGlobalBlockPalette {
     private final byte[] compiledTable;
     private final byte[] itemDataPalette;
 
-    public AdvancedGlobalBlockPalette(AbstractProtocol protocol, String jsonFile) {
-        this(protocol, jsonFile, null);
+    public AdvancedGlobalBlockPalette(AbstractProtocol protocol, String blockPaletteFile) {
+        this(protocol, blockPaletteFile, null);
     }
 
-    public AdvancedGlobalBlockPalette(AbstractProtocol protocol, String jsonFile, String itemDataPaletteJsonFile) {
-        Server.getInstance().getLogger().info("Loading Advanced Global Block Palette from " + jsonFile);
+    public AdvancedGlobalBlockPalette(AbstractProtocol protocol, String blockPaletteFile, String itemDataPaletteJsonFile) {
+        Server.getInstance().getLogger().info("Loading Advanced Global Block Palette from " + blockPaletteFile);
         legacyToRuntimeId.defaultReturnValue(-1);
         runtimeIdToLegacy.defaultReturnValue(-1);
 
-        InputStream stream = SynapseAPI.class.getClassLoader().getResourceAsStream(jsonFile);
+        if (blockPaletteFile.endsWith(".dat")) {
+            compiledTable = loadBlockPaletteNBT(protocol, blockPaletteFile);
+        } else {
+            compiledTable = loadBlockPaletteJson(protocol, blockPaletteFile);
+        }
+
+        itemDataPalette = loadItemDataPalette(itemDataPaletteJsonFile);
+    }
+
+    private byte[] loadBlockPaletteJson(AbstractProtocol protocol, String file) {
+        InputStream stream = SynapseAPI.class.getClassLoader().getResourceAsStream(file);
         if (stream == null) {
-            throw new AssertionError("Unable to locate RuntimeID table");
+            throw new AssertionError("Unable to locate RuntimeID table (.json)");
         }
         Reader reader = new InputStreamReader(stream, StandardCharsets.UTF_8);
 
@@ -84,10 +103,33 @@ public class AdvancedGlobalBlockPalette {
             table.putLShort(entry.data);
             if (protocol.ordinal() >= AbstractProtocol.PROTOCOL_112.ordinal()) table.putLShort(entry.id);
         }
+        return table.getBuffer();
+    }
 
-        compiledTable = table.getBuffer();
+    private byte[] loadBlockPaletteNBT(AbstractProtocol protocol, String file) {
+        InputStream stream = SynapseAPI.class.getClassLoader().getResourceAsStream(file);
+        if (stream == null) {
+            throw new AssertionError("Unable to locate block state nbt");
+        }
+        CompoundTag tag;
+        try {
+            tag = NBTIO.read(stream);
+        } catch (IOException e) {
+            throw new AssertionError(e);
+        }
 
-        itemDataPalette = loadItemDataPalette(itemDataPaletteJsonFile);
+        ListTag<CompoundTag> states = tag.getList("Palette", CompoundTag.class);
+        for (CompoundTag state : states.getAll()) {
+            int id = state.getShort("id");
+            int meta = state.getShort("meta");
+            registerMapping(id << 4 | meta);
+            state.remove("meta"); // No point in sending this since the client doesn't use it.
+        }
+        try {
+            return NBTIO.write(tag.getList("Palette"), ByteOrder.LITTLE_ENDIAN, true);
+        } catch (IOException e) {
+            throw new AssertionError(e);
+        }
     }
 
     private byte[] loadItemDataPalette(String jsonFile) {

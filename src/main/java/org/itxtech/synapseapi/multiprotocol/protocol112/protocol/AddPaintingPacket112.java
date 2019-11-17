@@ -9,7 +9,7 @@ import org.itxtech.synapseapi.utils.ClassUtils;
  */
 public class AddPaintingPacket112 extends Packet112 {
 
-    public static final byte NETWORK_ID = ProtocolInfo.ADD_PAINTING_PACKET;
+    public static final int NETWORK_ID = ProtocolInfo.ADD_PAINTING_PACKET;
 
     public long entityUniqueId;
     public long entityRuntimeId;

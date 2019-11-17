@@ -50,10 +50,10 @@ public class DataPacketEidReplacer {
                 if (((SetEntityMotionPacket) packet).eid == from) ((SetEntityMotionPacket) packet).eid = to;
                 break;
             case SetEntityLinkPacket.NETWORK_ID:
-                if (((SetEntityLinkPacket) packet).rider == from)
-                    ((SetEntityLinkPacket) packet).rider = to;
-                if (((SetEntityLinkPacket) packet).riding == from)
-                    ((SetEntityLinkPacket) packet).riding = to;
+                if (((SetEntityLinkPacket) packet).vehicleUniqueId == from)
+                    ((SetEntityLinkPacket) packet).vehicleUniqueId = to;
+                if (((SetEntityLinkPacket) packet).riderUniqueId == from)
+                    ((SetEntityLinkPacket) packet).riderUniqueId = to;
                 break;
             case SetEntityDataPacket.NETWORK_ID:
                 if (((SetEntityDataPacket) packet).eid == from) ((SetEntityDataPacket) packet).eid = to;

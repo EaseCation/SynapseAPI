@@ -10,6 +10,7 @@ import org.itxtech.synapseapi.multiprotocol.protocol110.protocol.LecternUpdatePa
 import org.itxtech.synapseapi.multiprotocol.protocol110.protocol.VideoStreamConnectPacket110;
 import org.itxtech.synapseapi.multiprotocol.protocol111.protocol.*;
 import org.itxtech.synapseapi.multiprotocol.protocol112.protocol.*;
+import org.itxtech.synapseapi.multiprotocol.protocol113.protocol.*;
 import org.itxtech.synapseapi.multiprotocol.protocol15.protocol.AddEntityPacket15;
 import org.itxtech.synapseapi.multiprotocol.protocol15.protocol.ClientboundMapItemDataPacket15;
 import org.itxtech.synapseapi.multiprotocol.protocol15.protocol.MoveEntityAbsolutePacket15;
@@ -125,6 +126,13 @@ public class PacketRegister {
         registerPacket(AbstractProtocol.PROTOCOL_112, ProtocolInfo.RESOURCE_PACK_DATA_INFO_PACKET, ResourcePackDataInfoPacket112.class);
         registerPacket(AbstractProtocol.PROTOCOL_112, ProtocolInfo.START_GAME_PACKET, StartGamePacket112.class);
         registerPacket(AbstractProtocol.PROTOCOL_112, ProtocolInfo.LEVEL_EVENT_PACKET, LevelEventPacket112.class);
+
+        registerPacket(AbstractProtocol.PROTOCOL_113, ProtocolInfo.PLAYER_LIST_PACKET, PlayerListPacket113.class);
+        registerPacket(AbstractProtocol.PROTOCOL_113, ProtocolInfo.RESOURCE_PACK_CHUNK_DATA_PACKET, ResourcePackChunkDataPacket113.class);
+        registerPacket(AbstractProtocol.PROTOCOL_113, ProtocolInfo.RESOURCE_PACK_DATA_INFO_PACKET, ResourcePackDataInfoPacket113.class);
+        registerPacket(AbstractProtocol.PROTOCOL_113, ProtocolInfo.RESOURCE_PACK_STACK_PACKET, ResourcePackStackPacket113.class);
+        registerPacket(AbstractProtocol.PROTOCOL_113, ProtocolInfo.RESPAWN_PACKET, RespawnPacket113.class);
+        registerPacket(AbstractProtocol.PROTOCOL_113, ProtocolInfo.START_GAME_PACKET, StartGamePacket113.class);
 
         checkNeteaseSpecialExtend();
         CraftingPacketManager.rebuildPacket();

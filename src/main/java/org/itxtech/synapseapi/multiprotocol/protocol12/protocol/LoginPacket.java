@@ -157,7 +157,7 @@ public class LoginPacket extends Packet12 {
     }
 
     @Override
-    public Skin getSkin() {
+    public Skin getSkinLegacy() {
         return this.skin;
     }
 }
