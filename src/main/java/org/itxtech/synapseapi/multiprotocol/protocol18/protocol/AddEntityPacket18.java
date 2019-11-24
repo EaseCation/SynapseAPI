@@ -22,14 +22,14 @@ import org.itxtech.synapseapi.utils.ClassUtils;
 public class AddEntityPacket18 extends Packet18 {
     public static final int NETWORK_ID = ProtocolInfo.ADD_ENTITY_PACKET;
 
-    private static ImmutableMap<Integer, String> LEGACY_IDS = ImmutableMap.<Integer, String>builder()
+    public static ImmutableMap<Integer, String> LEGACY_IDS = ImmutableMap.<Integer, String>builder()
             .put(51, "minecraft:npc")
             .put(63, "minecraft:player")
             .put(EntityWitherSkeleton.NETWORK_ID, "minecraft:wither_skeleton")
             .put(EntityHusk.NETWORK_ID, "minecraft:husk")
             .put(EntityStray.NETWORK_ID, "minecraft:stray")
             .put(EntityWitch.NETWORK_ID, "minecraft:witch")
-            .put(EntityZombieVillager.NETWORK_ID, "minecraft:zombie_villager")
+            .put(EntityZombieVillagerV1.NETWORK_ID, "minecraft:zombie_villager")
             .put(EntityBlaze.NETWORK_ID, "minecraft:blaze")
             .put(EntityMagmaCube.NETWORK_ID, "minecraft:magma_cube")
             .put(EntityGhast.NETWORK_ID, "minecraft:ghast")
@@ -52,10 +52,10 @@ public class AddEntityPacket18 extends Packet18 {
             .put(EntityDrowned.NETWORK_ID, "minecraft:drowned")
             .put(EntitySheep.NETWORK_ID, "minecraft:sheep")
             .put(EntityMooshroom.NETWORK_ID, "minecraft:mooshroom")
-            .put(113, "minecraft:panda")
+            .put(EntityPanda.NETWORK_ID, "minecraft:panda")
             .put(EntitySalmon.NETWORK_ID, "minecraft:salmon")
             .put(EntityPig.NETWORK_ID, "minecraft:pig")
-            .put(EntityVillager.NETWORK_ID, "minecraft:villager")
+            .put(EntityVillagerV1.NETWORK_ID, "minecraft:villager")
             .put(EntityCod.NETWORK_ID, "minecraft:cod")
             .put(EntityPufferfish.NETWORK_ID, "minecraft:pufferfish")
             .put(EntityCow.NETWORK_ID, "minecraft:cow")
@@ -68,7 +68,7 @@ public class AddEntityPacket18 extends Packet18 {
             .put(EntityBat.NETWORK_ID, "minecraft:bat")
             .put(EntityOcelot.NETWORK_ID, "minecraft:ocelot")
             .put(EntityHorse.NETWORK_ID, "minecraft:horse")
-            .put(75, "minecraft:cat")
+            .put(EntityCat.NETWORK_ID, "minecraft:cat")
             .put(EntityPolarBear.NETWORK_ID, "minecraft:polar_bear")
             .put(EntityZombieHorse.NETWORK_ID, "minecraft:zombie_horse")
             .put(EntityTurtle.NETWORK_ID, "minecraft:turtle")
@@ -94,7 +94,7 @@ public class AddEntityPacket18 extends Packet18 {
             .put(70, "minecraft:eye_of_ender_signal")
             .put(EntityEndCrystal.NETWORK_ID, "minecraft:ender_crystal")
             .put(76, "minecraft:shulker_bullet")
-            .put(77, "minecraft:fishing_hook")
+            .put(EntityFishingHook.NETWORK_ID, "minecraft:fishing_hook")
             .put(79, "minecraft:dragon_fireball")
             .put(EntityArrow.NETWORK_ID, "minecraft:arrow")
             .put(EntitySnowball.NETWORK_ID, "minecraft:snowball")
@@ -121,7 +121,14 @@ public class AddEntityPacket18 extends Packet18 {
             .put(106, "minecraft:ice_bomb")
             .put(EntityPhantom.NETWORK_ID, "minecraft:phantom")
             .put(62, "minecraft:tripod_camera")
+            .put(EntityPillager.NETWORK_ID, "minecraft:pillager")
+            .put(EntityWanderingTrader.NETWORK_ID, "minecraft:wandering_trader")
+            .put(EntityRavager.NETWORK_ID, "minecraft:ravager")
+            .put(EntityVillager.NETWORK_ID, "minecraft:villager_v2")
+            .put(EntityZombieVillager.NETWORK_ID, "minecraft:zombie_villager_v2")
+            .put(121, "minecraft:fox")
             .build();
+
 
     @Override
     public int pid() {

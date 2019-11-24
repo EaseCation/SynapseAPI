@@ -127,7 +127,7 @@ public class LoginPacket14 extends Packet14 {
             skin.setSkinId(skinToken.get("SkinId").getAsString());
         }
         if (skinToken.has("CapeId")) {
-            skin.setSkinId(skinToken.get("CapeId").getAsString());
+            skin.setCapeId(skinToken.get("CapeId").getAsString());
         }
 
         skin.setSkinData(getImage(skinToken, "Skin"));
@@ -151,7 +151,7 @@ public class LoginPacket14 extends Packet14 {
         }
 
         if (skinToken.has("AnimationData")) {
-            skin.setGeometryData(new String(Base64.getDecoder().decode(skinToken.get("AnimationData").getAsString()), StandardCharsets.UTF_8));
+            skin.setAnimationData(new String(Base64.getDecoder().decode(skinToken.get("AnimationData").getAsString()), StandardCharsets.UTF_8));
         }
 
         if (skinToken.has("AnimatedImageData")) {
