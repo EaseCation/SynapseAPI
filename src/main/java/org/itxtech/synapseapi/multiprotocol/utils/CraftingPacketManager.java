@@ -1,10 +1,7 @@
 package org.itxtech.synapseapi.multiprotocol.utils;
 
 import cn.nukkit.Server;
-import cn.nukkit.inventory.FurnaceRecipe;
-import cn.nukkit.inventory.Recipe;
-import cn.nukkit.inventory.ShapedRecipe;
-import cn.nukkit.inventory.ShapelessRecipe;
+import cn.nukkit.inventory.*;
 import cn.nukkit.network.protocol.BatchPacket;
 import cn.nukkit.network.protocol.CraftingDataPacket;
 import cn.nukkit.network.protocol.DataPacket;
@@ -34,6 +31,14 @@ public final class CraftingPacketManager {
 
         for (FurnaceRecipe recipe : Server.getInstance().getCraftingManager().getFurnaceRecipes().values()) {
             pk.addFurnaceRecipe(recipe);
+        }
+
+        for (BrewingRecipe recipe : Server.getInstance().getCraftingManager().getBrewingRecipes().values()) {
+            pk.addBrewingRecipe(recipe);
+        }
+
+        for (ContainerRecipe recipe : Server.getInstance().getCraftingManager().getContainerRecipes().values()) {
+            pk.addContainerRecipe(recipe);
         }
 
         pk.encode();
