@@ -29,6 +29,7 @@ import org.itxtech.synapseapi.network.SynLibInterface;
 import org.itxtech.synapseapi.network.SynapseInterface;
 import org.itxtech.synapseapi.network.protocol.spp.*;
 import org.itxtech.synapseapi.utils.ClientData;
+import org.itxtech.synapseapi.utils.DataPacketEidReplacer;
 import org.itxtech.synapseapi.utils.PlayerNetworkLatencyData;
 
 import java.lang.reflect.Constructor;
@@ -280,7 +281,7 @@ public class SynapseEntry {
             RedirectPacketEntry redirectPacketEntry;
             while ((redirectPacketEntry = redirectPacketQueue.poll()) != null) {
                 //Server.getInstance().getLogger().warning("C => S  " + redirectPacketEntry.dataPacket.getClass().getSimpleName());
-                redirectPacketEntry.player.handleDataPacket(redirectPacketEntry.dataPacket);
+                redirectPacketEntry.player.handleDataPacket(DataPacketEidReplacer.replaceBack(redirectPacketEntry.dataPacket, Long.MAX_VALUE, redirectPacketEntry.player.getId()));
             }
 
             PlayerLogoutPacket playerLogoutPacket;

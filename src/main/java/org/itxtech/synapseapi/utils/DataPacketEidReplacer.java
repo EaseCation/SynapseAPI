@@ -121,6 +121,16 @@ public class DataPacketEidReplacer {
         return packet;
     }
 
+    public static DataPacket replaceBack(DataPacket packet, long from, long to) {
+        switch (packet.pid()) {
+            case EntityEventPacket.NETWORK_ID:
+                if (((EntityEventPacket) packet).eid == from) ((EntityEventPacket) packet).eid = to;
+                break;
+        }
+
+        return packet;
+    }
+
     private static EntityMetadata cloneEntityMetadata(EntityMetadata metadata) {
         Map<Integer, EntityData> map = metadata.getMap();
         EntityMetadata re = new EntityMetadata();
