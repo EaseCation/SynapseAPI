@@ -11,6 +11,7 @@ public class ResourcePackStackPacket113 extends Packet113 {
     public boolean mustAccept = false;
     public ResourcePack[] behaviourPackStack = new ResourcePack[0];
     public ResourcePack[] resourcePackStack = new ResourcePack[0];
+    public boolean isExperimental = false;
     public String gameVersion = "1.13.0";
 
     @Override
@@ -36,7 +37,7 @@ public class ResourcePackStackPacket113 extends Packet113 {
             this.putString(entry.getPackVersion());
             this.putString("");
         }
-
+        this.putBoolean(this.isExperimental);
         this.putString(this.gameVersion);
     }
 
