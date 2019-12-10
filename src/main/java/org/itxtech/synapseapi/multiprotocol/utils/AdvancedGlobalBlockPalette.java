@@ -5,22 +5,22 @@ import cn.nukkit.nbt.NBTIO;
 import cn.nukkit.nbt.tag.CompoundTag;
 import cn.nukkit.nbt.tag.ListTag;
 import cn.nukkit.utils.BinaryStream;
-import com.google.common.io.ByteStreams;
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 import it.unimi.dsi.fastutil.ints.Int2IntArrayMap;
 import org.itxtech.synapseapi.SynapseAPI;
 import org.itxtech.synapseapi.multiprotocol.AbstractProtocol;
 
-import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.Reader;
 import java.lang.reflect.Type;
+import java.nio.ByteOrder;
 import java.nio.charset.StandardCharsets;
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -107,39 +107,28 @@ public class AdvancedGlobalBlockPalette {
     }
 
     private byte[] loadBlockPaletteNBT(AbstractProtocol protocol, String file) {
-        byte[] BLOCK_PALETTE;
-
         InputStream stream = SynapseAPI.class.getClassLoader().getResourceAsStream(file);
         if (stream == null) {
             throw new AssertionError("Unable to locate block state nbt");
         }
         ListTag<CompoundTag> tag;
         try {
-            //noinspection UnstableApiUsage
-            BLOCK_PALETTE = ByteStreams.toByteArray(stream);
-            //noinspection unchecked
-            tag = (ListTag<CompoundTag>) NBTIO.readNetwork(new ByteArrayInputStream(BLOCK_PALETTE));
+            tag = (ListTag<CompoundTag>) NBTIO.readNetwork(stream);
         } catch (IOException e) {
             throw new AssertionError(e);
         }
 
         for (CompoundTag state : tag.getAll()) {
-            int runtimeId = runtimeIdAllocator.getAndIncrement();
-            if (!state.contains("meta")) continue;
-
             int id = state.getShort("id");
-            int[] meta = state.getIntArray("meta");
-
-            // Resolve to first legacy id
-            runtimeIdToLegacy.put(runtimeId, id << 6 | meta[0]);
-            for (int val : meta) {
-                int legacyId = id << 6 | val;
-                legacyToRuntimeId.put(legacyId, runtimeId);
-            }
-            //state.remove("meta"); // No point in sending this since the client doesn't use it.
+            int meta = state.getShort("meta");
+            registerMapping(id << 4 | meta);
+            state.remove("meta"); // No point in sending this since the client doesn't use it.
         }
-
-        return BLOCK_PALETTE;
+        try {
+            return NBTIO.write(tag, ByteOrder.LITTLE_ENDIAN, true);
+        } catch (IOException e) {
+            throw new AssertionError(e);
+        }
     }
 
     private byte[] loadItemDataPalette(String jsonFile) {
@@ -184,20 +173,6 @@ public class AdvancedGlobalBlockPalette {
         return runtimeId;
     }
 
-    public int getOrCreateRuntimeIdNew(int id, int meta) {
-        int legacyId = id << 6 | meta;
-        int runtimeId = legacyToRuntimeId.get(legacyId);
-        if (runtimeId == -1) {
-            //runtimeId = registerMapping(runtimeIdAllocator.incrementAndGet(), legacyId);
-            throw new RuntimeException("Unmapped block registered");
-        }
-        return runtimeId;
-    }
-
-    public int getOrCreateRuntimeIdNew(int legacyId)  {
-        return getOrCreateRuntimeIdNew(legacyId >> 4, legacyId & 0xf);
-    }
-
     private int registerMapping(int legacyId) {
         int runtimeId = runtimeIdAllocator.getAndIncrement();
         runtimeIdToLegacy.put(runtimeId, legacyId);
@@ -219,11 +194,7 @@ public class AdvancedGlobalBlockPalette {
         if (palettes.containsKey(protocol)) {
             AdvancedGlobalBlockPalette[] versions = palettes.get(protocol);
             if (versions.length > 1) {
-                if (protocol.ordinal() >= AbstractProtocol.PROTOCOL_113.ordinal()) {
-                    return netease ? versions[1].getOrCreateRuntimeIdNew(legacyId) : versions[0].getOrCreateRuntimeIdNew(legacyId);
-                } else {
-                    return netease ? versions[1].getOrCreateRuntimeId0(legacyId) : versions[0].getOrCreateRuntimeId0(legacyId);
-                }
+                return netease ? versions[1].getOrCreateRuntimeId0(legacyId) : versions[0].getOrCreateRuntimeId0(legacyId);
             }
             return versions[0].getOrCreateRuntimeId0(legacyId);
         } else {
