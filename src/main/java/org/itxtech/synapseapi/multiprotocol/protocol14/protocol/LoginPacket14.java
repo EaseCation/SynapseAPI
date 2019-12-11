@@ -165,7 +165,13 @@ public class LoginPacket14 extends Packet14 {
     private JsonObject decodeToken(String token) {
         String[] base = token.split("\\.");
         if (base.length < 2) return null;
-        return new Gson().fromJson(new String(Base64.getDecoder().decode(base[1]), StandardCharsets.UTF_8), JsonObject.class);
+        byte[] decode;
+        try {
+            decode = Base64.getUrlDecoder().decode(base[1]);
+        } catch(IllegalArgumentException e) {
+            decode = Base64.getDecoder().decode(base[1]);
+        }
+        return new Gson().fromJson(new String(decode, StandardCharsets.UTF_8), JsonObject.class);
     }
 
     private static SkinAnimation getAnimation(JsonObject element) {
