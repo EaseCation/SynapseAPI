@@ -17,6 +17,7 @@ import org.itxtech.synapseapi.messaging.StandardMessenger;
 import org.itxtech.synapseapi.multiprotocol.protocol19.protocol.LevelSoundEventPacketV319;
 import org.itxtech.synapseapi.multiprotocol.utils.LevelSoundEventIDTranslator;
 import org.itxtech.synapseapi.runnable.TransferDimensionTaskThread;
+import org.itxtech.synapseapi.utils.ClientData;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
@@ -255,5 +256,23 @@ public class SynapseAPI extends PluginBase implements Listener {
                 }
             }
         }*/
+    }
+
+    public List<ClientData.Entry> getAllClientDataEntries() {
+        List<ClientData.Entry> list = new ArrayList<>();
+        this.getSynapseEntries().values().stream().forEach(entry -> {
+            entry.getClientData().clientList.values().forEach(e -> {
+                if (!list.contains(e)) list.add(e);
+            });
+        });
+        return list;
+    }
+
+    public List<ClientData.Entry> collectClientDataEntriesNotInList(Collection<ClientData.Entry> find, Collection<ClientData.Entry> all) {
+        List<ClientData.Entry> list = new ArrayList<>();
+        for (ClientData.Entry entry : all) {
+            if (!find.contains(entry)) list.add(entry);
+        }
+        return list;
     }
 }
