@@ -57,6 +57,10 @@ public class SynapseInterface {
         return putPacketThread;
     }
 
+    public SynapseClient getClient() {
+        return client;
+    }
+
     public void putPacket(SynapseDataPacket pk) {
         if (!pk.isEncoded) {
             pk.encode();

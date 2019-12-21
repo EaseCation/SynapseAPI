@@ -126,6 +126,10 @@ public class SynapseEntry {
         return clientData;
     }
 
+    public boolean isVerified() {
+        return verified;
+    }
+
     public SynapseInterface getSynapseInterface() {
         return synapseInterface;
     }
@@ -180,6 +184,10 @@ public class SynapseEntry {
 
     public void setPort(int port) {
         this.port = port;
+    }
+
+    public long getLastRecvInfo() {
+        return lastRecvInfo;
     }
 
     public void broadcastPacket(SynapsePlayer[] players, DataPacket packet) {
@@ -256,6 +264,10 @@ public class SynapseEntry {
         }
         @Override
         public void run() {
+            if (!verified && System.currentTimeMillis() - lastUpdate >= 3000) {
+                getSynapse().getLogger().notice("Trying to re-login to Synapse Server: " + getHash());
+                synapseInterface.getClient().setNeedAuth(true);
+            }
             PlayerLoginPacket playerLoginPacket;
             while ((playerLoginPacket = playerLoginQueue.poll()) != null) {
                 int protocol = playerLoginPacket.protocol;
@@ -510,5 +522,17 @@ public class SynapseEntry {
         pk.data = message;
 
         this.sendDataPacket(pk);
+    }
+
+    @Override
+    public String toString() {
+        return "SynapseEntry" +
+                "\nenable=" + enable +
+                "\nserverIp=" + serverIp +
+                "\nport=" + port +
+                "\nverified=" + verified +
+                "\nlastUpdate=" + lastUpdate +
+                "\nlastRecvInfo=" + lastRecvInfo +
+                "\nclientData=" + clientData;
     }
 }

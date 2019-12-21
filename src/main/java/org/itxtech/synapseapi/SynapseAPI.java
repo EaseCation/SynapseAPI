@@ -23,6 +23,7 @@ import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
 import java.util.*;
 import java.util.Map.Entry;
+import java.util.stream.Collectors;
 
 /**
  * @author boybook
@@ -260,10 +261,12 @@ public class SynapseAPI extends PluginBase implements Listener {
 
     public List<ClientData.Entry> getAllClientDataEntries() {
         List<ClientData.Entry> list = new ArrayList<>();
-        this.getSynapseEntries().values().stream().forEach(entry -> {
-            entry.getClientData().clientList.values().forEach(e -> {
-                if (!list.contains(e)) list.add(e);
-            });
+        this.getSynapseEntries().values().forEach(entry -> {
+            if (entry.getClientData() != null) {
+                entry.getClientData().clientList.values().forEach(e -> {
+                    if (!list.contains(e)) list.add(e);
+                });
+            }
         });
         return list;
     }
@@ -274,5 +277,9 @@ public class SynapseAPI extends PluginBase implements Listener {
             if (!find.contains(entry)) list.add(entry);
         }
         return list;
+    }
+
+    public List<SynapseEntry> getUnusualEntries() {
+        return this.getSynapseEntries().values().stream().filter(e -> !e.isVerified() || e.getClientData() == null || e.getClientData().clientList == null).collect(Collectors.toList());
     }
 }
