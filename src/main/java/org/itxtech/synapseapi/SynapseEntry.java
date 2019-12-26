@@ -55,6 +55,7 @@ public class SynapseEntry {
     private String password;
     private SynapseInterface synapseInterface;
     private boolean verified = false;
+    private long lastLogin;
     private long lastUpdate;
     private long lastRecvInfo;
     private Map<UUID, SynapsePlayer> players = new HashMap<>();
@@ -82,6 +83,7 @@ public class SynapseEntry {
 
         this.synapseInterface = new SynapseInterface(this, this.serverIp, this.port);
         this.synLibInterface = new SynLibInterface(this.synapseInterface);
+        this.lastLogin = System.currentTimeMillis();
         this.lastUpdate = System.currentTimeMillis();
         this.lastRecvInfo = System.currentTimeMillis();
         this.getSynapse().getServer().getScheduler().scheduleRepeatingTask(SynapseAPI.getInstance(), new Ticker(this), 1);
@@ -264,9 +266,10 @@ public class SynapseEntry {
         }
         @Override
         public void run() {
-            if (!verified && System.currentTimeMillis() - lastUpdate >= 3000) {
+            if (!verified && System.currentTimeMillis() - lastLogin >= 3000) {
                 getSynapse().getLogger().notice("Trying to re-login to Synapse Server: " + getHash());
                 synapseInterface.getClient().setNeedAuth(true);
+                lastLogin = System.currentTimeMillis();
             }
             PlayerLoginPacket playerLoginPacket;
             while ((playerLoginPacket = playerLoginQueue.poll()) != null) {
