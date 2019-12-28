@@ -268,7 +268,7 @@ public class SynapseEntry {
         public void run() {
             if (!verified && System.currentTimeMillis() - lastLogin >= 3000) {
                 getSynapse().getLogger().notice("Trying to re-login to Synapse Server: " + getHash());
-                synapseInterface.getClient().setNeedAuth(true);
+                //synapseInterface.getClient().setNeedAuth(true);
                 lastLogin = System.currentTimeMillis();
             }
             PlayerLoginPacket playerLoginPacket;
