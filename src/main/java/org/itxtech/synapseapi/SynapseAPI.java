@@ -18,6 +18,7 @@ import org.itxtech.synapseapi.multiprotocol.protocol19.protocol.LevelSoundEventP
 import org.itxtech.synapseapi.multiprotocol.utils.LevelSoundEventIDTranslator;
 import org.itxtech.synapseapi.runnable.TransferDimensionTaskThread;
 import org.itxtech.synapseapi.utils.ClientData;
+import org.itxtech.synapseapi.utils.NetTest;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
@@ -123,7 +124,8 @@ public class SynapseAPI extends PluginBase implements Listener {
         data.forEach((n, v) -> {
             System.out.println(n + "(" + v[0] + ", " +  v[1] + ", " + v[2] + "),");
         });*/
-
+        this.getMessenger().registerIncomingPluginChannel(this, "nettest", new NetTest(this));
+        this.getMessenger().registerOutgoingPluginChannel(this, "nettest");
     }
 
     public TransferDimensionTaskThread getTransferDimensionTaskThread() {

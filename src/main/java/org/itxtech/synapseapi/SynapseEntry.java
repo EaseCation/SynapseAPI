@@ -268,13 +268,13 @@ public class SynapseEntry {
         public void run() {
             if (!verified && System.currentTimeMillis() - lastLogin >= 3000) {
                 getSynapse().getLogger().notice("Trying to re-login to Synapse Server: " + getHash());
-                //synapseInterface.getClient().setNeedAuth(true);
+                synapseInterface.getClient().setNeedAuth(true);
                 lastLogin = System.currentTimeMillis();
             }
             PlayerLoginPacket playerLoginPacket;
             while ((playerLoginPacket = playerLoginQueue.poll()) != null) {
                 int protocol = playerLoginPacket.protocol;
-                InetSocketAddress socketAddress = new InetSocketAddress(playerLoginPacket.address, playerLoginPacket.port);
+                InetSocketAddress socketAddress = InetSocketAddress.createUnresolved(playerLoginPacket.address, playerLoginPacket.port);
 
                 Class<? extends SynapsePlayer> clazz = determinePlayerClass(protocol);
                 SynapsePlayerCreationEvent ev = new SynapsePlayerCreationEvent(synLibInterface, clazz, clazz, new Random().nextLong(), socketAddress);
