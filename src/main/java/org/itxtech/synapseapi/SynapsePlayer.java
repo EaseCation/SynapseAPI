@@ -568,6 +568,8 @@ public class SynapsePlayer extends Player {
             //Update time
             this.getLevel().sendTime(this);
 
+            this.getServer().getScheduler().scheduleDelayedTask(SynapseAPI.getInstance(), () -> this.getLevel().sendTime(this), 10);
+
             if (this.isLevelChange) { //TODO: remove this
                 PlayStatusPacket statusPacket0 = new PlayStatusPacket();
                 statusPacket0.status = PlayStatusPacket.PLAYER_SPAWN;
