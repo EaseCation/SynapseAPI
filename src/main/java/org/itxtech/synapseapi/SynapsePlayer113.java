@@ -31,6 +31,7 @@ import cn.nukkit.network.protocol.*;
 import cn.nukkit.network.protocol.types.NetworkInventoryAction;
 import cn.nukkit.resourcepacks.ResourcePack;
 import org.itxtech.synapseapi.multiprotocol.protocol113.protocol.ResourcePackStackPacket113;
+import org.itxtech.synapseapi.multiprotocol.protocol113.protocol.RespawnPacket113;
 import org.itxtech.synapseapi.multiprotocol.protocol113.protocol.StartGamePacket113;
 import org.itxtech.synapseapi.multiprotocol.protocol14.protocol.PlayerActionPacket14;
 import org.itxtech.synapseapi.multiprotocol.protocol16.protocol.ResourcePackClientResponsePacket16;
@@ -138,9 +139,9 @@ public class SynapsePlayer113 extends SynapsePlayer112 {
 				if (this.isAlive()) {
 					break;
 				}
-				RespawnPacket respawnPacket = (RespawnPacket) packet;
+				RespawnPacket113 respawnPacket = (RespawnPacket113) packet;
 				if (respawnPacket.respawnState == RespawnPacket.STATE_CLIENT_READY_TO_SPAWN) {
-					RespawnPacket respawn1 = new RespawnPacket();
+					RespawnPacket113 respawn1 = new RespawnPacket113();
 					respawn1.x = (float) this.getX();
 					respawn1.y = (float) this.getY();
 					respawn1.z = (float) this.getZ();
@@ -426,6 +427,9 @@ public class SynapsePlayer113 extends SynapsePlayer112 {
 
 						Entity target = this.level.getEntity(useItemOnEntityData.entityRuntimeId);
 						if (target == null) {
+							item = this.inventory.getItemInHand();
+							PlayerInteractEvent interactEvent = new PlayerInteractEvent(this, item, this.getDirectionVector(), BlockFace.UP, PlayerInteractEvent.Action.CLICK_UNKNOWN_ENTITY).setUnkownEntityId(useItemOnEntityData.entityRuntimeId);
+							this.server.getPluginManager().callEvent(interactEvent);
 							return;
 						}
 
