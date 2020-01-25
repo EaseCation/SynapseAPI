@@ -211,11 +211,6 @@ public class SynapsePlayer113 extends SynapsePlayer112 {
 				}
 				break;
 			case ProtocolInfo.INVENTORY_TRANSACTION_PACKET:
-				if (this.isSpectator()) {
-					this.sendAllInventories();
-					break;
-				}
-
 				InventoryTransactionPacket transactionPacket = (InventoryTransactionPacket) packet;
 
 				Item item;
