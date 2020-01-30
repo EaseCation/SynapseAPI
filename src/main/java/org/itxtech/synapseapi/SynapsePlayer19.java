@@ -30,9 +30,9 @@ public class SynapsePlayer19 extends SynapsePlayer18 {
 			super.handleDataPacket(packet);
 			return;
 		}
-		packetswitch:
 		switch (packet.pid()) {
 			case ProtocolInfo.LEVEL_SOUND_EVENT_PACKET_V3:
+				if (!callPacketReceiveEvent(packet)) break;
 				LevelSoundEventPacketV319 levelSoundEventPacket = (LevelSoundEventPacketV319) packet;
 				SynapsePlayerBroadcastLevelSoundEvent event = new SynapsePlayerBroadcastLevelSoundEvent(this,
 						LevelSoundEventEnum.fromV18(levelSoundEventPacket.sound),
@@ -61,6 +61,7 @@ public class SynapsePlayer19 extends SynapsePlayer18 {
 				break;
 			default:
 				super.handleDataPacket(packet);
+				break;
 		}
 	}
 

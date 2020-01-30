@@ -75,8 +75,7 @@ public class SynapsePlayer14 extends SynapsePlayer {
 		switch (packet.pid()) {
 			// 1.4协议的PID仍然相同
 			case ProtocolInfo.LOGIN_PACKET:
-
-				if (!this.callPacketRecieveEvent(((LoginPacket14) packet).toDefault())) break;
+				if (!this.callPacketReceiveEvent(((LoginPacket14) packet).toDefault())) break;
 
 				if (this.loggedIn) {
 					break;
@@ -171,7 +170,7 @@ public class SynapsePlayer14 extends SynapsePlayer {
 			case ProtocolInfo.PLAYER_ACTION_PACKET:
 				PlayerActionPacket14 playerActionPacket = (PlayerActionPacket14) packet;
 
-				if (!this.callPacketRecieveEvent(((PlayerActionPacket14) packet).toDefault())) break;
+				if (!this.callPacketReceiveEvent(((PlayerActionPacket14) packet).toDefault())) break;
 
 				if (!this.spawned || (!this.isAlive() && playerActionPacket.action != PlayerActionPacket14.ACTION_RESPAWN && playerActionPacket.action != PlayerActionPacket14.ACTION_DIMENSION_CHANGE_REQUEST)) {
 					break;
@@ -368,7 +367,7 @@ public class SynapsePlayer14 extends SynapsePlayer {
 				this.setDataFlag(Player.DATA_FLAGS, Player.DATA_FLAG_ACTION, false);
 				break;
             case ProtocolInfo.TEXT_PACKET:
-				if (!this.callPacketRecieveEvent(((TextPacket14) packet).toDefault())) break;
+				if (!this.callPacketReceiveEvent(((TextPacket14) packet).toDefault())) break;
                 if (!this.spawned || !this.isAlive()) {
                     break;
                 }
@@ -380,6 +379,7 @@ public class SynapsePlayer14 extends SynapsePlayer {
                 }
                 break;
 			case ProtocolInfo.LEVEL_SOUND_EVENT_PACKET:
+				if (!callPacketReceiveEvent(packet)) break;
 				LevelSoundEventPacket levelSoundEventPacket = (LevelSoundEventPacket) packet;
 				SynapsePlayerBroadcastLevelSoundEvent event = new SynapsePlayerBroadcastLevelSoundEvent(this,
 						LevelSoundEventEnum.fromV14(levelSoundEventPacket.sound),

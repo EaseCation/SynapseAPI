@@ -759,6 +759,12 @@ public class SynapsePlayer extends Player {
         }
     }
 
+    protected boolean callPacketReceiveEvent(DataPacket packet) {
+        DataPacketReceiveEvent ev = new DataPacketReceiveEvent(this, packet);
+        this.server.getPluginManager().callEvent(ev);
+        return !ev.isCancelled();
+    }
+
     @Override
     public void handleDataPacket(DataPacket packet) {
         if (!this.isSynapseLogin) {
@@ -768,9 +774,9 @@ public class SynapsePlayer extends Player {
         Timing dataPacketTiming = handlePlayerDataPacketTimings.getOrDefault(packet.pid(), TimingsManager.getTiming("SynapseEntry - HandlePlayerDataPacket - " + packet.getClass().getSimpleName()));
         dataPacketTiming.startTiming();
 
-        packetswitch:
         switch (packet.pid()) {
             case ProtocolInfo.LOGIN_PACKET:
+                if (!callPacketReceiveEvent(packet)) break;
                 if (this.loggedIn) {
                     break;
                 }
@@ -865,6 +871,7 @@ public class SynapsePlayer extends Player {
                 this.processLogin();
                 break;
             case ProtocolInfo.MAP_INFO_REQUEST_PACKET:
+                if (!callPacketReceiveEvent(packet)) break;
                 MapInfoRequestPacket pk = (MapInfoRequestPacket) packet;
                 Item mapItem = null;
 
@@ -903,6 +910,7 @@ public class SynapsePlayer extends Player {
 
                 break;
             case ProtocolInfo.LEVEL_SOUND_EVENT_PACKET:
+                if (!callPacketReceiveEvent(packet)) break;
                 LevelSoundEventPacket levelSoundEventPacket = (LevelSoundEventPacket) packet;
                 SynapsePlayerBroadcastLevelSoundEvent event = new SynapsePlayerBroadcastLevelSoundEvent(this,
                         LevelSoundEventEnum.fromV12(levelSoundEventPacket.sound),
@@ -936,12 +944,6 @@ public class SynapsePlayer extends Player {
         if (!handlePlayerDataPacketTimings.containsKey(packet.pid()))
             handlePlayerDataPacketTimings.put(packet.pid(), dataPacketTiming);
 
-    }
-
-    protected boolean callPacketRecieveEvent(DataPacket packet) {
-        DataPacketReceiveEvent ev = new DataPacketReceiveEvent(this, packet);
-        this.server.getPluginManager().callEvent(ev);
-        return !ev.isCancelled();
     }
 
     protected void setLoginChainData(LoginChainData loginChainData) {

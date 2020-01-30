@@ -33,6 +33,7 @@ public class SynapsePlayer18 extends SynapsePlayer17 {
 		packetswitch:
 		switch (packet.pid()) {
 			case ProtocolInfo.RESOURCE_PACK_CLIENT_RESPONSE_PACKET:
+				if (!callPacketReceiveEvent(packet)) break;
 				ResourcePackClientResponsePacket16 responsePacket = (ResourcePackClientResponsePacket16) packet;
 				switch (responsePacket.responseStatus) {
 					case ResourcePackClientResponsePacket.STATUS_REFUSED:
@@ -68,6 +69,7 @@ public class SynapsePlayer18 extends SynapsePlayer17 {
 				}
 				break;
 			case ProtocolInfo.LEVEL_SOUND_EVENT_PACKET_V2:
+				if (!callPacketReceiveEvent(packet)) break;
 				LevelSoundEventPacketV218 levelSoundEventPacket = (LevelSoundEventPacketV218) packet;
 				SynapsePlayerBroadcastLevelSoundEvent event = new SynapsePlayerBroadcastLevelSoundEvent(this,
 						LevelSoundEventEnum.fromV18(levelSoundEventPacket.sound),
@@ -96,6 +98,7 @@ public class SynapsePlayer18 extends SynapsePlayer17 {
 				break;
 			default:
 				super.handleDataPacket(packet);
+				break;
 		}
 
 	}

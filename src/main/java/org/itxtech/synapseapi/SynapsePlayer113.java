@@ -101,6 +101,7 @@ public class SynapsePlayer113 extends SynapsePlayer112 {
 		packetswitch:
 		switch (packet.pid()) {
 			case ProtocolInfo.RESOURCE_PACK_CLIENT_RESPONSE_PACKET:
+				if (!callPacketReceiveEvent(packet)) break;
 				ResourcePackClientResponsePacket16 responsePacket = (ResourcePackClientResponsePacket16) packet;
 				switch (responsePacket.responseStatus) {
 					case ResourcePackClientResponsePacket.STATUS_REFUSED:
@@ -136,6 +137,7 @@ public class SynapsePlayer113 extends SynapsePlayer112 {
 				}
 				break;
 			case ProtocolInfo.RESPAWN_PACKET:
+				if (!callPacketReceiveEvent(packet)) break;
 				if (this.isAlive()) {
 					break;
 				}
@@ -150,6 +152,7 @@ public class SynapsePlayer113 extends SynapsePlayer112 {
 				}
 				break;
 			case ProtocolInfo.PLAYER_ACTION_PACKET:
+				if (!callPacketReceiveEvent(packet)) break;
 				PlayerActionPacket14 playerActionPacket = (PlayerActionPacket14) packet;
 				if (!this.spawned || (!this.isAlive() && playerActionPacket.action != PlayerActionPacket14.ACTION_RESPAWN && playerActionPacket.action != PlayerActionPacket14.ACTION_DIMENSION_CHANGE_REQUEST)) {
 					break;
@@ -211,6 +214,7 @@ public class SynapsePlayer113 extends SynapsePlayer112 {
 				}
 				break;
 			case ProtocolInfo.INVENTORY_TRANSACTION_PACKET:
+				if (!callPacketReceiveEvent(packet)) break;
 				InventoryTransactionPacket transactionPacket = (InventoryTransactionPacket) packet;
 
 				Item item;
@@ -548,6 +552,7 @@ public class SynapsePlayer113 extends SynapsePlayer112 {
 				break;
 			default:
 				super.handleDataPacket(packet);
+				break;
 		}
 
 	}

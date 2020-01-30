@@ -25,9 +25,9 @@ public class SynapsePlayer17 extends SynapsePlayer16 {
 			super.handleDataPacket(packet);
 			return;
 		}
-		packetswitch:
 		switch (packet.pid()) {
 			case ProtocolInfo.TEXT_PACKET:
+				if (!callPacketReceiveEvent(packet)) break;
 				if (!this.spawned || !this.isAlive()) {
 					break;
 				}
@@ -39,6 +39,7 @@ public class SynapsePlayer17 extends SynapsePlayer16 {
 				}
 				break;
 			case ProtocolInfo.PACKET_STORE_BUY_SUCC:
+				if (!callPacketReceiveEvent(packet)) break;
 				SynapsePlayerNetEaseStoreBuySuccEvent event = new SynapsePlayerNetEaseStoreBuySuccEvent(this);
 				Server.getInstance().getPluginManager().callEvent(event);
 				break;
