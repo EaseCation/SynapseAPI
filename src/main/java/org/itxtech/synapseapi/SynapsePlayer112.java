@@ -11,6 +11,7 @@ import cn.nukkit.network.protocol.DataPacket;
 import cn.nukkit.network.protocol.LevelChunkPacket;
 import cn.nukkit.network.protocol.ProtocolInfo;
 import cn.nukkit.resourcepacks.ResourcePack;
+import com.nukkitx.network.raknet.RakNetReliability;
 import org.itxtech.synapseapi.event.player.SynapsePlayerBroadcastLevelSoundEvent;
 import org.itxtech.synapseapi.multiprotocol.AbstractProtocol;
 import org.itxtech.synapseapi.multiprotocol.protocol112.protocol.StartGamePacket112;
@@ -101,8 +102,9 @@ public class SynapsePlayer112 extends SynapsePlayer19 {
 		pk.chunkZ = z;
 		pk.subChunkCount = subChunkCount;
 		pk.data = payload;
+		pk.setReliability(RakNetReliability.RELIABLE);
 
-		this.batchDataPacket(pk);
+		this.dataPacket(pk);
 
 		if (this.spawned) {
 			for (Entity entity : this.level.getChunkEntities(x, z).values()) {

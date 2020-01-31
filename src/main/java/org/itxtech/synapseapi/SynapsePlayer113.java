@@ -152,8 +152,9 @@ public class SynapsePlayer113 extends SynapsePlayer112 {
 				}
 				break;
 			case ProtocolInfo.PLAYER_ACTION_PACKET:
-				if (!callPacketReceiveEvent(packet)) break;
 				PlayerActionPacket14 playerActionPacket = (PlayerActionPacket14) packet;
+				if (!this.callPacketReceiveEvent(((PlayerActionPacket14) packet).toDefault())) break;
+
 				if (!this.spawned || (!this.isAlive() && playerActionPacket.action != PlayerActionPacket14.ACTION_RESPAWN && playerActionPacket.action != PlayerActionPacket14.ACTION_DIMENSION_CHANGE_REQUEST)) {
 					break;
 				}

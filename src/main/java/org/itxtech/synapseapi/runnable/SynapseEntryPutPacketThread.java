@@ -1,20 +1,17 @@
 package org.itxtech.synapseapi.runnable;
 
-import cn.nukkit.Player;
 import cn.nukkit.Server;
-import cn.nukkit.entity.Entity;
 import cn.nukkit.math.NukkitMath;
 import cn.nukkit.network.protocol.*;
 import cn.nukkit.network.protocol.BatchPacket;
-import cn.nukkit.network.protocol.ProtocolInfo;
 import cn.nukkit.utils.Binary;
 import cn.nukkit.utils.MainLogger;
 import cn.nukkit.utils.Zlib;
+import com.nukkitx.network.raknet.RakNetReliability;
 import org.itxtech.synapseapi.SynapseAPI;
 import org.itxtech.synapseapi.SynapsePlayer;
 import org.itxtech.synapseapi.multiprotocol.AbstractProtocol;
 import org.itxtech.synapseapi.multiprotocol.PacketRegister;
-import org.itxtech.synapseapi.multiprotocol.protocol14.protocol.SetEntityDataPacket14;
 import org.itxtech.synapseapi.network.SynapseInterface;
 import org.itxtech.synapseapi.network.protocol.spp.RedirectPacket;
 
@@ -127,6 +124,10 @@ public class SynapseEntryPutPacketThread extends Thread {
 
                         //MainLogger.getLogger().notice("PACKET: "+entry.packet.getClass().getName());
                         DataPacket old = entry.packet;
+
+                        pk.reliability = old.reliability.ordinal();
+                        pk.channel = old.getChannel();
+
                         entry.packet = PacketRegister.getCompatiblePacket(entry.packet, (entry.player).getProtocol(), entry.player.isNetEaseClient());
 
                         if (entry.packet == null) {
@@ -169,6 +170,8 @@ public class SynapseEntryPutPacketThread extends Thread {
                         } else {
                             pk.mcpeBuffer = entry.packet instanceof BatchPacket ? Binary.appendBytes((byte) 0xfe, ((BatchPacket) entry.packet).payload) : entry.packet.getBuffer();
                         }
+                        //if (pk.reliability != RakNetReliability.RELIABLE_ORDERED.ordinal() || pk.channel != 0)
+                        //    Server.getInstance().getLogger().info("reliability: " + pk.reliability + "  channel: " + pk.channel);
                         this.synapseInterface.putPacket(pk);
                         //Server.getInstance().getLogger().warning("SynapseEntryPutPacketThread PutPacket");
                         /*try {
@@ -222,7 +225,6 @@ public class SynapseEntryPutPacketThread extends Thread {
 
                     Map<AbstractProtocol, byte[][]> finalData = new HashMap<>();
                     needPackets.forEach((protocol, packets) -> {
-                        byte[][] datas;
                         BatchPacket batch = batchPackets(packets.stream().map(BatchPacketEntry::getNormalVersion).toArray(DataPacket[]::new));
                         if (batch != null) {
                             if (haveNetEasePacket[0]) {
@@ -248,6 +250,7 @@ public class SynapseEntryPutPacketThread extends Thread {
                             RedirectPacket pk = new RedirectPacket();
                             pk.protocol = player.getProtocol();
                             pk.uuid = player.getUniqueId();
+                            pk.channel = DataPacket.CHANNEL_BATCH;
                             byte[][] datas = finalData.get(protocol);
                             if (datas.length >= 2 && player.isNetEaseClient()) {
                                 pk.mcpeBuffer = datas[1];

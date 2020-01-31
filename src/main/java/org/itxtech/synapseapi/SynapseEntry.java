@@ -439,6 +439,7 @@ public class SynapseEntry {
                                 if (SynapseAPI.getInstance().isNetworkBroadcastPlayerMove() && subPacket instanceof MovePlayerPacket) {
                                     //玩家体验优化：直接不经过主线程广播玩家移动，插件过度干预可能会造成移动鬼畜问题
                                     ((MovePlayerPacket) subPacket).eid = player.getId();
+                                    subPacket.setChannel(DataPacket.CHANNEL_PLAYER_MOVING);
                                     new ArrayList<>(player.getViewers().values()).forEach(viewer -> viewer.dataPacket(subPacket));
                                     if (!this.movePlayerPacketCount.containsKey(player.getUniqueId())) this.movePlayerPacketCount.put(player.getUniqueId(), 0);
                                     this.movePlayerPacketCount.replace(player.getUniqueId(), this.movePlayerPacketCount.get(player.getUniqueId()) + 1);
