@@ -868,6 +868,25 @@ public class SynapsePlayer extends Player {
                     break;
                 }
 
+                Player playerInstance = this;
+                this.preLoginEventTask = new AsyncTask() {
+
+                    private PlayerAsyncPreLoginEvent e;
+
+                    @Override
+                    public void onRun() {
+                        e = new PlayerAsyncPreLoginEvent(playerInstance, username, uuid, getAddress(), getPort());
+                        server.getPluginManager().callEvent(e);
+                    }
+
+                    @Override
+                    public void onCompletion(Server server) {
+                        playerInstance.completePreLoginEventTask(e);
+                    }
+                };
+
+                this.server.getScheduler().scheduleAsyncTask(this.preLoginEventTask);
+
                 this.processLogin();
                 break;
             case ProtocolInfo.MAP_INFO_REQUEST_PACKET:

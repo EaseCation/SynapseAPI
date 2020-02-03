@@ -1,6 +1,7 @@
 package org.itxtech.synapseapi;
 
 import cn.nukkit.Player;
+import cn.nukkit.Server;
 import cn.nukkit.block.Block;
 import cn.nukkit.block.BlockAir;
 import cn.nukkit.block.BlockNoteblock;
@@ -15,6 +16,7 @@ import cn.nukkit.math.Vector3;
 import cn.nukkit.network.SourceInterface;
 import cn.nukkit.network.protocol.*;
 import cn.nukkit.resourcepacks.ResourcePack;
+import cn.nukkit.scheduler.AsyncTask;
 import cn.nukkit.utils.Binary;
 import cn.nukkit.utils.DummyBossBar;
 import cn.nukkit.utils.MainLogger;
@@ -163,6 +165,25 @@ public class SynapsePlayer14 extends SynapsePlayer {
 
 					break;
 				}
+
+				Player playerInstance = this;
+				this.preLoginEventTask = new AsyncTask() {
+
+					private PlayerAsyncPreLoginEvent e;
+
+					@Override
+					public void onRun() {
+						e = new PlayerAsyncPreLoginEvent(playerInstance, username, uuid, getAddress(), getPort());
+						server.getPluginManager().callEvent(e);
+					}
+
+					@Override
+					public void onCompletion(Server server) {
+						playerInstance.completePreLoginEventTask(e);
+					}
+				};
+
+				this.server.getScheduler().scheduleAsyncTask(this.preLoginEventTask);
 
 				this.processLogin();
 				break;

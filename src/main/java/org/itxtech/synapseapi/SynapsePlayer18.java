@@ -64,7 +64,11 @@ public class SynapsePlayer18 extends SynapsePlayer17 {
 						this.dataPacket(stackPacket);
 						break;
 					case ResourcePackClientResponsePacket.STATUS_COMPLETED:
-						this.completeLoginSequence();
+						if (this.preLoginEventTask.isFinished()) {
+							this.completeLoginSequence();
+						} else {
+							this.shouldLogin = true;
+						}
 						break;
 				}
 				break;
