@@ -142,7 +142,7 @@ public class LevelEventPacket112 extends Packet112 {
             this.data = AdvancedGlobalBlockPalette.getOrCreateRuntimeId(protocol, netease, packet.data & 0xff, packet.data >> 8);
         } else if (packet.evid == EVENT_PARTICLE_PUNCH_BLOCK) {
             this.data = AdvancedGlobalBlockPalette.getOrCreateRuntimeId(protocol, netease, packet.data & 0xff, packet.data >> 8 & 0xff) | (packet.data >> 16 & 0xff << 4);
-        } else {
+        }else {
             this.data = packet.data;
         }
 
