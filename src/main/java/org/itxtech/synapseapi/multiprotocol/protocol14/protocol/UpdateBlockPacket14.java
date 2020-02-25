@@ -75,6 +75,7 @@ public class UpdateBlockPacket14 extends Packet14 {
         this.z = packet.z;
         this.blockRuntimeId = GlobalBlockPalette.getOrCreateRuntimeId(packet.blockId, packet.blockData);
         this.flags = packet.flags;
+        this.dataLayer = packet.dataLayer;
         return this;
     }
 
