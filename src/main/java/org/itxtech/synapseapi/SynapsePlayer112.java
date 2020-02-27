@@ -1,32 +1,27 @@
 package org.itxtech.synapseapi;
 
 import cn.nukkit.Player;
-import cn.nukkit.Server;
 import cn.nukkit.entity.Entity;
 import cn.nukkit.level.Level;
 import cn.nukkit.level.Position;
-import cn.nukkit.math.Vector3;
 import cn.nukkit.network.SourceInterface;
 import cn.nukkit.network.protocol.DataPacket;
 import cn.nukkit.network.protocol.LevelChunkPacket;
 import cn.nukkit.network.protocol.ProtocolInfo;
-import cn.nukkit.resourcepacks.ResourcePack;
 import com.nukkitx.network.raknet.RakNetReliability;
-import org.itxtech.synapseapi.event.player.SynapsePlayerBroadcastLevelSoundEvent;
-import org.itxtech.synapseapi.multiprotocol.AbstractProtocol;
+import it.unimi.dsi.fastutil.longs.Long2ObjectMap;
+import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap;
+import org.itxtech.synapseapi.multiprotocol.protocol112.protocol.ClientCacheBlobStatusPacket112;
+import org.itxtech.synapseapi.multiprotocol.protocol112.protocol.ClientCacheMissResponsePacket112;
+import org.itxtech.synapseapi.multiprotocol.protocol112.protocol.ClientCacheStatusPacket112;
 import org.itxtech.synapseapi.multiprotocol.protocol112.protocol.StartGamePacket112;
-import org.itxtech.synapseapi.multiprotocol.protocol18.protocol.AvailableEntityIdentifiersPacket18;
 import org.itxtech.synapseapi.multiprotocol.protocol18.protocol.BiomeDefinitionListPacket18;
-import org.itxtech.synapseapi.multiprotocol.protocol19.protocol.LevelSoundEventPacketV319;
-import org.itxtech.synapseapi.multiprotocol.protocol19.protocol.ResourcePacksInfoPacket19;
-import org.itxtech.synapseapi.multiprotocol.protocol19.protocol.StartGamePacket19;
-import org.itxtech.synapseapi.multiprotocol.utils.AdvancedGlobalBlockPalette;
-import org.itxtech.synapseapi.multiprotocol.utils.AvailableEntityIdentifiersPalette;
-import org.itxtech.synapseapi.multiprotocol.utils.LevelSoundEventEnum;
 
 import java.net.InetSocketAddress;
 
 public class SynapsePlayer112 extends SynapsePlayer19 {
+
+	public Long2ObjectMap<byte[]> clientCacheTrack = null; //为null表示客户端未支持 TODO 代理跨服怎么办？
 
 	public SynapsePlayer112(SourceInterface interfaz, SynapseEntry synapseEntry, Long clientID, InetSocketAddress socketAddress) {
 		super(interfaz, synapseEntry, clientID, socketAddress);
@@ -70,6 +65,7 @@ public class SynapsePlayer112 extends SynapsePlayer19 {
 		super.completeLoginSequence();
 		if (this.loggedIn) {
 			this.dataPacket(new BiomeDefinitionListPacket18());
+			//this.initClientBlobCache();
 		}
 	}
 
@@ -89,7 +85,53 @@ public class SynapsePlayer112 extends SynapsePlayer19 {
 	}
 
 	@Override
-	public void sendChunk(int x, int z, int subChunkCount, byte[] payload) {
+	public void sendChunk(int x, int z, int subCountCount, long[] blobIds, Long2ObjectOpenHashMap<byte[]> clientBlobs, byte[] clientBlobCachedPayload, DataPacket packet) {
+		if (this.clientCacheTrack == null || clientBlobs == null) super.sendChunk(x, z, subCountCount, blobIds, clientBlobs, clientBlobCachedPayload, packet);
+		else {
+			if (!this.connected) {
+				return;
+			}
+			//if (chunkDebug) return;
+
+			this.usedChunks.put(Level.chunkHash(x, z), true);
+			this.chunkLoadCount++;
+
+			LevelChunkPacket pk = new LevelChunkPacket();
+
+			clientCacheTrack.putAll(clientBlobs);
+
+			/*
+			List<String> dump = new ArrayList<>();
+			for (long blobId : blobIds) {
+				dump.add(Binary.bytesToHexString(Binary.writeLLong(blobId)));
+			}
+			this.getServer().getLogger().warning("[ClientCache] put=" + Arrays.toString(dump.toArray()));
+			*/
+
+			pk.chunkX = x;
+			pk.chunkZ = z;
+			pk.subChunkCount = subCountCount;
+			pk.cacheEnabled = true;
+			pk.blobIds = blobIds;
+			pk.data = clientBlobCachedPayload;
+			pk.setReliability(RakNetReliability.RELIABLE);
+
+			this.dataPacket(pk);
+
+			//chunkDebug = true;
+
+			if (this.spawned) {
+				for (Entity entity : this.level.getChunkEntities(x, z).values()) {
+					if (this != entity && !entity.closed && entity.isAlive()) {
+						entity.spawnTo(this);
+					}
+				}
+			}
+		}
+	}
+
+	@Override
+	public void sendChunk(int x, int z, int subChunkCount, long[] blobIds, Long2ObjectOpenHashMap<byte[]> clientBlobs, byte[] clientBlobCachedPayload, byte[] payload) {
 		if (!this.connected) {
 			return;
 		}
@@ -98,11 +140,23 @@ public class SynapsePlayer112 extends SynapsePlayer19 {
 		this.chunkLoadCount++;
 
 		LevelChunkPacket pk = new LevelChunkPacket();
-		pk.chunkX = x;
-		pk.chunkZ = z;
-		pk.subChunkCount = subChunkCount;
-		pk.data = payload;
-		pk.setReliability(RakNetReliability.RELIABLE);
+
+		if (this.clientCacheTrack != null && clientBlobs != null) {
+			clientCacheTrack.putAll(clientBlobs);
+			pk.chunkX = x;
+			pk.chunkZ = z;
+			pk.subChunkCount = subChunkCount;
+			pk.cacheEnabled = true;
+			pk.blobIds = blobIds;
+			pk.data = clientBlobCachedPayload;
+			pk.setReliability(RakNetReliability.RELIABLE);
+		} else {
+			pk.chunkX = x;
+			pk.chunkZ = z;
+			pk.subChunkCount = subChunkCount;
+			pk.data = payload;
+			pk.setReliability(RakNetReliability.RELIABLE);
+		}
 
 		this.dataPacket(pk);
 
@@ -127,6 +181,71 @@ public class SynapsePlayer112 extends SynapsePlayer19 {
 				chunk.data = new byte[0];
 				this.dataPacket(chunk);
 			}
+		}
+	}
+
+	private void initClientBlobCache() {
+		if (this.clientCacheTrack == null) {
+			this.clientCacheTrack = new Long2ObjectOpenHashMap<>();
+			this.chunksPerTick = SynapseAPI.getInstance().getConfig().getInt("blob-cache-chunk-send-pre-tick", this.chunksPerTick * 2);
+			getServer().getLogger().notice(this.getName() + "已启用客户端区块缓存, 每tick发送区块被设为" + this.chunksPerTick);
+		}
+	}
+
+	@Override
+	public Long2ObjectMap<byte[]> getClientCacheTrack() {
+		return this.clientCacheTrack;
+	}
+
+	@Override
+	public void handleDataPacket(DataPacket packet) {
+		if (!this.isSynapseLogin) {
+			super.handleDataPacket(packet);
+			return;
+		}
+		switch (packet.pid()) {
+			case ProtocolInfo.CLIENT_CACHE_STATUS_PACKET:
+				if (!callPacketReceiveEvent(packet)) break;
+				if (((ClientCacheStatusPacket112) packet).supported) this.initClientBlobCache();
+				//this.getServer().getLogger().warning("[ClientCache] supported=" + ((ClientCacheStatusPacket112) packet).supported);
+				break;
+			case ProtocolInfo.CLIENT_CACHE_BLOB_STATUS_PACKET:
+				if (!callPacketReceiveEvent(packet)) break;
+				if (clientCacheTrack != null) {
+					ClientCacheBlobStatusPacket112 pk = (ClientCacheBlobStatusPacket112) packet;
+
+					//this.getServer().getLogger().warning("[ClientCache] recv ClientCacheBlobStatusPacket");
+					//List<String> dump = new ArrayList<>();
+					//for (long blobId : pk.missHashes) {
+					//	dump.add(Binary.bytesToHexString(Binary.writeLLong(blobId)));
+					//}
+					//this.getServer().getLogger().warning("miss=" + Arrays.toString(dump.toArray()));
+					//this.getServer().getLogger().warning("hit=" + Arrays.toString(pk.hitHashes));
+
+					ClientCacheMissResponsePacket112 responsePk = new ClientCacheMissResponsePacket112();
+					for (long id : pk.missHashes) {
+						byte[] blob = clientCacheTrack.get(id);
+						if (blob != null) {
+							responsePk.blobs.put(id, blob);
+							clientCacheTrack.remove(id);
+							//this.getServer().getLogger().warning("[ClientCache] del " + id);
+						}
+					}
+					responsePk.setReliability(RakNetReliability.RELIABLE);
+					this.dataPacket(responsePk);
+
+					//this.getServer().getLogger().warning("[ClientCache] sent ClientCacheMissResponsePacket");
+					//this.getServer().getLogger().warning("blobs=" + Arrays.toString(responsePk.blobs.keySet().toArray()));
+
+					for (long id : pk.hitHashes) {
+						clientCacheTrack.remove(id);
+						//this.getServer().getLogger().warning("[ClientCache] del " + id);
+					}
+				}
+				break;
+			default:
+				super.handleDataPacket(packet);
+				break;
 		}
 	}
 }

@@ -30,6 +30,7 @@ import cn.nukkit.scheduler.Task;
 import cn.nukkit.utils.*;
 import co.aikar.timings.Timing;
 import co.aikar.timings.TimingsManager;
+import it.unimi.dsi.fastutil.longs.Long2ObjectMap;
 import org.itxtech.synapseapi.event.player.SynapsePlayerBroadcastLevelSoundEvent;
 import org.itxtech.synapseapi.event.player.SynapsePlayerConnectEvent;
 import org.itxtech.synapseapi.event.player.SynapsePlayerTransferEvent;
@@ -1118,4 +1119,8 @@ public class SynapsePlayer extends Player {
     public void sendData(Player player, EntityMetadata data) {
         if (player != this || player.spawned) super.sendData(player, data);
     }*/
+
+    public Long2ObjectMap<byte[]> getClientCacheTrack() {
+        return null;
+    }
 }
