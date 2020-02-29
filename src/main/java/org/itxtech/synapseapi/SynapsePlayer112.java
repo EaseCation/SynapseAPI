@@ -4,6 +4,7 @@ import cn.nukkit.Player;
 import cn.nukkit.entity.Entity;
 import cn.nukkit.level.Level;
 import cn.nukkit.level.Position;
+import cn.nukkit.level.format.generic.ChunkBlobCache;
 import cn.nukkit.network.SourceInterface;
 import cn.nukkit.network.protocol.DataPacket;
 import cn.nukkit.network.protocol.LevelChunkPacket;
@@ -85,8 +86,8 @@ public class SynapsePlayer112 extends SynapsePlayer19 {
 	}
 
 	@Override
-	public void sendChunk(int x, int z, int subCountCount, long[] blobIds, Long2ObjectOpenHashMap<byte[]> clientBlobs, byte[] clientBlobCachedPayload, DataPacket packet) {
-		if (this.clientCacheTrack == null || clientBlobs == null) super.sendChunk(x, z, subCountCount, blobIds, clientBlobs, clientBlobCachedPayload, packet);
+	public void sendChunk(int x, int z, int subCountCount, ChunkBlobCache blobCache, DataPacket packet) {
+		if (this.clientCacheTrack == null || blobCache == null) super.sendChunk(x, z, subCountCount, blobCache, packet);
 		else {
 			if (!this.connected) {
 				return;
@@ -98,7 +99,7 @@ public class SynapsePlayer112 extends SynapsePlayer19 {
 
 			LevelChunkPacket pk = new LevelChunkPacket();
 
-			clientCacheTrack.putAll(clientBlobs);
+			clientCacheTrack.putAll(blobCache.getClientBlobs());
 
 			/*
 			List<String> dump = new ArrayList<>();
@@ -112,8 +113,8 @@ public class SynapsePlayer112 extends SynapsePlayer19 {
 			pk.chunkZ = z;
 			pk.subChunkCount = subCountCount;
 			pk.cacheEnabled = true;
-			pk.blobIds = blobIds;
-			pk.data = clientBlobCachedPayload;
+			pk.blobIds = blobCache.getBlobIds();
+			pk.data = blobCache.getClientBlobCachedPayload();
 			pk.setReliability(RakNetReliability.RELIABLE);
 
 			this.dataPacket(pk);
@@ -131,7 +132,7 @@ public class SynapsePlayer112 extends SynapsePlayer19 {
 	}
 
 	@Override
-	public void sendChunk(int x, int z, int subChunkCount, long[] blobIds, Long2ObjectOpenHashMap<byte[]> clientBlobs, byte[] clientBlobCachedPayload, byte[] payload) {
+	public void sendChunk(int x, int z, int subChunkCount, ChunkBlobCache blobCache, byte[] payload) {
 		if (!this.connected) {
 			return;
 		}
@@ -141,14 +142,14 @@ public class SynapsePlayer112 extends SynapsePlayer19 {
 
 		LevelChunkPacket pk = new LevelChunkPacket();
 
-		if (this.clientCacheTrack != null && clientBlobs != null) {
-			clientCacheTrack.putAll(clientBlobs);
+		if (this.clientCacheTrack != null && blobCache != null) {
+			clientCacheTrack.putAll(blobCache.getClientBlobs());
 			pk.chunkX = x;
 			pk.chunkZ = z;
 			pk.subChunkCount = subChunkCount;
 			pk.cacheEnabled = true;
-			pk.blobIds = blobIds;
-			pk.data = clientBlobCachedPayload;
+			pk.blobIds = blobCache.getBlobIds();
+			pk.data = blobCache.getClientBlobCachedPayload();
 			pk.setReliability(RakNetReliability.RELIABLE);
 		} else {
 			pk.chunkX = x;
