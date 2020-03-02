@@ -30,6 +30,7 @@ import cn.nukkit.network.SourceInterface;
 import cn.nukkit.network.protocol.*;
 import cn.nukkit.network.protocol.types.NetworkInventoryAction;
 import cn.nukkit.resourcepacks.ResourcePack;
+import org.itxtech.synapseapi.multiprotocol.AbstractProtocol;
 import org.itxtech.synapseapi.multiprotocol.protocol113.protocol.ResourcePackStackPacket113;
 import org.itxtech.synapseapi.multiprotocol.protocol113.protocol.RespawnPacket113;
 import org.itxtech.synapseapi.multiprotocol.protocol113.protocol.StartGamePacket113;
@@ -49,6 +50,7 @@ public class SynapsePlayer113 extends SynapsePlayer112 {
 	@Override
 	protected DataPacket generateStartGamePacket(Position spawnPosition) {
 		StartGamePacket113 startGamePacket = new StartGamePacket113();
+		startGamePacket.protocol = AbstractProtocol.fromRealProtocol(this.protocol);
 		startGamePacket.netease = this.isNetEaseClient();
 		startGamePacket.entityUniqueId = Long.MAX_VALUE;
 		startGamePacket.entityRuntimeId = Long.MAX_VALUE;

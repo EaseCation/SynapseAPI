@@ -286,7 +286,7 @@ public class PacketRegister {
             if (endpointProtocol.ordinal() >= AbstractProtocol.PROTOCOL_12.ordinal()) {
                 AbstractProtocol index = endpointProtocol;
                 do {
-                    Class<? extends IterationProtocolPacket> clazz = replacements.get(index).get(packet.getClass());
+                    Class<? extends IterationProtocolPacket> clazz = replacements.getOrDefault(index, new HashMap<>()).get(packet.getClass());
                     if(clazz != null) {
                         try {
                             IterationProtocolPacket replaced = clazz.newInstance();

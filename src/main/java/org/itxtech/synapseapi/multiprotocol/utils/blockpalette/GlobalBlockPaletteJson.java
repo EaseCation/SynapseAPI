@@ -63,35 +63,6 @@ public class GlobalBlockPaletteJson implements AdvancedGlobalBlockPalette {
         return table.getBuffer();
     }
 
-    private byte[] loadItemDataPalette(String jsonFile) {
-        if (jsonFile == null || jsonFile.isEmpty()) return new byte[0];
-        InputStream stream = SynapseAPI.class.getClassLoader().getResourceAsStream(jsonFile);
-        if (stream == null) {
-            throw new AssertionError("Unable to locate RuntimeID table: " + jsonFile);
-        }
-        Reader reader = new InputStreamReader(stream, StandardCharsets.UTF_8);
-
-        Gson gson = new Gson();
-        Type collectionType = new TypeToken<Collection<ItemData>>() {
-        }.getType();
-        Collection<ItemData> entries = gson.fromJson(reader, collectionType);
-        BinaryStream paletteBuffer = new BinaryStream();
-
-        paletteBuffer.putUnsignedVarInt(entries.size());
-
-        for (ItemData data : entries) {
-            paletteBuffer.putString(data.name);
-            paletteBuffer.putLShort(data.id);
-        }
-
-        return paletteBuffer.getBuffer();
-    }
-
-    private static class ItemData {
-        private String name;
-        private int id;
-    }
-
     public int getOrCreateRuntimeId(int id, int meta) {
         return getOrCreateRuntimeId((id << 4) | meta);
     }

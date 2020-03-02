@@ -4,40 +4,32 @@ import cn.nukkit.Server;
 import cn.nukkit.nbt.NBTIO;
 import cn.nukkit.nbt.tag.CompoundTag;
 import cn.nukkit.nbt.tag.ListTag;
-import cn.nukkit.utils.BinaryStream;
-import com.google.gson.Gson;
-import com.google.gson.reflect.TypeToken;
+import com.google.common.io.ByteStreams;
 import it.unimi.dsi.fastutil.ints.Int2IntArrayMap;
-import it.unimi.dsi.fastutil.ints.Int2IntMap;
-import it.unimi.dsi.fastutil.ints.Int2IntOpenHashMap;
 import org.itxtech.synapseapi.SynapseAPI;
 import org.itxtech.synapseapi.multiprotocol.AbstractProtocol;
 import org.itxtech.synapseapi.multiprotocol.utils.AdvancedGlobalBlockPalette;
 
+import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.io.Reader;
-import java.lang.reflect.Type;
 import java.nio.ByteOrder;
-import java.nio.charset.StandardCharsets;
-import java.util.Collection;
 import java.util.NoSuchElementException;
 import java.util.concurrent.atomic.AtomicInteger;
 
-public class GlobalBlockPaletteNBT implements AdvancedGlobalBlockPalette {
+public class GlobalBlockPaletteNBTOld implements AdvancedGlobalBlockPalette {
 
-    final Int2IntMap legacyToRuntimeId = new Int2IntOpenHashMap();
-    final Int2IntMap runtimeIdToLegacy = new Int2IntOpenHashMap();
+    final Int2IntArrayMap legacyToRuntimeId = new Int2IntArrayMap();
+    final Int2IntArrayMap runtimeIdToLegacy = new Int2IntArrayMap();
     final AtomicInteger runtimeIdAllocator = new AtomicInteger(0);
     final byte[] compiledTable;
     final byte[] itemDataPalette;
 
-    public GlobalBlockPaletteNBT(AbstractProtocol protocol, String blockPaletteFile) {
+    public GlobalBlockPaletteNBTOld(AbstractProtocol protocol, String blockPaletteFile) {
         this(protocol, blockPaletteFile, null);
     }
 
-    public GlobalBlockPaletteNBT(AbstractProtocol protocol, String blockPaletteFile, String itemDataPaletteJsonFile) {
+    public GlobalBlockPaletteNBTOld(AbstractProtocol protocol, String blockPaletteFile, String itemDataPaletteJsonFile) {
         Server.getInstance().getLogger().info("Loading Advanced Global Block Palette from " + blockPaletteFile);
         legacyToRuntimeId.defaultReturnValue(-1);
         runtimeIdToLegacy.defaultReturnValue(-1);
@@ -46,17 +38,21 @@ public class GlobalBlockPaletteNBT implements AdvancedGlobalBlockPalette {
         itemDataPalette = loadItemDataPalette(itemDataPaletteJsonFile);
     }
 
+
     private byte[] loadBlockPaletteNBT(AbstractProtocol protocol, String file) {
         InputStream stream = SynapseAPI.class.getClassLoader().getResourceAsStream(file);
         if (stream == null) {
             throw new AssertionError("Unable to locate block state nbt");
         }
         ListTag<CompoundTag> tag;
+        byte[] data;
         try {
+            //noinspection UnstableApiUsage
+            data = ByteStreams.toByteArray(stream);
             //noinspection unchecked
-            tag = (ListTag<CompoundTag>) NBTIO.readTag(stream, ByteOrder.LITTLE_ENDIAN, false);
+            tag = (ListTag<CompoundTag>) NBTIO.readTag(new ByteArrayInputStream(data), ByteOrder.LITTLE_ENDIAN, true);
         } catch (IOException e) {
-            throw new AssertionError("Unable to load block palette", e);
+            throw new AssertionError(e);
         }
 
         for (CompoundTag state : tag.getAll()) {
@@ -74,11 +70,7 @@ public class GlobalBlockPaletteNBT implements AdvancedGlobalBlockPalette {
             }
             state.remove("meta"); // No point in sending this since the client doesn't use it.
         }
-        try {
-            return NBTIO.write(tag, ByteOrder.LITTLE_ENDIAN, true);
-        } catch (IOException e) {
-            throw new AssertionError(e);
-        }
+        return data;
     }
 
     @Override

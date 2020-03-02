@@ -37,7 +37,8 @@ public enum AbstractProtocol {
     PROTOCOL_110(340, Packet110.class, SynapsePlayer19.class),
     PROTOCOL_111(354, Packet111.class, SynapsePlayer19.class),
     PROTOCOL_112(361, Packet112.class, SynapsePlayer112.class),
-    PROTOCOL_113(388, Packet113.class, SynapsePlayer113.class);
+    PROTOCOL_113(388, Packet113.class, SynapsePlayer113.class),
+    PROTOCOL_114(389, Packet113.class, SynapsePlayer113.class);
 
     private final int protocolStart;
     private final Class<? extends DataPacket> packetClass;

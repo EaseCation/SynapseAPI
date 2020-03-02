@@ -26,6 +26,8 @@ public class StartGamePacket113 extends Packet113 {
 
 	public boolean netease;
 
+	public AbstractProtocol protocol;
+
 	public long entityUniqueId;
 	public long entityRuntimeId;
 	public int playerGamemode;
@@ -137,8 +139,8 @@ public class StartGamePacket113 extends Packet113 {
 		this.putLLong(this.currentTick);
 		this.putVarInt(this.enchantmentSeed);
 
-		this.put(blockPalette == null ? AdvancedGlobalBlockPalette.getCompiledTable(AbstractProtocol.PROTOCOL_113, netease) : blockPalette);
-		this.put(itemDataPalette == null ? AdvancedGlobalBlockPalette.getCompiledItemDataPalette(AbstractProtocol.PROTOCOL_113, netease): itemDataPalette);
+		this.put(blockPalette == null ? AdvancedGlobalBlockPalette.getCompiledTable(protocol, netease) : blockPalette);
+		this.put(itemDataPalette == null ? AdvancedGlobalBlockPalette.getCompiledItemDataPalette(protocol, netease): itemDataPalette);
 		this.putString(this.multiplayerCorrelationId);
 	}
 
