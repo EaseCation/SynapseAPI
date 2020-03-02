@@ -30,6 +30,8 @@ import cn.nukkit.scheduler.Task;
 import cn.nukkit.utils.*;
 import co.aikar.timings.Timing;
 import co.aikar.timings.TimingsManager;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonPrimitive;
 import it.unimi.dsi.fastutil.longs.Long2ObjectMap;
 import org.itxtech.synapseapi.event.player.SynapsePlayerBroadcastLevelSoundEvent;
 import org.itxtech.synapseapi.event.player.SynapsePlayerConnectEvent;
@@ -66,6 +68,7 @@ public class SynapsePlayer extends Player {
     protected boolean levelChangeLoadScreen = true;
     private boolean cleanTextColor = false;
 
+    protected String originName;
     protected LoginChainData loginChainData;
     protected boolean isNetEaseClient = false;
 
@@ -116,9 +119,10 @@ public class SynapsePlayer extends Player {
                 DataPacket pk = PacketRegister.getFullPacket(packet.cachedLoginPacket, packet.protocol);
                 if (pk instanceof org.itxtech.synapseapi.multiprotocol.protocol12.protocol.LoginPacket) {
                     ((org.itxtech.synapseapi.multiprotocol.protocol12.protocol.LoginPacket) pk).isFirstTimeLogin = packet.isFirstTime;
-                    ((org.itxtech.synapseapi.multiprotocol.protocol12.protocol.LoginPacket) pk).username = packet.username;
+                    ((org.itxtech.synapseapi.multiprotocol.protocol12.protocol.LoginPacket) pk).username = packet.extra.get("username").getAsString();
                     ((org.itxtech.synapseapi.multiprotocol.protocol12.protocol.LoginPacket) pk).clientUUID = packet.uuid;
-                    ((org.itxtech.synapseapi.multiprotocol.protocol12.protocol.LoginPacket) pk).xuid = packet.xuid;
+                    ((org.itxtech.synapseapi.multiprotocol.protocol12.protocol.LoginPacket) pk).xuid = packet.extra.get("xuid").getAsString();
+                    this.isNetEaseClient = Optional.ofNullable(packet.extra.get("netease")).orElseGet(() -> new JsonPrimitive(false)).getAsBoolean();
                 }
                 this.handleDataPacket(pk);
             } catch (Exception e) {
@@ -519,6 +523,10 @@ public class SynapsePlayer extends Player {
                         org.itxtech.synapseapi.network.protocol.spp.TransferPacket pk = new org.itxtech.synapseapi.network.protocol.spp.TransferPacket();
                         pk.uuid = getUniqueId();
                         pk.clientHash = hash;
+                        pk.extra.addProperty("username", originName);
+                        pk.extra.addProperty("xuid", getLoginChainData().getXUID());
+                        pk.extra.addProperty("netease", isNetEaseClient);
+                        pk.extra.addProperty("blob_cache", getClientCacheTrack() != null);
                         getSynapseEntry().sendDataPacket(pk);
                     }
                 }, 1);
@@ -801,6 +809,7 @@ public class SynapsePlayer extends Player {
 
                 this.protocol = loginPacket.protocol;
                 this.username = TextFormat.clean(loginPacket.username);
+                this.originName = this.username;
                 this.displayName = this.username;
                 this.iusername = this.username.toLowerCase();
                 this.setDataProperty(new StringEntityData(DATA_NAMETAG, this.username), false);
@@ -968,6 +977,10 @@ public class SynapsePlayer extends Player {
 
     protected void setLoginChainData(LoginChainData loginChainData) {
     	this.loginChainData = loginChainData;
+    }
+
+    public String getOriginName() {
+        return originName;
     }
 
     public long nextForceSpawn = System.currentTimeMillis();

@@ -21,6 +21,7 @@ import cn.nukkit.network.protocol.types.ContainerIds;
 import cn.nukkit.resourcepacks.ResourcePack;
 import cn.nukkit.utils.MainLogger;
 import cn.nukkit.utils.TextFormat;
+import com.google.gson.JsonPrimitive;
 import org.itxtech.synapseapi.event.player.SynapsePlayerBroadcastLevelSoundEvent;
 import org.itxtech.synapseapi.event.player.SynapsePlayerConnectEvent;
 import org.itxtech.synapseapi.multiprotocol.AbstractProtocol;
@@ -31,6 +32,7 @@ import org.itxtech.synapseapi.multiprotocol.utils.LevelSoundEventEnum;
 import org.itxtech.synapseapi.network.protocol.spp.PlayerLoginPacket;
 
 import java.net.InetSocketAddress;
+import java.util.Optional;
 import java.util.zip.Deflater;
 
 public class SynapsePlayer16 extends SynapsePlayer14 {
@@ -54,9 +56,10 @@ public class SynapsePlayer16 extends SynapsePlayer14 {
 				DataPacket pk = PacketRegister.getFullPacket(packet.cachedLoginPacket, packet.protocol);
 				if (pk instanceof LoginPacket14) {
 					((LoginPacket14) pk).isFirstTimeLogin = packet.isFirstTime;
-					((LoginPacket14) pk).username = packet.username;
+					((LoginPacket14) pk).username = packet.extra.get("username").getAsString();
 					((LoginPacket14) pk).clientUUID = packet.uuid;
-					((LoginPacket14) pk).xuid = packet.xuid;
+					((LoginPacket14) pk).xuid = packet.extra.get("xuid").getAsString();
+					this.isNetEaseClient = Optional.ofNullable(packet.extra.get("netease")).orElseGet(() -> new JsonPrimitive(false)).getAsBoolean();
 				}
 				this.handleDataPacket(pk);
 			} catch (Exception e) {

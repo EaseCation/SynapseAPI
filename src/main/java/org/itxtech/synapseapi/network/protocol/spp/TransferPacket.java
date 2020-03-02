@@ -1,5 +1,8 @@
 package org.itxtech.synapseapi.network.protocol.spp;
 
+import com.google.gson.Gson;
+import com.google.gson.JsonObject;
+
 import java.util.UUID;
 
 /**
@@ -10,6 +13,7 @@ public class TransferPacket extends SynapseDataPacket {
     public static final int NETWORK_ID = SynapseInfo.TRANSFER_PACKET;
     public UUID uuid;
     public String clientHash;
+    public JsonObject extra = new JsonObject();
 
     @Override
     public byte pid() {
@@ -21,11 +25,13 @@ public class TransferPacket extends SynapseDataPacket {
         this.reset();
         this.putUUID(this.uuid);
         this.putString(this.clientHash);
+        this.putString(new Gson().toJson(this.extra));
     }
 
     @Override
     public void decode() {
         this.uuid = this.getUUID();
         this.clientHash = this.getString();
+        this.extra = new Gson().fromJson(this.getString(), JsonObject.class);
     }
 }

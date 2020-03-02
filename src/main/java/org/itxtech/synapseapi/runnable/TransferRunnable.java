@@ -21,6 +21,7 @@ public class TransferRunnable implements Runnable {
         TransferPacket pk = new TransferPacket();
         pk.uuid = this.player.getUniqueId();
         pk.clientHash = hash;
+
         this.player.getSynapseEntry().sendDataPacket(pk);
     }
 }

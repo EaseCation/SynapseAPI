@@ -17,6 +17,7 @@ import org.itxtech.synapseapi.multiprotocol.protocol112.protocol.ClientCacheMiss
 import org.itxtech.synapseapi.multiprotocol.protocol112.protocol.ClientCacheStatusPacket112;
 import org.itxtech.synapseapi.multiprotocol.protocol112.protocol.StartGamePacket112;
 import org.itxtech.synapseapi.multiprotocol.protocol18.protocol.BiomeDefinitionListPacket18;
+import org.itxtech.synapseapi.network.protocol.spp.PlayerLoginPacket;
 
 import java.net.InetSocketAddress;
 
@@ -27,6 +28,14 @@ public class SynapsePlayer112 extends SynapsePlayer19 {
 	public SynapsePlayer112(SourceInterface interfaz, SynapseEntry synapseEntry, Long clientID, InetSocketAddress socketAddress) {
 		super(interfaz, synapseEntry, clientID, socketAddress);
 		this.levelChangeLoadScreen = false;
+	}
+
+	@Override
+	public void handleLoginPacket(PlayerLoginPacket packet) {
+		super.handleLoginPacket(packet);
+		//客户端已经发了ClientCacheStatusPacket，等以后出bug的时候用
+		//if (packet.extra.has("blob_cache") && packet.extra.get("blob_cache").getAsBoolean())
+		//	initClientBlobCache();
 	}
 
 	@Override

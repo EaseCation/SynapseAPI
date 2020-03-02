@@ -1,5 +1,8 @@
 package org.itxtech.synapseapi.network.protocol.spp;
 
+import com.google.gson.Gson;
+import com.google.gson.JsonObject;
+
 import java.util.UUID;
 
 /**
@@ -16,8 +19,7 @@ public class PlayerLoginPacket extends SynapseDataPacket {
     public boolean isFirstTime;
     public byte[] cachedLoginPacket;
 
-    public String username;
-    public String xuid;
+    public JsonObject extra = new JsonObject();
 
     @Override
     public byte pid() {
@@ -34,7 +36,7 @@ public class PlayerLoginPacket extends SynapseDataPacket {
         this.putByte(this.isFirstTime ? (byte) 1 : (byte) 0);
         this.putUnsignedVarInt(this.cachedLoginPacket.length);
         this.put(this.cachedLoginPacket);
-        if (this.xuid != null) this.putString(this.xuid);
+        this.putString(new Gson().toJson(this.extra));
     }
 
     @Override
@@ -45,7 +47,6 @@ public class PlayerLoginPacket extends SynapseDataPacket {
         this.port = this.getInt();
         this.isFirstTime = this.getByte() == 1;
         this.cachedLoginPacket = this.get((int) this.getUnsignedVarInt());
-        this.username = this.getString();
-        if (!this.feof()) this.xuid = this.getString();
+        this.extra = new Gson().fromJson(this.getString(), JsonObject.class);
     }
 }

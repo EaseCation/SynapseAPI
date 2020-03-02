@@ -21,6 +21,7 @@ import cn.nukkit.utils.Binary;
 import cn.nukkit.utils.DummyBossBar;
 import cn.nukkit.utils.MainLogger;
 import cn.nukkit.utils.TextFormat;
+import com.google.gson.JsonPrimitive;
 import org.itxtech.synapseapi.event.player.SynapsePlayerBroadcastLevelSoundEvent;
 import org.itxtech.synapseapi.event.player.SynapsePlayerConnectEvent;
 import org.itxtech.synapseapi.multiprotocol.PacketRegister;
@@ -33,6 +34,7 @@ import org.itxtech.synapseapi.network.protocol.spp.PlayerLoginPacket;
 
 import java.net.InetSocketAddress;
 import java.util.Objects;
+import java.util.Optional;
 
 public class SynapsePlayer14 extends SynapsePlayer {
 
@@ -55,9 +57,10 @@ public class SynapsePlayer14 extends SynapsePlayer {
 				DataPacket pk = PacketRegister.getFullPacket(packet.cachedLoginPacket, packet.protocol);
 				if (pk instanceof org.itxtech.synapseapi.multiprotocol.protocol14.protocol.LoginPacket14) {
 					((org.itxtech.synapseapi.multiprotocol.protocol14.protocol.LoginPacket14) pk).isFirstTimeLogin = packet.isFirstTime;
-					((org.itxtech.synapseapi.multiprotocol.protocol14.protocol.LoginPacket14) pk).username = packet.username;
+					((org.itxtech.synapseapi.multiprotocol.protocol14.protocol.LoginPacket14) pk).username = packet.extra.get("username").getAsString();
 					((org.itxtech.synapseapi.multiprotocol.protocol14.protocol.LoginPacket14) pk).clientUUID = packet.uuid;
-					((org.itxtech.synapseapi.multiprotocol.protocol14.protocol.LoginPacket14) pk).xuid = packet.xuid;
+					((org.itxtech.synapseapi.multiprotocol.protocol14.protocol.LoginPacket14) pk).xuid = packet.extra.get("xuid").getAsString();
+					this.isNetEaseClient = Optional.ofNullable(packet.extra.get("netease")).orElseGet(() -> new JsonPrimitive(false)).getAsBoolean();
 				}
 				this.handleDataPacket(pk);
 			} catch (Exception e) {
@@ -102,6 +105,7 @@ public class SynapsePlayer14 extends SynapsePlayer {
 
 				this.protocol = loginPacket.protocol;
 				this.username = TextFormat.clean(loginPacket.username);
+				this.originName = this.username;
 				this.displayName = this.username;
 				this.iusername = this.username.toLowerCase();
 				this.setDataProperty(new StringEntityData(DATA_NAMETAG, this.username), false);

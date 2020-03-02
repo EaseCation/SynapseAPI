@@ -49,6 +49,10 @@ public class TransferDimensionTaskThread extends Thread {
             TransferPacket pk = new TransferPacket();
             pk.uuid = this.player.getUniqueId();
             pk.clientHash = hash;
+            pk.extra.addProperty("username", player.getOriginName());
+            pk.extra.addProperty("xuid", player.getLoginChainData().getXUID());
+            pk.extra.addProperty("netease", player.isNetEaseClient());
+            pk.extra.addProperty("blob_cache", player.getClientCacheTrack() != null);
             this.player.getSynapseEntry().sendDataPacket(pk);
         }
     }
