@@ -31,6 +31,7 @@ import cn.nukkit.utils.*;
 import co.aikar.timings.Timing;
 import co.aikar.timings.TimingsManager;
 import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
 import com.google.gson.JsonPrimitive;
 import it.unimi.dsi.fastutil.longs.Long2ObjectMap;
 import org.itxtech.synapseapi.event.player.SynapsePlayerBroadcastLevelSoundEvent;
@@ -72,6 +73,7 @@ public class SynapsePlayer extends Player {
     protected String originName;
     protected LoginChainData loginChainData;
     protected boolean isNetEaseClient = false;
+    protected JsonObject cachedExtra;
 
     public SynapsePlayer(SourceInterface interfaz, SynapseEntry synapseEntry, Long clientID, InetSocketAddress socketAddress) {
         super(interfaz, clientID, socketAddress);
@@ -111,11 +113,11 @@ public class SynapsePlayer extends Player {
             return;
         }
         this.isFirstTimeLogin = packet.isFirstTime;
+        this.cachedExtra = packet.extra;
         SynapsePlayerConnectEvent ev;
         this.server.getPluginManager().callEvent(ev = new SynapsePlayerConnectEvent(this, this.isFirstTimeLogin));
         if (!ev.isCancelled()) {
             this.protocol = packet.protocol;
-
             try {
                 DataPacket pk = PacketRegister.getFullPacket(packet.cachedLoginPacket, packet.protocol);
                 if (pk instanceof org.itxtech.synapseapi.multiprotocol.protocol12.protocol.LoginPacket) {
@@ -450,10 +452,10 @@ public class SynapsePlayer extends Player {
     }
 
     public boolean transfer(String hash) {
-        return this.transfer(hash, true);
+        return this.transfer(hash, null);
     }
 
-    public boolean transfer(String hash, boolean loadScreen) {
+    public boolean transfer(String hash, JsonObject extra) {
         ClientData clients = this.getSynapseEntry().getClientData();
         Entry clientData = clients.clientList.get(hash);
 
@@ -503,7 +505,7 @@ public class SynapsePlayer extends Player {
                         dataPacket(playSoundPacket0);
 
                         forceSendEmptyChunks(3);
-                        SynapseAPI.getInstance().getTransferDimensionTaskThread().queue(player, hash);
+                        SynapseAPI.getInstance().getTransferDimensionTaskThread().queue(player, hash, extra);
                     }
                 }.putPlayer(this);
 
@@ -524,6 +526,7 @@ public class SynapsePlayer extends Player {
                         org.itxtech.synapseapi.network.protocol.spp.TransferPacket pk = new org.itxtech.synapseapi.network.protocol.spp.TransferPacket();
                         pk.uuid = getUniqueId();
                         pk.clientHash = hash;
+                        if (extra != null) pk.extra = extra;
                         pk.extra.addProperty("username", originName);
                         pk.extra.addProperty("xuid", getLoginChainData().getXUID());
                         pk.extra.addProperty("netease", isNetEaseClient);
@@ -1141,5 +1144,9 @@ public class SynapsePlayer extends Player {
     @Override
     public ArrayList<Item> getCreativeItems() {
         return CreativeItemsPalette.getCreativeItems(AbstractProtocol.fromRealProtocol(this.protocol));
+    }
+
+    public JsonObject getCachedExtra() {
+        return cachedExtra;
     }
 }

@@ -47,6 +47,7 @@ public class SynapsePlayer16 extends SynapsePlayer14 {
 			return;
 		}
 		this.isFirstTimeLogin = packet.isFirstTime;
+		this.cachedExtra = packet.extra;
 		SynapsePlayerConnectEvent ev;
 		this.server.getPluginManager().callEvent(ev = new SynapsePlayerConnectEvent(this, this.isFirstTimeLogin));
 		if (!ev.isCancelled()) {

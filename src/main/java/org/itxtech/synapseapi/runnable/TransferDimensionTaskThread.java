@@ -3,6 +3,7 @@ package org.itxtech.synapseapi.runnable;
 import cn.nukkit.Server;
 import cn.nukkit.network.protocol.PlayStatusPacket;
 import cn.nukkit.utils.TextFormat;
+import com.google.gson.JsonObject;
 import org.itxtech.synapseapi.SynapsePlayer;
 import org.itxtech.synapseapi.network.protocol.spp.TransferPacket;
 
@@ -30,11 +31,13 @@ public class TransferDimensionTaskThread extends Thread {
         private long eventTime;
         private SynapsePlayer player;
         private String hash;
+        private JsonObject extra;
 
-        private Entry(SynapsePlayer player, String hash) {
+        private Entry(SynapsePlayer player, String hash, JsonObject extra) {
             this.eventTime = System.currentTimeMillis() + 500;
             this.player = player;
             this.hash = hash;
+            this.extra = extra;
         }
 
         private void doPlayStatus() {
@@ -49,6 +52,7 @@ public class TransferDimensionTaskThread extends Thread {
             TransferPacket pk = new TransferPacket();
             pk.uuid = this.player.getUniqueId();
             pk.clientHash = hash;
+            if (this.extra != null) pk.extra = extra;
             pk.extra.addProperty("username", player.getOriginName());
             pk.extra.addProperty("xuid", player.getLoginChainData().getXUID());
             pk.extra.addProperty("netease", player.isNetEaseClient());
@@ -57,8 +61,8 @@ public class TransferDimensionTaskThread extends Thread {
         }
     }
 
-    public void queue(SynapsePlayer player, String hash) {
-        this.sendPlayStatusList.add(new Entry(player, hash));
+    public void queue(SynapsePlayer player, String hash, JsonObject extra) {
+        this.sendPlayStatusList.add(new Entry(player, hash, extra));
     }
 
     @Override
