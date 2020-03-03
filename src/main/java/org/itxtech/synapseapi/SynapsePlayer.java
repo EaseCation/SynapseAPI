@@ -45,6 +45,7 @@ import org.itxtech.synapseapi.multiprotocol.protocol12.utils.ClientChainData12Ur
 import org.itxtech.synapseapi.multiprotocol.protocol14.protocol.TextPacket14;
 import org.itxtech.synapseapi.multiprotocol.protocol17.protocol.TextPacket17;
 import org.itxtech.synapseapi.multiprotocol.utils.CraftingPacketManager;
+import org.itxtech.synapseapi.multiprotocol.utils.CreativeItemsPalette;
 import org.itxtech.synapseapi.multiprotocol.utils.LevelSoundEventEnum;
 import org.itxtech.synapseapi.network.protocol.spp.FastPlayerListPacket;
 import org.itxtech.synapseapi.network.protocol.spp.PlayerLoginPacket;
@@ -1135,5 +1136,10 @@ public class SynapsePlayer extends Player {
 
     public Long2ObjectMap<byte[]> getClientCacheTrack() {
         return null;
+    }
+
+    @Override
+    public ArrayList<Item> getCreativeItems() {
+        return CreativeItemsPalette.getCreativeItems(AbstractProtocol.fromRealProtocol(this.protocol));
     }
 }

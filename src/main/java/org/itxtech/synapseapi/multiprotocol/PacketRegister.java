@@ -203,28 +203,12 @@ public class PacketRegister {
 
     public static DataPacket getPacket(int id, int protocol) {
         AbstractProtocol ptl = AbstractProtocol.fromRealProtocol(protocol);
-        if (ptl != null && packetPool.containsKey(ptl)) {
+        if (ptl != null) {
             try {
-                Class<? extends DataPacket> clazz = packetPool.get(ptl)[id];
+                Class<? extends DataPacket> clazz = packetPool.containsKey(ptl) ? packetPool.get(ptl)[id] : null;
                 if (clazz != null) {
                     return clazz.newInstance();
-                }/* else if (ptl == AbstractProtocol.PROTOCOL_112) {
-                    return getPacket(id, 354); //按照1.11匹配
-                } else if (ptl == AbstractProtocol.PROTOCOL_111) {
-                    return getPacket(id, 340); //按照1.10匹配
-                } else if (ptl == AbstractProtocol.PROTOCOL_110) {
-                    return getPacket(id, 332); //按照1.9匹配
-                } else if (ptl == AbstractProtocol.PROTOCOL_19) {
-                    return getPacket(id, 312); //按照1.8匹配
-                } else if (ptl == AbstractProtocol.PROTOCOL_18) {
-                    return getPacket(id, 290); //按照1.7匹配
-                } else if (ptl == AbstractProtocol.PROTOCOL_17) {
-                    return getPacket(id, 282); //按照1.6匹配
-                } else if (ptl == AbstractProtocol.PROTOCOL_16) {
-                    return getPacket(id, 270); //按照1.5匹配
-                } else if (ptl == AbstractProtocol.PROTOCOL_15) {
-                    return getPacket(id, 261); //按照1.4匹配
-                }*/else if (ptl == AbstractProtocol.PROTOCOL_12) {
+                } else if (ptl == AbstractProtocol.PROTOCOL_12) {
                     return Server.getInstance().getNetwork().getPacket(id);
                 } else {
                     AbstractProtocol previous = ptl.previous();
