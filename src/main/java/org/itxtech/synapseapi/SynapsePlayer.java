@@ -74,6 +74,7 @@ public class SynapsePlayer extends Player {
     protected LoginChainData loginChainData;
     protected boolean isNetEaseClient = false;
     protected JsonObject cachedExtra;
+    protected final JsonObject transferExtra = new JsonObject();
 
     public SynapsePlayer(SourceInterface interfaz, SynapseEntry synapseEntry, Long clientID, InetSocketAddress socketAddress) {
         super(interfaz, clientID, socketAddress);
@@ -460,6 +461,11 @@ public class SynapsePlayer extends Player {
         Entry clientData = clients.clientList.get(hash);
 
         if (clientData != null) {
+            if (extra != null) {
+                for (Map.Entry<String, JsonElement> entry : extra.entrySet()) {
+                    this.transferExtra.add(entry.getKey(), entry.getValue());
+                }
+            }
             SynapsePlayerTransferEvent event = new SynapsePlayerTransferEvent(this, clientData);
             this.server.getPluginManager().callEvent(event);
 
@@ -505,7 +511,7 @@ public class SynapsePlayer extends Player {
                         dataPacket(playSoundPacket0);
 
                         forceSendEmptyChunks(3);
-                        SynapseAPI.getInstance().getTransferDimensionTaskThread().queue(player, hash, extra);
+                        SynapseAPI.getInstance().getTransferDimensionTaskThread().queue(player, hash, transferExtra);
                     }
                 }.putPlayer(this);
 
@@ -526,7 +532,7 @@ public class SynapsePlayer extends Player {
                         org.itxtech.synapseapi.network.protocol.spp.TransferPacket pk = new org.itxtech.synapseapi.network.protocol.spp.TransferPacket();
                         pk.uuid = getUniqueId();
                         pk.clientHash = hash;
-                        if (extra != null) pk.extra = extra;
+                        pk.extra = transferExtra;
                         pk.extra.addProperty("username", originName);
                         pk.extra.addProperty("xuid", getLoginChainData().getXUID());
                         pk.extra.addProperty("netease", isNetEaseClient);
@@ -1148,5 +1154,9 @@ public class SynapsePlayer extends Player {
 
     public JsonObject getCachedExtra() {
         return cachedExtra;
+    }
+
+    public JsonObject getTransferExtra() {
+        return transferExtra;
     }
 }
