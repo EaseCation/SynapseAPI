@@ -65,6 +65,7 @@ public class SynapseEntryPutPacketThread extends Thread {
     };
 
     public void addMainToThread(SynapsePlayer player, DataPacket packet, boolean needACK, boolean immediate) {
+        packet.stack = new Throwable();
         this.queue.offer(new Entry(player, packet, needACK, immediate));
         /*
         if (!(packet instanceof MovePlayerPacket)) {
@@ -181,8 +182,11 @@ public class SynapseEntryPutPacketThread extends Thread {
                         }*/
                     }
                 } catch (Exception e) {
-                    Server.getInstance().getLogger().alert("Catch exception when Synapse Entry Put Packet: " + e.getMessage());
-                    Server.getInstance().getLogger().logException(e);
+                    MainLogger.getLogger().alert("Catch exception when put single packet", e);
+                    if (entry.packet.stack != null) {
+                        MainLogger.getLogger().alert("Main thread stack", entry.packet.stack);
+                        entry.packet.stack = null;
+                    }
                 }
             }
 
@@ -190,7 +194,7 @@ public class SynapseEntryPutPacketThread extends Thread {
             while ((entry1 = broadcastQueue.poll()) != null) {
                 try {
                     //筛选出需要进行batch包装的协议，避免不需要的多余的包装浪费性能
-                    List<SynapsePlayer> players = Arrays.stream(entry1.player).filter(p -> p instanceof SynapsePlayer).map(p -> (SynapsePlayer) p).collect(Collectors.toList());
+                    List<SynapsePlayer> players = Arrays.stream(entry1.player).filter(Objects::nonNull).collect(Collectors.toList());
                     boolean haveNetEasePlayer = players.stream().anyMatch(SynapsePlayer::isNetEaseClient);
                     boolean[] haveNetEasePacket = new boolean[]{false};
                     Map<AbstractProtocol, List<BatchPacketEntry>> needPackets =
@@ -218,7 +222,11 @@ public class SynapseEntryPutPacketThread extends Thread {
                                 if (neteaseVersion != null) haveNetEasePacket[0] = true;
                                 if (packet != null) packets.add(new BatchPacketEntry(packet, neteaseVersion));
                             } catch (Exception e) {
-                                MainLogger.getLogger().logException(e);
+                                MainLogger.getLogger().alert("Catch exception when put broadcast packet", e);
+                                if (targetPk.stack != null) {
+                                    MainLogger.getLogger().alert("Main thread stack", targetPk.stack);
+                                    targetPk.stack = null;
+                                }
                             }
                         });
                     }
@@ -304,7 +312,7 @@ public class SynapseEntryPutPacketThread extends Thread {
         }
     }
 
-    private class BroadcastEntry {
+    private static class BroadcastEntry {
         private SynapsePlayer[] player;
         private DataPacket[] packet;
 
