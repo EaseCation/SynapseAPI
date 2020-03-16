@@ -275,7 +275,7 @@ public class PacketRegister {
                         try {
                             IterationProtocolPacket replaced = clazz.newInstance();
                             return check16ProtocolCompatible(replaced.fromDefault(packet, endpointProtocol, netease), endpointProtocol);
-                        } catch (Exception e) {
+                        } catch (InstantiationException | IllegalAccessException e) {
                             MainLogger.getLogger().logException(e);
                         }
                     }
