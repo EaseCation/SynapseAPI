@@ -183,10 +183,10 @@ public class SynapseEntryPutPacketThread extends Thread {
                     }
                 } catch (Exception e) {
                     MainLogger.getLogger().alert("Catch exception when put single packet", e);
-                    if (entry.packet.stack != null) {
+                    if (entry.packet.stack != null)
                         MainLogger.getLogger().alert("Main thread stack", entry.packet.stack);
-                        entry.packet.stack = null;
-                    }
+                } finally {
+                    if (entry.packet != null) entry.packet.stack = null;
                 }
             }
 
@@ -225,8 +225,9 @@ public class SynapseEntryPutPacketThread extends Thread {
                                 MainLogger.getLogger().alert("Catch exception when put broadcast packet", e);
                                 if (targetPk.stack != null) {
                                     MainLogger.getLogger().alert("Main thread stack", targetPk.stack);
-                                    targetPk.stack = null;
                                 }
+                            } finally {
+                                targetPk.stack = null;
                             }
                         });
                     }
