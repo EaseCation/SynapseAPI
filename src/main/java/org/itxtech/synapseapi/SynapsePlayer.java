@@ -73,7 +73,7 @@ public class SynapsePlayer extends Player {
     protected String originName;
     protected LoginChainData loginChainData;
     protected boolean isNetEaseClient = false;
-    protected JsonObject cachedExtra;
+    protected JsonObject cachedExtra = new JsonObject();
     protected final JsonObject transferExtra = new JsonObject();
 
     public SynapsePlayer(SourceInterface interfaz, SynapseEntry synapseEntry, Long clientID, InetSocketAddress socketAddress) {
