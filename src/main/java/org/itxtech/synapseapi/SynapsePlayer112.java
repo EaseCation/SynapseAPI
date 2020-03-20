@@ -97,7 +97,10 @@ public class SynapsePlayer112 extends SynapsePlayer19 {
 	@Override
 	public void sendChunk(int x, int z, int subCountCount, ChunkBlobCache blobCache, DataPacket packet) {
 		if (this.clientCacheTrack == null || blobCache == null) super.sendChunk(x, z, subCountCount, blobCache, packet);
-		else {
+		else if (this.getChunkX() == x && this.getChunkZ() == z) {
+			super.sendChunk(x, z, subCountCount, blobCache, packet);
+			//this.getServer().getLogger().info("Self chunk " + x + ":" + z);
+		} else {
 			if (!this.connected) {
 				return;
 			}
