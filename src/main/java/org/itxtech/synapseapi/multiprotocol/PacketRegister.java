@@ -138,6 +138,7 @@ public class PacketRegister {
         registerPacket(AbstractProtocol.PROTOCOL_113, ProtocolInfo.CRAFTING_DATA_PACKET, CraftingDataPacket113.class);
         registerPacket(AbstractProtocol.PROTOCOL_113, ProtocolInfo.AVAILABLE_COMMANDS_PACKET, AvailableCommandsPacket113.class);
         registerPacket(AbstractProtocol.PROTOCOL_113, ProtocolInfo.ADD_PLAYER_PACKET, AddPlayerPacket113.class);
+        registerPacket(AbstractProtocol.PROTOCOL_113, ProtocolInfo.CONFIRM_SKIN_PACKET, ConfirmSkinPacket113.class);
 
         checkNeteaseSpecialExtend();
         CraftingPacketManager.rebuildPacket();
