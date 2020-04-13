@@ -95,11 +95,11 @@ public class SynapsePlayer112 extends SynapsePlayer19 {
 	}
 
 	@Override
-	public void sendChunk(int x, int z, int subCountCount, ChunkBlobCache blobCache, DataPacket packet) {
-		if (this.clientCacheTrack == null || blobCache == null) super.sendChunk(x, z, subCountCount, blobCache, packet);
+	public void sendChunk(int x, int z, int subChunkCount, ChunkBlobCache blobCache, DataPacket packet) {
+		if (this.clientCacheTrack == null || blobCache == null) super.sendChunk(x, z, subChunkCount, blobCache, packet);
 		else if (this.getChunkX() == x && this.getChunkZ() == z) {
-			super.sendChunk(x, z, subCountCount, blobCache, packet);
-			//this.getServer().getLogger().info("Send self chunk " + x + ":" + z);
+			super.sendChunk(x, z, subChunkCount, blobCache, packet);
+			this.getServer().getLogger().info("Send self chunk " + x + ":" + z + " pos=" + this.x + "," + this.y + "," + this.z + " teleportPos=" + teleportPosition);
 		} else {
 			if (!this.connected) {
 				return;
@@ -122,7 +122,7 @@ public class SynapsePlayer112 extends SynapsePlayer19 {
 
 			pk.chunkX = x;
 			pk.chunkZ = z;
-			pk.subChunkCount = subCountCount;
+			pk.subChunkCount = subChunkCount;
 			pk.cacheEnabled = true;
 			pk.blobIds = blobCache.getBlobIds();
 			pk.data = blobCache.getClientBlobCachedPayload();
@@ -153,6 +153,14 @@ public class SynapsePlayer112 extends SynapsePlayer19 {
 
 		LevelChunkPacket pk = new LevelChunkPacket();
 
+		if (this.getChunkX() == x && this.getChunkZ() == z) {
+			pk.chunkX = x;
+			pk.chunkZ = z;
+			pk.subChunkCount = subChunkCount;
+			pk.data = payload;
+			pk.setReliability(RakNetReliability.RELIABLE);
+			this.getServer().getLogger().info("Send self chunk (payload) " + x + ":" + z + " pos=" + this.x + "," + this.y + "," + this.z + " teleportPos=" + teleportPosition);
+		}
 		if (this.clientCacheTrack != null && blobCache != null) {
 			clientCacheTrack.putAll(blobCache.getClientBlobs());
 			pk.chunkX = x;
