@@ -99,7 +99,7 @@ public class SynapsePlayer112 extends SynapsePlayer19 {
 		if (this.clientCacheTrack == null || blobCache == null) super.sendChunk(x, z, subChunkCount, blobCache, packet);
 		else if (this.getChunkX() == x && this.getChunkZ() == z) {
 			super.sendChunk(x, z, subChunkCount, blobCache, packet);
-			this.getServer().getLogger().info("Send self chunk " + x + ":" + z + " pos=" + this.x + "," + this.y + "," + this.z + " teleportPos=" + teleportPosition);
+			//this.getServer().getLogger().debug("Send self chunk " + x + ":" + z + " pos=" + this.x + "," + this.y + "," + this.z + " teleportPos=" + teleportPosition);
 		} else {
 			if (!this.connected) {
 				return;
@@ -159,7 +159,7 @@ public class SynapsePlayer112 extends SynapsePlayer19 {
 			pk.subChunkCount = subChunkCount;
 			pk.data = payload;
 			pk.setReliability(RakNetReliability.RELIABLE);
-			this.getServer().getLogger().info("Send self chunk (payload) " + x + ":" + z + " pos=" + this.x + "," + this.y + "," + this.z + " teleportPos=" + teleportPosition);
+			//this.getServer().getLogger().debug("Send self chunk (payload) " + x + ":" + z + " pos=" + this.x + "," + this.y + "," + this.z + " teleportPos=" + teleportPosition);
 		}
 		if (this.clientCacheTrack != null && blobCache != null) {
 			clientCacheTrack.putAll(blobCache.getClientBlobs());
@@ -208,7 +208,7 @@ public class SynapsePlayer112 extends SynapsePlayer19 {
 		if (this.clientCacheTrack == null) {
 			this.clientCacheTrack = new Long2ObjectOpenHashMap<>();
 			this.chunksPerTick = SynapseAPI.getInstance().getConfig().getInt("blob-cache-chunk-send-pre-tick", this.chunksPerTick * 2);
-			getServer().getLogger().notice(this.getName() + "已启用客户端区块缓存, 每tick发送区块被设为" + this.chunksPerTick);
+			getServer().getLogger().info(this.getName() + "已启用客户端区块缓存, 每tick发送区块被设为" + this.chunksPerTick);
 		}
 	}
 
