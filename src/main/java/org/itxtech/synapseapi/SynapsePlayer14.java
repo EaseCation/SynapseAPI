@@ -293,7 +293,7 @@ public class SynapsePlayer14 extends SynapsePlayer {
 						respawnPacket.z = (float) respawnPos.z;
 						this.dataPacket(respawnPacket);
 
-						this.setSprinting(false, true);
+						this.setSprinting(false);
 						this.setSneaking(false);
 
 						this.extinguish();
