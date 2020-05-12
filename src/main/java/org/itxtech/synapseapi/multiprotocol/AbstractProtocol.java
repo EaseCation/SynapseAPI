@@ -9,6 +9,7 @@ import org.itxtech.synapseapi.multiprotocol.protocol110.protocol.Packet110;
 import org.itxtech.synapseapi.multiprotocol.protocol111.protocol.Packet111;
 import org.itxtech.synapseapi.multiprotocol.protocol112.protocol.Packet112;
 import org.itxtech.synapseapi.multiprotocol.protocol113.protocol.Packet113;
+import org.itxtech.synapseapi.multiprotocol.protocol11460.protocol.Packet11460;
 import org.itxtech.synapseapi.multiprotocol.protocol14.protocol.Packet14;
 import org.itxtech.synapseapi.multiprotocol.protocol15.protocol.Packet15;
 import org.itxtech.synapseapi.multiprotocol.protocol16.protocol.Packet16;
@@ -38,7 +39,8 @@ public enum AbstractProtocol {
     PROTOCOL_111(354, Packet111.class, SynapsePlayer19.class),
     PROTOCOL_112(361, Packet112.class, SynapsePlayer112.class),
     PROTOCOL_113(388, Packet113.class, SynapsePlayer113.class),
-    PROTOCOL_114(389, Packet113.class, SynapsePlayer113.class);
+    PROTOCOL_114(389, Packet113.class, SynapsePlayer113.class),
+    PROTOCOL_114_60(390, Packet11460.class, SynapsePlayer113.class);
 
     private final int protocolStart;
     private final Class<? extends DataPacket> packetClass;

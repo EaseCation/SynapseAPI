@@ -4,6 +4,8 @@ import java.nio.charset.StandardCharsets;
 import java.util.*;
 
 import cn.nukkit.Server;
+import cn.nukkit.utils.PersonaPiece;
+import cn.nukkit.utils.PersonaPieceTint;
 import cn.nukkit.utils.SerializedImage;
 import cn.nukkit.utils.SkinAnimation;
 import com.google.gson.Gson;
@@ -160,6 +162,26 @@ public class LoginPacket14 extends Packet14 {
                 skin.getAnimations().add(getAnimation(element.getAsJsonObject()));
             }
         }
+
+        if (skinToken.has("SkinColor")) {
+            skin.setSkinColor(skinToken.get("SkinColor").getAsString());
+        }
+
+        if (skinToken.has("ArmSize")) {
+            skin.setArmSize(skinToken.get("ArmSize").getAsString());
+        }
+
+        if (skinToken.has("PersonaPieces")) {
+            for (JsonElement object : skinToken.get("PersonaPieces").getAsJsonArray()) {
+                skin.getPersonaPieces().add(getPersonaPiece(object.getAsJsonObject()));
+            }
+        }
+
+        if (skinToken.has("PieceTintColors")) {
+            for (JsonElement object : skinToken.get("PieceTintColors").getAsJsonArray()) {
+                skin.getTintColors().add(getTint(object.getAsJsonObject()));
+            }
+        }
     }
 
     private JsonObject decodeToken(String token) {
@@ -195,6 +217,24 @@ public class LoginPacket14 extends Packet14 {
             }
         }
         return SerializedImage.EMPTY;
+    }
+
+    private static PersonaPiece getPersonaPiece(JsonObject object) {
+        String pieceId = object.get("PieceId").getAsString();
+        String pieceType = object.get("PieceType").getAsString();
+        String packId = object.get("PackId").getAsString();
+        boolean isDefault = object.get("IsDefault").getAsBoolean();
+        String productId = object.get("ProductId").getAsString();
+        return new PersonaPiece(pieceId, pieceType, packId, isDefault, productId);
+    }
+
+    public static PersonaPieceTint getTint(JsonObject object) {
+        String pieceType = object.get("PieceType").getAsString();
+        List<String> colors = new ArrayList<>();
+        for (JsonElement element : object.get("Colors").getAsJsonArray()) {
+            colors.add(element.getAsString()); // remove #
+        }
+        return new PersonaPieceTint(pieceType, colors);
     }
 
     @Override

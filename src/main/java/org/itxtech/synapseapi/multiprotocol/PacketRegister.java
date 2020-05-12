@@ -11,6 +11,7 @@ import org.itxtech.synapseapi.multiprotocol.protocol110.protocol.VideoStreamConn
 import org.itxtech.synapseapi.multiprotocol.protocol111.protocol.*;
 import org.itxtech.synapseapi.multiprotocol.protocol112.protocol.*;
 import org.itxtech.synapseapi.multiprotocol.protocol113.protocol.*;
+import org.itxtech.synapseapi.multiprotocol.protocol11460.protocol.PlayerListPacket11460;
 import org.itxtech.synapseapi.multiprotocol.protocol15.protocol.AddEntityPacket15;
 import org.itxtech.synapseapi.multiprotocol.protocol15.protocol.ClientboundMapItemDataPacket15;
 import org.itxtech.synapseapi.multiprotocol.protocol15.protocol.MoveEntityAbsolutePacket15;
@@ -139,6 +140,8 @@ public class PacketRegister {
         registerPacket(AbstractProtocol.PROTOCOL_113, ProtocolInfo.AVAILABLE_COMMANDS_PACKET, AvailableCommandsPacket113.class);
         registerPacket(AbstractProtocol.PROTOCOL_113, ProtocolInfo.ADD_PLAYER_PACKET, AddPlayerPacket113.class);
         registerPacket(AbstractProtocol.PROTOCOL_113, ProtocolInfo.CONFIRM_SKIN_PACKET, ConfirmSkinPacket113.class);
+
+        registerPacket(AbstractProtocol.PROTOCOL_114_60, ProtocolInfo.PLAYER_LIST_PACKET, PlayerListPacket11460.class);
 
         checkNeteaseSpecialExtend();
         CraftingPacketManager.rebuildPacket();

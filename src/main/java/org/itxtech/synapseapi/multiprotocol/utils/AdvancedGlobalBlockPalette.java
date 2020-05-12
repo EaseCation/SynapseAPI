@@ -53,6 +53,9 @@ public interface AdvancedGlobalBlockPalette {
         put(AbstractProtocol.PROTOCOL_114, new AdvancedGlobalBlockPalette[]{
                 new GlobalBlockPaletteNBT(AbstractProtocol.PROTOCOL_114, "block_state_list_114.dat", "runtime_item_ids_114.json")
         });
+        put(AbstractProtocol.PROTOCOL_114_60, new AdvancedGlobalBlockPalette[]{
+                new GlobalBlockPaletteNBT(AbstractProtocol.PROTOCOL_114_60, "block_state_list_114.dat", "runtime_item_ids_114.json")
+        });
     }};
 
     int getOrCreateRuntimeId(int id, int meta);
