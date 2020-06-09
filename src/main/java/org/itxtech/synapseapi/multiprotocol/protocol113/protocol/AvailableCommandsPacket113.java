@@ -306,6 +306,8 @@ public class AvailableCommandsPacket113 extends Packet113 {
             this.putUnsignedVarInt(values.size());
             values.forEach(this::putString);
         });
+
+        this.putUnsignedVarInt(0);
     }
 
     @Override
