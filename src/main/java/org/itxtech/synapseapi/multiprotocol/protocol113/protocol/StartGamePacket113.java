@@ -3,7 +3,6 @@ package org.itxtech.synapseapi.multiprotocol.protocol113.protocol;
 import cn.nukkit.level.GameRules;
 import cn.nukkit.network.protocol.ProtocolInfo;
 import org.itxtech.synapseapi.multiprotocol.AbstractProtocol;
-import org.itxtech.synapseapi.multiprotocol.protocol112.protocol.Packet112;
 import org.itxtech.synapseapi.multiprotocol.utils.AdvancedGlobalBlockPalette;
 
 /**
@@ -69,7 +68,7 @@ public class StartGamePacket113 extends Packet113 {
 	public boolean isFromWorldTemplate = false;
 	public boolean isWorldTemplateOptionLocked = false;
 	public boolean isOnlySpawningV1Villagers = false;
-	public String vanillaVersion = ProtocolInfo.MINECRAFT_VERSION_NETWORK;
+	public String vanillaVersion = "1.13.0";
 	public String levelId = ""; //base64 string, usually the same as world folder name in vanilla
 	public String worldName;
 	public String premiumWorldTemplateId = "";
@@ -83,6 +82,7 @@ public class StartGamePacket113 extends Packet113 {
 	public byte[] itemDataPalette = null;
 
 	public String multiplayerCorrelationId = "";
+
 	@Override
 	public void decode() {
 
@@ -151,5 +151,4 @@ public class StartGamePacket113 extends Packet113 {
 			rules.writeBinaryStream14(this);
 		}
 	}
-
 }
