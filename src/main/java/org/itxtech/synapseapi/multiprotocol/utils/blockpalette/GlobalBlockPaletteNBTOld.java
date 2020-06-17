@@ -5,7 +5,8 @@ import cn.nukkit.nbt.NBTIO;
 import cn.nukkit.nbt.tag.CompoundTag;
 import cn.nukkit.nbt.tag.ListTag;
 import com.google.common.io.ByteStreams;
-import it.unimi.dsi.fastutil.ints.Int2IntArrayMap;
+import it.unimi.dsi.fastutil.ints.Int2IntMap;
+import it.unimi.dsi.fastutil.ints.Int2IntOpenHashMap;
 import org.itxtech.synapseapi.SynapseAPI;
 import org.itxtech.synapseapi.multiprotocol.AbstractProtocol;
 import org.itxtech.synapseapi.multiprotocol.utils.AdvancedGlobalBlockPalette;
@@ -19,8 +20,8 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 public class GlobalBlockPaletteNBTOld implements AdvancedGlobalBlockPalette {
 
-    final Int2IntArrayMap legacyToRuntimeId = new Int2IntArrayMap();
-    final Int2IntArrayMap runtimeIdToLegacy = new Int2IntArrayMap();
+    final Int2IntMap legacyToRuntimeId = new Int2IntOpenHashMap();
+    final Int2IntMap runtimeIdToLegacy = new Int2IntOpenHashMap();
     final AtomicInteger runtimeIdAllocator = new AtomicInteger(0);
     final byte[] compiledTable;
     final byte[] itemDataPalette;
