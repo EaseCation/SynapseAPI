@@ -5,16 +5,20 @@ import cn.nukkit.Server;
 import cn.nukkit.event.EventHandler;
 import cn.nukkit.event.Listener;
 import cn.nukkit.event.server.BatchPacketsEvent;
+import cn.nukkit.level.GlobalBlockPalette;
+import cn.nukkit.level.GlobalBlockPaletteInterface;
 import cn.nukkit.network.RakNetInterface;
 import cn.nukkit.network.SourceInterface;
 import cn.nukkit.network.protocol.DataPacket;
 import cn.nukkit.network.protocol.LevelSoundEventPacket;
+import org.itxtech.synapseapi.multiprotocol.AbstractProtocol;
 import org.itxtech.synapseapi.multiprotocol.PacketRegister;
 import cn.nukkit.plugin.PluginBase;
 import cn.nukkit.utils.ConfigSection;
 import org.itxtech.synapseapi.messaging.Messenger;
 import org.itxtech.synapseapi.messaging.StandardMessenger;
 import org.itxtech.synapseapi.multiprotocol.protocol19.protocol.LevelSoundEventPacketV319;
+import org.itxtech.synapseapi.multiprotocol.utils.AdvancedGlobalBlockPalette;
 import org.itxtech.synapseapi.multiprotocol.utils.LevelSoundEventIDTranslator;
 import org.itxtech.synapseapi.runnable.TransferDimensionTaskThread;
 import org.itxtech.synapseapi.utils.ClientData;
@@ -70,6 +74,18 @@ public class SynapseAPI extends PluginBase implements Listener {
 
         saveResource("recipes11.json", true);
         PacketRegister.init();
+
+        GlobalBlockPalette.setInstance(new GlobalBlockPaletteInterface(){
+            @Override
+            public int getOrCreateRuntimeId0(int protocol, int id, int meta) {
+                return AdvancedGlobalBlockPalette.getOrCreateRuntimeId(AbstractProtocol.fromRealProtocol(protocol), false, id, meta);
+            }
+
+            @Override
+            public int getOrCreateRuntimeId0(int protocol, int legacyId) throws NoSuchElementException {
+                return AdvancedGlobalBlockPalette.getOrCreateRuntimeId(AbstractProtocol.fromRealProtocol(protocol), false, legacyId);
+            }
+        });
 
         this.transferDimensionTaskThread = new TransferDimensionTaskThread();
         this.transferDimensionTaskThread.start();
