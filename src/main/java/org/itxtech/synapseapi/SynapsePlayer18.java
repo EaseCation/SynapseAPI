@@ -147,7 +147,7 @@ public class SynapsePlayer18 extends SynapsePlayer17 {
 			AvailableEntityIdentifiersPacket18 pk = new AvailableEntityIdentifiersPacket18();
 			pk.tag = AvailableEntityIdentifiersPalette.getData(AbstractProtocol.fromRealProtocol(this.getProtocol()));
 			if (pk.tag != null) {
-				this.dataPacket(new AvailableEntityIdentifiersPacket18());
+				this.dataPacket(pk);
 			} else {
 				Server.getInstance().getLogger().warning("Null AvailableEntityIdentifiersPacket data to player " + this.getName() + "!");
 			}
