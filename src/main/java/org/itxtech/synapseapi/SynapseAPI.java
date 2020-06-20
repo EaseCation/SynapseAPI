@@ -20,6 +20,7 @@ import org.itxtech.synapseapi.messaging.StandardMessenger;
 import org.itxtech.synapseapi.multiprotocol.protocol19.protocol.LevelSoundEventPacketV319;
 import org.itxtech.synapseapi.multiprotocol.utils.AdvancedGlobalBlockPalette;
 import org.itxtech.synapseapi.multiprotocol.utils.LevelSoundEventIDTranslator;
+import org.itxtech.synapseapi.multiprotocol.utils.blockpalette.data.PaletteBlockTable;
 import org.itxtech.synapseapi.runnable.TransferDimensionTaskThread;
 import org.itxtech.synapseapi.utils.ClientData;
 import org.itxtech.synapseapi.utils.NetTest;
@@ -74,6 +75,8 @@ public class SynapseAPI extends PluginBase implements Listener {
 
         saveResource("recipes11.json", true);
         PacketRegister.init();
+
+
 
         GlobalBlockPalette.setInstance(new GlobalBlockPaletteInterface(){
             @Override

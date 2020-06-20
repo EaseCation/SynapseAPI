@@ -1,0 +1,71 @@
+package org.itxtech.synapseapi.multiprotocol.utils.blockpalette.data;
+
+import cn.nukkit.nbt.tag.CompoundTag;
+import cn.nukkit.nbt.tag.Tag;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Objects;
+
+public class PaletteBlockData {
+
+    public static final PaletteBlockData AIR = new PaletteBlockData(0, new LegacyStates[]{new LegacyStates(0, 0)}, new Block("minecraft:air", 0, new ArrayList<>()));
+
+    public static class LegacyStates {
+        public final int id;
+        public final int val;
+
+        public LegacyStates(int id, int val) {
+            this.id = id;
+            this.val = val;
+        }
+    }
+
+    public static class Block {
+        public final String name;
+        public final int version;
+        public final List<Tag> states;
+
+        public Block(String name, int version, List<Tag> states) {
+            this.name = name;
+            this.version = version;
+            this.states = states;
+        }
+
+        public CompoundTag toTag() {
+            CompoundTag tag = new CompoundTag();
+            tag.putString("name", name);
+            tag.putInt("version", version);
+            CompoundTag states = new CompoundTag();
+            for (Tag state : this.states) {
+                states.put(state.getName(), state);
+            }
+            tag.putCompound("states", states);
+            return tag;
+        }
+
+        @Override
+        public boolean equals(Object o) {
+            if (this == o) return true;
+            if (o == null || getClass() != o.getClass()) return false;
+            Block block = (Block) o;
+            return Objects.equals(name, block.name) &&
+                    states.containsAll(block.states);
+        }
+
+        @Override
+        public int hashCode() {
+            return Objects.hash(name, version, states);
+        }
+    }
+
+    public final int id;
+    public final LegacyStates[] legacyStates;
+    public final Block block;
+
+    public PaletteBlockData(int id, LegacyStates[] legacyStates, Block block) {
+        this.id = id;
+        this.legacyStates = legacyStates;
+        this.block = block;
+    }
+}

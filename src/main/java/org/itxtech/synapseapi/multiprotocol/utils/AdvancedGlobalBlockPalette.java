@@ -1,74 +1,63 @@
 package org.itxtech.synapseapi.multiprotocol.utils;
 
-import cn.nukkit.utils.BinaryStream;
-import com.google.gson.Gson;
-import com.google.gson.reflect.TypeToken;
-import org.itxtech.synapseapi.SynapseAPI;
 import org.itxtech.synapseapi.multiprotocol.AbstractProtocol;
 import org.itxtech.synapseapi.multiprotocol.utils.blockpalette.GlobalBlockPaletteJson;
 import org.itxtech.synapseapi.multiprotocol.utils.blockpalette.GlobalBlockPaletteNBT;
 import org.itxtech.synapseapi.multiprotocol.utils.blockpalette.GlobalBlockPaletteNBTOld;
+import org.itxtech.synapseapi.multiprotocol.utils.blockpalette.data.PaletteBlockTable;
 
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.io.Reader;
-import java.lang.reflect.Type;
-import java.nio.charset.StandardCharsets;
-import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 
-public interface AdvancedGlobalBlockPalette {
+public final class AdvancedGlobalBlockPalette {
 
-    Map<AbstractProtocol, AdvancedGlobalBlockPalette[]> palettes = new HashMap<AbstractProtocol, AdvancedGlobalBlockPalette[]>() {{
-        put(AbstractProtocol.PROTOCOL_16, new AdvancedGlobalBlockPalette[]{
+    public static final Map<AbstractProtocol, AdvancedGlobalBlockPaletteInterface[]> palettes = new HashMap<>();
+
+    static {
+        palettes.put(AbstractProtocol.PROTOCOL_16, new AdvancedGlobalBlockPaletteInterface[]{
                 new GlobalBlockPaletteJson(AbstractProtocol.PROTOCOL_16, "block_state_list_16.json"),
                 new GlobalBlockPaletteJson(AbstractProtocol.PROTOCOL_16, "block_state_list_16_netease.json")
         });
-        put(AbstractProtocol.PROTOCOL_17, new AdvancedGlobalBlockPalette[]{
+        palettes.put(AbstractProtocol.PROTOCOL_17, new AdvancedGlobalBlockPaletteInterface[]{
                 new GlobalBlockPaletteJson(AbstractProtocol.PROTOCOL_17, "block_state_list_17.json"),
                 new GlobalBlockPaletteJson(AbstractProtocol.PROTOCOL_17, "block_state_list_17_netease.json")
         });
-        put(AbstractProtocol.PROTOCOL_18, new AdvancedGlobalBlockPalette[]{
+        palettes.put(AbstractProtocol.PROTOCOL_18, new AdvancedGlobalBlockPaletteInterface[]{
                 new GlobalBlockPaletteJson(AbstractProtocol.PROTOCOL_18, "block_state_list_18.json"),
                 new GlobalBlockPaletteJson(AbstractProtocol.PROTOCOL_18, "block_state_list_18_netease.json")
         });
-        put(AbstractProtocol.PROTOCOL_19, new AdvancedGlobalBlockPalette[]{
+        palettes.put(AbstractProtocol.PROTOCOL_19, new AdvancedGlobalBlockPaletteInterface[]{
                 new GlobalBlockPaletteJson(AbstractProtocol.PROTOCOL_19, "block_state_list_19.json"),
                 new GlobalBlockPaletteJson(AbstractProtocol.PROTOCOL_19, "block_state_list_19_netease.json")
         });
-        put(AbstractProtocol.PROTOCOL_110, new AdvancedGlobalBlockPalette[]{
+        palettes.put(AbstractProtocol.PROTOCOL_110, new AdvancedGlobalBlockPaletteInterface[]{
                 new GlobalBlockPaletteJson(AbstractProtocol.PROTOCOL_110, "block_state_list_110.json")
         });
-        put(AbstractProtocol.PROTOCOL_111, new AdvancedGlobalBlockPalette[]{
+        palettes.put(AbstractProtocol.PROTOCOL_111, new AdvancedGlobalBlockPaletteInterface[]{
                 new GlobalBlockPaletteJson(AbstractProtocol.PROTOCOL_111, "block_state_list_111.json"),
                 new GlobalBlockPaletteJson(AbstractProtocol.PROTOCOL_111, "block_state_list_111_netease.json")
         });
-        put(AbstractProtocol.PROTOCOL_112, new AdvancedGlobalBlockPalette[]{
+        palettes.put(AbstractProtocol.PROTOCOL_112, new AdvancedGlobalBlockPaletteInterface[]{
                 new GlobalBlockPaletteJson(AbstractProtocol.PROTOCOL_112, "block_state_list_112.json", "runtime_item_ids_112.json")
         });
-        put(AbstractProtocol.PROTOCOL_113, new AdvancedGlobalBlockPalette[]{
-                new GlobalBlockPaletteNBTOld(AbstractProtocol.PROTOCOL_113, "block_state_list_113.dat", "runtime_item_ids_112.json")
+
+        PaletteBlockTable table114 = PaletteBlockTable.fromNBT("block_state_list_114.dat");
+        PaletteBlockTable table113 = PaletteBlockTable.fromNBTOld("block_state_list_113.dat");
+
+        palettes.put(AbstractProtocol.PROTOCOL_113, new AdvancedGlobalBlockPaletteInterface[]{
+                new GlobalBlockPaletteNBTOld(AbstractProtocol.PROTOCOL_113, table113.trim(table114), "runtime_item_ids_112.json")
         });
-        put(AbstractProtocol.PROTOCOL_114, new AdvancedGlobalBlockPalette[]{
-                new GlobalBlockPaletteNBT(AbstractProtocol.PROTOCOL_114, "block_state_list_114.dat", "runtime_item_ids_114.json")
+        palettes.put(AbstractProtocol.PROTOCOL_114, new AdvancedGlobalBlockPaletteInterface[]{
+                new GlobalBlockPaletteNBT(AbstractProtocol.PROTOCOL_114, table114, "runtime_item_ids_114.json")
         });
-        put(AbstractProtocol.PROTOCOL_114_60, new AdvancedGlobalBlockPalette[]{
-                new GlobalBlockPaletteNBT(AbstractProtocol.PROTOCOL_114_60, "block_state_list_114.dat", "runtime_item_ids_114.json")
+        palettes.put(AbstractProtocol.PROTOCOL_114_60, new AdvancedGlobalBlockPaletteInterface[]{
+                new GlobalBlockPaletteNBT(AbstractProtocol.PROTOCOL_114_60, table114, "runtime_item_ids_114.json")
         });
-    }};
+    }
 
-    int getOrCreateRuntimeId(int id, int meta);
-
-    int getOrCreateRuntimeId(int legacyId);
-
-    byte[] getCompiledTable();
-
-    byte[] getItemDataPalette();
-
-    static int getOrCreateRuntimeId(AbstractProtocol protocol, boolean netease, int legacyId) {
+    public static int getOrCreateRuntimeId(AbstractProtocol protocol, boolean netease, int legacyId) {
         if (palettes.containsKey(protocol)) {
-            AdvancedGlobalBlockPalette[] versions = palettes.get(protocol);
+            AdvancedGlobalBlockPaletteInterface[] versions = palettes.get(protocol);
             if (versions.length > 1) {
                 return netease ? versions[1].getOrCreateRuntimeId(legacyId) : versions[0].getOrCreateRuntimeId(legacyId);
             }
@@ -78,9 +67,9 @@ public interface AdvancedGlobalBlockPalette {
         }
     }
 
-    static int getOrCreateRuntimeId(AbstractProtocol protocol, boolean netease, int id, int meta) {
+    public static int getOrCreateRuntimeId(AbstractProtocol protocol, boolean netease, int id, int meta) {
         if (palettes.containsKey(protocol)) {
-            AdvancedGlobalBlockPalette[] versions = palettes.get(protocol);
+            AdvancedGlobalBlockPaletteInterface[] versions = palettes.get(protocol);
             if (versions.length > 1) {
                 return netease ? versions[1].getOrCreateRuntimeId(id, meta) : versions[0].getOrCreateRuntimeId(id, meta);
             }
@@ -90,9 +79,9 @@ public interface AdvancedGlobalBlockPalette {
         }
     }
 
-    static byte[] getCompiledTable(AbstractProtocol protocol, boolean netease) {
+    public static byte[] getCompiledTable(AbstractProtocol protocol, boolean netease) {
         if (palettes.containsKey(protocol)) {
-            AdvancedGlobalBlockPalette[] versions = palettes.get(protocol);
+            AdvancedGlobalBlockPaletteInterface[] versions = palettes.get(protocol);
             if (versions.length > 1) {
                 return netease ? versions[1].getCompiledTable() : versions[0].getCompiledTable();
             }
@@ -102,9 +91,9 @@ public interface AdvancedGlobalBlockPalette {
         }
     }
 
-    static byte[] getCompiledItemDataPalette(AbstractProtocol protocol, boolean netease) {
+    public static byte[] getCompiledItemDataPalette(AbstractProtocol protocol, boolean netease) {
         if (palettes.containsKey(protocol)) {
-            AdvancedGlobalBlockPalette[] versions = palettes.get(protocol);
+            AdvancedGlobalBlockPaletteInterface[] versions = palettes.get(protocol);
             if (versions.length > 1) {
                 return netease ? versions[1].getItemDataPalette() : versions[0].getItemDataPalette();
             }
@@ -112,34 +101,5 @@ public interface AdvancedGlobalBlockPalette {
         } else {
             throw new RuntimeException("Item data palette protocol " + protocol.name() + " not found");
         }
-    }
-
-    default byte[] loadItemDataPalette(String jsonFile) {
-        if (jsonFile == null || jsonFile.isEmpty()) return new byte[0];
-        InputStream stream = SynapseAPI.class.getClassLoader().getResourceAsStream(jsonFile);
-        if (stream == null) {
-            throw new AssertionError("Unable to locate RuntimeID table: " + jsonFile);
-        }
-        Reader reader = new InputStreamReader(stream, StandardCharsets.UTF_8);
-
-        Gson gson = new Gson();
-        Type collectionType = new TypeToken<Collection<ItemData>>() {
-        }.getType();
-        Collection<ItemData> entries = gson.fromJson(reader, collectionType);
-        BinaryStream paletteBuffer = new BinaryStream();
-
-        paletteBuffer.putUnsignedVarInt(entries.size());
-
-        for (ItemData data : entries) {
-            paletteBuffer.putString(data.name);
-            paletteBuffer.putLShort(data.id);
-        }
-
-        return paletteBuffer.getBuffer();
-    }
-
-    class ItemData {
-        private String name;
-        private int id;
     }
 }

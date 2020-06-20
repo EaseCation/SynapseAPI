@@ -8,6 +8,7 @@ import it.unimi.dsi.fastutil.ints.Int2IntArrayMap;
 import org.itxtech.synapseapi.SynapseAPI;
 import org.itxtech.synapseapi.multiprotocol.AbstractProtocol;
 import org.itxtech.synapseapi.multiprotocol.utils.AdvancedGlobalBlockPalette;
+import org.itxtech.synapseapi.multiprotocol.utils.AdvancedGlobalBlockPaletteInterface;
 
 import java.io.InputStream;
 import java.io.InputStreamReader;
@@ -17,7 +18,7 @@ import java.nio.charset.StandardCharsets;
 import java.util.Collection;
 import java.util.concurrent.atomic.AtomicInteger;
 
-public class GlobalBlockPaletteJson implements AdvancedGlobalBlockPalette {
+public class GlobalBlockPaletteJson implements AdvancedGlobalBlockPaletteInterface {
 
     final Int2IntArrayMap legacyToRuntimeId = new Int2IntArrayMap();
     final Int2IntArrayMap runtimeIdToLegacy = new Int2IntArrayMap();

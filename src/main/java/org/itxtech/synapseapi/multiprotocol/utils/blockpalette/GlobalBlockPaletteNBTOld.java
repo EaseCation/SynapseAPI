@@ -10,6 +10,9 @@ import it.unimi.dsi.fastutil.ints.Int2IntOpenHashMap;
 import org.itxtech.synapseapi.SynapseAPI;
 import org.itxtech.synapseapi.multiprotocol.AbstractProtocol;
 import org.itxtech.synapseapi.multiprotocol.utils.AdvancedGlobalBlockPalette;
+import org.itxtech.synapseapi.multiprotocol.utils.AdvancedGlobalBlockPaletteInterface;
+import org.itxtech.synapseapi.multiprotocol.utils.blockpalette.data.PaletteBlockData;
+import org.itxtech.synapseapi.multiprotocol.utils.blockpalette.data.PaletteBlockTable;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
@@ -18,7 +21,7 @@ import java.nio.ByteOrder;
 import java.util.NoSuchElementException;
 import java.util.concurrent.atomic.AtomicInteger;
 
-public class GlobalBlockPaletteNBTOld implements AdvancedGlobalBlockPalette {
+public class GlobalBlockPaletteNBTOld implements AdvancedGlobalBlockPaletteInterface {
 
     final Int2IntMap legacyToRuntimeId = new Int2IntOpenHashMap();
     final Int2IntMap runtimeIdToLegacy = new Int2IntOpenHashMap();
@@ -28,6 +31,29 @@ public class GlobalBlockPaletteNBTOld implements AdvancedGlobalBlockPalette {
 
     public GlobalBlockPaletteNBTOld(AbstractProtocol protocol, String blockPaletteFile) {
         this(protocol, blockPaletteFile, null);
+    }
+
+    public GlobalBlockPaletteNBTOld(AbstractProtocol protocol, PaletteBlockTable blockTable, String itemDataPaletteJsonFile) {
+        Server.getInstance().getLogger().info("Loading Advanced Global Block Palette from PaletteBlockTable");
+        legacyToRuntimeId.defaultReturnValue(-1);
+        runtimeIdToLegacy.defaultReturnValue(-1);
+
+        try {
+            compiledTable = NBTIO.write(blockTable.toTag(), ByteOrder.LITTLE_ENDIAN, true);
+            for (int i = 0; i < blockTable.size(); i++) {
+                PaletteBlockData data = blockTable.get(i);
+                if (data.legacyStates != null && data.legacyStates.length > 0) {
+                    runtimeIdToLegacy.put(i, data.legacyStates[0].id << 6 | (short) data.legacyStates[0].val);
+                    for (PaletteBlockData.LegacyStates legacyState : data.legacyStates) {
+                        int legacyId = legacyState.id << 6 | (short) legacyState.val;
+                        legacyToRuntimeId.put(legacyId, i);
+                    }
+                }
+            }
+        } catch (IOException e) {
+            throw new AssertionError("Unable to write block palette", e);
+        }
+        itemDataPalette = loadItemDataPalette(itemDataPaletteJsonFile);
     }
 
     public GlobalBlockPaletteNBTOld(AbstractProtocol protocol, String blockPaletteFile, String itemDataPaletteJsonFile) {
