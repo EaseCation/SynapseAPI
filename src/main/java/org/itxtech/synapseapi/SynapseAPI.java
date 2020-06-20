@@ -77,13 +77,13 @@ public class SynapseAPI extends PluginBase implements Listener {
 
         GlobalBlockPalette.setInstance(new GlobalBlockPaletteInterface(){
             @Override
-            public int getOrCreateRuntimeId0(int protocol, int id, int meta) {
-                return AdvancedGlobalBlockPalette.getOrCreateRuntimeId(AbstractProtocol.fromRealProtocol(protocol), false, id, meta);
+            public int getOrCreateRuntimeId0( int id, int meta) {
+                return AdvancedGlobalBlockPalette.getOrCreateRuntimeId(AbstractProtocol.values()[AbstractProtocol.values().length - 1], false, id, meta);
             }
 
             @Override
-            public int getOrCreateRuntimeId0(int protocol, int legacyId) throws NoSuchElementException {
-                return AdvancedGlobalBlockPalette.getOrCreateRuntimeId(AbstractProtocol.fromRealProtocol(protocol), false, legacyId);
+            public int getOrCreateRuntimeId0(int legacyId) throws NoSuchElementException {
+                return AdvancedGlobalBlockPalette.getOrCreateRuntimeId(AbstractProtocol.values()[AbstractProtocol.values().length - 1], false, legacyId);
             }
         });
 
