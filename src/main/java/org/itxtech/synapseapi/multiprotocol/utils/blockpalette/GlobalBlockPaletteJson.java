@@ -1,6 +1,7 @@
 package org.itxtech.synapseapi.multiprotocol.utils.blockpalette;
 
 import cn.nukkit.Server;
+import cn.nukkit.nbt.NBTIO;
 import cn.nukkit.utils.BinaryStream;
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
@@ -9,11 +10,15 @@ import org.itxtech.synapseapi.SynapseAPI;
 import org.itxtech.synapseapi.multiprotocol.AbstractProtocol;
 import org.itxtech.synapseapi.multiprotocol.utils.AdvancedGlobalBlockPalette;
 import org.itxtech.synapseapi.multiprotocol.utils.AdvancedGlobalBlockPaletteInterface;
+import org.itxtech.synapseapi.multiprotocol.utils.blockpalette.data.PaletteBlockData;
+import org.itxtech.synapseapi.multiprotocol.utils.blockpalette.data.PaletteBlockTable;
 
+import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.Reader;
 import java.lang.reflect.Type;
+import java.nio.ByteOrder;
 import java.nio.charset.StandardCharsets;
 import java.util.Collection;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -28,6 +33,36 @@ public class GlobalBlockPaletteJson implements AdvancedGlobalBlockPaletteInterfa
 
     public GlobalBlockPaletteJson(AbstractProtocol protocol, String blockPaletteFile) {
         this(protocol, blockPaletteFile, null);
+    }
+
+    public GlobalBlockPaletteJson(AbstractProtocol protocol, PaletteBlockTable blockTable, String itemDataPaletteJsonFile) {
+        Server.getInstance().getLogger().info("Loading Advanced Global Block Palette from PaletteBlockTable(old json)");
+        legacyToRuntimeId.defaultReturnValue(-1);
+        runtimeIdToLegacy.defaultReturnValue(-1);
+
+        BinaryStream table = new BinaryStream();
+
+        table.putUnsignedVarInt(blockTable.size());
+
+        for (int i = 0; i < blockTable.size(); i++) {
+            int meta = 0;
+            PaletteBlockData data = blockTable.get(i);
+            if (data.legacyStates != null && data.legacyStates.length > 0) {
+                meta = data.legacyStates[0].val;
+                runtimeIdToLegacy.put(i, data.legacyStates[0].id << 6 | (short) data.legacyStates[0].val);
+                for (PaletteBlockData.LegacyStates legacyState : data.legacyStates) {
+                    int legacyId = legacyState.id << 6 | (short) legacyState.val;
+                    legacyToRuntimeId.put(legacyId, i);
+                }
+            }
+
+            table.putString(data.block.name);
+            table.putLShort(meta);
+            if (protocol.ordinal() >= AbstractProtocol.PROTOCOL_112.ordinal()) table.putLShort(data.id);
+        }
+        compiledTable = table.getBuffer();
+
+        itemDataPalette = loadItemDataPalette(itemDataPaletteJsonFile);
     }
 
     public GlobalBlockPaletteJson(AbstractProtocol protocol, String blockPaletteFile, String itemDataPaletteJsonFile) {

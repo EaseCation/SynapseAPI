@@ -34,7 +34,7 @@ public class GlobalBlockPaletteNBTOld implements AdvancedGlobalBlockPaletteInter
     }
 
     public GlobalBlockPaletteNBTOld(AbstractProtocol protocol, PaletteBlockTable blockTable, String itemDataPaletteJsonFile) {
-        Server.getInstance().getLogger().info("Loading Advanced Global Block Palette from PaletteBlockTable");
+        Server.getInstance().getLogger().info("Loading Advanced Global Block Palette from PaletteBlockTable(old nbt)");
         legacyToRuntimeId.defaultReturnValue(-1);
         runtimeIdToLegacy.defaultReturnValue(-1);
 

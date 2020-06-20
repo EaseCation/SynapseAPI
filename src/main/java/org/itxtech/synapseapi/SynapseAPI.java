@@ -76,8 +76,6 @@ public class SynapseAPI extends PluginBase implements Listener {
         saveResource("recipes11.json", true);
         PacketRegister.init();
 
-
-
         GlobalBlockPalette.setInstance(new GlobalBlockPaletteInterface(){
             @Override
             public int getOrCreateRuntimeId0( int id, int meta) {

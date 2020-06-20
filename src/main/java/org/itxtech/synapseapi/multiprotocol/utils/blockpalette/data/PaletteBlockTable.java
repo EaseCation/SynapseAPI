@@ -4,14 +4,20 @@ import cn.nukkit.nbt.NBTIO;
 import cn.nukkit.nbt.tag.CompoundTag;
 import cn.nukkit.nbt.tag.ListTag;
 import cn.nukkit.nbt.tag.Tag;
+import cn.nukkit.utils.BinaryStream;
 import com.google.common.io.ByteStreams;
+import com.google.gson.Gson;
+import com.google.gson.reflect.TypeToken;
 import org.itxtech.synapseapi.SynapseAPI;
+import org.itxtech.synapseapi.multiprotocol.AbstractProtocol;
+import org.itxtech.synapseapi.multiprotocol.utils.blockpalette.GlobalBlockPaletteJson;
 
-import java.io.ByteArrayInputStream;
-import java.io.IOException;
-import java.io.InputStream;
+import java.io.*;
+import java.lang.reflect.Type;
 import java.nio.ByteOrder;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 
 public class PaletteBlockTable extends ArrayList<PaletteBlockData> {
@@ -109,6 +115,39 @@ public class PaletteBlockTable extends ArrayList<PaletteBlockData> {
             table.add(data);
         }
         return table;
+    }
+
+    public static PaletteBlockTable fromJson(String file) {
+        InputStream stream = SynapseAPI.class.getClassLoader().getResourceAsStream(file);
+        if (stream == null) {
+            throw new AssertionError("Unable to locate RuntimeID table (.json)");
+        }
+
+        PaletteBlockTable table = new PaletteBlockTable();
+
+        Reader reader = new InputStreamReader(stream, StandardCharsets.UTF_8);
+
+        Gson gson = new Gson();
+        Type collectionType = new TypeToken<Collection<JsonTableEntry>>(){}.getType();
+        Collection<JsonTableEntry> entries = gson.fromJson(reader, collectionType);
+
+        for (JsonTableEntry entry : entries) {
+            table.add(
+                    new PaletteBlockData(
+                            entry.id,
+                            new PaletteBlockData.LegacyStates[]{new PaletteBlockData.LegacyStates(entry.id, entry.data)},
+                            new PaletteBlockData.Block(entry.name, 0, new ArrayList<>())
+                    )
+            );
+        }
+
+        return table;
+    }
+
+    private static class JsonTableEntry {
+        private int id;
+        private int data;
+        private String name;
     }
 
     public PaletteBlockTable trim(PaletteBlockTable according) {

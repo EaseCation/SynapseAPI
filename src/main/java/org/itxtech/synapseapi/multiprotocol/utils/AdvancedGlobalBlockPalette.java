@@ -37,13 +37,14 @@ public final class AdvancedGlobalBlockPalette {
                 new GlobalBlockPaletteJson(AbstractProtocol.PROTOCOL_111, "block_state_list_111.json"),
                 new GlobalBlockPaletteJson(AbstractProtocol.PROTOCOL_111, "block_state_list_111_netease.json")
         });
-        palettes.put(AbstractProtocol.PROTOCOL_112, new AdvancedGlobalBlockPaletteInterface[]{
-                new GlobalBlockPaletteJson(AbstractProtocol.PROTOCOL_112, "block_state_list_112.json", "runtime_item_ids_112.json")
-        });
 
         PaletteBlockTable table114 = PaletteBlockTable.fromNBT("block_state_list_114.dat");
         PaletteBlockTable table113 = PaletteBlockTable.fromNBTOld("block_state_list_113.dat");
+        PaletteBlockTable table112 = PaletteBlockTable.fromJson("block_state_list_112.json");
 
+        palettes.put(AbstractProtocol.PROTOCOL_112, new AdvancedGlobalBlockPaletteInterface[]{
+                new GlobalBlockPaletteJson(AbstractProtocol.PROTOCOL_112, table112.trim(table114), "runtime_item_ids_112.json")
+        });
         palettes.put(AbstractProtocol.PROTOCOL_113, new AdvancedGlobalBlockPaletteInterface[]{
                 new GlobalBlockPaletteNBTOld(AbstractProtocol.PROTOCOL_113, table113.trim(table114), "runtime_item_ids_112.json")
         });
