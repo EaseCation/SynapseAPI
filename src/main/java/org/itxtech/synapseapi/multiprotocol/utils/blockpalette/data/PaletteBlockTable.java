@@ -4,13 +4,10 @@ import cn.nukkit.nbt.NBTIO;
 import cn.nukkit.nbt.tag.CompoundTag;
 import cn.nukkit.nbt.tag.ListTag;
 import cn.nukkit.nbt.tag.Tag;
-import cn.nukkit.utils.BinaryStream;
 import com.google.common.io.ByteStreams;
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 import org.itxtech.synapseapi.SynapseAPI;
-import org.itxtech.synapseapi.multiprotocol.AbstractProtocol;
-import org.itxtech.synapseapi.multiprotocol.utils.blockpalette.GlobalBlockPaletteJson;
 
 import java.io.*;
 import java.lang.reflect.Type;
@@ -144,7 +141,7 @@ public class PaletteBlockTable extends ArrayList<PaletteBlockData> {
         return table;
     }
 
-    private static class JsonTableEntry {
+    static class JsonTableEntry {
         private int id;
         private int data;
         private String name;
