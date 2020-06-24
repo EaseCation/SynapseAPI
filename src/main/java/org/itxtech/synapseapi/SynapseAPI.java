@@ -7,6 +7,7 @@ import cn.nukkit.event.Listener;
 import cn.nukkit.event.server.BatchPacketsEvent;
 import cn.nukkit.level.GlobalBlockPalette;
 import cn.nukkit.level.GlobalBlockPaletteInterface;
+import cn.nukkit.nbt.tag.CompoundTag;
 import cn.nukkit.network.RakNetInterface;
 import cn.nukkit.network.SourceInterface;
 import cn.nukkit.network.protocol.DataPacket;
@@ -85,6 +86,16 @@ public class SynapseAPI extends PluginBase implements Listener {
             @Override
             public int getOrCreateRuntimeId0(int legacyId) throws NoSuchElementException {
                 return AdvancedGlobalBlockPalette.getOrCreateRuntimeId(AbstractProtocol.values()[AbstractProtocol.values().length - 1], false, legacyId);
+            }
+
+            @Override
+            public int getLegacyId0(int runtimeId) {
+                return AdvancedGlobalBlockPalette.getLegacyId(AbstractProtocol.values()[AbstractProtocol.values().length - 1], false, runtimeId);
+            }
+
+            @Override
+            public String getName0(int runtimeId) {
+                return AdvancedGlobalBlockPalette.getName(AbstractProtocol.values()[AbstractProtocol.values().length - 1], false, runtimeId);
             }
         });
 

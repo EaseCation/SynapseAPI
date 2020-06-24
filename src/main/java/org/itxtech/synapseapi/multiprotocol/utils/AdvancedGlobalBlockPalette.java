@@ -80,6 +80,30 @@ public final class AdvancedGlobalBlockPalette {
         }
     }
 
+    public static int getLegacyId(AbstractProtocol protocol, boolean netease, int runtimeId) {
+        if (palettes.containsKey(protocol)) {
+            AdvancedGlobalBlockPaletteInterface[] versions = palettes.get(protocol);
+            if (versions.length > 1) {
+                return netease ? versions[1].getLegacyId(runtimeId) : versions[0].getLegacyId(runtimeId);
+            }
+            return versions[0].getLegacyId(runtimeId);
+        } else {
+            throw new RuntimeException("Advanced global block palette protocol " + protocol.name() + " not found");
+        }
+    }
+
+    public static String getName(AbstractProtocol protocol, boolean netease, int runtimeId) {
+        if (palettes.containsKey(protocol)) {
+            AdvancedGlobalBlockPaletteInterface[] versions = palettes.get(protocol);
+            if (versions.length > 1) {
+                return netease ? versions[1].getName(runtimeId) : versions[0].getName(runtimeId);
+            }
+            return versions[0].getName(runtimeId);
+        } else {
+            throw new RuntimeException("Advanced global block palette protocol " + protocol.name() + " not found");
+        }
+    }
+
     public static byte[] getCompiledTable(AbstractProtocol protocol, boolean netease) {
         if (palettes.containsKey(protocol)) {
             AdvancedGlobalBlockPaletteInterface[] versions = palettes.get(protocol);

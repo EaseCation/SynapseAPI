@@ -1,24 +1,24 @@
 package org.itxtech.synapseapi.multiprotocol.utils.blockpalette;
 
 import cn.nukkit.Server;
-import cn.nukkit.nbt.NBTIO;
 import cn.nukkit.utils.BinaryStream;
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 import it.unimi.dsi.fastutil.ints.Int2IntArrayMap;
+import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
+import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
+import it.unimi.dsi.fastutil.objects.Object2IntMap;
+import it.unimi.dsi.fastutil.objects.Object2IntOpenHashMap;
 import org.itxtech.synapseapi.SynapseAPI;
 import org.itxtech.synapseapi.multiprotocol.AbstractProtocol;
-import org.itxtech.synapseapi.multiprotocol.utils.AdvancedGlobalBlockPalette;
 import org.itxtech.synapseapi.multiprotocol.utils.AdvancedGlobalBlockPaletteInterface;
 import org.itxtech.synapseapi.multiprotocol.utils.blockpalette.data.PaletteBlockData;
 import org.itxtech.synapseapi.multiprotocol.utils.blockpalette.data.PaletteBlockTable;
 
-import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.Reader;
 import java.lang.reflect.Type;
-import java.nio.ByteOrder;
 import java.nio.charset.StandardCharsets;
 import java.util.Collection;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -27,6 +27,8 @@ public class GlobalBlockPaletteJson implements AdvancedGlobalBlockPaletteInterfa
 
     final Int2IntArrayMap legacyToRuntimeId = new Int2IntArrayMap();
     final Int2IntArrayMap runtimeIdToLegacy = new Int2IntArrayMap();
+    final Int2ObjectMap<String> runtimeIdToString = new Int2ObjectOpenHashMap<>();
+    final Object2IntMap<String> stringToRuntimeId = new Object2IntOpenHashMap<>();
     final AtomicInteger runtimeIdAllocator = new AtomicInteger(0);
     final byte[] compiledTable;
     final byte[] itemDataPalette;
@@ -39,6 +41,7 @@ public class GlobalBlockPaletteJson implements AdvancedGlobalBlockPaletteInterfa
         Server.getInstance().getLogger().info("Loading Advanced Global Block Palette from PaletteBlockTable(old json)");
         legacyToRuntimeId.defaultReturnValue(-1);
         runtimeIdToLegacy.defaultReturnValue(-1);
+        stringToRuntimeId.defaultReturnValue(-1);
 
         BinaryStream table = new BinaryStream();
 
@@ -69,6 +72,7 @@ public class GlobalBlockPaletteJson implements AdvancedGlobalBlockPaletteInterfa
         Server.getInstance().getLogger().info("Loading Advanced Global Block Palette from " + blockPaletteFile);
         legacyToRuntimeId.defaultReturnValue(-1);
         runtimeIdToLegacy.defaultReturnValue(-1);
+        stringToRuntimeId.defaultReturnValue(-1);
 
         compiledTable = loadBlockPaletteJson(protocol, blockPaletteFile);
 
@@ -91,7 +95,7 @@ public class GlobalBlockPaletteJson implements AdvancedGlobalBlockPaletteInterfa
         table.putUnsignedVarInt(entries.size());
 
         for (TableEntry entry : entries) {
-            registerMapping((entry.id << 4) | entry.data);
+            registerMapping((entry.id << 4) | entry.data, entry.name);
             table.putString(entry.name);
             table.putLShort(entry.data);
             if (protocol.ordinal() >= AbstractProtocol.PROTOCOL_112.ordinal()) table.putLShort(entry.id);
@@ -112,11 +116,24 @@ public class GlobalBlockPaletteJson implements AdvancedGlobalBlockPaletteInterfa
         return runtimeId;
     }
 
-    private int registerMapping(int legacyId) {
+    private int registerMapping(int legacyId, String name) {
         int runtimeId = runtimeIdAllocator.getAndIncrement();
         runtimeIdToLegacy.put(runtimeId, legacyId);
         legacyToRuntimeId.put(legacyId, runtimeId);
+        stringToRuntimeId.put(name, runtimeId);
+        runtimeIdToString.put(runtimeId, name);
         return runtimeId;
+    }
+
+    @Override
+    public int getLegacyId(int runtimeId) {
+        return runtimeIdToLegacy.get(runtimeId);
+    }
+
+    @Override
+    public String getName(int runtimeId) {
+        String name = runtimeIdToString.get(runtimeId);
+        return name == null ? "minecraft:air" : name;
     }
 
     @Override
@@ -134,5 +151,4 @@ public class GlobalBlockPaletteJson implements AdvancedGlobalBlockPaletteInterfa
         private int data;
         private String name;
     }
-
 }
