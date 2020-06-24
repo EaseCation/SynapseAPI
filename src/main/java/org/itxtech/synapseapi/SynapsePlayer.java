@@ -375,13 +375,28 @@ public class SynapsePlayer extends Player {
 
         this.loggedIn = true;
 
+        if (this.spawnPosition != null) {
+            SetSpawnPositionPacket pk = new SetSpawnPositionPacket();
+            pk.spawnType = SetSpawnPositionPacket.TYPE_PLAYER_SPAWN;
+            pk.x = (int) this.spawnPosition.x;
+            pk.y = (int) this.spawnPosition.y;
+            pk.z = (int) this.spawnPosition.z;
+            this.dataPacket(pk);
+        }
+
         spawnPosition.level.sendTime(this);
 
-        this.setMovementSpeed(DEFAULT_SPEED);
+        this.setEnableClientCommand(true);
+        this.getAdventureSettings().update();
+
+        this.setMovementSpeed(DEFAULT_SPEED, false);
         this.sendAttributes();
-        this.setNameTagVisible(true);
-        this.setNameTagAlwaysVisible(true);
-        this.setCanClimb(true);
+        //this.setNameTagVisible(true);
+        this.setDataFlag(DATA_FLAGS, DATA_FLAG_CAN_SHOW_NAMETAG, true, false);
+        //this.setNameTagAlwaysVisible(true);
+        this.setDataFlag(DATA_FLAGS, DATA_FLAG_ALWAYS_SHOW_NAMETAG, true, false);
+        //this.setCanClimb(true);
+        this.setDataFlag(DATA_FLAGS, DATA_FLAG_CAN_CLIMB, true, false);
 
         this.server.getLogger().info(this.getServer().getLanguage().translateString("nukkit.player.logIn",
                 TextFormat.AQUA + this.username + TextFormat.WHITE,

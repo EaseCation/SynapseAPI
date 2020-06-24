@@ -211,16 +211,8 @@ public class SynapsePlayer16 extends SynapsePlayer14 {
 	}
 
 	protected void doFirstSpawn() {
-
-		this.setEnableClientCommand(true);
-		this.getAdventureSettings().update();
-
 		this.sendPotionEffects(this);
 		this.sendData(this);
-
-		SetTimePacket setTimePacket = new SetTimePacket();
-		setTimePacket.time = this.level.getTime();
-		this.dataPacket(setTimePacket);
 
 		Position pos = this.level.getSafeSpawn(this);
 
