@@ -30,6 +30,7 @@ import cn.nukkit.network.SourceInterface;
 import cn.nukkit.network.protocol.*;
 import cn.nukkit.network.protocol.types.NetworkInventoryAction;
 import cn.nukkit.resourcepacks.ResourcePack;
+import com.google.gson.JsonObject;
 import org.itxtech.synapseapi.multiprotocol.AbstractProtocol;
 import org.itxtech.synapseapi.multiprotocol.protocol113.protocol.ResourcePackStackPacket113;
 import org.itxtech.synapseapi.multiprotocol.protocol113.protocol.RespawnPacket113;
