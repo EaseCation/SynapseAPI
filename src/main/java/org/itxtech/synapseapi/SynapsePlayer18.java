@@ -162,10 +162,7 @@ public class SynapsePlayer18 extends SynapsePlayer17 {
 	protected boolean orderChunks() {
 		if (super.orderChunks()) {
 			if (!loadQueue.isEmpty()) {
-				NetworkChunkPublisherUpdatePacket18 packet = new NetworkChunkPublisherUpdatePacket18();
-				packet.position = this.asBlockVector3();
-				packet.radius = viewDistance << 4;
-				this.dataPacket(packet);
+				this.noticeChunkPublisherUpdate();
 			}
 			return true;
 		}
@@ -202,4 +199,10 @@ public class SynapsePlayer18 extends SynapsePlayer17 {
 		this.dataPacket(pk);
 	}
 
+	protected void noticeChunkPublisherUpdate() {
+		NetworkChunkPublisherUpdatePacket18 packet = new NetworkChunkPublisherUpdatePacket18();
+		packet.position = this.asBlockVector3();
+		packet.radius = viewDistance << 4;
+		this.dataPacket(packet);
+	}
 }
