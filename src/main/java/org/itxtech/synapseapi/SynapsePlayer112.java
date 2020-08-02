@@ -11,19 +11,25 @@ import cn.nukkit.network.protocol.LevelChunkPacket;
 import cn.nukkit.network.protocol.ProtocolInfo;
 import com.nukkitx.network.raknet.RakNetReliability;
 import it.unimi.dsi.fastutil.longs.Long2ObjectMap;
+import it.unimi.dsi.fastutil.longs.Long2ObjectMaps;
 import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap;
+import it.unimi.dsi.fastutil.objects.ObjectIterator;
 import org.itxtech.synapseapi.multiprotocol.protocol112.protocol.ClientCacheBlobStatusPacket112;
 import org.itxtech.synapseapi.multiprotocol.protocol112.protocol.ClientCacheMissResponsePacket112;
 import org.itxtech.synapseapi.multiprotocol.protocol112.protocol.ClientCacheStatusPacket112;
 import org.itxtech.synapseapi.multiprotocol.protocol112.protocol.StartGamePacket112;
 import org.itxtech.synapseapi.multiprotocol.protocol18.protocol.BiomeDefinitionListPacket18;
 import org.itxtech.synapseapi.network.protocol.spp.PlayerLoginPacket;
+import org.itxtech.synapseapi.utils.BlobTrack;
 
 import java.net.InetSocketAddress;
 
 public class SynapsePlayer112 extends SynapsePlayer19 {
 
-	public Long2ObjectMap<byte[]> clientCacheTrack = null; //为null表示客户端未支持 TODO 代理跨服怎么办？
+	public Long2ObjectMap<BlobTrack> clientCacheTrack = null; //为null表示客户端未支持 TODO 代理跨服怎么办？
+	protected int clientChunkLoadCount = 0;
+	protected boolean sendQueuedChunk = true;
+	protected long teleportChunkBlobHash;
 
 	public SynapsePlayer112(SourceInterface interfaz, SynapseEntry synapseEntry, Long clientID, InetSocketAddress socketAddress) {
 		super(interfaz, synapseEntry, clientID, socketAddress);
@@ -104,13 +110,21 @@ public class SynapsePlayer112 extends SynapsePlayer19 {
 			if (!this.connected) {
 				return;
 			}
+			long chunkHash = Level.chunkHash(x, z);
+			long[] blobIds = blobCache.getBlobIds();
 
-			this.usedChunks.put(Level.chunkHash(x, z), true);
+			this.usedChunks.put(chunkHash, true);
 			this.chunkLoadCount++;
 
 			LevelChunkPacket pk = new LevelChunkPacket();
 
-			clientCacheTrack.putAll(blobCache.getClientBlobs());
+			Long2ObjectOpenHashMap<byte[]> blobs = blobCache.getClientBlobs();
+			ObjectIterator<Long2ObjectMap.Entry<byte[]>> iter = Long2ObjectMaps.fastIterator(blobs);
+			while (iter.hasNext()) {
+				Long2ObjectMap.Entry<? extends byte[]> entry = iter.next();
+				long hash = entry.getLongKey();
+				clientCacheTrack.put(hash, new BlobTrack(hash, entry.getValue()));
+			}
 
 			/*
 			List<String> dump = new ArrayList<>();
@@ -124,11 +138,13 @@ public class SynapsePlayer112 extends SynapsePlayer19 {
 			pk.chunkZ = z;
 			pk.subChunkCount = subChunkCount;
 			pk.cacheEnabled = true;
-			pk.blobIds = blobCache.getBlobIds();
+			pk.blobIds = blobIds;
 			pk.data = blobCache.getClientBlobCachedPayload();
 			pk.setReliability(RakNetReliability.RELIABLE);
 
 			this.dataPacket(pk);
+
+			this.sendQueuedChunk = false;
 
 			//chunkDebug = true;
 
@@ -139,6 +155,15 @@ public class SynapsePlayer112 extends SynapsePlayer19 {
 					}
 				}
 			}
+
+			if (chunkHash == this.teleportChunkIndex) {
+				if (blobIds.length > 1) {
+					this.teleportChunkBlobHash = blobIds[0];
+					//this.teleportChunkLoaded = false;
+				} else {
+					this.teleportChunkLoaded = true;
+				}
+			}
 		}
 	}
 
@@ -147,8 +172,9 @@ public class SynapsePlayer112 extends SynapsePlayer19 {
 		if (!this.connected) {
 			return;
 		}
+		long chunkHash = Level.chunkHash(x, z);
 
-		this.usedChunks.put(Level.chunkHash(x, z), true);
+		this.usedChunks.put(chunkHash, true);
 		this.chunkLoadCount++;
 
 		LevelChunkPacket pk = new LevelChunkPacket();
@@ -162,14 +188,34 @@ public class SynapsePlayer112 extends SynapsePlayer19 {
 			//this.getServer().getLogger().debug("Send self chunk (payload) " + x + ":" + z + " pos=" + this.x + "," + this.y + "," + this.z + " teleportPos=" + teleportPosition);
 		}
 		if (this.clientCacheTrack != null && blobCache != null) {
-			clientCacheTrack.putAll(blobCache.getClientBlobs());
+			long[] blobIds = blobCache.getBlobIds();
+
+			Long2ObjectOpenHashMap<byte[]> blobs = blobCache.getClientBlobs();
+			ObjectIterator<Long2ObjectMap.Entry<byte[]>> iter = Long2ObjectMaps.fastIterator(blobs);
+			while (iter.hasNext()) {
+				Long2ObjectMap.Entry<? extends byte[]> entry = iter.next();
+				long hash = entry.getLongKey();
+				clientCacheTrack.put(hash, new BlobTrack(hash, entry.getValue()));
+			}
+
 			pk.chunkX = x;
 			pk.chunkZ = z;
 			pk.subChunkCount = subChunkCount;
 			pk.cacheEnabled = true;
-			pk.blobIds = blobCache.getBlobIds();
+			pk.blobIds = blobIds;
 			pk.data = blobCache.getClientBlobCachedPayload();
 			pk.setReliability(RakNetReliability.RELIABLE);
+
+			this.sendQueuedChunk = false;
+
+			if (chunkHash == this.teleportChunkIndex) {
+				if (blobIds.length > 1) {
+					this.teleportChunkBlobHash = blobIds[0];
+					//this.teleportChunkLoaded = false;
+				} else {
+					this.teleportChunkLoaded = true;
+				}
+			}
 		} else {
 			pk.chunkX = x;
 			pk.chunkZ = z;
@@ -200,20 +246,33 @@ public class SynapsePlayer112 extends SynapsePlayer19 {
 				chunk.chunkZ = chunkPositionZ + z;
 				chunk.data = new byte[0];
 				this.dataPacket(chunk);
+
+				if (this.teleportChunkIndex == Level.chunkHash(x, z)) {
+					this.teleportChunkLoaded = true;
+				}
 			}
 		}
 	}
 
 	private void initClientBlobCache() {
 		if (this.clientCacheTrack == null) {
-			this.clientCacheTrack = new Long2ObjectOpenHashMap<>();
+			this.clientCacheTrack = new Long2ObjectOpenHashMap<BlobTrack>() {
+				@Override
+				public BlobTrack put(long hash, BlobTrack track) {
+					BlobTrack oldValue = super.put(hash, track);
+					if (oldValue != null) {
+						track.retain(oldValue.refCnt());
+					}
+					return oldValue;
+				}
+			};
 			this.chunksPerTick = SynapseAPI.getInstance().getConfig().getInt("blob-cache-chunk-send-pre-tick", this.chunksPerTick * 2);
 			getServer().getLogger().info(this.getName() + "已启用客户端区块缓存, 每tick发送区块被设为" + this.chunksPerTick);
 		}
 	}
 
 	@Override
-	public Long2ObjectMap<byte[]> getClientCacheTrack() {
+	public Long2ObjectMap<BlobTrack> getClientCacheTrack() {
 		return this.clientCacheTrack;
 	}
 
@@ -244,11 +303,16 @@ public class SynapsePlayer112 extends SynapsePlayer19 {
 
 					ClientCacheMissResponsePacket112 responsePk = new ClientCacheMissResponsePacket112();
 					for (long id : pk.missHashes) {
-						byte[] blob = clientCacheTrack.get(id);
-						if (blob != null) {
-							responsePk.blobs.put(id, blob);
+						BlobTrack track = clientCacheTrack.get(id);
+						if (track != null) {
+							responsePk.blobs.put(id, track.getBlob());
+							this.clientChunkLoadCount += track.refCnt();
 							clientCacheTrack.remove(id);
 							//this.getServer().getLogger().warning("[ClientCache] del " + id);
+						}
+
+						if (id == teleportChunkBlobHash) {
+							this.teleportChunkLoaded = true;
 						}
 					}
 					responsePk.setReliability(RakNetReliability.RELIABLE);
@@ -258,9 +322,18 @@ public class SynapsePlayer112 extends SynapsePlayer19 {
 					//this.getServer().getLogger().warning("blobs=" + Arrays.toString(responsePk.blobs.keySet().toArray()));
 
 					for (long id : pk.hitHashes) {
-						clientCacheTrack.remove(id);
+						BlobTrack track = clientCacheTrack.remove(id);
+						if (track != null) {
+							this.clientChunkLoadCount += track.refCnt();
+						}
 						//this.getServer().getLogger().warning("[ClientCache] del " + id);
+
+						if (id == teleportChunkBlobHash) {
+							this.teleportChunkLoaded = true;
+						}
 					}
+
+					this.sendQueuedChunk = true;
 				}
 				break;
 			default:
@@ -268,4 +341,37 @@ public class SynapsePlayer112 extends SynapsePlayer19 {
 				break;
 		}
 	}
+
+	@Override
+	public boolean onUpdate(int currentTick) {
+		if (this.clientCacheTrack != null) {
+			if (this.teleportChunkLoaded) {
+				if (this.isImmobile() && !this.lastImmobile) {
+					this.setImmobile(false);
+				}
+			} else if (!this.isImmobile()) {
+				this.setImmobile();
+			}
+		}
+		return super.onUpdate(currentTick);
+	}
+
+	@Override
+	protected boolean canDoFirstSpawn() {
+		return this.clientCacheTrack != null ? this.clientChunkLoadCount >= this.spawnThreshold : super.canDoFirstSpawn();
+	}
+
+	@Override
+	protected boolean canSendQueuedChunk() {
+		return this.sendQueuedChunk;
+	}
+
+	/*@Override
+	protected boolean sendQueuedChunk() {
+		boolean success = super.sendQueuedChunk();
+		if (success) {
+			this.sendQueuedChunk = false;
+		}
+		return success;
+	}*/
 }

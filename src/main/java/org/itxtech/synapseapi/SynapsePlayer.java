@@ -50,6 +50,7 @@ import org.itxtech.synapseapi.multiprotocol.utils.CreativeItemsPalette;
 import org.itxtech.synapseapi.multiprotocol.utils.LevelSoundEventEnum;
 import org.itxtech.synapseapi.network.protocol.spp.FastPlayerListPacket;
 import org.itxtech.synapseapi.network.protocol.spp.PlayerLoginPacket;
+import org.itxtech.synapseapi.utils.BlobTrack;
 import org.itxtech.synapseapi.utils.ClientData;
 import org.itxtech.synapseapi.utils.ClientData.Entry;
 import org.itxtech.synapseapi.utils.DataPacketEidReplacer;
@@ -1158,7 +1159,7 @@ public class SynapsePlayer extends Player {
         if (player != this || player.spawned) super.sendData(player, data);
     }*/
 
-    public Long2ObjectMap<byte[]> getClientCacheTrack() {
+    public Long2ObjectMap<BlobTrack> getClientCacheTrack() {
         return null;
     }
 
