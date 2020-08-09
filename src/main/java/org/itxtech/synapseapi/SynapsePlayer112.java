@@ -344,10 +344,10 @@ public class SynapsePlayer112 extends SynapsePlayer19 {
 		if (this.clientCacheTrack != null) {
 			if (this.teleportChunkLoaded) {
 				if (this.isImmobile() && !this.lastImmobile) {
-					this.setImmobile(false);
+					//this.setImmobile(false);
 				}
 			} else if (!this.isImmobile()) {
-				this.setImmobile();
+				//this.setImmobile();
 			}
 		}
 		return super.onUpdate(currentTick);
