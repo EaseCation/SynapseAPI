@@ -589,6 +589,16 @@ public class SynapsePlayer extends Player {
             int chunkX = (int) this.teleportPosition.x >> 4;
             int chunkZ = (int) this.teleportPosition.z >> 4;
 
+            long centerChunkIndex = Level.chunkHash(chunkX, chunkZ);
+            if (!this.usedChunks.containsKey(centerChunkIndex) || !this.usedChunks.get(centerChunkIndex)) {
+                if (this.teleportChunkLoaded) {
+                    this.lastImmobile = this.isImmobile();
+                }
+
+                this.teleportChunkIndex = centerChunkIndex;
+                this.teleportChunkLoaded = false;
+            }
+
             for (int X = -1; X <= 1; ++X) {
                 for (int Z = -1; Z <= 1; ++Z) {
                     long index = Level.chunkHash(chunkX + X, chunkZ + Z);
