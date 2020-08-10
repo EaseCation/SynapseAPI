@@ -20,6 +20,7 @@ import org.itxtech.synapseapi.messaging.Messenger;
 import org.itxtech.synapseapi.messaging.StandardMessenger;
 import org.itxtech.synapseapi.multiprotocol.protocol19.protocol.LevelSoundEventPacketV319;
 import org.itxtech.synapseapi.multiprotocol.utils.AdvancedGlobalBlockPalette;
+import org.itxtech.synapseapi.multiprotocol.utils.CreativeItemsPalette;
 import org.itxtech.synapseapi.multiprotocol.utils.LevelSoundEventIDTranslator;
 import org.itxtech.synapseapi.multiprotocol.utils.blockpalette.data.PaletteBlockTable;
 import org.itxtech.synapseapi.runnable.TransferDimensionTaskThread;
@@ -154,6 +155,9 @@ public class SynapseAPI extends PluginBase implements Listener {
         });*/
         this.getMessenger().registerIncomingPluginChannel(this, "nettest", new NetTest(this));
         this.getMessenger().registerOutgoingPluginChannel(this, "nettest");
+
+        AdvancedGlobalBlockPalette.init();
+        CreativeItemsPalette.init();
     }
 
     public TransferDimensionTaskThread getTransferDimensionTaskThread() {

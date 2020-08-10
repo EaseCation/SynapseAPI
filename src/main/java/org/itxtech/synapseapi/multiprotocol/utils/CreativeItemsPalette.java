@@ -45,4 +45,7 @@ public class CreativeItemsPalette {
         return new ArrayList<>(palettes.getOrDefault(protocol, Item.getCreativeItems()));
     }
 
+    public static void init() {
+        //NOOP
+    }
 }

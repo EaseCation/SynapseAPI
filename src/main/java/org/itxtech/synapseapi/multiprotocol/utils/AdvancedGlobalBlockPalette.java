@@ -127,4 +127,8 @@ public final class AdvancedGlobalBlockPalette {
             throw new RuntimeException("Item data palette protocol " + protocol.name() + " not found");
         }
     }
+
+    public static void init() {
+        //NOOP
+    }
 }
