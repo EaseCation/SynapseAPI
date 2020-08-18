@@ -2,12 +2,11 @@ package org.itxtech.synapseapi.runnable;
 
 import cn.nukkit.Server;
 import cn.nukkit.math.NukkitMath;
-import cn.nukkit.network.protocol.*;
 import cn.nukkit.network.protocol.BatchPacket;
+import cn.nukkit.network.protocol.DataPacket;
 import cn.nukkit.utils.Binary;
 import cn.nukkit.utils.MainLogger;
 import cn.nukkit.utils.Zlib;
-import com.nukkitx.network.raknet.RakNetReliability;
 import org.itxtech.synapseapi.SynapseAPI;
 import org.itxtech.synapseapi.SynapsePlayer;
 import org.itxtech.synapseapi.multiprotocol.AbstractProtocol;
@@ -65,7 +64,7 @@ public class SynapseEntryPutPacketThread extends Thread {
     };
 
     public void addMainToThread(SynapsePlayer player, DataPacket packet, boolean needACK, boolean immediate) {
-        packet.stack = new Throwable();
+        if (player.getSynapseEntry().getSynapse().isRecordPacketStack()) packet.stack = new Throwable();
         this.queue.offer(new Entry(player, packet, needACK, immediate));
 
         /*
