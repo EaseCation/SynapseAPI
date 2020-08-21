@@ -43,6 +43,7 @@ public class SynapseAPI extends PluginBase implements Listener {
     private boolean autoConnect = true;
     private boolean loadingScreen = true;
     private boolean autoCompress = true;  //Compress in Nukkit, not Nemisys
+    private boolean recordPacketStack = false;
     private Map<String, SynapseEntry> synapseEntries = new HashMap<>();
     private Messenger messenger;
     private boolean networkBroadcastPlayerMove;
@@ -74,6 +75,7 @@ public class SynapseAPI extends PluginBase implements Listener {
         this.getServer().getPluginManager().registerEvents(this, this);
 
         this.networkBroadcastPlayerMove = this.getConfig().getBoolean("network-broadcast-player-move", false);
+        this.recordPacketStack = this.getConfig().getBoolean("record-packet-stack", false);
 
         saveResource("recipes11.json", true);
         PacketRegister.init();
@@ -182,6 +184,10 @@ public class SynapseAPI extends PluginBase implements Listener {
 
     public SynapseEntry getSynapseEntry(String hash) {
         return this.synapseEntries.get(hash);
+    }
+
+    public boolean isRecordPacketStack() {
+        return recordPacketStack;
     }
 
     public void shutdownAll() {
