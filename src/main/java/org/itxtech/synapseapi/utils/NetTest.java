@@ -14,6 +14,7 @@ import java.sql.Timestamp;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Random;
+import java.util.concurrent.ThreadLocalRandom;
 
 public class NetTest implements PluginMessageListener {
 
@@ -118,7 +119,7 @@ public class NetTest implements PluginMessageListener {
             }
             endTest();
         }
-    };
+    }
 
     public SynapseAPI getPlugin() {
         return plugin;
@@ -145,7 +146,7 @@ public class NetTest implements PluginMessageListener {
 
     public static String getRandomString(int length) { //length表示生成字符串的长度
         String base = "abcdefghijklmnopqrstuvwxyz0123456789";
-        Random random = new Random();
+        Random random = ThreadLocalRandom.current();
         StringBuilder sb = new StringBuilder();
         for (int i = 0; i < length; i++) {
             int number = random.nextInt(base.length());
