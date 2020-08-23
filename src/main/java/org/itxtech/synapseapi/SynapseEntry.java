@@ -4,6 +4,7 @@ import cn.nukkit.Nukkit;
 import cn.nukkit.Player;
 import cn.nukkit.Server;
 import cn.nukkit.math.NukkitMath;
+import cn.nukkit.network.Network;
 import cn.nukkit.network.SourceInterface;
 import cn.nukkit.network.protocol.BatchPacket;
 import cn.nukkit.network.protocol.DataPacket;
@@ -482,7 +483,8 @@ public class SynapseEntry {
     private List<DataPacket> processBatch(BatchPacket packet, int protocol) {
         byte[] data;
         try {
-            data = Zlib.inflate(packet.payload, 64 * 1024 * 1024);
+            if (protocol < 407) data = Zlib.inflate(packet.payload, 64 * 1024 * 1024);
+            else data = Network.inflateRaw(packet.payload);
         } catch (Exception e) {
             return new ArrayList<>();
         }

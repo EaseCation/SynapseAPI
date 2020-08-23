@@ -2,6 +2,7 @@ package org.itxtech.synapseapi.runnable;
 
 import cn.nukkit.Server;
 import cn.nukkit.math.NukkitMath;
+import cn.nukkit.network.Network;
 import cn.nukkit.network.protocol.BatchPacket;
 import cn.nukkit.network.protocol.DataPacket;
 import cn.nukkit.utils.Binary;
@@ -86,7 +87,7 @@ public class SynapseEntryPutPacketThread extends Thread {
         isRunning = running;
     }
 
-    private static List<AbstractProtocol> fullProtocols = new ArrayList<AbstractProtocol>(Arrays.asList(AbstractProtocol.values())){{
+    private static final List<AbstractProtocol> fullProtocols = new ArrayList<AbstractProtocol>(Arrays.asList(AbstractProtocol.values())){{
         remove(AbstractProtocol.PROTOCOL_11);
     }};
 
@@ -156,9 +157,17 @@ public class SynapseEntryPutPacketThread extends Thread {
                         if (!(entry.packet instanceof BatchPacket) && this.isAutoCompress) {
                             byte[] buffer = entry.packet.getBuffer();
                             try {
-                                buffer = deflate(
-                                        Binary.appendBytes(Binary.writeUnsignedVarInt(buffer.length), buffer),
-                                        Server.getInstance().networkCompressionLevel);
+                                if ((entry.player).getProtocol() < 407) {
+                                    buffer = deflate(
+                                            Binary.appendBytes(Binary.writeUnsignedVarInt(buffer.length), buffer),
+                                            Server.getInstance().networkCompressionLevel
+                                    );
+                                } else {
+                                    buffer = Network.deflateRaw(
+                                            Binary.appendBytes(Binary.writeUnsignedVarInt(buffer.length), buffer),
+                                            Server.getInstance().networkCompressionLevel
+                                    );
+                                }
                                 pk.mcpeBuffer = Binary.appendBytes((byte) 0xfe, buffer);
                                 /*if (entry.packet.pid() == ProtocolInfo.RESOURCE_PACKS_INFO_PACKET)
                                     Server.getInstance().getLogger().notice("ResourcePacksInfoPacket length=" + buffer.length + " " + Binary.bytesToHexString(buffer));*/
@@ -232,10 +241,10 @@ public class SynapseEntryPutPacketThread extends Thread {
 
                     Map<AbstractProtocol, byte[][]> finalData = new HashMap<>();
                     needPackets.forEach((protocol, packets) -> {
-                        BatchPacket batch = batchPackets(packets.stream().map(BatchPacketEntry::getNormalVersion).toArray(DataPacket[]::new));
+                        BatchPacket batch = batchPackets(packets.stream().map(BatchPacketEntry::getNormalVersion).toArray(DataPacket[]::new), protocol.isZlibRaw());
                         if (batch != null) {
                             if (haveNetEasePacket[0]) {
-                                BatchPacket batchNetEase = batchPackets(packets.stream().map(BatchPacketEntry::getNetEaseVersion).toArray(DataPacket[]::new));
+                                BatchPacket batchNetEase = batchPackets(packets.stream().map(BatchPacketEntry::getNetEaseVersion).toArray(DataPacket[]::new), protocol.isZlibRaw());
                                 if (batchNetEase != null) {
                                     finalData.put(protocol, new byte[][]{Binary.appendBytes((byte) 0xfe, batch.payload), Binary.appendBytes((byte) 0xfe, batchNetEase.payload)});
                                 } else {
@@ -327,7 +336,7 @@ public class SynapseEntryPutPacketThread extends Thread {
         return NukkitMath.round(10f / (double)this.tickUseTime, 3) * 100;
     }
 
-    private BatchPacket batchPackets(DataPacket[] packets) {
+    private BatchPacket batchPackets(DataPacket[] packets, boolean zlibRaw) {
         try {
             byte[][] payload = new byte[packets.length * 2][];
             for (int i = 0; i < packets.length; i++) {
@@ -342,9 +351,13 @@ public class SynapseEntryPutPacketThread extends Thread {
             byte[] data;
             data = Binary.appendBytes(payload);
 
-            byte[] compressed = Zlib.deflate(data, Server.getInstance().networkCompressionLevel);
             BatchPacket packet = new BatchPacket();
-            packet.payload = compressed;
+            if (zlibRaw) {
+                packet.payload = Network.deflateRaw(data, Server.getInstance().networkCompressionLevel);
+            } else {
+                packet.payload = Zlib.deflate(data, Server.getInstance().networkCompressionLevel);
+            }
+
 
             return packet;
         } catch (Exception e) {

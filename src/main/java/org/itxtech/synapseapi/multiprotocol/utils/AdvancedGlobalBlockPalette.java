@@ -38,21 +38,25 @@ public final class AdvancedGlobalBlockPalette {
                 new GlobalBlockPaletteJson(AbstractProtocol.PROTOCOL_111, "block_state_list_111_netease.json")
         });
 
+        PaletteBlockTable table116 = PaletteBlockTable.fromNBT("block_state_list_116.dat");
         PaletteBlockTable table114 = PaletteBlockTable.fromNBT("block_state_list_114.dat");
         PaletteBlockTable table113 = PaletteBlockTable.fromNBTOld("block_state_list_113.dat");
         PaletteBlockTable table112 = PaletteBlockTable.fromJson("block_state_list_112.json");
 
         palettes.put(AbstractProtocol.PROTOCOL_112, new AdvancedGlobalBlockPaletteInterface[]{
-                new GlobalBlockPaletteJson(AbstractProtocol.PROTOCOL_112, table112.trim(table114), "runtime_item_ids_112.json")
+                new GlobalBlockPaletteJson(AbstractProtocol.PROTOCOL_112, table112.trim(table116), "runtime_item_ids_112.json")
         });
         palettes.put(AbstractProtocol.PROTOCOL_113, new AdvancedGlobalBlockPaletteInterface[]{
-                new GlobalBlockPaletteNBTOld(AbstractProtocol.PROTOCOL_113, table113.trim(table114), "runtime_item_ids_112.json")
+                new GlobalBlockPaletteNBTOld(AbstractProtocol.PROTOCOL_113, table113.trim(table116), "runtime_item_ids_112.json")
         });
         palettes.put(AbstractProtocol.PROTOCOL_114, new AdvancedGlobalBlockPaletteInterface[]{
-                new GlobalBlockPaletteNBT(AbstractProtocol.PROTOCOL_114, table114, "runtime_item_ids_114.json")
+                new GlobalBlockPaletteNBT(AbstractProtocol.PROTOCOL_114, table114.trim(table116), "runtime_item_ids_114.json")
         });
         palettes.put(AbstractProtocol.PROTOCOL_114_60, new AdvancedGlobalBlockPaletteInterface[]{
-                new GlobalBlockPaletteNBT(AbstractProtocol.PROTOCOL_114_60, table114, "runtime_item_ids_114.json")
+                new GlobalBlockPaletteNBT(AbstractProtocol.PROTOCOL_114_60, table114.trim(table116), "runtime_item_ids_114.json")
+        });
+        palettes.put(AbstractProtocol.PROTOCOL_116, new AdvancedGlobalBlockPaletteInterface[]{
+                new GlobalBlockPaletteNBT(AbstractProtocol.PROTOCOL_116, table116, "runtime_item_ids_116.json")
         });
     }
 

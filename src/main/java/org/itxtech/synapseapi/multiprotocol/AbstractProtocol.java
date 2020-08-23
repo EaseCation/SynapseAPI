@@ -10,6 +10,7 @@ import org.itxtech.synapseapi.multiprotocol.protocol111.protocol.Packet111;
 import org.itxtech.synapseapi.multiprotocol.protocol112.protocol.Packet112;
 import org.itxtech.synapseapi.multiprotocol.protocol113.protocol.Packet113;
 import org.itxtech.synapseapi.multiprotocol.protocol11460.protocol.Packet11460;
+import org.itxtech.synapseapi.multiprotocol.protocol116.protocol.Packet116;
 import org.itxtech.synapseapi.multiprotocol.protocol14.protocol.Packet14;
 import org.itxtech.synapseapi.multiprotocol.protocol15.protocol.Packet15;
 import org.itxtech.synapseapi.multiprotocol.protocol16.protocol.Packet16;
@@ -40,16 +41,23 @@ public enum AbstractProtocol {
     PROTOCOL_112(361, Packet112.class, SynapsePlayer112.class),
     PROTOCOL_113(388, Packet113.class, SynapsePlayer113.class),
     PROTOCOL_114(389, Packet113.class, SynapsePlayer113.class),
-    PROTOCOL_114_60(390, Packet11460.class, SynapsePlayer113.class);
+    PROTOCOL_114_60(390, Packet11460.class, SynapsePlayer113.class),
+    PROTOCOL_116(407, Packet116.class, SynapsePlayer116.class, true);
 
     private final int protocolStart;
     private final Class<? extends DataPacket> packetClass;
     private final Class<? extends SynapsePlayer> playerClass;
+    private final boolean zlibRaw;
 
     AbstractProtocol(int protocolStart, Class<? extends DataPacket> packetClass, Class<? extends SynapsePlayer> playerClass) {
+        this(protocolStart, packetClass, playerClass, false);
+    }
+
+    AbstractProtocol(int protocolStart, Class<? extends DataPacket> packetClass, Class<? extends SynapsePlayer> playerClass, boolean zlibRaw) {
         this.protocolStart = protocolStart;
         this.packetClass = packetClass;
         this.playerClass = playerClass;
+        this.zlibRaw = zlibRaw;
     }
 
     public static AbstractProtocol fromRealProtocol(int protocol) {
@@ -61,6 +69,10 @@ public enum AbstractProtocol {
 
     public int getProtocolStart() {
         return protocolStart;
+    }
+
+    public boolean isZlibRaw() {
+        return zlibRaw;
     }
 
     /**
@@ -88,9 +100,12 @@ public enum AbstractProtocol {
 
     public PacketHeadData tryDecodePacketHead(byte[] data, boolean maybeBatch) {
         if (maybeBatch) {
+            System.out.println(data[0]);
             if (data[0] == (byte) 0xfe) {
                 return new PacketHeadData(BatchPacket.NETWORK_ID, 1);
             } else if (data[0] == (byte) 0x78) {
+                return new PacketHeadData(BatchPacket.NETWORK_ID, 0);
+            } else if (this.ordinal() >= PROTOCOL_116.ordinal() && data[0] == (byte) 0x63) {
                 return new PacketHeadData(BatchPacket.NETWORK_ID, 0);
             }
         }
