@@ -12,6 +12,7 @@ import org.itxtech.synapseapi.multiprotocol.protocol111.protocol.*;
 import org.itxtech.synapseapi.multiprotocol.protocol112.protocol.*;
 import org.itxtech.synapseapi.multiprotocol.protocol113.protocol.*;
 import org.itxtech.synapseapi.multiprotocol.protocol11460.protocol.PlayerListPacket11460;
+import org.itxtech.synapseapi.multiprotocol.protocol116.protocol.*;
 import org.itxtech.synapseapi.multiprotocol.protocol15.protocol.AddEntityPacket15;
 import org.itxtech.synapseapi.multiprotocol.protocol15.protocol.ClientboundMapItemDataPacket15;
 import org.itxtech.synapseapi.multiprotocol.protocol15.protocol.MoveEntityAbsolutePacket15;
@@ -142,6 +143,12 @@ public class PacketRegister {
         registerPacket(AbstractProtocol.PROTOCOL_113, ProtocolInfo.CONFIRM_SKIN_PACKET, ConfirmSkinPacket113.class);
 
         registerPacket(AbstractProtocol.PROTOCOL_114_60, ProtocolInfo.PLAYER_LIST_PACKET, PlayerListPacket11460.class);
+
+        registerPacket(AbstractProtocol.PROTOCOL_116, ProtocolInfo.PACKET_VIOLATION_WARNING_PACKET, PacketViolationWarningPacket116.class);
+        registerPacket(AbstractProtocol.PROTOCOL_116, ProtocolInfo.CRAFTING_DATA_PACKET, CraftingDataPacket116.class);
+        registerPacket(AbstractProtocol.PROTOCOL_116, ProtocolInfo.INVENTORY_CONTENT_PACKET, InventoryContentPacket116.class);
+        registerPacket(AbstractProtocol.PROTOCOL_116, ProtocolInfo.INVENTORY_SLOT_PACKET, InventorySlotPacket116.class);
+        //registerPacket(AbstractProtocol.PROTOCOL_116, ProtocolInfo.INVENTORY_TRANSACTION_PACKET, InventoryTransactionPacket116.class);
 
         checkNeteaseSpecialExtend();
         CraftingPacketManager.rebuildPacket();

@@ -4,7 +4,10 @@ import cn.nukkit.Player;
 import cn.nukkit.level.Position;
 import cn.nukkit.network.SourceInterface;
 import cn.nukkit.network.protocol.DataPacket;
+import cn.nukkit.network.protocol.ProtocolInfo;
+import cn.nukkit.utils.Binary;
 import org.itxtech.synapseapi.multiprotocol.AbstractProtocol;
+import org.itxtech.synapseapi.multiprotocol.protocol116.protocol.PacketViolationWarningPacket116;
 import org.itxtech.synapseapi.multiprotocol.protocol116.protocol.StartGamePacket116;
 
 import java.net.InetSocketAddress;
@@ -71,7 +74,14 @@ public class SynapsePlayer116 extends SynapsePlayer113 {
 		}
 		packetswitch:
 		switch (packet.pid()) {
-
+			case ProtocolInfo.PACKET_VIOLATION_WARNING_PACKET:
+				PacketViolationWarningPacket116 packetViolationWarningPacket = (PacketViolationWarningPacket116) packet;
+				this.getServer().getLogger().warning("Received PacketViolationWarningPacket from " + this.getName());
+				this.getServer().getLogger().warning("type=" + packetViolationWarningPacket.type.name());
+				this.getServer().getLogger().warning("severity=" + packetViolationWarningPacket.severity.name());
+				this.getServer().getLogger().warning("packetId=" + Binary.bytesToHexString(new byte[]{(byte) packetViolationWarningPacket.packetId}));
+				this.getServer().getLogger().warning("context=" + packetViolationWarningPacket.context);
+				break;
 			default:
 				super.handleDataPacket(packet);
 				break;
