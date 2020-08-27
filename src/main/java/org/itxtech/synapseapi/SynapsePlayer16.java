@@ -54,7 +54,7 @@ public class SynapsePlayer16 extends SynapsePlayer14 {
 			this.protocol = packet.protocol;
 
 			try {
-				DataPacket pk = PacketRegister.getFullPacket(packet.cachedLoginPacket, packet.protocol);
+				DataPacket pk = PacketRegister.getFullPacket(packet.cachedLoginPacket, packet.protocol, false);
 				if (pk instanceof LoginPacket14) {
 					((LoginPacket14) pk).isFirstTimeLogin = packet.isFirstTime;
 					((LoginPacket14) pk).username = packet.extra.get("username").getAsString();

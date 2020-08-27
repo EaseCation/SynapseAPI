@@ -31,6 +31,7 @@ import cn.nukkit.network.protocol.*;
 import cn.nukkit.network.protocol.types.NetworkInventoryAction;
 import cn.nukkit.resourcepacks.ResourcePack;
 import org.itxtech.synapseapi.multiprotocol.AbstractProtocol;
+import org.itxtech.synapseapi.multiprotocol.protocol113.protocol.NetworkSettingsPacket113;
 import org.itxtech.synapseapi.multiprotocol.protocol113.protocol.ResourcePackStackPacket113;
 import org.itxtech.synapseapi.multiprotocol.protocol113.protocol.RespawnPacket113;
 import org.itxtech.synapseapi.multiprotocol.protocol113.protocol.StartGamePacket113;
@@ -564,4 +565,10 @@ public class SynapsePlayer113 extends SynapsePlayer112 {
 
 	}
 
+	@Override
+	public void sendNetworkSettings() {
+		/*NetworkSettingsPacket113 pk = new NetworkSettingsPacket113();
+		//pk.compressionThreshold = NetworkSettingsPacket113.COMPRESS_NOTHING;
+		this.dataPacket(pk);*/
+	}
 }

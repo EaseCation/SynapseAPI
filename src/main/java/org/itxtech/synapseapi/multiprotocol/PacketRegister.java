@@ -243,8 +243,13 @@ public class PacketRegister {
     }
 
     public static DataPacket getFullPacket(byte[] data, int protocol) {
+        return getFullPacket(data, protocol, true);
+    }
+
+    public static DataPacket getFullPacket(byte[] data, int protocol, boolean maybeBatch) {
+        Server.getInstance().getLogger().debug(Arrays.toString(data));
         AbstractProtocol ptl = AbstractProtocol.fromRealProtocol(protocol);
-        AbstractProtocol.PacketHeadData head = ptl.tryDecodePacketHead(data, true);
+        AbstractProtocol.PacketHeadData head = ptl.tryDecodePacketHead(data, maybeBatch);
 
         if (head != null) {
             DataPacket pk = getPacket(head.getPid(), protocol);

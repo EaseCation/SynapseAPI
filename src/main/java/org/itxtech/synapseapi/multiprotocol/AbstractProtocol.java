@@ -109,7 +109,7 @@ public enum AbstractProtocol {
                 return new PacketHeadData(BatchPacket.NETWORK_ID, 1);
             } else if (data[0] == (byte) 0x78) {
                 return new PacketHeadData(BatchPacket.NETWORK_ID, 0);
-            } else if (this.ordinal() >= PROTOCOL_116.ordinal() && data[0] == (byte) 0x63) {
+            } else if (this.ordinal() >= PROTOCOL_116.ordinal()) {
                 return new PacketHeadData(BatchPacket.NETWORK_ID, 0);
             }
         }

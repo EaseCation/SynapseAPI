@@ -270,6 +270,8 @@ public class SynapsePlayer extends Player {
 
             DataPacket infoPacket = generateResourcePackInfoPacket();
             this.dataPacket(infoPacket);
+
+            this.sendNetworkSettings();
         } else {
             this.completeLoginSequence();
         }
@@ -1214,5 +1216,9 @@ public class SynapsePlayer extends Player {
 
             this.addMotion(this.motionX, this.motionY, this.motionZ);
         }
+    }
+
+    public void sendNetworkSettings() {
+
     }
 }
