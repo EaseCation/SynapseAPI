@@ -69,7 +69,7 @@ public class StartGamePacket116 extends Packet116 {
 	public boolean isFromWorldTemplate = false;
 	public boolean isWorldTemplateOptionLocked = false;
 	public boolean isOnlySpawningV1Villagers = false;
-	public String vanillaVersion = "1.16.20";
+	public String vanillaVersion = "1.16.0";
 	public String levelId = ""; //base64 string, usually the same as world folder name in vanilla
 	public String worldName;
 	public String premiumWorldTemplateId = "";
