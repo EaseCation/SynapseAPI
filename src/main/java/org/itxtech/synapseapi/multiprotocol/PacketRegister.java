@@ -147,10 +147,11 @@ public class PacketRegister {
 
         registerPacket(AbstractProtocol.PROTOCOL_116, ProtocolInfo.START_GAME_PACKET, StartGamePacket116.class);
         registerPacket(AbstractProtocol.PROTOCOL_116, ProtocolInfo.PACKET_VIOLATION_WARNING_PACKET, PacketViolationWarningPacket116.class);
+        registerPacket(AbstractProtocol.PROTOCOL_116, ProtocolInfo.CREATIVE_CONTENT_PACKET, CreativeContentPacket116.class);
         registerPacket(AbstractProtocol.PROTOCOL_116, ProtocolInfo.CRAFTING_DATA_PACKET, CraftingDataPacket116.class);
         registerPacket(AbstractProtocol.PROTOCOL_116, ProtocolInfo.INVENTORY_CONTENT_PACKET, InventoryContentPacket116.class);
         registerPacket(AbstractProtocol.PROTOCOL_116, ProtocolInfo.INVENTORY_SLOT_PACKET, InventorySlotPacket116.class);
-        //registerPacket(AbstractProtocol.PROTOCOL_116, ProtocolInfo.INVENTORY_TRANSACTION_PACKET, InventoryTransactionPacket116.class);
+        registerPacket(AbstractProtocol.PROTOCOL_116, ProtocolInfo.INVENTORY_TRANSACTION_PACKET, InventoryTransactionPacket116.class);
         registerPacket(AbstractProtocol.PROTOCOL_116, ProtocolInfo.SET_SPAWN_POSITION_PACKET, SetSpawnPositionPacket116.class);
         registerPacket(AbstractProtocol.PROTOCOL_116, ProtocolInfo.SET_ENTITY_LINK_PACKET, SetEntityLinkPacket116.class);
 
@@ -247,7 +248,7 @@ public class PacketRegister {
     }
 
     public static DataPacket getFullPacket(byte[] data, int protocol, boolean maybeBatch) {
-        Server.getInstance().getLogger().debug(Arrays.toString(data));
+        //Server.getInstance().getLogger().debug(Arrays.toString(data));
         AbstractProtocol ptl = AbstractProtocol.fromRealProtocol(protocol);
         AbstractProtocol.PacketHeadData head = ptl.tryDecodePacketHead(data, maybeBatch);
 

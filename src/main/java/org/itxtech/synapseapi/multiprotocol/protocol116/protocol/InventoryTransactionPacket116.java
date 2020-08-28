@@ -5,9 +5,11 @@ import cn.nukkit.inventory.transaction.data.TransactionData;
 import cn.nukkit.inventory.transaction.data.UseItemData;
 import cn.nukkit.inventory.transaction.data.UseItemOnEntityData;
 import cn.nukkit.network.protocol.DataPacket;
+import cn.nukkit.network.protocol.InventoryTransactionPacket;
 import cn.nukkit.network.protocol.ProtocolInfo;
 import cn.nukkit.network.protocol.types.InventoryTransactionPacketInterface;
 import cn.nukkit.network.protocol.types.NetworkInventoryAction;
+import org.itxtech.synapseapi.utils.ClassUtils;
 
 public class InventoryTransactionPacket116 extends Packet116 implements InventoryTransactionPacketInterface {
 
@@ -64,6 +66,11 @@ public class InventoryTransactionPacket116 extends Packet116 implements Inventor
     }
 
     @Override
+    public boolean hasNetworkIds() {
+        return this.hasNetworkIds;
+    }
+
+    @Override
     public int pid() {
         return ProtocolInfo.INVENTORY_TRANSACTION_PACKET;
     }
@@ -71,11 +78,13 @@ public class InventoryTransactionPacket116 extends Packet116 implements Inventor
     @Override
     public void encode() {
         this.reset();
+        this.putVarInt(this.legacyRequestId);
+        //TODO legacySlot array
         this.putUnsignedVarInt(this.transactionType);
-
+        this.putBoolean(this.hasNetworkIds);
         this.putUnsignedVarInt(this.actions.length);
         for (NetworkInventoryAction action : this.actions) {
-            action.write(this);
+            action.write(this, this);
         }
 
         switch (this.transactionType) {
@@ -118,7 +127,20 @@ public class InventoryTransactionPacket116 extends Packet116 implements Inventor
 
     @Override
     public void decode() {
+        this.legacyRequestId = this.getVarInt();
+        if (legacyRequestId < -1 && (legacyRequestId & 1) == 0) {
+            int length = (int) this.getUnsignedVarInt();
+            for (int i = 0; i < length; i++) {
+                this.getByte();
+                int bufLen = (int) this.getUnsignedVarInt();
+                this.get(bufLen);
+            }
+
+        }
+
         this.transactionType = (int) this.getUnsignedVarInt();
+
+        this.hasNetworkIds = this.getBoolean();
 
         this.actions = new NetworkInventoryAction[(int) this.getUnsignedVarInt()];
         for (int i = 0; i < this.actions.length; i++) {
@@ -168,5 +190,25 @@ public class InventoryTransactionPacket116 extends Packet116 implements Inventor
             default:
                 throw new RuntimeException("Unknown transaction type " + this.transactionType);
         }
+    }
+
+    @Override
+    public DataPacket fromDefault(DataPacket pk) {
+        ClassUtils.requireInstance(pk, InventoryTransactionPacket.class);
+
+        InventoryTransactionPacket packet = (InventoryTransactionPacket) pk;
+        this.transactionType = packet.transactionType;
+        this.actions = packet.actions;
+        this.transactionData = packet.transactionData;
+        this.hasNetworkIds = packet.hasNetworkIds;
+        this.legacyRequestId = packet.legacyRequestId;
+        this.isCraftingPart = packet.isCraftingPart;
+        this.isEnchantingPart = packet.isEnchantingPart;
+
+        return this;
+    }
+
+    public static Class<? extends DataPacket> getDefaultPacket() {
+        return InventoryTransactionPacket.class;
     }
 }
