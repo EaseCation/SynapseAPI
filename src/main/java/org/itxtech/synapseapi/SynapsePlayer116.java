@@ -115,12 +115,10 @@ public class SynapsePlayer116 extends SynapsePlayer113 {
 		switch (packet.pid()) {
 			case ProtocolInfo.INTERACT_PACKET:
 				InteractPacket interactPacket = (InteractPacket) packet;
-				if (interactPacket.action == InteractPacket.ACTION_OPEN_INVENTORY) { //TODO: WIP
-					//if (/*interactPacket.target == this.getId() &&*/ !this.inventoryOpen) {
-//						this.openInventory();
-						this.inventory.open(this);
-						this.inventoryOpen = true;
-					//}
+				if (interactPacket.action == InteractPacket.ACTION_OPEN_INVENTORY && interactPacket.target == Long.MAX_VALUE /*&& !this.inventoryOpen*/) { //TODO: WIP
+//					this.openInventory();
+					this.inventory.open(this);
+					this.inventoryOpen = true;
 				}
 				super.handleDataPacket(packet);
 				break;
@@ -136,6 +134,8 @@ public class SynapsePlayer116 extends SynapsePlayer113 {
 					if (containerClosePacket.windowId == ContainerIds.INVENTORY) this.inventoryOpen = false;
 
 					this.removeWindow(this.windowIndex.get(containerClosePacket.windowId));
+				} else {
+					this.getServer().getLogger().debug("Unopened window: " + containerClosePacket.windowId);
 				}
 
 				if (containerClosePacket.windowId == -1) {
@@ -558,7 +558,7 @@ public class SynapsePlayer116 extends SynapsePlayer113 {
 		pk.x = this.getFloorX();
 		pk.y = this.getFloorY();
 		pk.z = this.getFloorZ();
-		pk.entityId = this.getId();
+		pk.entityId = Long.MAX_VALUE;
 		this.dataPacket(pk);
 	}
 
