@@ -170,13 +170,14 @@ public class TextPacket14 extends Packet14 {
 		ClassUtils.requireInstance(pk, cn.nukkit.network.protocol.TextPacket.class);
 		cn.nukkit.network.protocol.TextPacket packet = (cn.nukkit.network.protocol.TextPacket) pk;
 		this.type = packet.type;
-		this.primaryName = packet.source;
-		this.message = packet.message;
-		this.thirdPartyName = "";
-		this.platformId = 0;
-		this.parameters = packet.parameters;
 		this.isLocalized = packet.isLocalized;
-		this.platformIdString = "";
+
+		this.message = packet.message;
+		this.parameters = packet.parameters;
+		this.primaryName = packet.primaryName;
+
+		this.sendersXUID = packet.sendersXUID;
+		this.platformIdString = packet.platformIdString;
 		return this;
 	}
 
