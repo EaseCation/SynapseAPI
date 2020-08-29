@@ -38,15 +38,17 @@ public class SetScorePacket17 extends Packet17 {
             this.putVarLong(entry.scoreboardId);
             this.putString(entry.objectiveName);
             this.putLInt(entry.score);
-            this.putByte(entry.addType);
-            switch(entry.addType) {
-                case 0:
-                case 1:
-                case 2:
-                    this.putEntityUniqueId(entry.entityId);
-                    break;
-                case 3:
-                    this.putString(entry.fakePlayer);
+            if (this.type == TYPE_CHANGE_SCORE) {
+                this.putByte(entry.addType);
+                switch (entry.addType) {
+                    case ScorePacketInfo.TYPE_ENTITY:
+                    case ScorePacketInfo.TYPE_PLAYER:
+                        this.putEntityUniqueId(entry.entityId);
+                        break;
+                    case ScorePacketInfo.TYPE_DUMMY:
+                        this.putString(entry.fakePlayer);
+                        break;
+                }
             }
         }
     }

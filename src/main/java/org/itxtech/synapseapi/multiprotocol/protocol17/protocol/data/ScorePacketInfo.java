@@ -2,8 +2,8 @@ package org.itxtech.synapseapi.multiprotocol.protocol17.protocol.data;
 
 public class ScorePacketInfo {
 
-    public static final int TYPE_PLAYER = 0;
-    public static final int TYPE_ENTITY = 1;
+    public static final int TYPE_PLAYER = 1;
+    public static final int TYPE_ENTITY = 2;
     public static final int TYPE_DUMMY = 3;
 
     public long scoreboardId;
