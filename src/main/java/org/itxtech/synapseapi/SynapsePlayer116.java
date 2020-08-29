@@ -543,6 +543,11 @@ public class SynapsePlayer116 extends SynapsePlayer113 {
 			this.windows.remove(inventory);
 	}
 
+	@Override
+	public void onInventoryOpen() {
+		this.openInventory();
+	}
+
 	public void sendCreativeContents() {
 		CreativeContentPacket116 pk = new CreativeContentPacket116();
 		if (!this.isSpectator()) { //fill it for all gamemodes except spectator
