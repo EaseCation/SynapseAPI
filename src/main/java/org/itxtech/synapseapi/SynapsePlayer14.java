@@ -468,57 +468,6 @@ public class SynapsePlayer14 extends SynapsePlayer {
 		return startGamePacket;
 	}
 
-	@Override
-	public void sendPopup(String message, String sendersXUID) {
-		TextPacket14 pk = new TextPacket14();
-		pk.type = TextPacket14.TYPE_POPUP;
-		pk.sendersXUID = sendersXUID;
-		pk.message = message;
-		this.dataPacket(pk);
-	}
-
-	@Override
-	public void sendChat(String source, String message) {
-		TextPacket14 pk = new TextPacket14();
-		pk.type = TextPacket14.TYPE_CHAT;
-		pk.sendersXUID = source;
-		pk.message = this.server.getLanguage().translateString(message);
-		this.dataPacket(pk);
-	}
-
-	@Override
-	public void sendTip(String message) {
-		TextPacket14 pk = new TextPacket14();
-		pk.type = TextPacket14.TYPE_TIP;
-		pk.message = message;
-		this.dataPacket(pk);
-	}
-	
-	public void sendTranslation(String message, String[] parameters) {
-        TextPacket14 pk = new TextPacket14();
-        if (!this.server.isLanguageForced()) {
-            pk.type = TextPacket14.TYPE_TRANSLATION;
-			pk.isLocalized = true;
-            pk.message = this.server.getLanguage().translateString(message, parameters, "nukkit.");
-            for (int i = 0; i < parameters.length; i++) {
-                parameters[i] = this.server.getLanguage().translateString(parameters[i], parameters, "nukkit.");
-
-            }
-            pk.parameters = parameters;
-        } else {
-            pk.type = TextPacket14.TYPE_RAW;
-            pk.message = this.server.getLanguage().translateString(message, parameters);
-        }
-        this.dataPacket(pk);
-    }
-	
-	@Override
-    public void sendMessage(String message) {
-        TextPacket14 pk = new TextPacket14();
-        pk.type = TextPacket14.TYPE_RAW;
-        pk.message = this.server.getLanguage().translateString(message);
-        this.dataPacket(pk);
-    }
 
 	protected GameRules getSupportedRules() {
 		return this.level.gameRules;
