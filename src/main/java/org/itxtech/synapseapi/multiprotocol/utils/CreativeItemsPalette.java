@@ -21,6 +21,8 @@ public class CreativeItemsPalette {
         put(AbstractProtocol.PROTOCOL_112, load("creativeitems_111.json"));
         put(AbstractProtocol.PROTOCOL_113, load("creativeitems_113.json"));
         put(AbstractProtocol.PROTOCOL_114, load("creativeitems_114.json"));
+        put(AbstractProtocol.PROTOCOL_116, load("creativeitems_116.json"));
+        put(AbstractProtocol.PROTOCOL_116_20, load("creativeitems_11620.json"));
     }};
 
     @SuppressWarnings("unchecked")
