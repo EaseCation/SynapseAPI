@@ -137,7 +137,7 @@ public class SynapsePlayer112 extends SynapsePlayer19 {
 			pk.cacheEnabled = true;
 			pk.blobIds = blobIds;
 			pk.data = blobCache.getClientBlobCachedPayload();
-			pk.setReliability(RakNetReliability.RELIABLE);
+			pk.setReliability(RakNetReliability.RELIABLE_ORDERED);
 
 			this.dataPacket(pk);
 
@@ -181,7 +181,7 @@ public class SynapsePlayer112 extends SynapsePlayer19 {
 			pk.chunkZ = z;
 			pk.subChunkCount = subChunkCount;
 			pk.data = payload;
-			pk.setReliability(RakNetReliability.RELIABLE);
+			pk.setReliability(RakNetReliability.RELIABLE_ORDERED);
 			//this.getServer().getLogger().debug("Send self chunk (payload) " + x + ":" + z + " pos=" + this.x + "," + this.y + "," + this.z + " teleportPos=" + teleportPosition);
 		}
 		if (this.clientCacheTrack != null && blobCache != null) {
@@ -201,7 +201,7 @@ public class SynapsePlayer112 extends SynapsePlayer19 {
 			pk.cacheEnabled = true;
 			pk.blobIds = blobIds;
 			pk.data = blobCache.getClientBlobCachedPayload();
-			pk.setReliability(RakNetReliability.RELIABLE);
+			pk.setReliability(RakNetReliability.RELIABLE_ORDERED);
 
 			this.sendQueuedChunk = false;
 
@@ -218,7 +218,7 @@ public class SynapsePlayer112 extends SynapsePlayer19 {
 			pk.chunkZ = z;
 			pk.subChunkCount = subChunkCount;
 			pk.data = payload;
-			pk.setReliability(RakNetReliability.RELIABLE);
+			pk.setReliability(RakNetReliability.RELIABLE_ORDERED);
 		}
 
 		this.dataPacket(pk);
@@ -312,7 +312,7 @@ public class SynapsePlayer112 extends SynapsePlayer19 {
 							this.teleportChunkLoaded = true;
 						}
 					}
-					responsePk.setReliability(RakNetReliability.RELIABLE);
+					responsePk.setReliability(RakNetReliability.RELIABLE_ORDERED);
 					this.dataPacket(responsePk);
 
 					//this.getServer().getLogger().warning("[ClientCache] sent ClientCacheMissResponsePacket");
