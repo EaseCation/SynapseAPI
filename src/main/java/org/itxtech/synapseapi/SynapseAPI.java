@@ -83,22 +83,22 @@ public class SynapseAPI extends PluginBase implements Listener {
         GlobalBlockPalette.setInstance(new GlobalBlockPaletteInterface(){
             @Override
             public int getOrCreateRuntimeId0( int id, int meta) {
-                return AdvancedGlobalBlockPalette.getOrCreateRuntimeId(AbstractProtocol.values()[AbstractProtocol.values().length - 1], false, id, meta);
+                return AdvancedGlobalBlockPalette.getOrCreateRuntimeId(AbstractProtocol.values0()[AbstractProtocol.values0().length - 1], false, id, meta);
             }
 
             @Override
             public int getOrCreateRuntimeId0(int legacyId) throws NoSuchElementException {
-                return AdvancedGlobalBlockPalette.getOrCreateRuntimeId(AbstractProtocol.values()[AbstractProtocol.values().length - 1], false, legacyId);
+                return AdvancedGlobalBlockPalette.getOrCreateRuntimeId(AbstractProtocol.values0()[AbstractProtocol.values0().length - 1], false, legacyId);
             }
 
             @Override
             public int getLegacyId0(int runtimeId) {
-                return AdvancedGlobalBlockPalette.getLegacyId(AbstractProtocol.values()[AbstractProtocol.values().length - 1], false, runtimeId);
+                return AdvancedGlobalBlockPalette.getLegacyId(AbstractProtocol.values0()[AbstractProtocol.values0().length - 1], false, runtimeId);
             }
 
             @Override
             public String getName0(int runtimeId) {
-                return AdvancedGlobalBlockPalette.getName(AbstractProtocol.values()[AbstractProtocol.values().length - 1], false, runtimeId);
+                return AdvancedGlobalBlockPalette.getName(AbstractProtocol.values0()[AbstractProtocol.values0().length - 1], false, runtimeId);
             }
         });
 

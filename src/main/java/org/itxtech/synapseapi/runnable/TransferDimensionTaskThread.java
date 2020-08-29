@@ -27,7 +27,7 @@ public class TransferDimensionTaskThread extends Thread {
         super("TransferDimensionTaskThread");
     }
 
-    private class Entry {
+    private static class Entry {
         private long eventTime;
         private SynapsePlayer player;
         private String hash;

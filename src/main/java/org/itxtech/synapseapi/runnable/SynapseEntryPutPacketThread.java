@@ -307,7 +307,7 @@ public class SynapseEntryPutPacketThread extends Thread {
         return bos.toByteArray();
     }
 
-    private class Entry {
+    private static class Entry {
         private SynapsePlayer player;
         private DataPacket packet;
         private boolean needACK;

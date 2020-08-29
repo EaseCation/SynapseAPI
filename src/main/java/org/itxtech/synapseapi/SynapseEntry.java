@@ -39,6 +39,7 @@ import java.net.InetSocketAddress;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.ThreadLocalRandom;
 
 /**
  * @author boybook
@@ -108,8 +109,8 @@ public class SynapseEntry {
 
     public static String getRandomString(int length) { //length表示生成字符串的长度
         String base = "abcdefghijklmnopqrstuvwxyz0123456789";
-        Random random = new Random();
-        StringBuffer sb = new StringBuffer();
+        Random random = ThreadLocalRandom.current();
+        StringBuilder sb = new StringBuilder();
         for (int i = 0; i < length; i++) {
             int number = random.nextInt(base.length());
             sb.append(base.charAt(number));
@@ -273,12 +274,13 @@ public class SynapseEntry {
                 lastLogin = System.currentTimeMillis();
             }
             PlayerLoginPacket playerLoginPacket;
+            Random random = ThreadLocalRandom.current();
             while ((playerLoginPacket = playerLoginQueue.poll()) != null) {
                 int protocol = playerLoginPacket.protocol;
                 InetSocketAddress socketAddress = InetSocketAddress.createUnresolved(playerLoginPacket.address, playerLoginPacket.port);
 
                 Class<? extends SynapsePlayer> clazz = determinePlayerClass(protocol);
-                SynapsePlayerCreationEvent ev = new SynapsePlayerCreationEvent(synLibInterface, clazz, clazz, new Random().nextLong(), socketAddress);
+                SynapsePlayerCreationEvent ev = new SynapsePlayerCreationEvent(synLibInterface, clazz, clazz, random.nextLong(), socketAddress);
                 getSynapse().getServer().getPluginManager().callEvent(ev);
                 clazz = ev.getPlayerClass();
 
@@ -348,10 +350,10 @@ public class SynapseEntry {
             //this.getSynapse().getServer().getLogger().debug(time + " -> Sending Heartbeat Packet to " + this.getHash());
         }
         /*
-        for (int i = 0; i < new Random().nextInt(10) + 1; i++) {
+        for (int i = 0; i < ThreadLocalRandom.current().nextInt(10) + 1; i++) {
             InformationPacket test = new InformationPacket();
             test.type = InformationPacket.TYPE_PLUGIN_MESSAGE;
-            test.message = getRandomString(1024 * (new Random().nextInt(20) + 110));
+            test.message = getRandomString(1024 * (ThreadLocalRandom.current().nextInt(20) + 110));
             this.sendDataPacket(test);
         }*/
 
@@ -471,7 +473,7 @@ public class SynapseEntry {
         //this.handleDataPacketTiming.stopTiming();
     }
 
-    private class RedirectPacketEntry {
+    private static class RedirectPacketEntry {
         private SynapsePlayer player;
         private DataPacket dataPacket;
         private RedirectPacketEntry(SynapsePlayer player, DataPacket dataPacket) {

@@ -65,8 +65,8 @@ public enum AbstractProtocol {
     }
 
     public static AbstractProtocol fromRealProtocol(int protocol) {
-        for (int i = values().length - 1; i >= 0; i--) {
-            if (protocol >= values()[i].protocolStart) return values()[i];
+        for (int i = values0().length - 1; i >= 0; i--) {
+            if (protocol >= values0()[i].protocolStart) return values0()[i];
         }
         return PROTOCOL_12; //Might never happen
 	}
@@ -86,12 +86,12 @@ public enum AbstractProtocol {
      */
     public AbstractProtocol previous() {
         int previous = this.ordinal() - 1;
-        return previous > 1 ? values()[previous] : null;
+        return previous > 1 ? values0()[previous] : null;
     }
 
     public AbstractProtocol next() {
         int next = this.ordinal() + 1;
-        return next < values().length ? values()[next] : null;
+        return next < values0().length ? values0()[next] : null;
     }
 
     public Class<? extends DataPacket> getPacketClass() {
@@ -152,4 +152,9 @@ public enum AbstractProtocol {
         return playerClass;
     }
 
+    private static final AbstractProtocol[] $VALUES0 = values();
+
+    public static AbstractProtocol[] values0() {
+        return $VALUES0;
+    }
 }

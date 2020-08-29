@@ -278,15 +278,15 @@ public enum LevelSoundEventEnum {
     }
 
     public static LevelSoundEventEnum fromV12(int v12) {
-        return Arrays.stream(values()).filter(s -> s.v12 == v12).findFirst().orElse(null);
+        return Arrays.stream(values0()).filter(s -> s.v12 == v12).findFirst().orElse(null);
     }
 
     public static LevelSoundEventEnum fromV14(int v14) {
-        return Arrays.stream(values()).filter(s -> s.v14 == v14).findFirst().orElse(null);
+        return Arrays.stream(values0()).filter(s -> s.v14 == v14).findFirst().orElse(null);
     }
 
     public static LevelSoundEventEnum fromV18(int v18) {
-        return Arrays.stream(values()).filter(s -> s.v18 == v18).findFirst().orElse(null);
+        return Arrays.stream(values0()).filter(s -> s.v18 == v18).findFirst().orElse(null);
     }
 
     public int translateTo14ExtraData(int extraData) {
@@ -316,5 +316,11 @@ public enum LevelSoundEventEnum {
             default:
                 return extraData;
         }
+    }
+
+    private static final LevelSoundEventEnum[] $VALUES0 = values();
+
+    public static LevelSoundEventEnum[] values0() {
+        return $VALUES0;
     }
 }
