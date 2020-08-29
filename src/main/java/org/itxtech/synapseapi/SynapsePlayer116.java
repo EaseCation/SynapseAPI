@@ -499,6 +499,11 @@ public class SynapsePlayer116 extends SynapsePlayer113 {
 				this.getServer().getLogger().warning("packetId=" + Binary.bytesToHexString(new byte[]{(byte) packetViolationWarningPacket.packetId}));
 				this.getServer().getLogger().warning("context=" + packetViolationWarningPacket.context);
 				break;
+			case ProtocolInfo.EMOTE_PACKET:
+				for (Player viewer : this.getViewers().values().stream().filter(p -> p.getProtocol() >= AbstractProtocol.PROTOCOL_116.getProtocolStart()).toArray(Player[]::new)) {
+					viewer.dataPacket(packet);
+				}
+				return;
 			default:
 				super.handleDataPacket(packet);
 				break;
