@@ -59,6 +59,12 @@ public class SynapsePlayer116 extends SynapsePlayer113 {
 	}
 
 	@Override
+	protected void initEntity() {
+		super.initEntity();
+		this.windowIndex.putAll(windows.inverse());
+	}
+
+	@Override
 	protected DataPacket generateStartGamePacket(Position spawnPosition) {
 		StartGamePacket116 startGamePacket = new StartGamePacket116();
 		startGamePacket.protocol = AbstractProtocol.fromRealProtocol(this.protocol);
