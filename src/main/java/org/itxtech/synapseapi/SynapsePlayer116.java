@@ -14,6 +14,7 @@ import cn.nukkit.event.player.PlayerInteractEntityEvent;
 import cn.nukkit.event.player.PlayerInteractEvent;
 import cn.nukkit.inventory.Inventory;
 import cn.nukkit.inventory.transaction.CraftingTransaction;
+import cn.nukkit.inventory.transaction.EnchantTransaction;
 import cn.nukkit.inventory.transaction.InventoryTransaction;
 import cn.nukkit.inventory.transaction.action.InventoryAction;
 import cn.nukkit.inventory.transaction.data.ReleaseItemData;
@@ -56,12 +57,6 @@ public class SynapsePlayer116 extends SynapsePlayer113 {
 	public SynapsePlayer116(SourceInterface interfaz, SynapseEntry synapseEntry, Long clientID, InetSocketAddress socketAddress) {
 		super(interfaz, synapseEntry, clientID, socketAddress);
 		this.levelChangeLoadScreen = false;
-	}
-
-	@Override
-	protected void initEntity() {
-		super.initEntity();
-		this.windowIndex.putAll(windows.inverse());
 	}
 
 	@Override
@@ -130,7 +125,7 @@ public class SynapsePlayer116 extends SynapsePlayer113 {
 				break;
 			case ProtocolInfo.CONTAINER_CLOSE_PACKET: //TODO: WIP
 				ContainerClosePacket containerClosePacket = (ContainerClosePacket) packet;
-				if (!this.spawned /*|| containerClosePacket.windowId == ContainerIds.INVENTORY && !inventoryOpen*/) {
+				if (!this.spawned || containerClosePacket.windowId == ContainerIds.INVENTORY && !inventoryOpen) {
 					break;
 				}
 
@@ -183,7 +178,7 @@ public class SynapsePlayer116 extends SynapsePlayer113 {
 						}
 					}
 
-					if (this.craftingTransaction.getPrimaryOutput() != null) {
+					if (this.craftingTransaction.getPrimaryOutput() != null && this.craftingTransaction.canExecute()) {
 						//we get the actions for this in several packets, so we can't execute it until we get the result
 
 						this.craftingTransaction.execute();
@@ -191,11 +186,44 @@ public class SynapsePlayer116 extends SynapsePlayer113 {
 					}
 
 					return;
+				} else if (transactionPacket.isEnchantingPart) {
+					if (this.enchantTransaction == null) {
+						this.enchantTransaction = new EnchantTransaction(this, actions);
+					} else {
+						for (InventoryAction action : actions) {
+							this.enchantTransaction.addAction(action);
+						}
+					}
+					if (this.enchantTransaction.canExecute()) {
+						this.enchantTransaction.execute();
+						this.enchantTransaction = null;
+					}
+					return;
 				} else if (this.craftingTransaction != null) {
-					this.server.getLogger().debug("Got unexpected normal inventory action with incomplete crafting transaction from " + this.getName() + ", refusing to execute crafting");
-					this.craftingTransaction = null;
+					if (craftingTransaction.checkForCraftingPart(actions)) {
+						for (InventoryAction action : actions) {
+							craftingTransaction.addAction(action);
+						}
+						return;
+					} else {
+						this.server.getLogger().debug("Got unexpected normal inventory action with incomplete crafting transaction from " + this.getName() + ", refusing to execute crafting");
+						this.removeAllWindows(false);
+						this.sendAllInventories();
+						this.craftingTransaction = null;
+					}
+				} else if (this.enchantTransaction != null) {
+					if (enchantTransaction.checkForEnchantPart(actions)) {
+						for (InventoryAction action : actions) {
+							enchantTransaction.addAction(action);
+						}
+						return;
+					} else {
+						this.server.getLogger().debug("Got unexpected normal inventory action with incomplete enchanting transaction from " + this.getName() + ", refusing to execute enchant " + transactionPacket.toString());
+						this.removeAllWindows(false);
+						this.sendAllInventories();
+						this.enchantTransaction = null;
+					}
 				}
-
 				switch (transactionPacket.transactionType) {
 					case InventoryTransactionPacket116.TYPE_NORMAL:
 						InventoryTransaction transaction = new InventoryTransaction(this, actions);
@@ -528,7 +556,7 @@ public class SynapsePlayer116 extends SynapsePlayer113 {
 		} else {
 			cnt = forceId;
 		}
-		this.windows.put(inventory, cnt);
+		this.windows.forcePut(inventory, cnt);
 
 		if (isPermanent) {
 			this.permanentWindows.add(cnt);
@@ -574,7 +602,7 @@ public class SynapsePlayer116 extends SynapsePlayer113 {
 		pk.x = this.getFloorX();
 		pk.y = this.getFloorY();
 		pk.z = this.getFloorZ();
-		pk.entityId = Long.MAX_VALUE;
+		pk.entityId = this.getId();
 		this.dataPacket(pk);
 	}
 

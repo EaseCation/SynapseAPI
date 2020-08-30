@@ -14,6 +14,7 @@ import cn.nukkit.event.player.PlayerInteractEntityEvent;
 import cn.nukkit.event.player.PlayerInteractEvent;
 import cn.nukkit.event.player.PlayerRespawnEvent;
 import cn.nukkit.inventory.transaction.CraftingTransaction;
+import cn.nukkit.inventory.transaction.EnchantTransaction;
 import cn.nukkit.inventory.transaction.InventoryTransaction;
 import cn.nukkit.inventory.transaction.action.InventoryAction;
 import cn.nukkit.inventory.transaction.data.ReleaseItemData;
@@ -250,7 +251,7 @@ public class SynapsePlayer113 extends SynapsePlayer112 {
 						}
 					}
 
-					if (this.craftingTransaction.getPrimaryOutput() != null) {
+					if (this.craftingTransaction.getPrimaryOutput() != null && this.craftingTransaction.canExecute()) {
 						//we get the actions for this in several packets, so we can't execute it until we get the result
 
 						this.craftingTransaction.execute();
@@ -258,9 +259,43 @@ public class SynapsePlayer113 extends SynapsePlayer112 {
 					}
 
 					return;
+				} else if (transactionPacket.isEnchantingPart) {
+					if (this.enchantTransaction == null) {
+						this.enchantTransaction = new EnchantTransaction(this, actions);
+					} else {
+						for (InventoryAction action : actions) {
+							this.enchantTransaction.addAction(action);
+						}
+					}
+					if (this.enchantTransaction.canExecute()) {
+						this.enchantTransaction.execute();
+						this.enchantTransaction = null;
+					}
+					return;
 				} else if (this.craftingTransaction != null) {
-					this.server.getLogger().debug("Got unexpected normal inventory action with incomplete crafting transaction from " + this.getName() + ", refusing to execute crafting");
-					this.craftingTransaction = null;
+					if (craftingTransaction.checkForCraftingPart(actions)) {
+						for (InventoryAction action : actions) {
+							craftingTransaction.addAction(action);
+						}
+						return;
+					} else {
+						this.server.getLogger().debug("Got unexpected normal inventory action with incomplete crafting transaction from " + this.getName() + ", refusing to execute crafting");
+						this.removeAllWindows(false);
+						this.sendAllInventories();
+						this.craftingTransaction = null;
+					}
+				} else if (this.enchantTransaction != null) {
+					if (enchantTransaction.checkForEnchantPart(actions)) {
+						for (InventoryAction action : actions) {
+							enchantTransaction.addAction(action);
+						}
+						return;
+					} else {
+						this.server.getLogger().debug("Got unexpected normal inventory action with incomplete enchanting transaction from " + this.getName() + ", refusing to execute enchant " + transactionPacket.toString());
+						this.removeAllWindows(false);
+						this.sendAllInventories();
+						this.enchantTransaction = null;
+					}
 				}
 
 				switch (transactionPacket.transactionType) {

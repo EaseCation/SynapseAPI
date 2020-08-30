@@ -110,6 +110,11 @@ public class DataPacketEidReplacer {
                     }
                 }
                 break;
+            case ProtocolInfo.CONTAINER_OPEN_PACKET:
+                if (((ContainerOpenPacket) packet).entityId == from) {
+                    ((ContainerOpenPacket) packet).entityId = to;
+                }
+                break;
             default:
                 change = false;
         }
