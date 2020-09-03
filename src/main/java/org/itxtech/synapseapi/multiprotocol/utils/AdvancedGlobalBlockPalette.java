@@ -161,7 +161,8 @@ public final class AdvancedGlobalBlockPalette {
                 211, //拒绝方块
                 212, //边界方块
                 217, //结构空位
-                230, //相机方块
+                230, //黑板方块
+                242, //相机方块
         });
         AtomicInteger index = new AtomicInteger(AbstractProtocol.PROTOCOL_112.ordinal());
         Stream.of(
@@ -180,7 +181,7 @@ public final class AdvancedGlobalBlockPalette {
 
             for (int i = 0; i < 256; i++) {
                 if (!existedIds[i] && !ignoreIds.contains(i)) {
-                    Server.getInstance().getLogger().warning("Block id does not exist: " + i + " (protocol " + AbstractProtocol.values0()[index.get()].getProtocolStart() + ")");
+                    Server.getInstance().getLogger().warning("Block id does not exist: " + i + " (protocol " + AbstractProtocol.values0()[index.get()].name() + ")");
                 }
             }
 

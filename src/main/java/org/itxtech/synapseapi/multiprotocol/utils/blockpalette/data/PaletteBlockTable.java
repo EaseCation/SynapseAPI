@@ -14,6 +14,7 @@ import java.lang.reflect.Type;
 import java.nio.ByteOrder;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 
@@ -152,10 +153,28 @@ public class PaletteBlockTable extends ArrayList<PaletteBlockData> {
         for (PaletteBlockData accordingData : according) {
             PaletteBlockData find = this.stream()
                     .filter(data -> data.id == accordingData.id)
-                    .filter(data -> data.block.equals(accordingData.block))
+                    //.filter(data -> data.block.equals(accordingData.block))
+                    .filter(
+                            data -> data.legacyStates != null && accordingData.legacyStates != null
+                                    &&
+                                    Arrays.stream(data.legacyStates)
+                                            .anyMatch(l ->
+                                                    Arrays.stream(accordingData.legacyStates)
+                                                            .anyMatch(l0 -> l.id == l0.id && l.val == l0.val)
+                                            )
+                    )
                     .findFirst().orElse(PaletteBlockData.AIR);
             table.add(find);
         }
         return table;
     }
+
+    public PaletteBlockTable cutAdvanced() {
+        PaletteBlockTable table = new PaletteBlockTable();
+        for (PaletteBlockData data : this) {
+            if (data.id < 256) table.add(data);
+        }
+        return table;
+    }
+
 }
