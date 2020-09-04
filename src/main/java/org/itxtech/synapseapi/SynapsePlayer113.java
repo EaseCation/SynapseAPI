@@ -2,8 +2,8 @@ package org.itxtech.synapseapi;
 
 import cn.nukkit.Player;
 import cn.nukkit.block.Block;
-import cn.nukkit.block.BlockAir;
 import cn.nukkit.block.BlockDoor;
+import cn.nukkit.block.BlockID;
 import cn.nukkit.blockentity.BlockEntity;
 import cn.nukkit.blockentity.BlockEntitySpawnable;
 import cn.nukkit.entity.Entity;
@@ -14,7 +14,6 @@ import cn.nukkit.event.player.PlayerInteractEntityEvent;
 import cn.nukkit.event.player.PlayerInteractEvent;
 import cn.nukkit.event.player.PlayerRespawnEvent;
 import cn.nukkit.inventory.transaction.CraftingTransaction;
-import cn.nukkit.inventory.transaction.EnchantTransaction;
 import cn.nukkit.inventory.transaction.InventoryTransaction;
 import cn.nukkit.inventory.transaction.action.InventoryAction;
 import cn.nukkit.inventory.transaction.data.ReleaseItemData;
@@ -231,7 +230,7 @@ public class SynapsePlayer113 extends SynapsePlayer112 {
 
 				List<InventoryAction> actions = new ArrayList<>();
 				for (NetworkInventoryAction networkInventoryAction : transactionPacket.actions) {
-					InventoryAction a = networkInventoryAction.createInventoryAction(this);
+					InventoryAction a = networkInventoryAction.createInventoryActionLegacy(this);
 
 					if (a == null) {
 						this.getServer().getLogger().debug("Unmatched inventory action from " + this.getName() + ": " + networkInventoryAction);
@@ -259,19 +258,6 @@ public class SynapsePlayer113 extends SynapsePlayer112 {
 					}
 
 					return;
-				} else if (transactionPacket.isEnchantingPart) {
-					if (this.enchantTransaction == null) {
-						this.enchantTransaction = new EnchantTransaction(this, actions);
-					} else {
-						for (InventoryAction action : actions) {
-							this.enchantTransaction.addAction(action);
-						}
-					}
-					if (this.enchantTransaction.canExecute()) {
-						this.enchantTransaction.execute();
-						this.enchantTransaction = null;
-					}
-					return;
 				} else if (this.craftingTransaction != null) {
 					if (craftingTransaction.checkForCraftingPart(actions)) {
 						for (InventoryAction action : actions) {
@@ -280,21 +266,7 @@ public class SynapsePlayer113 extends SynapsePlayer112 {
 						return;
 					} else {
 						this.server.getLogger().debug("Got unexpected normal inventory action with incomplete crafting transaction from " + this.getName() + ", refusing to execute crafting");
-						this.removeAllWindows(false);
-						this.sendAllInventories();
 						this.craftingTransaction = null;
-					}
-				} else if (this.enchantTransaction != null) {
-					if (enchantTransaction.checkForEnchantPart(actions)) {
-						for (InventoryAction action : actions) {
-							enchantTransaction.addAction(action);
-						}
-						return;
-					} else {
-						this.server.getLogger().debug("Got unexpected normal inventory action with incomplete enchanting transaction from " + this.getName() + ", refusing to execute enchant " + transactionPacket.toString());
-						this.removeAllWindows(false);
-						this.sendAllInventories();
-						this.enchantTransaction = null;
 					}
 				}
 
@@ -495,13 +467,13 @@ public class SynapsePlayer113 extends SynapsePlayer112 {
 								if (target.onInteract(this, item, useItemOnEntityData.clickPos) && this.isSurvival()) {
 									if (item.isTool()) {
 										if (item.useOn(target) && item.getDamage() >= item.getMaxDurability()) {
-											item = new ItemBlock(new BlockAir());
+											item = new ItemBlock(Block.get(BlockID.AIR));
 										}
 									} else {
 										if (item.count > 1) {
 											item.count--;
 										} else {
-											item = new ItemBlock(new BlockAir());
+											item = new ItemBlock(Block.get(BlockID.AIR));
 										}
 									}
 
@@ -543,7 +515,7 @@ public class SynapsePlayer113 extends SynapsePlayer112 {
 
 								if (item.isTool() && this.isSurvival()) {
 									if (item.useOn(target) && item.getDamage() >= item.getMaxDurability()) {
-										this.inventory.setItemInHand(new ItemBlock(new BlockAir()));
+										this.inventory.setItemInHand(new ItemBlock(Block.get(BlockID.AIR)));
 									} else {
 										this.inventory.setItemInHand(item);
 									}

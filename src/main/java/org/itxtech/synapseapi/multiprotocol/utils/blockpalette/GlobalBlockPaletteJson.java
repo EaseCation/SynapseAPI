@@ -111,7 +111,7 @@ public class GlobalBlockPaletteJson implements AdvancedGlobalBlockPaletteInterfa
         int runtimeId = legacyToRuntimeId.get(legacyId);
         if (runtimeId == -1) {
             //runtimeId = registerMapping(runtimeIdAllocator.incrementAndGet(), legacyId);
-            throw new RuntimeException("Unmapped block registered");
+            throw new RuntimeException("Unmapped block registered id:" + (legacyId >> 4) + " meta:" + (legacyId & 0xf));
         }
         return runtimeId;
     }
