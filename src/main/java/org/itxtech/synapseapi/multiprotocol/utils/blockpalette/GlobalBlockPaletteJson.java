@@ -52,9 +52,10 @@ public class GlobalBlockPaletteJson implements AdvancedGlobalBlockPaletteInterfa
             PaletteBlockData data = blockTable.get(i);
             if (data.legacyStates != null && data.legacyStates.length > 0) {
                 meta = data.legacyStates[0].val;
-                runtimeIdToLegacy.put(i, data.legacyStates[0].id << 6 | (short) data.legacyStates[0].val);
+                runtimeIdToLegacy.put(i, data.legacyStates[0].id << 4 | (short) data.legacyStates[0].val);
                 for (PaletteBlockData.LegacyStates legacyState : data.legacyStates) {
-                    int legacyId = legacyState.id << 6 | (short) legacyState.val;
+                    int legacyId = legacyState.id << 4 | (short) legacyState.val;
+                    if (legacyState.val > 0xf) Server.getInstance().getLogger().debug("block meta > 15! id: " + legacyState.id + ", meta: " + legacyState.val);
                     legacyToRuntimeId.put(legacyId, i);
                 }
             }
