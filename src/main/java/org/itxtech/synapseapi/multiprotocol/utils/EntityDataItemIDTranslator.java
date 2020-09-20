@@ -111,7 +111,7 @@ public class EntityDataItemIDTranslator {
 	public static final int V111_WITHER_TARGET_1 = 50; //long
 	public static final int V111_WITHER_TARGET_2 = 51; //long
 	public static final int V111_WITHER_TARGET_3 = 52; //long
-	/* 53 (short) */
+	public static final int V111_AERIAL_ATTACK = 53;
 	public static final int V111_BOUNDING_BOX_WIDTH = 54; //float
 	public static final int V111_BOUNDING_BOX_HEIGHT = 55; //float
 	public static final int V111_FUSE_LENGTH = 56; //int
@@ -122,30 +122,34 @@ public class EntityDataItemIDTranslator {
 	public static final int V111_AREA_EFFECT_CLOUD_RADIUS = 61; //float
 	public static final int V111_AREA_EFFECT_CLOUD_WAITING = 62; //int
 	public static final int V111_AREA_EFFECT_CLOUD_PARTICLE_ID = 63; //int
-	/* 64 (int) shulker-related */
+	public static final int V111_SHULKER_PEEK_ID = 64; //int
 	public static final int V111_SHULKER_ATTACH_FACE = 65; //byte
-	/* 66 (short) shulker-related */
+	public static final int V111_SHULKER_ATTACHED = 66; //short
 	public static final int V111_SHULKER_ATTACH_POS = 67; //block coords
 	public static final int V111_TRADING_PLAYER_EID = 68; //long
-
-	/* 70 (byte) command-block */
+	public static final int V111_TRADING_CAREER = 69;
+	public static final int V111_HAS_COMMAND_BLOCK = 70;
 	public static final int V111_COMMAND_BLOCK_COMMAND = 71; //string
 	public static final int V111_COMMAND_BLOCK_LAST_OUTPUT = 72; //string
 	public static final int V111_COMMAND_BLOCK_TRACK_OUTPUT = 73; //byte
 	public static final int V111_CONTROLLING_RIDER_SEAT_NUMBER = 74; //byte
 	public static final int V111_STRENGTH = 75; //int
 	public static final int V111_MAX_STRENGTH = 76; //int
-	// 77 (int)
+	public static final int V111_SPELL_CASTING_COLOR = 77; //int
 	public static final int V111_LIMITED_LIFE = 78;
 	public static final int V111_ARMOR_STAND_POSE_INDEX = 79; // int
 	public static final int V111_ENDER_CRYSTAL_TIME_OFFSET = 80; // int
 	public static final int V111_ALWAYS_SHOW_NAMETAG = 81; // byte
 	public static final int V111_COLOR_2 = 82; // byte
-	// 83 unknown
+	public static final int V111_NAME_AUTHOR = 83;
 	public static final int V111_SCORE_TAG = 84; //String
 	public static final int V111_BALLOON_ATTACHED_ENTITY = 85; // long
 	public static final int V111_PUFFERFISH_SIZE = 86;
-
+	public static final int V111_BUBBLE_TIME = 87;
+	public static final int V111_AGENT = 88;
+	public static final int V111_SITTING_AMOUNT = 89;
+	public static final int V111_SITTING_AMOUNT_PREVIOUS = 90;
+	public static final int V111_EATING_COUNTER = 91;
 	public static final int V111_FLAGS_EXTENDED = 92;
 
 	public static final int V112_NPC_SKIN_ID = 40; //string
@@ -160,7 +164,7 @@ public class EntityDataItemIDTranslator {
 	public static final int V112_WITHER_TARGET_1 = 49; //long
 	public static final int V112_WITHER_TARGET_2 = 50; //long
 	public static final int V112_WITHER_TARGET_3 = 51; //long
-	/* 52 (short) */
+	public static final int V112_AERIAL_ATTACK = 52;
 	public static final int V112_BOUNDING_BOX_WIDTH = 53; //float
 	public static final int V112_BOUNDING_BOX_HEIGHT = 54; //float
 	public static final int V112_FUSE_LENGTH = 55; //int
@@ -171,32 +175,46 @@ public class EntityDataItemIDTranslator {
 	public static final int V112_AREA_EFFECT_CLOUD_RADIUS = 60; //float
 	public static final int V112_AREA_EFFECT_CLOUD_WAITING = 61; //int
 	public static final int V112_AREA_EFFECT_CLOUD_PARTICLE_ID = 62; //int
-	/* 63 (int) shulker-related */
+	public static final int V112_SHULKER_PEEK_ID = 63; //int
 	public static final int V112_SHULKER_ATTACH_FACE = 64; //byte
-	/* 65 (short) shulker-related */
+	public static final int V112_SHULKER_ATTACHED = 65; //short
 	public static final int V112_SHULKER_ATTACH_POS = 66; //block coords
 	public static final int V112_TRADING_PLAYER_EID = 67; //long
-
-	/* 69 (byte) command-block */
+	public static final int V112_TRADING_CAREER = 68;
+	public static final int V112_HAS_COMMAND_BLOCK = 69;
 	public static final int V112_COMMAND_BLOCK_COMMAND = 70; //string
 	public static final int V112_COMMAND_BLOCK_LAST_OUTPUT = 71; //string
 	public static final int V112_COMMAND_BLOCK_TRACK_OUTPUT = 72; //byte
 	public static final int V112_CONTROLLING_RIDER_SEAT_NUMBER = 73; //byte
 	public static final int V112_STRENGTH = 74; //int
 	public static final int V112_MAX_STRENGTH = 75; //int
-	// 76 (int)
+	public static final int V112_SPELL_CASTING_COLOR = 76; //int
 	public static final int V112_LIMITED_LIFE = 77;
 	public static final int V112_ARMOR_STAND_POSE_INDEX = 78; // int
 	public static final int V112_ENDER_CRYSTAL_TIME_OFFSET = 79; // int
 	public static final int V112_ALWAYS_SHOW_NAMETAG = 80; // byte
 	public static final int V112_COLOR_2 = 81; // byte
-	// 82 unknown
+	public static final int V112_NAME_AUTHOR = 82;
 	public static final int V112_SCORE_TAG = 83; //String
 	public static final int V112_BALLOON_ATTACHED_ENTITY = 84; // long
 	public static final int V112_PUFFERFISH_SIZE = 85;
-
+	public static final int V112_BUBBLE_TIME = 86;
+	public static final int V112_AGENT = 87;
+	public static final int V112_SITTING_AMOUNT = 88;
+	public static final int V112_SITTING_AMOUNT_PREVIOUS = 89;
+	public static final int V112_EATING_COUNTER = 90;
 	public static final int V112_FLAGS_EXTENDED = 91;
-
+	public static final int V112_LAYING_AMOUNT = 92;
+	public static final int V112_LAYING_AMOUNT_PREVIOUS = 93;
+	public static final int V112_DURATION = 94;
+	public static final int V112_SPAWN_TIME = 95;
+	public static final int V112_CHANGE_RATE = 96;
+	public static final int V112_CHANGE_ON_PICKUP = 97;
+	public static final int V112_PICKUP_COUNT = 98;
+	public static final int V112_INTERACT_TEXT = 99;
+	public static final int V112_TRADE_TIER = 100;
+	public static final int V112_MAX_TRADE_TIER = 101;
+	public static final int V112_TRADE_EXPERIENCE = 102;
 	public static final int V112_SKIN_ID = 103; // int ???
 
 	static {
@@ -219,14 +237,23 @@ public class EntityDataItemIDTranslator {
 		v12ToV14Book.put(Entity.DATA_DISPLAY_ITEM, DISPLAY_TILE_RUNTIME_ID  );
 		v12ToV14Book.put(Entity.DATA_DISPLAY_OFFSET, DISPLAY_OFFSET  );
 		v12ToV14Book.put(Entity.DATA_HAS_DISPLAY, CUSTOM_DISPLAY  ); //18
+		v12ToV14Book.put(Entity.DATA_SWELL, SWELL);
+		v12ToV14Book.put(Entity.DATA_OLD_SWELL, OLD_SWELL);
+		v12ToV14Book.put(Entity.DATA_SWELL_DIR, SWELL_DIR);
+		v12ToV14Book.put(Entity.DATA_CHARGE_AMOUNT, CHARGE_AMOUNT);
 		// DATA_ENDERMAN_HELD_ITEM_ID = 23 unknown to translate. 
 		// DATA_ENDERMAN_HELD_ITEM_DAMAGE = 24 unknown to translate. 
 		// DATA_ENTITY_AGE = 25 unknown to translate. 
 		v12ToV14Book.put(Entity.DATA_PLAYER_FLAGS, PLAYER_FLAGS );
+		v12ToV14Book.put(Entity.DATA_PLAYER_INDEX, PLAYER_INDEX);
 		v12ToV14Book.put(Entity.DATA_PLAYER_BED_POSITION, BED_POSITION );
 		v12ToV14Book.put(Entity.DATA_FIREBALL_POWER_X, X_POWER );
 		v12ToV14Book.put(Entity.DATA_FIREBALL_POWER_Y, Y_POWER );
 		v12ToV14Book.put(Entity.DATA_FIREBALL_POWER_Z, Z_POWER );
+		v12ToV14Book.put(Entity.DATA_AUX_POWER, AUX_POWER);
+		v12ToV14Book.put(Entity.DATA_FISH_X, FISHX);
+		v12ToV14Book.put(Entity.DATA_FISH_Z, FISHZ);
+		v12ToV14Book.put(Entity.DATA_FISH_ANGLE, FISHANGLE);
 		v12ToV14Book.put(Entity.DATA_POTION_AUX_VALUE, AUX_VALUE_DATA );
 		v12ToV14Book.put(Entity.DATA_LEAD_HOLDER_EID, LEASH_HOLDER );
 		v12ToV14Book.put(Entity.DATA_SCALE, SCALE );
@@ -235,12 +262,15 @@ public class EntityDataItemIDTranslator {
 		// DATA_URL_TAG = 42 unknown to translate. 
 		v12ToV14Book.put(Entity.DATA_MAX_AIR, AIR_SUPPLY_MAX );
 		v12ToV14Book.put(Entity.DATA_MARK_VARIANT, MARK_VARIANT );
-		// DATA_FLAG_FIRE_IMMUNE = 47 unknown to translate. 
+		v12ToV14Book.put(Entity.DATA_CONTAINER_TYPE, CONTAINER_TYPE);
+		v12ToV14Book.put(Entity.DATA_CONTAINER_BASE_SIZE, CONTAINER_SIZE);
+		v12ToV14Book.put(Entity.DATA_CONTAINER_EXTRA_SLOTS_PER_STRENGTH, CONTAINER_STRENGTH_MODIFIER);
 		v12ToV14Book.put(Entity.DATA_BLOCK_TARGET, BLOCK_TARGET );
 		v12ToV14Book.put(Entity.DATA_WITHER_INVULNERABLE_TICKS, INV );
 		v12ToV14Book.put(Entity.DATA_WITHER_TARGET_1, TARGET_A );
 		v12ToV14Book.put(Entity.DATA_WITHER_TARGET_2, TARGET_B );
 		v12ToV14Book.put(Entity.DATA_WITHER_TARGET_3, TARGET_C );
+		v12ToV14Book.put(Entity.DATA_AERIAL_ATTACK, AERIAL_ATTACK);
 		v12ToV14Book.put(Entity.DATA_BOUNDING_BOX_WIDTH, WIDTH );
 		v12ToV14Book.put(Entity.DATA_BOUNDING_BOX_HEIGHT, HEIGHT );
 		v12ToV14Book.put(Entity.DATA_FUSE_LENGTH, FUSE_TIME );
@@ -251,16 +281,21 @@ public class EntityDataItemIDTranslator {
 		v12ToV14Book.put(Entity.DATA_AREA_EFFECT_CLOUD_RADIUS, DATA_RADIUS );
 		v12ToV14Book.put(Entity.DATA_AREA_EFFECT_CLOUD_WAITING, DATA_WAITING );
 		v12ToV14Book.put(Entity.DATA_AREA_EFFECT_CLOUD_PARTICLE_ID, DATA_PARTICLE );
-		v12ToV14Book.put(64, PEEK_ID );
+		v12ToV14Book.put(Entity.DATA_SHULKER_PEEK_ID, PEEK_ID);
 		v12ToV14Book.put(Entity.DATA_SHULKER_ATTACH_FACE, ATTACH_FACE );
+		v12ToV14Book.put(Entity.DATA_SHULKER_ATTACHED, ATTACHED);
 		v12ToV14Book.put(Entity.DATA_SHULKER_ATTACH_POS, ATTACH_POS );
 		v12ToV14Book.put(Entity.DATA_TRADING_PLAYER_EID, TRADE_TARGET );
+		v12ToV14Book.put(Entity.DATA_TRADING_CAREER, CAREER);
+		v12ToV14Book.put(Entity.DATA_HAS_COMMAND_BLOCK, HAS_COMMAND_BLOCK);
 		v12ToV14Book.put(Entity.DATA_COMMAND_BLOCK_COMMAND, COMMAND_NAME );
 		v12ToV14Book.put(Entity.DATA_COMMAND_BLOCK_LAST_OUTPUT, LAST_COMMAND_OUTPUT );
 		v12ToV14Book.put(Entity.DATA_COMMAND_BLOCK_TRACK_OUTPUT, TRACK_COMMAND_OUTPUT );
 		v12ToV14Book.put(Entity.DATA_CONTROLLING_RIDER_SEAT_NUMBER, CONTROLLING_SEAT_INDEX );
 		v12ToV14Book.put(Entity.DATA_STRENGTH, STRENGTH );
 		v12ToV14Book.put(Entity.DATA_MAX_STRENGTH, STRENGTH_MAX );
+		v12ToV14Book.put(Entity.DATA_SPELL_CASTING_COLOR, DATA_SPELL_CASTING_COLOR);
+		v12ToV14Book.put(Entity.DATA_LIMITED_LIFE, DATA_LIFETIME_TICKS);
 		v12ToV14Book.put(Entity.DATA_ALWAYS_SHOW_NAMETAG, NAMETAG_ALWAYS_SHOW );
 
 		v12ToV14Book.forEach((from, to) -> {
@@ -269,11 +304,15 @@ public class EntityDataItemIDTranslator {
 		v12ToV111Book.put(Entity.DATA_NPC_SKIN_ID, V111_SKIN_ID );
 		v12ToV111Book.put(Entity.DATA_MAX_AIR, V111_MAX_AIR );
 		v12ToV111Book.put(Entity.DATA_MARK_VARIANT, V111_MARK_VARIANT );
+		v12ToV111Book.put(Entity.DATA_CONTAINER_TYPE, V111_CONTAINER_TYPE);
+		v12ToV111Book.put(Entity.DATA_CONTAINER_BASE_SIZE, V111_CONTAINER_BASE_SIZE);
+		v12ToV111Book.put(Entity.DATA_CONTAINER_EXTRA_SLOTS_PER_STRENGTH, V111_CONTAINER_EXTRA_SLOTS_PER_STRENGTH);
 		v12ToV111Book.put(Entity.DATA_BLOCK_TARGET, V111_BLOCK_TARGET );
 		v12ToV111Book.put(Entity.DATA_WITHER_INVULNERABLE_TICKS, V111_WITHER_INVULNERABLE_TICKS );
 		v12ToV111Book.put(Entity.DATA_WITHER_TARGET_1, V111_WITHER_TARGET_1 );
-		v12ToV111Book.put(Entity.DATA_WITHER_TARGET_2, V111_WITHER_TARGET_1 );
-		v12ToV111Book.put(Entity.DATA_WITHER_TARGET_3, V111_WITHER_TARGET_1 );
+		v12ToV111Book.put(Entity.DATA_WITHER_TARGET_2, V111_WITHER_TARGET_2 );
+		v12ToV111Book.put(Entity.DATA_WITHER_TARGET_3, V111_WITHER_TARGET_3 );
+		v12ToV111Book.put(Entity.DATA_AERIAL_ATTACK, V111_AERIAL_ATTACK);
 		v12ToV111Book.put(Entity.DATA_BOUNDING_BOX_WIDTH, V111_BOUNDING_BOX_WIDTH);
 		v12ToV111Book.put(Entity.DATA_BOUNDING_BOX_HEIGHT, V111_BOUNDING_BOX_HEIGHT);
 		v12ToV111Book.put(Entity.DATA_FUSE_LENGTH, V111_FUSE_LENGTH);
@@ -284,15 +323,21 @@ public class EntityDataItemIDTranslator {
 		v12ToV111Book.put(Entity.DATA_AREA_EFFECT_CLOUD_RADIUS, V111_AREA_EFFECT_CLOUD_RADIUS);
 		v12ToV111Book.put(Entity.DATA_AREA_EFFECT_CLOUD_WAITING, V111_AREA_EFFECT_CLOUD_WAITING);
 		v12ToV111Book.put(Entity.DATA_AREA_EFFECT_CLOUD_PARTICLE_ID, V111_AREA_EFFECT_CLOUD_PARTICLE_ID);
+		v12ToV111Book.put(Entity.DATA_SHULKER_PEEK_ID, V111_SHULKER_PEEK_ID);
 		v12ToV111Book.put(Entity.DATA_SHULKER_ATTACH_FACE, V111_SHULKER_ATTACH_FACE);
+		v12ToV111Book.put(Entity.DATA_SHULKER_ATTACHED, V111_SHULKER_ATTACHED);
 		v12ToV111Book.put(Entity.DATA_SHULKER_ATTACH_POS, V111_SHULKER_ATTACH_POS);
 		v12ToV111Book.put(Entity.DATA_TRADING_PLAYER_EID, V111_TRADING_PLAYER_EID);
+		v12ToV111Book.put(Entity.DATA_TRADING_CAREER, V111_TRADING_CAREER);
+		v12ToV111Book.put(Entity.DATA_HAS_COMMAND_BLOCK, V111_HAS_COMMAND_BLOCK);
 		v12ToV111Book.put(Entity.DATA_COMMAND_BLOCK_COMMAND, V111_COMMAND_BLOCK_COMMAND);
 		v12ToV111Book.put(Entity.DATA_COMMAND_BLOCK_LAST_OUTPUT, V111_COMMAND_BLOCK_LAST_OUTPUT);
 		v12ToV111Book.put(Entity.DATA_COMMAND_BLOCK_TRACK_OUTPUT, V111_COMMAND_BLOCK_TRACK_OUTPUT);
 		v12ToV111Book.put(Entity.DATA_CONTROLLING_RIDER_SEAT_NUMBER, V111_CONTROLLING_RIDER_SEAT_NUMBER);
 		v12ToV111Book.put(Entity.DATA_STRENGTH, V111_STRENGTH);
 		v12ToV111Book.put(Entity.DATA_MAX_STRENGTH, V111_MAX_STRENGTH);
+		v12ToV111Book.put(Entity.DATA_SPELL_CASTING_COLOR, V111_SPELL_CASTING_COLOR);
+		v12ToV111Book.put(Entity.DATA_LIMITED_LIFE, V111_LIMITED_LIFE);
 		v12ToV111Book.put(Entity.DATA_ALWAYS_SHOW_NAMETAG, V111_ALWAYS_SHOW_NAMETAG);
 
 		v12ToV111Book.forEach(v12ToV112Book::put);
@@ -300,11 +345,15 @@ public class EntityDataItemIDTranslator {
 		v12ToV112Book.put(V111_NPC_SKIN_ID, V112_SKIN_ID );
 		v12ToV112Book.put(V111_MAX_AIR, V112_MAX_AIR );
 		v12ToV112Book.put(V111_MARK_VARIANT, V112_MARK_VARIANT );
+		v12ToV112Book.put(V111_CONTAINER_TYPE, V112_CONTAINER_TYPE);
+		v12ToV112Book.put(V111_CONTAINER_BASE_SIZE, V112_CONTAINER_BASE_SIZE);
+		v12ToV112Book.put(V111_CONTAINER_EXTRA_SLOTS_PER_STRENGTH, V112_CONTAINER_EXTRA_SLOTS_PER_STRENGTH);
 		v12ToV112Book.put(V111_BLOCK_TARGET, V112_BLOCK_TARGET );
 		v12ToV112Book.put(V111_WITHER_INVULNERABLE_TICKS, V112_WITHER_INVULNERABLE_TICKS );
 		v12ToV112Book.put(V111_WITHER_TARGET_1, V112_WITHER_TARGET_1 );
-		v12ToV112Book.put(V111_WITHER_TARGET_2, V112_WITHER_TARGET_1 );
-		v12ToV112Book.put(V111_WITHER_TARGET_3, V112_WITHER_TARGET_1 );
+		v12ToV112Book.put(V111_WITHER_TARGET_2, V112_WITHER_TARGET_2 );
+		v12ToV112Book.put(V111_WITHER_TARGET_3, V112_WITHER_TARGET_3 );
+		v12ToV112Book.put(V111_AERIAL_ATTACK, V112_AERIAL_ATTACK);
 		v12ToV112Book.put(V111_BOUNDING_BOX_WIDTH, V112_BOUNDING_BOX_WIDTH);
 		v12ToV112Book.put(V111_BOUNDING_BOX_HEIGHT, V112_BOUNDING_BOX_HEIGHT);
 		v12ToV112Book.put(V111_FUSE_LENGTH, V112_FUSE_LENGTH);
@@ -315,15 +364,21 @@ public class EntityDataItemIDTranslator {
 		v12ToV112Book.put(V111_AREA_EFFECT_CLOUD_RADIUS, V112_AREA_EFFECT_CLOUD_RADIUS);
 		v12ToV112Book.put(V111_AREA_EFFECT_CLOUD_WAITING, V112_AREA_EFFECT_CLOUD_WAITING);
 		v12ToV112Book.put(V111_AREA_EFFECT_CLOUD_PARTICLE_ID, V112_AREA_EFFECT_CLOUD_PARTICLE_ID);
+		v12ToV112Book.put(V111_SHULKER_PEEK_ID, V112_SHULKER_PEEK_ID);
 		v12ToV112Book.put(V111_SHULKER_ATTACH_FACE, V112_SHULKER_ATTACH_FACE);
+		v12ToV112Book.put(V111_SHULKER_ATTACHED, V112_SHULKER_ATTACHED);
 		v12ToV112Book.put(V111_SHULKER_ATTACH_POS, V112_SHULKER_ATTACH_POS);
 		v12ToV112Book.put(V111_TRADING_PLAYER_EID, V112_TRADING_PLAYER_EID);
+		v12ToV112Book.put(V111_TRADING_CAREER, V112_TRADING_CAREER);
+		v12ToV112Book.put(V111_HAS_COMMAND_BLOCK, V112_HAS_COMMAND_BLOCK);
 		v12ToV112Book.put(V111_COMMAND_BLOCK_COMMAND, V112_COMMAND_BLOCK_COMMAND);
 		v12ToV112Book.put(V111_COMMAND_BLOCK_LAST_OUTPUT, V112_COMMAND_BLOCK_LAST_OUTPUT);
 		v12ToV112Book.put(V111_COMMAND_BLOCK_TRACK_OUTPUT, V112_COMMAND_BLOCK_TRACK_OUTPUT);
 		v12ToV112Book.put(V111_CONTROLLING_RIDER_SEAT_NUMBER, V112_CONTROLLING_RIDER_SEAT_NUMBER);
 		v12ToV112Book.put(V111_STRENGTH, V112_STRENGTH);
 		v12ToV112Book.put(V111_MAX_STRENGTH, V112_MAX_STRENGTH);
+		v12ToV112Book.put(V111_SPELL_CASTING_COLOR, V112_SPELL_CASTING_COLOR);
+		v12ToV112Book.put(V111_LIMITED_LIFE, V112_LIMITED_LIFE);
 		v12ToV112Book.put(V111_ALWAYS_SHOW_NAMETAG, V112_ALWAYS_SHOW_NAMETAG);
 	}
 	
