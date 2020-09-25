@@ -15,6 +15,7 @@ import cn.nukkit.event.player.PlayerInteractEvent;
 import cn.nukkit.event.player.PlayerRespawnEvent;
 import cn.nukkit.inventory.transaction.CraftingTransaction;
 import cn.nukkit.inventory.transaction.InventoryTransaction;
+import cn.nukkit.inventory.transaction.RepairItemTransaction;
 import cn.nukkit.inventory.transaction.action.InventoryAction;
 import cn.nukkit.inventory.transaction.data.ReleaseItemData;
 import cn.nukkit.inventory.transaction.data.UseItemData;
@@ -258,6 +259,19 @@ public class SynapsePlayer113 extends SynapsePlayer112 {
 					}
 
 					return;
+				} else if (transactionPacket.isRepairItemPart) {
+					if (this.repairItemTransaction == null) {
+						this.repairItemTransaction = new RepairItemTransaction(this, actions);
+					} else {
+						for (InventoryAction action : actions) {
+							this.repairItemTransaction.addAction(action);
+						}
+					}
+					if (this.repairItemTransaction.canExecute()) {
+						this.repairItemTransaction.execute();
+						this.repairItemTransaction = null;
+					}
+					return;
 				} else if (this.craftingTransaction != null) {
 					if (craftingTransaction.checkForCraftingPart(actions)) {
 						for (InventoryAction action : actions) {
@@ -267,6 +281,16 @@ public class SynapsePlayer113 extends SynapsePlayer112 {
 					} else {
 						this.server.getLogger().debug("Got unexpected normal inventory action with incomplete crafting transaction from " + this.getName() + ", refusing to execute crafting");
 						this.craftingTransaction = null;
+					}
+				} else if (this.repairItemTransaction != null) {
+					if (RepairItemTransaction.checkForRepairItemPart(actions)) {
+						for (InventoryAction action : actions) {
+							this.repairItemTransaction.addAction(action);
+						}
+						return;
+					} else {
+						this.server.getLogger().debug("Got unexpected normal inventory action with incomplete repair item transaction from " + this.getName() + ", refusing to execute repair item " + transactionPacket.toString());
+						this.repairItemTransaction = null;
 					}
 				}
 
