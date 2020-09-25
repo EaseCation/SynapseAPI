@@ -1,6 +1,7 @@
 package org.itxtech.synapseapi;
 
 import cn.nukkit.Player;
+import cn.nukkit.Server;
 import cn.nukkit.block.Block;
 import cn.nukkit.block.BlockAir;
 import cn.nukkit.block.BlockDoor;
@@ -12,10 +13,12 @@ import cn.nukkit.event.entity.EntityDamageEvent;
 import cn.nukkit.event.inventory.InventoryCloseEvent;
 import cn.nukkit.event.player.PlayerInteractEntityEvent;
 import cn.nukkit.event.player.PlayerInteractEvent;
+import cn.nukkit.inventory.AnvilInventory;
 import cn.nukkit.inventory.Inventory;
 import cn.nukkit.inventory.transaction.CraftingTransaction;
 import cn.nukkit.inventory.transaction.EnchantTransaction;
 import cn.nukkit.inventory.transaction.InventoryTransaction;
+import cn.nukkit.inventory.transaction.RepairItemTransaction;
 import cn.nukkit.inventory.transaction.action.InventoryAction;
 import cn.nukkit.inventory.transaction.data.ReleaseItemData;
 import cn.nukkit.inventory.transaction.data.UseItemData;
@@ -31,6 +34,7 @@ import cn.nukkit.network.SourceInterface;
 import cn.nukkit.network.protocol.ContainerClosePacket;
 import cn.nukkit.network.protocol.ContainerOpenPacket;
 import cn.nukkit.network.protocol.DataPacket;
+import cn.nukkit.network.protocol.EntityEventPacket;
 import cn.nukkit.network.protocol.InteractPacket;
 import cn.nukkit.network.protocol.ProtocolInfo;
 import cn.nukkit.network.protocol.UpdateBlockPacket;
@@ -116,14 +120,14 @@ public class SynapsePlayer116 extends SynapsePlayer113 {
 		switch (packet.pid()) {
 			case ProtocolInfo.INTERACT_PACKET:
 				InteractPacket interactPacket = (InteractPacket) packet;
-				if (interactPacket.action == InteractPacket.ACTION_OPEN_INVENTORY && interactPacket.target == Long.MAX_VALUE /*&& !this.inventoryOpen*/) { //TODO: WIP
+				if (interactPacket.action == InteractPacket.ACTION_OPEN_INVENTORY && interactPacket.target == Long.MAX_VALUE /*&& !this.inventoryOpen*/) {
 //					this.openInventory();
 					this.inventory.open(this);
 					this.inventoryOpen = true;
 				}
 				super.handleDataPacket(packet);
 				break;
-			case ProtocolInfo.CONTAINER_CLOSE_PACKET: //TODO: WIP
+			case ProtocolInfo.CONTAINER_CLOSE_PACKET:
 				ContainerClosePacket containerClosePacket = (ContainerClosePacket) packet;
 				if (!this.spawned || containerClosePacket.windowId == ContainerIds.INVENTORY && !inventoryOpen) {
 					break;
@@ -199,6 +203,19 @@ public class SynapsePlayer116 extends SynapsePlayer113 {
 						this.enchantTransaction = null;
 					}
 					return;
+				} else if (transactionPacket.isRepairItemPart) {
+					if (this.repairItemTransaction == null) {
+						this.repairItemTransaction = new RepairItemTransaction(this, actions);
+					} else {
+						for (InventoryAction action : actions) {
+							this.repairItemTransaction.addAction(action);
+						}
+					}
+					if (this.repairItemTransaction.canExecute()) {
+						this.repairItemTransaction.execute();
+						this.repairItemTransaction = null;
+					}
+					return;
 				} else if (this.craftingTransaction != null) {
 					if (craftingTransaction.checkForCraftingPart(actions)) {
 						for (InventoryAction action : actions) {
@@ -222,6 +239,18 @@ public class SynapsePlayer116 extends SynapsePlayer113 {
 						this.removeAllWindows(false);
 						this.sendAllInventories();
 						this.enchantTransaction = null;
+					}
+				} else if (this.repairItemTransaction != null) {
+					if (RepairItemTransaction.checkForRepairItemPart(actions)) {
+						for (InventoryAction action : actions) {
+							this.repairItemTransaction.addAction(action);
+						}
+						return;
+					} else {
+						this.server.getLogger().debug("Got unexpected normal inventory action with incomplete repair item transaction from " + this.getName() + ", refusing to execute repair item " + transactionPacket.toString());
+						this.removeAllWindows(false);
+						this.sendAllInventories();
+						this.repairItemTransaction = null;
 					}
 				}
 				switch (transactionPacket.transactionType) {
@@ -518,6 +547,13 @@ public class SynapsePlayer116 extends SynapsePlayer113 {
 						this.inventory.sendContents(this);
 						break;
 				}
+				break;
+			case ProtocolInfo.ENTITY_EVENT_PACKET:
+				EntityEventPacket entityEventPacket = (EntityEventPacket) packet;
+				if (entityEventPacket.event == EntityEventPacket.ENCHANT && this.getWindowById(ENCHANT_WINDOW_ID) != null) {
+					break; //附魔现在在 EnchantTransaction 中扣减经验等级
+				}
+				super.handleDataPacket(packet);
 				break;
 			case ProtocolInfo.PACKET_VIOLATION_WARNING_PACKET:
 				PacketViolationWarningPacket116 packetViolationWarningPacket = (PacketViolationWarningPacket116) packet;
