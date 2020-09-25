@@ -247,7 +247,7 @@ public class SynapsePlayer116 extends SynapsePlayer113 {
 						UseItemData useItemData = (UseItemData) transactionPacket.transactionData;
 
 						BlockVector3 blockVector = useItemData.blockPos;
-						BlockFace face = face = useItemData.face;
+						BlockFace face = useItemData.face;
 
 						int type = useItemData.actionType;
 						switch (type) {
