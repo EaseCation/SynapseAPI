@@ -12,6 +12,7 @@ import org.itxtech.synapseapi.multiprotocol.protocol112.protocol.Packet112;
 import org.itxtech.synapseapi.multiprotocol.protocol113.protocol.Packet113;
 import org.itxtech.synapseapi.multiprotocol.protocol11460.protocol.Packet11460;
 import org.itxtech.synapseapi.multiprotocol.protocol116.protocol.Packet116;
+import org.itxtech.synapseapi.multiprotocol.protocol116100.protocol.Packet116100;
 import org.itxtech.synapseapi.multiprotocol.protocol11620.protocol.Packet11620;
 import org.itxtech.synapseapi.multiprotocol.protocol14.protocol.Packet14;
 import org.itxtech.synapseapi.multiprotocol.protocol15.protocol.Packet15;
@@ -46,6 +47,7 @@ public enum AbstractProtocol {
     PROTOCOL_114_60(390, Packet11460.class, SynapsePlayer113.class),
     PROTOCOL_116(407, Packet116.class, SynapsePlayer116.class, true),
     PROTOCOL_116_20(408, Packet11620.class, SynapsePlayer116.class, true),
+    PROTOCOL_116_100(415, Packet116100.class, SynapsePlayer116100.class, true), //beta
     ;
 
     private final int protocolStart;

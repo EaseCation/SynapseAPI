@@ -13,6 +13,7 @@ import org.itxtech.synapseapi.multiprotocol.protocol112.protocol.*;
 import org.itxtech.synapseapi.multiprotocol.protocol113.protocol.*;
 import org.itxtech.synapseapi.multiprotocol.protocol11460.protocol.PlayerListPacket11460;
 import org.itxtech.synapseapi.multiprotocol.protocol116.protocol.*;
+import org.itxtech.synapseapi.multiprotocol.protocol116100.protocol.*;
 import org.itxtech.synapseapi.multiprotocol.protocol11620.protocol.StartGamePacket11620;
 import org.itxtech.synapseapi.multiprotocol.protocol15.protocol.AddEntityPacket15;
 import org.itxtech.synapseapi.multiprotocol.protocol15.protocol.ClientboundMapItemDataPacket15;
@@ -141,6 +142,7 @@ public class PacketRegister {
         registerPacket(AbstractProtocol.PROTOCOL_113, ProtocolInfo.CRAFTING_DATA_PACKET, CraftingDataPacket113.class);
         registerPacket(AbstractProtocol.PROTOCOL_113, ProtocolInfo.AVAILABLE_COMMANDS_PACKET, AvailableCommandsPacket113.class);
         registerPacket(AbstractProtocol.PROTOCOL_113, ProtocolInfo.ADD_PLAYER_PACKET, AddPlayerPacket113.class);
+        registerPacket(AbstractProtocol.PROTOCOL_113, ProtocolInfo.TICK_SYNC_PACKET, TickSyncPacket113.class);
         registerPacket(AbstractProtocol.PROTOCOL_113, ProtocolInfo.CONFIRM_SKIN_PACKET, ConfirmSkinPacket113.class);
 
         registerPacket(AbstractProtocol.PROTOCOL_114_60, ProtocolInfo.PLAYER_LIST_PACKET, PlayerListPacket11460.class);
@@ -158,6 +160,14 @@ public class PacketRegister {
         registerPacket(AbstractProtocol.PROTOCOL_116, ProtocolInfo.EMOTE_LIST_PACKET, EmoteListPacket116.class);
 
         registerPacket(AbstractProtocol.PROTOCOL_116_20, ProtocolInfo.START_GAME_PACKET, StartGamePacket11620.class);
+
+        registerPacket(AbstractProtocol.PROTOCOL_116_100, ProtocolInfo.START_GAME_PACKET, StartGamePacket116100.class);
+        registerPacket(AbstractProtocol.PROTOCOL_116_100, ProtocolInfo.MOVE_PLAYER_PACKET, MovePlayerPacket116100.class);
+        registerPacket(AbstractProtocol.PROTOCOL_116_100, ProtocolInfo.SET_ENTITY_DATA_PACKET, SetEntityDataPacket116100.class);
+        registerPacket(AbstractProtocol.PROTOCOL_116_100, ProtocolInfo.UPDATE_ATTRIBUTES_PACKET, UpdateAttributesPacket116100.class);
+        registerPacket(AbstractProtocol.PROTOCOL_116_100, ProtocolInfo.RESOURCE_PACK_STACK_PACKET, ResourcePackStackPacket116100.class);
+        registerPacket(AbstractProtocol.PROTOCOL_116_100, ProtocolInfo.CONTAINER_CLOSE_PACKET, ContainerClosePacket116100.class);
+        registerPacket(AbstractProtocol.PROTOCOL_116_100, ProtocolInfo.MOVE_ENTITY_DELTA_PACKET, MoveEntityDeltaPacket116100.class);
 
         checkNeteaseSpecialExtend();
         CraftingPacketManager.rebuildPacket();
