@@ -36,6 +36,7 @@ import org.itxtech.synapseapi.multiprotocol.protocol113.protocol.NetworkSettings
 import org.itxtech.synapseapi.multiprotocol.protocol113.protocol.ResourcePackStackPacket113;
 import org.itxtech.synapseapi.multiprotocol.protocol113.protocol.RespawnPacket113;
 import org.itxtech.synapseapi.multiprotocol.protocol113.protocol.StartGamePacket113;
+import org.itxtech.synapseapi.multiprotocol.protocol113.protocol.TickSyncPacket113;
 import org.itxtech.synapseapi.multiprotocol.protocol14.protocol.PlayerActionPacket14;
 import org.itxtech.synapseapi.multiprotocol.protocol16.protocol.ResourcePackClientResponsePacket16;
 
@@ -326,7 +327,7 @@ public class SynapsePlayer113 extends SynapsePlayer112 {
 								boolean spamBug = (lastRightClickPos != null && System.currentTimeMillis() - lastRightClickTime < 100.0 && blockVector.distanceSquared(lastRightClickPos) < 0.00001);
 								lastRightClickPos = blockVector.asVector3();
 								lastRightClickTime = System.currentTimeMillis();
-								if (spamBug) {
+								if (spamBug && !(this.getInventory().getItemInHand() instanceof ItemBlock)) {
 									return;
 								}
 
@@ -589,6 +590,15 @@ public class SynapsePlayer113 extends SynapsePlayer112 {
 						break;
 				}
 				break;
+			/*case ProtocolInfo.TICK_SYNC_PACKET:
+				if (!callPacketReceiveEvent(packet)) break;
+				TickSyncPacket113 tickSyncRequest = (TickSyncPacket113) packet;
+
+				TickSyncPacket113 tickSyncResponse = new TickSyncPacket113();
+				tickSyncResponse.requestTimestamp = tickSyncRequest.requestTimestamp;
+				tickSyncResponse.responseTimestamp = this.server.getTick();
+				this.dataPacket(tickSyncResponse);
+				break;*/
 			default:
 				super.handleDataPacket(packet);
 				break;

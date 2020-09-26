@@ -285,7 +285,7 @@ public class SynapsePlayer116 extends SynapsePlayer113 {
 								boolean spamBug = (lastRightClickPos != null && System.currentTimeMillis() - lastRightClickTime < 100.0 && blockVector.distanceSquared(lastRightClickPos) < 0.00001);
 								lastRightClickPos = blockVector.asVector3();
 								lastRightClickTime = System.currentTimeMillis();
-								if (spamBug) {
+								if (spamBug && !(this.getInventory().getItemInHand() instanceof ItemBlock)) {
 									return;
 								}
 

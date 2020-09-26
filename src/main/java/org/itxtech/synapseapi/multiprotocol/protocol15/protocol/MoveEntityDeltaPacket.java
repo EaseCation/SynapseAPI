@@ -38,6 +38,7 @@ public class MoveEntityDeltaPacket extends Packet15 {
 
     @Override
     public void encode() {
+        this.reset();
         this.putEntityRuntimeId(Long.MAX_VALUE);
         this.putByte((byte) flags);
         putCoordinate(FLAG_HAS_X, this.xDelta);
