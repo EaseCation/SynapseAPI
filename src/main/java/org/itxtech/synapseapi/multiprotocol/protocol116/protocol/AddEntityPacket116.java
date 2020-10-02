@@ -1,4 +1,4 @@
-package org.itxtech.synapseapi.multiprotocol.protocol18.protocol;
+package org.itxtech.synapseapi.multiprotocol.protocol116.protocol;
 
 import cn.nukkit.entity.Attribute;
 import cn.nukkit.entity.data.EntityMetadata;
@@ -7,6 +7,7 @@ import cn.nukkit.entity.mob.*;
 import cn.nukkit.entity.passive.*;
 import cn.nukkit.entity.projectile.*;
 import cn.nukkit.entity.weather.*;
+import cn.nukkit.network.protocol.AddEntityPacket;
 import cn.nukkit.network.protocol.DataPacket;
 import cn.nukkit.network.protocol.ProtocolInfo;
 import cn.nukkit.network.protocol.types.EntityLink;
@@ -16,11 +17,8 @@ import org.itxtech.synapseapi.multiprotocol.AbstractProtocol;
 import org.itxtech.synapseapi.multiprotocol.utils.EntityMetadataGenerator;
 import org.itxtech.synapseapi.utils.ClassUtils;
 
-/**
- * author: MagicDroidX
- * Nukkit Project
- */
-public class AddEntityPacket18 extends Packet18 {
+public class AddEntityPacket116 extends Packet116 {
+
     public static final int NETWORK_ID = ProtocolInfo.ADD_ENTITY_PACKET;
 
     public static ImmutableMap<Integer, String> LEGACY_IDS = ImmutableMap.<Integer, String>builder()
@@ -130,7 +128,6 @@ public class AddEntityPacket18 extends Packet18 {
             .put(121, "minecraft:fox")
             .build();
 
-
     @Override
     public int pid() {
         return NETWORK_ID;
@@ -180,14 +177,15 @@ public class AddEntityPacket18 extends Packet18 {
             putEntityUniqueId(link.toEntityUniquieId);
             putByte(link.type);
             putBoolean(link.immediate);
+            putBoolean(link.riderInitiated);
         }
     }
 
     @Override
     public DataPacket fromDefault(DataPacket pk, AbstractProtocol protocol, boolean netease) {
-        ClassUtils.requireInstance(pk, cn.nukkit.network.protocol.AddEntityPacket.class);
+        ClassUtils.requireInstance(pk, AddEntityPacket.class);
 
-        cn.nukkit.network.protocol.AddEntityPacket packet = (cn.nukkit.network.protocol.AddEntityPacket) pk;
+        AddEntityPacket packet = (AddEntityPacket) pk;
 
         this.entityUniqueId = packet.entityUniqueId;
         this.entityRuntimeId = packet.entityRuntimeId;
@@ -208,7 +206,6 @@ public class AddEntityPacket18 extends Packet18 {
     }
 
     public static Class<? extends DataPacket> getDefaultPacket() {
-        return cn.nukkit.network.protocol.AddEntityPacket.class;
+        return AddEntityPacket.class;
     }
-
 }

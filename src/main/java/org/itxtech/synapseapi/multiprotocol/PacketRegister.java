@@ -154,6 +154,7 @@ public class PacketRegister {
         registerPacket(AbstractProtocol.PROTOCOL_116, ProtocolInfo.INVENTORY_TRANSACTION_PACKET, InventoryTransactionPacket116.class);
         registerPacket(AbstractProtocol.PROTOCOL_116, ProtocolInfo.SET_SPAWN_POSITION_PACKET, SetSpawnPositionPacket116.class);
         registerPacket(AbstractProtocol.PROTOCOL_116, ProtocolInfo.SET_ENTITY_LINK_PACKET, SetEntityLinkPacket116.class);
+        registerPacket(AbstractProtocol.PROTOCOL_116, ProtocolInfo.ADD_ENTITY_PACKET, AddEntityPacket116.class);
         registerPacket(AbstractProtocol.PROTOCOL_116, ProtocolInfo.EMOTE_PACKET, EmotePacket116.class);
         registerPacket(AbstractProtocol.PROTOCOL_116, ProtocolInfo.EMOTE_LIST_PACKET, EmoteListPacket116.class);
 
