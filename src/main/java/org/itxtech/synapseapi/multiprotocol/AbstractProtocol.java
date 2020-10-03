@@ -47,7 +47,7 @@ public enum AbstractProtocol {
     PROTOCOL_114_60(390, Packet11460.class, SynapsePlayer113.class),
     PROTOCOL_116(407, Packet116.class, SynapsePlayer116.class, true),
     PROTOCOL_116_20(408, Packet11620.class, SynapsePlayer116.class, true),
-    PROTOCOL_116_100(415, Packet116100.class, SynapsePlayer116100.class, true), //beta
+    PROTOCOL_116_100(417, Packet116100.class, SynapsePlayer116100.class, true), //beta 1.16.100.58
     ;
 
     private final int protocolStart;
