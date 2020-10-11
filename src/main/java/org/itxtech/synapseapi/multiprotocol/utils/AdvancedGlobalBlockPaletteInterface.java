@@ -51,8 +51,9 @@ public interface AdvancedGlobalBlockPaletteInterface {
     }
 
     class ItemData {
-        private String name;
-        private int id;
+        public String name;
+        public int id;
+        public boolean componentBased = false;
     }
 
 }
