@@ -16,7 +16,6 @@ public class ResourcePackStackPacket116100 extends Packet113 {
     public ResourcePack[] behaviourPackStack = new ResourcePack[0];
     public ResourcePack[] resourcePackStack = new ResourcePack[0];
     public String gameVersion = "1.16.100";
-    public boolean experimentsPreviouslyToggled;
 
     @Override
     public void decode() {
@@ -41,9 +40,10 @@ public class ResourcePackStackPacket116100 extends Packet113 {
             this.putString(entry.getPackVersion());
             this.putString("");
         }
+
         this.putString(this.gameVersion);
-        this.putLInt(0); //experiments list
-        this.putBoolean(this.experimentsPreviouslyToggled);
+        this.putLInt(0); // Experiments length
+        this.putBoolean(false); //Were experiments previously toggled
     }
 
     @Override

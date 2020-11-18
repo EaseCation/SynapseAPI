@@ -27,7 +27,7 @@ public class MovePlayerPacket116100 extends Packet116100 {
     public long ridingEid;
     public int int1 = 0;
     public int int2 = 0;
-    public long tick;
+    public long frame;
 
     @Override
     public void decode() {
@@ -46,7 +46,7 @@ public class MovePlayerPacket116100 extends Packet116100 {
             this.int1 = this.getLInt();
             this.int2 = this.getLInt();
         }
-        this.tick = this.getUnsignedVarLong();
+        this.frame = this.getUnsignedVarLong();
     }
 
     @Override
@@ -64,7 +64,7 @@ public class MovePlayerPacket116100 extends Packet116100 {
             this.putLInt(this.int1);
             this.putLInt(this.int2);
         }
-        this.putUnsignedVarLong(this.tick);
+        this.putUnsignedVarLong(this.frame);
     }
 
     @Override

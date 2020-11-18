@@ -17,7 +17,7 @@ public class UpdateAttributesPacket116100 extends Packet116100 {
 
     public Attribute[] entries;
     public long entityId;
-    public long tick;
+    public long frame;
 
     @Override
     public void decode() {
@@ -43,7 +43,7 @@ public class UpdateAttributesPacket116100 extends Packet116100 {
             }
         }
 
-        this.putUnsignedVarLong(this.tick);
+        this.putUnsignedVarLong(this.frame);
     }
 
     @Override

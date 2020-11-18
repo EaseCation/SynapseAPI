@@ -15,19 +15,19 @@ public class ContainerClosePacket116100 extends Packet116100 {
     }
 
     public int windowId;
-    public boolean unknownBool0;
+    public boolean wasServerInitiated = true;
 
     @Override
     public void decode() {
         this.windowId = (byte) this.getByte();
-        this.unknownBool0 = this.getBoolean();
+        this.wasServerInitiated = this.getBoolean();
     }
 
     @Override
     public void encode() {
         this.reset();
         this.putByte((byte) this.windowId);
-        this.putBoolean(this.unknownBool0);
+        this.putBoolean(this.wasServerInitiated);
     }
 
     @Override

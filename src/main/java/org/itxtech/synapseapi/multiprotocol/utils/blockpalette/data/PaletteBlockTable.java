@@ -1,5 +1,6 @@
 package org.itxtech.synapseapi.multiprotocol.utils.blockpalette.data;
 
+import cn.nukkit.block.Block;
 import cn.nukkit.nbt.NBTIO;
 import cn.nukkit.nbt.tag.CompoundTag;
 import cn.nukkit.nbt.tag.ListTag;
@@ -7,6 +8,7 @@ import cn.nukkit.nbt.tag.Tag;
 import com.google.common.io.ByteStreams;
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
+import lombok.ToString;
 import org.itxtech.synapseapi.SynapseAPI;
 
 import java.io.*;
@@ -31,6 +33,63 @@ public class PaletteBlockTable extends ArrayList<PaletteBlockData> {
             list.add(tag);
         }
         return list;
+    }
+
+    public static PaletteBlockTable fromNBTV3(String file) {
+        PaletteBlockTable table = new PaletteBlockTable();
+
+        PaletteBlockData air = PaletteBlockData.createUnknownData();
+        PaletteBlockData unknown = new PaletteBlockData(Short.MAX_VALUE, new PaletteBlockData.LegacyStates[0], new PaletteBlockData.Block("minecraft:info_update", 1, new ArrayList<>()));
+
+        ListTag<CompoundTag> tag;
+        try (InputStream stream = SynapseAPI.class.getClassLoader().getResourceAsStream(file)) {
+            if (stream == null) {
+                throw new AssertionError("Unable to locate block state nbt");
+            }
+            //noinspection unchecked
+            tag = (ListTag<CompoundTag>) NBTIO.readTag(new ByteArrayInputStream(ByteStreams.toByteArray(stream)), ByteOrder.LITTLE_ENDIAN, false);
+        } catch (IOException e) {
+            throw new AssertionError("Unable to load block palette", e);
+        }
+
+        for (CompoundTag state : tag.getAll()) {
+            if (!state.contains("LegacyStates")) {
+                //table.add(air);
+                table.add(unknown);
+                continue;
+            }
+
+            PaletteBlockData.LegacyStates[] legacyStates;
+            List<PaletteBlockData.LegacyStates> legacyStatesList = new ArrayList<>();
+            state.getList("LegacyStates", CompoundTag.class).getAll()
+                    .forEach(legacy -> legacyStatesList.add(new PaletteBlockData.LegacyStates(legacy.getInt("id"), legacy.getShort("val"))));
+            legacyStates = legacyStatesList.toArray(new PaletteBlockData.LegacyStates[0]);
+
+            // Resolve to first legacy id
+            PaletteBlockData.LegacyStates firstState = legacyStates[0];
+
+            CompoundTag blockTag = state.getCompound("block");
+            CompoundTag blockStatesTag = blockTag.getCompound("states");
+            List<Tag> statesData = new ArrayList<>();
+            blockStatesTag.getTags().forEach((stateName, stateValue) -> statesData.add(stateValue));
+            PaletteBlockData.Block block = new PaletteBlockData.Block(blockTag.getString("name"), blockTag.getInt("version"), statesData);
+
+            PaletteBlockData data = new PaletteBlockData(
+                    firstState.id,
+                    legacyStates,
+                    block
+            );
+            table.add(data);
+
+            if (firstState.id == Block.AIR) {
+                air.legacyStates = data.legacyStates;
+                air.id = data.id;
+                air.block = data.block;
+
+                unknown.block.version = data.block.version;
+            }
+        }
+        return table;
     }
 
     public static PaletteBlockTable fromNBT(String file) {
@@ -142,6 +201,7 @@ public class PaletteBlockTable extends ArrayList<PaletteBlockData> {
         return table;
     }
 
+    @ToString
     static class JsonTableEntry {
         private int id;
         private int data;
@@ -149,6 +209,8 @@ public class PaletteBlockTable extends ArrayList<PaletteBlockData> {
     }
 
     public PaletteBlockTable trim(PaletteBlockTable according) {
+        if (this == according) return this;
+
         PaletteBlockTable table = new PaletteBlockTable();
         for (PaletteBlockData accordingData : according) {
             PaletteBlockData find = this.stream()

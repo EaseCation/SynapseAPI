@@ -14,11 +14,13 @@ import it.unimi.dsi.fastutil.longs.Long2ObjectMap;
 import it.unimi.dsi.fastutil.longs.Long2ObjectMaps;
 import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.objects.ObjectIterator;
+import org.itxtech.synapseapi.multiprotocol.AbstractProtocol;
 import org.itxtech.synapseapi.multiprotocol.protocol112.protocol.ClientCacheBlobStatusPacket112;
 import org.itxtech.synapseapi.multiprotocol.protocol112.protocol.ClientCacheMissResponsePacket112;
 import org.itxtech.synapseapi.multiprotocol.protocol112.protocol.ClientCacheStatusPacket112;
 import org.itxtech.synapseapi.multiprotocol.protocol112.protocol.StartGamePacket112;
 import org.itxtech.synapseapi.multiprotocol.protocol18.protocol.BiomeDefinitionListPacket18;
+import org.itxtech.synapseapi.multiprotocol.utils.BiomeDefinitions;
 import org.itxtech.synapseapi.network.protocol.spp.PlayerLoginPacket;
 import org.itxtech.synapseapi.utils.BlobTrack;
 
@@ -80,7 +82,10 @@ public class SynapsePlayer112 extends SynapsePlayer19 {
 	protected void completeLoginSequence() {
 		super.completeLoginSequence();
 		if (this.loggedIn) {
-			this.dataPacket(new BiomeDefinitionListPacket18());
+			BiomeDefinitionListPacket18 pk = new BiomeDefinitionListPacket18();
+			if ((pk.tag = BiomeDefinitions.getData(AbstractProtocol.fromRealProtocol(this.getProtocol()))) != null) {
+				this.dataPacket(pk);
+			}
 			//this.initClientBlobCache();
 		}
 	}

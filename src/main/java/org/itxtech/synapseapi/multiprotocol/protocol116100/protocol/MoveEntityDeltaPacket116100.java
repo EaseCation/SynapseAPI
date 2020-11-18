@@ -17,9 +17,9 @@ public class MoveEntityDeltaPacket116100 extends Packet116100 {
     public static final int FLAG_HAS_PITCH = 0b100000;
 
     public int flags = 0;
-    public float xDelta = 0;
-    public float yDelta = 0;
-    public float zDelta = 0;
+    public float x = 0;
+    public float y = 0;
+    public float z = 0;
     public double yawDelta = 0;
     public double headYawDelta = 0;
     public double pitchDelta = 0;
@@ -32,9 +32,9 @@ public class MoveEntityDeltaPacket116100 extends Packet116100 {
     @Override
     public void decode() {
         this.flags = this.getByte();
-        this.xDelta = getCoordinate(FLAG_HAS_X);
-        this.yDelta = getCoordinate(FLAG_HAS_Y);
-        this.zDelta = getCoordinate(FLAG_HAS_Z);
+        this.x = getCoordinate(FLAG_HAS_X);
+        this.y = getCoordinate(FLAG_HAS_Y);
+        this.z = getCoordinate(FLAG_HAS_Z);
         this.yawDelta = getRotation(FLAG_HAS_YAW);
         this.headYawDelta = getRotation(FLAG_HAS_HEAD_YAW);
         this.pitchDelta = getRotation(FLAG_HAS_PITCH);
@@ -45,9 +45,9 @@ public class MoveEntityDeltaPacket116100 extends Packet116100 {
         this.reset();
         this.putEntityRuntimeId(Long.MAX_VALUE);
         this.putByte((byte) flags);
-        putCoordinate(FLAG_HAS_X, this.xDelta);
-        putCoordinate(FLAG_HAS_Y, this.yDelta);
-        putCoordinate(FLAG_HAS_Z, this.zDelta);
+        putCoordinate(FLAG_HAS_X, this.x);
+        putCoordinate(FLAG_HAS_Y, this.y);
+        putCoordinate(FLAG_HAS_Z, this.z);
         putRotation(FLAG_HAS_YAW, this.yawDelta);
         putRotation(FLAG_HAS_HEAD_YAW, this.headYawDelta);
         putRotation(FLAG_HAS_PITCH, this.pitchDelta);
@@ -85,9 +85,9 @@ public class MoveEntityDeltaPacket116100 extends Packet116100 {
 
         MoveEntityDeltaPacket packet = (MoveEntityDeltaPacket) pk;
         this.flags = packet.flags;
-        this.xDelta = packet.xDelta;
-        this.yDelta = packet.yDelta;
-        this.zDelta = packet.zDelta;
+        this.x = packet.xDelta;
+        this.y = packet.yDelta;
+        this.z = packet.zDelta;
         this.yawDelta = packet.yawDelta;
         this.headYawDelta = packet.headYawDelta;
         this.pitchDelta = packet.pitchDelta;

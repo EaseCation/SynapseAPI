@@ -5,6 +5,9 @@ import cn.nukkit.Server;
 import cn.nukkit.event.EventHandler;
 import cn.nukkit.event.Listener;
 import cn.nukkit.event.server.BatchPacketsEvent;
+import cn.nukkit.item.Item;
+import cn.nukkit.item.RuntimeItemPaletteInterface;
+import cn.nukkit.item.RuntimeItems;
 import cn.nukkit.level.GlobalBlockPalette;
 import cn.nukkit.level.GlobalBlockPaletteInterface;
 import cn.nukkit.nbt.tag.CompoundTag;
@@ -20,7 +23,9 @@ import org.itxtech.synapseapi.messaging.Messenger;
 import org.itxtech.synapseapi.messaging.StandardMessenger;
 import org.itxtech.synapseapi.multiprotocol.protocol19.protocol.LevelSoundEventPacketV319;
 import org.itxtech.synapseapi.multiprotocol.utils.AdvancedGlobalBlockPalette;
+import org.itxtech.synapseapi.multiprotocol.utils.AdvancedRuntimeItemPalette;
 import org.itxtech.synapseapi.multiprotocol.utils.AvailableEntityIdentifiersPalette;
+import org.itxtech.synapseapi.multiprotocol.utils.BiomeDefinitions;
 import org.itxtech.synapseapi.multiprotocol.utils.CreativeItemsPalette;
 import org.itxtech.synapseapi.multiprotocol.utils.LevelSoundEventIDTranslator;
 import org.itxtech.synapseapi.multiprotocol.utils.blockpalette.data.PaletteBlockTable;
@@ -103,6 +108,38 @@ public class SynapseAPI extends PluginBase implements Listener {
             }
         });
 
+        RuntimeItems.setInstance(new RuntimeItemPaletteInterface(){
+            @Override
+            public int getNetworkFullId0(Item item) {
+                return AdvancedRuntimeItemPalette.getNetworkFullId(AbstractProtocol.values0()[AbstractProtocol.values0().length - 1], item);
+            }
+
+            @Override
+            public int getLegacyFullId0(int networkId) {
+                return AdvancedRuntimeItemPalette.getLegacyFullId(AbstractProtocol.values0()[AbstractProtocol.values0().length - 1], networkId);
+            }
+
+            @Override
+            public int getId0(int fullId) {
+                return AdvancedRuntimeItemPalette.getId(AbstractProtocol.values0()[AbstractProtocol.values0().length - 1], fullId);
+            }
+
+            @Override
+            public int getData0(int fullId) {
+                return AdvancedRuntimeItemPalette.getData(AbstractProtocol.values0()[AbstractProtocol.values0().length - 1], fullId);
+            }
+
+            @Override
+            public int getNetworkId0(int networkFullId) {
+                return AdvancedRuntimeItemPalette.getNetworkId(AbstractProtocol.values0()[AbstractProtocol.values0().length - 1], networkFullId);
+            }
+
+            @Override
+            public boolean hasData0(int id) {
+                return AdvancedRuntimeItemPalette.hasData(AbstractProtocol.values0()[AbstractProtocol.values0().length - 1], id);
+            }
+        });
+
         this.transferDimensionTaskThread = new TransferDimensionTaskThread();
         this.transferDimensionTaskThread.start();
 
@@ -160,8 +197,10 @@ public class SynapseAPI extends PluginBase implements Listener {
         this.getMessenger().registerOutgoingPluginChannel(this, "nettest");
 
         AdvancedGlobalBlockPalette.init();
+        AdvancedRuntimeItemPalette.init();
         CreativeItemsPalette.init();
         AvailableEntityIdentifiersPalette.init();
+        BiomeDefinitions.init();
     }
 
     public TransferDimensionTaskThread getTransferDimensionTaskThread() {

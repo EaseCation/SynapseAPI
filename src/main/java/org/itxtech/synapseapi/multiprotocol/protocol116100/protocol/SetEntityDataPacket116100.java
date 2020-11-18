@@ -20,7 +20,7 @@ public class SetEntityDataPacket116100 extends Packet116100 {
 
     public long eid;
     public EntityMetadata metadata;
-    public long tick;
+    public long frame;
 
     @Override
     public void decode() {
@@ -32,7 +32,7 @@ public class SetEntityDataPacket116100 extends Packet116100 {
         this.reset();
         this.putEntityRuntimeId(this.eid);
         this.put(Binary.writeMetadata(this.metadata));
-        this.putUnsignedVarLong(this.tick);
+        this.putUnsignedVarLong(this.frame);
     }
 
     @Override
