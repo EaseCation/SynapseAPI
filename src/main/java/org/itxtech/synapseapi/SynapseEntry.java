@@ -504,6 +504,7 @@ public class SynapseEntry {
                         DataPacket pk;
                         if ((pk = PacketRegister.getPacket(head.getPid(), protocol)) != null) {
                             pk.setBuffer(buf, head.getStartOffset());
+                            pk.setHelper(apl.getHelper());
                             pk.decode();
                             packets.add(pk);
                         }

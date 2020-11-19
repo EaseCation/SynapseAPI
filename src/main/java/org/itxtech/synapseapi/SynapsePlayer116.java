@@ -576,12 +576,6 @@ public class SynapsePlayer116 extends SynapsePlayer113 {
 	}
 
 	@Override
-	protected void doFirstSpawn() {
-		super.doFirstSpawn();
-		this.sendCreativeContents();
-	}
-
-	@Override
 	public int addWindow(Inventory inventory, Integer forceId, boolean isPermanent, boolean alwaysOpen) {
 		if (this.windows.containsKey(inventory)) {
 			return this.windows.get(inventory);
@@ -623,10 +617,11 @@ public class SynapsePlayer116 extends SynapsePlayer113 {
 		this.openInventory();
 	}
 
+	@Override
 	public void sendCreativeContents() {
 		CreativeContentPacket116 pk = new CreativeContentPacket116();
 		if (!this.isSpectator()) { //fill it for all gamemodes except spectator
-			pk.entries = Item.getCreativeItems().toArray(new Item[0]);
+			pk.entries = this.getCreativeItems().toArray(new Item[0]);
 		}
 		this.dataPacket(pk);
 	}

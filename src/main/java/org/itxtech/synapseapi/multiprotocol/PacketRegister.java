@@ -273,6 +273,7 @@ public class PacketRegister {
             }
 
             pk.setBuffer(data, head.getStartOffset());
+            pk.setHelper(ptl.getHelper());
             try {
                 pk.decode();
             } catch (Exception e) {
@@ -344,6 +345,7 @@ public class PacketRegister {
     private static DataPacket check16ProtocolCompatible(DataPacket packet, AbstractProtocol endpointProtocol) {
         if (!(packet instanceof LevelChunkPacket) && endpointProtocol.ordinal() >= AbstractProtocol.PROTOCOL_16.ordinal() && (!(packet instanceof IterationProtocolPacket) || !((IterationProtocolPacket) packet).is16Newer())) {
             CompatibilityPacket16 cp = new CompatibilityPacket16();
+            packet.setHelper(endpointProtocol.getHelper());
             cp.origin = packet;
             return cp;
         } else {

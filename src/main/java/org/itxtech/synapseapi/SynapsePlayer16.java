@@ -2,14 +2,9 @@ package org.itxtech.synapseapi;
 
 import cn.nukkit.Player;
 import cn.nukkit.PlayerFood;
-import cn.nukkit.Server;
 import cn.nukkit.entity.Entity;
 import cn.nukkit.event.player.PlayerJoinEvent;
 import cn.nukkit.event.player.PlayerRespawnEvent;
-import cn.nukkit.inventory.FurnaceRecipe;
-import cn.nukkit.inventory.Recipe;
-import cn.nukkit.inventory.ShapedRecipe;
-import cn.nukkit.inventory.ShapelessRecipe;
 import cn.nukkit.lang.TranslationContainer;
 import cn.nukkit.level.GameRules;
 import cn.nukkit.level.Level;
@@ -33,7 +28,6 @@ import org.itxtech.synapseapi.network.protocol.spp.PlayerLoginPacket;
 
 import java.net.InetSocketAddress;
 import java.util.Optional;
-import java.util.zip.Deflater;
 
 public class SynapsePlayer16 extends SynapsePlayer14 {
 
@@ -265,7 +259,7 @@ public class SynapsePlayer16 extends SynapsePlayer14 {
 			inventoryContentPacket.inventoryId = ContainerIds.CREATIVE;
 			this.dataPacket(inventoryContentPacket);
 		} else {
-			inventory.sendCreativeContents();
+			this.sendCreativeContents();
 		}
 
 		for (long index : this.usedChunks.keySet()) {

@@ -3,23 +3,38 @@ package org.itxtech.synapseapi.multiprotocol;
 import cn.nukkit.Server;
 import cn.nukkit.network.protocol.BatchPacket;
 import cn.nukkit.network.protocol.DataPacket;
-import cn.nukkit.utils.Binary;
 import cn.nukkit.utils.BinaryStream;
+import cn.nukkit.utils.BinaryStream.BinaryStreamHelper;
 import org.itxtech.synapseapi.*;
+import org.itxtech.synapseapi.multiprotocol.protocol110.BinaryStreamHelper110;
 import org.itxtech.synapseapi.multiprotocol.protocol110.protocol.Packet110;
+import org.itxtech.synapseapi.multiprotocol.protocol111.BinaryStreamHelper111;
 import org.itxtech.synapseapi.multiprotocol.protocol111.protocol.Packet111;
+import org.itxtech.synapseapi.multiprotocol.protocol112.BinaryStreamHelper112;
 import org.itxtech.synapseapi.multiprotocol.protocol112.protocol.Packet112;
+import org.itxtech.synapseapi.multiprotocol.protocol113.BinaryStreamHelper113;
 import org.itxtech.synapseapi.multiprotocol.protocol113.protocol.Packet113;
+import org.itxtech.synapseapi.multiprotocol.protocol11460.BinaryStreamHelper11460;
 import org.itxtech.synapseapi.multiprotocol.protocol11460.protocol.Packet11460;
+import org.itxtech.synapseapi.multiprotocol.protocol116.BinaryStreamHelper116;
 import org.itxtech.synapseapi.multiprotocol.protocol116.protocol.Packet116;
+import org.itxtech.synapseapi.multiprotocol.protocol116100.BinaryStreamHelper116100;
 import org.itxtech.synapseapi.multiprotocol.protocol116100.protocol.Packet116100;
 import org.itxtech.synapseapi.multiprotocol.protocol11620.protocol.Packet11620;
+import org.itxtech.synapseapi.multiprotocol.protocol12.BinaryStreamHelper12;
+import org.itxtech.synapseapi.multiprotocol.protocol14.BinaryStreamHelper14;
 import org.itxtech.synapseapi.multiprotocol.protocol14.protocol.Packet14;
+import org.itxtech.synapseapi.multiprotocol.protocol15.BinaryStreamHelper15;
 import org.itxtech.synapseapi.multiprotocol.protocol15.protocol.Packet15;
+import org.itxtech.synapseapi.multiprotocol.protocol16.BinaryStreamHelper16;
 import org.itxtech.synapseapi.multiprotocol.protocol16.protocol.Packet16;
+import org.itxtech.synapseapi.multiprotocol.protocol17.BinaryStreamHelper17;
 import org.itxtech.synapseapi.multiprotocol.protocol17.protocol.Packet17;
+import org.itxtech.synapseapi.multiprotocol.protocol18.BinaryStreamHelper18;
 import org.itxtech.synapseapi.multiprotocol.protocol18.protocol.Packet18;
+import org.itxtech.synapseapi.multiprotocol.protocol19.BinaryStreamHelper19;
 import org.itxtech.synapseapi.multiprotocol.protocol19.protocol.Packet19;
+import org.itxtech.synapseapi.multiprotocol.utils.AdvancedBinaryStreamHelper;
 
 /**
  * org.itxtech.synapseapi.multiprotocol
@@ -31,39 +46,45 @@ import org.itxtech.synapseapi.multiprotocol.protocol19.protocol.Packet19;
  */
 public enum AbstractProtocol {
 
-    PROTOCOL_11(0, null, null),
-    PROTOCOL_12(114, DataPacket.class, SynapsePlayer.class),
-    PROTOCOL_14(261, Packet14.class, SynapsePlayer14.class),
-    PROTOCOL_15(270, Packet15.class, SynapsePlayer14.class),
-    PROTOCOL_16(282, Packet16.class, SynapsePlayer16.class),
-    PROTOCOL_17(290, Packet17.class, SynapsePlayer17.class),
-    PROTOCOL_18(312, Packet18.class, SynapsePlayer18.class),
-    PROTOCOL_19(332, Packet19.class, SynapsePlayer19.class),
-    PROTOCOL_110(340, Packet110.class, SynapsePlayer19.class),
-    PROTOCOL_111(354, Packet111.class, SynapsePlayer19.class),
-    PROTOCOL_112(361, Packet112.class, SynapsePlayer112.class),
-    PROTOCOL_113(388, Packet113.class, SynapsePlayer113.class),
-    PROTOCOL_114(389, Packet113.class, SynapsePlayer113.class),
-    PROTOCOL_114_60(390, Packet11460.class, SynapsePlayer113.class),
-    PROTOCOL_116(407, Packet116.class, SynapsePlayer116.class, true),
-    PROTOCOL_116_20(408, Packet11620.class, SynapsePlayer116.class, true),
-    PROTOCOL_116_100(419, Packet116100.class, SynapsePlayer116100.class, true),
+    PROTOCOL_11(0, null, null, BinaryStreamHelper.getInstance()),
+    PROTOCOL_12(114, DataPacket.class, SynapsePlayer.class, BinaryStreamHelper12.create()),
+    PROTOCOL_14(261, Packet14.class, SynapsePlayer14.class, BinaryStreamHelper14.create()),
+    PROTOCOL_15(270, Packet15.class, SynapsePlayer14.class, BinaryStreamHelper15.create()),
+    PROTOCOL_16(282, Packet16.class, SynapsePlayer16.class, BinaryStreamHelper16.create()),
+    PROTOCOL_17(290, Packet17.class, SynapsePlayer17.class, BinaryStreamHelper17.create()),
+    PROTOCOL_18(312, Packet18.class, SynapsePlayer18.class, BinaryStreamHelper18.create()),
+    PROTOCOL_19(332, Packet19.class, SynapsePlayer19.class, BinaryStreamHelper19.create()),
+    PROTOCOL_110(340, Packet110.class, SynapsePlayer19.class, BinaryStreamHelper110.create()),
+    PROTOCOL_111(354, Packet111.class, SynapsePlayer19.class, BinaryStreamHelper111.create()),
+    PROTOCOL_112(361, Packet112.class, SynapsePlayer112.class, BinaryStreamHelper112.create()),
+    PROTOCOL_113(388, Packet113.class, SynapsePlayer113.class, BinaryStreamHelper113.create()),
+    PROTOCOL_114(389, Packet113.class, SynapsePlayer113.class, BinaryStreamHelper113.create()),
+    PROTOCOL_114_60(390, Packet11460.class, SynapsePlayer113.class, BinaryStreamHelper11460.create()),
+    PROTOCOL_116(407, Packet116.class, SynapsePlayer116.class, BinaryStreamHelper116.create(), true),
+    PROTOCOL_116_20(408, Packet11620.class, SynapsePlayer116.class, BinaryStreamHelper116.create(), true),
+    PROTOCOL_116_100(419, Packet116100.class, SynapsePlayer116100.class, BinaryStreamHelper116100.create(), true),
     ;
 
     private final int protocolStart;
     private final Class<? extends DataPacket> packetClass;
     private final Class<? extends SynapsePlayer> playerClass;
+    private final BinaryStreamHelper helper;
     private final boolean zlibRaw;
 
-    AbstractProtocol(int protocolStart, Class<? extends DataPacket> packetClass, Class<? extends SynapsePlayer> playerClass) {
-        this(protocolStart, packetClass, playerClass, false);
+    AbstractProtocol(int protocolStart, Class<? extends DataPacket> packetClass, Class<? extends SynapsePlayer> playerClass, BinaryStreamHelper helper) {
+        this(protocolStart, packetClass, playerClass, helper, false);
     }
 
-    AbstractProtocol(int protocolStart, Class<? extends DataPacket> packetClass, Class<? extends SynapsePlayer> playerClass, boolean zlibRaw) {
+    AbstractProtocol(int protocolStart, Class<? extends DataPacket> packetClass, Class<? extends SynapsePlayer> playerClass, BinaryStreamHelper helper, boolean zlibRaw) {
         this.protocolStart = protocolStart;
         this.packetClass = packetClass;
         this.playerClass = playerClass;
+        this.helper = helper;
         this.zlibRaw = zlibRaw;
+
+        if (helper instanceof AdvancedBinaryStreamHelper) {
+            ((AdvancedBinaryStreamHelper) helper).setProtocol(this);
+        }
     }
 
     public static AbstractProtocol fromRealProtocol(int protocol) {
@@ -75,6 +96,10 @@ public enum AbstractProtocol {
 
     public int getProtocolStart() {
         return protocolStart;
+    }
+
+    public BinaryStreamHelper getHelper() {
+        return this.helper;
     }
 
     public boolean isZlibRaw() {

@@ -48,6 +48,7 @@ public final class CraftingPacketManager {
             if (protocol.ordinal() >= AbstractProtocol.PROTOCOL_14.ordinal()) {
                 DataPacket pk0 = PacketRegister.getCompatiblePacket(pk, protocol, false);
                 if (pk0 != null) {
+                    pk0.setHelper(protocol.getHelper());
                     pk0.encode();
                     if (protocol.ordinal() >= AbstractProtocol.PROTOCOL_116.ordinal())
                         packets.put(protocol, pk0.compress(Deflater.BEST_COMPRESSION, true));

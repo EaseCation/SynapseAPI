@@ -15,7 +15,7 @@ public class ContainerClosePacket116100 extends Packet116100 {
     }
 
     public int windowId;
-    public boolean wasServerInitiated = true;
+    public boolean wasServerInitiated;
 
     @Override
     public void decode() {

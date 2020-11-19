@@ -41,7 +41,7 @@ public class RuntimeItemPaletteLegacy implements AdvancedRuntimeItemPaletteInter
     }
 
     @Override
-    public byte[] getCompiledData() {
+    public byte[] getCompiledData() throws UnsupportedOperationException {
         throw new UnsupportedOperationException();
     }
 }

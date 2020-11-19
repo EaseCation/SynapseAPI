@@ -136,6 +136,7 @@ public class SynapseEntryPutPacketThread extends Thread {
                         }
 
                         if (!entry.packet.isEncoded) {
+                            entry.packet.setHelper(AbstractProtocol.fromRealProtocol(entry.player.getProtocol()).getHelper());
                             entry.packet.encode();
                             entry.packet.isEncoded = true;
                             /*
@@ -241,10 +242,10 @@ public class SynapseEntryPutPacketThread extends Thread {
 
                     Map<AbstractProtocol, byte[][]> finalData = new HashMap<>();
                     needPackets.forEach((protocol, packets) -> {
-                        BatchPacket batch = batchPackets(packets.stream().map(BatchPacketEntry::getNormalVersion).toArray(DataPacket[]::new), protocol.isZlibRaw());
+                        BatchPacket batch = batchPackets(packets.stream().map(BatchPacketEntry::getNormalVersion).toArray(DataPacket[]::new), protocol);
                         if (batch != null) {
                             if (haveNetEasePacket[0]) {
-                                BatchPacket batchNetEase = batchPackets(packets.stream().map(BatchPacketEntry::getNetEaseVersion).toArray(DataPacket[]::new), protocol.isZlibRaw());
+                                BatchPacket batchNetEase = batchPackets(packets.stream().map(BatchPacketEntry::getNetEaseVersion).toArray(DataPacket[]::new), protocol);
                                 if (batchNetEase != null) {
                                     finalData.put(protocol, new byte[][]{Binary.appendBytes((byte) 0xfe, batch.payload), Binary.appendBytes((byte) 0xfe, batchNetEase.payload)});
                                 } else {
@@ -336,12 +337,13 @@ public class SynapseEntryPutPacketThread extends Thread {
         return NukkitMath.round(10f / (double)this.tickUseTime, 3) * 100;
     }
 
-    private BatchPacket batchPackets(DataPacket[] packets, boolean zlibRaw) {
+    private BatchPacket batchPackets(DataPacket[] packets, AbstractProtocol protocol) {
         try {
             byte[][] payload = new byte[packets.length * 2][];
             for (int i = 0; i < packets.length; i++) {
                 DataPacket p = packets[i];
                 if (!p.isEncoded) {
+                    p.setHelper(protocol.getHelper());
                     p.encode();
                 }
                 byte[] buf = p.getBuffer();
@@ -352,7 +354,7 @@ public class SynapseEntryPutPacketThread extends Thread {
             data = Binary.appendBytes(payload);
 
             BatchPacket packet = new BatchPacket();
-            if (zlibRaw) {
+            if (protocol.isZlibRaw()) {
                 packet.payload = Network.deflateRaw(data, Server.getInstance().networkCompressionLevel);
             } else {
                 packet.payload = Zlib.deflate(data, Server.getInstance().networkCompressionLevel);

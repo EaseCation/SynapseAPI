@@ -1076,6 +1076,7 @@ public class SynapsePlayer extends Player {
             return -1;
         }*/
         packet = DataPacketEidReplacer.replace(packet, this.getId(), Long.MAX_VALUE);
+        packet.setHelper(AbstractProtocol.fromRealProtocol(this.protocol).getHelper());
 
         DataPacketSendEvent ev = new DataPacketSendEvent(this, packet);
         this.server.getPluginManager().callEvent(ev);

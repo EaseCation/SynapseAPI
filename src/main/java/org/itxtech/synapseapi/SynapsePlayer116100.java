@@ -6,7 +6,6 @@ import cn.nukkit.event.inventory.InventoryCloseEvent;
 import cn.nukkit.level.Position;
 import cn.nukkit.math.Vector3;
 import cn.nukkit.network.SourceInterface;
-import cn.nukkit.network.protocol.CraftingDataPacket;
 import cn.nukkit.network.protocol.DataPacket;
 import cn.nukkit.network.protocol.ProtocolInfo;
 import cn.nukkit.network.protocol.ResourcePackClientResponsePacket;
@@ -194,12 +193,5 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
                 super.handleDataPacket(packet);
                 break;
         }
-    }
-
-    @Override //FIXME: crash
-    protected void sendRecipeList() {
-        CraftingDataPacket pk = new CraftingDataPacket();
-        pk.cleanRecipes = true;
-        this.dataPacket(pk);
     }
 }
