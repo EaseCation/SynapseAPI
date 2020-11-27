@@ -202,7 +202,13 @@ public class LoginPacket14 extends Packet14 {
         byte[] data = Base64.getDecoder().decode(element.get("Image").getAsString());
         int width = element.get("ImageWidth").getAsInt();
         int height = element.get("ImageHeight").getAsInt();
-        return new SkinAnimation(new SerializedImage(width, height, data), type, frames);
+        int expression;
+        if (element.has("AnimationExpression")) {
+            expression = element.get("AnimationExpression").getAsInt();
+        } else {
+            expression = 0;
+        }
+        return new SkinAnimation(new SerializedImage(width, height, data), type, frames, expression);
     }
 
     private static SerializedImage getImage(JsonObject token, String name) {

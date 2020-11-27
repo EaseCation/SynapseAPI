@@ -198,7 +198,7 @@ public class SynapsePlayer14 extends SynapsePlayer {
 
 				if (!this.callPacketReceiveEvent(((PlayerActionPacket14) packet).toDefault())) break;
 
-				if (!this.spawned || (!this.isAlive() && playerActionPacket.action != PlayerActionPacket14.ACTION_RESPAWN && playerActionPacket.action != PlayerActionPacket14.ACTION_DIMENSION_CHANGE_REQUEST)) {
+				if (!this.spawned || (!this.isAlive() && playerActionPacket.action != PlayerActionPacket14.ACTION_RESPAWN /*&& playerActionPacket.action != PlayerActionPacket14.ACTION_DIMENSION_CHANGE_REQUEST*/)) {
 					break;
 				}
 

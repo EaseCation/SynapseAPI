@@ -21,7 +21,7 @@ public class BinaryStreamHelper116100 extends BinaryStreamHelper116 {
         return new BinaryStreamHelper116100();
     }
 
-    @Override
+    /*@Override
     public Item getSlot(BinaryStream stream) {
         int networkId = stream.getVarInt();
 
@@ -180,5 +180,5 @@ public class BinaryStreamHelper116100 extends BinaryStreamHelper116 {
         if (item.getId() == 513) { // TODO: Shields
             stream.putVarLong(0);
         }
-    }
+    }*/
 }
