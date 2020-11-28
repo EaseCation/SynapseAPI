@@ -127,13 +127,16 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
                 if (!this.spawned || containerClosePacket.windowId == ContainerIds.INVENTORY && !inventoryOpen) {
                     break;
                 }
+                //this.getServer().getLogger().warning("Got ContainerClosePacket: " + containerClosePacket);
 
                 if (this.windowIndex.containsKey(containerClosePacket.windowId)) {
                     this.server.getPluginManager().callEvent(new InventoryCloseEvent(this.windowIndex.get(containerClosePacket.windowId), this));
 
                     if (containerClosePacket.windowId == ContainerIds.INVENTORY) this.inventoryOpen = false;
 
+                    this.closingWindowId = containerClosePacket.windowId;
                     this.removeWindow(this.windowIndex.get(containerClosePacket.windowId));
+                    this.closingWindowId = Integer.MIN_VALUE;
                 } else {
                     this.getServer().getLogger().debug("Unopened window: " + containerClosePacket.windowId);
                 }

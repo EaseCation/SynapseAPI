@@ -3,8 +3,10 @@ package org.itxtech.synapseapi.multiprotocol.protocol116100.protocol;
 import cn.nukkit.network.protocol.ContainerClosePacket;
 import cn.nukkit.network.protocol.DataPacket;
 import cn.nukkit.network.protocol.ProtocolInfo;
+import lombok.ToString;
 import org.itxtech.synapseapi.utils.ClassUtils;
 
+@ToString
 public class ContainerClosePacket116100 extends Packet116100 {
 
     public static final int NETWORK_ID = ProtocolInfo.CONTAINER_CLOSE_PACKET;
@@ -15,6 +17,10 @@ public class ContainerClosePacket116100 extends Packet116100 {
     }
 
     public int windowId;
+    /**
+     * 是否是由服务端发起. 响应客户端的ContainerClosePacket需要为false. 设置不当会收到PacketViolationWarningPacket.
+     * 这个垃圾也许是Microjang用来修那个物品栏消失bug的? 然而并没有什么用.
+     */
     public boolean wasServerInitiated;
 
     @Override
@@ -36,6 +42,7 @@ public class ContainerClosePacket116100 extends Packet116100 {
 
         ContainerClosePacket packet = (ContainerClosePacket) pk;
         this.windowId = packet.windowId;
+        this.wasServerInitiated = packet.wasServerInitiated;
 
         return this;
     }

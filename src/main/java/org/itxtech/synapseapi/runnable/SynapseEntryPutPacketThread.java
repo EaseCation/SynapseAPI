@@ -5,6 +5,7 @@ import cn.nukkit.math.NukkitMath;
 import cn.nukkit.network.Network;
 import cn.nukkit.network.protocol.BatchPacket;
 import cn.nukkit.network.protocol.DataPacket;
+import cn.nukkit.network.protocol.ProtocolInfo;
 import cn.nukkit.utils.Binary;
 import cn.nukkit.utils.MainLogger;
 import cn.nukkit.utils.Zlib;
@@ -73,6 +74,7 @@ public class SynapseEntryPutPacketThread extends Thread {
             Server.getInstance().getLogger().debug("SynapseEntryPutPacketThread Offer: " + packet.getClass().getSimpleName());
             Server.getInstance().getLogger().logException(new Throwable());
         }*/
+        //if (packet.pid() == ProtocolInfo.CONTAINER_CLOSE_PACKET) Server.getInstance().getLogger().warning("Send ContainerClosePacket: " + packet);
     }
 
     public void addMainToThreadBroadcast(SynapsePlayer[] players, DataPacket[] packets) {

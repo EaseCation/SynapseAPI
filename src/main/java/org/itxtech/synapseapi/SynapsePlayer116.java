@@ -560,7 +560,7 @@ public class SynapsePlayer116 extends SynapsePlayer113 {
 				this.getServer().getLogger().warning("Received PacketViolationWarningPacket from " + this.getName());
 				this.getServer().getLogger().warning("type=" + packetViolationWarningPacket.type.name());
 				this.getServer().getLogger().warning("severity=" + packetViolationWarningPacket.severity.name());
-				this.getServer().getLogger().warning("packetId=" + Binary.bytesToHexString(new byte[]{(byte) packetViolationWarningPacket.packetId}));
+				this.getServer().getLogger().warning("packetId=0x" + Binary.bytesToHexString(new byte[]{(byte) packetViolationWarningPacket.packetId}) + " (" + packetViolationWarningPacket.packetId + ")");
 				this.getServer().getLogger().warning("context=" + packetViolationWarningPacket.context);
 				break;
 			case ProtocolInfo.EMOTE_PACKET:
@@ -640,6 +640,7 @@ public class SynapsePlayer116 extends SynapsePlayer113 {
 	public void closeInventory() {
 		ContainerClosePacket pk = new ContainerClosePacket();
 		pk.windowId = this.getWindowId(this.inventory);
+		pk.wasServerInitiated = this.closingWindowId != pk.windowId;
 		this.dataPacket(pk);
 	}
 }
