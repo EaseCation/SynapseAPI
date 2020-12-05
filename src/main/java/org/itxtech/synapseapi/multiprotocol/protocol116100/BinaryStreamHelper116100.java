@@ -21,25 +21,24 @@ public class BinaryStreamHelper116100 extends BinaryStreamHelper116 {
         return new BinaryStreamHelper116100();
     }
 
-    /*@Override
+    @Override
     public Item getSlot(BinaryStream stream) {
         int networkId = stream.getVarInt();
-
         if (networkId == 0) {
             return Item.get(0, 0, 0);
         }
 
-        int fullId = AdvancedRuntimeItemPalette.getLegacyFullId(this.protocol, networkId);
-        boolean hasData = AdvancedRuntimeItemPalette.hasData(this.protocol, fullId);
-        int id = AdvancedRuntimeItemPalette.getId(this.protocol, fullId);
+        int legacyFullId = AdvancedRuntimeItemPalette.getLegacyFullId(this.protocol, networkId);
+        boolean hasData = AdvancedRuntimeItemPalette.hasData(this.protocol, legacyFullId);
+        int id = AdvancedRuntimeItemPalette.getId(this.protocol, legacyFullId);
 
         int auxValue = stream.getVarInt();
         int data = auxValue >> 8;
-        if (data == Short.MAX_VALUE) {
-            data = -1;
-        }
         if (hasData) {
-            data = AdvancedRuntimeItemPalette.getData(this.protocol, fullId);
+            // Swap data using legacy full id
+            data = AdvancedRuntimeItemPalette.getData(this.protocol, legacyFullId);
+        } else if (data == Short.MAX_VALUE) {
+            data = -1;
         }
         int cnt = auxValue & 0xff;
 
@@ -125,15 +124,13 @@ public class BinaryStreamHelper116100 extends BinaryStreamHelper116 {
             return;
         }
 
-        boolean isDurable = item instanceof ItemDurable;
-
         int networkFullId = AdvancedRuntimeItemPalette.getNetworkFullId(this.protocol, item);
         boolean clearData = AdvancedRuntimeItemPalette.hasData(this.protocol, networkFullId);
         int networkId = AdvancedRuntimeItemPalette.getNetworkId(this.protocol, networkFullId);
-
         stream.putVarInt(networkId);
 
         int auxValue = item.getCount();
+        boolean isDurable = item instanceof ItemDurable;
         if (!isDurable) {
             int meta = clearData ? 0 : item.hasMeta() ? item.getDamage() : -1;
             auxValue |= ((meta & 0x7fff) << 8);
@@ -180,5 +177,46 @@ public class BinaryStreamHelper116100 extends BinaryStreamHelper116 {
         if (item.getId() == 513) { // TODO: Shields
             stream.putVarLong(0);
         }
-    }*/
+    }
+
+    @Override
+    public Item getRecipeIngredient(BinaryStream stream) {
+        int networkId = stream.getVarInt();
+        if (networkId == 0) {
+            return Item.get(0, 0, 0);
+        }
+
+        int legacyFullId = AdvancedRuntimeItemPalette.getLegacyFullId(this.protocol, networkId);
+        int id = AdvancedRuntimeItemPalette.getId(this.protocol, legacyFullId);
+        boolean hasData = AdvancedRuntimeItemPalette.hasData(this.protocol, legacyFullId);
+
+        int damage = stream.getVarInt();
+        if (hasData) {
+            damage = AdvancedRuntimeItemPalette.getData(this.protocol, legacyFullId);
+        } else if (damage == 0x7fff) {
+            damage = -1;
+        }
+
+        int count = stream.getVarInt();
+        return Item.get(id, damage, count);
+    }
+
+    @Override
+    public void putRecipeIngredient(BinaryStream stream, Item ingredient) {
+        if (ingredient == null || ingredient.getId() == 0) {
+            stream.putVarInt(0);
+            return;
+        }
+
+        int networkFullId = AdvancedRuntimeItemPalette.getNetworkFullId(this.protocol, ingredient);
+        int networkId = AdvancedRuntimeItemPalette.getNetworkId(this.protocol, networkFullId);
+        int damage = ingredient.hasMeta() ? ingredient.getDamage() : 0x7fff;
+        if (AdvancedRuntimeItemPalette.hasData(this.protocol, networkFullId)) {
+            damage = 0;
+        }
+
+        stream.putVarInt(networkId);
+        stream.putVarInt(damage);
+        stream.putVarInt(ingredient.getCount());
+    }
 }

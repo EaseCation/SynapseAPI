@@ -3,6 +3,7 @@ package org.itxtech.synapseapi;
 import cn.nukkit.Player;
 import cn.nukkit.entity.item.EntityBoat;
 import cn.nukkit.event.inventory.InventoryCloseEvent;
+import cn.nukkit.inventory.Inventory;
 import cn.nukkit.level.Position;
 import cn.nukkit.math.Vector3;
 import cn.nukkit.network.SourceInterface;
@@ -135,7 +136,7 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
                     if (containerClosePacket.windowId == ContainerIds.INVENTORY) this.inventoryOpen = false;
 
                     this.closingWindowId = containerClosePacket.windowId;
-                    this.removeWindow(this.windowIndex.get(containerClosePacket.windowId));
+                    this.removeWindow(this.windowIndex.get(containerClosePacket.windowId), true);
                     this.closingWindowId = Integer.MIN_VALUE;
                 } else {
                     this.getServer().getLogger().debug("Unopened window: " + containerClosePacket.windowId);
@@ -196,5 +197,16 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
                 super.handleDataPacket(packet);
                 break;
         }
+    }
+
+    @Override
+    public void removeWindow(Inventory inventory) {
+        this.removeWindow(inventory, false);
+    }
+
+    protected void removeWindow(Inventory inventory, boolean isResponse) {
+        inventory.close(this);
+        if (isResponse && !this.permanentWindows.contains(this.getWindowId(inventory)))
+            this.windows.remove(inventory);
     }
 }
