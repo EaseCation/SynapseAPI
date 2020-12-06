@@ -8,6 +8,8 @@ import cn.nukkit.nbt.tag.Tag;
 import com.google.common.io.ByteStreams;
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
+import it.unimi.dsi.fastutil.objects.Object2IntMap;
+import it.unimi.dsi.fastutil.objects.Object2IntOpenHashMap;
 import lombok.ToString;
 import org.itxtech.synapseapi.SynapseAPI;
 
@@ -21,6 +23,18 @@ import java.util.Collection;
 import java.util.List;
 
 public class PaletteBlockTable extends ArrayList<PaletteBlockData> {
+
+    private static final Object2IntMap<String> NAME2ID;
+
+    static {
+        try (InputStream stream = SynapseAPI.class.getClassLoader().getResourceAsStream("block_id_map.json");
+             InputStreamReader reader = new InputStreamReader(stream)) {
+            NAME2ID = new Gson().fromJson(reader, Object2IntOpenHashMap.class);
+        } catch (NullPointerException | IOException e) {
+            throw new AssertionError("Unable to load block_id_map.json", e);
+        }
+        NAME2ID.defaultReturnValue(-1);
+    }
 
     private PaletteBlockTable() { }
 
@@ -53,9 +67,19 @@ public class PaletteBlockTable extends ArrayList<PaletteBlockData> {
         }
 
         for (CompoundTag state : tag.getAll()) {
+            CompoundTag blockTag = state.getCompound("block");
+
             if (!state.contains("LegacyStates")) {
-                //table.add(air);
-                table.add(unknown);
+                String name = blockTag.getString("name");
+                int id = NAME2ID.getInt(name);
+                if (id != -1) {
+                    List<Tag> statesData = new ArrayList<>();
+                    blockTag.getCompound("states").getTags().forEach((stateName, stateValue) -> statesData.add(stateValue));
+                    table.add(new PaletteBlockData(id, null, new PaletteBlockData.Block(name, blockTag.getInt("version"), statesData)));
+                } else {
+                    //table.add(air);
+                    table.add(unknown);
+                }
                 continue;
             }
 
@@ -68,7 +92,6 @@ public class PaletteBlockTable extends ArrayList<PaletteBlockData> {
             // Resolve to first legacy id
             PaletteBlockData.LegacyStates firstState = legacyStates[0];
 
-            CompoundTag blockTag = state.getCompound("block");
             CompoundTag blockStatesTag = blockTag.getCompound("states");
             List<Tag> statesData = new ArrayList<>();
             blockStatesTag.getTags().forEach((stateName, stateValue) -> statesData.add(stateValue));
@@ -228,6 +251,11 @@ public class PaletteBlockTable extends ArrayList<PaletteBlockData> {
                     .findFirst().orElse(PaletteBlockData.AIR);
             table.add(find);
         }
+
+        this.forEach(data -> {
+            if (!table.contains(data)) table.add(data);
+        });
+
         return table;
     }
 

@@ -4,11 +4,13 @@ import cn.nukkit.Server;
 import cn.nukkit.utils.BinaryStream;
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
-import it.unimi.dsi.fastutil.ints.Int2IntArrayMap;
+import it.unimi.dsi.fastutil.ints.Int2IntMap;
+import it.unimi.dsi.fastutil.ints.Int2IntOpenHashMap;
 import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
 import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.objects.Object2IntMap;
 import it.unimi.dsi.fastutil.objects.Object2IntOpenHashMap;
+import lombok.extern.log4j.Log4j2;
 import org.itxtech.synapseapi.SynapseAPI;
 import org.itxtech.synapseapi.multiprotocol.AbstractProtocol;
 import org.itxtech.synapseapi.multiprotocol.utils.AdvancedGlobalBlockPaletteInterface;
@@ -23,10 +25,11 @@ import java.nio.charset.StandardCharsets;
 import java.util.Collection;
 import java.util.concurrent.atomic.AtomicInteger;
 
+@Log4j2
 public class GlobalBlockPaletteJson implements AdvancedGlobalBlockPaletteInterface {
 
-    final Int2IntArrayMap legacyToRuntimeId = new Int2IntArrayMap();
-    final Int2IntArrayMap runtimeIdToLegacy = new Int2IntArrayMap();
+    final Int2IntMap legacyToRuntimeId = new Int2IntOpenHashMap();
+    final Int2IntMap runtimeIdToLegacy = new Int2IntOpenHashMap();
     final Int2ObjectMap<String> runtimeIdToString = new Int2ObjectOpenHashMap<>();
     final Object2IntMap<String> stringToRuntimeId = new Object2IntOpenHashMap<>();
     final AtomicInteger runtimeIdAllocator = new AtomicInteger(0);
@@ -55,7 +58,7 @@ public class GlobalBlockPaletteJson implements AdvancedGlobalBlockPaletteInterfa
                 runtimeIdToLegacy.put(i, data.legacyStates[0].id << 4 | (short) data.legacyStates[0].val);
                 for (PaletteBlockData.LegacyStates legacyState : data.legacyStates) {
                     int legacyId = legacyState.id << 4 | (short) legacyState.val;
-                    if (legacyState.val > 0xf) Server.getInstance().getLogger().debug("block meta > 15! id: " + legacyState.id + ", meta: " + legacyState.val);
+                    if (legacyState.val > 0xf) log.trace("block meta > 0xf! id: {}, meta: {}", legacyState.id, legacyState.val);
                     legacyToRuntimeId.put(legacyId, i);
                 }
             }
