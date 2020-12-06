@@ -262,7 +262,7 @@ public class SynapsePlayer extends Player {
         this.forceMovement = this.teleportPosition = this.getPosition();
 
         if (this.isFirstTimeLogin) {
-            PlayerRequestResourcePackEvent resourcePackEvent = new PlayerRequestResourcePackEvent(this, this.server.getResourcePackManager().getResourcePacksMap(), new HashMap<>(), this.server.getForceResources());
+            PlayerRequestResourcePackEvent resourcePackEvent = new PlayerRequestResourcePackEvent(this, this.server.getResourcePackManager().getResourcePacksMap(), this.server.getResourcePackManager().getBehaviorPacksMap(), this.server.getForceResources());
             this.server.getPluginManager().callEvent(resourcePackEvent);
             this.resourcePacks = resourcePackEvent.getResourcePacks();
             this.behaviourPacks = resourcePackEvent.getBehaviourPacks();
