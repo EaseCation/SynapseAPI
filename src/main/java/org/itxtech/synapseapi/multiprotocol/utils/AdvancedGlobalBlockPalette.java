@@ -43,7 +43,7 @@ public final class AdvancedGlobalBlockPalette {
                 new GlobalBlockPaletteJson(AbstractProtocol.PROTOCOL_111, "block_state_list_111_netease.json")
         });
 
-        PaletteBlockTable table116100 = PaletteBlockTable.fromNBTV3("block_state_list_116100.dat"); //TODO: Microjang hardcoded :(
+        PaletteBlockTable table116100 = PaletteBlockTable.fromNBTV3("block_state_list_116100.dat"); //TODO: Microjang hardcoded :( sort by block name )
         PaletteBlockTable table11620 = PaletteBlockTable.fromNBT("block_state_list_11620.dat");
         PaletteBlockTable table116 = PaletteBlockTable.fromNBT("block_state_list_116.dat");
         PaletteBlockTable table114 = PaletteBlockTable.fromNBT("block_state_list_114.dat");
@@ -58,19 +58,22 @@ public final class AdvancedGlobalBlockPalette {
                 new GlobalBlockPaletteNBTOld(AbstractProtocol.PROTOCOL_113, table113.trim(target), "runtime_item_ids_112.json")
         });
         palettes.put(AbstractProtocol.PROTOCOL_114, new AdvancedGlobalBlockPaletteInterface[]{
-                new GlobalBlockPaletteNBT(AbstractProtocol.PROTOCOL_114, table114.trim(target), "runtime_item_ids_114.json")
+                new GlobalBlockPaletteNBT(AbstractProtocol.PROTOCOL_114, table114.trim(target), "runtime_item_ids_114.json", true)
         });
         palettes.put(AbstractProtocol.PROTOCOL_114_60, new AdvancedGlobalBlockPaletteInterface[]{
-                new GlobalBlockPaletteNBT(AbstractProtocol.PROTOCOL_114_60, table114.trim(target), "runtime_item_ids_114.json")
+                new GlobalBlockPaletteNBT(AbstractProtocol.PROTOCOL_114_60, table114.trim(target), "runtime_item_ids_114.json", true)
         });
         palettes.put(AbstractProtocol.PROTOCOL_116, new AdvancedGlobalBlockPaletteInterface[]{
-                new GlobalBlockPaletteNBT(AbstractProtocol.PROTOCOL_116, table116.trim(target), "runtime_item_ids_116.json")
+                new GlobalBlockPaletteNBT(AbstractProtocol.PROTOCOL_116, table116.trim(target), "runtime_item_ids_116.json", true)
         });
         palettes.put(AbstractProtocol.PROTOCOL_116_20, new AdvancedGlobalBlockPaletteInterface[]{
-                new GlobalBlockPaletteNBT(AbstractProtocol.PROTOCOL_116_20, table11620.trim(target), "runtime_item_ids_116.json")
+                new GlobalBlockPaletteNBT(AbstractProtocol.PROTOCOL_116_20, table11620.trim(target), "runtime_item_ids_116.json", true)
         });
         palettes.put(AbstractProtocol.PROTOCOL_116_100, new AdvancedGlobalBlockPaletteInterface[]{
-                new GlobalBlockPaletteNBT(AbstractProtocol.PROTOCOL_116_100, table116100.trim(target), null)
+                new GlobalBlockPaletteNBT(AbstractProtocol.PROTOCOL_116_100, table116100.trim(target), null, true)
+        });
+        palettes.put(AbstractProtocol.PROTOCOL_116_200, new AdvancedGlobalBlockPaletteInterface[]{
+                new GlobalBlockPaletteNBT(AbstractProtocol.PROTOCOL_116_200, table116100.trim(target), null, true)
         });
     }
 
@@ -105,18 +108,6 @@ public final class AdvancedGlobalBlockPalette {
                 return netease ? versions[1].getLegacyId(runtimeId) : versions[0].getLegacyId(runtimeId);
             }
             return versions[0].getLegacyId(runtimeId);
-        } else {
-            throw new RuntimeException("Advanced global block palette protocol " + protocol.name() + " not found");
-        }
-    }
-
-    public static String getName(AbstractProtocol protocol, boolean netease, int runtimeId) {
-        if (palettes.containsKey(protocol)) {
-            AdvancedGlobalBlockPaletteInterface[] versions = palettes.get(protocol);
-            if (versions.length > 1) {
-                return netease ? versions[1].getName(runtimeId) : versions[0].getName(runtimeId);
-            }
-            return versions[0].getName(runtimeId);
         } else {
             throw new RuntimeException("Advanced global block palette protocol " + protocol.name() + " not found");
         }
@@ -193,7 +184,7 @@ public final class AdvancedGlobalBlockPalette {
                 }
             }
 
-            if (index.incrementAndGet() == AbstractProtocol.PROTOCOL_114_60.ordinal()) {
+            if (index.incrementAndGet() == AbstractProtocol.PROTOCOL_114_60.ordinal() || index.get() == AbstractProtocol.PROTOCOL_116_200.ordinal()) {
                 index.incrementAndGet();
             }
         });

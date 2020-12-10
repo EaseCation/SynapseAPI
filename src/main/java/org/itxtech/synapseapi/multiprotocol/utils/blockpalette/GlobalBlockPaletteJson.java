@@ -6,10 +6,6 @@ import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 import it.unimi.dsi.fastutil.ints.Int2IntMap;
 import it.unimi.dsi.fastutil.ints.Int2IntOpenHashMap;
-import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
-import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
-import it.unimi.dsi.fastutil.objects.Object2IntMap;
-import it.unimi.dsi.fastutil.objects.Object2IntOpenHashMap;
 import lombok.extern.log4j.Log4j2;
 import org.itxtech.synapseapi.SynapseAPI;
 import org.itxtech.synapseapi.multiprotocol.AbstractProtocol;
@@ -30,8 +26,6 @@ public class GlobalBlockPaletteJson implements AdvancedGlobalBlockPaletteInterfa
 
     final Int2IntMap legacyToRuntimeId = new Int2IntOpenHashMap();
     final Int2IntMap runtimeIdToLegacy = new Int2IntOpenHashMap();
-    final Int2ObjectMap<String> runtimeIdToString = new Int2ObjectOpenHashMap<>();
-    final Object2IntMap<String> stringToRuntimeId = new Object2IntOpenHashMap<>();
     final AtomicInteger runtimeIdAllocator = new AtomicInteger(0);
     final byte[] compiledTable;
     final byte[] itemDataPalette;
@@ -44,7 +38,6 @@ public class GlobalBlockPaletteJson implements AdvancedGlobalBlockPaletteInterfa
         Server.getInstance().getLogger().info("Loading Advanced Global Block Palette from PaletteBlockTable(old json)");
         legacyToRuntimeId.defaultReturnValue(-1);
         runtimeIdToLegacy.defaultReturnValue(-1);
-        stringToRuntimeId.defaultReturnValue(-1);
 
         BinaryStream table = new BinaryStream();
 
@@ -59,7 +52,7 @@ public class GlobalBlockPaletteJson implements AdvancedGlobalBlockPaletteInterfa
                 for (PaletteBlockData.LegacyStates legacyState : data.legacyStates) {
                     int legacyId = legacyState.id << 4 | (short) legacyState.val;
                     if (legacyState.val > 0xf) log.trace("block meta > 0xf! id: {}, meta: {}", legacyState.id, legacyState.val);
-                    legacyToRuntimeId.put(legacyId, i);
+                    legacyToRuntimeId.putIfAbsent(legacyId, i);
                 }
             }
 
@@ -76,7 +69,6 @@ public class GlobalBlockPaletteJson implements AdvancedGlobalBlockPaletteInterfa
         Server.getInstance().getLogger().info("Loading Advanced Global Block Palette from " + blockPaletteFile);
         legacyToRuntimeId.defaultReturnValue(-1);
         runtimeIdToLegacy.defaultReturnValue(-1);
-        stringToRuntimeId.defaultReturnValue(-1);
 
         compiledTable = loadBlockPaletteJson(protocol, blockPaletteFile);
 
@@ -123,21 +115,13 @@ public class GlobalBlockPaletteJson implements AdvancedGlobalBlockPaletteInterfa
     private int registerMapping(int legacyId, String name) {
         int runtimeId = runtimeIdAllocator.getAndIncrement();
         runtimeIdToLegacy.put(runtimeId, legacyId);
-        legacyToRuntimeId.put(legacyId, runtimeId);
-        stringToRuntimeId.put(name, runtimeId);
-        runtimeIdToString.put(runtimeId, name);
+        legacyToRuntimeId.putIfAbsent(legacyId, runtimeId);
         return runtimeId;
     }
 
     @Override
     public int getLegacyId(int runtimeId) {
         return runtimeIdToLegacy.get(runtimeId);
-    }
-
-    @Override
-    public String getName(int runtimeId) {
-        String name = runtimeIdToString.get(runtimeId);
-        return name == null ? "minecraft:air" : name;
     }
 
     @Override

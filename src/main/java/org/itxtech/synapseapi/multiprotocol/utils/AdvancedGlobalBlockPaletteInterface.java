@@ -20,8 +20,6 @@ public interface AdvancedGlobalBlockPaletteInterface {
 
     int getLegacyId(int runtimeId);
 
-    String getName(int runtimeId);
-
     byte[] getCompiledTable();
 
     byte[] getItemDataPalette();

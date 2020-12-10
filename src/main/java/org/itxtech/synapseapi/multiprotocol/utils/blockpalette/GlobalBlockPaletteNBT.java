@@ -9,8 +9,7 @@ import it.unimi.dsi.fastutil.ints.Int2IntMap;
 import it.unimi.dsi.fastutil.ints.Int2IntOpenHashMap;
 import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
 import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
-import it.unimi.dsi.fastutil.objects.Object2IntMap;
-import it.unimi.dsi.fastutil.objects.Object2IntOpenHashMap;
+import lombok.extern.log4j.Log4j2;
 import org.itxtech.synapseapi.SynapseAPI;
 import org.itxtech.synapseapi.multiprotocol.AbstractProtocol;
 import org.itxtech.synapseapi.multiprotocol.utils.AdvancedGlobalBlockPaletteInterface;
@@ -25,14 +24,14 @@ import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.concurrent.atomic.AtomicInteger;
 
+@Log4j2
 public class GlobalBlockPaletteNBT implements AdvancedGlobalBlockPaletteInterface {
 
     final Int2IntMap legacyToRuntimeId = new Int2IntOpenHashMap();
     final Int2IntMap runtimeIdToLegacy = new Int2IntOpenHashMap();
-    final Int2ObjectMap<String> runtimeIdToString = new Int2ObjectOpenHashMap<>();
-    final Object2IntMap<String> stringToRuntimeId = new Object2IntOpenHashMap<>();
     final Int2ObjectMap<CompoundTag> runtimeIdToState = new Int2ObjectOpenHashMap<>();
     final AtomicInteger runtimeIdAllocator = new AtomicInteger(0);
+    final boolean allowUnknownBlock; // Show 'Update Game!' block
     final byte[] compiledTable;
     final byte[] itemDataPalette;
 
@@ -41,25 +40,26 @@ public class GlobalBlockPaletteNBT implements AdvancedGlobalBlockPaletteInterfac
     }
 
     public GlobalBlockPaletteNBT(AbstractProtocol protocol, PaletteBlockTable blockTable, String itemDataPaletteJsonFile) {
+        this(protocol, blockTable, itemDataPaletteJsonFile, false);
+    }
+
+    public GlobalBlockPaletteNBT(AbstractProtocol protocol, PaletteBlockTable blockTable, String itemDataPaletteJsonFile, boolean allowUnknownBlock) {
         Server.getInstance().getLogger().info("Loading Advanced Global Block Palette from PaletteBlockTable(nbt)");
         legacyToRuntimeId.defaultReturnValue(-1);
         runtimeIdToLegacy.defaultReturnValue(-1);
-        stringToRuntimeId.defaultReturnValue(-1);
+        this.allowUnknownBlock = allowUnknownBlock;
 
         try {
             compiledTable = NBTIO.write(blockTable.toTag(), ByteOrder.LITTLE_ENDIAN, true);
-            for (int i = 0; i < blockTable.size(); i++) {
+            for (int i = 0; i < blockTable.size(); i++, runtimeIdAllocator.incrementAndGet()) {
                 PaletteBlockData data = blockTable.get(i);
-
-                String name = data.block.name;
-                stringToRuntimeId.put(name, i);
-                runtimeIdToString.put(i, name);
+                runtimeIdToState.put(i, data.block.getStatesTag());
 
                 if (data.legacyStates != null && data.legacyStates.length > 0) {
                     runtimeIdToLegacy.put(i, data.legacyStates[0].id << 6 | (short) data.legacyStates[0].val);
                     for (PaletteBlockData.LegacyStates legacyState : data.legacyStates) {
                         int legacyId = legacyState.id << 6 | (short) legacyState.val;
-                        legacyToRuntimeId.put(legacyId, i);
+                        legacyToRuntimeId.putIfAbsent(legacyId, i);
                     }
                 }
             }
@@ -70,10 +70,14 @@ public class GlobalBlockPaletteNBT implements AdvancedGlobalBlockPaletteInterfac
     }
 
     public GlobalBlockPaletteNBT(AbstractProtocol protocol, String blockPaletteFile, String itemDataPaletteJsonFile) {
+        this(protocol, blockPaletteFile, itemDataPaletteJsonFile, false);
+    }
+
+    public GlobalBlockPaletteNBT(AbstractProtocol protocol, String blockPaletteFile, String itemDataPaletteJsonFile, boolean allowUnknownBlock) {
         Server.getInstance().getLogger().info("Loading Advanced Global Block Palette from " + blockPaletteFile);
         legacyToRuntimeId.defaultReturnValue(-1);
         runtimeIdToLegacy.defaultReturnValue(-1);
-        stringToRuntimeId.defaultReturnValue(-1);
+        this.allowUnknownBlock = allowUnknownBlock;
 
         compiledTable = loadBlockPaletteNBT(protocol, blockPaletteFile);
         itemDataPalette = loadItemDataPalette(itemDataPaletteJsonFile);
@@ -96,8 +100,6 @@ public class GlobalBlockPaletteNBT implements AdvancedGlobalBlockPaletteInterfac
             runtimeIdToState.put(runtimeId, state);
 
             String name = state.getCompound("block").getString("name");
-            stringToRuntimeId.put(name, runtimeId);
-            runtimeIdToString.put(runtimeId, name);
 
             if (!state.contains("LegacyStates")) continue;
 
@@ -109,7 +111,7 @@ public class GlobalBlockPaletteNBT implements AdvancedGlobalBlockPaletteInterfac
 
             for (CompoundTag legacyState : legacyStates) {
                 int legacyId = legacyState.getInt("id") << 6 | legacyState.getShort("val");
-                legacyToRuntimeId.put(legacyId, runtimeId);
+                legacyToRuntimeId.putIfAbsent(legacyId, runtimeId);
             }
             //state.remove("LegacyStates"); // No point in sending this since the client doesn't use it.
         }
@@ -128,7 +130,13 @@ public class GlobalBlockPaletteNBT implements AdvancedGlobalBlockPaletteInterfac
         if (runtimeId == -1) {
             runtimeId = legacyToRuntimeId.get(id << 6);
             if (runtimeId == -1) {
-                throw new NoSuchElementException("Unmapped block registered id:" + id + " meta:" + meta);
+                if (!this.allowUnknownBlock) {
+                    throw new NoSuchElementException("Unmapped block registered id:" + id + " meta:" + meta);
+                }
+                log.info("Creating new runtime ID for unknown block {}", id);
+                runtimeId = runtimeIdAllocator.getAndIncrement();
+                legacyToRuntimeId.put(id << 6, runtimeId);
+                runtimeIdToLegacy.put(runtimeId, id << 6);
             }
         }
         return runtimeId;
@@ -142,12 +150,6 @@ public class GlobalBlockPaletteNBT implements AdvancedGlobalBlockPaletteInterfac
     @Override
     public int getLegacyId(int runtimeId) {
         return runtimeIdToLegacy.get(runtimeId);
-    }
-
-    @Override
-    public String getName(int runtimeId) {
-        String name = runtimeIdToString.get(runtimeId);
-        return name == null ? "minecraft:air" : name;
     }
 
     @Override

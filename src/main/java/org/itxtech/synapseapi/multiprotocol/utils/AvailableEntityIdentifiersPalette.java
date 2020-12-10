@@ -27,6 +27,7 @@ public final class AvailableEntityIdentifiersPalette {
             palettes.put(AbstractProtocol.PROTOCOL_116, ByteStreams.toByteArray(SynapseAPI.getInstance().getResource("entity_identifiers_116.dat")));
             palettes.put(AbstractProtocol.PROTOCOL_116_20, ByteStreams.toByteArray(SynapseAPI.getInstance().getResource("entity_identifiers_11620.dat")));
             palettes.put(AbstractProtocol.PROTOCOL_116_100, ByteStreams.toByteArray(SynapseAPI.getInstance().getResource("entity_identifiers_116100.dat")));
+            palettes.put(AbstractProtocol.PROTOCOL_116_200, ByteStreams.toByteArray(SynapseAPI.getInstance().getResource("entity_identifiers_116100.dat")));
         } catch (NullPointerException | IOException e) {
             throw new AssertionError("Unable to load entity_identifiers.dat");
         }

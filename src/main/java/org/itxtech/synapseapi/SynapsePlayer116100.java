@@ -18,6 +18,7 @@ import org.itxtech.synapseapi.multiprotocol.protocol116100.protocol.ContainerClo
 import org.itxtech.synapseapi.multiprotocol.protocol116100.protocol.MovePlayerPacket116100;
 import org.itxtech.synapseapi.multiprotocol.protocol116100.protocol.ResourcePackStackPacket116100;
 import org.itxtech.synapseapi.multiprotocol.protocol116100.protocol.StartGamePacket116100;
+import org.itxtech.synapseapi.multiprotocol.protocol116200.protocol.ResourcePacksInfoPacket116200;
 import org.itxtech.synapseapi.multiprotocol.protocol16.protocol.ResourcePackClientResponsePacket16;
 
 import java.net.InetSocketAddress;
@@ -208,5 +209,17 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
         inventory.close(this);
         if (isResponse && !this.permanentWindows.contains(this.getWindowId(inventory)))
             this.windows.remove(inventory);
+    }
+
+    @Override
+    protected DataPacket generateResourcePackInfoPacket() {
+        if (this.protocol >= AbstractProtocol.PROTOCOL_116_200.ordinal()) {
+            ResourcePacksInfoPacket116200 resourcePacket = new ResourcePacksInfoPacket116200();
+            resourcePacket.resourcePackEntries = this.resourcePacks.values().toArray(new ResourcePack[0]);
+            resourcePacket.behaviourPackEntries = this.behaviourPacks.values().toArray(new ResourcePack[0]);
+            resourcePacket.mustAccept = this.forceResources;
+            return resourcePacket;
+        }
+        return super.generateResourcePackInfoPacket();
     }
 }

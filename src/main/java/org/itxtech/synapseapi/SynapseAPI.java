@@ -101,11 +101,6 @@ public class SynapseAPI extends PluginBase implements Listener {
             public int getLegacyId0(int runtimeId) {
                 return AdvancedGlobalBlockPalette.getLegacyId(AbstractProtocol.values0()[AbstractProtocol.values0().length - 1], false, runtimeId);
             }
-
-            @Override
-            public String getName0(int runtimeId) {
-                return AdvancedGlobalBlockPalette.getName(AbstractProtocol.values0()[AbstractProtocol.values0().length - 1], false, runtimeId);
-            }
         });
 
         RuntimeItems.setInstance(new RuntimeItemPaletteInterface(){

@@ -40,12 +40,16 @@ public class PaletteBlockData {
             CompoundTag tag = new CompoundTag();
             tag.putString("name", name);
             tag.putInt("version", version);
+            tag.putCompound("states", this.getStatesTag());
+            return tag;
+        }
+
+        public CompoundTag getStatesTag() {
             CompoundTag states = new CompoundTag();
             for (Tag state : this.states) {
                 states.put(state.getName(), state);
             }
-            tag.putCompound("states", states);
-            return tag;
+            return states;
         }
 
         @Override
