@@ -213,7 +213,7 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
 
     @Override
     protected DataPacket generateResourcePackInfoPacket() {
-        if (this.protocol >= AbstractProtocol.PROTOCOL_116_200.ordinal()) {
+        if (this.protocol >= AbstractProtocol.PROTOCOL_116_200.getProtocolStart()) {
             ResourcePacksInfoPacket116200 resourcePacket = new ResourcePacksInfoPacket116200();
             resourcePacket.resourcePackEntries = this.resourcePacks.values().toArray(new ResourcePack[0]);
             resourcePacket.behaviourPackEntries = this.behaviourPacks.values().toArray(new ResourcePack[0]);
