@@ -26,6 +26,7 @@ import org.itxtech.synapseapi.event.player.SynapsePlayerCreationEvent;
 import org.itxtech.synapseapi.messaging.StandardMessenger;
 import org.itxtech.synapseapi.multiprotocol.AbstractProtocol;
 import org.itxtech.synapseapi.multiprotocol.PacketRegister;
+import org.itxtech.synapseapi.multiprotocol.protocol116100.protocol.MovePlayerPacket116100;
 import org.itxtech.synapseapi.network.SynLibInterface;
 import org.itxtech.synapseapi.network.SynapseInterface;
 import org.itxtech.synapseapi.network.protocol.spp.*;
@@ -439,11 +440,52 @@ public class SynapseEntry {
                         if (pk0.pid() == ProtocolInfo.BATCH_PACKET) {
                             this.processBatch((BatchPacket) pk0, redirectPacket.protocol).forEach(subPacket -> {
                                 this.redirectPacketQueue.offer(new RedirectPacketEntry(player, subPacket));
-                                if (SynapseAPI.getInstance().isNetworkBroadcastPlayerMove() && subPacket instanceof MovePlayerPacket) {
+                                if (SynapseAPI.getInstance().isNetworkBroadcastPlayerMove()) {
                                     //玩家体验优化：直接不经过主线程广播玩家移动，插件过度干预可能会造成移动鬼畜问题
-                                    ((MovePlayerPacket) subPacket).eid = player.getId();
-                                    subPacket.setChannel(DataPacket.CHANNEL_PLAYER_MOVING);
-                                    new ArrayList<>(player.getViewers().values()).forEach(viewer -> viewer.dataPacket(subPacket));
+                                    if (subPacket instanceof MovePlayerPacket) {
+                                        ((MovePlayerPacket) subPacket).eid = player.getId();
+                                        subPacket.setChannel(DataPacket.CHANNEL_PLAYER_MOVING);
+                                        MovePlayerPacket116100 newMovePacket = null;
+                                        for (Player viewer : new ArrayList<>(player.getViewers().values())) {
+                                            if (viewer.getProtocol() >= AbstractProtocol.PROTOCOL_116_100.getProtocolStart()) {
+                                                if (newMovePacket == null) {
+                                                    newMovePacket = new MovePlayerPacket116100();
+                                                    newMovePacket.fromDefault(subPacket);
+                                                    newMovePacket.setChannel(DataPacket.CHANNEL_PLAYER_MOVING);
+                                                }
+                                                viewer.dataPacket(newMovePacket);
+                                            } else {
+                                                viewer.dataPacket(subPacket);
+                                            }
+                                        }
+                                    } else if (subPacket instanceof MovePlayerPacket116100) {
+                                        ((MovePlayerPacket116100) subPacket).eid = player.getId();
+                                        subPacket.setChannel(DataPacket.CHANNEL_PLAYER_MOVING);
+                                        MovePlayerPacket oldMovePacket = null;
+                                        for (Player viewer : new ArrayList<>(player.getViewers().values())) {
+                                            if (viewer.getProtocol() < AbstractProtocol.PROTOCOL_116_100.getProtocolStart()) {
+                                                if (oldMovePacket == null) {
+                                                    oldMovePacket = new MovePlayerPacket();
+                                                    oldMovePacket.eid = ((MovePlayerPacket116100) subPacket).eid;
+                                                    oldMovePacket.x = ((MovePlayerPacket116100) subPacket).x;
+                                                    oldMovePacket.y = ((MovePlayerPacket116100) subPacket).y;
+                                                    oldMovePacket.z = ((MovePlayerPacket116100) subPacket).z;
+                                                    oldMovePacket.yaw = ((MovePlayerPacket116100) subPacket).yaw;
+                                                    oldMovePacket.headYaw = ((MovePlayerPacket116100) subPacket).headYaw;
+                                                    oldMovePacket.pitch = ((MovePlayerPacket116100) subPacket).pitch;
+                                                    oldMovePacket.mode = ((MovePlayerPacket116100) subPacket).mode;
+                                                    oldMovePacket.onGround = ((MovePlayerPacket116100) subPacket).onGround;
+                                                    oldMovePacket.ridingEid = ((MovePlayerPacket116100) subPacket).ridingEid;
+                                                    oldMovePacket.int1 = ((MovePlayerPacket116100) subPacket).int1;
+                                                    oldMovePacket.int2 = ((MovePlayerPacket116100) subPacket).int2;
+                                                    oldMovePacket.setChannel(DataPacket.CHANNEL_PLAYER_MOVING);
+                                                }
+                                                viewer.dataPacket(oldMovePacket);
+                                            } else {
+                                                viewer.dataPacket(subPacket);
+                                            }
+                                        }
+                                    }
                                     if (!this.movePlayerPacketCount.containsKey(player.getUniqueId())) this.movePlayerPacketCount.put(player.getUniqueId(), 0);
                                     this.movePlayerPacketCount.replace(player.getUniqueId(), this.movePlayerPacketCount.get(player.getUniqueId()) + 1);
                                 }
