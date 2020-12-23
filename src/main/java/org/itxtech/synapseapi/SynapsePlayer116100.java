@@ -14,10 +14,11 @@ import cn.nukkit.network.protocol.ResourcePackDataInfoPacket;
 import cn.nukkit.network.protocol.types.ContainerIds;
 import cn.nukkit.resourcepacks.ResourcePack;
 import org.itxtech.synapseapi.multiprotocol.AbstractProtocol;
+import org.itxtech.synapseapi.multiprotocol.protocol113.protocol.ResourcePackStackPacket113;
 import org.itxtech.synapseapi.multiprotocol.protocol116100.protocol.ContainerClosePacket116100;
-import org.itxtech.synapseapi.multiprotocol.protocol116100.protocol.MovePlayerPacket116100;
+import org.itxtech.synapseapi.multiprotocol.protocol116100ne.protocol.MovePlayerPacket116100NE;
 import org.itxtech.synapseapi.multiprotocol.protocol116100.protocol.ResourcePackStackPacket116100;
-import org.itxtech.synapseapi.multiprotocol.protocol116100.protocol.StartGamePacket116100;
+import org.itxtech.synapseapi.multiprotocol.protocol116100ne.protocol.StartGamePacket116100NE;
 import org.itxtech.synapseapi.multiprotocol.protocol116200.protocol.ResourcePacksInfoPacket116200;
 import org.itxtech.synapseapi.multiprotocol.protocol16.protocol.ResourcePackClientResponsePacket16;
 
@@ -31,7 +32,7 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
 
     @Override
     protected DataPacket generateStartGamePacket(Position spawnPosition) {
-        StartGamePacket116100 startGamePacket = new StartGamePacket116100();
+        StartGamePacket116100NE startGamePacket = new StartGamePacket116100NE();
         startGamePacket.protocol = AbstractProtocol.fromRealProtocol(this.protocol);
         startGamePacket.netease = this.isNetEaseClient();
         startGamePacket.entityUniqueId = Long.MAX_VALUE;
@@ -109,11 +110,20 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
                         }
                         break;
                     case ResourcePackClientResponsePacket.STATUS_HAVE_ALL_PACKS:
-                        ResourcePackStackPacket116100 stackPacket = new ResourcePackStackPacket116100();
-                        stackPacket.mustAccept = this.forceResources;
-                        stackPacket.resourcePackStack = this.resourcePacks.values().toArray(new ResourcePack[0]);
-                        stackPacket.behaviourPackStack = this.behaviourPacks.values().toArray(new ResourcePack[0]);
-                        this.dataPacket(stackPacket);
+                        if (this.getProtocol() < AbstractProtocol.PROTOCOL_116_100.getProtocolStart()) {
+                            ResourcePackStackPacket113 stackPacket = new ResourcePackStackPacket113();
+                            stackPacket.mustAccept = this.forceResources;
+                            stackPacket.resourcePackStack = this.resourcePacks.values().toArray(new ResourcePack[0]);
+                            stackPacket.behaviourPackStack = this.behaviourPacks.values().toArray(new ResourcePack[0]);
+                            this.dataPacket(stackPacket);
+                        } else {
+                            ResourcePackStackPacket116100 stackPacket = new ResourcePackStackPacket116100();
+                            stackPacket.mustAccept = this.forceResources;
+                            stackPacket.resourcePackStack = this.resourcePacks.values().toArray(new ResourcePack[0]);
+                            stackPacket.behaviourPackStack = this.behaviourPacks.values().toArray(new ResourcePack[0]);
+                            this.dataPacket(stackPacket);
+                        }
+
                         break;
                     case ResourcePackClientResponsePacket.STATUS_COMPLETED:
                         if (this.preLoginEventTask.isFinished()) {
@@ -125,6 +135,10 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
                 }
                 break;
             case ProtocolInfo.CONTAINER_CLOSE_PACKET:
+                if (this.getProtocol() < AbstractProtocol.PROTOCOL_116_100.getProtocolStart()) {
+                    super.handleDataPacket(packet);
+                    return;
+                }
                 ContainerClosePacket116100 containerClosePacket = (ContainerClosePacket116100) packet;
                 if (!this.spawned || containerClosePacket.windowId == ContainerIds.INVENTORY && !inventoryOpen) {
                     break;
@@ -159,7 +173,7 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
                     break;
                 }
 
-                MovePlayerPacket116100 movePlayerPacket = (MovePlayerPacket116100) packet;
+                MovePlayerPacket116100NE movePlayerPacket = (MovePlayerPacket116100NE) packet;
                 Vector3 newPos = new Vector3(movePlayerPacket.x, movePlayerPacket.y - this.getEyeHeight(), movePlayerPacket.z);
 
                 if (newPos.distanceSquared(this) < 0.01 && movePlayerPacket.yaw % 360 == this.yaw && movePlayerPacket.pitch % 360 == this.pitch) {
@@ -173,7 +187,7 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
                 }
 
                 if (this.forceMovement != null && (newPos.distanceSquared(this.forceMovement) > 0.1 || revert)) {
-                    this.sendPosition(this.forceMovement, this.yaw, this.pitch, MovePlayerPacket116100.MODE_TELEPORT);
+                    this.sendPosition(this.forceMovement, this.yaw, this.pitch, MovePlayerPacket116100NE.MODE_TELEPORT);
                 } else {
 
                     movePlayerPacket.yaw %= 360;

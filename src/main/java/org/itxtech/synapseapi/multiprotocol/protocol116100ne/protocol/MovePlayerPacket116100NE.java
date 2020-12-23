@@ -1,12 +1,13 @@
-package org.itxtech.synapseapi.multiprotocol.protocol116100.protocol;
+package org.itxtech.synapseapi.multiprotocol.protocol116100ne.protocol;
 
 import cn.nukkit.math.Vector3f;
 import cn.nukkit.network.protocol.DataPacket;
 import cn.nukkit.network.protocol.MovePlayerPacket;
 import cn.nukkit.network.protocol.ProtocolInfo;
+import org.itxtech.synapseapi.multiprotocol.protocol116100.protocol.Packet116100;
 import org.itxtech.synapseapi.utils.ClassUtils;
 
-public class MovePlayerPacket116100 extends Packet116100 {
+public class MovePlayerPacket116100NE extends Packet116100NE {
 
     public static final int NETWORK_ID = ProtocolInfo.MOVE_PLAYER_PACKET;
 

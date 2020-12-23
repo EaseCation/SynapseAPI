@@ -14,6 +14,10 @@ import org.itxtech.synapseapi.multiprotocol.protocol113.protocol.*;
 import org.itxtech.synapseapi.multiprotocol.protocol11460.protocol.PlayerListPacket11460;
 import org.itxtech.synapseapi.multiprotocol.protocol116.protocol.*;
 import org.itxtech.synapseapi.multiprotocol.protocol116100.protocol.*;
+import org.itxtech.synapseapi.multiprotocol.protocol116100ne.protocol.MovePlayerPacket116100NE;
+import org.itxtech.synapseapi.multiprotocol.protocol116100ne.protocol.SetEntityDataPacket116100NE;
+import org.itxtech.synapseapi.multiprotocol.protocol116100ne.protocol.StartGamePacket116100NE;
+import org.itxtech.synapseapi.multiprotocol.protocol116100ne.protocol.UpdateAttributesPacket116100NE;
 import org.itxtech.synapseapi.multiprotocol.protocol11620.protocol.StartGamePacket11620;
 import org.itxtech.synapseapi.multiprotocol.protocol116200.protocol.ResourcePacksInfoPacket116200;
 import org.itxtech.synapseapi.multiprotocol.protocol15.protocol.AddEntityPacket15;
@@ -162,10 +166,11 @@ public class PacketRegister {
 
         registerPacket(AbstractProtocol.PROTOCOL_116_20, ProtocolInfo.START_GAME_PACKET, StartGamePacket11620.class);
 
-        registerPacket(AbstractProtocol.PROTOCOL_116_100, ProtocolInfo.START_GAME_PACKET, StartGamePacket116100.class);
-        registerPacket(AbstractProtocol.PROTOCOL_116_100, ProtocolInfo.MOVE_PLAYER_PACKET, MovePlayerPacket116100.class);
-        registerPacket(AbstractProtocol.PROTOCOL_116_100, ProtocolInfo.SET_ENTITY_DATA_PACKET, SetEntityDataPacket116100.class);
-        registerPacket(AbstractProtocol.PROTOCOL_116_100, ProtocolInfo.UPDATE_ATTRIBUTES_PACKET, UpdateAttributesPacket116100.class);
+        registerPacket(AbstractProtocol.PROTOCOL_116_100_NE, ProtocolInfo.START_GAME_PACKET, StartGamePacket116100NE.class);
+        registerPacket(AbstractProtocol.PROTOCOL_116_100_NE, ProtocolInfo.MOVE_PLAYER_PACKET, MovePlayerPacket116100NE.class);
+        registerPacket(AbstractProtocol.PROTOCOL_116_100_NE, ProtocolInfo.SET_ENTITY_DATA_PACKET, SetEntityDataPacket116100NE.class);
+        registerPacket(AbstractProtocol.PROTOCOL_116_100_NE, ProtocolInfo.UPDATE_ATTRIBUTES_PACKET, UpdateAttributesPacket116100NE.class);
+
         registerPacket(AbstractProtocol.PROTOCOL_116_100, ProtocolInfo.RESOURCE_PACK_STACK_PACKET, ResourcePackStackPacket116100.class);
         registerPacket(AbstractProtocol.PROTOCOL_116_100, ProtocolInfo.CONTAINER_CLOSE_PACKET, ContainerClosePacket116100.class);
         registerPacket(AbstractProtocol.PROTOCOL_116_100, ProtocolInfo.MOVE_ENTITY_DELTA_PACKET, MoveEntityDeltaPacket116100.class);

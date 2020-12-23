@@ -16,17 +16,15 @@ import cn.nukkit.utils.Binary;
 import cn.nukkit.utils.BinaryStream;
 import cn.nukkit.utils.MainLogger;
 import cn.nukkit.utils.Zlib;
-import cn.nukkit.utils.bugreport.BugReportGenerator;
 import co.aikar.timings.Timing;
 import co.aikar.timings.TimingsManager;
 import com.google.gson.Gson;
-import com.google.gson.JsonObject;
 import org.itxtech.synapseapi.event.player.SynapsePlayerClockHackEvent;
 import org.itxtech.synapseapi.event.player.SynapsePlayerCreationEvent;
 import org.itxtech.synapseapi.messaging.StandardMessenger;
 import org.itxtech.synapseapi.multiprotocol.AbstractProtocol;
 import org.itxtech.synapseapi.multiprotocol.PacketRegister;
-import org.itxtech.synapseapi.multiprotocol.protocol116100.protocol.MovePlayerPacket116100;
+import org.itxtech.synapseapi.multiprotocol.protocol116100ne.protocol.MovePlayerPacket116100NE;
 import org.itxtech.synapseapi.network.SynLibInterface;
 import org.itxtech.synapseapi.network.SynapseInterface;
 import org.itxtech.synapseapi.network.protocol.spp.*;
@@ -35,7 +33,6 @@ import org.itxtech.synapseapi.utils.DataPacketEidReplacer;
 import org.itxtech.synapseapi.utils.PlayerNetworkLatencyData;
 
 import java.lang.reflect.Constructor;
-import java.lang.reflect.InvocationTargetException;
 import java.net.InetSocketAddress;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
@@ -445,11 +442,11 @@ public class SynapseEntry {
                                     if (subPacket instanceof MovePlayerPacket) {
                                         ((MovePlayerPacket) subPacket).eid = player.getId();
                                         subPacket.setChannel(DataPacket.CHANNEL_PLAYER_MOVING);
-                                        MovePlayerPacket116100 newMovePacket = null;
+                                        MovePlayerPacket116100NE newMovePacket = null;
                                         for (Player viewer : new ArrayList<>(player.getViewers().values())) {
                                             if (viewer.getProtocol() >= AbstractProtocol.PROTOCOL_116_100.getProtocolStart()) {
                                                 if (newMovePacket == null) {
-                                                    newMovePacket = new MovePlayerPacket116100();
+                                                    newMovePacket = new MovePlayerPacket116100NE();
                                                     newMovePacket.fromDefault(subPacket);
                                                     newMovePacket.setChannel(DataPacket.CHANNEL_PLAYER_MOVING);
                                                 }
@@ -458,26 +455,26 @@ public class SynapseEntry {
                                                 viewer.dataPacket(subPacket);
                                             }
                                         }
-                                    } else if (subPacket instanceof MovePlayerPacket116100) {
-                                        ((MovePlayerPacket116100) subPacket).eid = player.getId();
+                                    } else if (subPacket instanceof MovePlayerPacket116100NE) {
+                                        ((MovePlayerPacket116100NE) subPacket).eid = player.getId();
                                         subPacket.setChannel(DataPacket.CHANNEL_PLAYER_MOVING);
                                         MovePlayerPacket oldMovePacket = null;
                                         for (Player viewer : new ArrayList<>(player.getViewers().values())) {
                                             if (viewer.getProtocol() < AbstractProtocol.PROTOCOL_116_100.getProtocolStart()) {
                                                 if (oldMovePacket == null) {
                                                     oldMovePacket = new MovePlayerPacket();
-                                                    oldMovePacket.eid = ((MovePlayerPacket116100) subPacket).eid;
-                                                    oldMovePacket.x = ((MovePlayerPacket116100) subPacket).x;
-                                                    oldMovePacket.y = ((MovePlayerPacket116100) subPacket).y;
-                                                    oldMovePacket.z = ((MovePlayerPacket116100) subPacket).z;
-                                                    oldMovePacket.yaw = ((MovePlayerPacket116100) subPacket).yaw;
-                                                    oldMovePacket.headYaw = ((MovePlayerPacket116100) subPacket).headYaw;
-                                                    oldMovePacket.pitch = ((MovePlayerPacket116100) subPacket).pitch;
-                                                    oldMovePacket.mode = ((MovePlayerPacket116100) subPacket).mode;
-                                                    oldMovePacket.onGround = ((MovePlayerPacket116100) subPacket).onGround;
-                                                    oldMovePacket.ridingEid = ((MovePlayerPacket116100) subPacket).ridingEid;
-                                                    oldMovePacket.int1 = ((MovePlayerPacket116100) subPacket).int1;
-                                                    oldMovePacket.int2 = ((MovePlayerPacket116100) subPacket).int2;
+                                                    oldMovePacket.eid = ((MovePlayerPacket116100NE) subPacket).eid;
+                                                    oldMovePacket.x = ((MovePlayerPacket116100NE) subPacket).x;
+                                                    oldMovePacket.y = ((MovePlayerPacket116100NE) subPacket).y;
+                                                    oldMovePacket.z = ((MovePlayerPacket116100NE) subPacket).z;
+                                                    oldMovePacket.yaw = ((MovePlayerPacket116100NE) subPacket).yaw;
+                                                    oldMovePacket.headYaw = ((MovePlayerPacket116100NE) subPacket).headYaw;
+                                                    oldMovePacket.pitch = ((MovePlayerPacket116100NE) subPacket).pitch;
+                                                    oldMovePacket.mode = ((MovePlayerPacket116100NE) subPacket).mode;
+                                                    oldMovePacket.onGround = ((MovePlayerPacket116100NE) subPacket).onGround;
+                                                    oldMovePacket.ridingEid = ((MovePlayerPacket116100NE) subPacket).ridingEid;
+                                                    oldMovePacket.int1 = ((MovePlayerPacket116100NE) subPacket).int1;
+                                                    oldMovePacket.int2 = ((MovePlayerPacket116100NE) subPacket).int2;
                                                     oldMovePacket.setChannel(DataPacket.CHANNEL_PLAYER_MOVING);
                                                 }
                                                 viewer.dataPacket(oldMovePacket);

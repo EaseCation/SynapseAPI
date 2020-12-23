@@ -21,7 +21,7 @@ import cn.nukkit.network.protocol.SetEntityLinkPacket;
 import cn.nukkit.network.protocol.SetEntityMotionPacket;
 import cn.nukkit.network.protocol.TakeItemEntityPacket;
 import cn.nukkit.network.protocol.UpdateAttributesPacket;
-import org.itxtech.synapseapi.multiprotocol.protocol116100.protocol.MovePlayerPacket116100;
+import org.itxtech.synapseapi.multiprotocol.protocol116100ne.protocol.MovePlayerPacket116100NE;
 
 import java.util.Arrays;
 import java.util.Map;
@@ -74,8 +74,8 @@ public class DataPacketEidReplacer {
             case MovePlayerPacket.NETWORK_ID:
                 if (packet instanceof MovePlayerPacket) {
                     if (((MovePlayerPacket) packet).eid == from) ((MovePlayerPacket) packet).eid = to;
-                } else if (packet instanceof MovePlayerPacket116100) {
-                    if (((MovePlayerPacket116100) packet).eid == from) ((MovePlayerPacket116100) packet).eid = to;
+                } else if (packet instanceof MovePlayerPacket116100NE) {
+                    if (((MovePlayerPacket116100NE) packet).eid == from) ((MovePlayerPacket116100NE) packet).eid = to;
                 }
                 break;
             case MobEquipmentPacket.NETWORK_ID:

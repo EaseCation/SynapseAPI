@@ -1,4 +1,4 @@
-package org.itxtech.synapseapi.multiprotocol.protocol116100.protocol;
+package org.itxtech.synapseapi.multiprotocol.protocol116100ne.protocol;
 
 import cn.nukkit.entity.data.EntityMetadata;
 import cn.nukkit.network.protocol.DataPacket;
@@ -6,10 +6,11 @@ import cn.nukkit.network.protocol.ProtocolInfo;
 import cn.nukkit.network.protocol.SetEntityDataPacket;
 import cn.nukkit.utils.Binary;
 import org.itxtech.synapseapi.multiprotocol.AbstractProtocol;
+import org.itxtech.synapseapi.multiprotocol.protocol116100.protocol.Packet116100;
 import org.itxtech.synapseapi.multiprotocol.utils.EntityMetadataGenerator;
 import org.itxtech.synapseapi.utils.ClassUtils;
 
-public class SetEntityDataPacket116100 extends Packet116100 {
+public class SetEntityDataPacket116100NE extends Packet116100NE {
 
     public static final int NETWORK_ID = ProtocolInfo.SET_ENTITY_DATA_PACKET;
 

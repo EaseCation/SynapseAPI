@@ -1,11 +1,12 @@
-package org.itxtech.synapseapi.multiprotocol.protocol116100.protocol;
+package org.itxtech.synapseapi.multiprotocol.protocol116100ne.protocol;
 
 import cn.nukkit.level.GameRules;
 import cn.nukkit.network.protocol.ProtocolInfo;
 import org.itxtech.synapseapi.multiprotocol.AbstractProtocol;
+import org.itxtech.synapseapi.multiprotocol.protocol116100.protocol.Packet116100;
 import org.itxtech.synapseapi.multiprotocol.utils.AdvancedRuntimeItemPalette;
 
-public class StartGamePacket116100 extends Packet116100 {
+public class StartGamePacket116100NE extends Packet116100NE {
 
     public static final int NETWORK_ID = ProtocolInfo.START_GAME_PACKET;
 
