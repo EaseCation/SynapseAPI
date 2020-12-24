@@ -8,5 +8,10 @@ public class BinaryStreamHelper116 extends BinaryStreamHelper11460 {
         return new BinaryStreamHelper116();
     }
 
+    @Override
+    public String getGameVersion() {
+        return "1.16.0";
+    }
+
 
 }

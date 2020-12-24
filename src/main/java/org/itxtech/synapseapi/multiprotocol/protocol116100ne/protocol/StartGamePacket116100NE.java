@@ -2,10 +2,11 @@ package org.itxtech.synapseapi.multiprotocol.protocol116100ne.protocol;
 
 import cn.nukkit.level.GameRules;
 import cn.nukkit.network.protocol.ProtocolInfo;
+import lombok.ToString;
 import org.itxtech.synapseapi.multiprotocol.AbstractProtocol;
-import org.itxtech.synapseapi.multiprotocol.protocol116100.protocol.Packet116100;
-import org.itxtech.synapseapi.multiprotocol.utils.AdvancedRuntimeItemPalette;
+import org.itxtech.synapseapi.multiprotocol.utils.AdvancedGlobalBlockPalette;
 
+@ToString
 public class StartGamePacket116100NE extends Packet116100NE {
 
     public static final int NETWORK_ID = ProtocolInfo.START_GAME_PACKET;
@@ -100,7 +101,7 @@ public class StartGamePacket116100NE extends Packet116100NE {
 
         this.putVarInt(this.seed);
         this.putLShort(0x00); // SpawnBiomeType - Default
-        this.putString("plains"); // UserDefinedBiomeName
+        this.putString(""); // UserDefinedBiomeName
         this.putVarInt(this.dimension);
         this.putVarInt(this.generator);
         this.putVarInt(this.worldGamemode);
@@ -121,8 +122,6 @@ public class StartGamePacket116100NE extends Packet116100NE {
         this.putBoolean(this.commandsEnabled);
         this.putBoolean(this.isTexturePacksRequired);
         this.putGameRules14(this.gameRules);
-        this.putLInt(0); // Experiment count
-        this.putBoolean(false); // Were experiments previously toggled
         this.putBoolean(this.bonusChest);
         this.putBoolean(this.hasStartWithMapEnabled);
         this.putVarInt(this.permissionLevel);
@@ -134,9 +133,9 @@ public class StartGamePacket116100NE extends Packet116100NE {
         this.putBoolean(this.isFromWorldTemplate);
         this.putBoolean(this.isWorldTemplateOptionLocked);
         this.putBoolean(this.isOnlySpawningV1Villagers);
-        this.putString(this.vanillaVersion);
-        this.putLInt(16); // Limited world width
-        this.putLInt(16); // Limited world height
+        this.putString(this.helper.getGameVersion());
+        this.putLInt(0); // Limited world width
+        this.putLInt(0); // Limited world height
         this.putBoolean(false); // Nether type
         this.putBoolean(false); // Experimental Gameplay
 
@@ -144,14 +143,15 @@ public class StartGamePacket116100NE extends Packet116100NE {
         this.putString(this.worldName);
         this.putString(this.premiumWorldTemplateId);
         this.putBoolean(this.isTrial);
-        this.putUnsignedVarInt(this.isMovementServerAuthoritative ? 1 : 0); // 2 - rewind
+        this.putVarInt(this.isMovementServerAuthoritative ? 1 : 0); // 2 - rewind
         this.putLLong(this.currentTick);
         this.putVarInt(this.enchantmentSeed);
 
-        this.putUnsignedVarInt(0); // Custom blocks
-        this.put(this.itemDataPalette == null ? AdvancedRuntimeItemPalette.getCompiledData(this.protocol) : this.itemDataPalette);
+        this.put(blockPalette == null ? AdvancedGlobalBlockPalette.getCompiledTable(protocol, netease) : blockPalette);
+        this.put(itemDataPalette == null ? AdvancedGlobalBlockPalette.getCompiledItemDataPalette(protocol, netease): itemDataPalette);
         this.putString(this.multiplayerCorrelationId);
         this.putBoolean(this.isInventoryServerAuthoritative);
+        this.putVarInt(0); // 详见协议文档
     }
 
     private void putGameRules14(GameRules rules) {

@@ -14,14 +14,18 @@ import org.itxtech.synapseapi.multiprotocol.protocol112.BinaryStreamHelper112;
 import org.itxtech.synapseapi.multiprotocol.protocol112.protocol.Packet112;
 import org.itxtech.synapseapi.multiprotocol.protocol113.BinaryStreamHelper113;
 import org.itxtech.synapseapi.multiprotocol.protocol113.protocol.Packet113;
+import org.itxtech.synapseapi.multiprotocol.protocol114.BinaryStreamHelper114;
 import org.itxtech.synapseapi.multiprotocol.protocol11460.BinaryStreamHelper11460;
 import org.itxtech.synapseapi.multiprotocol.protocol11460.protocol.Packet11460;
 import org.itxtech.synapseapi.multiprotocol.protocol116.BinaryStreamHelper116;
 import org.itxtech.synapseapi.multiprotocol.protocol116.protocol.Packet116;
 import org.itxtech.synapseapi.multiprotocol.protocol116100.BinaryStreamHelper116100;
 import org.itxtech.synapseapi.multiprotocol.protocol116100.protocol.Packet116100;
+import org.itxtech.synapseapi.multiprotocol.protocol116100ne.BinaryStreamHelper116100NE;
 import org.itxtech.synapseapi.multiprotocol.protocol116100ne.protocol.Packet116100NE;
+import org.itxtech.synapseapi.multiprotocol.protocol11620.BinaryStreamHelper11620;
 import org.itxtech.synapseapi.multiprotocol.protocol11620.protocol.Packet11620;
+import org.itxtech.synapseapi.multiprotocol.protocol116200.BinaryStreamHelper116200;
 import org.itxtech.synapseapi.multiprotocol.protocol116200.protocol.Packet116200;
 import org.itxtech.synapseapi.multiprotocol.protocol12.BinaryStreamHelper12;
 import org.itxtech.synapseapi.multiprotocol.protocol14.BinaryStreamHelper14;
@@ -60,13 +64,13 @@ public enum AbstractProtocol {
     PROTOCOL_111(354, Packet111.class, SynapsePlayer19.class, BinaryStreamHelper111.create()),
     PROTOCOL_112(361, Packet112.class, SynapsePlayer112.class, BinaryStreamHelper112.create()),
     PROTOCOL_113(388, Packet113.class, SynapsePlayer113.class, BinaryStreamHelper113.create()),
-    PROTOCOL_114(389, Packet113.class, SynapsePlayer113.class, BinaryStreamHelper113.create()),
+    PROTOCOL_114(389, Packet113.class, SynapsePlayer113.class, BinaryStreamHelper114.create()),
     PROTOCOL_114_60(390, Packet11460.class, SynapsePlayer113.class, BinaryStreamHelper11460.create()),
     PROTOCOL_116(407, Packet116.class, SynapsePlayer116.class, BinaryStreamHelper116.create(), true),
-    PROTOCOL_116_20(408, Packet11620.class, SynapsePlayer116.class, BinaryStreamHelper116.create(), true),
-    PROTOCOL_116_100_NE(410, Packet116100NE.class, SynapsePlayer116100.class, BinaryStreamHelper116100.create(), true),
+    PROTOCOL_116_20(408, Packet11620.class, SynapsePlayer116.class, BinaryStreamHelper11620.create(), true),
+    PROTOCOL_116_100_NE(410, Packet116100NE.class, SynapsePlayer116100.class, BinaryStreamHelper116100NE.create(), true),
     PROTOCOL_116_100(419, Packet116100.class, SynapsePlayer116100.class, BinaryStreamHelper116100.create(), true),
-    PROTOCOL_116_200(422, Packet116200.class, SynapsePlayer116100.class, BinaryStreamHelper116100.create(), true),
+    PROTOCOL_116_200(422, Packet116200.class, SynapsePlayer116100.class, BinaryStreamHelper116200.create(), true),
     ;
 
     private final int protocolStart;

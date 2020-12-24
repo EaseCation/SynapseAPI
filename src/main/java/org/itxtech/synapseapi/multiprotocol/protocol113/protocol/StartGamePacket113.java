@@ -129,7 +129,7 @@ public class StartGamePacket113 extends Packet113 {
 		this.putBoolean(this.isFromWorldTemplate);
 		this.putBoolean(this.isWorldTemplateOptionLocked);
 		this.putBoolean(this.isOnlySpawningV1Villagers);
-		this.putString(this.vanillaVersion);
+		this.putString(this.helper.getGameVersion());
 
 		this.putString(this.levelId);
 		this.putString(this.worldName);

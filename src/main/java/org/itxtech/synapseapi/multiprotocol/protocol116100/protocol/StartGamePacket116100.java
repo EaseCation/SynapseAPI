@@ -1,14 +1,13 @@
-package org.itxtech.synapseapi.multiprotocol.protocol11620.protocol;
+package org.itxtech.synapseapi.multiprotocol.protocol116100.protocol;
 
 import cn.nukkit.level.GameRules;
 import cn.nukkit.network.protocol.ProtocolInfo;
+import lombok.ToString;
 import org.itxtech.synapseapi.multiprotocol.AbstractProtocol;
-import org.itxtech.synapseapi.multiprotocol.utils.AdvancedGlobalBlockPalette;
+import org.itxtech.synapseapi.multiprotocol.utils.AdvancedRuntimeItemPalette;
 
-/**
- * Created on 15-10-13.
- */
-public class StartGamePacket11620 extends Packet11620 {
+@ToString
+public class StartGamePacket116100 extends Packet116100 {
 
     public static final int NETWORK_ID = ProtocolInfo.START_GAME_PACKET;
 
@@ -69,7 +68,7 @@ public class StartGamePacket11620 extends Packet11620 {
     public boolean isFromWorldTemplate = false;
     public boolean isWorldTemplateOptionLocked = false;
     public boolean isOnlySpawningV1Villagers = false;
-    public String vanillaVersion = "1.16.20";
+    public String vanillaVersion = "1.16.100";
     public String levelId = ""; //base64 string, usually the same as world folder name in vanilla
     public String worldName;
     public String premiumWorldTemplateId = "";
@@ -101,8 +100,8 @@ public class StartGamePacket11620 extends Packet11620 {
         this.putLFloat(this.pitch);
 
         this.putVarInt(this.seed);
-        this.putLShort(0x00); // SpawnBiomeType
-        this.putString(""); // UserDefinedBiomeName
+        this.putLShort(0x00); // SpawnBiomeType - Default
+        this.putString("plains"); // UserDefinedBiomeName
         this.putVarInt(this.dimension);
         this.putVarInt(this.generator);
         this.putVarInt(this.worldGamemode);
@@ -112,7 +111,7 @@ public class StartGamePacket11620 extends Packet11620 {
         this.putVarInt(this.dayCycleStopTime);
         this.putVarInt(this.eduEditionOffer);
         this.putBoolean(this.hasEduFeaturesEnabled);
-        this.putString(""); // UnknownString0
+        this.putString(""); // Education Edition Product ID
         this.putLFloat(this.rainLevel);
         this.putLFloat(this.lightningLevel);
         this.putBoolean(this.hasConfirmedPlatformLockedContent);
@@ -123,6 +122,8 @@ public class StartGamePacket11620 extends Packet11620 {
         this.putBoolean(this.commandsEnabled);
         this.putBoolean(this.isTexturePacksRequired);
         this.putGameRules14(this.gameRules);
+        this.putLInt(0); // Experiment count
+        this.putBoolean(false); // Were experiments previously toggled
         this.putBoolean(this.bonusChest);
         this.putBoolean(this.hasStartWithMapEnabled);
         this.putVarInt(this.permissionLevel);
@@ -135,21 +136,21 @@ public class StartGamePacket11620 extends Packet11620 {
         this.putBoolean(this.isWorldTemplateOptionLocked);
         this.putBoolean(this.isOnlySpawningV1Villagers);
         this.putString(this.helper.getGameVersion());
-        this.putLInt(0); // UnknownInt0
-        this.putLInt(0); // UnknownInt1
-        this.putBoolean(false);
-        this.putBoolean(false);
+        this.putLInt(16); // Limited world width
+        this.putLInt(16); // Limited world height
+        this.putBoolean(false); // Nether type
+        this.putBoolean(false); // Experimental Gameplay
 
         this.putString(this.levelId);
         this.putString(this.worldName);
         this.putString(this.premiumWorldTemplateId);
         this.putBoolean(this.isTrial);
-        this.putBoolean(this.isMovementServerAuthoritative);
+        this.putUnsignedVarInt(this.isMovementServerAuthoritative ? 1 : 0); // 2 - rewind
         this.putLLong(this.currentTick);
         this.putVarInt(this.enchantmentSeed);
 
-        this.put(blockPalette == null ? AdvancedGlobalBlockPalette.getCompiledTable(protocol, netease) : blockPalette);
-        this.put(itemDataPalette == null ? AdvancedGlobalBlockPalette.getCompiledItemDataPalette(protocol, netease): itemDataPalette);
+        this.putUnsignedVarInt(0); // Custom blocks
+        this.put(this.itemDataPalette == null ? AdvancedRuntimeItemPalette.getCompiledData(this.protocol) : this.itemDataPalette);
         this.putString(this.multiplayerCorrelationId);
         this.putBoolean(this.isInventoryServerAuthoritative);
     }

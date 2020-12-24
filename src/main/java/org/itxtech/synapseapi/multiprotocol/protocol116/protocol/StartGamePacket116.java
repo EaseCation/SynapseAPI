@@ -134,7 +134,7 @@ public class StartGamePacket116 extends Packet116 {
 		this.putBoolean(this.isFromWorldTemplate);
 		this.putBoolean(this.isWorldTemplateOptionLocked);
 		this.putBoolean(this.isOnlySpawningV1Villagers);
-		this.putString(this.vanillaVersion);
+		this.putString(this.helper.getGameVersion());
 		this.putLInt(0); // UnknownInt0
 		this.putLInt(0); // UnknownInt1
 		this.putBoolean(false);

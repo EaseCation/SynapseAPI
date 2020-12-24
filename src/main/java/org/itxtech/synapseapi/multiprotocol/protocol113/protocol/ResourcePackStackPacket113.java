@@ -38,7 +38,7 @@ public class ResourcePackStackPacket113 extends Packet113 {
             this.putString("");
         }
         this.putBoolean(this.isExperimental);
-        this.putString(this.gameVersion);
+        this.putString(this.helper.getGameVersion());
     }
 
     @Override

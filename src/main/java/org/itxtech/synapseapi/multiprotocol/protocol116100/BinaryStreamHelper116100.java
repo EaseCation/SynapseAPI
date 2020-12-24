@@ -8,14 +8,14 @@ import cn.nukkit.nbt.tag.ListTag;
 import cn.nukkit.nbt.tag.StringTag;
 import cn.nukkit.utils.BinaryStream;
 import it.unimi.dsi.fastutil.io.FastByteArrayInputStream;
-import org.itxtech.synapseapi.multiprotocol.protocol116.BinaryStreamHelper116;
+import org.itxtech.synapseapi.multiprotocol.protocol116100ne.BinaryStreamHelper116100NE;
 import org.itxtech.synapseapi.multiprotocol.utils.AdvancedRuntimeItemPalette;
 
 import java.io.IOException;
 import java.nio.ByteOrder;
 import java.util.List;
 
-public class BinaryStreamHelper116100 extends BinaryStreamHelper116 {
+public class BinaryStreamHelper116100 extends BinaryStreamHelper116100NE {
 
     public static BinaryStreamHelper116100 create() {
         return new BinaryStreamHelper116100();
