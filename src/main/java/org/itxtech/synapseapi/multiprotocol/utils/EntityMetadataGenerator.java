@@ -78,8 +78,9 @@ public class EntityMetadataGenerator {
 							:
 							EntityDataItemIDTranslator.translateTo111Id(v12Id)
 			) : EntityDataItemIDTranslator.translateTo14Id(v12Id);
-			if(newId == null) {
+			if (newId == null) {
 				MainLogger.getLogger().warning("Unable to translate to version " + protocol.name() + " with id " + v12Id);
+				//entityMetadata.put(entityData);
 				continue;
 			}
 			if(entityData instanceof ByteEntityData) {
