@@ -68,7 +68,7 @@ public enum AbstractProtocol {
     PROTOCOL_114_60(390, Packet11460.class, SynapsePlayer113.class, BinaryStreamHelper11460.create()),
     PROTOCOL_116(407, Packet116.class, SynapsePlayer116.class, BinaryStreamHelper116.create(), true),
     PROTOCOL_116_20(408, Packet11620.class, SynapsePlayer116.class, BinaryStreamHelper11620.create(), true),
-    PROTOCOL_116_100_NE(410, Packet116100NE.class, SynapsePlayer116100.class, BinaryStreamHelper116100NE.create(), true),
+    PROTOCOL_116_100_NE(410, Packet116100NE.class, SynapsePlayer116100.class, BinaryStreamHelper116100NE.create(), true), // 1.16.100.51 beta
     PROTOCOL_116_100(419, Packet116100.class, SynapsePlayer116100.class, BinaryStreamHelper116100.create(), true),
     PROTOCOL_116_200(422, Packet116200.class, SynapsePlayer116100.class, BinaryStreamHelper116200.create(), true),
     ;

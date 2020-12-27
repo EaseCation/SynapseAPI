@@ -143,7 +143,7 @@ public class StartGamePacket116100NE extends Packet116100NE {
         this.putString(this.worldName);
         this.putString(this.premiumWorldTemplateId);
         this.putBoolean(this.isTrial);
-        this.putVarInt(this.isMovementServerAuthoritative ? 1 : 0); // 2 - rewind
+        this.putUnsignedVarInt(this.isMovementServerAuthoritative ? 1 : 0); // 2 - rewind
         this.putLLong(this.currentTick);
         this.putVarInt(this.enchantmentSeed);
 

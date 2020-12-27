@@ -16,10 +16,11 @@ import cn.nukkit.resourcepacks.ResourcePack;
 import org.itxtech.synapseapi.multiprotocol.AbstractProtocol;
 import org.itxtech.synapseapi.multiprotocol.protocol113.protocol.ResourcePackStackPacket113;
 import org.itxtech.synapseapi.multiprotocol.protocol116100.protocol.ContainerClosePacket116100;
-import org.itxtech.synapseapi.multiprotocol.protocol116100ne.protocol.MovePlayerPacket116100NE;
 import org.itxtech.synapseapi.multiprotocol.protocol116100.protocol.ResourcePackStackPacket116100;
 import org.itxtech.synapseapi.multiprotocol.protocol116100.protocol.StartGamePacket116100;
+import org.itxtech.synapseapi.multiprotocol.protocol116100ne.protocol.MovePlayerPacket116100NE;
 import org.itxtech.synapseapi.multiprotocol.protocol116100ne.protocol.StartGamePacket116100NE;
+import org.itxtech.synapseapi.multiprotocol.protocol116100ne.protocol.TextPacket116100NE;
 import org.itxtech.synapseapi.multiprotocol.protocol116200.protocol.ResourcePacksInfoPacket116200;
 import org.itxtech.synapseapi.multiprotocol.protocol16.protocol.ResourcePackClientResponsePacket16;
 
@@ -239,6 +240,20 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
                     }
                 }
                 break;
+            case ProtocolInfo.TEXT_PACKET:
+                if (!callPacketReceiveEvent(packet)) break;
+                if (this.getProtocol() < AbstractProtocol.PROTOCOL_116_100.getProtocolStart()) {
+                    if (!this.spawned || !this.isAlive()) {
+                        break;
+                    }
+
+                    TextPacket116100NE textPacket = (TextPacket116100NE) packet;
+
+                    if (textPacket.type == TextPacket116100NE.TYPE_CHAT) {
+                        this.chat(textPacket.message);
+                    }
+                    break;
+                }
             default:
                 super.handleDataPacket(packet);
                 break;

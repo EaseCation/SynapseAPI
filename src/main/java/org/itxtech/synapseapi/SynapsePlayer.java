@@ -39,6 +39,7 @@ import org.itxtech.synapseapi.event.player.SynapsePlayerConnectEvent;
 import org.itxtech.synapseapi.event.player.SynapsePlayerTransferEvent;
 import org.itxtech.synapseapi.multiprotocol.AbstractProtocol;
 import org.itxtech.synapseapi.multiprotocol.PacketRegister;
+import org.itxtech.synapseapi.multiprotocol.protocol116100ne.protocol.TextPacket116100NE;
 import org.itxtech.synapseapi.multiprotocol.protocol12.protocol.LoginPacket;
 import org.itxtech.synapseapi.multiprotocol.protocol12.utils.ClientChainData12;
 import org.itxtech.synapseapi.multiprotocol.protocol12.utils.ClientChainData12NetEase;
@@ -1095,6 +1096,8 @@ public class SynapsePlayer extends Player {
                     ((TextPacket14) packet).message = TextFormat.clean(((TextPacket14) packet).message);
                 } else if (packet instanceof TextPacket17) {
                     ((TextPacket17) packet).message = TextFormat.clean(((TextPacket17) packet).message);
+                } else if (packet instanceof TextPacket116100NE) {
+                    ((TextPacket116100NE) packet).message = TextFormat.clean(((TextPacket116100NE) packet).message);
                 }
             } else if (packet.pid() == ProtocolInfo.ADD_PLAYER_PACKET && packet instanceof AddPlayerPacket) {
                 packet = packet.clone();

@@ -18,6 +18,7 @@ import org.itxtech.synapseapi.multiprotocol.protocol116100ne.protocol.MovePlayer
 import org.itxtech.synapseapi.multiprotocol.protocol116100ne.protocol.SetEntityDataPacket116100NE;
 import org.itxtech.synapseapi.multiprotocol.protocol116100.protocol.StartGamePacket116100;
 import org.itxtech.synapseapi.multiprotocol.protocol116100ne.protocol.StartGamePacket116100NE;
+import org.itxtech.synapseapi.multiprotocol.protocol116100ne.protocol.TextPacket116100NE;
 import org.itxtech.synapseapi.multiprotocol.protocol116100ne.protocol.UpdateAttributesPacket116100NE;
 import org.itxtech.synapseapi.multiprotocol.protocol11620.protocol.StartGamePacket11620;
 import org.itxtech.synapseapi.multiprotocol.protocol116200.protocol.ResourcePacksInfoPacket116200;
@@ -171,6 +172,7 @@ public class PacketRegister {
         registerPacket(AbstractProtocol.PROTOCOL_116_100_NE, ProtocolInfo.MOVE_PLAYER_PACKET, MovePlayerPacket116100NE.class);
         registerPacket(AbstractProtocol.PROTOCOL_116_100_NE, ProtocolInfo.SET_ENTITY_DATA_PACKET, SetEntityDataPacket116100NE.class);
         registerPacket(AbstractProtocol.PROTOCOL_116_100_NE, ProtocolInfo.UPDATE_ATTRIBUTES_PACKET, UpdateAttributesPacket116100NE.class);
+        registerPacket(AbstractProtocol.PROTOCOL_116_100_NE, ProtocolInfo.TEXT_PACKET, TextPacket116100NE.class);
 
         registerPacket(AbstractProtocol.PROTOCOL_116_100, ProtocolInfo.START_GAME_PACKET, StartGamePacket116100.class);
         registerPacket(AbstractProtocol.PROTOCOL_116_100, ProtocolInfo.RESOURCE_PACK_STACK_PACKET, ResourcePackStackPacket116100.class);
