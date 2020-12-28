@@ -18,6 +18,7 @@ import org.itxtech.synapseapi.multiprotocol.protocol113.protocol.ResourcePackSta
 import org.itxtech.synapseapi.multiprotocol.protocol116100.protocol.ContainerClosePacket116100;
 import org.itxtech.synapseapi.multiprotocol.protocol116100.protocol.ResourcePackStackPacket116100;
 import org.itxtech.synapseapi.multiprotocol.protocol116100.protocol.StartGamePacket116100;
+import org.itxtech.synapseapi.multiprotocol.protocol116100.protocol.TextPacket116100;
 import org.itxtech.synapseapi.multiprotocol.protocol116100ne.protocol.MovePlayerPacket116100NE;
 import org.itxtech.synapseapi.multiprotocol.protocol116100ne.protocol.StartGamePacket116100NE;
 import org.itxtech.synapseapi.multiprotocol.protocol116100ne.protocol.TextPacket116100NE;
@@ -250,6 +251,17 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
                     TextPacket116100NE textPacket = (TextPacket116100NE) packet;
 
                     if (textPacket.type == TextPacket116100NE.TYPE_CHAT) {
+                        this.chat(textPacket.message);
+                    }
+                    break;
+                } else {
+                    if (!this.spawned || !this.isAlive()) {
+                        break;
+                    }
+
+                    TextPacket116100 textPacket = (TextPacket116100) packet;
+
+                    if (textPacket.type == TextPacket116100.TYPE_CHAT) {
                         this.chat(textPacket.message);
                     }
                     break;

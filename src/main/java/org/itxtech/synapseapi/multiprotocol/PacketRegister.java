@@ -174,6 +174,7 @@ public class PacketRegister {
         registerPacket(AbstractProtocol.PROTOCOL_116_100_NE, ProtocolInfo.UPDATE_ATTRIBUTES_PACKET, UpdateAttributesPacket116100NE.class);
         registerPacket(AbstractProtocol.PROTOCOL_116_100_NE, ProtocolInfo.TEXT_PACKET, TextPacket116100NE.class);
 
+        registerPacket(AbstractProtocol.PROTOCOL_116_100, ProtocolInfo.TEXT_PACKET, TextPacket116100.class);
         registerPacket(AbstractProtocol.PROTOCOL_116_100, ProtocolInfo.START_GAME_PACKET, StartGamePacket116100.class);
         registerPacket(AbstractProtocol.PROTOCOL_116_100, ProtocolInfo.RESOURCE_PACK_STACK_PACKET, ResourcePackStackPacket116100.class);
         registerPacket(AbstractProtocol.PROTOCOL_116_100, ProtocolInfo.CONTAINER_CLOSE_PACKET, ContainerClosePacket116100.class);
