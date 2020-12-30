@@ -71,10 +71,6 @@ public class TextPacket116100 extends Packet116100 {
         }
         this.sendersXUID = this.getString();
         this.platformIdString = this.getString();
-
-        if (this.type == TYPE_CHAT || this.type == TYPE_POPUP) {
-            this.getString(); //wtf netease?
-        }
     }
 
     @Override
