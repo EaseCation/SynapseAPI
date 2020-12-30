@@ -30,6 +30,7 @@ import cn.nukkit.scheduler.Task;
 import cn.nukkit.utils.*;
 import co.aikar.timings.Timing;
 import co.aikar.timings.TimingsManager;
+import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonPrimitive;
@@ -275,6 +276,18 @@ public class SynapsePlayer extends Player {
 
             this.sendNetworkSettings();
         } else {
+            //跨服时，传输到目标服务器当前玩家安装上的材质
+            if (this.cachedExtra.has("res_packs")) {
+                for (JsonElement data : this.cachedExtra.getAsJsonArray("res_packs")) {
+                    this.resourcePacks.put(data.getAsString(), this.server.getResourcePackManager().getPackById(data.getAsString()));
+                }
+            }
+            if (this.cachedExtra.has("beh_packs")) {
+                for (JsonElement data : this.cachedExtra.getAsJsonArray("beh_packs")) {
+                    this.resourcePacks.put(data.getAsString(), this.server.getResourcePackManager().getPackById(data.getAsString()));
+                }
+            }
+
             this.completeLoginSequence();
         }
     }
@@ -557,6 +570,13 @@ public class SynapsePlayer extends Player {
                         pk.extra.addProperty("xuid", getLoginChainData().getXUID());
                         pk.extra.addProperty("netease", isNetEaseClient);
                         pk.extra.addProperty("blob_cache", getClientCacheTrack() != null);
+                        //跨服时，传输到目标服务器当前玩家安装上的材质
+                        JsonArray resPacks = new JsonArray();
+                        getResourcePacks().keySet().forEach(resPacks::add);
+                        pk.extra.add("res_packs", resPacks);
+                        JsonArray behPacks = new JsonArray();
+                        getResourcePacks().keySet().forEach(behPacks::add);
+                        pk.extra.add("beh_packs", behPacks);
                         getSynapseEntry().sendDataPacket(pk);
                     }
                 }, 1);
