@@ -70,7 +70,7 @@ public final class AdvancedGlobalBlockPalette {
                 new GlobalBlockPaletteNBT(AbstractProtocol.PROTOCOL_116_20, table11620.trim(target), "runtime_item_ids_116.json", true)
         });
         palettes.put(AbstractProtocol.PROTOCOL_116_100_NE, new AdvancedGlobalBlockPaletteInterface[]{
-                new GlobalBlockPaletteNBT(AbstractProtocol.PROTOCOL_116_100_NE, table11620.trim(target), "runtime_item_ids_116.json", true)
+                new GlobalBlockPaletteNBT(AbstractProtocol.PROTOCOL_116_100_NE, table116.trim(target), "runtime_item_ids_116.json", true)
         });
         palettes.put(AbstractProtocol.PROTOCOL_116_100, new AdvancedGlobalBlockPaletteInterface[]{
                 new GlobalBlockPaletteNBT(AbstractProtocol.PROTOCOL_116_100, table116100.trim(target), null, true)

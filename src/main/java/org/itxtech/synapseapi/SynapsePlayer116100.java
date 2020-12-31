@@ -243,29 +243,23 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
                 break;
             case ProtocolInfo.TEXT_PACKET:
                 if (!callPacketReceiveEvent(packet)) break;
+                if (!this.spawned || !this.isAlive()) {
+                    break;
+                }
                 if (this.getProtocol() < AbstractProtocol.PROTOCOL_116_100.getProtocolStart()) {
-                    if (!this.spawned || !this.isAlive()) {
-                        break;
-                    }
-
                     TextPacket116100NE textPacket = (TextPacket116100NE) packet;
 
                     if (textPacket.type == TextPacket116100NE.TYPE_CHAT) {
                         this.chat(textPacket.message);
                     }
-                    break;
                 } else {
-                    if (!this.spawned || !this.isAlive()) {
-                        break;
-                    }
-
                     TextPacket116100 textPacket = (TextPacket116100) packet;
 
                     if (textPacket.type == TextPacket116100.TYPE_CHAT) {
                         this.chat(textPacket.message);
                     }
-                    break;
                 }
+                break;
             default:
                 super.handleDataPacket(packet);
                 break;

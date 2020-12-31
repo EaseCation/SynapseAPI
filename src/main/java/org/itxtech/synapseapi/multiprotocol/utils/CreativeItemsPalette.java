@@ -23,7 +23,7 @@ public class CreativeItemsPalette {
         put(AbstractProtocol.PROTOCOL_114, load("creativeitems_114.json"));
         put(AbstractProtocol.PROTOCOL_116, load("creativeitems_116.json"));
         put(AbstractProtocol.PROTOCOL_116_20, load("creativeitems_11620.json"));
-        put(AbstractProtocol.PROTOCOL_116_100_NE, load("creativeitems_11620.json"));
+        put(AbstractProtocol.PROTOCOL_116_100_NE, load("creativeitems_116.json"));
         put(AbstractProtocol.PROTOCOL_116_100, load("creativeitems_11620.json"));
         put(AbstractProtocol.PROTOCOL_116_200, load("creativeitems_11620.json"));
     }};

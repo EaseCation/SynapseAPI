@@ -16,7 +16,6 @@ public final class AdvancedRuntimeItemPalette {
         RuntimeItemPalette palette116100 = new RuntimeItemPalette("runtime_item_ids_116100.json");
 
         palettes.put(AbstractProtocol.PROTOCOL_116_100, palette116100);
-        palettes.put(AbstractProtocol.PROTOCOL_116_100_NE, palette116100);
         palettes.put(AbstractProtocol.PROTOCOL_116_200, palette116100);
     }
 
