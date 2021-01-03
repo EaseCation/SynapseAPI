@@ -9,6 +9,8 @@ import it.unimi.dsi.fastutil.ints.Int2IntMap;
 import it.unimi.dsi.fastutil.ints.Int2IntOpenHashMap;
 import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
 import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
+import it.unimi.dsi.fastutil.objects.Object2IntMap;
+import it.unimi.dsi.fastutil.objects.Object2IntOpenHashMap;
 import lombok.extern.log4j.Log4j2;
 import org.itxtech.synapseapi.SynapseAPI;
 import org.itxtech.synapseapi.multiprotocol.AbstractProtocol;
@@ -29,6 +31,12 @@ public class GlobalBlockPaletteNBT implements AdvancedGlobalBlockPaletteInterfac
 
     final Int2IntMap legacyToRuntimeId = new Int2IntOpenHashMap();
     final Int2IntMap runtimeIdToLegacy = new Int2IntOpenHashMap();
+
+    private final Int2ObjectMap<String> legacyIdToString = new Int2ObjectOpenHashMap<>();
+    private final Object2IntMap<String> stringToLegacyId = new Object2IntOpenHashMap<>();
+    private final Int2ObjectMap<String> runtimeIdToString = new Int2ObjectOpenHashMap<>();
+    private final Object2IntMap<String> stringToRuntimeId = new Object2IntOpenHashMap<>();
+
     final Int2ObjectMap<CompoundTag> runtimeIdToState = new Int2ObjectOpenHashMap<>();
     final AtomicInteger runtimeIdAllocator = new AtomicInteger(0);
     final boolean allowUnknownBlock; // Show 'Update Game!' block
@@ -100,6 +108,8 @@ public class GlobalBlockPaletteNBT implements AdvancedGlobalBlockPaletteInterfac
             runtimeIdToState.put(runtimeId, state);
 
             String name = state.getCompound("block").getString("name");
+            stringToRuntimeId.putIfAbsent(name, runtimeId);
+            runtimeIdToString.putIfAbsent(runtimeId, name);
 
             if (!state.contains("LegacyStates")) continue;
 
@@ -108,6 +118,9 @@ public class GlobalBlockPaletteNBT implements AdvancedGlobalBlockPaletteInterfac
             // Resolve to first legacy id
             CompoundTag firstState = legacyStates.get(0);
             runtimeIdToLegacy.put(runtimeId, firstState.getInt("id") << 6 | firstState.getShort("val"));
+
+            stringToLegacyId.put(name, firstState.getInt("id"));
+            legacyIdToString.put(firstState.getInt("id"), name);
 
             for (CompoundTag legacyState : legacyStates) {
                 int legacyId = legacyState.getInt("id") << 6 | legacyState.getShort("val");
@@ -160,5 +173,22 @@ public class GlobalBlockPaletteNBT implements AdvancedGlobalBlockPaletteInterfac
     @Override
     public byte[] getItemDataPalette() {
         return itemDataPalette;
+    }
+
+    @Override
+    public String getNameByRuntimeId(int runtimeId) {
+        String name = runtimeIdToString.get(runtimeId);
+        return name == null ? "minecraft:air" : name;
+    }
+
+    @Override
+    public String getNameByBlockId(int blockId) {
+        String name = legacyIdToString.get(blockId);
+        return name == null ? "minecraft:air" : name;
+    }
+
+    @Override
+    public int getBlockIdByName(String name) {
+        return stringToLegacyId.getInt(name);
     }
 }

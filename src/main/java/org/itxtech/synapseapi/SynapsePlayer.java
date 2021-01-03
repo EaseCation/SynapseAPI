@@ -1203,7 +1203,7 @@ public class SynapsePlayer extends Player {
      * 重写这个，主要是为了在开启网络广播玩家移动包的情况下，对玩家通过this.sendPosition来强制更新玩家位置
      */
     @Override
-    protected void updateMovement() {
+    public void updateMovement() {
         double diffPosition = (this.x - this.lastX) * (this.x - this.lastX) + (this.y - this.lastY) * (this.y - this.lastY) + (this.z - this.lastZ) * (this.z - this.lastZ);
         double diffRotation = (this.yaw - this.lastYaw) * (this.yaw - this.lastYaw) + (this.pitch - this.lastPitch) * (this.pitch - this.lastPitch);
 

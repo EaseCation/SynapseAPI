@@ -62,7 +62,7 @@ public class PaletteBlockTable extends ArrayList<PaletteBlockData> {
                 int id;
                 try {
                     id = GlobalBlockPalette.getBlockIdByName(name);
-                } catch (NoSuchElementException e) {
+                } catch (RuntimeException e) {
                     //table.add(air);
                     table.add(unknown);
                     continue;

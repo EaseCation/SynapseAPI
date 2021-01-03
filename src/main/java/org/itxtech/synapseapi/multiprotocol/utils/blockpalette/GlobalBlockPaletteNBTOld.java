@@ -7,6 +7,10 @@ import cn.nukkit.nbt.tag.ListTag;
 import com.google.common.io.ByteStreams;
 import it.unimi.dsi.fastutil.ints.Int2IntMap;
 import it.unimi.dsi.fastutil.ints.Int2IntOpenHashMap;
+import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
+import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
+import it.unimi.dsi.fastutil.objects.Object2IntMap;
+import it.unimi.dsi.fastutil.objects.Object2IntOpenHashMap;
 import org.itxtech.synapseapi.SynapseAPI;
 import org.itxtech.synapseapi.multiprotocol.AbstractProtocol;
 import org.itxtech.synapseapi.multiprotocol.utils.AdvancedGlobalBlockPaletteInterface;
@@ -27,6 +31,11 @@ public class GlobalBlockPaletteNBTOld implements AdvancedGlobalBlockPaletteInter
     final AtomicInteger runtimeIdAllocator = new AtomicInteger(0);
     final byte[] compiledTable;
     final byte[] itemDataPalette;
+
+    private final Int2ObjectMap<String> legacyIdToString = new Int2ObjectOpenHashMap<>();
+    private final Object2IntMap<String> stringToLegacyId = new Object2IntOpenHashMap<>();
+    private final Int2ObjectMap<String> runtimeIdToString = new Int2ObjectOpenHashMap<>();
+    private final Object2IntMap<String> stringToRuntimeId = new Object2IntOpenHashMap<>();
 
     public GlobalBlockPaletteNBTOld(AbstractProtocol protocol, String blockPaletteFile) {
         this(protocol, blockPaletteFile, null);
@@ -86,6 +95,8 @@ public class GlobalBlockPaletteNBTOld implements AdvancedGlobalBlockPaletteInter
             int runtimeId = runtimeIdAllocator.getAndIncrement();
 
             String name = state.getCompound("block").getString("name");
+            stringToRuntimeId.putIfAbsent(name, runtimeId);
+            runtimeIdToString.putIfAbsent(runtimeId, name);
 
             if (!state.contains("meta")) continue;
 
@@ -94,6 +105,9 @@ public class GlobalBlockPaletteNBTOld implements AdvancedGlobalBlockPaletteInter
 
             // Resolve to first legacy id
             runtimeIdToLegacy.put(runtimeId, id << 6 | meta[0]);
+
+            stringToLegacyId.put(name, id << 6 | meta[0]);
+            legacyIdToString.put(id << 6 | meta[0], name);
 
             for (int val : meta) {
                 int legacyId = id << 6 | val;
@@ -133,5 +147,22 @@ public class GlobalBlockPaletteNBTOld implements AdvancedGlobalBlockPaletteInter
     @Override
     public byte[] getItemDataPalette() {
         return itemDataPalette;
+    }
+
+    @Override
+    public String getNameByRuntimeId(int runtimeId) {
+        String name = runtimeIdToString.get(runtimeId);
+        return name == null ? "minecraft:air" : name;
+    }
+
+    @Override
+    public String getNameByBlockId(int blockId) {
+        String name = legacyIdToString.get(blockId);
+        return name == null ? "minecraft:air" : name;
+    }
+
+    @Override
+    public int getBlockIdByName(String name) {
+        return stringToLegacyId.getInt(name);
     }
 }

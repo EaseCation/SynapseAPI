@@ -10,31 +10,24 @@ import cn.nukkit.item.RuntimeItemPaletteInterface;
 import cn.nukkit.item.RuntimeItems;
 import cn.nukkit.level.GlobalBlockPalette;
 import cn.nukkit.level.GlobalBlockPaletteInterface;
-import cn.nukkit.nbt.tag.CompoundTag;
 import cn.nukkit.network.RakNetInterface;
 import cn.nukkit.network.SourceInterface;
 import cn.nukkit.network.protocol.DataPacket;
-import cn.nukkit.network.protocol.LevelSoundEventPacket;
 import org.itxtech.synapseapi.multiprotocol.AbstractProtocol;
 import org.itxtech.synapseapi.multiprotocol.PacketRegister;
 import cn.nukkit.plugin.PluginBase;
 import cn.nukkit.utils.ConfigSection;
 import org.itxtech.synapseapi.messaging.Messenger;
 import org.itxtech.synapseapi.messaging.StandardMessenger;
-import org.itxtech.synapseapi.multiprotocol.protocol19.protocol.LevelSoundEventPacketV319;
 import org.itxtech.synapseapi.multiprotocol.utils.AdvancedGlobalBlockPalette;
 import org.itxtech.synapseapi.multiprotocol.utils.AdvancedRuntimeItemPalette;
 import org.itxtech.synapseapi.multiprotocol.utils.AvailableEntityIdentifiersPalette;
 import org.itxtech.synapseapi.multiprotocol.utils.BiomeDefinitions;
 import org.itxtech.synapseapi.multiprotocol.utils.CreativeItemsPalette;
-import org.itxtech.synapseapi.multiprotocol.utils.LevelSoundEventIDTranslator;
-import org.itxtech.synapseapi.multiprotocol.utils.blockpalette.data.PaletteBlockTable;
 import org.itxtech.synapseapi.runnable.TransferDimensionTaskThread;
 import org.itxtech.synapseapi.utils.ClientData;
 import org.itxtech.synapseapi.utils.NetTest;
 
-import java.lang.reflect.Field;
-import java.lang.reflect.Modifier;
 import java.util.*;
 import java.util.Map.Entry;
 import java.util.stream.Collectors;
@@ -100,6 +93,21 @@ public class SynapseAPI extends PluginBase implements Listener {
             @Override
             public int getLegacyId0(int runtimeId) {
                 return AdvancedGlobalBlockPalette.getLegacyId(AbstractProtocol.values0()[AbstractProtocol.values0().length - 1], false, runtimeId);
+            }
+
+            @Override
+            public String getNameByRuntimeId0(int runtimeId) {
+                return AdvancedGlobalBlockPalette.getNameByRuntimeId(AbstractProtocol.values0()[AbstractProtocol.values0().length - 1], false, runtimeId);
+            }
+
+            @Override
+            public int getBlockIdByName0(String name) {
+                return AdvancedGlobalBlockPalette.getBlockIdByName(AbstractProtocol.values0()[AbstractProtocol.values0().length - 1], false, name);
+            }
+
+            @Override
+            public String getNameByBlockId0(int blockId) {
+                return AdvancedGlobalBlockPalette.getNameByBlockId(AbstractProtocol.values0()[AbstractProtocol.values0().length - 1], false, blockId);
             }
         });
 

@@ -140,6 +140,42 @@ public final class AdvancedGlobalBlockPalette {
         }
     }
 
+    public static String getNameByRuntimeId(AbstractProtocol protocol, boolean netease, int runtimeId) {
+        if (palettes.containsKey(protocol)) {
+            AdvancedGlobalBlockPaletteInterface[] versions = palettes.get(protocol);
+            if (versions.length > 1) {
+                return netease ? versions[1].getNameByRuntimeId(runtimeId) : versions[0].getNameByRuntimeId(runtimeId);
+            }
+            return versions[0].getNameByRuntimeId(runtimeId);
+        } else {
+            throw new RuntimeException("Item data palette protocol " + protocol.name() + " not found");
+        }
+    }
+
+    public static String getNameByBlockId(AbstractProtocol protocol, boolean netease, int blockId) {
+        if (palettes.containsKey(protocol)) {
+            AdvancedGlobalBlockPaletteInterface[] versions = palettes.get(protocol);
+            if (versions.length > 1) {
+                return netease ? versions[1].getNameByBlockId(blockId) : versions[0].getNameByBlockId(blockId);
+            }
+            return versions[0].getNameByBlockId(blockId);
+        } else {
+            throw new RuntimeException("Item data palette protocol " + protocol.name() + " not found");
+        }
+    }
+
+    public static int getBlockIdByName(AbstractProtocol protocol, boolean netease, String name) {
+        if (palettes.containsKey(protocol)) {
+            AdvancedGlobalBlockPaletteInterface[] versions = palettes.get(protocol);
+            if (versions.length > 1) {
+                return netease ? versions[1].getBlockIdByName(name) : versions[0].getBlockIdByName(name);
+            }
+            return versions[0].getBlockIdByName(name);
+        } else {
+            throw new RuntimeException("Item data palette protocol " + protocol.name() + " not found");
+        }
+    }
+
     public static void init() { //检查数据
         PaletteBlockTable table112 = PaletteBlockTable.fromJson("block_state_list_112.json");
         PaletteBlockTable table113 = PaletteBlockTable.fromNBTOld("block_state_list_113.dat");

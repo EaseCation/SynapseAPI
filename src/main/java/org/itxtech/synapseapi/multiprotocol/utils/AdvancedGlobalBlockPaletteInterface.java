@@ -24,6 +24,12 @@ public interface AdvancedGlobalBlockPaletteInterface {
 
     byte[] getItemDataPalette();
 
+    String getNameByRuntimeId(int runtimeId);
+
+    String getNameByBlockId(int blockId);
+
+    int getBlockIdByName(String name);
+
     default byte[] loadItemDataPalette(String jsonFile) {
         if (jsonFile == null || jsonFile.isEmpty()) return new byte[0];
         InputStream stream = SynapseAPI.class.getClassLoader().getResourceAsStream(jsonFile);

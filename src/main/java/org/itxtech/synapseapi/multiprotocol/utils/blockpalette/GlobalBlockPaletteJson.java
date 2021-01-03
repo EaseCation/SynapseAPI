@@ -6,6 +6,10 @@ import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 import it.unimi.dsi.fastutil.ints.Int2IntMap;
 import it.unimi.dsi.fastutil.ints.Int2IntOpenHashMap;
+import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
+import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
+import it.unimi.dsi.fastutil.objects.Object2IntMap;
+import it.unimi.dsi.fastutil.objects.Object2IntOpenHashMap;
 import lombok.extern.log4j.Log4j2;
 import org.itxtech.synapseapi.SynapseAPI;
 import org.itxtech.synapseapi.multiprotocol.AbstractProtocol;
@@ -30,6 +34,12 @@ public class GlobalBlockPaletteJson implements AdvancedGlobalBlockPaletteInterfa
     final byte[] compiledTable;
     final byte[] itemDataPalette;
 
+    private final Int2ObjectMap<String> legacyIdToString = new Int2ObjectOpenHashMap<>();
+    private final Object2IntMap<String> stringToLegacyId = new Object2IntOpenHashMap<>();
+    private final Int2ObjectMap<String> runtimeIdToString = new Int2ObjectOpenHashMap<>();
+    private final Object2IntMap<String> stringToRuntimeId = new Object2IntOpenHashMap<>();
+
+
     public GlobalBlockPaletteJson(AbstractProtocol protocol, String blockPaletteFile) {
         this(protocol, blockPaletteFile, null);
     }
@@ -53,7 +63,11 @@ public class GlobalBlockPaletteJson implements AdvancedGlobalBlockPaletteInterfa
                     int legacyId = legacyState.id << 4 | (short) legacyState.val;
                     if (legacyState.val > 0xf) log.trace("block meta > 0xf! id: {}, meta: {}", legacyState.id, legacyState.val);
                     legacyToRuntimeId.putIfAbsent(legacyId, i);
+                    stringToRuntimeId.put(data.block.name, i);
+                    runtimeIdToString.put(i, data.block.name);
                 }
+                stringToLegacyId.put(data.block.name, data.legacyStates[0].id << 4 | (short) data.legacyStates[0].val);
+                legacyIdToString.put(data.legacyStates[0].id << 4 | (short) data.legacyStates[0].val, data.block.name);
             }
 
             table.putString(data.block.name);
@@ -132,6 +146,23 @@ public class GlobalBlockPaletteJson implements AdvancedGlobalBlockPaletteInterfa
     @Override
     public byte[] getItemDataPalette() {
         return itemDataPalette;
+    }
+
+    @Override
+    public String getNameByRuntimeId(int runtimeId) {
+        String name = runtimeIdToString.get(runtimeId);
+        return name == null ? "minecraft:air" : name;
+    }
+
+    @Override
+    public String getNameByBlockId(int blockId) {
+        String name = legacyIdToString.get(blockId);
+        return name == null ? "minecraft:air" : name;
+    }
+
+    @Override
+    public int getBlockIdByName(String name) {
+        return stringToLegacyId.getInt(name);
     }
 
     private static class TableEntry {
