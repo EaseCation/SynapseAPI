@@ -61,7 +61,7 @@ public class PaletteBlockTable extends ArrayList<PaletteBlockData> {
                 String name = blockTag.getString("name");
                 int id;
                 try {
-                    id = GlobalBlockPalette.getBlockIdByName(name);
+                    id = GlobalBlockPalette.getBlockIdByNameRoot(name);
                 } catch (RuntimeException e) {
                     //table.add(air);
                     table.add(unknown);
