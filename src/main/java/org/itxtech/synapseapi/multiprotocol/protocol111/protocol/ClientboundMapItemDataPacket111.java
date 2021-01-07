@@ -58,7 +58,7 @@ public class ClientboundMapItemDataPacket111 extends Packet111 {
         if (eids.length > 0) {
             update |= 0x08;
         }
-        if (decorators.length > 0 || trackedEntities.length > 0) {
+        if (decorators.length > 0) {
             update |= DECORATIONS_UPDATE;
         }
 
@@ -81,15 +81,6 @@ public class ClientboundMapItemDataPacket111 extends Packet111 {
         }
 
         if ((update & DECORATIONS_UPDATE) != 0) {
-            this.putUnsignedVarInt(trackedEntities.length);
-            for (ClientboundMapItemDataPacket.MapTrackedObject object : this.trackedEntities) {
-                this.putLInt(object.type);
-                if (object.type == ClientboundMapItemDataPacket.MapTrackedObject.TYPE_BLOCK) {
-                    this.putBlockVector3(object.z, object.y, object.z);
-                } else if (object.type == ClientboundMapItemDataPacket.MapTrackedObject.TYPE_ENTITY)
-                    this.putEntityUniqueId(object.entityUniqueId);
-            }
-
             this.putUnsignedVarInt(decorators.length);
 
             for (ClientboundMapItemDataPacket.MapDecorator decorator : decorators) {
@@ -98,13 +89,7 @@ public class ClientboundMapItemDataPacket111 extends Packet111 {
                 this.putByte(decorator.offsetX);
                 this.putByte(decorator.offsetZ);
                 this.putString(decorator.label == null ? "" : decorator.label);
-
-                byte red = (byte) decorator.color.getRed();
-                byte green = (byte) decorator.color.getGreen();
-                byte blue = (byte) decorator.color.getBlue();
-
-                this.putUnsignedVarInt(Utils.toRGB(red, green, blue, (byte) 0xff));
-                //this.putUnsignedVarInt(decorator.color.getRGB());
+                this.putVarInt(decorator.color.getRGB());
             }
         }
 
@@ -114,17 +99,12 @@ public class ClientboundMapItemDataPacket111 extends Packet111 {
             this.putVarInt(offsetX);
             this.putVarInt(offsetZ);
 
-            this.putUnsignedVarInt(width * height);
+            this.putUnsignedVarInt((long) width * height);
 
             if (image != null) {
                 for (int y = 0; y < width; y++) {
                     for (int x = 0; x < height; x++) {
-                        Color color = new Color(image.getRGB(x, y), true);
-                        byte red = (byte) color.getRed();
-                        byte green = (byte) color.getGreen();
-                        byte blue = (byte) color.getBlue();
-
-                        putUnsignedVarInt(Utils.toRGB(red, green, blue, (byte) 0xff));
+                        putUnsignedVarInt(Utils.toABGR(this.image.getRGB(x, y)));
                     }
                 }
 

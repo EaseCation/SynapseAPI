@@ -5,6 +5,7 @@ import cn.nukkit.AdventureSettings.Type;
 import cn.nukkit.Player;
 import cn.nukkit.PlayerFood;
 import cn.nukkit.Server;
+import cn.nukkit.blockentity.BlockEntity;
 import cn.nukkit.blockentity.BlockEntityItemFrame;
 import cn.nukkit.command.Command;
 import cn.nukkit.command.data.CommandDataVersions;
@@ -971,14 +972,16 @@ public class SynapsePlayer extends Player {
                 }
 
                 if (mapItem == null) {
-                    final Player player = this;
-                    this.getServer().getScheduler().scheduleAsyncTask(SynapseAPI.getInstance(), new AsyncTask() {
-                        @Override
-                        public void onRun() {
-                            level.getBlockEntities().values().stream().filter(be -> be instanceof BlockEntityItemFrame && ((BlockEntityItemFrame) be).getItem() instanceof ItemMap && ((ItemMap) ((BlockEntityItemFrame) be).getItem()).getMapId() == pk.mapId)
-                                    .forEach(be -> ((ItemMap) ((BlockEntityItemFrame) be).getItem()).sendImage(player));
+                    for (BlockEntity be : this.level.getBlockEntities().values()) {
+                        if (be instanceof BlockEntityItemFrame) {
+                            BlockEntityItemFrame itemFrame1 = (BlockEntityItemFrame) be;
+
+                            if (itemFrame1.getItem() instanceof ItemMap && ((ItemMap) itemFrame1.getItem()).getMapId() == pk.mapId) {
+                                ((ItemMap) itemFrame1.getItem()).sendImage(this);
+                                break;
+                            }
                         }
-                    });
+                    }
                 }
 
                 if (mapItem != null) {
