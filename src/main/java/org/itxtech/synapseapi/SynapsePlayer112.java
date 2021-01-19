@@ -256,7 +256,7 @@ public class SynapsePlayer112 extends SynapsePlayer19 {
 		}
 	}
 
-	protected void initClientBlobCache() {
+	private void initClientBlobCache() {
 		if (this.clientCacheTrack == null) {
 			this.clientCacheTrack = new Long2ObjectOpenHashMap<BlobTrack>() {
 				@Override
