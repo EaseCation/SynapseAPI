@@ -288,4 +288,9 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
         }
         return super.generateResourcePackInfoPacket();
     }
+
+    @Override
+    protected void initClientBlobCache() {
+        if (!this.isNetEaseClient()) super.initClientBlobCache();
+    }
 }
