@@ -102,7 +102,7 @@ public class StartGamePacket11620 extends Packet11620 {
 
         this.putVarInt(this.seed);
         this.putLShort(0x00); // SpawnBiomeType
-        this.putString(""); // UserDefinedBiomeName
+        this.putString("plains"); // UserDefinedBiomeName
         this.putVarInt(this.dimension);
         this.putVarInt(this.generator);
         this.putVarInt(this.worldGamemode);
@@ -134,9 +134,9 @@ public class StartGamePacket11620 extends Packet11620 {
         this.putBoolean(this.isFromWorldTemplate);
         this.putBoolean(this.isWorldTemplateOptionLocked);
         this.putBoolean(this.isOnlySpawningV1Villagers);
-        this.putString(this.helper.getGameVersion());
-        this.putLInt(0); // UnknownInt0
-        this.putLInt(0); // UnknownInt1
+        this.putString("*");//this.putString(this.helper.getGameVersion());
+        this.putLInt(16); // UnknownInt0
+        this.putLInt(16); // UnknownInt1
         this.putBoolean(false);
         this.putBoolean(false);
 

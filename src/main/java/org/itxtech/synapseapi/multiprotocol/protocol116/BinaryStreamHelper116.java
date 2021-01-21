@@ -8,6 +8,10 @@ public class BinaryStreamHelper116 extends BinaryStreamHelper11460 {
         return new BinaryStreamHelper116();
     }
 
+    /**
+     * 从1.16开始可以使用通配符星号. (e.g. "*")
+     * @return base game version
+     */
     @Override
     public String getGameVersion() {
         return "1.16.0";

@@ -378,12 +378,13 @@ public class PacketRegister {
         /*byte[][] payload = new byte[packets.length * 2][];
         for (int i = 0; i < packets.length; i++) {
             DataPacket p = packets[i];
+            int idx = i * 2;
             if (!p.isEncoded) {
                 p.encode();
             }
             byte[] buf = p.getBuffer();
-            payload[i * 2] = Binary.writeUnsignedVarInt(buf.length);
-            payload[i * 2 + 1] = buf;
+            payload[idx] = Binary.writeUnsignedVarInt(buf.length);
+            payload[idx + 1] = buf;
         }
         byte[] data;
         data = Binary.appendBytes(payload);*/

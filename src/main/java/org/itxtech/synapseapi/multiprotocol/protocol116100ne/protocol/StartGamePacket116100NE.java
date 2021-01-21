@@ -101,7 +101,7 @@ public class StartGamePacket116100NE extends Packet116100NE {
 
         this.putVarInt(this.seed);
         this.putLShort(0x00); // SpawnBiomeType - Default
-        this.putString(""); // UserDefinedBiomeName
+        this.putString("plains"); // UserDefinedBiomeName
         this.putVarInt(this.dimension);
         this.putVarInt(this.generator);
         this.putVarInt(this.worldGamemode);
@@ -133,9 +133,9 @@ public class StartGamePacket116100NE extends Packet116100NE {
         this.putBoolean(this.isFromWorldTemplate);
         this.putBoolean(this.isWorldTemplateOptionLocked);
         this.putBoolean(this.isOnlySpawningV1Villagers);
-        this.putString(this.helper.getGameVersion());
-        this.putLInt(0); // Limited world width
-        this.putLInt(0); // Limited world height
+        this.putString("*");//this.putString(this.helper.getGameVersion());
+        this.putLInt(16); // Limited world width
+        this.putLInt(16); // Limited world height
         this.putBoolean(false); // Nether type
         this.putBoolean(false); // Experimental Gameplay
 

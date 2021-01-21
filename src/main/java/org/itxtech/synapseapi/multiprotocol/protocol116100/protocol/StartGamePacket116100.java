@@ -135,7 +135,7 @@ public class StartGamePacket116100 extends Packet116100 {
         this.putBoolean(this.isFromWorldTemplate);
         this.putBoolean(this.isWorldTemplateOptionLocked);
         this.putBoolean(this.isOnlySpawningV1Villagers);
-        this.putString(this.helper.getGameVersion());
+        this.putString("*");//this.putString(this.helper.getGameVersion());
         this.putLInt(16); // Limited world width
         this.putLInt(16); // Limited world height
         this.putBoolean(false); // Nether type
