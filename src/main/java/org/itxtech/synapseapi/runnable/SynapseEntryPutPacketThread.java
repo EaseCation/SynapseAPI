@@ -139,8 +139,7 @@ public class SynapseEntryPutPacketThread extends Thread {
 
                         if (!entry.packet.isEncoded) {
                             entry.packet.setHelper(AbstractProtocol.fromRealProtocol(entry.player.getProtocol()).getHelper());
-                            entry.packet.encode();
-                            entry.packet.isEncoded = true;
+                            entry.packet.tryEncode();
                             /*
                             if (entry.packet instanceof MoveEntityPacket) {
                                 Server.getInstance().getLogger().warning("MoveEntityPacket: " + ((MoveEntityPacket) entry.packet).eid + " " + ((MoveEntityPacket) entry.packet).x + "," + ((MoveEntityPacket) entry.packet).y + "," + ((MoveEntityPacket) entry.packet).z + ",");
@@ -347,7 +346,7 @@ public class SynapseEntryPutPacketThread extends Thread {
                 int idx = i * 2;
                 if (!p.isEncoded) {
                     p.setHelper(protocol.getHelper());
-                    p.encode();
+                    p.tryEncode();
                 }
                 byte[] buf = p.getBuffer();
                 payload[idx] = Binary.writeUnsignedVarInt(buf.length);

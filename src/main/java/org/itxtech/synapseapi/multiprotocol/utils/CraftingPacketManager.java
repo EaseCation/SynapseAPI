@@ -41,7 +41,7 @@ public final class CraftingPacketManager {
             pk.addContainerRecipe(recipe);
         }
 
-        pk.encode();
+        pk.tryEncode();
         originPacket = pk.compress(Deflater.BEST_COMPRESSION);
 
         for (AbstractProtocol protocol : AbstractProtocol.values()) {
@@ -49,7 +49,7 @@ public final class CraftingPacketManager {
                 DataPacket pk0 = PacketRegister.getCompatiblePacket(pk, protocol, false);
                 if (pk0 != null) {
                     pk0.setHelper(protocol.getHelper());
-                    pk0.encode();
+                    pk0.tryEncode();
                     if (protocol.ordinal() >= AbstractProtocol.PROTOCOL_116.ordinal())
                         packets.put(protocol, pk0.compress(Deflater.BEST_COMPRESSION, true));
                     else packets.put(protocol, pk0.compress(Deflater.BEST_COMPRESSION));

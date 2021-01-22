@@ -1132,6 +1132,7 @@ public class SynapsePlayer extends Player {
         return true;
     }
 
+    /*
     @Override
     public boolean directDataPacket(DataPacket packet) {
         if (!this.isSynapseLogin) return super.directDataPacket(packet);
@@ -1147,6 +1148,7 @@ public class SynapsePlayer extends Player {
         this.interfaz.putPacket(this, packet, false, true);
         return true;
     }
+    */
 
     public void sendFullPlayerListData(boolean self) {
         FastPlayerListPacket pk = new FastPlayerListPacket();

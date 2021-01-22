@@ -197,7 +197,7 @@ public class SynapseEntry {
     }
 
     public void broadcastPacket(SynapsePlayer[] players, DataPacket packet, boolean direct) {
-        packet.encode();
+        packet.tryEncode();
         BroadcastPacket broadcastPacket = new BroadcastPacket();
         broadcastPacket.direct = direct;
         broadcastPacket.payload = packet.getBuffer();
