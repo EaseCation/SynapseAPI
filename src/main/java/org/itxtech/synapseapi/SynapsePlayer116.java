@@ -138,7 +138,8 @@ public class SynapsePlayer116 extends SynapsePlayer113 {
 
 					if (containerClosePacket.windowId == ContainerIds.INVENTORY) this.inventoryOpen = false;
 
-					this.removeWindow(this.windowIndex.get(containerClosePacket.windowId));
+					if (this instanceof SynapsePlayer116100) ((SynapsePlayer116100) this).removeWindow(this.windowIndex.get(containerClosePacket.windowId), true);
+					else this.removeWindow(this.windowIndex.get(containerClosePacket.windowId));
 				} else {
 					this.getServer().getLogger().debug("Unopened window: " + containerClosePacket.windowId);
 				}
