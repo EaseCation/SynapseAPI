@@ -10,6 +10,7 @@ import com.google.common.io.ByteStreams;
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 import lombok.ToString;
+import lombok.extern.log4j.Log4j2;
 import org.itxtech.synapseapi.SynapseAPI;
 
 import java.io.*;
@@ -22,6 +23,7 @@ import java.util.Collection;
 import java.util.List;
 import java.util.NoSuchElementException;
 
+@Log4j2
 public class PaletteBlockTable extends ArrayList<PaletteBlockData> {
 
     private PaletteBlockTable() { }
@@ -139,6 +141,20 @@ public class PaletteBlockTable extends ArrayList<PaletteBlockData> {
                     block
             );
             table.add(data);
+
+            if (legacyStates != null && legacyStates.length != 0) {
+                PaletteBlockData.LegacyStates firstState = legacyStates[0];
+                if (firstState.id == Block.LOG || firstState.id == Block.LOG2) { // 六面树皮的中国版临时修复
+                    if (firstState.val < 4) {
+                        table.add(new PaletteBlockData(
+                                firstState.id,
+                                new PaletteBlockData.LegacyStates[]{new PaletteBlockData.LegacyStates(firstState.id, firstState.val | 0b1100)},
+                                block
+                        ));
+                        log.debug("Manual mapping: id {} meta {} to id {} meta {}", firstState.id, firstState.val | 0b1100, firstState.id, firstState.val);
+                    }
+                }
+            }
         }
         return table;
     }
