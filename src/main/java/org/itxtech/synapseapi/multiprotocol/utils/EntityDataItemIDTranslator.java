@@ -382,6 +382,7 @@ public class EntityDataItemIDTranslator {
 		v12ToV112Book.put(Entity.DATA_LIMITED_LIFE, V112_LIMITED_LIFE);
 		v12ToV112Book.put(Entity.DATA_ALWAYS_SHOW_NAMETAG, V112_ALWAYS_SHOW_NAMETAG);
 		v12ToV112Book.put(Entity.DATA_SCORE_TAG, V112_SCORE_TAG);
+		v12ToV112Book.put(Entity.DATA_INTERACTIVE_TAG, V112_INTERACT_TEXT);
 	}
 	
 	public static Integer translateTo14Id(int v12Id) {
