@@ -21,6 +21,7 @@ import org.itxtech.synapseapi.multiprotocol.protocol116100ne.protocol.StartGameP
 import org.itxtech.synapseapi.multiprotocol.protocol116100ne.protocol.TextPacket116100NE;
 import org.itxtech.synapseapi.multiprotocol.protocol116100ne.protocol.UpdateAttributesPacket116100NE;
 import org.itxtech.synapseapi.multiprotocol.protocol11620.protocol.StartGamePacket11620;
+import org.itxtech.synapseapi.multiprotocol.protocol116200.protocol.FilterTextPacket116200;
 import org.itxtech.synapseapi.multiprotocol.protocol116200.protocol.ResourcePacksInfoPacket116200;
 import org.itxtech.synapseapi.multiprotocol.protocol15.protocol.AddEntityPacket15;
 import org.itxtech.synapseapi.multiprotocol.protocol15.protocol.ClientboundMapItemDataPacket15;
@@ -183,6 +184,7 @@ public class PacketRegister {
         registerPacket(AbstractProtocol.PROTOCOL_116_100, ProtocolInfo.LEVEL_EVENT_PACKET, LevelEventPacket116100.class);
 
         registerPacket(AbstractProtocol.PROTOCOL_116_200, ProtocolInfo.RESOURCE_PACKS_INFO_PACKET, ResourcePacksInfoPacket116200.class);
+        registerPacket(AbstractProtocol.PROTOCOL_116_200, ProtocolInfo.FILTER_TEXT_PACKET, FilterTextPacket116200.class);
 
         checkNeteaseSpecialExtend();
         CraftingPacketManager.rebuildPacket();

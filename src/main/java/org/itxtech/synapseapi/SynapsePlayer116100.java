@@ -22,6 +22,7 @@ import org.itxtech.synapseapi.multiprotocol.protocol116100.protocol.TextPacket11
 import org.itxtech.synapseapi.multiprotocol.protocol116100ne.protocol.MovePlayerPacket116100NE;
 import org.itxtech.synapseapi.multiprotocol.protocol116100ne.protocol.StartGamePacket116100NE;
 import org.itxtech.synapseapi.multiprotocol.protocol116100ne.protocol.TextPacket116100NE;
+import org.itxtech.synapseapi.multiprotocol.protocol116200.protocol.FilterTextPacket116200;
 import org.itxtech.synapseapi.multiprotocol.protocol116200.protocol.ResourcePacksInfoPacket116200;
 import org.itxtech.synapseapi.multiprotocol.protocol16.protocol.ResourcePackClientResponsePacket16;
 
@@ -260,6 +261,16 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
                     }
                 }
                 break;
+            case ProtocolInfo.FILTER_TEXT_PACKET:
+                if (this.getProtocol() >= AbstractProtocol.PROTOCOL_116_200.getProtocolStart()) {
+                    FilterTextPacket116200 filterTextPacket = (FilterTextPacket116200) packet;
+
+                    FilterTextPacket116200 textResponsePacket = new FilterTextPacket116200();
+                    textResponsePacket.text = filterTextPacket.text; //TODO: 铁砧重命名物品需要接入网易敏感词检查
+                    textResponsePacket.fromServer = true;
+                    this.dataPacket(textResponsePacket);
+                    break;
+                }
             default:
                 super.handleDataPacket(packet);
                 break;
