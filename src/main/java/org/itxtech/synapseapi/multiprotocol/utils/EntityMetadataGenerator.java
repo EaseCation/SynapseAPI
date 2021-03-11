@@ -70,14 +70,16 @@ public class EntityMetadataGenerator {
 		EntityMetadata entityMetadata = new EntityMetadata();
 		for(@SuppressWarnings("rawtypes") EntityData entityData : v12Metadata.getMap().values()) {
 			int v12Id = entityData.getId();
-			Integer newId = protocol.ordinal() >= AbstractProtocol.PROTOCOL_111.ordinal()
-					? (
-					protocol.ordinal() >= AbstractProtocol.PROTOCOL_112.ordinal()
-							?
-							EntityDataItemIDTranslator.translateTo112Id(v12Id)
-							:
-							EntityDataItemIDTranslator.translateTo111Id(v12Id)
-			) : EntityDataItemIDTranslator.translateTo14Id(v12Id);
+			Integer newId;
+			if (protocol.ordinal() >= AbstractProtocol.PROTOCOL_116_210.ordinal()) {
+				newId = EntityDataItemIDTranslator.translateTo116200Id(v12Id);
+			} else if (protocol.ordinal() >= AbstractProtocol.PROTOCOL_112.ordinal()) {
+				newId = EntityDataItemIDTranslator.translateTo112Id(v12Id);
+			} else if (protocol.ordinal() >= AbstractProtocol.PROTOCOL_111.ordinal()) {
+				newId = EntityDataItemIDTranslator.translateTo111Id(v12Id);
+			} else {
+				newId = EntityDataItemIDTranslator.translateTo14Id(v12Id);
+			}
 			if (newId == null) {
 				MainLogger.getLogger().warning("Unable to translate to version " + protocol.name() + " with id " + v12Id);
 				//entityMetadata.put(entityData);

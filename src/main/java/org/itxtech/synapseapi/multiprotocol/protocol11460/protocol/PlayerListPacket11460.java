@@ -42,7 +42,7 @@ public class PlayerListPacket11460 extends Packet11460 {
                 this.putString(entry.xboxUserId);
                 this.putString(entry.platformChatId);
                 this.putLInt(entry.buildPlatform);
-                this.putSkinNew(entry.skin);
+                this.putSkin(entry.skin);
                 this.putBoolean(entry.isTeacher);
                 this.putBoolean(entry.isHost);
             }

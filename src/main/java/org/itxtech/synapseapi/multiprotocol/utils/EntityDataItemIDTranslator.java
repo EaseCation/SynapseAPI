@@ -10,6 +10,7 @@ public class EntityDataItemIDTranslator {
 	public final static Map<Integer, Integer> v12ToV14Book = new HashMap<>();
 	public final static Map<Integer, Integer> v12ToV111Book = new HashMap<>();
 	public final static Map<Integer, Integer> v12ToV112Book = new HashMap<>();
+	public final static Map<Integer, Integer> v12ToV116200Book = new HashMap<>();
 
 	public final static int FLAGS = 0;
 	public final static int STRUCTURAL_INTEGRITY = 1;
@@ -217,6 +218,9 @@ public class EntityDataItemIDTranslator {
 	public static final int V112_TRADE_EXPERIENCE = 102;
 	public static final int V112_SKIN_ID = 103; // int ???
 
+	public static final int V116200_ALWAYS_SHOW_NAMETAG = 81; // byte
+	public static final int V116200_SCORE_TAG = 84; // String
+
 	static {
 		v12ToV14Book.put(Entity.DATA_FLAGS, FLAGS);
 		v12ToV14Book.put(Entity.DATA_HEALTH, STRUCTURAL_INTEGRITY);
@@ -383,6 +387,10 @@ public class EntityDataItemIDTranslator {
 		v12ToV112Book.put(Entity.DATA_ALWAYS_SHOW_NAMETAG, V112_ALWAYS_SHOW_NAMETAG);
 		v12ToV112Book.put(Entity.DATA_SCORE_TAG, V112_SCORE_TAG);
 		v12ToV112Book.put(Entity.DATA_INTERACTIVE_TAG, V112_INTERACT_TEXT);
+
+		v12ToV112Book.forEach(v12ToV116200Book::put);
+		v12ToV116200Book.put(Entity.DATA_ALWAYS_SHOW_NAMETAG, V116200_ALWAYS_SHOW_NAMETAG);
+		v12ToV116200Book.put(Entity.DATA_SCORE_TAG, V116200_SCORE_TAG);
 	}
 	
 	public static Integer translateTo14Id(int v12Id) {
@@ -395,5 +403,9 @@ public class EntityDataItemIDTranslator {
 
 	public static Integer translateTo112Id(int v12Id) {
 		return v12ToV112Book.get(v12Id);
+	}
+
+	public static Integer translateTo116200Id(int v12Id) {
+		return v12ToV116200Book.get(v12Id);
 	}
 }

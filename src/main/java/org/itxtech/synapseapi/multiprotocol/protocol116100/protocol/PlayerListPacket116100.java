@@ -38,7 +38,7 @@ public class PlayerListPacket116100 extends Packet116100 {
                 this.putString(entry.xboxUserId);
                 this.putString(entry.platformChatId);
                 this.putLInt(entry.buildPlatform);
-                this.putSkinV4(entry.skin);
+                this.putSkin(entry.skin);
                 this.putBoolean(entry.isTeacher);
                 this.putBoolean(entry.isHost);
             }

@@ -1,27 +1,27 @@
-package org.itxtech.synapseapi.multiprotocol.protocol11460;
+package org.itxtech.synapseapi.multiprotocol.protocol116210;
 
 import cn.nukkit.entity.data.Skin;
 import cn.nukkit.utils.*;
-import org.itxtech.synapseapi.multiprotocol.protocol114.BinaryStreamHelper114;
+import org.itxtech.synapseapi.multiprotocol.protocol116200.BinaryStreamHelper116200;
 
 import java.util.ArrayList;
 import java.util.List;
 
-//todo: skin
-public class BinaryStreamHelper11460 extends BinaryStreamHelper114 {
+public class BinaryStreamHelper116210 extends BinaryStreamHelper116200 {
 
-    public static BinaryStreamHelper11460 create() {
-        return new BinaryStreamHelper11460();
+    public static BinaryStreamHelper116210 create() {
+        return new BinaryStreamHelper116210();
     }
 
     @Override
     public String getGameVersion() {
-        return "1.14.60";
+        return "1.16.210";
     }
 
     @Override
     public void putSkin(BinaryStream stream, Skin skin) {
         stream.putString(skin.getSkinId());
+        stream.putString(skin.getPlayFabId());
         stream.putString(skin.getSkinResourcePatch());
         stream.putImage(skin.getSkinData());
 
@@ -31,6 +31,7 @@ public class BinaryStreamHelper11460 extends BinaryStreamHelper114 {
             stream.putImage(animation.image);
             stream.putLInt(animation.type);
             stream.putLFloat(animation.frames);
+            stream.putLInt(animation.expression);
         }
 
         stream.putImage(skin.getCapeData());
@@ -69,6 +70,7 @@ public class BinaryStreamHelper11460 extends BinaryStreamHelper114 {
     public Skin getSkin(BinaryStream stream) {
         Skin skin = new Skin();
         skin.setSkinId(stream.getString());
+        skin.setPlayFabId(stream.getString());
         skin.setSkinResourcePatch(stream.getString());
         skin.setSkinData(stream.getImage());
 
@@ -77,7 +79,8 @@ public class BinaryStreamHelper11460 extends BinaryStreamHelper114 {
             SerializedImage image = stream.getImage();
             int type = stream.getLInt();
             float frames = stream.getLFloat();
-            skin.getAnimations().add(new SkinAnimation(image, type, frames));
+            int expression = stream.getLInt();
+            skin.getAnimations().add(new SkinAnimation(image, type, frames, expression));
         }
 
         skin.setCapeData(stream.getImage());
@@ -113,4 +116,5 @@ public class BinaryStreamHelper11460 extends BinaryStreamHelper114 {
         }
         return skin;
     }
+
 }
