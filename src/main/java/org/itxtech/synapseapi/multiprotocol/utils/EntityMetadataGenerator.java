@@ -72,7 +72,7 @@ public class EntityMetadataGenerator {
 			int v12Id = entityData.getId();
 			Integer newId;
 			if (protocol.ordinal() >= AbstractProtocol.PROTOCOL_116_210.ordinal()) {
-				newId = EntityDataItemIDTranslator.translateTo116200Id(v12Id);
+				newId = EntityDataItemIDTranslator.translateTo116210Id(v12Id);
 			} else if (protocol.ordinal() >= AbstractProtocol.PROTOCOL_112.ordinal()) {
 				newId = EntityDataItemIDTranslator.translateTo112Id(v12Id);
 			} else if (protocol.ordinal() >= AbstractProtocol.PROTOCOL_111.ordinal()) {

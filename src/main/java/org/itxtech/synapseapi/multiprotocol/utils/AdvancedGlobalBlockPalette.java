@@ -1,9 +1,12 @@
 package org.itxtech.synapseapi.multiprotocol.utils;
 
 import cn.nukkit.Server;
+import cn.nukkit.level.GlobalBlockPaletteInterface;
+import cn.nukkit.level.GlobalBlockPaletteInterface.HardcodedVersion;
 import it.unimi.dsi.fastutil.ints.IntArrayList;
 import it.unimi.dsi.fastutil.ints.IntList;
 import org.itxtech.synapseapi.multiprotocol.AbstractProtocol;
+import org.itxtech.synapseapi.multiprotocol.utils.blockpalette.GlobalBlockPaletteHardcode;
 import org.itxtech.synapseapi.multiprotocol.utils.blockpalette.GlobalBlockPaletteJson;
 import org.itxtech.synapseapi.multiprotocol.utils.blockpalette.GlobalBlockPaletteNBT;
 import org.itxtech.synapseapi.multiprotocol.utils.blockpalette.GlobalBlockPaletteNBTOld;
@@ -17,6 +20,7 @@ import java.util.stream.Stream;
 public final class AdvancedGlobalBlockPalette {
 
     public static final Map<AbstractProtocol, AdvancedGlobalBlockPaletteInterface[]> palettes = new HashMap<>();
+    public static final Map<HardcodedVersion, GlobalBlockPaletteInterface> hardcodedPalettes = new HashMap<>();
 
     static {
         palettes.put(AbstractProtocol.PROTOCOL_16, new AdvancedGlobalBlockPaletteInterface[]{
@@ -43,44 +47,47 @@ public final class AdvancedGlobalBlockPalette {
                 new GlobalBlockPaletteJson(AbstractProtocol.PROTOCOL_111, "block_state_list_111_netease.json")
         });
 
-        PaletteBlockTable table116100 = PaletteBlockTable.fromNBTV3("block_state_list_116210.dat"); //TODO: Microjang hardcoded :( sort by block name )
+        PaletteBlockTable table116210 = PaletteBlockTable.fromNBTV3("block_state_list_116210.dat"); //TODO: Microjang hardcoded :( sort by block name )
+        PaletteBlockTable table116100 = PaletteBlockTable.fromNBTV3("block_state_list_116100.dat"); // 这个版本加了一堆垃圾状态, 可以考虑从这开始单独存一份数据
         PaletteBlockTable table11620 = PaletteBlockTable.fromNBT("block_state_list_11620.dat");
         PaletteBlockTable table116 = PaletteBlockTable.fromNBT("block_state_list_116.dat");
         PaletteBlockTable table114 = PaletteBlockTable.fromNBT("block_state_list_114.dat");
         PaletteBlockTable table113 = PaletteBlockTable.fromNBTOld("block_state_list_113.dat");
         PaletteBlockTable table112 = PaletteBlockTable.fromJson("block_state_list_112.json");
-        PaletteBlockTable target = table116100;
 
         palettes.put(AbstractProtocol.PROTOCOL_112, new AdvancedGlobalBlockPaletteInterface[]{
-                new GlobalBlockPaletteJson(AbstractProtocol.PROTOCOL_112, table112.trim(target), "runtime_item_ids_112.json")
+                new GlobalBlockPaletteJson(AbstractProtocol.PROTOCOL_112, table112.trim(table116100), "runtime_item_ids_112.json")
         });
         palettes.put(AbstractProtocol.PROTOCOL_113, new AdvancedGlobalBlockPaletteInterface[]{
-                new GlobalBlockPaletteNBTOld(AbstractProtocol.PROTOCOL_113, table113.trim(target), "runtime_item_ids_112.json")
+                new GlobalBlockPaletteNBTOld(AbstractProtocol.PROTOCOL_113, table113.trim(table116100), "runtime_item_ids_112.json")
         });
         palettes.put(AbstractProtocol.PROTOCOL_114, new AdvancedGlobalBlockPaletteInterface[]{
-                new GlobalBlockPaletteNBT(AbstractProtocol.PROTOCOL_114, table114.trim(target), "runtime_item_ids_114.json", true)
+                new GlobalBlockPaletteNBT(AbstractProtocol.PROTOCOL_114, table114.trim(table116100), "runtime_item_ids_114.json", true)
         });
         palettes.put(AbstractProtocol.PROTOCOL_114_60, new AdvancedGlobalBlockPaletteInterface[]{
-                new GlobalBlockPaletteNBT(AbstractProtocol.PROTOCOL_114_60, table114.trim(target), "runtime_item_ids_114.json", true)
+                new GlobalBlockPaletteNBT(AbstractProtocol.PROTOCOL_114_60, table114.trim(table116100), "runtime_item_ids_114.json", true)
         });
         palettes.put(AbstractProtocol.PROTOCOL_116, new AdvancedGlobalBlockPaletteInterface[]{
-                new GlobalBlockPaletteNBT(AbstractProtocol.PROTOCOL_116, table116.trim(target), "runtime_item_ids_116.json", true)
+                new GlobalBlockPaletteNBT(AbstractProtocol.PROTOCOL_116, table116.trim(table116100), "runtime_item_ids_116.json", true)
         });
         palettes.put(AbstractProtocol.PROTOCOL_116_20, new AdvancedGlobalBlockPaletteInterface[]{
-                new GlobalBlockPaletteNBT(AbstractProtocol.PROTOCOL_116_20, table11620.trim(target), "runtime_item_ids_116.json", true)
+                new GlobalBlockPaletteNBT(AbstractProtocol.PROTOCOL_116_20, table11620.trim(table116100), "runtime_item_ids_116.json", true)
         });
         palettes.put(AbstractProtocol.PROTOCOL_116_100_NE, new AdvancedGlobalBlockPaletteInterface[]{
-                new GlobalBlockPaletteNBT(AbstractProtocol.PROTOCOL_116_100_NE, table116.trim(target), "runtime_item_ids_116.json", true)
+                new GlobalBlockPaletteNBT(AbstractProtocol.PROTOCOL_116_100_NE, table116.trim(table116100), "runtime_item_ids_116.json", true)
         });
         palettes.put(AbstractProtocol.PROTOCOL_116_100, new AdvancedGlobalBlockPaletteInterface[]{
-                new GlobalBlockPaletteNBT(AbstractProtocol.PROTOCOL_116_100, table116100.trim(target), null, true)
+                new GlobalBlockPaletteNBT(AbstractProtocol.PROTOCOL_116_100, table116100, null, true)
         });
         palettes.put(AbstractProtocol.PROTOCOL_116_200, new AdvancedGlobalBlockPaletteInterface[]{
-                new GlobalBlockPaletteNBT(AbstractProtocol.PROTOCOL_116_200, table116100.trim(target), null, true)
+                new GlobalBlockPaletteNBT(AbstractProtocol.PROTOCOL_116_200, table116100, null, true)
         });
         palettes.put(AbstractProtocol.PROTOCOL_116_210, new AdvancedGlobalBlockPaletteInterface[]{
-                new GlobalBlockPaletteNBT(AbstractProtocol.PROTOCOL_116_210, table116100.trim(target), null, true)
+                new GlobalBlockPaletteNBT(AbstractProtocol.PROTOCOL_116_210, table116210, null, true)
         });
+
+//        hardcodedPalettes.put(HardcodedVersion.V1_16_100, new GlobalBlockPaletteHardcode(palettes.get(AbstractProtocol.PROTOCOL_116_100)[0]));
+        hardcodedPalettes.put(HardcodedVersion.V1_16_210, new GlobalBlockPaletteHardcode(palettes.get(AbstractProtocol.PROTOCOL_116_210)[0]));
     }
 
     public static int getOrCreateRuntimeId(AbstractProtocol protocol, boolean netease, int legacyId) {
@@ -143,6 +150,10 @@ public final class AdvancedGlobalBlockPalette {
         }
     }
 
+    public static GlobalBlockPaletteInterface getHardcodedBlockPalette0(HardcodedVersion version) {
+        return hardcodedPalettes.get(version);
+    }
+
     public static void init() { //检查数据
         PaletteBlockTable table112 = PaletteBlockTable.fromJson("block_state_list_112.json");
         PaletteBlockTable table113 = PaletteBlockTable.fromNBTOld("block_state_list_113.dat");
@@ -150,13 +161,12 @@ public final class AdvancedGlobalBlockPalette {
         PaletteBlockTable table116 = PaletteBlockTable.fromNBT("block_state_list_116.dat");
         PaletteBlockTable table11620 = PaletteBlockTable.fromNBT("block_state_list_11620.dat");
         PaletteBlockTable table116100 = PaletteBlockTable.fromNBTV3("block_state_list_116100.dat");
-        PaletteBlockTable target = table116100;
 
-        PaletteBlockTable table112trimmed = table112.trim(target);
-        PaletteBlockTable table113trimmed = table113.trim(target);
-        PaletteBlockTable table114trimmed = table114.trim(target);
-        PaletteBlockTable table116trimmed = table116.trim(target);
-        PaletteBlockTable table11620trimmed = table11620.trim(target);
+        PaletteBlockTable table112trimmed = table112.trim(table116100);
+        PaletteBlockTable table113trimmed = table113.trim(table116100);
+        PaletteBlockTable table114trimmed = table114.trim(table116100);
+        PaletteBlockTable table116trimmed = table116.trim(table116100);
+        PaletteBlockTable table11620trimmed = table11620.trim(table116100);
         //PaletteBlockTable table116100trimmed = table116100.trim(target);
 
         IntList ignoreIds = IntArrayList.wrap(new int[]{

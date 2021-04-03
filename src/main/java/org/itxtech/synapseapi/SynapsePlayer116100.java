@@ -321,6 +321,6 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
 
     @Override
     protected void initClientBlobCache() {
-        if (!this.isNetEaseClient()) super.initClientBlobCache();
+        if (!this.isNetEaseClient() /*&& this.protocol < AbstractProtocol.PROTOCOL_116_210.getProtocolStart()*/) super.initClientBlobCache();
     }
 }

@@ -23,6 +23,7 @@ import org.itxtech.synapseapi.messaging.Messenger;
 import org.itxtech.synapseapi.messaging.StandardMessenger;
 import org.itxtech.synapseapi.multiprotocol.protocol19.protocol.LevelSoundEventPacketV319;
 import org.itxtech.synapseapi.multiprotocol.utils.AdvancedGlobalBlockPalette;
+import org.itxtech.synapseapi.multiprotocol.utils.AdvancedGlobalBlockPaletteInterface;
 import org.itxtech.synapseapi.multiprotocol.utils.AdvancedRuntimeItemPalette;
 import org.itxtech.synapseapi.multiprotocol.utils.AvailableEntityIdentifiersPalette;
 import org.itxtech.synapseapi.multiprotocol.utils.BiomeDefinitions;
@@ -100,6 +101,11 @@ public class SynapseAPI extends PluginBase implements Listener {
             @Override
             public int getLegacyId0(int runtimeId) {
                 return AdvancedGlobalBlockPalette.getLegacyId(AbstractProtocol.values0()[AbstractProtocol.values0().length - 1], false, runtimeId);
+            }
+
+            @Override
+            public GlobalBlockPaletteInterface getHardcodedBlockPalette0(HardcodedVersion version) {
+                return AdvancedGlobalBlockPalette.getHardcodedBlockPalette0(version);
             }
         });
 
