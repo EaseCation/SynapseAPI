@@ -85,6 +85,9 @@ public final class AdvancedGlobalBlockPalette {
         palettes.put(AbstractProtocol.PROTOCOL_116_210, new AdvancedGlobalBlockPaletteInterface[]{
                 new GlobalBlockPaletteNBT(AbstractProtocol.PROTOCOL_116_210, table116210, null, true)
         });
+        palettes.put(AbstractProtocol.PROTOCOL_116_220, new AdvancedGlobalBlockPaletteInterface[]{
+                new GlobalBlockPaletteNBT(AbstractProtocol.PROTOCOL_116_220, table116210, null, true)
+        });
 
         hardcodedPalettes.put(HardcodedVersion.V1_16_100, new GlobalBlockPaletteHardcode(palettes.get(AbstractProtocol.PROTOCOL_116_100)[0]));
         hardcodedPalettes.put(HardcodedVersion.V1_16_210, new GlobalBlockPaletteHardcode(palettes.get(AbstractProtocol.PROTOCOL_116_210)[0]));

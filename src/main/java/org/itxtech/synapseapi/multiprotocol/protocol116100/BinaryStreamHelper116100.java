@@ -319,4 +319,9 @@ public class BinaryStreamHelper116100 extends BinaryStreamHelper116100NE {
         return skin;
     }
 
+    @Override
+    public int getItemNetworkId(Item item) {
+        return AdvancedRuntimeItemPalette.getNetworkId(this.protocol, AdvancedRuntimeItemPalette.getNetworkFullId(this.protocol,item));
+    }
+
 }

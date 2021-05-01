@@ -26,10 +26,16 @@ public class CreativeItemsPalette {
         put(AbstractProtocol.PROTOCOL_116_100_NE, load("creativeitems_116.json"));
         put(AbstractProtocol.PROTOCOL_116_100, load("creativeitems_11620.json"));
         put(AbstractProtocol.PROTOCOL_116_200, load("creativeitems_11620.json"));
+        put(AbstractProtocol.PROTOCOL_116_210, load("creativeitems_11620.json"));
+        put(AbstractProtocol.PROTOCOL_116_220, load("creativeitems_11620.json", true));
     }};
 
     @SuppressWarnings("unchecked")
     private static ArrayList<Item> load(String file) {
+        return load(file, false);
+    }
+
+    private static ArrayList<Item> load(String file, boolean ignoreUnsupported) {
         Server.getInstance().getLogger().info("Loading Creative Items Palette from " + file);
         ArrayList<Item> result = new ArrayList<>();
         Config config = new Config(Config.YAML);
@@ -38,7 +44,10 @@ public class CreativeItemsPalette {
 
         for (Map map : list) {
             try {
-                result.add(Item.fromJson(map).clone());
+                Item item = Item.fromJson(map, ignoreUnsupported);
+                if (item != null) {
+                    result.add(item.clone());
+                }
             } catch (Exception e) {
                 MainLogger.getLogger().logException(e);
             }

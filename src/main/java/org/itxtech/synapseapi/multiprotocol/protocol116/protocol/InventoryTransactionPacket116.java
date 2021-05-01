@@ -9,6 +9,7 @@ import cn.nukkit.network.protocol.InventoryTransactionPacket;
 import cn.nukkit.network.protocol.ProtocolInfo;
 import cn.nukkit.network.protocol.types.InventoryTransactionPacketInterface;
 import cn.nukkit.network.protocol.types.NetworkInventoryAction;
+import org.itxtech.synapseapi.multiprotocol.AbstractProtocol;
 import org.itxtech.synapseapi.utils.ClassUtils;
 
 public class InventoryTransactionPacket116 extends Packet116 implements InventoryTransactionPacketInterface {
@@ -88,11 +89,14 @@ public class InventoryTransactionPacket116 extends Packet116 implements Inventor
 
     @Override
     public void encode() {
+        //TODO 暂时先这样写吧, 应用层需要改的地方太多非常恶心 -- 04/17/2021
+        boolean field_hasNetworkIds = ((AbstractProtocol) this.helper.getProtocol()).getProtocolStart() < AbstractProtocol.PROTOCOL_116_220.getProtocolStart();
+
         this.reset();
         this.putVarInt(this.legacyRequestId);
         //TODO legacySlot array
         this.putUnsignedVarInt(this.transactionType);
-        this.putBoolean(this.hasNetworkIds);
+        if (field_hasNetworkIds) this.putBoolean(this.hasNetworkIds);
         this.putUnsignedVarInt(this.actions.length);
         for (NetworkInventoryAction action : this.actions) {
             action.write(this, this);
@@ -138,6 +142,8 @@ public class InventoryTransactionPacket116 extends Packet116 implements Inventor
 
     @Override
     public void decode() {
+        boolean field_hasNetworkIds = ((AbstractProtocol) this.helper.getProtocol()).getProtocolStart() < AbstractProtocol.PROTOCOL_116_220.getProtocolStart();
+
         this.legacyRequestId = this.getVarInt();
         if (legacyRequestId < -1 && (legacyRequestId & 1) == 0) {
             int length = (int) this.getUnsignedVarInt();
@@ -151,7 +157,7 @@ public class InventoryTransactionPacket116 extends Packet116 implements Inventor
 
         this.transactionType = (int) this.getUnsignedVarInt();
 
-        this.hasNetworkIds = this.getBoolean();
+        if (field_hasNetworkIds) this.hasNetworkIds = this.getBoolean();
 
         this.actions = new NetworkInventoryAction[(int) this.getUnsignedVarInt()];
         for (int i = 0; i < this.actions.length; i++) {

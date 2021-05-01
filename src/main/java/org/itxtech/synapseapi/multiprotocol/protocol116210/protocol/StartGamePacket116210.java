@@ -4,7 +4,6 @@ import cn.nukkit.level.GameRules;
 import cn.nukkit.network.protocol.ProtocolInfo;
 import lombok.ToString;
 import org.itxtech.synapseapi.multiprotocol.AbstractProtocol;
-import org.itxtech.synapseapi.multiprotocol.protocol116100.protocol.Packet116100;
 import org.itxtech.synapseapi.multiprotocol.utils.AdvancedRuntimeItemPalette;
 
 @ToString
@@ -69,7 +68,7 @@ public class StartGamePacket116210 extends Packet116210 {
     public boolean isFromWorldTemplate = false;
     public boolean isWorldTemplateOptionLocked = false;
     public boolean isOnlySpawningV1Villagers = false;
-    public String vanillaVersion = "1.16.100";
+    public String vanillaVersion = "1.16.210";
     public String levelId = ""; //base64 string, usually the same as world folder name in vanilla
     public String worldName;
     public String premiumWorldTemplateId = "";

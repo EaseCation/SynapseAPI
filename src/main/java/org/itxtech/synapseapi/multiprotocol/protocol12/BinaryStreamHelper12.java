@@ -18,4 +18,9 @@ public class BinaryStreamHelper12 extends BinaryStreamHelper implements Advanced
             this.protocol = protocol;
         }
     }
+
+    @Override
+    public final AbstractProtocol getProtocol() {
+        return this.protocol;
+    }
 }

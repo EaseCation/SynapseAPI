@@ -18,6 +18,7 @@ public final class AdvancedRuntimeItemPalette {
         palettes.put(AbstractProtocol.PROTOCOL_116_100, palette116100);
         palettes.put(AbstractProtocol.PROTOCOL_116_200, palette116100);
         palettes.put(AbstractProtocol.PROTOCOL_116_210, palette116100);
+        palettes.put(AbstractProtocol.PROTOCOL_116_220, palette116100);
     }
 
     public static int getNetworkFullId(AbstractProtocol protocol, Item item) {
