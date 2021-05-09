@@ -8,11 +8,12 @@ import cn.nukkit.block.BlockDoor;
 import cn.nukkit.blockentity.BlockEntity;
 import cn.nukkit.blockentity.BlockEntitySpawnable;
 import cn.nukkit.entity.Entity;
+import cn.nukkit.entity.item.EntityBoat;
+import cn.nukkit.entity.item.EntityMinecartAbstract;
 import cn.nukkit.event.entity.EntityDamageByEntityEvent;
 import cn.nukkit.event.entity.EntityDamageEvent;
 import cn.nukkit.event.inventory.InventoryCloseEvent;
-import cn.nukkit.event.player.PlayerInteractEntityEvent;
-import cn.nukkit.event.player.PlayerInteractEvent;
+import cn.nukkit.event.player.*;
 import cn.nukkit.inventory.AnvilInventory;
 import cn.nukkit.inventory.Inventory;
 import cn.nukkit.inventory.transaction.CraftingTransaction;
@@ -31,21 +32,12 @@ import cn.nukkit.math.BlockFace;
 import cn.nukkit.math.BlockVector3;
 import cn.nukkit.math.Vector3;
 import cn.nukkit.network.SourceInterface;
-import cn.nukkit.network.protocol.ContainerClosePacket;
-import cn.nukkit.network.protocol.ContainerOpenPacket;
-import cn.nukkit.network.protocol.DataPacket;
-import cn.nukkit.network.protocol.EntityEventPacket;
-import cn.nukkit.network.protocol.InteractPacket;
-import cn.nukkit.network.protocol.ProtocolInfo;
-import cn.nukkit.network.protocol.UpdateBlockPacket;
+import cn.nukkit.network.protocol.*;
 import cn.nukkit.network.protocol.types.ContainerIds;
 import cn.nukkit.network.protocol.types.NetworkInventoryAction;
 import cn.nukkit.utils.Binary;
 import org.itxtech.synapseapi.multiprotocol.AbstractProtocol;
-import org.itxtech.synapseapi.multiprotocol.protocol116.protocol.CreativeContentPacket116;
-import org.itxtech.synapseapi.multiprotocol.protocol116.protocol.InventoryTransactionPacket116;
-import org.itxtech.synapseapi.multiprotocol.protocol116.protocol.PacketViolationWarningPacket116;
-import org.itxtech.synapseapi.multiprotocol.protocol116.protocol.StartGamePacket116;
+import org.itxtech.synapseapi.multiprotocol.protocol116.protocol.*;
 
 import java.net.InetSocketAddress;
 import java.util.ArrayList;
@@ -92,6 +84,8 @@ public class SynapsePlayer116 extends SynapsePlayer113 {
 		startGamePacket.worldName = this.getServer().getNetwork().getName();
 		startGamePacket.generator = 1; // 0 old, 1 infinite, 2 flat
 		startGamePacket.gameRules = getSupportedRules();
+		startGamePacket.isMovementServerAuthoritative = this.isNetEaseClient;
+		startGamePacket.currentTick = this.server.getTick();
 		return startGamePacket;
 	}
 
@@ -511,6 +505,7 @@ public class SynapsePlayer116 extends SynapsePlayer113 {
 
 						break;
 					case InventoryTransactionPacket116.TYPE_RELEASE_ITEM:
+						if (!callPacketReceiveEvent(packet)) break;
 						if (this.isSpectator()) {
 							this.sendAllInventories();
 							break packetswitch;
@@ -550,6 +545,7 @@ public class SynapsePlayer116 extends SynapsePlayer113 {
 				}
 				break;
 			case ProtocolInfo.ENTITY_EVENT_PACKET:
+				if (!callPacketReceiveEvent(packet)) break;
 				EntityEventPacket entityEventPacket = (EntityEventPacket) packet;
 				if (entityEventPacket.event == EntityEventPacket.ENCHANT && this.getWindowById(ENCHANT_WINDOW_ID) != null) {
 					break; //附魔现在在 EnchantTransaction 中扣减经验等级
@@ -557,6 +553,7 @@ public class SynapsePlayer116 extends SynapsePlayer113 {
 				super.handleDataPacket(packet);
 				break;
 			case ProtocolInfo.PACKET_VIOLATION_WARNING_PACKET:
+				if (!callPacketReceiveEvent(packet)) break;
 				PacketViolationWarningPacket116 packetViolationWarningPacket = (PacketViolationWarningPacket116) packet;
 				this.getServer().getLogger().warning("Received PacketViolationWarningPacket from " + this.getName());
 				this.getServer().getLogger().warning("type=" + packetViolationWarningPacket.type.name());
@@ -565,10 +562,141 @@ public class SynapsePlayer116 extends SynapsePlayer113 {
 				this.getServer().getLogger().warning("context=" + packetViolationWarningPacket.context);
 				break;
 			case ProtocolInfo.EMOTE_PACKET:
+				if (!callPacketReceiveEvent(packet)) break;
 				for (Player viewer : this.getViewers().values().stream().filter(p -> p.getProtocol() >= AbstractProtocol.PROTOCOL_116.getProtocolStart()).toArray(Player[]::new)) {
 					viewer.dataPacket(packet);
 				}
-				return;
+				break;
+			case ProtocolInfo.PLAYER_AUTH_INPUT_PACKET:
+				if (!callPacketReceiveEvent(packet)) break;
+				if (this.teleportPosition != null) {
+					break;
+				}
+
+				Vector3 newPos;
+				boolean revert;
+
+				PlayerAuthInputPacket116 playerAuthInputPacket = (PlayerAuthInputPacket116) packet;
+				newPos = new Vector3(playerAuthInputPacket.x, playerAuthInputPacket.y - this.getEyeHeight(), playerAuthInputPacket.z);
+
+				if (newPos.distanceSquared(this) < 0.01 && playerAuthInputPacket.yaw % 360 == this.yaw && playerAuthInputPacket.pitch % 360 == this.pitch) {
+					break;
+				}
+
+				if (newPos.distanceSquared(this) > 100) {
+					this.sendPosition(this, playerAuthInputPacket.yaw, playerAuthInputPacket.pitch, MovePlayerPacket.MODE_RESET);
+					break;
+				}
+
+				revert = false;
+				if (!this.isAlive() || !this.spawned) {
+					revert = true;
+					this.forceMovement = new Vector3(this.x, this.y, this.z);
+				}
+
+				if (this.forceMovement != null && (newPos.distanceSquared(this.forceMovement) > 0.1 || revert)) {
+					this.sendPosition(this.forceMovement, playerAuthInputPacket.yaw, playerAuthInputPacket.pitch, MovePlayerPacket.MODE_RESET);
+				} else {
+					playerAuthInputPacket.yaw %= 360;
+					playerAuthInputPacket.pitch %= 360;
+
+					if (playerAuthInputPacket.yaw < 0) {
+						playerAuthInputPacket.yaw += 360;
+					}
+
+					this.setRotation(playerAuthInputPacket.yaw, playerAuthInputPacket.pitch);
+					this.newPosition = newPos;
+					this.forceMovement = null;
+				}
+
+				long inputFlags = playerAuthInputPacket.inputFlags;
+				if ((inputFlags & (1L << PlayerAuthInputPacket116.FLAG_START_SPRINTING)) != 0 && !this.isSprinting()) {
+					PlayerToggleSprintEvent playerToggleSprintEvent = new PlayerToggleSprintEvent(this, true);
+					this.server.getPluginManager().callEvent(playerToggleSprintEvent);
+					if (playerToggleSprintEvent.isCancelled()) {
+						this.sendData(this);
+					} else {
+						this.setSprinting(true);
+					}
+				}
+				if ((inputFlags & (1L << PlayerAuthInputPacket116.FLAG_STOP_SPRINTING)) != 0 && this.isSprinting()) {
+					PlayerToggleSprintEvent playerToggleSprintEvent = new PlayerToggleSprintEvent(this, false);
+					this.server.getPluginManager().callEvent(playerToggleSprintEvent);
+					if (playerToggleSprintEvent.isCancelled()) {
+						this.sendData(this);
+					} else {
+						this.setSprinting(false);
+					}
+				}
+				if ((inputFlags & (1L << PlayerAuthInputPacket116.FLAG_START_SNEAKING)) != 0 && !this.isSneaking()) {
+					PlayerToggleSneakEvent playerToggleSneakEvent = new PlayerToggleSneakEvent(this, true);
+					this.server.getPluginManager().callEvent(playerToggleSneakEvent);
+					if (playerToggleSneakEvent.isCancelled()) {
+						this.sendData(this);
+					} else {
+						this.setSneaking(true);
+					}
+				}
+				if ((inputFlags & (1L << PlayerAuthInputPacket116.FLAG_STOP_SNEAKING)) != 0 && this.isSneaking()) {
+					PlayerToggleSneakEvent playerToggleSneakEvent = new PlayerToggleSneakEvent(this, false);
+					this.server.getPluginManager().callEvent(playerToggleSneakEvent);
+					if (playerToggleSneakEvent.isCancelled()) {
+						this.sendData(this);
+					} else {
+						this.setSneaking(false);
+					}
+				}
+				if ((inputFlags & (1L << PlayerAuthInputPacket116.FLAG_START_SWIMMING)) != 0 && !this.isSwimming()) {
+					PlayerToggleSwimEvent playerToggleSwimEvent = new PlayerToggleSwimEvent(this, true);
+					this.server.getPluginManager().callEvent(playerToggleSwimEvent);
+
+					if (playerToggleSwimEvent.isCancelled()) {
+						this.sendData(this);
+					} else {
+						this.setSwimming(true);
+					}
+				}
+				if ((inputFlags & (1L << PlayerAuthInputPacket116.FLAG_STOP_SWIMMING)) != 0 && this.isSwimming()) {
+					PlayerToggleSwimEvent playerToggleSwimEvent = new PlayerToggleSwimEvent(this, false);
+					this.server.getPluginManager().callEvent(playerToggleSwimEvent);
+
+					if (playerToggleSwimEvent.isCancelled()) {
+						this.sendData(this);
+					} else {
+						this.setSwimming(false);
+					}
+				}
+				if ((inputFlags & (1L << PlayerAuthInputPacket116.FLAG_START_JUMPING)) != 0) {
+					this.server.getPluginManager().callEvent(new PlayerJumpEvent(this));
+				}
+				if ((inputFlags & (1L << PlayerAuthInputPacket116.FLAG_START_GLIDING)) != 0 && !this.isGliding()) {
+					PlayerToggleGlideEvent playerToggleGlideEvent = new PlayerToggleGlideEvent(this, true);
+					this.server.getPluginManager().callEvent(playerToggleGlideEvent);
+					if (playerToggleGlideEvent.isCancelled()) {
+						this.sendData(this);
+					} else {
+						this.setGliding(true);
+					}
+				}
+				if ((inputFlags & (1L << PlayerAuthInputPacket116.FLAG_STOP_GLIDING)) != 0 && this.isGliding()) {
+					PlayerToggleGlideEvent playerToggleGlideEvent = new PlayerToggleGlideEvent(this, false);
+					this.server.getPluginManager().callEvent(playerToggleGlideEvent);
+					if (playerToggleGlideEvent.isCancelled()) {
+						this.sendData(this);
+					} else {
+						this.setGliding(false);
+					}
+				}
+
+				if (this.riding != null) {
+					if (this.riding instanceof EntityMinecartAbstract) {
+						((EntityMinecartAbstract) this.riding).setCurrentSpeed(playerAuthInputPacket.moveVecZ);
+					} else if (this.riding instanceof EntityBoat) {
+						this.riding.setPositionAndRotation(this.temporalVector.setComponents(playerAuthInputPacket.x, playerAuthInputPacket.y - 1, playerAuthInputPacket.z), (playerAuthInputPacket.headYaw + 90) % 360, 0);
+					}
+				}
+
+				break;
 			default:
 				super.handleDataPacket(packet);
 				break;

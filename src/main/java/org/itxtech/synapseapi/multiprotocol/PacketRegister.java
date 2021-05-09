@@ -166,6 +166,7 @@ public class PacketRegister {
         registerPacket(AbstractProtocol.PROTOCOL_116, ProtocolInfo.SET_ENTITY_LINK_PACKET, SetEntityLinkPacket116.class);
         registerPacket(AbstractProtocol.PROTOCOL_116, ProtocolInfo.EMOTE_PACKET, EmotePacket116.class);
         registerPacket(AbstractProtocol.PROTOCOL_116, ProtocolInfo.EMOTE_LIST_PACKET, EmoteListPacket116.class);
+        registerPacket(AbstractProtocol.PROTOCOL_116, ProtocolInfo.PLAYER_AUTH_INPUT_PACKET, PlayerAuthInputPacket116.class);
 
         registerPacket(AbstractProtocol.PROTOCOL_116_20, ProtocolInfo.START_GAME_PACKET, StartGamePacket11620.class);
 

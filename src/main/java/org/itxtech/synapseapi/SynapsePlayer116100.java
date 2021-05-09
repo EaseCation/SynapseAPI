@@ -64,6 +64,8 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
             startGamePacket.worldName = this.getServer().getNetwork().getName();
             startGamePacket.generator = 1; // 0 old, 1 infinite, 2 flat
             startGamePacket.gameRules = getSupportedRules();
+            startGamePacket.isMovementServerAuthoritative = this.isNetEaseClient;
+            startGamePacket.currentTick = this.server.getTick();
             return startGamePacket;
         }
         StartGamePacket116100 startGamePacket = new StartGamePacket116100();
@@ -93,6 +95,8 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
         startGamePacket.worldName = this.getServer().getNetwork().getName();
         startGamePacket.generator = 1; // 0 old, 1 infinite, 2 flat
         startGamePacket.gameRules = getSupportedRules();
+        startGamePacket.isMovementServerAuthoritative = this.isNetEaseClient;
+        startGamePacket.currentTick = this.server.getTick();
         return startGamePacket;
     }
 
