@@ -486,7 +486,7 @@ public class SynapseEntry {
                                     } else if (subPacket instanceof PlayerAuthInputPacket116) {
                                         PlayerAuthInputPacket116 authInputPacket = (PlayerAuthInputPacket116) subPacket;
                                         if (authInputPacket.deltaX != 0 || authInputPacket.deltaZ != 0 || authInputPacket.y - player.getEyeHeight() != player.getY() || authInputPacket.headYaw != player.getYaw() || authInputPacket.pitch != player.getPitch()) {
-                                            Server.getInstance().getLogger().info(player.getName() + ": nkY=" + player.getY() + " y=" + authInputPacket.y + " deltaX=" + authInputPacket.deltaX + " deltaY=" + authInputPacket.deltaY + " deltaZ=" + authInputPacket.deltaZ + " moveVecX=" + authInputPacket.moveVecX + " moveVecZ=" + authInputPacket.moveVecZ);
+                                            //Server.getInstance().getLogger().info(player.getName() + ": nkY=" + player.getY() + " y=" + authInputPacket.y + " deltaX=" + authInputPacket.deltaX + " deltaY=" + authInputPacket.deltaY + " deltaZ=" + authInputPacket.deltaZ + " moveVecX=" + authInputPacket.moveVecX + " moveVecZ=" + authInputPacket.moveVecZ);
                                             MovePlayerPacket packet = new MovePlayerPacket();
                                             packet.eid = player.getId();
                                             packet.x = authInputPacket.x;
