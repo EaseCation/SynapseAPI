@@ -22,6 +22,7 @@ import cn.nukkit.network.protocol.SetEntityMotionPacket;
 import cn.nukkit.network.protocol.TakeItemEntityPacket;
 import cn.nukkit.network.protocol.UpdateAttributesPacket;
 import org.itxtech.synapseapi.multiprotocol.protocol116100ne.protocol.MovePlayerPacket116100NE;
+import org.itxtech.synapseapi.multiprotocol.protocol18.protocol.SpawnParticleEffectPacket18;
 
 import java.util.Arrays;
 import java.util.Map;
@@ -118,6 +119,11 @@ public class DataPacketEidReplacer {
             case ProtocolInfo.CONTAINER_OPEN_PACKET:
                 if (((ContainerOpenPacket) packet).entityId == from) {
                     ((ContainerOpenPacket) packet).entityId = to;
+                }
+                break;
+            case ProtocolInfo.SPAWN_PARTICLE_EFFECT_PACKET:
+                if (((SpawnParticleEffectPacket18) packet).uniqueEntityId == from) {
+                    ((SpawnParticleEffectPacket18) packet).uniqueEntityId = to;
                 }
                 break;
             default:

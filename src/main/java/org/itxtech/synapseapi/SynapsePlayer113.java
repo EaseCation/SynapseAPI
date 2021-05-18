@@ -590,15 +590,15 @@ public class SynapsePlayer113 extends SynapsePlayer112 {
 						break;
 				}
 				break;
-			/*case ProtocolInfo.TICK_SYNC_PACKET:
+			case ProtocolInfo.TICK_SYNC_PACKET:
 				if (!callPacketReceiveEvent(packet)) break;
 				TickSyncPacket113 tickSyncRequest = (TickSyncPacket113) packet;
 
 				TickSyncPacket113 tickSyncResponse = new TickSyncPacket113();
-				tickSyncResponse.requestTimestamp = tickSyncRequest.requestTimestamp;
-				tickSyncResponse.responseTimestamp = this.server.getTick();
+				tickSyncResponse.clientSendTime = tickSyncRequest.clientSendTime;
+				tickSyncResponse.serverReceiveTime = this.server.getTick();
 				this.dataPacket(tickSyncResponse);
-				break;*/
+				break;
 			default:
 				super.handleDataPacket(packet);
 				break;

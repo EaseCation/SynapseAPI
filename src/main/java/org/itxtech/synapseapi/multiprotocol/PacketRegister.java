@@ -21,6 +21,7 @@ import org.itxtech.synapseapi.multiprotocol.protocol116100ne.protocol.StartGameP
 import org.itxtech.synapseapi.multiprotocol.protocol116100ne.protocol.TextPacket116100NE;
 import org.itxtech.synapseapi.multiprotocol.protocol116100ne.protocol.UpdateAttributesPacket116100NE;
 import org.itxtech.synapseapi.multiprotocol.protocol11620.protocol.StartGamePacket11620;
+import org.itxtech.synapseapi.multiprotocol.protocol116200.protocol.FilterTextPacket116200;
 import org.itxtech.synapseapi.multiprotocol.protocol116200.protocol.ResourcePacksInfoPacket116200;
 import org.itxtech.synapseapi.multiprotocol.protocol116210.protocol.StartGamePacket116210;
 import org.itxtech.synapseapi.multiprotocol.protocol116220.protocol.CraftingDataPacket116220;
@@ -169,6 +170,7 @@ public class PacketRegister {
         registerPacket(AbstractProtocol.PROTOCOL_116, ProtocolInfo.SET_ENTITY_LINK_PACKET, SetEntityLinkPacket116.class);
         registerPacket(AbstractProtocol.PROTOCOL_116, ProtocolInfo.EMOTE_PACKET, EmotePacket116.class);
         registerPacket(AbstractProtocol.PROTOCOL_116, ProtocolInfo.EMOTE_LIST_PACKET, EmoteListPacket116.class);
+        registerPacket(AbstractProtocol.PROTOCOL_116, ProtocolInfo.PLAYER_AUTH_INPUT_PACKET, PlayerAuthInputPacket116.class);
 
         registerPacket(AbstractProtocol.PROTOCOL_116_20, ProtocolInfo.START_GAME_PACKET, StartGamePacket11620.class);
 
@@ -187,6 +189,7 @@ public class PacketRegister {
         registerPacket(AbstractProtocol.PROTOCOL_116_100, ProtocolInfo.LEVEL_EVENT_PACKET, LevelEventPacket116100.class);
 
         registerPacket(AbstractProtocol.PROTOCOL_116_200, ProtocolInfo.RESOURCE_PACKS_INFO_PACKET, ResourcePacksInfoPacket116200.class);
+        registerPacket(AbstractProtocol.PROTOCOL_116_200, ProtocolInfo.FILTER_TEXT_PACKET, FilterTextPacket116200.class);
 
         registerPacket(AbstractProtocol.PROTOCOL_116_210, ProtocolInfo.START_GAME_PACKET, StartGamePacket116210.class);
 

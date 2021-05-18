@@ -24,6 +24,7 @@ import org.itxtech.synapseapi.event.player.SynapsePlayerCreationEvent;
 import org.itxtech.synapseapi.messaging.StandardMessenger;
 import org.itxtech.synapseapi.multiprotocol.AbstractProtocol;
 import org.itxtech.synapseapi.multiprotocol.PacketRegister;
+import org.itxtech.synapseapi.multiprotocol.protocol116.protocol.PlayerAuthInputPacket116;
 import org.itxtech.synapseapi.multiprotocol.protocol116100ne.protocol.MovePlayerPacket116100NE;
 import org.itxtech.synapseapi.network.SynLibInterface;
 import org.itxtech.synapseapi.network.SynapseInterface;
@@ -480,6 +481,28 @@ public class SynapseEntry {
                                                 viewer.dataPacket(oldMovePacket);
                                             } else {
                                                 viewer.dataPacket(subPacket);
+                                            }
+                                        }
+                                    } else if (subPacket instanceof PlayerAuthInputPacket116) {
+                                        PlayerAuthInputPacket116 authInputPacket = (PlayerAuthInputPacket116) subPacket;
+                                        if (authInputPacket.deltaX != 0 || authInputPacket.deltaZ != 0 || authInputPacket.y - player.getEyeHeight() != player.getY() || authInputPacket.headYaw != player.getYaw() || authInputPacket.pitch != player.getPitch()) {
+                                            //Server.getInstance().getLogger().info(player.getName() + ": nkY=" + player.getY() + " y=" + authInputPacket.y + " deltaX=" + authInputPacket.deltaX + " deltaY=" + authInputPacket.deltaY + " deltaZ=" + authInputPacket.deltaZ + " moveVecX=" + authInputPacket.moveVecX + " moveVecZ=" + authInputPacket.moveVecZ);
+                                            MovePlayerPacket packet = new MovePlayerPacket();
+                                            packet.eid = player.getId();
+                                            packet.x = authInputPacket.x;
+                                            packet.y = authInputPacket.y;
+                                            packet.z = authInputPacket.z;
+                                            packet.yaw = authInputPacket.yaw;
+                                            packet.headYaw = authInputPacket.headYaw;
+                                            packet.pitch = authInputPacket.pitch;
+                                            packet.mode = MovePlayerPacket.MODE_NORMAL;
+                                            packet.onGround = player.onGround;
+                                            //packet.ridingEid = authInputPacket.ridingEid;
+                                            //packet.int1 = authInputPacket.int1;
+                                            //packet.int2 = authInputPacket.int2;
+                                            packet.setChannel(DataPacket.CHANNEL_PLAYER_MOVING);
+                                            for (Player viewer : new ArrayList<>(player.getViewers().values())) {
+                                                viewer.dataPacket(packet);
                                             }
                                         }
                                     }

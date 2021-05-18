@@ -6,8 +6,8 @@ public class TickSyncPacket113 extends Packet113 {
 
     public static final int NETWORK_ID = ProtocolInfo.TICK_SYNC_PACKET;
 
-    public long requestTimestamp;
-    public long responseTimestamp;
+    public long clientSendTime;
+    public long serverReceiveTime;
 
     @Override
     public int pid() {
@@ -16,14 +16,14 @@ public class TickSyncPacket113 extends Packet113 {
 
     @Override
     public void decode() {
-        this.requestTimestamp = this.getLLong();
-        this.responseTimestamp = this.getLLong();
+        this.clientSendTime = this.getLLong();
+        this.serverReceiveTime = this.getLLong();
     }
 
     @Override
     public void encode() {
         this.reset();
-        this.putLLong(this.requestTimestamp);
-        this.putLLong(this.responseTimestamp);
+        this.putLLong(this.clientSendTime);
+        this.putLLong(this.serverReceiveTime);
     }
 }
