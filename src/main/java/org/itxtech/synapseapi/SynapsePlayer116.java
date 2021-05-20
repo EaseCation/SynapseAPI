@@ -114,7 +114,7 @@ public class SynapsePlayer116 extends SynapsePlayer113 {
 		switch (packet.pid()) {
 			case ProtocolInfo.INTERACT_PACKET:
 				InteractPacket interactPacket = (InteractPacket) packet;
-				if (interactPacket.action == InteractPacket.ACTION_OPEN_INVENTORY && interactPacket.target == Long.MAX_VALUE /*&& !this.inventoryOpen*/) {
+				if (interactPacket.action == InteractPacket.ACTION_OPEN_INVENTORY && interactPacket.target == Long.MAX_VALUE && !this.inventoryOpen) {
 //					this.openInventory();
 					this.inventory.open(this);
 					this.inventoryOpen = true;
