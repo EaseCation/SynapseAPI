@@ -92,7 +92,7 @@ public class StartGamePacket14 extends Packet14 {
 		this.putBoolean(this.broadcastToXboxLive);
 		this.putBoolean(this.commandsEnabled);
 		this.putBoolean(this.isTexturePacksRequired);
-		this.putGameRules14(this.gameRules);
+		this.putGameRules(this.gameRules);
 		this.putBoolean(this.bonusChest);
 		this.putBoolean(this.startWithMapEnabled); // added by 1.4
 		this.putBoolean(this.trustPlayers);
@@ -114,13 +114,4 @@ public class StartGamePacket14 extends Packet14 {
 		this.putLLong(this.currentTick);
 		this.putVarInt(this.enchantmentSeed);
 	}
-
-	private void putGameRules14(GameRules rules) {
-		if (rules == null) {
-			this.putUnsignedVarInt(0);
-		} else {
-			rules.writeBinaryStream14(this);
-		}
-	}
-
 }

@@ -14,7 +14,7 @@ import java.util.Map;
 
 public class CreativeItemsPalette {
 
-    private static Map<AbstractProtocol, ArrayList<Item>> palettes = new HashMap<AbstractProtocol, ArrayList<Item>>() {{
+    private static final Map<AbstractProtocol, ArrayList<Item>> palettes = new HashMap<AbstractProtocol, ArrayList<Item>>() {{
         put(AbstractProtocol.PROTOCOL_19, load("creativeitems_19.json"));
         put(AbstractProtocol.PROTOCOL_110, load("creativeitems_19.json"));
         put(AbstractProtocol.PROTOCOL_111, load("creativeitems_111.json"));
@@ -28,13 +28,14 @@ public class CreativeItemsPalette {
         put(AbstractProtocol.PROTOCOL_116_200, load("creativeitems_11620.json"));
         put(AbstractProtocol.PROTOCOL_116_210, load("creativeitems_11620.json"));
         put(AbstractProtocol.PROTOCOL_116_220, load("creativeitems_11620.json", true));
+        put(AbstractProtocol.PROTOCOL_117, load("creativeitems_11620.json", true));
     }};
 
-    @SuppressWarnings("unchecked")
     private static ArrayList<Item> load(String file) {
         return load(file, false);
     }
 
+    @SuppressWarnings("unchecked")
     private static ArrayList<Item> load(String file, boolean ignoreUnsupported) {
         Server.getInstance().getLogger().info("Loading Creative Items Palette from " + file);
         ArrayList<Item> result = new ArrayList<>();

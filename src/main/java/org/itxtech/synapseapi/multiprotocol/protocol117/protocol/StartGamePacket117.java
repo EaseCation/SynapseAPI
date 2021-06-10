@@ -1,13 +1,14 @@
-package org.itxtech.synapseapi.multiprotocol.protocol116210.protocol;
+package org.itxtech.synapseapi.multiprotocol.protocol117.protocol;
 
 import cn.nukkit.level.GameRules;
 import cn.nukkit.network.protocol.ProtocolInfo;
 import lombok.ToString;
 import org.itxtech.synapseapi.multiprotocol.AbstractProtocol;
+import org.itxtech.synapseapi.multiprotocol.protocol116210.protocol.Packet116210;
 import org.itxtech.synapseapi.multiprotocol.utils.AdvancedRuntimeItemPalette;
 
 @ToString
-public class StartGamePacket116210 extends Packet116210 {
+public class StartGamePacket117 extends Packet116210 {
 
     public static final int NETWORK_ID = ProtocolInfo.START_GAME_PACKET;
 
@@ -68,18 +69,18 @@ public class StartGamePacket116210 extends Packet116210 {
     public boolean isFromWorldTemplate = false;
     public boolean isWorldTemplateOptionLocked = false;
     public boolean isOnlySpawningV1Villagers = false;
-    public String vanillaVersion = "1.16.210";
+    public String vanillaVersion = "1.17.0";
     public String levelId = ""; //base64 string, usually the same as world folder name in vanilla
     public String worldName;
     public String premiumWorldTemplateId = "";
     public boolean isTrial = false;
     public boolean isMovementServerAuthoritative;
-    public long currentTick;
     public boolean isInventoryServerAuthoritative;
+    public long currentTick;
+    public String serverEngine = "Nukkit 1.0.0+EaseCation";
 
     public int enchantmentSeed;
 
-    public byte[] blockPalette = null;
     public byte[] itemDataPalette = null;
 
     public String multiplayerCorrelationId = "";
@@ -150,10 +151,10 @@ public class StartGamePacket116210 extends Packet116210 {
         this.putBoolean(false); // isServerAuthoritativeBlockBreaking
         this.putLLong(this.currentTick);
         this.putVarInt(this.enchantmentSeed);
-
         this.putUnsignedVarInt(0); // Custom blocks
         this.put(this.itemDataPalette == null ? AdvancedRuntimeItemPalette.getCompiledData(this.protocol) : this.itemDataPalette);
         this.putString(this.multiplayerCorrelationId);
         this.putBoolean(this.isInventoryServerAuthoritative);
+        this.putString(this.serverEngine);
     }
 }

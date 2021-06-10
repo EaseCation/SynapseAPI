@@ -101,7 +101,7 @@ public class StartGamePacket17 extends Packet17 {
 		this.putBoolean(this.broadcastToXboxLive);
 		this.putBoolean(this.commandsEnabled);
 		this.putBoolean(this.isTexturePacksRequired);
-		this.putGameRules14(gameRules);
+		this.putGameRules(gameRules);
 		this.putBoolean(this.bonusChest);
 		this.putBoolean(this.hasStartWithMapEnabled);
 		this.putBoolean(this.trustPlayers);
@@ -125,13 +125,4 @@ public class StartGamePacket17 extends Packet17 {
 		this.put(AdvancedGlobalBlockPalette.getCompiledTable(AbstractProtocol.PROTOCOL_17, netease));
 		this.putString(this.multiplayerCorrelationId);
 	}
-
-	private void putGameRules14(GameRules rules) {
-		if (rules == null) {
-			this.putUnsignedVarInt(0);
-		} else {
-			rules.writeBinaryStream14(this);
-		}
-	}
-
 }

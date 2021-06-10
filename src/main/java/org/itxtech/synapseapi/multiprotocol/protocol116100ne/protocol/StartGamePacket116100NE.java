@@ -121,7 +121,7 @@ public class StartGamePacket116100NE extends Packet116100NE {
         this.putVarInt(this.platformBroadcastIntent);
         this.putBoolean(this.commandsEnabled);
         this.putBoolean(this.isTexturePacksRequired);
-        this.putGameRules14(this.gameRules);
+        this.putGameRules(this.gameRules);
         this.putBoolean(this.bonusChest);
         this.putBoolean(this.hasStartWithMapEnabled);
         this.putVarInt(this.permissionLevel);
@@ -152,13 +152,5 @@ public class StartGamePacket116100NE extends Packet116100NE {
         this.putString(this.multiplayerCorrelationId);
         this.putBoolean(this.isInventoryServerAuthoritative);
         this.putVarInt(0); // 详见协议文档
-    }
-
-    private void putGameRules14(GameRules rules) {
-        if (rules == null) {
-            this.putUnsignedVarInt(0);
-        } else {
-            rules.writeBinaryStream14(this);
-        }
     }
 }

@@ -109,7 +109,7 @@ public class StartGamePacket19 extends Packet19 {
 		this.putVarInt(this.platformBroadcastIntent);
 		this.putBoolean(this.commandsEnabled);
 		this.putBoolean(this.isTexturePacksRequired);
-		this.putGameRules14(gameRules);
+		this.putGameRules(gameRules);
 		this.putBoolean(this.bonusChest);
 		this.putBoolean(this.hasStartWithMapEnabled);
 		this.putVarInt(this.permissionLevel);
@@ -129,13 +129,4 @@ public class StartGamePacket19 extends Packet19 {
 		this.put(blockPalette == null ? AdvancedGlobalBlockPalette.getCompiledTable(AbstractProtocol.PROTOCOL_19, netease) : blockPalette);
 		this.putString(this.multiplayerCorrelationId);
 	}
-
-	private void putGameRules14(GameRules rules) {
-		if (rules == null) {
-			this.putUnsignedVarInt(0);
-		} else {
-			rules.writeBinaryStream14(this);
-		}
-	}
-
 }

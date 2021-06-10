@@ -226,6 +226,7 @@ public class SynapsePlayer14 extends SynapsePlayer {
 						Block block = target.getSide(face);
 						if (block.getId() == Block.FIRE) {
 							this.level.setBlock(block, new BlockAir(), true);
+							this.level.addLevelSoundEvent(block, LevelSoundEventPacket.SOUND_EXTINGUISH_FIRE);
 							break;
 						}
 						if (!this.isCreative()) {
