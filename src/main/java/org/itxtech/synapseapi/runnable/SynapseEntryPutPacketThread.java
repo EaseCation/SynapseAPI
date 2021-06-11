@@ -3,9 +3,7 @@ package org.itxtech.synapseapi.runnable;
 import cn.nukkit.Server;
 import cn.nukkit.math.NukkitMath;
 import cn.nukkit.network.Network;
-import cn.nukkit.network.protocol.BatchPacket;
-import cn.nukkit.network.protocol.DataPacket;
-import cn.nukkit.network.protocol.ProtocolInfo;
+import cn.nukkit.network.protocol.*;
 import cn.nukkit.utils.Binary;
 import cn.nukkit.utils.MainLogger;
 import cn.nukkit.utils.Zlib;
@@ -13,6 +11,7 @@ import org.itxtech.synapseapi.SynapseAPI;
 import org.itxtech.synapseapi.SynapsePlayer;
 import org.itxtech.synapseapi.multiprotocol.AbstractProtocol;
 import org.itxtech.synapseapi.multiprotocol.PacketRegister;
+import org.itxtech.synapseapi.multiprotocol.protocol116.protocol.EmotePacket116;
 import org.itxtech.synapseapi.network.SynapseInterface;
 import org.itxtech.synapseapi.network.protocol.spp.RedirectPacket;
 
@@ -69,8 +68,15 @@ public class SynapseEntryPutPacketThread extends Thread {
         if (player.getSynapseEntry().getSynapse().isRecordPacketStack()) packet.stack = new Throwable();
         this.queue.offer(new Entry(player, packet, needACK, immediate));
 
-        /*
-        if (!(packet instanceof SetEntityDataPacket)) {
+        /*if (!(packet instanceof MoveEntityPacket)
+                && !(packet instanceof MovePlayerPacket)
+                && !(packet instanceof SetEntityDataPacket)
+                && !(packet instanceof UpdateAttributesPacket)
+                && !(packet instanceof LevelEventPacket)
+                && !(packet instanceof MobEffectPacket)
+                && !(packet instanceof SetTimePacket)
+                && !(packet instanceof EmotePacket116)
+        ) {
             Server.getInstance().getLogger().debug("SynapseEntryPutPacketThread Offer: " + packet.getClass().getSimpleName());
             Server.getInstance().getLogger().logException(new Throwable());
         }*/
