@@ -74,12 +74,11 @@ public class StartGamePacket116210 extends Packet116210 {
     public String premiumWorldTemplateId = "";
     public boolean isTrial = false;
     public boolean isMovementServerAuthoritative;
-    public long currentTick;
     public boolean isInventoryServerAuthoritative;
+    public long currentTick;
 
     public int enchantmentSeed;
 
-    public byte[] blockPalette = null;
     public byte[] itemDataPalette = null;
 
     public String multiplayerCorrelationId = "";
@@ -150,7 +149,6 @@ public class StartGamePacket116210 extends Packet116210 {
         this.putBoolean(false); // isServerAuthoritativeBlockBreaking
         this.putLLong(this.currentTick);
         this.putVarInt(this.enchantmentSeed);
-
         this.putUnsignedVarInt(0); // Custom blocks
         this.put(this.itemDataPalette == null ? AdvancedRuntimeItemPalette.getCompiledData(this.protocol) : this.itemDataPalette);
         this.putString(this.multiplayerCorrelationId);

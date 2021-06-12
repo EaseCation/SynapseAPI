@@ -82,6 +82,8 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
             startGamePacket.worldName = this.getServer().getNetwork().getName();
             startGamePacket.generator = 1; // 0 old, 1 infinite, 2 flat
             startGamePacket.gameRules = getSupportedRules();
+            startGamePacket.isMovementServerAuthoritative = this.isNetEaseClient;
+            startGamePacket.currentTick = this.server.getTick();
             return startGamePacket;
         } else if (this.getProtocol() >= AbstractProtocol.PROTOCOL_116_210.getProtocolStart()) {
             StartGamePacket116210 startGamePacket = new StartGamePacket116210();
@@ -111,6 +113,8 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
             startGamePacket.worldName = this.getServer().getNetwork().getName();
             startGamePacket.generator = 1; // 0 old, 1 infinite, 2 flat
             startGamePacket.gameRules = getSupportedRules();
+            startGamePacket.isMovementServerAuthoritative = this.isNetEaseClient;
+            startGamePacket.currentTick = this.server.getTick();
             return startGamePacket;
         } else if (this.getProtocol() < AbstractProtocol.PROTOCOL_116_100.getProtocolStart()) {
             StartGamePacket116100NE startGamePacket = new StartGamePacket116100NE();
@@ -353,7 +357,10 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
                 }
 
             case ProtocolInfo.PLAYER_ACTION_PACKET:
-                if (this.getProtocol() < AbstractProtocol.PROTOCOL_116_210.getProtocolStart()) break;
+                if (this.getProtocol() < AbstractProtocol.PROTOCOL_116_210.getProtocolStart()) {
+                    super.handleDataPacket(packet);
+                    break;
+                }
                 PlayerActionPacket14 playerActionPacket = (PlayerActionPacket14) packet;
                 if (!this.callPacketReceiveEvent(((PlayerActionPacket14) packet).toDefault())) break;
 
