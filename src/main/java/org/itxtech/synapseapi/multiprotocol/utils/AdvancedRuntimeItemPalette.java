@@ -14,11 +14,13 @@ public final class AdvancedRuntimeItemPalette {
         palettes.defaultReturnValue(RuntimeItemPaletteLegacy.INSTANCE);
 
         RuntimeItemPalette palette116100 = new RuntimeItemPalette("runtime_item_ids_116100.json");
+        RuntimeItemPalette palette117 = new RuntimeItemPalette("runtime_item_ids_117.json");
 
         palettes.put(AbstractProtocol.PROTOCOL_116_100, palette116100);
         palettes.put(AbstractProtocol.PROTOCOL_116_200, palette116100);
         palettes.put(AbstractProtocol.PROTOCOL_116_210, palette116100);
         palettes.put(AbstractProtocol.PROTOCOL_116_220, palette116100);
+        palettes.put(AbstractProtocol.PROTOCOL_117, palette117);
     }
 
     public static int getNetworkFullId(AbstractProtocol protocol, Item item) {

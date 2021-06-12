@@ -122,7 +122,7 @@ public class StartGamePacket11620 extends Packet11620 {
         this.putVarInt(this.platformBroadcastIntent);
         this.putBoolean(this.commandsEnabled);
         this.putBoolean(this.isTexturePacksRequired);
-        this.putGameRules14(this.gameRules);
+        this.putGameRules(this.gameRules);
         this.putBoolean(this.bonusChest);
         this.putBoolean(this.hasStartWithMapEnabled);
         this.putVarInt(this.permissionLevel);
@@ -152,13 +152,5 @@ public class StartGamePacket11620 extends Packet11620 {
         this.put(itemDataPalette == null ? AdvancedGlobalBlockPalette.getCompiledItemDataPalette(protocol, netease): itemDataPalette);
         this.putString(this.multiplayerCorrelationId);
         this.putBoolean(this.isInventoryServerAuthoritative);
-    }
-
-    private void putGameRules14(GameRules rules) {
-        if (rules == null) {
-            this.putUnsignedVarInt(0);
-        } else {
-            rules.writeBinaryStream14(this);
-        }
     }
 }

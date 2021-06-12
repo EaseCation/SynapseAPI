@@ -111,7 +111,7 @@ public class StartGamePacket112 extends Packet112 {
 		this.putVarInt(this.platformBroadcastIntent);
 		this.putBoolean(this.commandsEnabled);
 		this.putBoolean(this.isTexturePacksRequired);
-		this.putGameRules14(gameRules);
+		this.putGameRules(gameRules);
 		this.putBoolean(this.bonusChest);
 		this.putBoolean(this.hasStartWithMapEnabled);
 		this.putVarInt(this.permissionLevel);
@@ -133,13 +133,4 @@ public class StartGamePacket112 extends Packet112 {
 		this.put(itemDataPalette == null ? AdvancedGlobalBlockPalette.getCompiledItemDataPalette(AbstractProtocol.PROTOCOL_112, netease): itemDataPalette);
 		this.putString(this.multiplayerCorrelationId);
 	}
-
-	private void putGameRules14(GameRules rules) {
-		if (rules == null) {
-			this.putUnsignedVarInt(0);
-		} else {
-			rules.writeBinaryStream14(this);
-		}
-	}
-
 }

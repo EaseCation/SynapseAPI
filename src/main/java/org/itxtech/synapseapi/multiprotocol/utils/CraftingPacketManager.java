@@ -15,7 +15,7 @@ import java.util.zip.Deflater;
 public final class CraftingPacketManager {
 
     private static BatchPacket originPacket;
-    private static Map<AbstractProtocol, BatchPacket> packets = new HashMap<>();
+    private static final Map<AbstractProtocol, BatchPacket> packets = new HashMap<>();
 
     public static void rebuildPacket() {
         CraftingDataPacket pk = new CraftingDataPacket();

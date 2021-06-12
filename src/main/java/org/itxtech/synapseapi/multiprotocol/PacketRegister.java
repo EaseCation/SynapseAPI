@@ -27,6 +27,8 @@ import org.itxtech.synapseapi.multiprotocol.protocol116210.protocol.StartGamePac
 import org.itxtech.synapseapi.multiprotocol.protocol116220.protocol.CraftingDataPacket116220;
 import org.itxtech.synapseapi.multiprotocol.protocol116220.protocol.InventoryContentPacket116220;
 import org.itxtech.synapseapi.multiprotocol.protocol116220.protocol.InventorySlotPacket116220;
+import org.itxtech.synapseapi.multiprotocol.protocol117.protocol.GameRulesChangedPacket117;
+import org.itxtech.synapseapi.multiprotocol.protocol117.protocol.StartGamePacket117;
 import org.itxtech.synapseapi.multiprotocol.protocol15.protocol.AddEntityPacket15;
 import org.itxtech.synapseapi.multiprotocol.protocol15.protocol.ClientboundMapItemDataPacket15;
 import org.itxtech.synapseapi.multiprotocol.protocol15.protocol.MoveEntityAbsolutePacket15;
@@ -196,6 +198,9 @@ public class PacketRegister {
         registerPacket(AbstractProtocol.PROTOCOL_116_220, ProtocolInfo.CRAFTING_DATA_PACKET, CraftingDataPacket116220.class);
         registerPacket(AbstractProtocol.PROTOCOL_116_220, ProtocolInfo.INVENTORY_CONTENT_PACKET, InventoryContentPacket116220.class);
         registerPacket(AbstractProtocol.PROTOCOL_116_220, ProtocolInfo.INVENTORY_SLOT_PACKET, InventorySlotPacket116220.class);
+
+        registerPacket(AbstractProtocol.PROTOCOL_117, ProtocolInfo.START_GAME_PACKET, StartGamePacket117.class);
+        registerPacket(AbstractProtocol.PROTOCOL_117, ProtocolInfo.GAME_RULES_CHANGED_PACKET, GameRulesChangedPacket117.class);
 
         checkNeteaseSpecialExtend();
         CraftingPacketManager.rebuildPacket();
