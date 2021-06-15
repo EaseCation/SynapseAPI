@@ -14,6 +14,8 @@ import cn.nukkit.utils.BinaryStream;
 import io.netty.buffer.AbstractByteBufAllocator;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.ByteBufAllocator;
+import lombok.extern.log4j.Log4j2;
+import org.itxtech.synapseapi.SynapseSharedConstants;
 import org.itxtech.synapseapi.multiprotocol.protocol116210.BinaryStreamHelper116210;
 import org.itxtech.synapseapi.multiprotocol.utils.AdvancedGlobalBlockPalette;
 import org.itxtech.synapseapi.multiprotocol.utils.AdvancedRuntimeItemPalette;
@@ -22,6 +24,7 @@ import java.io.IOException;
 import java.nio.ByteOrder;
 import java.util.List;
 
+@Log4j2
 public class BinaryStreamHelper116220 extends BinaryStreamHelper116210 {
 
     public static BinaryStreamHelper116220 create() {
@@ -178,6 +181,15 @@ public class BinaryStreamHelper116220 extends BinaryStreamHelper116210 {
         int runtimeId = block == null ? 0 : AdvancedGlobalBlockPalette.getOrCreateRuntimeId(this.protocol, false, block.getId(), block.getDamage()); //TODO: NetEase? -- 04/17/2021
         stream.putVarInt(runtimeId);
 
+        if (SynapseSharedConstants.ITEM_BLOCK_DEBUG) {
+            if (block == null) {
+                Block expected = Item.get(item.getId(), item.getDamage()).getBlockUnsafe();
+                if (expected != null) {
+                    log.warn("Invalid block given: {}\nExpected block: {}", item, expected);
+                }
+            }
+        }
+
         ByteBuf userDataBuf = ByteBufAllocator.DEFAULT.ioBuffer();
         try (LittleEndianByteBufOutputStream out = new LittleEndianByteBufOutputStream(userDataBuf)) {
             if (item.getDamage() != 0) {
@@ -229,5 +241,4 @@ public class BinaryStreamHelper116220 extends BinaryStreamHelper116210 {
         }
     }
 
-    //FIXME: item meta
 }

@@ -607,6 +607,24 @@ public class SynapsePlayer113 extends SynapsePlayer112 {
 	}
 
 	@Override
+	protected void firstRespawn(Position pos) {
+		RespawnPacket respawnPacket0 = new RespawnPacket();
+		respawnPacket0.x = (float) pos.x;
+		respawnPacket0.y = (float) pos.y + this.getEyeHeight();
+		respawnPacket0.z = (float) pos.z;
+		respawnPacket0.respawnState = RespawnPacket.STATE_SEARCHING_FOR_SPAWN;
+
+		RespawnPacket respawnPacket1 = new RespawnPacket();
+		respawnPacket1.x = respawnPacket0.x;
+		respawnPacket1.y = respawnPacket0.y;
+		respawnPacket1.z = respawnPacket0.z;
+		respawnPacket1.respawnState = RespawnPacket.STATE_READY_TO_SPAWN;
+
+		this.dataPacket(respawnPacket0);
+		this.dataPacket(respawnPacket1);
+	}
+
+	@Override
 	public void sendNetworkSettings() {
 		/*NetworkSettingsPacket113 pk = new NetworkSettingsPacket113();
 		//pk.compressionThreshold = NetworkSettingsPacket113.COMPRESS_NOTHING;

@@ -26,16 +26,21 @@ public class PlayerActionPacket14 extends Packet14 {
     public static final int ACTION_START_SNEAK = 11;
     public static final int ACTION_STOP_SNEAK = 12;
     public static final int ACTION_DIMENSION_CHANGE_REQUEST = 13; //sent when dying in different dimension
+    public static final int ACTION_CREATIVE_PLAYER_DESTROY_BLOCK = 13; // 1.16.100+
     public static final int ACTION_DIMENSION_CHANGE_ACK = 14; //sent when spawning in a different dimension to tell the server we spawned
     public static final int ACTION_START_GLIDE = 15;
     public static final int ACTION_STOP_GLIDE = 16;
     public static final int ACTION_BUILD_DENIED = 17;
     public static final int ACTION_CONTINUE_BREAK = 18;
+    public static final int ACTION_CHANGE_SKIN = 19;
     public static final int ACTION_SET_ENCHANTMENT_SEED = 20;
     public static final int ACTION_START_SWIMMING = 21;
     public static final int ACTION_STOP_SWIMMING = 22;
     public static final int ACTION_START_SPIN_ATTACK = 23;
     public static final int ACTION_STOP_SPIN_ATTACK = 24;
+    public static final int ACTION_BLOCK_INTERACT = 25;
+    public static final int ACTION_BLOCK_PREDICT_DESTROY = 26;
+    public static final int ACTION_BLOCK_CONTINUE_DESTROY = 27;
 
     public long entityId;
     public int action;

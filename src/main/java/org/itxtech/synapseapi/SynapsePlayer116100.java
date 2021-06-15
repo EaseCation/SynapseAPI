@@ -2,17 +2,14 @@ package org.itxtech.synapseapi;
 
 import cn.nukkit.Player;
 import cn.nukkit.block.Block;
-import cn.nukkit.block.BlockAir;
 import cn.nukkit.block.BlockDragonEgg;
 import cn.nukkit.block.BlockID;
 import cn.nukkit.block.BlockNoteblock;
 import cn.nukkit.blockentity.BlockEntity;
 import cn.nukkit.blockentity.BlockEntityItemFrame;
-import cn.nukkit.entity.data.ShortEntityData;
 import cn.nukkit.entity.item.EntityBoat;
 import cn.nukkit.event.inventory.InventoryCloseEvent;
 import cn.nukkit.event.player.PlayerInteractEvent;
-import cn.nukkit.event.player.PlayerRespawnEvent;
 import cn.nukkit.inventory.Inventory;
 import cn.nukkit.level.Position;
 import cn.nukkit.math.BlockFace;
@@ -82,7 +79,7 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
             startGamePacket.worldName = this.getServer().getNetwork().getName();
             startGamePacket.generator = 1; // 0 old, 1 infinite, 2 flat
             startGamePacket.gameRules = getSupportedRules();
-            startGamePacket.isMovementServerAuthoritative = this.isNetEaseClient;
+            startGamePacket.isMovementServerAuthoritative = false;
             startGamePacket.currentTick = this.server.getTick();
             return startGamePacket;
         } else if (this.getProtocol() >= AbstractProtocol.PROTOCOL_116_210.getProtocolStart()) {
@@ -113,7 +110,7 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
             startGamePacket.worldName = this.getServer().getNetwork().getName();
             startGamePacket.generator = 1; // 0 old, 1 infinite, 2 flat
             startGamePacket.gameRules = getSupportedRules();
-            startGamePacket.isMovementServerAuthoritative = this.isNetEaseClient;
+            startGamePacket.isMovementServerAuthoritative = false; //FIXME 需要再检查一遍数据包结构
             startGamePacket.currentTick = this.server.getTick();
             return startGamePacket;
         } else if (this.getProtocol() < AbstractProtocol.PROTOCOL_116_100.getProtocolStart()) {

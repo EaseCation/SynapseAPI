@@ -77,7 +77,6 @@ public enum AbstractProtocol {
     PROTOCOL_116_100_NE(410, Packet116100NE.class, SynapsePlayer116100.class, BinaryStreamHelper116100NE.create(), true), // 1.16.100.51 beta (使用407的数据)
     PROTOCOL_116_100(419, Packet116100.class, SynapsePlayer116100.class, BinaryStreamHelper116100.create(), true),
     PROTOCOL_116_200(422, Packet116200.class, SynapsePlayer116100.class, BinaryStreamHelper116200.create(), true),
-    //TODO: 下面的版本适配暂未完成
     PROTOCOL_116_210(428, Packet116210.class, SynapsePlayer116100.class, BinaryStreamHelper116210.create(), true),
     PROTOCOL_116_220(431, Packet116220.class, SynapsePlayer116100.class, BinaryStreamHelper116220.create(), true),
     PROTOCOL_117(440, Packet117.class, SynapsePlayer116100.class, BinaryStreamHelper117.create(), true),

@@ -7,6 +7,8 @@ import org.itxtech.synapseapi.multiprotocol.AbstractProtocol;
 import org.itxtech.synapseapi.multiprotocol.protocol116210.protocol.Packet116210;
 import org.itxtech.synapseapi.multiprotocol.utils.AdvancedRuntimeItemPalette;
 
+import java.util.UUID;
+
 @ToString
 public class StartGamePacket117 extends Packet116210 {
 
@@ -72,12 +74,12 @@ public class StartGamePacket117 extends Packet116210 {
     public String vanillaVersion = "1.17.0";
     public String levelId = ""; //base64 string, usually the same as world folder name in vanilla
     public String worldName;
-    public String premiumWorldTemplateId = "";
+    public String premiumWorldTemplateId = "00000000-0000-0000-0000-000000000000";
     public boolean isTrial = false;
     public boolean isMovementServerAuthoritative;
     public boolean isInventoryServerAuthoritative;
     public long currentTick;
-    public String serverEngine = "Nukkit 1.0.0+EaseCation";
+    public String serverEngine = "1.17.0";
 
     public int enchantmentSeed;
 
@@ -147,7 +149,7 @@ public class StartGamePacket117 extends Packet116210 {
         this.putString(this.premiumWorldTemplateId);
         this.putBoolean(this.isTrial);
         this.putUnsignedVarInt(this.isMovementServerAuthoritative ? 1 : 0); // 2 - rewind
-        this.putVarInt(0); // RewindHistorySize
+        this.putVarInt(20); // RewindHistorySize
         this.putBoolean(false); // isServerAuthoritativeBlockBreaking
         this.putLLong(this.currentTick);
         this.putVarInt(this.enchantmentSeed);
@@ -155,6 +157,6 @@ public class StartGamePacket117 extends Packet116210 {
         this.put(this.itemDataPalette == null ? AdvancedRuntimeItemPalette.getCompiledData(this.protocol) : this.itemDataPalette);
         this.putString(this.multiplayerCorrelationId);
         this.putBoolean(this.isInventoryServerAuthoritative);
-        this.putString(this.serverEngine);
+        this.putString(this.helper.getGameVersion());//this.putString(this.serverEngine);
     }
 }

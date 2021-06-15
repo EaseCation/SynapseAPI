@@ -216,20 +216,11 @@ public class SynapsePlayer16 extends SynapsePlayer14 {
 
 		pos = respawnEvent.getRespawnPosition();
 
-		if (this.getHealth() <= 0) {
-			RespawnPacket respawnPacket = new RespawnPacket();
+		if (this.getHealth() < 1) {
 			pos = this.getSpawn();
-			respawnPacket.x = (float) pos.x;
-			respawnPacket.y = (float) pos.y + this.getEyeHeight();
-			respawnPacket.z = (float) pos.z;
-			this.dataPacket(respawnPacket);
-		} else {
-			RespawnPacket respawnPacket = new RespawnPacket();
-			respawnPacket.x = (float) pos.x;
-			respawnPacket.y = (float) pos.y + this.getEyeHeight();
-			respawnPacket.z = (float) pos.z;
-			this.dataPacket(respawnPacket);
 		}
+
+		this.firstRespawn(pos);
 
 		this.sendPlayStatus(PlayStatusPacket.PLAYER_SPAWN);
 
@@ -291,9 +282,6 @@ public class SynapsePlayer16 extends SynapsePlayer14 {
 		//todo Updater
 
 		//Weather
-		if (this.level.isRaining() || this.level.isThundering()) {
-			this.getLevel().sendWeather(this);
-		}
 		this.getLevel().sendWeather(this);
 
 		//FoodLevel

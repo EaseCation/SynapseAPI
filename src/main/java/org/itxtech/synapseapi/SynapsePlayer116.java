@@ -37,6 +37,7 @@ import cn.nukkit.network.protocol.types.ContainerIds;
 import cn.nukkit.network.protocol.types.NetworkInventoryAction;
 import cn.nukkit.utils.Binary;
 import org.itxtech.synapseapi.multiprotocol.AbstractProtocol;
+import org.itxtech.synapseapi.multiprotocol.protocol113.protocol.IPlayerAuthInputPacket;
 import org.itxtech.synapseapi.multiprotocol.protocol116.protocol.*;
 
 import java.net.InetSocketAddress;
@@ -576,15 +577,15 @@ public class SynapsePlayer116 extends SynapsePlayer113 {
 				Vector3 newPos;
 				boolean revert;
 
-				PlayerAuthInputPacket116 playerAuthInputPacket = (PlayerAuthInputPacket116) packet;
-				newPos = new Vector3(playerAuthInputPacket.x, playerAuthInputPacket.y - this.getEyeHeight(), playerAuthInputPacket.z);
+				IPlayerAuthInputPacket playerAuthInputPacket = (IPlayerAuthInputPacket) packet;
+				newPos = new Vector3(playerAuthInputPacket.getX(), playerAuthInputPacket.getY() - this.getEyeHeight(), playerAuthInputPacket.getZ());
 
-				if (newPos.distanceSquared(this) < 0.01 && playerAuthInputPacket.yaw % 360 == this.yaw && playerAuthInputPacket.pitch % 360 == this.pitch) {
+				if (newPos.distanceSquared(this) < 0.01 && playerAuthInputPacket.getYaw() % 360 == this.yaw && playerAuthInputPacket.getPitch() % 360 == this.pitch) {
 					break;
 				}
 
 				if (newPos.distanceSquared(this) > 100) {
-					this.sendPosition(this, playerAuthInputPacket.yaw, playerAuthInputPacket.pitch, MovePlayerPacket.MODE_RESET);
+					this.sendPosition(this, playerAuthInputPacket.getYaw(), playerAuthInputPacket.getPitch(), MovePlayerPacket.MODE_RESET);
 					break;
 				}
 
@@ -595,21 +596,21 @@ public class SynapsePlayer116 extends SynapsePlayer113 {
 				}
 
 				if (this.forceMovement != null && (newPos.distanceSquared(this.forceMovement) > 0.1 || revert)) {
-					this.sendPosition(this.forceMovement, playerAuthInputPacket.yaw, playerAuthInputPacket.pitch, MovePlayerPacket.MODE_RESET);
+					this.sendPosition(this.forceMovement, playerAuthInputPacket.getYaw(), playerAuthInputPacket.getPitch(), MovePlayerPacket.MODE_RESET);
 				} else {
-					playerAuthInputPacket.yaw %= 360;
-					playerAuthInputPacket.pitch %= 360;
+					playerAuthInputPacket.setYaw(playerAuthInputPacket.getYaw() % 360);
+					playerAuthInputPacket.setPitch(playerAuthInputPacket.getPitch() % 360);
 
-					if (playerAuthInputPacket.yaw < 0) {
-						playerAuthInputPacket.yaw += 360;
+					if (playerAuthInputPacket.getYaw() < 0) {
+						playerAuthInputPacket.setYaw(playerAuthInputPacket.getYaw() + 360);
 					}
 
-					this.setRotation(playerAuthInputPacket.yaw, playerAuthInputPacket.pitch);
+					this.setRotation(playerAuthInputPacket.getYaw(), playerAuthInputPacket.getPitch());
 					this.newPosition = newPos;
 					this.forceMovement = null;
 				}
 
-				long inputFlags = playerAuthInputPacket.inputFlags;
+				long inputFlags = playerAuthInputPacket.getInputFlags();
 				if ((inputFlags & (1L << PlayerAuthInputPacket116.FLAG_START_SPRINTING)) != 0 && !this.isSprinting()) {
 					PlayerToggleSprintEvent playerToggleSprintEvent = new PlayerToggleSprintEvent(this, true);
 					this.server.getPluginManager().callEvent(playerToggleSprintEvent);
@@ -690,9 +691,9 @@ public class SynapsePlayer116 extends SynapsePlayer113 {
 
 				if (this.riding != null) {
 					if (this.riding instanceof EntityMinecartAbstract) {
-						((EntityMinecartAbstract) this.riding).setCurrentSpeed(playerAuthInputPacket.moveVecZ);
+						((EntityMinecartAbstract) this.riding).setCurrentSpeed(playerAuthInputPacket.getMoveVecZ());
 					} else if (this.riding instanceof EntityBoat) {
-						this.riding.setPositionAndRotation(this.temporalVector.setComponents(playerAuthInputPacket.x, playerAuthInputPacket.y - 1, playerAuthInputPacket.z), (playerAuthInputPacket.headYaw + 90) % 360, 0);
+						this.riding.setPositionAndRotation(this.temporalVector.setComponents(playerAuthInputPacket.getX(), playerAuthInputPacket.getY() - 1, playerAuthInputPacket.getZ()), (playerAuthInputPacket.getHeadYaw() + 90) % 360, 0);
 					}
 				}
 

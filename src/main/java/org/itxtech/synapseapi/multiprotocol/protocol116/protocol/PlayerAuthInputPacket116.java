@@ -2,8 +2,9 @@ package org.itxtech.synapseapi.multiprotocol.protocol116.protocol;
 
 import cn.nukkit.math.Vector3f;
 import cn.nukkit.network.protocol.ProtocolInfo;
+import org.itxtech.synapseapi.multiprotocol.protocol113.protocol.IPlayerAuthInputPacket;
 
-public class PlayerAuthInputPacket116 extends Packet116 {
+public class PlayerAuthInputPacket116 extends Packet116 implements IPlayerAuthInputPacket {
 
     public static final int NETWORK_ID = ProtocolInfo.PLAYER_AUTH_INPUT_PACKET;
 
@@ -113,4 +114,103 @@ public class PlayerAuthInputPacket116 extends Packet116 {
 
     }
 
+    @Override
+    public float getX() {
+        return this.x;
+    }
+
+    @Override
+    public float getY() {
+        return this.y;
+    }
+
+    @Override
+    public float getZ() {
+        return this.z;
+    }
+
+    @Override
+    public float getPitch() {
+        return this.pitch;
+    }
+
+    @Override
+    public float getYaw() {
+        return this.yaw;
+    }
+
+    @Override
+    public float getHeadYaw() {
+        return this.headYaw;
+    }
+
+    @Override
+    public float getMoveVecX() {
+        return this.moveVecX;
+    }
+
+    @Override
+    public float getMoveVecZ() {
+        return this.moveVecZ;
+    }
+
+    @Override
+    public long getInputFlags() {
+        return this.inputFlags;
+    }
+
+    @Override
+    public int getInputMode() {
+        return this.inputMode;
+    }
+
+    @Override
+    public int getPlayMode() {
+        return this.playMode;
+    }
+
+    @Override
+    public float getVrGazeDirectionX() {
+        return this.vrGazeDirectionX;
+    }
+
+    @Override
+    public float getVrGazeDirectionY() {
+        return this.vrGazeDirectionY;
+    }
+
+    @Override
+    public float getVrGazeDirectionZ() {
+        return this.vrGazeDirectionZ;
+    }
+
+    @Override
+    public long getTick() {
+        return this.tick;
+    }
+
+    @Override
+    public float getDeltaX() {
+        return this.deltaX;
+    }
+
+    @Override
+    public float getDeltaY() {
+        return this.deltaY;
+    }
+
+    @Override
+    public float getDeltaZ() {
+        return this.deltaZ;
+    }
+
+    @Override
+    public void setPitch(float pitch) {
+        this.pitch = pitch;
+    }
+
+    @Override
+    public void setYaw(float yaw) {
+        this.yaw = yaw;
+    }
 }
