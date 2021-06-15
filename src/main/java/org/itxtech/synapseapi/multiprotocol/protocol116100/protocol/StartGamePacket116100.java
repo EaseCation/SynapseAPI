@@ -84,6 +84,8 @@ public class StartGamePacket116100 extends Packet116100 {
 
     public String multiplayerCorrelationId = "";
 
+    public boolean neteaseExtra = false;
+
     @Override
     public void decode() {
 
@@ -150,8 +152,14 @@ public class StartGamePacket116100 extends Packet116100 {
         this.putVarInt(this.enchantmentSeed);
 
         this.putUnsignedVarInt(0); // Custom blocks
-        this.put(this.itemDataPalette == null ? AdvancedRuntimeItemPalette.getCompiledData(this.protocol) : this.itemDataPalette);
+        if (neteaseExtra) {
+            this.putUnsignedVarInt(0);
+        } else {
+            this.put(this.itemDataPalette == null ? AdvancedRuntimeItemPalette.getCompiledData(this.protocol) : this.itemDataPalette);
+        }
         this.putString(this.multiplayerCorrelationId);
         this.putBoolean(this.isInventoryServerAuthoritative);
+
+        if (neteaseExtra) this.put(new byte[2]);
     }
 }

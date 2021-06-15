@@ -230,11 +230,49 @@ public class PaletteBlockTable extends ArrayList<PaletteBlockData> {
         return table;
     }
 
+    public static PaletteBlockTable fromNetEaseJson(String file) {
+        Gson gson = new Gson();
+        Type collectionType = new TypeToken<Collection<NetEaseJsonTableEntry>>() {
+        }.getType();
+
+        Collection<NetEaseJsonTableEntry> entries;
+
+        try (InputStream stream = SynapseAPI.class.getClassLoader().getResourceAsStream(file)) {
+            if (stream == null) {
+                throw new AssertionError("Unable to locate runtime_block_ids.json (netease json)");
+            }
+            try (Reader reader = new InputStreamReader(new ByteArrayInputStream(ByteStreams.toByteArray(stream)), StandardCharsets.UTF_8)) {
+                entries = gson.fromJson(reader, collectionType);
+            }
+            PaletteBlockTable table = new PaletteBlockTable();
+            for (NetEaseJsonTableEntry entry : entries) {
+                table.add(
+                        new PaletteBlockData(
+                                entry.blockId,
+                                new PaletteBlockData.LegacyStates[]{new PaletteBlockData.LegacyStates(entry.blockId, entry.meta)},
+                                new PaletteBlockData.Block(entry.blockName, 0, new ArrayList<>())
+                        )
+                );
+            }
+            return table;
+        } catch (IOException e) {
+            throw new AssertionError("Unable to load block palette", e);
+        }
+    }
+
     @ToString
     static class JsonTableEntry {
         private int id;
         private int data;
         private String name;
+    }
+
+    @ToString
+    static class NetEaseJsonTableEntry {
+        private int runTimeId;
+        private int blockId;
+        private int meta;
+        private String blockName;
     }
 
     public PaletteBlockTable trim(PaletteBlockTable according) {

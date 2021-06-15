@@ -174,6 +174,9 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
         startGamePacket.gameRules = getSupportedRules();
         startGamePacket.isMovementServerAuthoritative = this.isNetEaseClient;
         startGamePacket.currentTick = this.server.getTick();
+        if (this.isNetEaseClient) {
+            startGamePacket.neteaseExtra = true;
+        }
         return startGamePacket;
     }
 
