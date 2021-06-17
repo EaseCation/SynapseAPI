@@ -750,6 +750,8 @@ public class SynapsePlayer116 extends SynapsePlayer113 {
 	@Override
 	public void sendCreativeContents() {
 		CreativeContentPacket116 pk = new CreativeContentPacket116();
+		pk.setHelper(AbstractProtocol.fromRealProtocol(this.protocol).getHelper());
+		pk.neteaseMode = this.isNetEaseClient;
 		if (!this.isSpectator()) { //fill it for all gamemodes except spectator
 			pk.entries = this.getCreativeItems().toArray(new Item[0]);
 		}

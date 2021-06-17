@@ -7,38 +7,48 @@ import cn.nukkit.utils.MainLogger;
 import org.itxtech.synapseapi.SynapseAPI;
 import org.itxtech.synapseapi.multiprotocol.AbstractProtocol;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 public class CreativeItemsPalette {
 
-    private static final Map<AbstractProtocol, ArrayList<Item>> palettes = new HashMap<AbstractProtocol, ArrayList<Item>>() {{
-        put(AbstractProtocol.PROTOCOL_19, load("creativeitems_19.json"));
-        put(AbstractProtocol.PROTOCOL_110, load("creativeitems_19.json"));
-        put(AbstractProtocol.PROTOCOL_111, load("creativeitems_111.json"));
-        put(AbstractProtocol.PROTOCOL_112, load("creativeitems_111.json"));
-        put(AbstractProtocol.PROTOCOL_113, load("creativeitems_113.json"));
-        put(AbstractProtocol.PROTOCOL_114, load("creativeitems_114.json"));
-        put(AbstractProtocol.PROTOCOL_116, load("creativeitems_116.json"));
-        put(AbstractProtocol.PROTOCOL_116_20, load("creativeitems_11620.json"));
-        put(AbstractProtocol.PROTOCOL_116_100_NE, load("creativeitems_116.json"));
-        put(AbstractProtocol.PROTOCOL_116_100, load("creativeitems_11620.json"));
-        put(AbstractProtocol.PROTOCOL_116_200, load("creativeitems_11620.json"));
-        put(AbstractProtocol.PROTOCOL_116_210, load("creativeitems_11620.json"));
-        put(AbstractProtocol.PROTOCOL_116_220, load("creativeitems_11620.json", true));
-        put(AbstractProtocol.PROTOCOL_117, load("creativeitems_11620.json", true));
-    }};
+    public static class CreativeItemsList extends ArrayList<Item> {}
 
-    private static ArrayList<Item> load(String file) {
+    private static final Map<AbstractProtocol, CreativeItemsList[]> palettes = new HashMap<>();
+
+    public static void init() {
+        register(AbstractProtocol.PROTOCOL_19, load("creativeitems_19.json"), null);
+        register(AbstractProtocol.PROTOCOL_110, load("creativeitems_19.json"), null);
+        register(AbstractProtocol.PROTOCOL_111, load("creativeitems_111.json"), null);
+        register(AbstractProtocol.PROTOCOL_112, load("creativeitems_111.json"), null);
+        register(AbstractProtocol.PROTOCOL_113, load("creativeitems_113.json"), null);
+        register(AbstractProtocol.PROTOCOL_114, load("creativeitems_114.json"), null);
+        register(AbstractProtocol.PROTOCOL_116, load("creativeitems_116.json"), null);
+        register(AbstractProtocol.PROTOCOL_116_20, load("creativeitems_11620.json"), null);
+        register(AbstractProtocol.PROTOCOL_116_100_NE, load("creativeitems_116.json"), null);
+        register(AbstractProtocol.PROTOCOL_116_100, load("creativeitems_11620.json"), null);
+        register(AbstractProtocol.PROTOCOL_116_200, load("creativeitems_11620.json"), null);
+        register(AbstractProtocol.PROTOCOL_116_210, load("creativeitems_11620.json"), null);
+        register(AbstractProtocol.PROTOCOL_116_220, load("creativeitems_11620.json", true), null);
+        register(AbstractProtocol.PROTOCOL_117, load("creativeitems_11620.json", true), null);
+    }
+
+    private static void register(AbstractProtocol protocol, CreativeItemsList list, CreativeItemsList listNetEase) {
+        Objects.requireNonNull(list);
+        CreativeItemsList[] data =
+                listNetEase != null
+                        ? new CreativeItemsList[]{list, listNetEase}
+                        : new CreativeItemsList[]{list};
+        palettes.put(protocol, data);
+    }
+
+    private static CreativeItemsList load(String file) {
         return load(file, false);
     }
 
     @SuppressWarnings("unchecked")
-    private static ArrayList<Item> load(String file, boolean ignoreUnsupported) {
+    private static CreativeItemsList load(String file, boolean ignoreUnsupported) {
         Server.getInstance().getLogger().info("Loading Creative Items Palette from " + file);
-        ArrayList<Item> result = new ArrayList<>();
+        CreativeItemsList result = new CreativeItemsList();
         Config config = new Config(Config.YAML);
         config.load(SynapseAPI.class.getClassLoader().getResourceAsStream(file));
         List<Map> list = config.getMapList("items");
@@ -56,11 +66,13 @@ public class CreativeItemsPalette {
         return result;
     }
 
-    public static ArrayList<Item> getCreativeItems(AbstractProtocol protocol) {
-        return new ArrayList<>(palettes.getOrDefault(protocol, Item.getCreativeItems()));
+    public static CreativeItemsList getCreativeItems(AbstractProtocol protocol, boolean netease) {
+        CreativeItemsList[] lists = palettes.get(protocol);
+        if (netease && lists.length > 1) {
+            return lists[1];
+        } else {
+            return lists[0];
+        }
     }
 
-    public static void init() {
-        //NOOP
-    }
 }

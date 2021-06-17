@@ -130,19 +130,19 @@ public class CraftingDataPacket116220 extends Packet116220 {
 
         this.putUnsignedVarInt(this.brewingEntries.size());
         for (BrewingRecipe recipe : brewingEntries) {
-            this.putVarInt(this.helper.getItemNetworkId(recipe.getInput()));
+            this.putVarInt(this.helper.getItemNetworkId(this, recipe.getInput()));
             this.putVarInt(recipe.getInput().getDamage());
-            this.putVarInt(this.helper.getItemNetworkId(recipe.getIngredient()));
+            this.putVarInt(this.helper.getItemNetworkId(this, recipe.getIngredient()));
             this.putVarInt(recipe.getIngredient().getDamage());
-            this.putVarInt(this.helper.getItemNetworkId(recipe.getResult()));
+            this.putVarInt(this.helper.getItemNetworkId(this, recipe.getResult()));
             this.putVarInt(recipe.getResult().getDamage());
         }
 
         this.putUnsignedVarInt(this.containerEntries.size());
         for (ContainerRecipe recipe : containerEntries) {
-            this.putVarInt(this.helper.getItemNetworkId(recipe.getInput()));
-            this.putVarInt(this.helper.getItemNetworkId(recipe.getIngredient()));
-            this.putVarInt(this.helper.getItemNetworkId(recipe.getResult()));
+            this.putVarInt(this.helper.getItemNetworkId(this, recipe.getInput()));
+            this.putVarInt(this.helper.getItemNetworkId(this, recipe.getIngredient()));
+            this.putVarInt(this.helper.getItemNetworkId(this, recipe.getResult()));
         }
 
         this.putBoolean(cleanRecipes);

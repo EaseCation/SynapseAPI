@@ -5,6 +5,7 @@ import cn.nukkit.inventory.*;
 import cn.nukkit.network.protocol.BatchPacket;
 import cn.nukkit.network.protocol.CraftingDataPacket;
 import cn.nukkit.network.protocol.DataPacket;
+import cn.nukkit.utils.MainLogger;
 import org.itxtech.synapseapi.multiprotocol.AbstractProtocol;
 import org.itxtech.synapseapi.multiprotocol.PacketRegister;
 
@@ -15,7 +16,7 @@ import java.util.zip.Deflater;
 public final class CraftingPacketManager {
 
     private static BatchPacket originPacket;
-    private static final Map<AbstractProtocol, BatchPacket> packets = new HashMap<>();
+    private static final Map<AbstractProtocol, BatchPacket[]> packets = new HashMap<>();
 
     public static void rebuildPacket() {
         CraftingDataPacket pk = new CraftingDataPacket();
@@ -50,16 +51,35 @@ public final class CraftingPacketManager {
                 if (pk0 != null) {
                     pk0.setHelper(protocol.getHelper());
                     pk0.tryEncode();
-                    if (protocol.ordinal() >= AbstractProtocol.PROTOCOL_116.ordinal())
-                        packets.put(protocol, pk0.compress(Deflater.BEST_COMPRESSION, true));
-                    else packets.put(protocol, pk0.compress(Deflater.BEST_COMPRESSION));
+                    if (protocol.ordinal() >= AbstractProtocol.PROTOCOL_116.ordinal()) {
+                        pk0 = pk0.compress(Deflater.BEST_COMPRESSION, true);
+                    } else {
+                        pk0 = pk0.compress(Deflater.BEST_COMPRESSION);
+                    }
+                } else {
+                    MainLogger.getLogger().warning("CraftingDataPacket for version " + protocol.name() + " with null compatible packet!");
                 }
+                DataPacket pkNE = PacketRegister.getCompatiblePacket(pk, protocol, true);
+                if (pkNE != null) {
+                    pkNE.setHelper(protocol.getHelper());
+                    pkNE.neteaseMode = true;
+                    pkNE.tryEncode();
+                    if (protocol.ordinal() >= AbstractProtocol.PROTOCOL_116.ordinal()) {
+                        pkNE = pkNE.compress(Deflater.BEST_COMPRESSION, true);
+                    } else {
+                        pkNE = pkNE.compress(Deflater.BEST_COMPRESSION);
+                    }
+                } else {
+                    MainLogger.getLogger().warning("CraftingDataPacket for version " + protocol.name() + "(NetEase) with null compatible packet!");
+                }
+                MainLogger.getLogger().debug("Registering CraftingDataPacket for version " + protocol.name());
+                packets.put(protocol, new BatchPacket[]{(BatchPacket) pk0, (BatchPacket) pkNE});
             }
         }
     }
 
-    public static BatchPacket getCachedCraftingPacket(AbstractProtocol protocol) {
-        return packets.getOrDefault(protocol, originPacket);
+    public static BatchPacket getCachedCraftingPacket(AbstractProtocol protocol, boolean netease) {
+        return packets.getOrDefault(protocol, new BatchPacket[]{originPacket, originPacket})[netease ? 1 : 0];
     }
 
 }

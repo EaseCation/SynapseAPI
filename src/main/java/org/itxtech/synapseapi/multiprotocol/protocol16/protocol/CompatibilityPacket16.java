@@ -15,6 +15,8 @@ public class CompatibilityPacket16 extends Packet16 {
     @Override
     public void encode() {
         super.superReset();
+        origin.setHelper(this.helper);
+        origin.neteaseMode = this.neteaseMode;
         origin.tryEncode();
         byte[] pid = Binary.subBytes(origin.getBuffer(), 0, 1);
         this.put(pid);

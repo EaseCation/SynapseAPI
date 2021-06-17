@@ -77,7 +77,6 @@ public class SynapsePlayer extends Player {
 
     protected String originName;
     protected LoginChainData loginChainData;
-    protected boolean isNetEaseClient = false;
     protected JsonObject cachedExtra = new JsonObject();
     protected final JsonObject transferExtra = new JsonObject();
 
@@ -469,7 +468,7 @@ public class SynapsePlayer extends Player {
 
     @Override
     protected void sendRecipeList() {
-        this.dataPacket(CraftingPacketManager.getCachedCraftingPacket(AbstractProtocol.fromRealProtocol(this.protocol)));
+        this.dataPacket(CraftingPacketManager.getCachedCraftingPacket(AbstractProtocol.fromRealProtocol(this.protocol), this.isNetEaseClient));
     }
 
     @Override
@@ -597,14 +596,6 @@ public class SynapsePlayer extends Player {
         this.dataPacket(pk);
         //String message = "Transferred to " + hostName + ":" + port;
         //this.close(message, message, false);
-    }
-
-    public boolean isNetEaseClient() {
-        return isNetEaseClient;
-    }
-
-    public void setIsNetEaseClient(boolean netEaseClient) {
-        isNetEaseClient = netEaseClient;
     }
 
     @Override
@@ -1193,7 +1184,7 @@ public class SynapsePlayer extends Player {
 
     @Override
     public ArrayList<Item> getCreativeItems() {
-        return CreativeItemsPalette.getCreativeItems(AbstractProtocol.fromRealProtocol(this.protocol));
+        return CreativeItemsPalette.getCreativeItems(AbstractProtocol.fromRealProtocol(this.protocol), this.isNetEaseClient);
     }
 
     public JsonObject getCachedExtra() {

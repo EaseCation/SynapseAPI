@@ -123,7 +123,8 @@ public class StartGamePacket116100 extends Packet116100 {
         this.putVarInt(this.platformBroadcastIntent);
         this.putBoolean(this.commandsEnabled);
         this.putBoolean(this.isTexturePacksRequired);
-        this.putGameRules(this.gameRules);
+        //this.putGameRules(this.gameRules);
+        this.putUnsignedVarInt(0);
         this.putLInt(0); // Experiment count
         this.putBoolean(false); // Were experiments previously toggled
         this.putBoolean(this.bonusChest);
@@ -155,7 +156,7 @@ public class StartGamePacket116100 extends Packet116100 {
         if (neteaseExtra) {
             this.putUnsignedVarInt(0);
         } else {
-            this.put(this.itemDataPalette == null ? AdvancedRuntimeItemPalette.getCompiledData(this.protocol) : this.itemDataPalette);
+            this.put(this.itemDataPalette == null ? AdvancedRuntimeItemPalette.getCompiledData(this.protocol, false) : this.itemDataPalette);
         }
         this.putString(this.multiplayerCorrelationId);
         this.putBoolean(this.isInventoryServerAuthoritative);

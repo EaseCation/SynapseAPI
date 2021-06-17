@@ -2,6 +2,9 @@ package org.itxtech.synapseapi;
 
 import cn.nukkit.Player;
 import cn.nukkit.Server;
+import cn.nukkit.command.Command;
+import cn.nukkit.command.CommandSender;
+import cn.nukkit.command.ConsoleCommandSender;
 import cn.nukkit.event.EventHandler;
 import cn.nukkit.event.Listener;
 import cn.nukkit.event.server.BatchPacketsEvent;
@@ -13,8 +16,12 @@ import cn.nukkit.level.GlobalBlockPaletteInterface;
 import cn.nukkit.nbt.tag.CompoundTag;
 import cn.nukkit.network.RakNetInterface;
 import cn.nukkit.network.SourceInterface;
+import cn.nukkit.network.protocol.BatchPacket;
 import cn.nukkit.network.protocol.DataPacket;
 import cn.nukkit.network.protocol.LevelSoundEventPacket;
+import cn.nukkit.network.protocol.ProtocolInfo;
+import cn.nukkit.utils.Binary;
+import cn.nukkit.utils.Utils;
 import org.itxtech.synapseapi.multiprotocol.AbstractProtocol;
 import org.itxtech.synapseapi.multiprotocol.PacketRegister;
 import cn.nukkit.plugin.PluginBase;
@@ -122,32 +129,32 @@ public class SynapseAPI extends PluginBase implements Listener {
         RuntimeItems.setInstance(new RuntimeItemPaletteInterface(){
             @Override
             public int getNetworkFullId0(Item item) {
-                return AdvancedRuntimeItemPalette.getNetworkFullId(AbstractProtocol.values0()[AbstractProtocol.values0().length - 1], item);
+                return AdvancedRuntimeItemPalette.getNetworkFullId(AbstractProtocol.values0()[AbstractProtocol.values0().length - 1], false, item);
             }
 
             @Override
             public int getLegacyFullId0(int networkId) {
-                return AdvancedRuntimeItemPalette.getLegacyFullId(AbstractProtocol.values0()[AbstractProtocol.values0().length - 1], networkId);
+                return AdvancedRuntimeItemPalette.getLegacyFullId(AbstractProtocol.values0()[AbstractProtocol.values0().length - 1], false, networkId);
             }
 
             @Override
             public int getId0(int fullId) {
-                return AdvancedRuntimeItemPalette.getId(AbstractProtocol.values0()[AbstractProtocol.values0().length - 1], fullId);
+                return AdvancedRuntimeItemPalette.getId(AbstractProtocol.values0()[AbstractProtocol.values0().length - 1], false, fullId);
             }
 
             @Override
             public int getData0(int fullId) {
-                return AdvancedRuntimeItemPalette.getData(AbstractProtocol.values0()[AbstractProtocol.values0().length - 1], fullId);
+                return AdvancedRuntimeItemPalette.getData(AbstractProtocol.values0()[AbstractProtocol.values0().length - 1], false, fullId);
             }
 
             @Override
             public int getNetworkId0(int networkFullId) {
-                return AdvancedRuntimeItemPalette.getNetworkId(AbstractProtocol.values0()[AbstractProtocol.values0().length - 1], networkFullId);
+                return AdvancedRuntimeItemPalette.getNetworkId(AbstractProtocol.values0()[AbstractProtocol.values0().length - 1], false, networkFullId);
             }
 
             @Override
             public boolean hasData0(int id) {
-                return AdvancedRuntimeItemPalette.hasData(AbstractProtocol.values0()[AbstractProtocol.values0().length - 1], id);
+                return AdvancedRuntimeItemPalette.hasData(AbstractProtocol.values0()[AbstractProtocol.values0().length - 1], false, id);
             }
         });
 
@@ -212,6 +219,34 @@ public class SynapseAPI extends PluginBase implements Listener {
         CreativeItemsPalette.init();
         AvailableEntityIdentifiersPalette.init();
         BiomeDefinitions.init();
+
+        //仅用于开发测试
+        this.getServer().getCommandMap().register("dcpk", new Command("dcpk") {
+            @Override
+            public boolean execute(CommandSender sender, String commandLabel, String[] args) {
+
+                final int protocol = 422;
+                final boolean netease = true;
+
+                if (sender instanceof ConsoleCommandSender) {
+                    String data = String.join("", args);
+                    byte[] bytes = Utils.parseHexBinary(data);
+                    DataPacket packet = PacketRegister.getFullPacket(bytes, protocol, true);
+                    if (packet != null) {
+                        getLogger().info(packet.toString());
+                        if (packet.pid() == ProtocolInfo.BATCH_PACKET) {
+                            for (DataPacket pk: SynapseEntry.processBatch((BatchPacket) packet, protocol, netease)) {
+                                getLogger().info("Packet " + Binary.bytesToHexString(new byte[]{(byte) pk.pid()}));
+                            }
+                        }
+                    } else {
+                        getLogger().warn("Decode failed!");
+                    }
+                    return true;
+                }
+                return false;
+            }
+        });
     }
 
     public TransferDimensionTaskThread getTransferDimensionTaskThread() {

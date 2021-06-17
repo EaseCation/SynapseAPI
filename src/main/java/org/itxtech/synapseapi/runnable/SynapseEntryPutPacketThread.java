@@ -66,6 +66,7 @@ public class SynapseEntryPutPacketThread extends Thread {
     };
 
     public void addMainToThread(SynapsePlayer player, DataPacket packet, boolean needACK, boolean immediate) {
+        if (packet.pid() == ProtocolInfo.GAME_RULES_CHANGED_PACKET) return;
         /*switch (packet.pid()) {
             //case ProtocolInfo.SET_COMMANDS_ENABLED_PACKET:
             //case ProtocolInfo.AVAILABLE_COMMANDS_PACKET:
@@ -172,6 +173,10 @@ public class SynapseEntryPutPacketThread extends Thread {
                         if (entry.packet == null) {
                             MainLogger.getLogger().info("NULL PACKET " + old.getClass().getSimpleName());
                             continue;
+                        }
+
+                        if (entry.packet != old) { //数据包进行了对应版本的转换
+                            entry.packet.neteaseMode = entry.player.isNetEaseClient();
                         }
 
                         if (!entry.packet.isEncoded) {

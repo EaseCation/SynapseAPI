@@ -46,8 +46,8 @@ public class BinaryStreamHelper116220 extends BinaryStreamHelper116210 {
         int count = stream.getLShort();
         int damage = (int) stream.getUnsignedVarInt();
 
-        int fullId = AdvancedRuntimeItemPalette.getLegacyFullId(this.protocol, id);
-        id = AdvancedRuntimeItemPalette.getId(this.protocol, fullId);
+        int fullId = AdvancedRuntimeItemPalette.getLegacyFullId(this.protocol, stream.neteaseMode, id);
+        id = AdvancedRuntimeItemPalette.getId(this.protocol, stream.neteaseMode, fullId);
 
         /*boolean hasData = AdvancedRuntimeItemPalette.hasData(this.protocol, fullId); // Unnecessary when the damage is read from NBT
         if (hasData) {
@@ -158,15 +158,15 @@ public class BinaryStreamHelper116220 extends BinaryStreamHelper116210 {
             return;
         }
 
-        int networkFullId = AdvancedRuntimeItemPalette.getNetworkFullId(this.protocol, item);
-        int networkId = AdvancedRuntimeItemPalette.getNetworkId(this.protocol, networkFullId);
+        int networkFullId = AdvancedRuntimeItemPalette.getNetworkFullId(this.protocol, stream.neteaseMode, item);
+        int networkId = AdvancedRuntimeItemPalette.getNetworkId(this.protocol, stream.neteaseMode, networkFullId);
 
         stream.putVarInt(networkId);
         stream.putLShort(item.getCount());
 
         boolean useLegacyData = false;
         if (item.getId() > 256) { // Not a block
-            if (item instanceof ItemDurable || !AdvancedRuntimeItemPalette.hasData(this.protocol, networkFullId)) {
+            if (item instanceof ItemDurable || !AdvancedRuntimeItemPalette.hasData(this.protocol, stream.neteaseMode, networkFullId)) {
                 useLegacyData = true;
             }
         }

@@ -41,6 +41,9 @@ import org.itxtech.synapseapi.multiprotocol.protocol18.protocol.*;
 import org.itxtech.synapseapi.multiprotocol.protocol19.protocol.*;
 import org.itxtech.synapseapi.multiprotocol.utils.CraftingPacketManager;
 
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
 import java.lang.reflect.Method;
 import java.util.*;
 
@@ -333,7 +336,7 @@ public class PacketRegister {
      * @return 转换后的数据包对象
      */
     public static DataPacket getCompatiblePacket(DataPacket packet, AbstractProtocol endpointProtocol, boolean netease) {
-        if(packet.pid() == BatchPacket.NETWORK_ID) {
+        if (packet.pid() == BatchPacket.NETWORK_ID) {
             return packet;
         }
 
@@ -347,28 +350,28 @@ public class PacketRegister {
                     if(clazz != null) {
                         try {
                             IterationProtocolPacket replaced = clazz.newInstance();
-                            return check16ProtocolCompatible(replaced.fromDefault(packet, endpointProtocol, netease), endpointProtocol);
+                            return check16ProtocolCompatible(replaced.fromDefault(packet, endpointProtocol, netease), endpointProtocol, netease);
                         } catch (InstantiationException | IllegalAccessException e) {
                             MainLogger.getLogger().logException(e);
                         }
                     }
                     //如果未找到匹配，开始下一个循环，向下搜索协议
                 } while ((index = index.previous()) != null);
-                return check16ProtocolCompatible(packet, endpointProtocol);
+                return check16ProtocolCompatible(packet, endpointProtocol, netease);
             }
         } else if (endpointProtocol.getPacketClass() != packet.getClass()) {
             //版本不对应
             if (packet instanceof IterationProtocolPacket && ((IterationProtocolPacket) packet).getAbstractProtocol().ordinal() <= endpointProtocol.ordinal()) {
                 //向上兼容，如：发出为1.4，目标为1.5。直接发送1.4的内容（各个迭代
                 // 协议之间暂无转换方法）
-                return check16ProtocolCompatible(packet, endpointProtocol);
+                return check16ProtocolCompatible(packet, endpointProtocol, netease);
             } else {
                 Server.getInstance().getLogger().debug("[SynapseAPI] PacketRegister::getCompatiblePacket 版本不对应：" + packet.getClass().getName() + " => " + endpointProtocol.name());
                 return null;
             }
         }
 
-        return check16ProtocolCompatible(packet, endpointProtocol);
+        return check16ProtocolCompatible(packet, endpointProtocol, netease);
     }
 
     /**
@@ -378,10 +381,11 @@ public class PacketRegister {
      * @param endpointProtocol 目标客户端版本
      * @return 检查，兼容后的数据包
      */
-    private static DataPacket check16ProtocolCompatible(DataPacket packet, AbstractProtocol endpointProtocol) {
+    private static DataPacket check16ProtocolCompatible(DataPacket packet, AbstractProtocol endpointProtocol, boolean netease) {
         if (!(packet instanceof LevelChunkPacket) && endpointProtocol.ordinal() >= AbstractProtocol.PROTOCOL_16.ordinal() && (!(packet instanceof IterationProtocolPacket) || !((IterationProtocolPacket) packet).is16Newer())) {
             CompatibilityPacket16 cp = new CompatibilityPacket16();
             packet.setHelper(endpointProtocol.getHelper());
+            packet.neteaseMode = netease;
             cp.origin = packet;
             return cp;
         } else {
@@ -425,4 +429,5 @@ public class PacketRegister {
 
         return packets.stream().toArray(DataPacket[]::new);
     }
+
 }

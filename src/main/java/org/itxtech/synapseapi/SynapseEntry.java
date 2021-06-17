@@ -437,7 +437,7 @@ public class SynapseEntry {
                         //pk0.decode();
                         SynapsePlayer player = this.players.get(uuid);
                         if (pk0.pid() == ProtocolInfo.BATCH_PACKET) {
-                            this.processBatch((BatchPacket) pk0, redirectPacket.protocol).forEach(subPacket -> {
+                            processBatch((BatchPacket) pk0, redirectPacket.protocol, player.isNetEaseClient()).forEach(subPacket -> {
                                 this.redirectPacketQueue.offer(new RedirectPacketEntry(player, subPacket));
                                 if (SynapseAPI.getInstance().isNetworkBroadcastPlayerMove()) {
                                     //玩家体验优化：直接不经过主线程广播玩家移动，插件过度干预可能会造成移动鬼畜问题
@@ -545,7 +545,7 @@ public class SynapseEntry {
         }
     }
 
-    private List<DataPacket> processBatch(BatchPacket packet, int protocol) {
+    public static List<DataPacket> processBatch(BatchPacket packet, int protocol, boolean netease) {
         byte[] data;
         try {
             if (protocol < 407) data = Zlib.inflate(packet.payload, 64 * 1024 * 1024);
@@ -568,6 +568,7 @@ public class SynapseEntry {
                         if ((pk = PacketRegister.getPacket(head.getPid(), protocol)) != null) {
                             pk.setBuffer(buf, head.getStartOffset());
                             pk.setHelper(apl.getHelper());
+                            pk.neteaseMode = netease;
                             pk.decode();
                             packets.add(pk);
                         }

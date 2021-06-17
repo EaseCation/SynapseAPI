@@ -30,15 +30,15 @@ public class BinaryStreamHelper116100 extends BinaryStreamHelper116100NE {
             return Item.get(0, 0, 0);
         }
 
-        int legacyFullId = AdvancedRuntimeItemPalette.getLegacyFullId(this.protocol, networkId);
-        boolean hasData = AdvancedRuntimeItemPalette.hasData(this.protocol, legacyFullId);
-        int id = AdvancedRuntimeItemPalette.getId(this.protocol, legacyFullId);
+        int legacyFullId = AdvancedRuntimeItemPalette.getLegacyFullId(this.protocol, stream.neteaseMode, networkId);
+        boolean hasData = AdvancedRuntimeItemPalette.hasData(this.protocol, stream.neteaseMode, legacyFullId);
+        int id = AdvancedRuntimeItemPalette.getId(this.protocol, stream.neteaseMode, legacyFullId);
 
         int auxValue = stream.getVarInt();
         int data = auxValue >> 8;
         if (hasData) {
             // Swap data using legacy full id
-            data = AdvancedRuntimeItemPalette.getData(this.protocol, legacyFullId);
+            data = AdvancedRuntimeItemPalette.getData(this.protocol, stream.neteaseMode, legacyFullId);
         } else if (data == Short.MAX_VALUE) {
             data = -1;
         }
@@ -126,9 +126,9 @@ public class BinaryStreamHelper116100 extends BinaryStreamHelper116100NE {
             return;
         }
 
-        int networkFullId = AdvancedRuntimeItemPalette.getNetworkFullId(this.protocol, item);
-        boolean clearData = AdvancedRuntimeItemPalette.hasData(this.protocol, networkFullId);
-        int networkId = AdvancedRuntimeItemPalette.getNetworkId(this.protocol, networkFullId);
+        int networkFullId = AdvancedRuntimeItemPalette.getNetworkFullId(this.protocol, stream.neteaseMode, item);
+        boolean clearData = AdvancedRuntimeItemPalette.hasData(this.protocol, stream.neteaseMode, networkFullId);
+        int networkId = AdvancedRuntimeItemPalette.getNetworkId(this.protocol, stream.neteaseMode, networkFullId);
         stream.putVarInt(networkId);
 
         int auxValue = item.getCount();
@@ -188,13 +188,13 @@ public class BinaryStreamHelper116100 extends BinaryStreamHelper116100NE {
             return Item.get(0, 0, 0);
         }
 
-        int legacyFullId = AdvancedRuntimeItemPalette.getLegacyFullId(this.protocol, networkId);
-        int id = AdvancedRuntimeItemPalette.getId(this.protocol, legacyFullId);
-        boolean hasData = AdvancedRuntimeItemPalette.hasData(this.protocol, legacyFullId);
+        int legacyFullId = AdvancedRuntimeItemPalette.getLegacyFullId(this.protocol, stream.neteaseMode, networkId);
+        int id = AdvancedRuntimeItemPalette.getId(this.protocol, stream.neteaseMode, legacyFullId);
+        boolean hasData = AdvancedRuntimeItemPalette.hasData(this.protocol, stream.neteaseMode, legacyFullId);
 
         int damage = stream.getVarInt();
         if (hasData) {
-            damage = AdvancedRuntimeItemPalette.getData(this.protocol, legacyFullId);
+            damage = AdvancedRuntimeItemPalette.getData(this.protocol, stream.neteaseMode, legacyFullId);
         } else if (damage == 0x7fff) {
             damage = -1;
         }
@@ -210,10 +210,10 @@ public class BinaryStreamHelper116100 extends BinaryStreamHelper116100NE {
             return;
         }
 
-        int networkFullId = AdvancedRuntimeItemPalette.getNetworkFullId(this.protocol, ingredient);
-        int networkId = AdvancedRuntimeItemPalette.getNetworkId(this.protocol, networkFullId);
+        int networkFullId = AdvancedRuntimeItemPalette.getNetworkFullId(this.protocol, stream.neteaseMode, ingredient);
+        int networkId = AdvancedRuntimeItemPalette.getNetworkId(this.protocol, stream.neteaseMode, networkFullId);
         int damage = ingredient.hasMeta() ? ingredient.getDamage() : 0x7fff;
-        if (AdvancedRuntimeItemPalette.hasData(this.protocol, networkFullId)) {
+        if (AdvancedRuntimeItemPalette.hasData(this.protocol, stream.neteaseMode, networkFullId)) {
             damage = 0;
         }
 
@@ -320,8 +320,8 @@ public class BinaryStreamHelper116100 extends BinaryStreamHelper116100NE {
     }
 
     @Override
-    public int getItemNetworkId(Item item) {
-        return AdvancedRuntimeItemPalette.getNetworkId(this.protocol, AdvancedRuntimeItemPalette.getNetworkFullId(this.protocol,item));
+    public int getItemNetworkId(BinaryStream stream, Item item) {
+        return AdvancedRuntimeItemPalette.getNetworkId(this.protocol, stream.neteaseMode, AdvancedRuntimeItemPalette.getNetworkFullId(this.protocol, stream.neteaseMode, item));
     }
 
 }
