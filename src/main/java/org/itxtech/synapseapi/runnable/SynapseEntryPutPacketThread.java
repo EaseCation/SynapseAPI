@@ -66,7 +66,7 @@ public class SynapseEntryPutPacketThread extends Thread {
     };
 
     public void addMainToThread(SynapsePlayer player, DataPacket packet, boolean needACK, boolean immediate) {
-        if (packet.pid() == ProtocolInfo.GAME_RULES_CHANGED_PACKET) return;
+        //if (packet.pid() == ProtocolInfo.GAME_RULES_CHANGED_PACKET) return;
         /*switch (packet.pid()) {
             //case ProtocolInfo.SET_COMMANDS_ENABLED_PACKET:
             //case ProtocolInfo.AVAILABLE_COMMANDS_PACKET:

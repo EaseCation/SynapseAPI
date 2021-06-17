@@ -11,7 +11,15 @@ import java.util.*;
 
 public class CreativeItemsPalette {
 
-    public static class CreativeItemsList extends ArrayList<Item> {}
+    public static class CreativeItemsList extends ArrayList<Item> {
+
+        public CreativeItemsList() {
+        }
+
+        public CreativeItemsList(Collection<? extends Item> c) {
+            super(c);
+        }
+    }
 
     private static final Map<AbstractProtocol, CreativeItemsList[]> palettes = new HashMap<>();
 
@@ -68,6 +76,7 @@ public class CreativeItemsPalette {
 
     public static CreativeItemsList getCreativeItems(AbstractProtocol protocol, boolean netease) {
         CreativeItemsList[] lists = palettes.get(protocol);
+        if (lists == null) return new CreativeItemsList(Item.getCreativeItems());
         if (netease && lists.length > 1) {
             return lists[1];
         } else {
