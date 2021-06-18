@@ -578,37 +578,6 @@ public class SynapsePlayer116 extends SynapsePlayer113 {
 				boolean revert;
 
 				IPlayerAuthInputPacket playerAuthInputPacket = (IPlayerAuthInputPacket) packet;
-				newPos = new Vector3(playerAuthInputPacket.getX(), playerAuthInputPacket.getY() - this.getEyeHeight(), playerAuthInputPacket.getZ());
-
-				if (newPos.distanceSquared(this) < 0.01 && playerAuthInputPacket.getYaw() % 360 == this.yaw && playerAuthInputPacket.getPitch() % 360 == this.pitch) {
-					break;
-				}
-
-				if (newPos.distanceSquared(this) > 100) {
-					this.sendPosition(this, playerAuthInputPacket.getYaw(), playerAuthInputPacket.getPitch(), MovePlayerPacket.MODE_RESET);
-					break;
-				}
-
-				revert = false;
-				if (!this.isAlive() || !this.spawned) {
-					revert = true;
-					this.forceMovement = new Vector3(this.x, this.y, this.z);
-				}
-
-				if (this.forceMovement != null && (newPos.distanceSquared(this.forceMovement) > 0.1 || revert)) {
-					this.sendPosition(this.forceMovement, playerAuthInputPacket.getYaw(), playerAuthInputPacket.getPitch(), MovePlayerPacket.MODE_RESET);
-				} else {
-					playerAuthInputPacket.setYaw(playerAuthInputPacket.getYaw() % 360);
-					playerAuthInputPacket.setPitch(playerAuthInputPacket.getPitch() % 360);
-
-					if (playerAuthInputPacket.getYaw() < 0) {
-						playerAuthInputPacket.setYaw(playerAuthInputPacket.getYaw() + 360);
-					}
-
-					this.setRotation(playerAuthInputPacket.getYaw(), playerAuthInputPacket.getPitch());
-					this.newPosition = newPos;
-					this.forceMovement = null;
-				}
 
 				long inputFlags = playerAuthInputPacket.getInputFlags();
 				if ((inputFlags & (1L << PlayerAuthInputPacket116.FLAG_START_SPRINTING)) != 0 && !this.isSprinting()) {
@@ -695,6 +664,38 @@ public class SynapsePlayer116 extends SynapsePlayer113 {
 					} else if (this.riding instanceof EntityBoat) {
 						this.riding.setPositionAndRotation(this.temporalVector.setComponents(playerAuthInputPacket.getX(), playerAuthInputPacket.getY() - 1, playerAuthInputPacket.getZ()), (playerAuthInputPacket.getHeadYaw() + 90) % 360, 0);
 					}
+				}
+
+				newPos = new Vector3(playerAuthInputPacket.getX(), playerAuthInputPacket.getY() - this.getEyeHeight(), playerAuthInputPacket.getZ());
+
+				if (newPos.distanceSquared(this) < 0.01 && playerAuthInputPacket.getYaw() % 360 == this.yaw && playerAuthInputPacket.getPitch() % 360 == this.pitch) {
+					break;
+				}
+
+				if (newPos.distanceSquared(this) > 100) {
+					this.sendPosition(this, playerAuthInputPacket.getYaw(), playerAuthInputPacket.getPitch(), MovePlayerPacket.MODE_RESET);
+					break;
+				}
+
+				revert = false;
+				if (!this.isAlive() || !this.spawned) {
+					revert = true;
+					this.forceMovement = new Vector3(this.x, this.y, this.z);
+				}
+
+				if (this.forceMovement != null && (newPos.distanceSquared(this.forceMovement) > 0.1 || revert)) {
+					this.sendPosition(this.forceMovement, playerAuthInputPacket.getYaw(), playerAuthInputPacket.getPitch(), MovePlayerPacket.MODE_RESET);
+				} else {
+					playerAuthInputPacket.setYaw(playerAuthInputPacket.getYaw() % 360);
+					playerAuthInputPacket.setPitch(playerAuthInputPacket.getPitch() % 360);
+
+					if (playerAuthInputPacket.getYaw() < 0) {
+						playerAuthInputPacket.setYaw(playerAuthInputPacket.getYaw() + 360);
+					}
+
+					this.setRotation(playerAuthInputPacket.getYaw(), playerAuthInputPacket.getPitch());
+					this.newPosition = newPos;
+					this.forceMovement = null;
 				}
 
 				break;

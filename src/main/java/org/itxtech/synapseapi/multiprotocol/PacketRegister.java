@@ -194,8 +194,8 @@ public class PacketRegister {
 
         registerPacket(AbstractProtocol.PROTOCOL_116_200, ProtocolInfo.RESOURCE_PACKS_INFO_PACKET, ResourcePacksInfoPacket116200.class);
         registerPacket(AbstractProtocol.PROTOCOL_116_200, ProtocolInfo.FILTER_TEXT_PACKET, FilterTextPacket116200.class);
+        registerPacket(AbstractProtocol.PROTOCOL_116_200, ProtocolInfo.START_GAME_PACKET, StartGamePacket116200.class);
 
-        registerPacket(AbstractProtocol.PROTOCOL_116_210, ProtocolInfo.START_GAME_PACKET, StartGamePacket116200.class);
         registerPacket(AbstractProtocol.PROTOCOL_116_210, ProtocolInfo.PLAYER_AUTH_INPUT_PACKET, PlayerAuthInputPacket116210.class);
 
         registerPacket(AbstractProtocol.PROTOCOL_116_220, ProtocolInfo.CRAFTING_DATA_PACKET, CraftingDataPacket116220.class);
