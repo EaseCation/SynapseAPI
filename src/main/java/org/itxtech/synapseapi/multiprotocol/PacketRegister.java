@@ -24,7 +24,7 @@ import org.itxtech.synapseapi.multiprotocol.protocol11620.protocol.StartGamePack
 import org.itxtech.synapseapi.multiprotocol.protocol116200.protocol.FilterTextPacket116200;
 import org.itxtech.synapseapi.multiprotocol.protocol116200.protocol.ResourcePacksInfoPacket116200;
 import org.itxtech.synapseapi.multiprotocol.protocol116210.protocol.PlayerAuthInputPacket116210;
-import org.itxtech.synapseapi.multiprotocol.protocol116210.protocol.StartGamePacket116210;
+import org.itxtech.synapseapi.multiprotocol.protocol116200.protocol.StartGamePacket116200;
 import org.itxtech.synapseapi.multiprotocol.protocol116220.protocol.CraftingDataPacket116220;
 import org.itxtech.synapseapi.multiprotocol.protocol116220.protocol.InventoryContentPacket116220;
 import org.itxtech.synapseapi.multiprotocol.protocol116220.protocol.InventorySlotPacket116220;
@@ -41,9 +41,6 @@ import org.itxtech.synapseapi.multiprotocol.protocol18.protocol.*;
 import org.itxtech.synapseapi.multiprotocol.protocol19.protocol.*;
 import org.itxtech.synapseapi.multiprotocol.utils.CraftingPacketManager;
 
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStreamReader;
 import java.lang.reflect.Method;
 import java.util.*;
 
@@ -198,7 +195,7 @@ public class PacketRegister {
         registerPacket(AbstractProtocol.PROTOCOL_116_200, ProtocolInfo.RESOURCE_PACKS_INFO_PACKET, ResourcePacksInfoPacket116200.class);
         registerPacket(AbstractProtocol.PROTOCOL_116_200, ProtocolInfo.FILTER_TEXT_PACKET, FilterTextPacket116200.class);
 
-        registerPacket(AbstractProtocol.PROTOCOL_116_210, ProtocolInfo.START_GAME_PACKET, StartGamePacket116210.class);
+        registerPacket(AbstractProtocol.PROTOCOL_116_210, ProtocolInfo.START_GAME_PACKET, StartGamePacket116200.class);
         registerPacket(AbstractProtocol.PROTOCOL_116_210, ProtocolInfo.PLAYER_AUTH_INPUT_PACKET, PlayerAuthInputPacket116210.class);
 
         registerPacket(AbstractProtocol.PROTOCOL_116_220, ProtocolInfo.CRAFTING_DATA_PACKET, CraftingDataPacket116220.class);
@@ -366,7 +363,7 @@ public class PacketRegister {
                 // 协议之间暂无转换方法）
                 return check16ProtocolCompatible(packet, endpointProtocol, netease);
             } else {
-                Server.getInstance().getLogger().debug("[SynapseAPI] PacketRegister::getCompatiblePacket 版本不对应：" + packet.getClass().getName() + " => " + endpointProtocol.name());
+                Server.getInstance().getLogger().warning("[SynapseAPI] PacketRegister::getCompatiblePacket 版本不对应：" + packet.getClass().getName() + " => " + endpointProtocol.name());
                 return null;
             }
         }

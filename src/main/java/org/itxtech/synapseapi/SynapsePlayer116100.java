@@ -35,7 +35,7 @@ import org.itxtech.synapseapi.multiprotocol.protocol116100ne.protocol.StartGameP
 import org.itxtech.synapseapi.multiprotocol.protocol116100ne.protocol.TextPacket116100NE;
 import org.itxtech.synapseapi.multiprotocol.protocol116200.protocol.FilterTextPacket116200;
 import org.itxtech.synapseapi.multiprotocol.protocol116200.protocol.ResourcePacksInfoPacket116200;
-import org.itxtech.synapseapi.multiprotocol.protocol116210.protocol.StartGamePacket116210;
+import org.itxtech.synapseapi.multiprotocol.protocol116200.protocol.StartGamePacket116200;
 import org.itxtech.synapseapi.multiprotocol.protocol117.protocol.StartGamePacket117;
 import org.itxtech.synapseapi.multiprotocol.protocol14.protocol.PlayerActionPacket14;
 import org.itxtech.synapseapi.multiprotocol.protocol16.protocol.ResourcePackClientResponsePacket16;
@@ -82,8 +82,8 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
             startGamePacket.isMovementServerAuthoritative = false;
             startGamePacket.currentTick = this.server.getTick();
             return startGamePacket;
-        } else if (this.getProtocol() >= AbstractProtocol.PROTOCOL_116_210.getProtocolStart()) {
-            StartGamePacket116210 startGamePacket = new StartGamePacket116210();
+        } else if (this.getProtocol() >= AbstractProtocol.PROTOCOL_116_200.getProtocolStart()) {
+            StartGamePacket116200 startGamePacket = new StartGamePacket116200();
             startGamePacket.protocol = AbstractProtocol.fromRealProtocol(this.protocol);
             startGamePacket.netease = this.isNetEaseClient();
             startGamePacket.entityUniqueId = Long.MAX_VALUE;
@@ -174,9 +174,7 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
         startGamePacket.gameRules = getSupportedRules();
         startGamePacket.isMovementServerAuthoritative = this.isNetEaseClient;
         startGamePacket.currentTick = this.server.getTick();
-        if (this.isNetEaseClient) {
-            startGamePacket.neteaseExtra = true;
-        }
+
         return startGamePacket;
     }
 

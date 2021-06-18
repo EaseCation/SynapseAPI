@@ -1,6 +1,7 @@
 package org.itxtech.synapseapi.multiprotocol.utils;
 
 import cn.nukkit.Server;
+import cn.nukkit.item.Item;
 import cn.nukkit.level.GlobalBlockPaletteInterface;
 import cn.nukkit.level.GlobalBlockPaletteInterface.HardcodedVersion;
 import it.unimi.dsi.fastutil.ints.IntArrayList;

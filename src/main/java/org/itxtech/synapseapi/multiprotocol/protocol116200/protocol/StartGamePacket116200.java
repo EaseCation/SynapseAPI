@@ -1,4 +1,4 @@
-package org.itxtech.synapseapi.multiprotocol.protocol116210.protocol;
+package org.itxtech.synapseapi.multiprotocol.protocol116200.protocol;
 
 import cn.nukkit.level.GameRules;
 import cn.nukkit.network.protocol.ProtocolInfo;
@@ -6,10 +6,8 @@ import lombok.ToString;
 import org.itxtech.synapseapi.multiprotocol.AbstractProtocol;
 import org.itxtech.synapseapi.multiprotocol.utils.AdvancedRuntimeItemPalette;
 
-import java.util.UUID;
-
 @ToString
-public class StartGamePacket116210 extends Packet116210 {
+public class StartGamePacket116200 extends Packet116200 {
 
     public static final int NETWORK_ID = ProtocolInfo.START_GAME_PACKET;
 
@@ -146,14 +144,18 @@ public class StartGamePacket116210 extends Packet116210 {
         this.putString(this.worldName);
         this.putString(this.premiumWorldTemplateId);
         this.putBoolean(this.isTrial);
-        this.putUnsignedVarInt(this.isMovementServerAuthoritative ? 1 : 0); // 2 - rewind
-        this.putVarInt(20); // RewindHistorySize
+        this.putVarInt(this.isMovementServerAuthoritative ? 1 : 0); // 2 - rewind
+        this.putVarInt(0); // RewindHistorySize
         this.putBoolean(false); // isServerAuthoritativeBlockBreaking
         this.putLLong(this.currentTick);
         this.putVarInt(this.enchantmentSeed);
         this.putUnsignedVarInt(0); // Custom blocks
-        this.put(this.itemDataPalette == null ? AdvancedRuntimeItemPalette.getCompiledData(this.protocol, false) : this.itemDataPalette);
+
+        this.put(this.itemDataPalette == null ? AdvancedRuntimeItemPalette.getCompiledData(this.protocol, netease) : this.itemDataPalette);
+        //this.putUnsignedVarInt(0);
+
         this.putString(this.multiplayerCorrelationId);
         this.putBoolean(this.isInventoryServerAuthoritative);
+
     }
 }

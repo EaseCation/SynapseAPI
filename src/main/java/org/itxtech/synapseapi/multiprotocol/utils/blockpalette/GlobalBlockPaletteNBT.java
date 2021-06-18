@@ -56,9 +56,12 @@ public class GlobalBlockPaletteNBT implements AdvancedGlobalBlockPaletteInterfac
                 runtimeIdToState.put(i, data.block.getStatesTag());
 
                 if (data.legacyStates != null && data.legacyStates.length > 0) {
-                    runtimeIdToLegacy.put(i, data.legacyStates[0].id << 6 | (short) data.legacyStates[0].val);
+                    int legacyIdNoMeta = data.legacyStates[0].id << 14;
+                    int legacyId = legacyIdNoMeta | data.legacyStates[0].val;
+                    runtimeIdToLegacy.put(i, legacyId);
                     for (PaletteBlockData.LegacyStates legacyState : data.legacyStates) {
-                        int legacyId = legacyState.id << 6 | (short) legacyState.val;
+                        legacyIdNoMeta = legacyState.id << 14;
+                        legacyId = legacyIdNoMeta | legacyState.val;
                         legacyToRuntimeId.putIfAbsent(legacyId, i);
                     }
                 }
@@ -107,10 +110,10 @@ public class GlobalBlockPaletteNBT implements AdvancedGlobalBlockPaletteInterfac
 
             // Resolve to first legacy id
             CompoundTag firstState = legacyStates.get(0);
-            runtimeIdToLegacy.put(runtimeId, firstState.getInt("id") << 6 | firstState.getShort("val"));
+            runtimeIdToLegacy.put(runtimeId, firstState.getInt("id") << 14 | firstState.getShort("val"));
 
             for (CompoundTag legacyState : legacyStates) {
-                int legacyId = legacyState.getInt("id") << 6 | legacyState.getShort("val");
+                int legacyId = legacyState.getInt("id") << 14 | legacyState.getShort("val");
                 legacyToRuntimeId.putIfAbsent(legacyId, runtimeId);
             }
             //state.remove("LegacyStates"); // No point in sending this since the client doesn't use it.
@@ -125,18 +128,19 @@ public class GlobalBlockPaletteNBT implements AdvancedGlobalBlockPaletteInterfac
 
     @Override
     public int getOrCreateRuntimeId(int id, int meta) {
-        int legacyId = id << 6 | meta;
+        int legacyIdNoMeta = id << 14;
+        int legacyId = legacyIdNoMeta | meta;
         int runtimeId = legacyToRuntimeId.get(legacyId);
         if (runtimeId == -1) {
-            runtimeId = legacyToRuntimeId.get(id << 6);
+            runtimeId = legacyToRuntimeId.get(legacyIdNoMeta);
             if (runtimeId == -1) {
                 if (!this.allowUnknownBlock) {
                     throw new NoSuchElementException("Unmapped block registered id:" + id + " meta:" + meta);
                 }
                 log.info("Creating new runtime ID for unknown block {}", id);
                 runtimeId = runtimeIdAllocator.getAndIncrement();
-                legacyToRuntimeId.put(id << 6, runtimeId);
-                runtimeIdToLegacy.put(runtimeId, id << 6);
+                legacyToRuntimeId.put(legacyIdNoMeta, runtimeId);
+                runtimeIdToLegacy.put(runtimeId, legacyIdNoMeta);
             }
         }
         return runtimeId;

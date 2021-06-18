@@ -84,8 +84,6 @@ public class StartGamePacket116100 extends Packet116100 {
 
     public String multiplayerCorrelationId = "";
 
-    public boolean neteaseExtra = false;
-
     @Override
     public void decode() {
 
@@ -153,103 +151,9 @@ public class StartGamePacket116100 extends Packet116100 {
         this.putVarInt(this.enchantmentSeed);
 
         this.putUnsignedVarInt(0); // Custom blocks
-        if (neteaseExtra) {
-            this.putUnsignedVarInt(0);
-        } else {
-            this.put(this.itemDataPalette == null ? AdvancedRuntimeItemPalette.getCompiledData(this.protocol, false) : this.itemDataPalette);
-        }
+        this.put(this.itemDataPalette == null ? AdvancedRuntimeItemPalette.getCompiledData(this.protocol, false) : this.itemDataPalette);
         this.putString(this.multiplayerCorrelationId);
         this.putBoolean(this.isInventoryServerAuthoritative);
 
-        if (neteaseExtra) this.put(new byte[2]);
     }
 }
-
-/*
-gamerules=[commandblockoutput=true,
- dodaylightcycle=false,
- doentitydrops=true,
- dofiretick=true,
- doimmediaterespawn=true,
- domobloot=true,
- domobspawning=true,
- dotiledrops=true,
- doweathercycle=true,
- drowningdamage=true,
- falldamage=true,
- firedamage=true,
- keepinventory=false,
- mobgriefing=true,
- naturalregeneration=true,
- pvp=true,
- randomtickspeed=1,
- sendcommandfeedback=true,
- showcoordinates=false,
- tntexplodes=true,
- showdeathmessages=true],
- uniqueEntityId=9223372036854775807,
- runtimeEntityId=9223372036854775807,
- playerGameType=ADVENTURE,
- playerPosition=(102.82427,
- 78.0,
- 47.51383),
- rotation=(90.0,
- 0.0),
- seed=-1,
- spawnBiomeType=DEFAULT,
- customBiomeName=plains,
- dimensionId=0,
- generatorId=1,
- levelGameType=ADVENTURE,
- difficulty=1,
- defaultSpawn=(102,
- 78,
- 47),
- achievementsDisabled=true,
- dayCycleStopTime=-1,
- eduEditionOffers=0,
- eduFeaturesEnabled=false,
- educationProductionId=,
- rainLevel=0.0,
- lightningLevel=0.0,
- platformLockedContentConfirmed=false,
- multiplayerGame=true,
- broadcastingToLan=true,
- xblBroadcastMode=PUBLIC,
- platformBroadcastMode=PUBLIC,
- commandsEnabled=true,
- texturePacksRequired=false,
- experiments=[],
- experimentsPreviouslyToggled=false,
- bonusChestEnabled=false,
- startingWithMap=false,
- trustingPlayers=false,
- defaultPlayerPermission=MEMBER,
- serverChunkTickRange=4,
- behaviorPackLocked=false,
- resourcePackLocked=false,
- fromLockedWorldTemplate=false,
- usingMsaGamertagsOnly=false,
- fromWorldTemplate=false,
- worldTemplateOptionLocked=false,
- onlySpawningV1Villagers=false,
- vanillaVersion=*,
- limitedWorldWidth=16,
- limitedWorldHeight=16,
- netherType=false,
- forceExperimentalGameplay=false,
- levelId=,
- levelName=§aEase§6Cation §r§7ECServer-0,
- premiumWorldTemplateId=,
- trial=false,
- authoritativeMovementMode=CLIENT,
- playerMovementSettings=null,
- currentTick=3359,
- enchantmentSeed=0,
- blockProperties=[],
- multiplayerCorrelationId=,
- inventoriesServerAuthoritative=false,
- serverEngine=null,
- neteaseUnknown0=0,
- neteaseUnknown1=0
- */
