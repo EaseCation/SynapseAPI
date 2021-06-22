@@ -191,6 +191,7 @@ public class PacketRegister {
         registerPacket(AbstractProtocol.PROTOCOL_116_100, ProtocolInfo.MOVE_ENTITY_DELTA_PACKET, MoveEntityDeltaPacket116100.class);
         registerPacket(AbstractProtocol.PROTOCOL_116_100, ProtocolInfo.PLAYER_LIST_PACKET, PlayerListPacket116100.class);
         registerPacket(AbstractProtocol.PROTOCOL_116_100, ProtocolInfo.LEVEL_EVENT_PACKET, LevelEventPacket116100.class);
+        registerPacket(AbstractProtocol.PROTOCOL_116_100, ProtocolInfo.ANIMATE_ENTITY_PACKET, AnimateEntityPacket116100.class);
 
         registerPacket(AbstractProtocol.PROTOCOL_116_200, ProtocolInfo.RESOURCE_PACKS_INFO_PACKET, ResourcePacksInfoPacket116200.class);
         registerPacket(AbstractProtocol.PROTOCOL_116_200, ProtocolInfo.FILTER_TEXT_PACKET, FilterTextPacket116200.class);
