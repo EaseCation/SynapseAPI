@@ -11,6 +11,7 @@ public final class ParticleIdTranslator {
     public final static Map<Integer, Integer> v12ToV112Book = new HashMap<>();
     public final static Map<Integer, Integer> v12ToV114Book = new HashMap<>();
     public final static Map<Integer, Integer> v12ToV116220Book = new HashMap<>();
+    public final static Map<Integer, Integer> v12ToV11710Book = new HashMap<>();
 
     public static final int TYPE_BUBBLE = 1;
     // 2 same as 1
@@ -225,6 +226,88 @@ public final class ParticleIdTranslator {
     public static final int V116220_WAX = 79;
     public static final int V116220_ELECTRIC_SPARK = 80;
 
+    public static final int V11710_BUBBLE = 1;
+    public static final int V11710_BUBBLE_MANUAL = 2;
+    public static final int V11710_CRITICAL = 3;
+    public static final int V11710_BLOCK_FORCE_FIELD = 4;
+    public static final int V11710_SMOKE = 5;
+    public static final int V11710_EXPLODE = 6;
+    public static final int V11710_EVAPORATION = 7;
+    public static final int V11710_FLAME = 8;
+    public static final int V11710_CANDLE_FLAME = 9;
+    public static final int V11710_LAVA = 10;
+    public static final int V11710_LARGE_SMOKE = 11;
+    public static final int V11710_REDSTONE = 12;
+    public static final int V11710_RISING_RED_DUST = 13;
+    public static final int V11710_ITEM_BREAK = 14;
+    public static final int V11710_SNOWBALL_POOF = 15;
+    public static final int V11710_HUGE_EXPLODE = 16;
+    public static final int V11710_HUGE_EXPLODE_SEED = 17;
+    public static final int V11710_MOB_FLAME = 18;
+    public static final int V11710_HEART = 19;
+    public static final int V11710_TERRAIN = 20;
+    public static final int V11710_SUSPENDED_TOWN = 21, V11710_TOWN_AURA = 21;
+    public static final int V11710_PORTAL = 22;
+    // 23 same as 22
+    public static final int V11710_SPLASH = 24, V11710_WATER_SPLASH = 24;
+    public static final int V11710_WATER_SPLASH_MANUAL = 25;
+    public static final int V11710_WATER_WAKE = 26;
+    public static final int V11710_DRIP_WATER = 27;
+    public static final int V11710_DRIP_LAVA = 28;
+    public static final int V11710_DRIP_HONEY = 29;
+    public static final int V11710_STALACTITE_DRIP_WATER = 30;
+    public static final int V11710_STALACTITE_DRIP_LAVA = 31;
+    public static final int V11710_FALLING_DUST = 32, V11710_DUST = 32;
+    public static final int V11710_MOB_SPELL = 33;
+    public static final int V11710_MOB_SPELL_AMBIENT = 34;
+    public static final int V11710_MOB_SPELL_INSTANTANEOUS = 35;
+    public static final int V11710_INK = 36;
+    public static final int V11710_SLIME = 37;
+    public static final int V11710_RAIN_SPLASH = 38;
+    public static final int V11710_VILLAGER_ANGRY = 39;
+    public static final int V11710_VILLAGER_HAPPY = 40;
+    public static final int V11710_ENCHANTMENT_TABLE = 41;
+    public static final int V11710_TRACKING_EMITTER = 42;
+    public static final int V11710_NOTE = 43;
+    public static final int V11710_WITCH_SPELL = 44;
+    public static final int V11710_CARROT = 45;
+    public static final int V11710_MOB_APPEARANCE  = 46;
+    public static final int V11710_END_ROD = 47;
+    public static final int V11710_RISING_DRAGONS_BREATH = 48;
+    public static final int V11710_SPIT = 49;
+    public static final int V11710_TOTEM = 50;
+    public static final int V11710_FOOD = 51;
+    public static final int V11710_FIREWORKS_STARTER = 52;
+    public static final int V11710_FIREWORKS_SPARK = 53;
+    public static final int V11710_FIREWORKS_OVERLAY = 54;
+    public static final int V11710_BALLOON_GAS = 55;
+    public static final int V11710_COLORED_FLAME = 56;
+    public static final int V11710_SPARKLER = 57;
+    public static final int V11710_CONDUIT = 58;
+    public static final int V11710_BUBBLE_COLUMN_UP = 59;
+    public static final int V11710_BUBBLE_COLUMN_DOWN = 60;
+    public static final int V11710_SNEEZE = 61;
+    public static final int V11710_SHULKER_BULLET = 62;
+    public static final int V11710_BLEACH = 63;
+    public static final int V11710_LARGE_EXPLOSION = 64;
+    public static final int V11710_MYCELIUM_DUST = 65;
+    public static final int V11710_FALLING_RED_DUST = 66;
+    public static final int V11710_CAMPFIRE_SMOKE = 67;
+    public static final int V11710_TALL_CAMPFIRE_SMOKE = 68;
+    public static final int V11710_FALLING_DRAGONS_BREATH = 69;
+    public static final int V11710_DRAGONS_BREATH = 70;
+    public static final int V11710_BLUE_FLAME = 71;
+    public static final int V11710_SOUL = 72;
+    public static final int V11710_OBSIDIAN_TEAR = 73;
+    public static final int V11710_PORTAL_REVERSE = 74;
+    public static final int V11710_SNOWFLAKE = 75;
+    public static final int V11710_VIBRATION_SIGNAL = 76;
+    public static final int V11710_SCULK_SENSOR_REDSTONE = 77;
+    public static final int V11710_SPORE_BLOSSOM_SHOWER = 78;
+    public static final int V11710_SPORE_BLOSSOM_AMBIENT = 79;
+    public static final int V11710_WAX = 80;
+    public static final int V11710_ELECTRIC_SPARK = 81;
+
     static {
         v12ToV112Book.put(Particle.TYPE_BUBBLE, TYPE_BUBBLE);
         v12ToV112Book.put(Particle.TYPE_CRITICAL, TYPE_CRITICAL);
@@ -387,6 +470,60 @@ public final class ParticleIdTranslator {
         //v12ToV116220Book.put(Particle.TYPE_BUBBLE_COLUMN_UP, V116220_BUBBLE_COLUMN_UP);
         //v12ToV116220Book.put(Particle.TYPE_BUBBLE_COLUMN_DOWN, V116220_BUBBLE_COLUMN_DOWN);
         //v12ToV116220Book.put(Particle.TYPE_SNEEZE, V116220_SNEEZE);
+
+        v12ToV11710Book.put(Particle.TYPE_BUBBLE, V11710_BUBBLE);
+        v12ToV11710Book.put(Particle.TYPE_CRITICAL, V11710_CRITICAL);
+        v12ToV11710Book.put(Particle.TYPE_BLOCK_FORCE_FIELD, V11710_BLOCK_FORCE_FIELD);
+        v12ToV11710Book.put(Particle.TYPE_SMOKE, V11710_SMOKE);
+        v12ToV11710Book.put(Particle.TYPE_EXPLODE, V11710_EXPLODE);
+        v12ToV11710Book.put(Particle.TYPE_EVAPORATION, V11710_EVAPORATION);
+        v12ToV11710Book.put(Particle.TYPE_FLAME, V11710_FLAME);
+        v12ToV11710Book.put(Particle.TYPE_LAVA, V11710_LAVA);
+        v12ToV11710Book.put(Particle.TYPE_LARGE_SMOKE, V11710_LARGE_SMOKE);
+        v12ToV11710Book.put(Particle.TYPE_REDSTONE, V11710_REDSTONE);
+        v12ToV11710Book.put(Particle.TYPE_RISING_RED_DUST, V11710_RISING_RED_DUST);
+        v12ToV11710Book.put(Particle.TYPE_ITEM_BREAK, V11710_ITEM_BREAK);
+        v12ToV11710Book.put(Particle.TYPE_SNOWBALL_POOF, V11710_SNOWBALL_POOF);
+        v12ToV11710Book.put(Particle.TYPE_HUGE_EXPLODE, V11710_HUGE_EXPLODE);
+        v12ToV11710Book.put(Particle.TYPE_HUGE_EXPLODE_SEED, V11710_HUGE_EXPLODE_SEED);
+        v12ToV11710Book.put(Particle.TYPE_MOB_FLAME, V11710_MOB_FLAME);
+        v12ToV11710Book.put(Particle.TYPE_HEART, V11710_HEART);
+        v12ToV11710Book.put(Particle.TYPE_TERRAIN, V11710_TERRAIN);
+        v12ToV11710Book.put(Particle.TYPE_SUSPENDED_TOWN, V11710_SUSPENDED_TOWN);
+        v12ToV11710Book.put(Particle.TYPE_PORTAL, V11710_PORTAL);
+        v12ToV11710Book.put(Particle.TYPE_SPLASH, V11710_SPLASH);
+        v12ToV11710Book.put(Particle.TYPE_WATER_WAKE, V11710_WATER_WAKE);
+        v12ToV11710Book.put(Particle.TYPE_DRIP_WATER, V11710_DRIP_WATER);
+        v12ToV11710Book.put(Particle.TYPE_DRIP_LAVA, V11710_DRIP_LAVA);
+        v12ToV11710Book.put(Particle.TYPE_FALLING_DUST, V11710_FALLING_DUST);
+        v12ToV11710Book.put(Particle.TYPE_MOB_SPELL, V11710_MOB_SPELL);
+        v12ToV11710Book.put(Particle.TYPE_MOB_SPELL_AMBIENT, V11710_MOB_SPELL_AMBIENT);
+        v12ToV11710Book.put(Particle.TYPE_MOB_SPELL_INSTANTANEOUS, V11710_MOB_SPELL_INSTANTANEOUS);
+        v12ToV11710Book.put(Particle.TYPE_INK, V11710_INK);
+        v12ToV11710Book.put(Particle.TYPE_SLIME, V11710_SLIME);
+        v12ToV11710Book.put(Particle.TYPE_RAIN_SPLASH, V11710_RAIN_SPLASH);
+        v12ToV11710Book.put(Particle.TYPE_VILLAGER_ANGRY, V11710_VILLAGER_ANGRY);
+        v12ToV11710Book.put(Particle.TYPE_VILLAGER_HAPPY, V11710_VILLAGER_HAPPY);
+        v12ToV11710Book.put(Particle.TYPE_ENCHANTMENT_TABLE, V11710_ENCHANTMENT_TABLE);
+        v12ToV11710Book.put(Particle.TYPE_TRACKING_EMITTER, V11710_TRACKING_EMITTER);
+        v12ToV11710Book.put(Particle.TYPE_NOTE, V11710_NOTE);
+        v12ToV11710Book.put(Particle.TYPE_WITCH_SPELL, V11710_WITCH_SPELL);
+        v12ToV11710Book.put(Particle.TYPE_CARROT, V11710_CARROT);
+        v12ToV11710Book.put(Particle.TYPE_END_ROD, V11710_END_ROD);
+        v12ToV11710Book.put(Particle.TYPE_DRAGONS_BREATH, V11710_DRAGONS_BREATH);
+        //v12ToV11710Book.put(Particle.TYPE_SPIT, V11710_SPIT);
+        //v12ToV11710Book.put(Particle.TYPE_TOTEM, V11710_TOTEM);
+        //v12ToV11710Book.put(Particle.TYPE_FOOD, V11710_FOOD);
+        //v12ToV11710Book.put(Particle.TYPE_FIREWORKS_STARTER, V11710_FIREWORKS_STARTER);
+        v12ToV11710Book.put(Particle.TYPE_FIREWORKS_SPARK, V11710_FIREWORKS_SPARK);
+        //v12ToV11710Book.put(Particle.TYPE_FIREWORKS_OVERLAY, V11710_FIREWORKS_OVERLAY);
+        //v12ToV11710Book.put(Particle.TYPE_BALLOON_GAS, V11710_BALLOON_GAS);
+        //v12ToV11710Book.put(Particle.TYPE_COLORED_FLAME, V11710_COLORED_FLAME);
+        //v12ToV11710Book.put(Particle.TYPE_SPARKLER, V11710_SPARKLER);
+        //v12ToV11710Book.put(Particle.TYPE_CONDUIT, V11710_CONDUIT);
+        //v12ToV11710Book.put(Particle.TYPE_BUBBLE_COLUMN_UP, V11710_BUBBLE_COLUMN_UP);
+        //v12ToV11710Book.put(Particle.TYPE_BUBBLE_COLUMN_DOWN, V11710_BUBBLE_COLUMN_DOWN);
+        //v12ToV11710Book.put(Particle.TYPE_SNEEZE, V11710_SNEEZE);
     }
 
     public static int translateTo112(int particleId) {
@@ -401,9 +538,15 @@ public final class ParticleIdTranslator {
         return v12ToV116220Book.getOrDefault(particleId, particleId);
     }
 
+    public static int translateTo11710(int particleId) {
+        return v12ToV11710Book.getOrDefault(particleId, particleId);
+    }
+
     public static int translateTo(AbstractProtocol protocol, int particleId) {
         int ver = protocol.getProtocolStart();
-        if (ver >= AbstractProtocol.PROTOCOL_116_220.getProtocolStart()) {
+        if (ver >= AbstractProtocol.PROTOCOL_117_10.getProtocolStart()) {
+            return translateTo11710(particleId);
+        } else if (ver >= AbstractProtocol.PROTOCOL_116_220.getProtocolStart()) {
             return translateTo116220(particleId);
         } else if (ver >= AbstractProtocol.PROTOCOL_114.getProtocolStart()) {
             return translateTo114(particleId);

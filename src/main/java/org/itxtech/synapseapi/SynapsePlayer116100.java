@@ -37,6 +37,7 @@ import org.itxtech.synapseapi.multiprotocol.protocol116200.protocol.FilterTextPa
 import org.itxtech.synapseapi.multiprotocol.protocol116200.protocol.ResourcePacksInfoPacket116200;
 import org.itxtech.synapseapi.multiprotocol.protocol116200.protocol.StartGamePacket116200;
 import org.itxtech.synapseapi.multiprotocol.protocol117.protocol.StartGamePacket117;
+import org.itxtech.synapseapi.multiprotocol.protocol11710.protocol.ResourcePacksInfoPacket11710;
 import org.itxtech.synapseapi.multiprotocol.protocol14.protocol.PlayerActionPacket14;
 import org.itxtech.synapseapi.multiprotocol.protocol16.protocol.ResourcePackClientResponsePacket16;
 
@@ -355,7 +356,8 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
                 }
 
             case ProtocolInfo.PLAYER_ACTION_PACKET:
-                if (this.getProtocol() < AbstractProtocol.PROTOCOL_116_210.getProtocolStart()) {
+                if (this.getProtocol() < AbstractProtocol.PROTOCOL_116_210.getProtocolStart()
+                        && (!this.isNetEaseClient || this.getProtocol() < AbstractProtocol.PROTOCOL_116_200.getProtocolStart())) {
                     super.handleDataPacket(packet);
                     break;
                 }
@@ -449,7 +451,14 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
 
     @Override
     protected DataPacket generateResourcePackInfoPacket() {
-        if (this.protocol >= AbstractProtocol.PROTOCOL_116_200.getProtocolStart()) {
+        if (this.protocol >= AbstractProtocol.PROTOCOL_117_10.getProtocolStart()) {
+            ResourcePacksInfoPacket11710 resourcePacket = new ResourcePacksInfoPacket11710();
+            resourcePacket.resourcePackEntries = this.resourcePacks.values().toArray(new ResourcePack[0]);
+            resourcePacket.behaviourPackEntries = this.behaviourPacks.values().toArray(new ResourcePack[0]);
+            resourcePacket.mustAccept = this.forceResources;
+//            resourcePacket.forceServerPacks = this.forceResources;
+            return resourcePacket;
+        } else if (this.protocol >= AbstractProtocol.PROTOCOL_116_200.getProtocolStart()) {
             ResourcePacksInfoPacket116200 resourcePacket = new ResourcePacksInfoPacket116200();
             resourcePacket.resourcePackEntries = this.resourcePacks.values().toArray(new ResourcePack[0]);
             resourcePacket.behaviourPackEntries = this.behaviourPacks.values().toArray(new ResourcePack[0]);

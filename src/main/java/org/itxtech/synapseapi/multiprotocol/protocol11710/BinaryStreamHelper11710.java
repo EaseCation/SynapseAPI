@@ -1,59 +1,26 @@
-package org.itxtech.synapseapi.multiprotocol.protocol113;
+package org.itxtech.synapseapi.multiprotocol.protocol11710;
 
 import cn.nukkit.command.data.CommandData;
 import cn.nukkit.command.data.CommandDataVersions;
 import cn.nukkit.command.data.CommandEnum;
 import cn.nukkit.command.data.CommandOverload;
-import cn.nukkit.command.data.CommandParamType;
 import cn.nukkit.command.data.CommandParameter;
 import cn.nukkit.utils.BinaryStream;
-import org.itxtech.synapseapi.multiprotocol.protocol112.BinaryStreamHelper112;
 import org.itxtech.synapseapi.multiprotocol.protocol113.protocol.AvailableCommandsPacket113;
+import org.itxtech.synapseapi.multiprotocol.protocol117.BinaryStreamHelper117;
 
 import java.util.List;
 import java.util.Map;
 
-//todo: skin
-public class BinaryStreamHelper113 extends BinaryStreamHelper112 {
+public class BinaryStreamHelper11710 extends BinaryStreamHelper117 {
 
-    public static BinaryStreamHelper113 create() {
-        return new BinaryStreamHelper113();
+    public static BinaryStreamHelper11710 create() {
+        return new BinaryStreamHelper11710();
     }
 
     @Override
     public String getGameVersion() {
-        return "1.13.0";
-    }
-
-    @Override
-    protected void registerCommandParameterTypes() {
-        int ARG_TYPE_INT = 1;
-        int ARG_TYPE_FLOAT = 2;
-        int ARG_TYPE_VALUE = 3;
-        int ARG_TYPE_WILDCARD_INT = 4;
-        int ARG_TYPE_OPERATOR = 5;
-        int ARG_TYPE_TARGET = 6;
-        int ARG_TYPE_WILDCARD_TARGET = 7;
-        int ARG_TYPE_FILE_PATH = 14;
-        int ARG_TYPE_STRING = 29;
-        int ARG_TYPE_POSITION = 37;
-        int ARG_TYPE_MESSAGE = 41;
-        int ARG_TYPE_RAWTEXT = 43;
-        int ARG_TYPE_JSON = 47;
-        int ARG_TYPE_COMMAND = 54;
-
-        this.registerCommandParameterType(CommandParamType.INT, ARG_TYPE_INT);
-        this.registerCommandParameterType(CommandParamType.FLOAT, ARG_TYPE_FLOAT);
-        this.registerCommandParameterType(CommandParamType.VALUE, ARG_TYPE_VALUE);
-        this.registerCommandParameterType(CommandParamType.WILDCARD_INT, ARG_TYPE_WILDCARD_INT);
-        this.registerCommandParameterType(CommandParamType.TARGET, ARG_TYPE_TARGET);
-        this.registerCommandParameterType(CommandParamType.STRING, ARG_TYPE_RAWTEXT);
-        this.registerCommandParameterType(CommandParamType.POSITION, ARG_TYPE_POSITION);
-        this.registerCommandParameterType(CommandParamType.MESSAGE, ARG_TYPE_MESSAGE);
-        this.registerCommandParameterType(CommandParamType.RAWTEXT, ARG_TYPE_RAWTEXT);
-        this.registerCommandParameterType(CommandParamType.JSON, ARG_TYPE_JSON);
-        this.registerCommandParameterType(CommandParamType.TEXT, ARG_TYPE_RAWTEXT);
-        this.registerCommandParameterType(CommandParamType.COMMAND, ARG_TYPE_COMMAND);
+        return "1.17.10";
     }
 
     @Override
@@ -65,7 +32,7 @@ public class BinaryStreamHelper113 extends BinaryStreamHelper112 {
 
             stream.putString(name);
             stream.putString(data.description);
-            stream.putByte((byte) data.flags);
+            stream.putLShort(data.flags);
             stream.putByte((byte) data.permission);
 
             stream.putLInt(data.aliases == null ? -1 : enums.indexOf(data.aliases));
@@ -101,6 +68,4 @@ public class BinaryStreamHelper113 extends BinaryStreamHelper112 {
             }
         });
     }
-
-
 }

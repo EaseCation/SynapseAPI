@@ -33,6 +33,8 @@ import org.itxtech.synapseapi.multiprotocol.protocol116220.BinaryStreamHelper116
 import org.itxtech.synapseapi.multiprotocol.protocol116220.protocol.Packet116220;
 import org.itxtech.synapseapi.multiprotocol.protocol117.BinaryStreamHelper117;
 import org.itxtech.synapseapi.multiprotocol.protocol117.protocol.Packet117;
+import org.itxtech.synapseapi.multiprotocol.protocol11710.BinaryStreamHelper11710;
+import org.itxtech.synapseapi.multiprotocol.protocol11710.protocol.Packet11710;
 import org.itxtech.synapseapi.multiprotocol.protocol12.BinaryStreamHelper12;
 import org.itxtech.synapseapi.multiprotocol.protocol14.BinaryStreamHelper14;
 import org.itxtech.synapseapi.multiprotocol.protocol14.protocol.Packet14;
@@ -76,10 +78,11 @@ public enum AbstractProtocol {
     PROTOCOL_116_20(408, Packet11620.class, SynapsePlayer116.class, BinaryStreamHelper11620.create(), true),
     PROTOCOL_116_100_NE(410, Packet116100NE.class, SynapsePlayer116100.class, BinaryStreamHelper116100NE.create(), true), // 1.16.100.51 beta (使用407的数据)
     PROTOCOL_116_100(419, Packet116100.class, SynapsePlayer116100.class, BinaryStreamHelper116100.create(), true),
-    PROTOCOL_116_200(422, Packet116200.class, SynapsePlayer116100.class, BinaryStreamHelper116200.create(), true),
+    PROTOCOL_116_200(422, Packet116200.class, SynapsePlayer116100.class, BinaryStreamHelper116200.create(), true), // 事实上网易用的是后一个版本的 beta
     PROTOCOL_116_210(428, Packet116210.class, SynapsePlayer116100.class, BinaryStreamHelper116210.create(), true),
     PROTOCOL_116_220(431, Packet116220.class, SynapsePlayer116100.class, BinaryStreamHelper116220.create(), true),
     PROTOCOL_117(440, Packet117.class, SynapsePlayer116100.class, BinaryStreamHelper117.create(), true),
+    PROTOCOL_117_10(448, Packet11710.class, SynapsePlayer116100.class, BinaryStreamHelper11710.create(), true),
     ;
 
     private final int protocolStart;

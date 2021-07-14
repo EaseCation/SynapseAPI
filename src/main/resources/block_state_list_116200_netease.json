@@ -24548,73 +24548,73 @@
   {
     "runTimeId": 4091,
     "blockId": 199,
-    "meta": 0,
+    "meta": 4,
     "blockName": "minecraft:frame"
   },
   {
     "runTimeId": 4092,
     "blockId": 199,
-    "meta": 1,
+    "meta": 5,
     "blockName": "minecraft:frame"
   },
   {
     "runTimeId": 4093,
     "blockId": 199,
-    "meta": 2,
+    "meta": 3,
     "blockName": "minecraft:frame"
   },
   {
     "runTimeId": 4094,
     "blockId": 199,
-    "meta": 3,
+    "meta": 2,
     "blockName": "minecraft:frame"
   },
   {
     "runTimeId": 4095,
     "blockId": 199,
-    "meta": 4,
+    "meta": 1,
     "blockName": "minecraft:frame"
   },
   {
     "runTimeId": 4096,
     "blockId": 199,
-    "meta": 5,
+    "meta": 0,
     "blockName": "minecraft:frame"
   },
   {
     "runTimeId": 4097,
     "blockId": 199,
-    "meta": 8,
+    "meta": 12,
     "blockName": "minecraft:frame"
   },
   {
     "runTimeId": 4098,
     "blockId": 199,
-    "meta": 9,
+    "meta": 13,
     "blockName": "minecraft:frame"
   },
   {
     "runTimeId": 4099,
     "blockId": 199,
-    "meta": 10,
+    "meta": 11,
     "blockName": "minecraft:frame"
   },
   {
     "runTimeId": 4100,
     "blockId": 199,
-    "meta": 11,
+    "meta": 10,
     "blockName": "minecraft:frame"
   },
   {
     "runTimeId": 4101,
     "blockId": 199,
-    "meta": 12,
+    "meta": 9,
     "blockName": "minecraft:frame"
   },
   {
     "runTimeId": 4102,
     "blockId": 199,
-    "meta": 13,
+    "meta": 8,
     "blockName": "minecraft:frame"
   },
   {
