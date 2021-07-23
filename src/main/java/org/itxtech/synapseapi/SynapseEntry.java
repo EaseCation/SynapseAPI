@@ -439,7 +439,7 @@ public class SynapseEntry {
                         if (pk0.pid() == ProtocolInfo.BATCH_PACKET) {
                             processBatch((BatchPacket) pk0, redirectPacket.protocol, player.isNetEaseClient()).forEach(subPacket -> {
                                 this.redirectPacketQueue.offer(new RedirectPacketEntry(player, subPacket));
-                                if (SynapseAPI.getInstance().isNetworkBroadcastPlayerMove()) {
+                                if (SynapseAPI.getInstance().isNetworkBroadcastPlayerMove() && player.isOnline()) {
                                     //玩家体验优化：直接不经过主线程广播玩家移动，插件过度干预可能会造成移动鬼畜问题
                                     if (subPacket instanceof MovePlayerPacket) {
                                         ((MovePlayerPacket) subPacket).eid = player.getId();
