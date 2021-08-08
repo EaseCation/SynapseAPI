@@ -42,7 +42,9 @@ public class ResourcePacksInfoPacket116200 extends Packet116200 {
             this.putString(""); // sub-pack name
             this.putString(""); // content identity
             this.putBoolean(false); // scripting
-            this.putBoolean(false); // raytracing capable
+            if (entry.getPackType().equals("resources")) {
+                this.putBoolean(false); // raytracing capable
+            }
         }
     }
 
