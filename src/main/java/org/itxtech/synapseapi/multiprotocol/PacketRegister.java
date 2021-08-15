@@ -103,6 +103,7 @@ public class PacketRegister {
         registerPacket(AbstractProtocol.PROTOCOL_16, ProtocolInfo.SHOW_STORE_OFFER_PACKET, ShowStoreOfferPacket16.class);
         registerPacket(AbstractProtocol.PROTOCOL_16, ProtocolInfo.PACKET_STORE_BUY_SUCC, NEStoreBuySuccPacket16.class);
         registerPacket(AbstractProtocol.PROTOCOL_16, ProtocolInfo.PACKET_NETEASE_JSON, NENetEaseJsonPacket16.class);
+        registerPacket(AbstractProtocol.PROTOCOL_16, ProtocolInfo.PACKET_PY_PRC, NEPyRpcPacket16.class);
 
         registerPacket(AbstractProtocol.PROTOCOL_17, ProtocolInfo.ADD_ENTITY_PACKET, AddEntityPacket17.class);
         registerPacket(AbstractProtocol.PROTOCOL_17, ProtocolInfo.ADD_ITEM_ENTITY_PACKET, AddItemEntityPacket17.class);

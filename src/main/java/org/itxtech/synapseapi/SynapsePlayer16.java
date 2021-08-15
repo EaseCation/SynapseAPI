@@ -2,6 +2,7 @@ package org.itxtech.synapseapi;
 
 import cn.nukkit.Player;
 import cn.nukkit.PlayerFood;
+import cn.nukkit.Server;
 import cn.nukkit.entity.Entity;
 import cn.nukkit.event.player.PlayerJoinEvent;
 import cn.nukkit.event.player.PlayerRespawnEvent;
@@ -16,17 +17,25 @@ import cn.nukkit.network.protocol.types.ContainerIds;
 import cn.nukkit.resourcepacks.ResourcePack;
 import cn.nukkit.utils.MainLogger;
 import cn.nukkit.utils.TextFormat;
+import com.google.gson.Gson;
+import com.google.gson.JsonArray;
+import com.google.gson.JsonObject;
 import com.google.gson.JsonPrimitive;
 import org.itxtech.synapseapi.event.player.SynapsePlayerBroadcastLevelSoundEvent;
 import org.itxtech.synapseapi.event.player.SynapsePlayerConnectEvent;
+import org.itxtech.synapseapi.event.player.netease.NetEasePlayerModEventC2SEvent;
+import org.itxtech.synapseapi.event.player.netease.NetEasePlayerPyRpcReceiveEvent;
 import org.itxtech.synapseapi.multiprotocol.AbstractProtocol;
 import org.itxtech.synapseapi.multiprotocol.PacketRegister;
 import org.itxtech.synapseapi.multiprotocol.protocol14.protocol.*;
 import org.itxtech.synapseapi.multiprotocol.protocol16.protocol.*;
 import org.itxtech.synapseapi.multiprotocol.utils.LevelSoundEventEnum;
 import org.itxtech.synapseapi.network.protocol.spp.PlayerLoginPacket;
+import org.msgpack.value.*;
 
 import java.net.InetSocketAddress;
+import java.nio.charset.StandardCharsets;
+import java.util.Map;
 import java.util.Optional;
 
 public class SynapsePlayer16 extends SynapsePlayer14 {
@@ -134,6 +143,43 @@ public class SynapsePlayer16 extends SynapsePlayer14 {
 									event.isBabyMob(),
 									event.isGlobal()
 							));
+				}
+				break;
+			case ProtocolInfo.PACKET_PY_PRC:
+				if (!callPacketReceiveEvent(packet)) break;
+				NEPyRpcPacket16 pyRpcPacket = (NEPyRpcPacket16) packet;
+				NetEasePlayerPyRpcReceiveEvent pyRpcReceiveEvent = new NetEasePlayerPyRpcReceiveEvent(this, pyRpcPacket.data);
+				Server.getInstance().getPluginManager().callEvent(pyRpcReceiveEvent);
+				//Try decode ModEventC2S
+				Value data = pyRpcReceiveEvent.getData();
+				try {
+					if (data.isMapValue()) {
+						String json = data.toJson();
+						JsonObject obj = new Gson().fromJson(json, JsonObject.class);
+						if (obj.has("value") && obj.get("value").isJsonArray()) {
+							JsonArray value0 = obj.get("value").getAsJsonArray();
+							if ("ModEventC2S".equals(value0.get(0).getAsString()) && value0.get(1).isJsonObject()) {
+								JsonObject obj1 = value0.get(1).getAsJsonObject();
+								if (obj1.has("value") && obj1.get("value").isJsonArray()) {
+									JsonArray value1 = obj1.get("value").getAsJsonArray();
+									String modName = value1.get(0).getAsString();
+									String systemName = value1.get(1).getAsString();
+									String eventName = value1.get(2).getAsString();
+									JsonObject eventData = value1.get(3).getAsJsonObject();
+									NetEasePlayerModEventC2SEvent modEventC2SEvent = new NetEasePlayerModEventC2SEvent(
+											this,
+											modName,
+											systemName,
+											eventName,
+											eventData
+									);
+									Server.getInstance().getPluginManager().callEvent(modEventC2SEvent);
+								}
+							}
+						}
+					}
+				} catch (Exception e) {
+					//ignore
 				}
 				break;
 			default:
@@ -304,6 +350,26 @@ public class SynapsePlayer16 extends SynapsePlayer14 {
 		pk.isBabyMob = isBabyMob;
 		pk.isGlobal = isGlobal;
 		this.dataPacket(pk);
+	}
+
+	public void sendPyRpcData(Value data) {
+		NEPyRpcPacket16 pk = new NEPyRpcPacket16();
+		pk.data = data;
+		this.dataPacket(pk);
+	}
+
+	public void modNotifyToClient(String modName, String systemName, String eventName, MapValue eventData) {
+		ArrayValue data = ValueFactory.newArray(
+				ValueFactory.newBinary("ModEventS2C".getBytes(StandardCharsets.UTF_8)),
+				ValueFactory.newArray(
+						ValueFactory.newBinary(modName.getBytes(StandardCharsets.UTF_8)),
+						ValueFactory.newBinary(systemName.getBytes(StandardCharsets.UTF_8)),
+						ValueFactory.newBinary(eventName.getBytes(StandardCharsets.UTF_8)),
+						eventData
+				),
+				ValueFactory.newNil()
+		);
+		this.sendPyRpcData(data);
 	}
 
 }

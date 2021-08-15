@@ -48,6 +48,7 @@ import org.itxtech.synapseapi.multiprotocol.protocol12.utils.ClientChainData12;
 import org.itxtech.synapseapi.multiprotocol.protocol12.utils.ClientChainData12NetEase;
 import org.itxtech.synapseapi.multiprotocol.protocol12.utils.ClientChainData12Urgency;
 import org.itxtech.synapseapi.multiprotocol.protocol14.protocol.TextPacket14;
+import org.itxtech.synapseapi.multiprotocol.protocol16.protocol.NEPyRpcPacket16;
 import org.itxtech.synapseapi.multiprotocol.protocol17.protocol.TextPacket17;
 import org.itxtech.synapseapi.multiprotocol.utils.CraftingPacketManager;
 import org.itxtech.synapseapi.multiprotocol.utils.CreativeItemsPalette;
@@ -58,8 +59,13 @@ import org.itxtech.synapseapi.utils.BlobTrack;
 import org.itxtech.synapseapi.utils.ClientData;
 import org.itxtech.synapseapi.utils.ClientData.Entry;
 import org.itxtech.synapseapi.utils.DataPacketEidReplacer;
+import org.msgpack.value.ArrayValue;
+import org.msgpack.value.MapValue;
+import org.msgpack.value.Value;
+import org.msgpack.value.ValueFactory;
 
 import java.net.InetSocketAddress;
+import java.nio.charset.StandardCharsets;
 import java.util.*;
 
 /**
@@ -1227,5 +1233,13 @@ public class SynapsePlayer extends Player {
 
     public void sendNetworkSettings() {
 
+    }
+
+    public void sendPyRpcData(Value data) {
+        //SynapsePlayer16
+    }
+
+    public void modNotifyToClient(String modName, String systemName, String eventName, MapValue eventData) {
+        //SynapsePlayer16
     }
 }
