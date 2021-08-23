@@ -62,6 +62,11 @@ public final class ClientChainData12NetEase implements LoginChainData {
     }
 
     @Override
+    public String getDeviceId() {
+        return deviceId;
+    }
+
+    @Override
     public String getDeviceModel() {
         return deviceModel;
     }
@@ -139,6 +144,7 @@ public final class ClientChainData12NetEase implements LoginChainData {
 
     private long clientId;
     private String serverAddress;
+    private String deviceId;
     private String deviceModel;
     private int deviceOS;
     private String gameVersion;
@@ -224,6 +230,7 @@ public final class ClientChainData12NetEase implements LoginChainData {
         if (skinToken == null) return;
         if (skinToken.has("ClientRandomId")) this.clientId = skinToken.get("ClientRandomId").getAsLong();
         if (skinToken.has("ServerAddress")) this.serverAddress = skinToken.get("ServerAddress").getAsString();
+        if (skinToken.has("DeviceId")) this.deviceId = skinToken.get("DeviceId").getAsString();
         if (skinToken.has("DeviceModel")) this.deviceModel = skinToken.get("DeviceModel").getAsString();
         if (skinToken.has("DeviceOS")) this.deviceOS = skinToken.get("DeviceOS").getAsInt();
         if (skinToken.has("GameVersion")) this.gameVersion = skinToken.get("GameVersion").getAsString();

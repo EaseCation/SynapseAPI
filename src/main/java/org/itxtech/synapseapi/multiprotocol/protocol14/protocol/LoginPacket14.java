@@ -33,6 +33,7 @@ public class LoginPacket14 extends Packet14 {
     public int protocol;
     public UUID clientUUID;
     public long clientId;
+    public String deviceId;
     public String xuid;
 
     public Skin skin;
@@ -124,6 +125,7 @@ public class LoginPacket14 extends Packet14 {
     private void decodeSkinData() {
         JsonObject skinToken = decodeToken(new String(this.get(this.getLInt())));
         if (skinToken.has("ClientRandomId")) this.clientId = skinToken.get("ClientRandomId").getAsLong();
+        if (skinToken.has("DeviceId")) this.deviceId = skinToken.get("DeviceId").getAsString();
         skin = new Skin().setPlayerSkin(true);
         if (skinToken.has("SkinId")) {
             skin.setSkinId(skinToken.get("SkinId").getAsString());
