@@ -190,7 +190,7 @@ public class AddEntityPacket18 extends Packet18 {
         this.entityUniqueId = packet.entityUniqueId;
         this.entityRuntimeId = packet.entityRuntimeId;
         this.type = packet.type;
-        id = LEGACY_IDS.get(type);
+        this.id = packet.id;
         this.x = packet.x;
         this.y = packet.y;
         this.z = packet.z;

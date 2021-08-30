@@ -53,6 +53,12 @@ public class SynapsePlayer18 extends SynapsePlayer17 {
 							dataInfoPacket.chunkCount = resourcePack.getPackSize() / dataInfoPacket.maxChunkSize;
 							dataInfoPacket.compressedPackSize = resourcePack.getPackSize();
 							dataInfoPacket.sha256 = resourcePack.getSha256();
+							if (resourcePack.getPackType().equals("resources")) {
+								dataInfoPacket.type = ResourcePackDataInfoPacket.TYPE_RESOURCE;
+							}
+							else if (resourcePack.getPackType().equals("data")) {
+								dataInfoPacket.type = ResourcePackDataInfoPacket.TYPE_BEHAVIOR;
+							}
 							this.dataPacket(dataInfoPacket);
 						}
 						break;

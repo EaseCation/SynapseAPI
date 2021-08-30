@@ -67,6 +67,7 @@ public class ResourcePackDataInfoPacket113 extends Packet113 {
         this.chunkCount = packet.chunkCount;
         this.compressedPackSize = packet.compressedPackSize;
         this.sha256 = packet.sha256;
+        this.type = packet.type;
 
         return this;
     }

@@ -1,6 +1,7 @@
 package org.itxtech.synapseapi;
 
 import cn.nukkit.Player;
+import cn.nukkit.Server;
 import cn.nukkit.block.Block;
 import cn.nukkit.block.BlockDragonEgg;
 import cn.nukkit.block.BlockID;
@@ -223,6 +224,12 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
                             dataInfoPacket.chunkCount = resourcePack.getPackSize() / dataInfoPacket.maxChunkSize;
                             dataInfoPacket.compressedPackSize = resourcePack.getPackSize();
                             dataInfoPacket.sha256 = resourcePack.getSha256();
+                            if (resourcePack.getPackType().equals("resources")) {
+                                dataInfoPacket.type = ResourcePackDataInfoPacket.TYPE_RESOURCE;
+                            }
+                            else if (resourcePack.getPackType().equals("data")) {
+                                dataInfoPacket.type = ResourcePackDataInfoPacket.TYPE_BEHAVIOR;
+                            }
                             this.dataPacket(dataInfoPacket);
                         }
                         break;
