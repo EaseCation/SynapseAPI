@@ -9,6 +9,7 @@ import cn.nukkit.network.SourceInterface;
 import cn.nukkit.network.protocol.*;
 import cn.nukkit.resourcepacks.ResourcePack;
 import org.itxtech.synapseapi.event.player.SynapsePlayerBroadcastLevelSoundEvent;
+import org.itxtech.synapseapi.event.player.SynapsePlayerRequestAvailableEntityIdentifiersPaletteEvent;
 import org.itxtech.synapseapi.multiprotocol.AbstractProtocol;
 import org.itxtech.synapseapi.multiprotocol.protocol16.protocol.ResourcePackClientResponsePacket16;
 import org.itxtech.synapseapi.multiprotocol.protocol18.protocol.*;
@@ -151,7 +152,9 @@ public class SynapsePlayer18 extends SynapsePlayer17 {
 		super.completeLoginSequence();
 		if (this.loggedIn) {
 			AvailableEntityIdentifiersPacket18 pk = new AvailableEntityIdentifiersPacket18();
-			pk.tag = AvailableEntityIdentifiersPalette.getData(AbstractProtocol.fromRealProtocol(this.getProtocol()));
+			SynapsePlayerRequestAvailableEntityIdentifiersPaletteEvent event = new SynapsePlayerRequestAvailableEntityIdentifiersPaletteEvent(this, AvailableEntityIdentifiersPalette.getData(AbstractProtocol.fromRealProtocol(this.getProtocol())));
+			this.getServer().getPluginManager().callEvent(event);
+			pk.tag = event.getData();
 			if (pk.tag != null) {
 				this.dataPacket(pk);
 			} else {
