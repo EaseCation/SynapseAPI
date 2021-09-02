@@ -6,7 +6,9 @@ import cn.nukkit.nbt.NBTIO;
 import cn.nukkit.nbt.tag.CompoundTag;
 import org.itxtech.synapseapi.SynapsePlayer;
 
+import java.io.ByteArrayInputStream;
 import java.io.IOException;
+import java.nio.ByteOrder;
 
 public class SynapsePlayerRequestAvailableEntityIdentifiersPaletteEvent extends SynapsePlayerEvent {
 
@@ -27,18 +29,19 @@ public class SynapsePlayerRequestAvailableEntityIdentifiersPaletteEvent extends 
     public CompoundTag getNamedTag() {
         if (namedTag == null) {
             try {
-                namedTag = NBTIO.read(data);
+                namedTag = NBTIO.read(new ByteArrayInputStream(data), ByteOrder.LITTLE_ENDIAN, true);
             } catch (IOException e) {
                 Server.getInstance().getLogger().logException(e);
                 namedTag = new CompoundTag();
             }
         }
+
         return namedTag;
     }
 
     public byte[] getData() {
         try {
-            return namedTag != null ? NBTIO.write(namedTag) : data;
+            return namedTag != null ? NBTIO.writeNetwork(namedTag) : data;
         } catch (IOException e) {
             Server.getInstance().getLogger().logException(e);
             return data;
