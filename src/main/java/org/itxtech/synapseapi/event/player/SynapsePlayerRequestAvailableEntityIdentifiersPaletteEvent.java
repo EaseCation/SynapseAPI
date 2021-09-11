@@ -14,6 +14,8 @@ public class SynapsePlayerRequestAvailableEntityIdentifiersPaletteEvent extends 
 
     private static final HandlerList handlers = new HandlerList();
 
+    private int maxRid = 1000;
+
     private final byte[] data;
     private CompoundTag namedTag = null;
 
@@ -37,6 +39,18 @@ public class SynapsePlayerRequestAvailableEntityIdentifiersPaletteEvent extends 
         }
 
         return namedTag;
+    }
+
+    public SynapsePlayerRequestAvailableEntityIdentifiersPaletteEvent addEntity(String id) {
+        this.getNamedTag().getList("idlist", CompoundTag.class).add(
+                new CompoundTag()
+                        .putBoolean("hasspawnegg", false)
+                        .putBoolean("summonable", false)
+                        .putString("id", id)
+                        .putString("bid", "")
+                        .putInt("rid", maxRid++)
+        );
+        return this;
     }
 
     public byte[] getData() {
