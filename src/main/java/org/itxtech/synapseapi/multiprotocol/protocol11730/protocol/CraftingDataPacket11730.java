@@ -1,4 +1,4 @@
-package org.itxtech.synapseapi.multiprotocol.protocol116220.protocol;
+package org.itxtech.synapseapi.multiprotocol.protocol11730.protocol;
 
 import cn.nukkit.inventory.*;
 import cn.nukkit.item.Item;
@@ -17,7 +17,7 @@ import java.util.stream.Collectors;
  * @author Nukkit Project Team
  */
 @ToString
-public class CraftingDataPacket116220 extends Packet116220 {
+public class CraftingDataPacket11730 extends Packet11730 {
 
     public static final byte NETWORK_ID = ProtocolInfo.CRAFTING_DATA_PACKET;
 
@@ -143,6 +143,8 @@ public class CraftingDataPacket116220 extends Packet116220 {
             this.putVarInt(this.helper.getItemNetworkId(this, recipe.getIngredient()));
             this.putVarInt(this.helper.getItemNetworkId(this, recipe.getResult()));
         }
+
+        this.putUnsignedVarInt(0); // Material reducers size
 
         this.putBoolean(cleanRecipes);
     }

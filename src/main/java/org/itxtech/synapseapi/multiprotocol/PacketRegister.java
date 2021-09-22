@@ -33,6 +33,9 @@ import org.itxtech.synapseapi.multiprotocol.protocol117.protocol.GameRulesChange
 import org.itxtech.synapseapi.multiprotocol.protocol117.protocol.StartGamePacket117;
 import org.itxtech.synapseapi.multiprotocol.protocol11710.protocol.ResourcePacksInfoPacket11710;
 import org.itxtech.synapseapi.multiprotocol.protocol11710.protocol.SetTitlePacket11710;
+import org.itxtech.synapseapi.multiprotocol.protocol11730.protocol.AnimateEntityPacket11730;
+import org.itxtech.synapseapi.multiprotocol.protocol11730.protocol.CraftingDataPacket11730;
+import org.itxtech.synapseapi.multiprotocol.protocol11730.protocol.StartGamePacket11730;
 import org.itxtech.synapseapi.multiprotocol.protocol15.protocol.AddEntityPacket15;
 import org.itxtech.synapseapi.multiprotocol.protocol15.protocol.ClientboundMapItemDataPacket15;
 import org.itxtech.synapseapi.multiprotocol.protocol15.protocol.MoveEntityAbsolutePacket15;
@@ -212,6 +215,10 @@ public class PacketRegister {
 
         registerPacket(AbstractProtocol.PROTOCOL_117_10, ProtocolInfo.RESOURCE_PACKS_INFO_PACKET, ResourcePacksInfoPacket11710.class);
         registerPacket(AbstractProtocol.PROTOCOL_117_10, ProtocolInfo.SET_TITLE_PACKET, SetTitlePacket11710.class);
+
+        registerPacket(AbstractProtocol.PROTOCOL_117_30, ProtocolInfo.START_GAME_PACKET, StartGamePacket11730.class);
+        registerPacket(AbstractProtocol.PROTOCOL_117_30, ProtocolInfo.CRAFTING_DATA_PACKET, CraftingDataPacket11730.class);
+        registerPacket(AbstractProtocol.PROTOCOL_117_30, ProtocolInfo.ANIMATE_ENTITY_PACKET, AnimateEntityPacket11730.class);
 
         checkNeteaseSpecialExtend();
         CraftingPacketManager.rebuildPacket();

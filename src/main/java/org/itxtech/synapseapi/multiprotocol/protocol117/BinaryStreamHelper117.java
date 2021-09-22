@@ -28,9 +28,11 @@ public class BinaryStreamHelper117 extends BinaryStreamHelper116220 {
         Map<GameRule, GameRules.Value> rules = gameRules.getGameRules();
         stream.putUnsignedVarInt(rules.size());
         rules.forEach((gameRule, value) -> {
-            stream.putString(gameRule.getName().toLowerCase());
-            stream.putBoolean(false); // isEditable
-            value.write(stream);
+            if (gameRule.getProtocol() <= this.protocol.getProtocolStart()) {
+                stream.putString(gameRule.getName().toLowerCase());
+                stream.putBoolean(false); // isEditable
+                value.write(stream);
+            }
         });
     }
 }

@@ -1,7 +1,6 @@
 package org.itxtech.synapseapi;
 
 import cn.nukkit.Player;
-import cn.nukkit.Server;
 import cn.nukkit.block.Block;
 import cn.nukkit.block.BlockDragonEgg;
 import cn.nukkit.block.BlockID;
@@ -39,6 +38,7 @@ import org.itxtech.synapseapi.multiprotocol.protocol116200.protocol.ResourcePack
 import org.itxtech.synapseapi.multiprotocol.protocol116200.protocol.StartGamePacket116200;
 import org.itxtech.synapseapi.multiprotocol.protocol117.protocol.StartGamePacket117;
 import org.itxtech.synapseapi.multiprotocol.protocol11710.protocol.ResourcePacksInfoPacket11710;
+import org.itxtech.synapseapi.multiprotocol.protocol11730.protocol.StartGamePacket11730;
 import org.itxtech.synapseapi.multiprotocol.protocol14.protocol.PlayerActionPacket14;
 import org.itxtech.synapseapi.multiprotocol.protocol16.protocol.ResourcePackClientResponsePacket16;
 
@@ -53,7 +53,38 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
 
     @Override
     protected DataPacket generateStartGamePacket(Position spawnPosition) {
-        if (this.getProtocol() >= AbstractProtocol.PROTOCOL_117.getProtocolStart()) {
+        if (this.getProtocol() >= AbstractProtocol.PROTOCOL_117_30.getProtocolStart()) {
+            StartGamePacket11730 startGamePacket = new StartGamePacket11730();
+            startGamePacket.protocol = AbstractProtocol.fromRealProtocol(this.protocol);
+            startGamePacket.netease = this.isNetEaseClient();
+            startGamePacket.entityUniqueId = Long.MAX_VALUE;
+            startGamePacket.entityRuntimeId = Long.MAX_VALUE;
+            startGamePacket.playerGamemode = getClientFriendlyGamemode(this.gamemode);
+            startGamePacket.x = (float) this.x;
+            startGamePacket.y = (float) this.y;
+            startGamePacket.z = (float) this.z;
+            startGamePacket.yaw = (float) this.yaw;
+            startGamePacket.pitch = (float) this.pitch;
+            startGamePacket.seed = -1;
+            startGamePacket.dimension = (byte) (this.level.getDimension() & 0xff);
+            startGamePacket.worldGamemode = getClientFriendlyGamemode(this.gamemode);
+            startGamePacket.difficulty = this.server.getDifficulty();
+            startGamePacket.spawnX = (int) spawnPosition.x;
+            startGamePacket.spawnY = (int) spawnPosition.y;
+            startGamePacket.spawnZ = (int) spawnPosition.z;
+            startGamePacket.hasAchievementsDisabled = true;
+            startGamePacket.dayCycleStopTime = -1;
+            startGamePacket.rainLevel = 0;
+            startGamePacket.lightningLevel = 0;
+            startGamePacket.commandsEnabled = this.isEnableClientCommand();
+            startGamePacket.levelId = "";
+            startGamePacket.worldName = this.getServer().getNetwork().getName();
+            startGamePacket.generator = 1; // 0 old, 1 infinite, 2 flat
+            startGamePacket.gameRules = getSupportedRules();
+            startGamePacket.isMovementServerAuthoritative = false;
+            startGamePacket.currentTick = this.server.getTick();
+            return startGamePacket;
+        } else if (this.getProtocol() >= AbstractProtocol.PROTOCOL_117.getProtocolStart()) {
             StartGamePacket117 startGamePacket = new StartGamePacket117();
             startGamePacket.protocol = AbstractProtocol.fromRealProtocol(this.protocol);
             startGamePacket.netease = this.isNetEaseClient();

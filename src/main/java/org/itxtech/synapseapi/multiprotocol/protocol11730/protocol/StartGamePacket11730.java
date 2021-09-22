@@ -1,4 +1,4 @@
-package org.itxtech.synapseapi.multiprotocol.protocol117.protocol;
+package org.itxtech.synapseapi.multiprotocol.protocol11730.protocol;
 
 import cn.nukkit.level.GameRules;
 import cn.nukkit.network.protocol.ProtocolInfo;
@@ -7,7 +7,7 @@ import org.itxtech.synapseapi.multiprotocol.AbstractProtocol;
 import org.itxtech.synapseapi.multiprotocol.utils.AdvancedRuntimeItemPalette;
 
 @ToString
-public class StartGamePacket117 extends Packet117 {
+public class StartGamePacket11730 extends Packet11730 {
 
     public static final int NETWORK_ID = ProtocolInfo.START_GAME_PACKET;
 
@@ -139,6 +139,8 @@ public class StartGamePacket117 extends Packet117 {
         this.putLInt(16); // Limited world width
         this.putLInt(16); // Limited world height
         this.putBoolean(false); // Nether type
+        this.putString(""); // EduSharedUriResource buttonName
+        this.putString(""); // EduSharedUriResource linkUri
         this.putBoolean(false); // Experimental Gameplay
 
         this.putString(this.levelId);

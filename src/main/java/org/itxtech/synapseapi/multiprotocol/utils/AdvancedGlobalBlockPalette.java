@@ -44,6 +44,7 @@ public final class AdvancedGlobalBlockPalette {
                 new GlobalBlockPaletteJson(AbstractProtocol.PROTOCOL_111, "block_state_list_111_netease.json")
         });
 
+        PaletteBlockTable table11730 = PaletteBlockTable.fromNBTV3("block_state_list_11730.dat");
         PaletteBlockTable table11710 = PaletteBlockTable.fromNBTV3("block_state_list_11710.dat");
         PaletteBlockTable table117 = PaletteBlockTable.fromNBTV3("block_state_list_117.dat");
         PaletteBlockTable table116210 = PaletteBlockTable.fromNBTV3("block_state_list_116210.dat");
@@ -95,12 +96,16 @@ public final class AdvancedGlobalBlockPalette {
         palettes.put(AbstractProtocol.PROTOCOL_117_10, new AdvancedGlobalBlockPaletteInterface[]{
                 new GlobalBlockPaletteNBT(AbstractProtocol.PROTOCOL_117_10, table11710, null, true)
         });
+        palettes.put(AbstractProtocol.PROTOCOL_117_30, new AdvancedGlobalBlockPaletteInterface[]{
+                new GlobalBlockPaletteNBT(AbstractProtocol.PROTOCOL_117_30, table11730, null, true)
+        });
 
         hardcodedPalettes.put(HardcodedVersion.V1_16_100, new GlobalBlockPaletteHardcode(palettes.get(AbstractProtocol.PROTOCOL_116_100)[0]));
         hardcodedPalettes.put(HardcodedVersion.V1_16_200_NETEASE, new GlobalBlockPaletteHardcode(palettes.get(AbstractProtocol.PROTOCOL_116_200)[1]));
         hardcodedPalettes.put(HardcodedVersion.V1_16_210, new GlobalBlockPaletteHardcode(palettes.get(AbstractProtocol.PROTOCOL_116_210)[0]));
         hardcodedPalettes.put(HardcodedVersion.V1_17, new GlobalBlockPaletteHardcode(palettes.get(AbstractProtocol.PROTOCOL_117)[0]));
         hardcodedPalettes.put(HardcodedVersion.V1_17_10, new GlobalBlockPaletteHardcode(palettes.get(AbstractProtocol.PROTOCOL_117_10)[0]));
+        hardcodedPalettes.put(HardcodedVersion.V1_17_30, new GlobalBlockPaletteHardcode(palettes.get(AbstractProtocol.PROTOCOL_117_30)[0]));
     }
 
     public static int getOrCreateRuntimeId(AbstractProtocol protocol, boolean netease, int legacyId) {

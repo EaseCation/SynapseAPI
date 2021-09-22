@@ -1,7 +1,6 @@
 package org.itxtech.synapseapi.multiprotocol.utils;
 
 import cn.nukkit.item.Item;
-import cn.nukkit.item.RuntimeItemPaletteInterface;
 import it.unimi.dsi.fastutil.objects.Object2ObjectMap;
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
 import org.itxtech.synapseapi.multiprotocol.AbstractProtocol;
@@ -26,6 +25,7 @@ public final class AdvancedRuntimeItemPalette {
         RuntimeItemPalette palette116200NE = new RuntimeItemPalette("runtime_item_ids_116200NE.json");
         RuntimeItemPalette palette117 = new RuntimeItemPalette("runtime_item_ids_117.json");
         RuntimeItemPalette palette11710 = new RuntimeItemPalette("runtime_item_ids_11710.json");
+        RuntimeItemPalette palette11730 = new RuntimeItemPalette("runtime_item_ids_11730.json");
 
         register(AbstractProtocol.PROTOCOL_116_100, palette116100, null);
         register(AbstractProtocol.PROTOCOL_116_200, palette116100, palette116200NE);
@@ -33,6 +33,7 @@ public final class AdvancedRuntimeItemPalette {
         register(AbstractProtocol.PROTOCOL_116_220, palette116100, null);
         register(AbstractProtocol.PROTOCOL_117, palette117, null);
         register(AbstractProtocol.PROTOCOL_117_10, palette11710, null);
+        register(AbstractProtocol.PROTOCOL_117_30, palette11730, null);
     }
 
     private static void register(AbstractProtocol protocol, RuntimeItemPalette palette, RuntimeItemPalette paletteNetEase) {
