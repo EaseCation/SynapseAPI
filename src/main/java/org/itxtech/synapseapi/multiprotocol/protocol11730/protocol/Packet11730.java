@@ -7,7 +7,7 @@ public abstract class Packet11730 extends IterationProtocolPacket {
 
     @Override
     public AbstractProtocol getAbstractProtocol() {
-        return AbstractProtocol.PROTOCOL_117_10;
+        return AbstractProtocol.PROTOCOL_117_30;
     }
 
     @Override
