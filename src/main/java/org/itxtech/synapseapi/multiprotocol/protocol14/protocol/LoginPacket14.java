@@ -18,6 +18,7 @@ import cn.nukkit.entity.data.Skin;
 import cn.nukkit.network.protocol.ProtocolInfo;
 import com.netease.mc.authlib.Profile;
 import com.netease.mc.authlib.TokenChain;
+import com.netease.mc.authlib.TokenChainEC;
 import com.netease.mc.authlib.exception.AuthException;
 
 /**
@@ -88,7 +89,7 @@ public class LoginPacket14 extends Packet14 {
     }
 
     //netease解析客户端信息。
-    private void neteaseDecode() throws AuthException {
+    private void neteaseDecode() throws Exception {
         this.clientUUID = null;
         this.username = null;
         Map<String, List<String>> map = new Gson().fromJson(new String(this.get(this.getLInt()), StandardCharsets.UTF_8),
@@ -111,10 +112,10 @@ public class LoginPacket14 extends Packet14 {
             ++index;
         }
         try{
-            Profile profile = TokenChain.check(chainArr);
-            this.xuid = profile.XUID;
-            this.clientUUID = profile.identity;
-            this.username = profile.displayName;
+            JsonObject profile = TokenChainEC.check(chainArr);
+            if (profile.has("XUID")) this.xuid = profile.get("XUID").getAsString();
+            if (profile.has("identity")) this.clientUUID = UUID.fromString(profile.get("identity").getAsString());
+            if (profile.has("displayName")) this.username = profile.get("displayName").getAsString();
         } catch (Exception e) {
             // TODO: handle exception,认证失败
             this.clientUUID = null;//若认证失败，则clientUUID为null。

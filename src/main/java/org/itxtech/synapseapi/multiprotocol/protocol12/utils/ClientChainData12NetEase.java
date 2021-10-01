@@ -8,6 +8,7 @@ import com.google.gson.JsonObject;
 import com.google.gson.reflect.TypeToken;
 import com.netease.mc.authlib.Profile;
 import com.netease.mc.authlib.TokenChain;
+import com.netease.mc.authlib.TokenChainEC;
 import org.itxtech.synapseapi.multiprotocol.protocol12.protocol.LoginPacket;
 
 import java.nio.charset.StandardCharsets;
@@ -54,6 +55,11 @@ public final class ClientChainData12NetEase implements LoginChainData {
     @Override
     public long getClientId() {
         return clientId;
+    }
+
+    @Override
+    public String getNetEaseUID() {
+        return neteaseUid;
     }
 
     @Override
@@ -141,6 +147,7 @@ public final class ClientChainData12NetEase implements LoginChainData {
     private UUID clientUUID;
     private String xuid;
     private String identityPublicKey;
+    private String neteaseUid;
 
     private long clientId;
     private String serverAddress;
@@ -180,6 +187,7 @@ public final class ClientChainData12NetEase implements LoginChainData {
                 if (extra.has("displayName")) this.username = extra.get("displayName").getAsString();
                 if (extra.has("identity")) this.clientUUID = UUID.fromString(extra.get("identity").getAsString());
                 if (extra.has("XUID")) this.xuid = extra.get("XUID").getAsString();
+                if (extra.has("uid")) this.neteaseUid = extra.get("uid").getAsString();
             }
             if (chainMap.has("identityPublicKey"))
                 this.identityPublicKey = chainMap.get("identityPublicKey").getAsString();
@@ -212,10 +220,11 @@ public final class ClientChainData12NetEase implements LoginChainData {
             ++index;
         }
         try{
-            Profile profile = TokenChain.check(chainArr);
-            this.xuid = profile.XUID;
-            this.clientUUID = profile.identity;
-            this.username = profile.displayName;
+            JsonObject profile = TokenChainEC.check(chainArr);
+            if (profile.has("XUID")) this.xuid = profile.get("XUID").getAsString();
+            if (profile.has("identity")) this.clientUUID = UUID.fromString(profile.get("identity").getAsString());
+            if (profile.has("displayName")) this.username = profile.get("displayName").getAsString();
+            if (profile.has("uid")) this.neteaseUid = profile.get("uid").getAsString();
         }catch (Exception e) {
             // TODO: handle exception,认证失败
             //Server.getInstance().getLogger().logException(e);
