@@ -5,9 +5,9 @@ import cn.nukkit.network.protocol.ProtocolInfo;
 public class AnimateEntityPacket116100 extends Packet116100 {
 
     public String animation = "";
-    public String nextState = "";
-    public String stopExpression = "";
-    public String controller = "";
+    public String nextState = "default";
+    public String stopExpression = ""; // "query.any_animation_finished"
+    public String controller = "__runtime_controller";
     public float blendOutTime = 0;
     public long[] entityRuntimeIds = new long[0];
 
@@ -28,7 +28,7 @@ public class AnimateEntityPacket116100 extends Packet116100 {
         this.putString(nextState);
         this.putString(stopExpression);
         this.putString(controller);
-        this.putFloat(blendOutTime);
+        this.putLFloat(blendOutTime);
         this.putUnsignedVarInt(entityRuntimeIds.length);
         for (long entityRuntimeId : entityRuntimeIds) {
             this.putEntityRuntimeId(entityRuntimeId);

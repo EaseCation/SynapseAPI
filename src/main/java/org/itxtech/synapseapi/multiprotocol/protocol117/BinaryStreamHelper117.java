@@ -5,7 +5,9 @@ import cn.nukkit.level.GameRules;
 import cn.nukkit.utils.BinaryStream;
 import org.itxtech.synapseapi.multiprotocol.protocol116220.BinaryStreamHelper116220;
 
+import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 public class BinaryStreamHelper117 extends BinaryStreamHelper116220 {
 
@@ -25,14 +27,14 @@ public class BinaryStreamHelper117 extends BinaryStreamHelper116220 {
             return;
         }
 
-        Map<GameRule, GameRules.Value> rules = gameRules.getGameRules();
+        List<Map.Entry<GameRule, GameRules.Value>> rules = gameRules.getGameRules().entrySet().stream()
+                .filter(entry -> entry.getKey().getProtocol() <= this.protocol.getProtocolStart())
+                .collect(Collectors.toList());
         stream.putUnsignedVarInt(rules.size());
-        rules.forEach((gameRule, value) -> {
-            if (gameRule.getProtocol() <= this.protocol.getProtocolStart()) {
-                stream.putString(gameRule.getName().toLowerCase());
-                stream.putBoolean(false); // isEditable
-                value.write(stream);
-            }
+        rules.forEach(entry -> {
+            stream.putString(entry.getKey().getName().toLowerCase());
+            stream.putBoolean(false); // isEditable
+            entry.getValue().write(stream);
         });
     }
 }

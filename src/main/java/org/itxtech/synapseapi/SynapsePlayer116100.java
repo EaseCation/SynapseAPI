@@ -26,6 +26,7 @@ import cn.nukkit.resourcepacks.ResourcePack;
 import lombok.extern.log4j.Log4j2;
 import org.itxtech.synapseapi.multiprotocol.AbstractProtocol;
 import org.itxtech.synapseapi.multiprotocol.protocol113.protocol.ResourcePackStackPacket113;
+import org.itxtech.synapseapi.multiprotocol.protocol116100.protocol.AnimateEntityPacket116100;
 import org.itxtech.synapseapi.multiprotocol.protocol116100.protocol.ContainerClosePacket116100;
 import org.itxtech.synapseapi.multiprotocol.protocol116100.protocol.ResourcePackStackPacket116100;
 import org.itxtech.synapseapi.multiprotocol.protocol116100.protocol.StartGamePacket116100;
@@ -38,6 +39,7 @@ import org.itxtech.synapseapi.multiprotocol.protocol116200.protocol.ResourcePack
 import org.itxtech.synapseapi.multiprotocol.protocol116200.protocol.StartGamePacket116200;
 import org.itxtech.synapseapi.multiprotocol.protocol117.protocol.StartGamePacket117;
 import org.itxtech.synapseapi.multiprotocol.protocol11710.protocol.ResourcePacksInfoPacket11710;
+import org.itxtech.synapseapi.multiprotocol.protocol11730.protocol.AnimateEntityPacket11730;
 import org.itxtech.synapseapi.multiprotocol.protocol11730.protocol.StartGamePacket11730;
 import org.itxtech.synapseapi.multiprotocol.protocol14.protocol.PlayerActionPacket14;
 import org.itxtech.synapseapi.multiprotocol.protocol16.protocol.ResourcePackClientResponsePacket16;
@@ -390,9 +392,8 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
                     textResponsePacket.text = filterTextPacket.text; //TODO: 铁砧重命名物品需要接入网易敏感词检查
                     textResponsePacket.fromServer = true;
                     this.dataPacket(textResponsePacket);
-                    break;
                 }
-
+                break;
             case ProtocolInfo.PLAYER_ACTION_PACKET:
                 if (this.getProtocol() < AbstractProtocol.PROTOCOL_116_210.getProtocolStart()
                         && (!this.isNetEaseClient || this.getProtocol() < AbstractProtocol.PROTOCOL_116_200.getProtocolStart())) {
@@ -509,5 +510,20 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
     @Override
     protected void initClientBlobCache() {
         if (!this.isNetEaseClient() /*&& this.protocol < AbstractProtocol.PROTOCOL_116_210.getProtocolStart()*/) super.initClientBlobCache();
+    }
+
+    @Override
+    public void playAnimation(String animation, long entityRuntimeIds) {
+        if (this.protocol >= AbstractProtocol.PROTOCOL_117_30.getProtocolStart()) {
+            AnimateEntityPacket11730 pk = new AnimateEntityPacket11730();
+            pk.entityRuntimeIds = new long[]{entityRuntimeIds};
+            pk.animation = animation;
+            this.dataPacket(pk);
+        } else {
+            AnimateEntityPacket116100 pk = new AnimateEntityPacket116100();
+            pk.entityRuntimeIds = new long[]{entityRuntimeIds};
+            pk.animation = animation;
+            this.dataPacket(pk);
+        }
     }
 }

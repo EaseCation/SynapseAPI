@@ -10,10 +10,10 @@ public class AnimateEntityPacket11730 extends Packet11730 {
     public static final int NETWORK_ID = ProtocolInfo.ANIMATE_ENTITY_PACKET;
 
     public String animation = "";
-    public String nextState = "";
-    public String stopExpression = "";
-    public int stopExpressionVersion;
-    public String controller = "";
+    public String nextState = "default";
+    public String stopExpression = ""; // "query.any_animation_finished"
+    public int stopExpressionVersion = 16777216;
+    public String controller = "__runtime_controller";
     public float blendOutTime = 0;
     public long[] entityRuntimeIds = new long[0];
 
@@ -35,7 +35,7 @@ public class AnimateEntityPacket11730 extends Packet11730 {
         this.putString(stopExpression);
         this.putLInt(stopExpressionVersion);
         this.putString(controller);
-        this.putFloat(blendOutTime);
+        this.putLFloat(blendOutTime);
         this.putUnsignedVarInt(entityRuntimeIds.length);
         for (long entityRuntimeId : entityRuntimeIds) {
             this.putEntityRuntimeId(entityRuntimeId);

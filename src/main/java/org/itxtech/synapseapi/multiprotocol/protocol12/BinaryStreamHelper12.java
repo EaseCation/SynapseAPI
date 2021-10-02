@@ -2,12 +2,15 @@ package org.itxtech.synapseapi.multiprotocol.protocol12;
 
 import cn.nukkit.level.GameRule;
 import cn.nukkit.level.GameRules;
+import cn.nukkit.level.GameRules.Value;
 import cn.nukkit.utils.BinaryStream;
 import cn.nukkit.utils.BinaryStream.BinaryStreamHelper;
 import org.itxtech.synapseapi.multiprotocol.AbstractProtocol;
 import org.itxtech.synapseapi.multiprotocol.utils.AdvancedBinaryStreamHelper;
 
-import java.util.Map;
+import java.util.List;
+import java.util.Map.Entry;
+import java.util.stream.Collectors;
 
 public class BinaryStreamHelper12 extends BinaryStreamHelper implements AdvancedBinaryStreamHelper {
 
@@ -36,13 +39,13 @@ public class BinaryStreamHelper12 extends BinaryStreamHelper implements Advanced
             return;
         }
 
-        Map<GameRule, GameRules.Value> rules = gameRules.getGameRules();
+        List<Entry<GameRule, Value>> rules = gameRules.getGameRules().entrySet().stream()
+                .filter(entry -> entry.getKey().getProtocol() <= this.protocol.getProtocolStart())
+                .collect(Collectors.toList());
         stream.putUnsignedVarInt(rules.size());
-        rules.forEach((gameRule, value) -> {
-            if (gameRule.getProtocol() <= this.protocol.getProtocolStart()) {
-                stream.putString(gameRule.getName().toLowerCase());
-                value.write(stream);
-            }
+        rules.forEach(entry -> {
+            stream.putString(entry.getKey().getName().toLowerCase());
+            entry.getValue().write(stream);
         });
     }
 }
