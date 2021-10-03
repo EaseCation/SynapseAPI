@@ -108,6 +108,11 @@ public final class ClientChainData12NetEase implements LoginChainData {
     }
 
     @Override
+    public void setCurrentInputMode(int mode) {
+        this.currentInputMode = mode;
+    }
+
+    @Override
     public int getDefaultInputMode() {
         return defaultInputMode;
     }

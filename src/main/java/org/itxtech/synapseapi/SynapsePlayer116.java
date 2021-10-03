@@ -36,6 +36,7 @@ import cn.nukkit.network.protocol.*;
 import cn.nukkit.network.protocol.types.ContainerIds;
 import cn.nukkit.network.protocol.types.NetworkInventoryAction;
 import cn.nukkit.utils.Binary;
+import org.itxtech.synapseapi.event.player.SynapsePlayerInputModeChangeEvent;
 import org.itxtech.synapseapi.multiprotocol.AbstractProtocol;
 import org.itxtech.synapseapi.multiprotocol.protocol113.protocol.IPlayerAuthInputPacket;
 import org.itxtech.synapseapi.multiprotocol.protocol116.protocol.*;
@@ -696,6 +697,12 @@ public class SynapsePlayer116 extends SynapsePlayer113 {
 					this.setRotation(playerAuthInputPacket.getYaw(), playerAuthInputPacket.getPitch());
 					this.newPosition = newPos;
 					this.forceMovement = null;
+				}
+
+				if (this.getLoginChainData().getCurrentInputMode() != playerAuthInputPacket.getInputMode()) {
+					int from = this.getLoginChainData().getCurrentInputMode();
+					this.getLoginChainData().setCurrentInputMode(playerAuthInputPacket.getInputMode());
+					this.getServer().getPluginManager().callEvent(new SynapsePlayerInputModeChangeEvent(this, from, playerAuthInputPacket.getInputMode()));
 				}
 
 				break;
