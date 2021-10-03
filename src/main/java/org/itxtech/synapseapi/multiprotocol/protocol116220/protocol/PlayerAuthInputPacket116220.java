@@ -147,6 +147,10 @@ public class PlayerAuthInputPacket116220 extends Packet116220 implements Invento
         this.deltaY = delta.y;
         this.deltaZ = delta.z;
 
+        if (!SynapseSharedConstants.MAC_DEBUG) {
+            return; //TODO: 暂时丢弃后面的数据 -- 10/03/2021
+        }
+
         boolean[] debugFlags;
         if (SynapseSharedConstants.MAC_DEBUG) {
             debugFlags = new boolean[3];
