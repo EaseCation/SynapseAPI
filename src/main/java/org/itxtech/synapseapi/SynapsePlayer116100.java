@@ -145,7 +145,7 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
             startGamePacket.worldName = this.getServer().getNetwork().getName();
             startGamePacket.generator = 1; // 0 old, 1 infinite, 2 flat
             startGamePacket.gameRules = getSupportedRules();
-            startGamePacket.isMovementServerAuthoritative = this.isNetEaseClient; //FIXME 需要再检查一遍数据包结构
+            startGamePacket.isMovementServerAuthoritative = false; //FIXME 需要再检查一遍数据包结构
             startGamePacket.currentTick = this.server.getTick();
             return startGamePacket;
         } else if (this.getProtocol() < AbstractProtocol.PROTOCOL_116_100.getProtocolStart()) {
