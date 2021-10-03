@@ -86,6 +86,11 @@ public final class ClientChainData12Urgency implements LoginChainData {
         return currentInputMode;
     }
 
+    @Override
+    public void setCurrentInputMode(int mode) {
+        this.currentInputMode = mode;
+    }
+
     public int getDefaultInputMode() {
         return defaultInputMode;
     }
