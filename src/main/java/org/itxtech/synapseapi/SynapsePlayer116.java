@@ -29,6 +29,7 @@ import cn.nukkit.level.Position;
 import cn.nukkit.math.BlockFace;
 import cn.nukkit.math.BlockVector3;
 import cn.nukkit.math.Vector3;
+import cn.nukkit.math.Vector3f;
 import cn.nukkit.network.SourceInterface;
 import cn.nukkit.network.protocol.*;
 import cn.nukkit.network.protocol.types.ContainerIds;
@@ -661,7 +662,8 @@ public class SynapsePlayer116 extends SynapsePlayer113 {
 					if (this.riding instanceof EntityMinecartAbstract) {
 						((EntityMinecartAbstract) this.riding).setCurrentSpeed(playerAuthInputPacket.getMoveVecZ());
 					} else if (this.riding instanceof EntityRideable) {
-						((EntityRideable) riding).onPlayerRiding(this.temporalVector.setComponents(playerAuthInputPacket.getX(), playerAuthInputPacket.getY() - 1, playerAuthInputPacket.getZ()), (playerAuthInputPacket.getHeadYaw() + 90) % 360, 0);
+                        Vector3f offset = riding.getMountedOffset(this);
+						((EntityRideable) riding).onPlayerRiding(this.temporalVector.setComponents(playerAuthInputPacket.getX() - offset.x, playerAuthInputPacket.getY() - offset.y, playerAuthInputPacket.getZ() - offset.z), (playerAuthInputPacket.getHeadYaw() + 90) % 360, 0);
 					}
 				}
 
