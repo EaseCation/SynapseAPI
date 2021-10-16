@@ -90,14 +90,15 @@ public class DataFlagTranslator {
 	public static final int FLAG_17_FIRE_IMMUNE = 49;
 	public static final int FLAG_17_DANCING = 50;
 	public static final int FLAG_17_ENCHANTED = 51;
-	public static final int FLAG_17_SHOW_TRIDENT_ROPE = 52; // tridents show an animated rope when enchanted with loyalty after they are thrown and return to their owner. To be combined with DATA_OWNER_EID
-	public static final int FLAG_17_CONTAINER_PRIVATE = 53; //inventory is private, doesn't drop contents when killed if true
-	//54 TransformationComponent
+	public static final int FLAG_17_RETURN_TRIDENT = 52;
+	public static final int FLAG_17_CONTAINER_IS_PRIVATE = 53;
+	public static final int FLAG_17_TRANSFORMING = 54;
 	public static final int FLAG_17_SPIN_ATTACK = 55;
 	public static final int FLAG_17_SWIMMING = 56;
-	public static final int FLAG_17_BRIBED = 57; //dolphins have this set when they go to find treasure for the player
+	public static final int FLAG_17_BRIBED = 57;
 	public static final int FLAG_17_PREGNANT = 58;
 	public static final int FLAG_17_LAYING_EGG = 59;
+	public static final int FLAG_17_RIDER_CAN_PICK = 60;
 
 	static {
 		v12ToV14Book.put(Entity.DATA_FLAG_ONFIRE, ONFIRE);
@@ -122,6 +123,7 @@ public class DataFlagTranslator {
 		v12ToV14Book.put(Entity.DATA_FLAG_CAN_CLIMB, CANCLIMB);
 		v12ToV14Book.put(Entity.DATA_FLAG_SWIMMER, CANSWIM);
 		v12ToV14Book.put(Entity.DATA_FLAG_CAN_FLY, CANFLY);
+		v12ToV14Book.put(Entity.DATA_FLAG_CAN_WALK, CANWALK);
 		v12ToV14Book.put(Entity.DATA_FLAG_RESTING, RESTING);
 		v12ToV14Book.put(Entity.DATA_FLAG_SITTING, SITTING);
 		v12ToV14Book.put(Entity.DATA_FLAG_ANGRY, ANGRY);
@@ -150,6 +152,11 @@ public class DataFlagTranslator {
 		v12ToV14Book.put(Entity.DATA_FLAG_GRAVITY, HAS_GRAVITY);
 		v12ToV14Book.put(Entity.DATA_FLAG_FIRE_IMMUNE, FIRE_IMMUNE);
 		v12ToV14Book.put(Entity.DATA_FLAG_DANCING, DANCING);
+		v12ToV14Book.put(Entity.DATA_FLAG_ENCHANTED, ENCHANTED);
+		v12ToV14Book.put(Entity.DATA_FLAG_RETURN_TRIDENT, RETURNTRIDENT);
+		v12ToV14Book.put(Entity.DATA_FLAG_CONTAINER_IS_PRIVATE, CONTAINER_IS_PRIVATE);
+		v12ToV14Book.put(Entity.DATA_FLAG_TRANSFORMING, IS_TRANSFORMING);
+		v12ToV14Book.put(Entity.DATA_FLAG_SPIN_ATTACK, DAMAGENEARBYMOBS);
 		v12ToV14Book.put(Entity.DATA_FLAG_SWIMMING, SWIMMING);
 
 		v12ToV17Book.put(Entity.DATA_FLAG_ONFIRE, ONFIRE);
@@ -174,13 +181,14 @@ public class DataFlagTranslator {
 		v12ToV17Book.put(Entity.DATA_FLAG_CAN_CLIMB, CANCLIMB);
 		v12ToV17Book.put(Entity.DATA_FLAG_SWIMMER, CANSWIM);
 		v12ToV17Book.put(Entity.DATA_FLAG_CAN_FLY, CANFLY);
+		v12ToV17Book.put(Entity.DATA_FLAG_CAN_WALK, CANWALK);
 		v12ToV17Book.put(Entity.DATA_FLAG_RESTING, RESTING);
 		v12ToV17Book.put(Entity.DATA_FLAG_SITTING, SITTING);
 		v12ToV17Book.put(Entity.DATA_FLAG_ANGRY, ANGRY);
 		v12ToV17Book.put(Entity.DATA_FLAG_INTERESTED, INTERESTED);
 		v12ToV17Book.put(Entity.DATA_FLAG_CHARGED, CHARGED);
 		v12ToV17Book.put(Entity.DATA_FLAG_TAMED, TAMED);
-
+		v12ToV17Book.put(Entity.DATA_FLAG_ORPHANED, FLAG_17_ORPHANED);
 		v12ToV17Book.put(Entity.DATA_FLAG_LEASHED, FLAG_17_LEASHED);
 		v12ToV17Book.put(Entity.DATA_FLAG_SHEARED, FLAG_17_SHEARED);
 		v12ToV17Book.put(Entity.DATA_FLAG_GLIDING, FLAG_17_GLIDING);
@@ -202,7 +210,16 @@ public class DataFlagTranslator {
 		v12ToV17Book.put(Entity.DATA_FLAG_GRAVITY, FLAG_17_AFFECTED_BY_GRAVITY);
 		v12ToV17Book.put(Entity.DATA_FLAG_FIRE_IMMUNE, FLAG_17_FIRE_IMMUNE);
 		v12ToV17Book.put(Entity.DATA_FLAG_DANCING, FLAG_17_DANCING);
+		v12ToV17Book.put(Entity.DATA_FLAG_ENCHANTED, FLAG_17_ENCHANTED);
+		v12ToV17Book.put(Entity.DATA_FLAG_RETURN_TRIDENT, FLAG_17_RETURN_TRIDENT);
+		v12ToV17Book.put(Entity.DATA_FLAG_CONTAINER_IS_PRIVATE, FLAG_17_CONTAINER_IS_PRIVATE);
+		v12ToV17Book.put(Entity.DATA_FLAG_TRANSFORMING, FLAG_17_TRANSFORMING);
+		v12ToV17Book.put(Entity.DATA_FLAG_SPIN_ATTACK, FLAG_17_SPIN_ATTACK);
 		v12ToV17Book.put(Entity.DATA_FLAG_SWIMMING, FLAG_17_SWIMMING);
+		v12ToV17Book.put(Entity.DATA_FLAG_BRIBED, FLAG_17_BRIBED);
+		v12ToV17Book.put(Entity.DATA_FLAG_PREGNANT, FLAG_17_PREGNANT);
+		v12ToV17Book.put(Entity.DATA_FLAG_LAYING_EGG, FLAG_17_LAYING_EGG);
+		v12ToV17Book.put(Entity.DATA_FLAG_RIDER_CAN_PICK, FLAG_17_RIDER_CAN_PICK);
 	}
 	
 	public static Integer translateTo14Id(int v12Id) {
