@@ -48,6 +48,7 @@ public class SetEntityLinkPacket116  extends Packet116 {
         this.riderUniqueId = packet.riderUniqueId;
         this.type = packet.type;
         this.immediate = packet.immediate;
+        this.riderInitiated = packet.riderInitiated;
 
         return this;
     }

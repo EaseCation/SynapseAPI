@@ -1,5 +1,7 @@
 package org.itxtech.synapseapi.multiprotocol.protocol116;
 
+import cn.nukkit.network.protocol.types.EntityLink;
+import cn.nukkit.utils.BinaryStream;
 import org.itxtech.synapseapi.multiprotocol.protocol11460.BinaryStreamHelper11460;
 
 public class BinaryStreamHelper116 extends BinaryStreamHelper11460 {
@@ -17,5 +19,12 @@ public class BinaryStreamHelper116 extends BinaryStreamHelper11460 {
         return "1.16.0";
     }
 
-
+    @Override
+    public void putEntityLink(BinaryStream stream, EntityLink link) {
+        stream.putEntityUniqueId(link.fromEntityUniquieId);
+        stream.putEntityUniqueId(link.toEntityUniquieId);
+        stream.putByte(link.type);
+        stream.putBoolean(link.immediate);
+        stream.putBoolean(link.riderInitiated);
+    }
 }

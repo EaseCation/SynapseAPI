@@ -1,5 +1,6 @@
 package org.itxtech.synapseapi.multiprotocol.utils;
 
+import cn.nukkit.entity.Entity;
 import cn.nukkit.entity.data.*;
 import cn.nukkit.item.Item;
 import cn.nukkit.math.BlockVector3;
@@ -70,6 +71,7 @@ public class EntityMetadataGenerator {
 		EntityMetadata entityMetadata = new EntityMetadata();
 		for(@SuppressWarnings("rawtypes") EntityData entityData : v12Metadata.getMap().values()) {
 			int v12Id = entityData.getId();
+			if (v12Id == Entity.DATA_NUKKIT_FLAGS) continue;
 			Integer newId;
 			if (protocol.ordinal() >= AbstractProtocol.PROTOCOL_116_210.ordinal()) {
 				newId = EntityDataItemIDTranslator.translateTo116210Id(v12Id);
@@ -95,7 +97,8 @@ public class EntityMetadataGenerator {
 				entityMetadata.put(floatEntityData);
 			} else if(entityData instanceof IntEntityData) {
 				Integer data = ((IntEntityData)entityData).getData();
-				if (newId == EntityDataItemIDTranslator.VARIANT) {
+				if (newId == EntityDataItemIDTranslator.VARIANT
+						&& (v12Metadata.getLong(Entity.DATA_NUKKIT_FLAGS) & Entity.NUKKIT_FLAG_VARIANT_BLOCK) != 0) {
 					int id = data & 0xff;
 					int meta = data >> 8;
 					data = AdvancedGlobalBlockPalette.getOrCreateRuntimeId(protocol, netease, id, meta);  //实体属性中的方块ID转换为RuntimeID
