@@ -330,6 +330,7 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
                 }
                 break;
             case ProtocolInfo.PLAYER_INPUT_PACKET:
+                if (!callPacketReceiveEvent(packet)) break;
                 if (!this.isAlive() || !this.spawned) {
                     break;
                 }
