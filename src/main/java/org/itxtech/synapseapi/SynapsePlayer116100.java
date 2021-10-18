@@ -8,6 +8,8 @@ import cn.nukkit.block.BlockNoteblock;
 import cn.nukkit.blockentity.BlockEntity;
 import cn.nukkit.blockentity.BlockEntityItemFrame;
 import cn.nukkit.entity.EntityRideable;
+import cn.nukkit.entity.item.EntityMinecartAbstract;
+import cn.nukkit.entity.item.EntityMinecartEmpty;
 import cn.nukkit.event.inventory.InventoryCloseEvent;
 import cn.nukkit.event.player.PlayerInteractEvent;
 import cn.nukkit.inventory.Inventory;
@@ -19,6 +21,7 @@ import cn.nukkit.network.SourceInterface;
 import cn.nukkit.network.protocol.DataPacket;
 import cn.nukkit.network.protocol.LevelEventPacket;
 import cn.nukkit.network.protocol.LevelSoundEventPacket;
+import cn.nukkit.network.protocol.PlayerInputPacket;
 import cn.nukkit.network.protocol.ProtocolInfo;
 import cn.nukkit.network.protocol.ResourcePackClientResponsePacket;
 import cn.nukkit.network.protocol.ResourcePackDataInfoPacket;
@@ -324,6 +327,15 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
                     pk.wasServerInitiated = false;
                     pk.windowId = -1;
                     this.dataPacket(pk);
+                }
+                break;
+            case ProtocolInfo.PLAYER_INPUT_PACKET:
+                if (!this.isAlive() || !this.spawned) {
+                    break;
+                }
+                PlayerInputPacket ipk = (PlayerInputPacket) packet;
+                if (riding instanceof EntityRideable) {
+                    ((EntityRideable) riding).onPlayerInput(this, ipk.motionX, ipk.motionY);
                 }
                 break;
             case ProtocolInfo.MOVE_PLAYER_PACKET:
