@@ -32,6 +32,7 @@ public class AddEntityPacket14 extends Packet14 {
     public float speedZ = 0f;
     public float yaw;
     public float pitch;
+    public float headYaw;
     public EntityMetadata metadata = new EntityMetadata();
     public Attribute[] attributes = new Attribute[0];
     public EntityLink[] links = new EntityLink[0];
@@ -76,6 +77,7 @@ public class AddEntityPacket14 extends Packet14 {
         this.speedZ = packet.speedZ;
         this.pitch = packet.pitch;
         this.yaw = packet.yaw;
+        this.headYaw = packet.headYaw;
         this.metadata = EntityMetadataGenerator.generate14From(packet.metadata);
         this.attributes = packet.attributes;
         this.links = packet.links;

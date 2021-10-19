@@ -359,11 +359,11 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
                     this.forceMovement = null;
                 }
 
-                if (riding != null) {
-                    if (riding instanceof EntityBoat) {
-                        riding.setPositionAndRotation(this.temporalVector.setComponents(movePlayerPacket.x, movePlayerPacket.y - 1, movePlayerPacket.z), (movePlayerPacket.headYaw + 90) % 360, 0);
-                    }
-                }
+//                if (riding != null) {
+//                    if (riding instanceof EntityBoat) {
+//                        riding.setPositionAndRotation(this.temporalVector.setComponents(movePlayerPacket.x, movePlayerPacket.y - 1, movePlayerPacket.z), (movePlayerPacket.headYaw + 90) % 360, 0);
+//                    }
+//                }
                 break;
             case ProtocolInfo.TEXT_PACKET:
                 if (!callPacketReceiveEvent(packet)) break;

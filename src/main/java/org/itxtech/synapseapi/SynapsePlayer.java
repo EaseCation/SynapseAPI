@@ -769,6 +769,7 @@ public class SynapsePlayer extends Player {
         pk.speedY = (float)this.motionY;
         pk.speedZ = (float)this.motionZ;
         pk.yaw = (float)this.yaw;
+        pk.headYaw = (float)this.yaw;
         pk.pitch = (float)this.pitch;
         pk.item = this.getInventory().getItemInHand();
         pk.metadata = this.dataProperties;
@@ -807,6 +808,7 @@ public class SynapsePlayer extends Player {
         pk.speedY = (float)this.motionY;
         pk.speedZ = (float)this.motionZ;
         pk.yaw = (float)this.yaw;
+        pk.headYaw = (float)this.yaw;
         pk.pitch = (float)this.pitch;
         pk.item = this.getInventory().getItemInHand();
         pk.metadata = this.dataProperties;

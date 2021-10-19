@@ -33,6 +33,7 @@ public class AddPlayerPacket113 extends Packet113 {
 	public float speedZ;
 	public float pitch;
 	public float yaw;
+	public float headYaw;
 	public Item item;
 	public EntityMetadata metadata = new EntityMetadata();
 
@@ -64,7 +65,7 @@ public class AddPlayerPacket113 extends Packet113 {
 		this.putVector3f(this.speedX, this.speedY, this.speedZ);
 		this.putLFloat(this.pitch);
 		this.putLFloat(this.yaw); // TODO headrot
-		this.putLFloat(this.yaw);
+		this.putLFloat(this.headYaw);
 		this.putSlot(this.item);
 
 		this.put(Binary.writeMetadata(this.metadata));
@@ -98,6 +99,7 @@ public class AddPlayerPacket113 extends Packet113 {
     	this.speedZ = packet.speedZ;
     	this.pitch = packet.pitch;
     	this.yaw = packet.yaw;
+		this.headYaw = packet.headYaw;
     	this.item = packet.item;
         this.metadata = EntityMetadataGenerator.generateFrom(packet.metadata, protocol, netease);
         return this;

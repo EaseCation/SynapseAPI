@@ -73,7 +73,9 @@ public class EntityMetadataGenerator {
 			int v12Id = entityData.getId();
 			if (v12Id == Entity.DATA_NUKKIT_FLAGS) continue;
 			Integer newId;
-			if (protocol.ordinal() >= AbstractProtocol.PROTOCOL_116_210.ordinal()) {
+			if (protocol.ordinal() >= AbstractProtocol.PROTOCOL_117.ordinal()) {
+				newId = EntityDataItemIDTranslator.translateTo117Id(v12Id);
+			} else if (protocol.ordinal() >= AbstractProtocol.PROTOCOL_116_210.ordinal()) {
 				newId = EntityDataItemIDTranslator.translateTo116210Id(v12Id);
 			} else if (protocol.ordinal() >= AbstractProtocol.PROTOCOL_112.ordinal()) {
 				newId = EntityDataItemIDTranslator.translateTo112Id(v12Id);
@@ -87,12 +89,19 @@ public class EntityMetadataGenerator {
 				//entityMetadata.put(entityData);
 				continue;
 			}
+			if (newId == -1) {
+				// discard
+				continue;
+			}
 			if(entityData instanceof ByteEntityData) {
 				Integer data = ((ByteEntityData)entityData).getData();
 				ByteEntityData byteEntityData = new ByteEntityData(newId, data);
 				entityMetadata.put(byteEntityData);
 			} else if(entityData instanceof FloatEntityData) {
 				Float data = ((FloatEntityData)entityData).getData();
+				if (entityData.getId() == Entity.DATA_RIDER_MIN_ROTATION && data == 1 && protocol.ordinal() < AbstractProtocol.PROTOCOL_116_210.ordinal()) { // boat
+					data = -90f;
+				}
 				FloatEntityData floatEntityData = new FloatEntityData(newId, data);
 				entityMetadata.put(floatEntityData);
 			} else if(entityData instanceof IntEntityData) {

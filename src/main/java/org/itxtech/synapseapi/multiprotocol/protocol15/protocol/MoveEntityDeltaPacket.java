@@ -8,9 +8,9 @@ public class MoveEntityDeltaPacket extends Packet15 {
     public static final int FLAG_HAS_X = 0b1;
     public static final int FLAG_HAS_Y = 0b10;
     public static final int FLAG_HAS_Z = 0b100;
-    public static final int FLAG_HAS_YAW = 0b1000;
-    public static final int FLAG_HAS_HEAD_YAW = 0b10000;
-    public static final int FLAG_HAS_PITCH = 0b100000;
+    public static final int FLAG_HAS_PITCH = 0b1000;
+    public static final int FLAG_HAS_YAW = 0b10000;
+    public static final int FLAG_HAS_HEAD_YAW = 0b100000;
 
     public int flags = 0;
     public int xDelta = 0;
@@ -31,9 +31,9 @@ public class MoveEntityDeltaPacket extends Packet15 {
         this.xDelta = getCoordinate(FLAG_HAS_X);
         this.yDelta = getCoordinate(FLAG_HAS_Y);
         this.zDelta = getCoordinate(FLAG_HAS_Z);
+        this.pitchDelta = getRotation(FLAG_HAS_PITCH);
         this.yawDelta = getRotation(FLAG_HAS_YAW);
         this.headYawDelta = getRotation(FLAG_HAS_HEAD_YAW);
-        this.pitchDelta = getRotation(FLAG_HAS_PITCH);
     }
 
     @Override
@@ -44,9 +44,9 @@ public class MoveEntityDeltaPacket extends Packet15 {
         putCoordinate(FLAG_HAS_X, this.xDelta);
         putCoordinate(FLAG_HAS_Y, this.yDelta);
         putCoordinate(FLAG_HAS_Z, this.zDelta);
+        putRotation(FLAG_HAS_PITCH, this.pitchDelta);
         putRotation(FLAG_HAS_YAW, this.yawDelta);
         putRotation(FLAG_HAS_HEAD_YAW, this.headYawDelta);
-        putRotation(FLAG_HAS_PITCH, this.pitchDelta);
     }
 
     private int getCoordinate(int flag) {

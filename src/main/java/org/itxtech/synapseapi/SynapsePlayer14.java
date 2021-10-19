@@ -7,6 +7,7 @@ import cn.nukkit.block.BlockAir;
 import cn.nukkit.block.BlockNoteblock;
 import cn.nukkit.entity.data.ShortEntityData;
 import cn.nukkit.entity.data.StringEntityData;
+import cn.nukkit.entity.item.EntityBoat;
 import cn.nukkit.event.player.*;
 import cn.nukkit.level.GameRules;
 import cn.nukkit.level.Position;
@@ -24,11 +25,13 @@ import cn.nukkit.utils.TextFormat;
 import com.google.gson.JsonPrimitive;
 import org.itxtech.synapseapi.event.player.SynapsePlayerBroadcastLevelSoundEvent;
 import org.itxtech.synapseapi.event.player.SynapsePlayerConnectEvent;
+import org.itxtech.synapseapi.multiprotocol.AbstractProtocol;
 import org.itxtech.synapseapi.multiprotocol.PacketRegister;
 import org.itxtech.synapseapi.multiprotocol.protocol12.utils.ClientChainData12;
 import org.itxtech.synapseapi.multiprotocol.protocol12.utils.ClientChainData12NetEase;
 import org.itxtech.synapseapi.multiprotocol.protocol12.utils.ClientChainData12Urgency;
 import org.itxtech.synapseapi.multiprotocol.protocol14.protocol.*;
+import org.itxtech.synapseapi.multiprotocol.protocol15.protocol.MoveEntityAbsolutePacket15;
 import org.itxtech.synapseapi.multiprotocol.utils.LevelSoundEventEnum;
 import org.itxtech.synapseapi.network.protocol.spp.PlayerLoginPacket;
 
@@ -429,6 +432,17 @@ public class SynapsePlayer14 extends SynapsePlayer {
 									event.isBabyMob(),
 									event.isGlobal()
 							));
+				}
+				break;
+			case ProtocolInfo.MOVE_ENTITY_ABSOLUTE_PACKET:
+				if (this.getProtocol() >= AbstractProtocol.PROTOCOL_15.getProtocolStart()) {
+					MoveEntityAbsolutePacket15 moveEntityAbsolutePacket = (MoveEntityAbsolutePacket15) packet;
+					if (this.riding == null || this.riding.getId() != moveEntityAbsolutePacket.eid) {
+						break;
+					}
+					if (this.riding instanceof EntityBoat) {
+						((EntityBoat) this.riding).onInput(moveEntityAbsolutePacket.x, moveEntityAbsolutePacket.y, moveEntityAbsolutePacket.z, moveEntityAbsolutePacket.yaw);
+					}
 				}
 				break;
 			default:

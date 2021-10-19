@@ -11,6 +11,7 @@ public class EntityDataItemIDTranslator {
 	public final static Map<Integer, Integer> v12ToV111Book = new HashMap<>();
 	public final static Map<Integer, Integer> v12ToV112Book = new HashMap<>();
 	public final static Map<Integer, Integer> v12ToV116210Book = new HashMap<>();
+	public final static Map<Integer, Integer> v12ToV117Book = new HashMap<>();
 
 	public final static int FLAGS = 0;
 	public final static int STRUCTURAL_INTEGRITY = 1;
@@ -99,6 +100,7 @@ public class EntityDataItemIDTranslator {
 	public final static int BALLOON_ANCHOR = 84;
 	public final static int PUFFED_STATE = 85;
 
+	public static final int V111_HAS_NPC_COMPONENT = 39;
 	public static final int V111_SKIN_ID = 40; // int ???
 	public static final int V111_NPC_SKIN_ID = 41; //string
 	public static final int V111_URL_TAG = 42; //string
@@ -152,6 +154,7 @@ public class EntityDataItemIDTranslator {
 	public static final int V111_SITTING_AMOUNT_PREVIOUS = 90;
 	public static final int V111_EATING_COUNTER = 91;
 	public static final int V111_FLAGS_EXTENDED = 92;
+	public static final int V111_INTERACTIVE_TAG = 99;
 
 	public static final int V112_NPC_SKIN_ID = 40; //string
 	public static final int V112_URL_TAG = 41; //string
@@ -212,11 +215,19 @@ public class EntityDataItemIDTranslator {
 	public static final int V112_CHANGE_RATE = 96;
 	public static final int V112_CHANGE_ON_PICKUP = 97;
 	public static final int V112_PICKUP_COUNT = 98;
-	public static final int V112_INTERACT_TEXT = 99;
+	public static final int V112_INTERACTIVE_TAG = 99;
 	public static final int V112_TRADE_TIER = 100;
 	public static final int V112_MAX_TRADE_TIER = 101;
 	public static final int V112_TRADE_EXPERIENCE = 102;
 	public static final int V112_SKIN_ID = 103; // int ???
+
+	public static final int V116_LOW_TIER_CURED_DISCOUNT = 113;
+	public static final int V116_HIGH_TIER_CURED_DISCOUNT = 114;
+	public static final int V116_NEARBY_CURED_DISCOUNT = 115;
+	public static final int V116_NEARBY_CURED_DISCOUNT_TIMESTAMP = 116;
+	public static final int V116_HITBOX = 117;
+	public static final int V116_IS_BUOYANT = 118;
+	public static final int V116_BUOYANCY_DATA = 119;
 
 	public static final int V116210_RIDER_ROTATION_OFFSET = 60;
 	public static final int V116210_AREA_EFFECT_CLOUD_RADIUS = 61; //float
@@ -258,7 +269,7 @@ public class EntityDataItemIDTranslator {
 	public static final int V116210_CHANGE_RATE = 97;
 	public static final int V116210_CHANGE_ON_PICKUP = 98;
 	public static final int V116210_PICKUP_COUNT = 99;
-	public static final int V116210_INTERACT_TEXT = 100;
+	public static final int V116210_INTERACTIVE_TAG = 100;
 	public static final int V116210_TRADE_TIER = 101;
 	public static final int V116210_MAX_TRADE_TIER = 102;
 	public static final int V116210_TRADE_EXPERIENCE = 103;
@@ -284,6 +295,12 @@ public class EntityDataItemIDTranslator {
 	public static final int V116210_BASE_RUNTIME_ID = 123;
 	public static final int V116210_DEFINE_PROPERTIES = 124;
 	public static final int V116210_UPDATE_PROPERTIES = 125;
+
+	public static final int V117_BASE_RUNTIME_ID = 120;
+	public static final int V117_FREEZING_EFFECT_STRENGTH = 121;
+	public static final int V117_BUOYANCY_DATA = 122;
+	public static final int V117_GOAT_HORN_COUNT = 123;
+	public static final int V117_UPDATE_PROPERTIES = 124;
 
 	static {
 		v12ToV14Book.put(Entity.DATA_FLAGS, FLAGS);
@@ -369,6 +386,9 @@ public class EntityDataItemIDTranslator {
 		v12ToV14Book.forEach((from, to) -> {
 			if (to < 40) v12ToV111Book.put(from, to);
 		});
+		v12ToV111Book.put(Entity.DATA_SEAT_ROTATION_OFFSET, -1);
+		v12ToV111Book.put(Entity.DATA_HAS_NPC_COMPONENT, V111_HAS_NPC_COMPONENT);
+		v12ToV111Book.put(Entity.DATA_INTERACTIVE_TAG, V111_INTERACTIVE_TAG);
 		v12ToV111Book.put(Entity.DATA_NPC_SKIN_ID, V111_SKIN_ID );
 		v12ToV111Book.put(Entity.DATA_MAX_AIR, V111_MAX_AIR );
 		v12ToV111Book.put(Entity.DATA_MARK_VARIANT, V111_MARK_VARIANT );
@@ -386,8 +406,8 @@ public class EntityDataItemIDTranslator {
 		v12ToV111Book.put(Entity.DATA_FUSE_LENGTH, V111_FUSE_LENGTH);
 		v12ToV111Book.put(Entity.DATA_RIDER_SEAT_POSITION, V111_RIDER_SEAT_POSITION);
 		v12ToV111Book.put(Entity.DATA_RIDER_ROTATION_LOCKED, V111_RIDER_ROTATION_LOCKED);
-		v12ToV111Book.put(Entity.DATA_SEAT_LOCK_RIDER_ROTATION_DEGREES, V111_RIDER_MAX_ROTATION);
-		v12ToV111Book.put(Entity.DATA_SEAT_ROTATION_OFFSET, V111_RIDER_MIN_ROTATION);
+		v12ToV111Book.put(Entity.DATA_RIDER_MAX_ROTATION, V111_RIDER_MAX_ROTATION);
+		v12ToV111Book.put(Entity.DATA_RIDER_MIN_ROTATION, V111_RIDER_MIN_ROTATION);
 		v12ToV111Book.put(Entity.DATA_AREA_EFFECT_CLOUD_RADIUS, V111_AREA_EFFECT_CLOUD_RADIUS);
 		v12ToV111Book.put(Entity.DATA_AREA_EFFECT_CLOUD_WAITING, V111_AREA_EFFECT_CLOUD_WAITING);
 		v12ToV111Book.put(Entity.DATA_AREA_EFFECT_CLOUD_PARTICLE_ID, V111_AREA_EFFECT_CLOUD_PARTICLE_ID);
@@ -427,8 +447,8 @@ public class EntityDataItemIDTranslator {
 		v12ToV112Book.put(Entity.DATA_FUSE_LENGTH, V112_FUSE_LENGTH);
 		v12ToV112Book.put(Entity.DATA_RIDER_SEAT_POSITION, V112_RIDER_SEAT_POSITION);
 		v12ToV112Book.put(Entity.DATA_RIDER_ROTATION_LOCKED, V112_RIDER_ROTATION_LOCKED);
-		v12ToV112Book.put(Entity.DATA_SEAT_LOCK_RIDER_ROTATION_DEGREES, V112_RIDER_MAX_ROTATION);
-		v12ToV112Book.put(Entity.DATA_SEAT_ROTATION_OFFSET, V112_RIDER_MIN_ROTATION);
+		v12ToV112Book.put(Entity.DATA_RIDER_MAX_ROTATION, V112_RIDER_MAX_ROTATION);
+		v12ToV112Book.put(Entity.DATA_RIDER_MIN_ROTATION, V112_RIDER_MIN_ROTATION);
 		v12ToV112Book.put(Entity.DATA_AREA_EFFECT_CLOUD_RADIUS, V112_AREA_EFFECT_CLOUD_RADIUS);
 		v12ToV112Book.put(Entity.DATA_AREA_EFFECT_CLOUD_WAITING, V112_AREA_EFFECT_CLOUD_WAITING);
 		v12ToV112Book.put(Entity.DATA_AREA_EFFECT_CLOUD_PARTICLE_ID, V112_AREA_EFFECT_CLOUD_PARTICLE_ID);
@@ -449,9 +469,19 @@ public class EntityDataItemIDTranslator {
 		v12ToV112Book.put(Entity.DATA_LIMITED_LIFE, V112_LIMITED_LIFE);
 		v12ToV112Book.put(Entity.DATA_ALWAYS_SHOW_NAMETAG, V112_ALWAYS_SHOW_NAMETAG);
 		v12ToV112Book.put(Entity.DATA_SCORE_TAG, V112_SCORE_TAG);
-		v12ToV112Book.put(Entity.DATA_INTERACTIVE_TAG, V112_INTERACT_TEXT);
+		v12ToV112Book.put(Entity.DATA_INTERACTIVE_TAG, V112_INTERACTIVE_TAG);
+
+		// 1.16.0
+		v12ToV112Book.put(Entity.DATA_LOW_TIER_CURED_DISCOUNT, V116_LOW_TIER_CURED_DISCOUNT);
+		v12ToV112Book.put(Entity.DATA_HIGH_TIER_CURED_DISCOUNT, V116_HIGH_TIER_CURED_DISCOUNT);
+		v12ToV112Book.put(Entity.DATA_NEARBY_CURED_DISCOUNT, V116_NEARBY_CURED_DISCOUNT);
+		v12ToV112Book.put(Entity.DATA_NEARBY_CURED_DISCOUNT_TIMESTAMP, V116_NEARBY_CURED_DISCOUNT_TIMESTAMP);
+		v12ToV112Book.put(Entity.DATA_HITBOX, V116_HITBOX);
+		v12ToV112Book.put(Entity.DATA_IS_BUOYANT, V116_IS_BUOYANT);
+		v12ToV112Book.put(Entity.DATA_BUOYANCY_DATA, V116_BUOYANCY_DATA);
 
 		v12ToV116210Book.putAll(v12ToV112Book);
+		v12ToV116210Book.put(Entity.DATA_SEAT_ROTATION_OFFSET, V116210_RIDER_ROTATION_OFFSET);
 		v12ToV116210Book.put(Entity.DATA_AREA_EFFECT_CLOUD_RADIUS, V116210_AREA_EFFECT_CLOUD_RADIUS);
 		v12ToV116210Book.put(Entity.DATA_AREA_EFFECT_CLOUD_WAITING, V116210_AREA_EFFECT_CLOUD_WAITING);
 		v12ToV116210Book.put(Entity.DATA_AREA_EFFECT_CLOUD_PARTICLE_ID, V116210_AREA_EFFECT_CLOUD_PARTICLE_ID);
@@ -491,7 +521,7 @@ public class EntityDataItemIDTranslator {
 		v12ToV116210Book.put(Entity.DATA_CHANGE_RATE, V116210_CHANGE_RATE);
 		v12ToV116210Book.put(Entity.DATA_CHANGE_ON_PICKUP, V116210_CHANGE_ON_PICKUP);
 		v12ToV116210Book.put(Entity.DATA_PICKUP_COUNT, V116210_PICKUP_COUNT);
-		v12ToV116210Book.put(Entity.DATA_INTERACT_TEXT, V116210_INTERACT_TEXT);
+		v12ToV116210Book.put(Entity.DATA_INTERACTIVE_TAG, V116210_INTERACTIVE_TAG);
 		v12ToV116210Book.put(Entity.DATA_TRADE_TIER, V116210_TRADE_TIER);
 		v12ToV116210Book.put(Entity.DATA_MAX_TRADE_TIER, V116210_MAX_TRADE_TIER);
 		v12ToV116210Book.put(Entity.DATA_TRADE_EXPERIENCE, V116210_TRADE_EXPERIENCE);
@@ -517,6 +547,13 @@ public class EntityDataItemIDTranslator {
 		v12ToV116210Book.put(Entity.DATA_BASE_RUNTIME_ID, V116210_BASE_RUNTIME_ID);
 		v12ToV116210Book.put(Entity.DATA_DEFINE_PROPERTIES, V116210_DEFINE_PROPERTIES);
 		v12ToV116210Book.put(Entity.DATA_UPDATE_PROPERTIES, V116210_UPDATE_PROPERTIES);
+
+		v12ToV117Book.putAll(v12ToV116210Book);
+		v12ToV117Book.put(Entity.DATA_BASE_RUNTIME_ID, V117_BASE_RUNTIME_ID);
+		v12ToV117Book.put(Entity.DATA_FREEZING_EFFECT_STRENGTH, V117_FREEZING_EFFECT_STRENGTH);
+		v12ToV117Book.put(Entity.DATA_BUOYANCY_DATA, V117_BUOYANCY_DATA);
+		v12ToV117Book.put(Entity.DATA_GOAT_HORN_COUNT, V117_GOAT_HORN_COUNT);
+		v12ToV117Book.put(Entity.DATA_UPDATE_PROPERTIES, V117_UPDATE_PROPERTIES);
 	}
 	
 	public static Integer translateTo14Id(int v12Id) {
@@ -533,5 +570,9 @@ public class EntityDataItemIDTranslator {
 
 	public static Integer translateTo116210Id(int v12Id) {
 		return v12ToV116210Book.get(v12Id);
+	}
+
+	public static Integer translateTo117Id(int v12Id) {
+		return v12ToV117Book.get(v12Id);
 	}
 }

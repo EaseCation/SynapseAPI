@@ -21,6 +21,10 @@ public class MoveEntityAbsolutePacket15 extends Packet15 {
     public double pitch;
     public boolean onGround;
     public boolean teleport;
+    /**
+     * 不进行插值且忽略所有客户端状态.
+     */
+    public boolean forceMoveLocalEntity;
 
     @Override
     public int pid() {
@@ -31,15 +35,16 @@ public class MoveEntityAbsolutePacket15 extends Packet15 {
     public void decode() {
         this.eid = this.getEntityRuntimeId();
         int flags = this.getByte();
-        teleport = (flags & 0x01) != 0;
-        onGround = (flags & 0x02) != 0;
+        onGround = (flags & 0x01) != 0;
+        teleport = (flags & 0x02) != 0;
+        forceMoveLocalEntity = (flags & 0x04) != 0;
         Vector3f v = this.getVector3f();
         this.x = v.x;
         this.y = v.y;
         this.z = v.z;
         this.pitch = this.getByte() * (360d / 256d);
-        this.headYaw = this.getByte() * (360d / 256d);
         this.yaw = this.getByte() * (360d / 256d);
+        this.headYaw = this.getByte() * (360d / 256d);
     }
 
     @Override
@@ -47,17 +52,20 @@ public class MoveEntityAbsolutePacket15 extends Packet15 {
         this.reset();
         this.putEntityRuntimeId(this.eid);
         byte flags = 0;
-        if (teleport) {
+        if (onGround) {
             flags |= 0x01;
         }
-        if (onGround) {
+        if (teleport) {
             flags |= 0x02;
+        }
+        if (forceMoveLocalEntity) {
+            flags |= 0x04;
         }
         this.putByte(flags);
         this.putVector3f((float) this.x, (float) this.y, (float) this.z);
         this.putByte((byte) (this.pitch / (360d / 256d)));
-        this.putByte((byte) (this.headYaw / (360d / 256d)));
         this.putByte((byte) (this.yaw / (360d / 256d)));
+        this.putByte((byte) (this.headYaw / (360d / 256d)));
     }
 
     @Override
@@ -74,6 +82,7 @@ public class MoveEntityAbsolutePacket15 extends Packet15 {
         this.pitch = packet.pitch;
         this.headYaw = packet.headYaw;
         this.yaw = packet.yaw;
+        this.forceMoveLocalEntity = packet.forceMoveLocalEntity;
 
         return this;
     }

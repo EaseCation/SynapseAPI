@@ -38,8 +38,8 @@ public class MovePlayerPacket116100NE extends Packet116100NE {
         this.y = v.y;
         this.z = v.z;
         this.pitch = this.getLFloat();
-        this.headYaw = this.getLFloat();
         this.yaw = this.getLFloat();
+        this.headYaw = this.getLFloat();
         this.mode = this.getByte();
         this.onGround = this.getBoolean();
         this.ridingEid = this.getEntityRuntimeId();

@@ -663,7 +663,7 @@ public class SynapsePlayer116 extends SynapsePlayer113 {
 					if (this.riding instanceof EntityMinecartAbstract) {
 						((EntityMinecartAbstract) this.riding).setCurrentSpeed(playerAuthInputPacket.getMoveVecZ());
 					} else if (this.riding instanceof EntityBoat) {
-						this.riding.setPositionAndRotation(this.temporalVector.setComponents(playerAuthInputPacket.getX(), playerAuthInputPacket.getY() - 1, playerAuthInputPacket.getZ()), (playerAuthInputPacket.getHeadYaw() + 90) % 360, 0);
+//						this.riding.setPositionAndRotation(this.temporalVector.setComponents(playerAuthInputPacket.getX(), playerAuthInputPacket.getY() - 1, playerAuthInputPacket.getZ()), (playerAuthInputPacket.getHeadYaw() + 90) % 360, 0);
 					}
 				}
 

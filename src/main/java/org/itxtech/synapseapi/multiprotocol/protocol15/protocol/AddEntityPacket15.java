@@ -78,7 +78,7 @@ public class AddEntityPacket15 extends Packet15 {
         this.speedZ = packet.speedZ;
         this.pitch = packet.pitch;
         this.yaw = packet.yaw;
-        this.headYaw = packet.yaw;
+        this.headYaw = packet.headYaw;
         this.metadata = EntityMetadataGenerator.generate14From(packet.metadata);
         this.attributes = packet.attributes;
         this.links = packet.links;

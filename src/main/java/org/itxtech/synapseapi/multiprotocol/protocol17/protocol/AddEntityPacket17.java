@@ -79,6 +79,7 @@ public class AddEntityPacket17 extends Packet17 {
         this.speedZ = packet.speedZ;
         this.pitch = packet.pitch;
         this.yaw = packet.yaw;
+        this.headYaw = packet.headYaw;
         this.metadata = EntityMetadataGenerator.generateFrom(packet.metadata, protocol, netease);
         this.attributes = packet.attributes;
         this.links = packet.links;

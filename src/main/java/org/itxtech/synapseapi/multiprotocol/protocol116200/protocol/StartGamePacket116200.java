@@ -95,8 +95,8 @@ public class StartGamePacket116200 extends Packet116200 {
         this.putEntityRuntimeId(this.entityRuntimeId);
         this.putVarInt(this.playerGamemode);
         this.putVector3f(this.x, this.y, this.z);
-        this.putLFloat(this.yaw);
         this.putLFloat(this.pitch);
+        this.putLFloat(this.yaw);
 
         this.putVarInt(this.seed);
         this.putLShort(0x00); // SpawnBiomeType - Default
@@ -145,8 +145,10 @@ public class StartGamePacket116200 extends Packet116200 {
         this.putString(this.premiumWorldTemplateId);
         this.putBoolean(this.isTrial);
         this.putVarInt(this.isMovementServerAuthoritative ? 1 : 0); // 2 - rewind
-        this.putVarInt(0); // RewindHistorySize
-        this.putBoolean(false); // isServerAuthoritativeBlockBreaking
+        if (this.netease || this.protocol != AbstractProtocol.PROTOCOL_116_200) {
+            this.putVarInt(0); // RewindHistorySize
+            this.putBoolean(false); // isServerAuthoritativeBlockBreaking
+        }
         this.putLLong(this.currentTick);
         this.putVarInt(this.enchantmentSeed);
         this.putUnsignedVarInt(0); // Custom blocks
