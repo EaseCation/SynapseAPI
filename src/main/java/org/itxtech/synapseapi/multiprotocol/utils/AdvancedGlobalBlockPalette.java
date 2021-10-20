@@ -44,6 +44,7 @@ public final class AdvancedGlobalBlockPalette {
                 new GlobalBlockPaletteJson(AbstractProtocol.PROTOCOL_111, "block_state_list_111_netease.json")
         });
 
+        PaletteBlockTable table11740 = PaletteBlockTable.fromNBTV3("block_state_list_11740.dat");
         PaletteBlockTable table11730 = PaletteBlockTable.fromNBTV3("block_state_list_11730.dat");
         PaletteBlockTable table11710 = PaletteBlockTable.fromNBTV3("block_state_list_11710.dat");
         PaletteBlockTable table117 = PaletteBlockTable.fromNBTV3("block_state_list_117.dat");
@@ -99,6 +100,9 @@ public final class AdvancedGlobalBlockPalette {
         palettes.put(AbstractProtocol.PROTOCOL_117_30, new AdvancedGlobalBlockPaletteInterface[]{
                 new GlobalBlockPaletteNBT(AbstractProtocol.PROTOCOL_117_30, table11730, null, true)
         });
+        palettes.put(AbstractProtocol.PROTOCOL_117_40, new AdvancedGlobalBlockPaletteInterface[]{
+                new GlobalBlockPaletteNBT(AbstractProtocol.PROTOCOL_117_40, table11740, null, true)
+        });
 
         hardcodedPalettes.put(HardcodedVersion.V1_16_100, new GlobalBlockPaletteHardcode(palettes.get(AbstractProtocol.PROTOCOL_116_100)[0]));
         hardcodedPalettes.put(HardcodedVersion.V1_16_200_NETEASE, new GlobalBlockPaletteHardcode(palettes.get(AbstractProtocol.PROTOCOL_116_200)[1]));
@@ -106,6 +110,7 @@ public final class AdvancedGlobalBlockPalette {
         hardcodedPalettes.put(HardcodedVersion.V1_17, new GlobalBlockPaletteHardcode(palettes.get(AbstractProtocol.PROTOCOL_117)[0]));
         hardcodedPalettes.put(HardcodedVersion.V1_17_10, new GlobalBlockPaletteHardcode(palettes.get(AbstractProtocol.PROTOCOL_117_10)[0]));
         hardcodedPalettes.put(HardcodedVersion.V1_17_30, new GlobalBlockPaletteHardcode(palettes.get(AbstractProtocol.PROTOCOL_117_30)[0]));
+        hardcodedPalettes.put(HardcodedVersion.V1_17_40, new GlobalBlockPaletteHardcode(palettes.get(AbstractProtocol.PROTOCOL_117_40)[0]));
     }
 
     public static int getOrCreateRuntimeId(AbstractProtocol protocol, boolean netease, int legacyId) {
