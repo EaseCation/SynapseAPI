@@ -1,20 +1,19 @@
 package org.itxtech.synapseapi;
 
 import cn.nukkit.Player;
-import cn.nukkit.Server;
 import cn.nukkit.block.Block;
 import cn.nukkit.block.BlockAir;
 import cn.nukkit.block.BlockDoor;
 import cn.nukkit.blockentity.BlockEntity;
 import cn.nukkit.blockentity.BlockEntitySpawnable;
 import cn.nukkit.entity.Entity;
+import cn.nukkit.entity.EntityRideable;
 import cn.nukkit.entity.item.EntityBoat;
 import cn.nukkit.entity.item.EntityMinecartAbstract;
 import cn.nukkit.event.entity.EntityDamageByEntityEvent;
 import cn.nukkit.event.entity.EntityDamageEvent;
 import cn.nukkit.event.inventory.InventoryCloseEvent;
 import cn.nukkit.event.player.*;
-import cn.nukkit.inventory.AnvilInventory;
 import cn.nukkit.inventory.Inventory;
 import cn.nukkit.inventory.transaction.CraftingTransaction;
 import cn.nukkit.inventory.transaction.EnchantTransaction;
@@ -31,6 +30,7 @@ import cn.nukkit.level.Position;
 import cn.nukkit.math.BlockFace;
 import cn.nukkit.math.BlockVector3;
 import cn.nukkit.math.Vector3;
+import cn.nukkit.math.Vector3f;
 import cn.nukkit.network.SourceInterface;
 import cn.nukkit.network.protocol.*;
 import cn.nukkit.network.protocol.types.ContainerIds;
@@ -662,8 +662,10 @@ public class SynapsePlayer116 extends SynapsePlayer113 {
 				if (this.riding != null) {
 					if (this.riding instanceof EntityMinecartAbstract) {
 						((EntityMinecartAbstract) this.riding).setCurrentSpeed(playerAuthInputPacket.getMoveVecZ());
-					} else if (this.riding instanceof EntityBoat) {
-//						this.riding.setPositionAndRotation(this.temporalVector.setComponents(playerAuthInputPacket.getX(), playerAuthInputPacket.getY() - 1, playerAuthInputPacket.getZ()), (playerAuthInputPacket.getHeadYaw() + 90) % 360, 0);
+					} else if (this.riding instanceof EntityRideable && !(this.riding instanceof EntityBoat)) {
+                        ((EntityRideable) riding).onPlayerInput(this, playerAuthInputPacket.getMoveVecX(), playerAuthInputPacket.getMoveVecZ());
+                        Vector3f offset = riding.getMountedOffset(this);
+						((EntityRideable) riding).onPlayerRiding(this.temporalVector.setComponents(playerAuthInputPacket.getX() - offset.x, playerAuthInputPacket.getY() - offset.y, playerAuthInputPacket.getZ() - offset.z), (playerAuthInputPacket.getHeadYaw() + 90) % 360, 0);
 					}
 				}
 

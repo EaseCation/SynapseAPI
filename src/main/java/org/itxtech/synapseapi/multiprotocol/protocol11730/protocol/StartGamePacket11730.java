@@ -68,7 +68,7 @@ public class StartGamePacket11730 extends Packet11730 {
     public boolean isFromWorldTemplate = false;
     public boolean isWorldTemplateOptionLocked = false;
     public boolean isOnlySpawningV1Villagers = false;
-    public String vanillaVersion = "1.17.0";
+    public String vanillaVersion = "1.17.30";
     public String levelId = ""; //base64 string, usually the same as world folder name in vanilla
     public String worldName;
     public String premiumWorldTemplateId = "00000000-0000-0000-0000-000000000000";
@@ -76,7 +76,7 @@ public class StartGamePacket11730 extends Packet11730 {
     public boolean isMovementServerAuthoritative;
     public boolean isInventoryServerAuthoritative;
     public long currentTick;
-    public String serverEngine = "1.17.0";
+    public String serverEngine = "1.17.30";
 
     public int enchantmentSeed;
 

@@ -7,17 +7,22 @@ import cn.nukkit.block.BlockID;
 import cn.nukkit.block.BlockNoteblock;
 import cn.nukkit.blockentity.BlockEntity;
 import cn.nukkit.blockentity.BlockEntityItemFrame;
+import cn.nukkit.entity.EntityRideable;
 import cn.nukkit.entity.item.EntityBoat;
+import cn.nukkit.entity.item.EntityMinecartAbstract;
+import cn.nukkit.entity.item.EntityMinecartEmpty;
 import cn.nukkit.event.inventory.InventoryCloseEvent;
 import cn.nukkit.event.player.PlayerInteractEvent;
 import cn.nukkit.inventory.Inventory;
 import cn.nukkit.level.Position;
 import cn.nukkit.math.BlockFace;
 import cn.nukkit.math.Vector3;
+import cn.nukkit.math.Vector3f;
 import cn.nukkit.network.SourceInterface;
 import cn.nukkit.network.protocol.DataPacket;
 import cn.nukkit.network.protocol.LevelEventPacket;
 import cn.nukkit.network.protocol.LevelSoundEventPacket;
+import cn.nukkit.network.protocol.PlayerInputPacket;
 import cn.nukkit.network.protocol.ProtocolInfo;
 import cn.nukkit.network.protocol.ResourcePackClientResponsePacket;
 import cn.nukkit.network.protocol.ResourcePackDataInfoPacket;
@@ -325,6 +330,16 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
                     this.dataPacket(pk);
                 }
                 break;
+            case ProtocolInfo.PLAYER_INPUT_PACKET:
+                if (!callPacketReceiveEvent(packet)) break;
+                if (!this.isAlive() || !this.spawned) {
+                    break;
+                }
+                PlayerInputPacket ipk = (PlayerInputPacket) packet;
+                if (riding instanceof EntityRideable) {
+                    ((EntityRideable) riding).onPlayerInput(this, ipk.motionX, ipk.motionY);
+                }
+                break;
             case ProtocolInfo.MOVE_PLAYER_PACKET:
                 if (this.teleportPosition != null) {
                     break;
@@ -359,11 +374,12 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
                     this.forceMovement = null;
                 }
 
-//                if (riding != null) {
-//                    if (riding instanceof EntityBoat) {
-//                        riding.setPositionAndRotation(this.temporalVector.setComponents(movePlayerPacket.x, movePlayerPacket.y - 1, movePlayerPacket.z), (movePlayerPacket.headYaw + 90) % 360, 0);
-//                    }
-//                }
+                if (riding != null) {
+                    if (riding instanceof EntityRideable && !(this.riding instanceof EntityBoat)) {
+                        Vector3f offset = riding.getMountedOffset(this);
+                        ((EntityRideable) riding).onPlayerRiding(this.temporalVector.setComponents(movePlayerPacket.x - offset.x, movePlayerPacket.y - offset.y, movePlayerPacket.z - offset.z), (movePlayerPacket.headYaw + 90) % 360, 0);
+                    }
+                }
                 break;
             case ProtocolInfo.TEXT_PACKET:
                 if (!callPacketReceiveEvent(packet)) break;

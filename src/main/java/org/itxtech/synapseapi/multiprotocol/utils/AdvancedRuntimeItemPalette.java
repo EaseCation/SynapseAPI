@@ -26,6 +26,7 @@ public final class AdvancedRuntimeItemPalette {
         RuntimeItemPalette palette117 = new RuntimeItemPalette("runtime_item_ids_117.json");
         RuntimeItemPalette palette11710 = new RuntimeItemPalette("runtime_item_ids_11710.json");
         RuntimeItemPalette palette11730 = new RuntimeItemPalette("runtime_item_ids_11730.json");
+        RuntimeItemPalette palette11740 = new RuntimeItemPalette("runtime_item_ids_11730.json");
 
         register(AbstractProtocol.PROTOCOL_116_100, palette116100, null);
         register(AbstractProtocol.PROTOCOL_116_200, palette116100, palette116200NE);
@@ -34,6 +35,7 @@ public final class AdvancedRuntimeItemPalette {
         register(AbstractProtocol.PROTOCOL_117, palette117, null);
         register(AbstractProtocol.PROTOCOL_117_10, palette11710, null);
         register(AbstractProtocol.PROTOCOL_117_30, palette11730, null);
+        register(AbstractProtocol.PROTOCOL_117_40, palette11740, null);
     }
 
     private static void register(AbstractProtocol protocol, RuntimeItemPalette palette, RuntimeItemPalette paletteNetEase) {
