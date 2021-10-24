@@ -565,8 +565,16 @@ public class SynapsePlayer116 extends SynapsePlayer113 {
 				break;
 			case ProtocolInfo.EMOTE_PACKET:
 				if (!callPacketReceiveEvent(packet)) break;
+				if (!this.spawned) {
+					break;
+				}
+				EmotePacket116 emotePacket = (EmotePacket116) packet;
+				if (emotePacket.runtimeId != this.id) {
+					server.getLogger().warning(this.username + " sent EmotePacket with invalid entity id: " + emotePacket.runtimeId + " != " + this.id);
+					break;
+				}
 				for (Player viewer : this.getViewers().values().stream().filter(p -> p.getProtocol() >= AbstractProtocol.PROTOCOL_116.getProtocolStart()).toArray(Player[]::new)) {
-					viewer.dataPacket(packet);
+					viewer.dataPacket(emotePacket);
 				}
 				break;
 			case ProtocolInfo.PLAYER_AUTH_INPUT_PACKET:
