@@ -23,6 +23,7 @@ import cn.nukkit.inventory.transaction.data.UseItemOnEntityData;
 import cn.nukkit.item.Item;
 import cn.nukkit.item.ItemBlock;
 import cn.nukkit.item.enchantment.Enchantment;
+import cn.nukkit.level.GameRule;
 import cn.nukkit.level.Position;
 import cn.nukkit.math.BlockFace;
 import cn.nukkit.math.BlockVector3;
@@ -512,27 +513,38 @@ public class SynapsePlayer113 extends SynapsePlayer112 {
 								}
 								break;
 							case InventoryTransactionPacket.USE_ITEM_ON_ENTITY_ACTION_ATTACK:
-								float itemDamage = item.getAttackDamage();
+								if (!this.canInteract(target, isCreative() ? 8 : 5)) {
+									break;
+								} else if (target instanceof Player) {
+									if ((((Player) target).getGamemode() & 0x01) > 0) {
+										break;
+									} else if (!this.server.getPropertyBoolean("pvp")) {
+										break;
+									}
+								}
 
-								for (Enchantment enchantment : item.getEnchantments()) {
+								Enchantment[] enchantments = item.getEnchantments();
+
+								float itemDamage = item.getAttackDamage();
+								for (Enchantment enchantment : enchantments) {
 									itemDamage += enchantment.getDamageBonus(target);
 								}
 
 								Map<EntityDamageEvent.DamageModifier, Float> damage = new EnumMap<>(EntityDamageEvent.DamageModifier.class);
 								damage.put(EntityDamageEvent.DamageModifier.BASE, itemDamage);
 
-								if (!this.canInteract(target, isCreative() ? 8 : 5)) {
-									break;
-								} else if (target instanceof Player) {
-									if ((((Player) target).getGamemode() & 0x01) > 0) {
-										break;
-									} else if (!this.server.getPropertyBoolean("pvp") || this.server.getDifficulty() == 0) {
-										break;
-									}
+								float knockBack = 0.29f;
+								Enchantment knockBackEnchantment = item.getEnchantment(Enchantment.ID_KNOCKBACK);
+								if (knockBackEnchantment != null) {
+									knockBack += knockBackEnchantment.getLevel() * 0.1f;
 								}
 
-								EntityDamageByEntityEvent entityDamageByEntityEvent = new EntityDamageByEntityEvent(this, target, EntityDamageEvent.DamageCause.ENTITY_ATTACK, damage);
+								EntityDamageByEntityEvent entityDamageByEntityEvent = new EntityDamageByEntityEvent(this, target, EntityDamageEvent.DamageCause.ENTITY_ATTACK, damage, knockBack, enchantments);
 								if (this.isSpectator()) entityDamageByEntityEvent.setCancelled();
+								if ((target instanceof Player) && !this.level.getGameRules().getBoolean(GameRule.PVP)) {
+									entityDamageByEntityEvent.setCancelled();
+								}
+
 								if (!target.attack(entityDamageByEntityEvent)) {
 									if (item.isTool() && this.isSurvival()) {
 										this.inventory.sendContents(this);
@@ -544,11 +556,15 @@ public class SynapsePlayer113 extends SynapsePlayer112 {
 									enchantment.doPostAttack(this, target);
 								}
 
-								if (item.isTool() && this.isSurvival()) {
+								if (item.isTool() && (this.isSurvival() || this.isAdventure())) {
 									if (item.useOn(target) && item.getDamage() >= item.getMaxDurability()) {
-										this.inventory.setItemInHand(new ItemBlock(Block.get(BlockID.AIR)));
+										this.inventory.setItemInHand(Item.get(0));
 									} else {
-										this.inventory.setItemInHand(item);
+										if (item.getId() == 0 || this.inventory.getItemInHand().getId() == item.getId()) {
+											this.inventory.setItemInHand(item);
+										} else {
+											server.getLogger().debug("Tried to set item " + item.getId() + " but " + this.username + " had item " + this.inventory.getItemInHand().getId() + " in their hand slot");
+										}
 									}
 								}
 								return;
