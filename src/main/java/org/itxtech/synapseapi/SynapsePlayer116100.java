@@ -183,9 +183,10 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
             startGamePacket.worldName = this.getServer().getNetwork().getName();
             startGamePacket.generator = 1; // 0 old, 1 infinite, 2 flat
             startGamePacket.gameRules = getSupportedRules();
-            startGamePacket.isMovementServerAuthoritative = true; //TODO: 已适配 待测试 -- 11/20/2021
+            startGamePacket.isMovementServerAuthoritative = !this.isNetEaseClient(); //TODO: 已适配 待测试 -- 11/20/2021
             // 启用后破坏方块时的物品栏事务就不会塞在PlayerAuthInputPacket了
-            startGamePacket.isBlockBreakingServerAuthoritative = this.serverAuthoritativeBlockBreaking = true;
+            startGamePacket.isBlockBreakingServerAuthoritative = this.serverAuthoritativeBlockBreaking =
+                    !this.isNetEaseClient() && this.protocol > AbstractProtocol.PROTOCOL_116_200.getProtocolStart();
             startGamePacket.currentTick = this.server.getTick();
             return startGamePacket;
         } else if (this.getProtocol() < AbstractProtocol.PROTOCOL_116_100.getProtocolStart()) {
