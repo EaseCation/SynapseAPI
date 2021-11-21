@@ -4,7 +4,10 @@ import cn.nukkit.Player;
 import cn.nukkit.block.Block;
 import cn.nukkit.block.BlockAir;
 import cn.nukkit.block.BlockDoor;
+import cn.nukkit.block.BlockDragonEgg;
+import cn.nukkit.block.BlockNoteblock;
 import cn.nukkit.blockentity.BlockEntity;
+import cn.nukkit.blockentity.BlockEntityItemFrame;
 import cn.nukkit.blockentity.BlockEntitySpawnable;
 import cn.nukkit.entity.Entity;
 import cn.nukkit.entity.EntityRideable;
@@ -27,6 +30,7 @@ import cn.nukkit.item.Item;
 import cn.nukkit.item.ItemBlock;
 import cn.nukkit.item.enchantment.Enchantment;
 import cn.nukkit.level.Position;
+import cn.nukkit.level.particle.PunchBlockParticle;
 import cn.nukkit.math.BlockFace;
 import cn.nukkit.math.BlockVector3;
 import cn.nukkit.math.Vector3;
@@ -39,7 +43,9 @@ import cn.nukkit.utils.Binary;
 import org.itxtech.synapseapi.event.player.SynapsePlayerInputModeChangeEvent;
 import org.itxtech.synapseapi.multiprotocol.AbstractProtocol;
 import org.itxtech.synapseapi.multiprotocol.protocol113.protocol.IPlayerAuthInputPacket;
+import org.itxtech.synapseapi.multiprotocol.protocol113.protocol.IPlayerAuthInputPacket.PlayerBlockAction;
 import org.itxtech.synapseapi.multiprotocol.protocol116.protocol.*;
+import org.itxtech.synapseapi.multiprotocol.protocol14.protocol.PlayerActionPacket14;
 
 import java.net.InetSocketAddress;
 import java.util.ArrayList;
@@ -51,6 +57,12 @@ import java.util.Map;
 public class SynapsePlayer116 extends SynapsePlayer113 {
 
 	protected boolean inventoryOpen;
+
+	/**
+	 * Server Authoritative Movement is required.
+	 */
+	protected boolean serverAuthoritativeBlockBreaking;
+	protected BlockFace breakingBlockFace;
 
 	public SynapsePlayer116(SourceInterface interfaz, SynapseEntry synapseEntry, Long clientID, InetSocketAddress socketAddress) {
 		super(interfaz, synapseEntry, clientID, socketAddress);
@@ -346,7 +358,7 @@ public class SynapsePlayer116 extends SynapsePlayer113 {
 
 								Item oldItem = i.clone();
 
-								if (this.canInteract(blockVector.add(0.5, 0.5, 0.5), this.isCreative() ? 13 : 7) && (i = this.level.useBreakOn(blockVector.asVector3(), face, i, this, true)) != null) {
+								if (this.canInteract(blockVector.add(0.5, 0.5, 0.5), this.isCreative() ? 16 : 8) && (i = this.level.useBreakOn(blockVector.asVector3(), face, i, this, true)) != null) {
 									if (this.isSurvival()) {
 										this.getFoodData().updateFoodExpLevel(0.025);
 										if (!i.equals(oldItem) || i.getCount() != oldItem.getCount()) {
@@ -667,14 +679,130 @@ public class SynapsePlayer116 extends SynapsePlayer113 {
 					}
 				}
 
-				if (this.riding != null) {
-					if (this.riding instanceof EntityMinecartAbstract) {
-						((EntityMinecartAbstract) this.riding).setCurrentSpeed(playerAuthInputPacket.getMoveVecZ());
-					} else if (this.riding instanceof EntityRideable && !(this.riding instanceof EntityBoat)) {
-                        ((EntityRideable) riding).onPlayerInput(this, playerAuthInputPacket.getMoveVecX(), playerAuthInputPacket.getMoveVecZ());
-                        Vector3f offset = riding.getMountedOffset(this);
-						((EntityRideable) riding).onPlayerRiding(this.temporalVector.setComponents(playerAuthInputPacket.getX() - offset.x, playerAuthInputPacket.getY() - offset.y, playerAuthInputPacket.getZ() - offset.z), (playerAuthInputPacket.getHeadYaw() + 90) % 360, 0);
+				PlayerBlockAction[] blockActions = playerAuthInputPacket.getBlockActions();
+				if (blockActions != null && blockActions.length != 0) {
+					for (PlayerBlockAction blockAction : blockActions) {
+						Vector3 pos = new Vector3(blockAction.x, blockAction.y, blockAction.z);
+						BlockFace face = null;
+
+						actionswitch:
+						switch (blockAction.action) {
+							case PlayerActionPacket14.ACTION_BLOCK_CONTINUE_DESTROY: // server
+								if (this.isBreakingBlock()) {
+									if (pos.equals(this.breakingBlock)) {
+										this.breakingBlockFace = BlockFace.fromIndex(blockAction.data);
+										break;
+									}
+									this.level.addLevelEvent(this.breakingBlock, LevelEventPacket.EVENT_BLOCK_STOP_BREAK);
+									this.lastBreak = Long.MAX_VALUE;
+									this.breakingBlock = null;
+									this.breakingBlockFace = null;
+								}
+							case PlayerActionPacket14.ACTION_START_BREAK: // both
+								if (!this.spawned || !this.isAlive() || this.isSpectator() || this.lastBreak != Long.MAX_VALUE || pos.distanceSquared(this) > 100) {
+									break;
+								}
+								face = BlockFace.fromIndex(blockAction.data);
+								Block target = this.level.getBlock(pos);
+								PlayerInteractEvent playerInteractEvent = new PlayerInteractEvent(this, this.inventory.getItemInHand(), target, face, target.getId() == Block.AIR ? PlayerInteractEvent.Action.LEFT_CLICK_AIR : PlayerInteractEvent.Action.LEFT_CLICK_BLOCK);
+								this.getServer().getPluginManager().callEvent(playerInteractEvent);
+								if (playerInteractEvent.isCancelled()) {
+									this.inventory.sendHeldItem(this);
+									break;
+								}
+								switch (target.getId()) {
+									case Block.NOTEBLOCK:
+										((BlockNoteblock) target).emitSound();
+										break actionswitch;
+									case Block.DRAGON_EGG:
+										if (!this.isCreative()) {
+											((BlockDragonEgg) target).teleport();
+											break actionswitch;
+										}
+									case Block.ITEM_FRAME_BLOCK:
+										BlockEntity itemFrame = this.level.getBlockEntity(pos);
+										if (itemFrame instanceof BlockEntityItemFrame && ((BlockEntityItemFrame) itemFrame).dropItem(this)) {
+											break actionswitch;
+										}
+								}
+								block = target.getSide(face);
+								if (block.getId() == Block.FIRE) {
+									this.level.setBlock(block, Block.get(Block.AIR), true);
+									this.level.addLevelSoundEvent(block, LevelSoundEventPacket.SOUND_EXTINGUISH_FIRE);
+									break;
+								}
+								if (!this.isCreative()) {
+									//improved this to take stuff like swimming, ladders, enchanted tools into account, fix wrong tool break time calculations for bad tools (pmmp/PocketMine-MP#211)
+									//Done by lmlstarqaq
+									double breakTime = Math.ceil(target.getBreakTime(this.inventory.getItemInHand(), this) * 20);
+									if (breakTime > 0) {
+										this.level.addLevelEvent(pos, LevelEventPacket.EVENT_BLOCK_START_BREAK, (int) (65535 / breakTime));
+									}
+								}
+
+								this.breakingBlock = target;
+								this.breakingBlockFace = face;
+								this.lastBreak = System.currentTimeMillis();
+								break;
+							case PlayerActionPacket14.ACTION_STOP_BREAK: // client
+								if (this.breakingBlock == null || this.breakingBlockFace == null) {
+									break;
+								}
+								pos = this.breakingBlock;
+								face = this.breakingBlockFace;
+							case PlayerActionPacket14.ACTION_BLOCK_PREDICT_DESTROY: // server
+								if (!this.spawned || !this.isAlive()) {
+									break;
+								}
+								if (face == null) {
+									face = BlockFace.fromIndex(blockAction.data);
+								}
+								this.resetCraftingGridType();
+
+								item = this.getInventory().getItemInHand();
+								Item oldItem = item.clone();
+								if (this.canInteract(pos.add(0.5, 0.5, 0.5), this.isCreative() ? 16 : 8) && (item = this.level.useBreakOn(pos, face, item, this, true)) != null) {
+									// success
+									if (this.isSurvival()) {
+										this.getFoodData().updateFoodExpLevel(0.025);
+										if (!item.equals(oldItem) || item.getCount() != oldItem.getCount()) {
+											this.inventory.setItemInHand(item);
+											this.inventory.sendHeldItem(this.getViewers().values());
+										}
+									}
+								} else { // revert
+									this.inventory.sendContents(this);
+									this.inventory.sendHeldItem(this);
+
+									target = this.level.getBlock(pos);
+									this.level.sendBlocks(new Player[]{this}, new Block[]{target}, UpdateBlockPacket.FLAG_ALL_PRIORITY);
+
+									BlockEntity blockEntity = this.level.getBlockEntity(pos);
+									if (blockEntity instanceof BlockEntitySpawnable) {
+										((BlockEntitySpawnable) blockEntity).spawnTo(this);
+									}
+								}
+							case PlayerActionPacket14.ACTION_ABORT_BREAK: // both
+								if (face == null) {
+//									int breakTime = blockAction.data;
+								}
+								this.level.addLevelEvent(pos, LevelEventPacket.EVENT_BLOCK_STOP_BREAK);
+								this.lastBreak = Long.MAX_VALUE;
+								this.breakingBlock = null;
+								this.breakingBlockFace = null;
+								break;
+							case PlayerActionPacket14.ACTION_CONTINUE_BREAK: // client
+								if (this.isBreakingBlock()) {
+									this.breakingBlockFace = BlockFace.fromIndex(blockAction.data);
+									block = this.level.getBlock(pos);
+									this.level.addParticle(new PunchBlockParticle(pos, block, this.breakingBlockFace));
+								}
+								break;
+						}
 					}
+
+					this.startAction = -1;
+					this.setDataFlag(DATA_FLAGS, DATA_FLAG_ACTION, false);
 				}
 
 				newPos = new Vector3(playerAuthInputPacket.getX(), playerAuthInputPacket.getY() - this.getEyeHeight(), playerAuthInputPacket.getZ());
@@ -707,6 +835,16 @@ public class SynapsePlayer116 extends SynapsePlayer113 {
 					this.setRotation(playerAuthInputPacket.getYaw(), playerAuthInputPacket.getPitch());
 					this.newPosition = newPos;
 					this.forceMovement = null;
+				}
+
+				if (this.riding != null) {
+					if (this.riding instanceof EntityMinecartAbstract) {
+						((EntityMinecartAbstract) this.riding).setCurrentSpeed(playerAuthInputPacket.getMoveVecZ());
+					} else if (this.riding instanceof EntityRideable && !(this.riding instanceof EntityBoat)) {
+						((EntityRideable) riding).onPlayerInput(this, playerAuthInputPacket.getMoveVecX(), playerAuthInputPacket.getMoveVecZ());
+						Vector3f offset = riding.getMountedOffset(this);
+						((EntityRideable) riding).onPlayerRiding(this.temporalVector.setComponents(playerAuthInputPacket.getX() - offset.x, playerAuthInputPacket.getY() - offset.y, playerAuthInputPacket.getZ() - offset.z), (playerAuthInputPacket.getHeadYaw() + 90) % 360, 0);
+					}
 				}
 
 				if (this.getLoginChainData().getCurrentInputMode() != playerAuthInputPacket.getInputMode()) {
@@ -792,5 +930,13 @@ public class SynapsePlayer116 extends SynapsePlayer113 {
 		pk.windowId = this.getWindowId(this.inventory);
 		pk.wasServerInitiated = this.closingWindowId != pk.windowId;
 		this.dataPacket(pk);
+	}
+
+	@Override
+	public boolean onUpdate(int currentTick) {
+		if (this.serverAuthoritativeBlockBreaking && this.breakingBlockFace != null && this.isBreakingBlock() && this.spawned && this.isAlive()) {
+			this.level.addParticle(new PunchBlockParticle(this.breakingBlock, this.breakingBlock, this.breakingBlockFace));
+		}
+		return super.onUpdate(currentTick);
 	}
 }

@@ -1,6 +1,7 @@
 package org.itxtech.synapseapi.multiprotocol.protocol113.protocol;
 
 import cn.nukkit.network.protocol.types.NetworkInventoryAction;
+import lombok.ToString;
 
 public interface IPlayerAuthInputPacket {
 
@@ -42,24 +43,25 @@ public interface IPlayerAuthInputPacket {
         return false;
     }
 
+    @ToString
     class PlayerBlockAction {
 
         public int action;
         public int x;
         public int y;
         public int z;
-        public int face;
+        public int data;
 
         public PlayerBlockAction(int action) {
             this.action = action;
         }
 
-        public PlayerBlockAction(int action, int x, int y, int z, int face) {
+        public PlayerBlockAction(int action, int x, int y, int z, int data) {
             this.action = action;
             this.x = x;
             this.y = y;
             this.z = z;
-            this.face = face;
+            this.data = data;
         }
     }
 }

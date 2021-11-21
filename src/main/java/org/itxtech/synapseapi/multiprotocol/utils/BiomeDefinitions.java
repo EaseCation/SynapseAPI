@@ -37,6 +37,7 @@ public final class BiomeDefinitions {
             data.put(AbstractProtocol.PROTOCOL_117_10, data116210);
             data.put(AbstractProtocol.PROTOCOL_117_30, data116210);
             data.put(AbstractProtocol.PROTOCOL_117_40, data11740);
+            data.put(AbstractProtocol.PROTOCOL_118, data11740);
         } catch (NullPointerException | IOException e) {
             throw new AssertionError("Unable to load biome_definitions.dat");
         }

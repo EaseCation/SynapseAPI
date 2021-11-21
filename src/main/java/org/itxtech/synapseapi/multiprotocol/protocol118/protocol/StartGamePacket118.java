@@ -1,13 +1,11 @@
-package org.itxtech.synapseapi.multiprotocol.protocol117.protocol;
+package org.itxtech.synapseapi.multiprotocol.protocol118.protocol;
 
 import cn.nukkit.level.GameRules;
 import cn.nukkit.network.protocol.ProtocolInfo;
-import lombok.ToString;
 import org.itxtech.synapseapi.multiprotocol.AbstractProtocol;
 import org.itxtech.synapseapi.multiprotocol.utils.AdvancedRuntimeItemPalette;
 
-@ToString
-public class StartGamePacket117 extends Packet117 {
+public class StartGamePacket118 extends Packet118 {
 
     public static final int NETWORK_ID = ProtocolInfo.START_GAME_PACKET;
 
@@ -68,7 +66,7 @@ public class StartGamePacket117 extends Packet117 {
     public boolean isFromWorldTemplate = false;
     public boolean isWorldTemplateOptionLocked = false;
     public boolean isOnlySpawningV1Villagers = false;
-    public String vanillaVersion = "1.17.0";
+    public String vanillaVersion = "1.18.0";
     public String levelId = ""; //base64 string, usually the same as world folder name in vanilla
     public String worldName;
     public String premiumWorldTemplateId = "00000000-0000-0000-0000-000000000000";
@@ -77,7 +75,12 @@ public class StartGamePacket117 extends Packet117 {
     public boolean isBlockBreakingServerAuthoritative;
     public boolean isInventoryServerAuthoritative;
     public long currentTick;
-    public String serverEngine = "1.17.0";
+    public String serverEngine = "1.18.0";
+    /**
+     * A XXHash64 of all block states by their compound tag.
+     * A value of 0 will not be validated by the client.
+     */
+    public long blockRegistryChecksum = 0;
 
     public int enchantmentSeed;
 
@@ -140,6 +143,8 @@ public class StartGamePacket117 extends Packet117 {
         this.putLInt(16); // Limited world width
         this.putLInt(16); // Limited world height
         this.putBoolean(false); // Nether type
+        this.putString(""); // EduSharedUriResource buttonName
+        this.putString(""); // EduSharedUriResource linkUri
         this.putBoolean(false); // Experimental Gameplay
 
         this.putString(this.levelId);
@@ -156,5 +161,6 @@ public class StartGamePacket117 extends Packet117 {
         this.putString(this.multiplayerCorrelationId);
         this.putBoolean(this.isInventoryServerAuthoritative);
         this.putString(this.helper.getGameVersion());//this.putString(this.serverEngine);
+        this.putLLong(this.blockRegistryChecksum);
     }
 }

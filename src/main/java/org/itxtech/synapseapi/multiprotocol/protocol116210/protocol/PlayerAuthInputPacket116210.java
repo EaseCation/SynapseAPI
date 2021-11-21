@@ -147,10 +147,6 @@ public class PlayerAuthInputPacket116210 extends Packet116210 implements Invento
         this.deltaY = delta.y;
         this.deltaZ = delta.z;
 
-        if (!SynapseSharedConstants.MAC_DEBUG) {
-            return; //TODO: 暂时丢弃后面的数据 -- 10/03/2021
-        }
-
         boolean[] debugFlags;
         if (SynapseSharedConstants.MAC_DEBUG) {
             debugFlags = new boolean[3];
@@ -159,7 +155,7 @@ public class PlayerAuthInputPacket116210 extends Packet116210 implements Invento
         if ((this.inputFlags & (1L << FLAG_PERFORM_ITEM_INTERACTION)) != 0) {
             if (SynapseSharedConstants.MAC_DEBUG) debugFlags[0] = true;
 
-            int legacyRequestId = (int) this.getUnsignedVarInt();
+            int legacyRequestId = this.getVarInt();
             if (legacyRequestId < -1 && (legacyRequestId & 1) == 0) {
                 int size = (int) this.getUnsignedVarInt();
                 for (int i = 0; i < size; i++) {
@@ -178,6 +174,15 @@ public class PlayerAuthInputPacket116210 extends Packet116210 implements Invento
             for (int i = 0; i < size; i++) {
                 this.inventoryActions[i] = new NetworkInventoryAction().read(this, this);
             }
+
+            int actionType = (int) this.getUnsignedVarInt();
+            BlockVector3 blockPosition = this.getBlockVector3();
+            int face = this.getVarInt();
+            int hotbarSlot = this.getVarInt();
+            Item itemInHand = this.getSlot();
+            Vector3f playerPosition = this.getVector3f();
+            Vector3f clickPosition = this.getVector3f();
+            int blockRuntimeId = (int) this.getUnsignedVarInt();
         }
 
         if ((this.inputFlags & (1L << FLAG_PERFORM_ITEM_STACK_REQUEST)) != 0) {
@@ -251,6 +256,7 @@ public class PlayerAuthInputPacket116210 extends Packet116210 implements Invento
                         for (int j = 0; j < length; j++) {
                             Item resultItem = this.getSlot();
                         }
+                        int iterations = this.getByte();
                         break;
                     default:
                         throw new UnsupportedOperationException("Unhandled item stack request action type: " + type);
@@ -268,7 +274,7 @@ public class PlayerAuthInputPacket116210 extends Packet116210 implements Invento
         if ((this.inputFlags & (1L << FLAG_PERFORM_BLOCK_ACTIONS)) != 0) {
             if (SynapseSharedConstants.MAC_DEBUG) debugFlags[2] = true;
 
-            int size = (int) this.getUnsignedVarInt();
+            int size = this.getVarInt();
             this.blockActions = new PlayerBlockAction[size];
             for (int i = 0; i < size; i++) {
                 int actionType = this.getVarInt();
@@ -280,12 +286,17 @@ public class PlayerAuthInputPacket116210 extends Packet116210 implements Invento
                     case PlayerActionPacket.ACTION_CONTINUE_BREAK:
                     case PlayerActionPacket.ACTION_BLOCK_PREDICT_DESTROY:
                     case PlayerActionPacket.ACTION_BLOCK_CONTINUE_DESTROY:
-                        BlockVector3 pos = this.getBlockVector3();
+                        BlockVector3 pos = this.getSignedBlockPosition();
                         action.x = pos.x;
                         action.y = pos.y;
                         action.z = pos.z;
 
-                        action.face = this.getVarInt();
+                        action.data = this.getVarInt();
+                        break;
+                    case PlayerActionPacket.ACTION_STOP_BREAK:
+                        break;
+                    default:
+                        throw new UnsupportedOperationException("Unexpected block action type: " + actionType);
                 }
 
                 this.blockActions[i] = action;

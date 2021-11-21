@@ -37,7 +37,16 @@ public class BinaryStreamHelper116220 extends BinaryStreamHelper116210 {
     }
 
     @Override
-    public Item getSlot(BinaryStream stream) {
+    public final Item getSlot(BinaryStream stream) {
+        return this.getSlot(stream, false);
+    }
+
+    @Override
+    public final Item getSlotDummy(BinaryStream stream) {
+        return this.getSlot(stream, true);
+    }
+
+    protected Item getSlot(BinaryStream stream, boolean instanceItem) {
         int id = stream.getVarInt();
         if (id == 0) {
             return Item.get(0, 0, 0);
@@ -54,7 +63,7 @@ public class BinaryStreamHelper116220 extends BinaryStreamHelper116210 {
             damage = AdvancedRuntimeItemPalette.getData(this.protocol, fullId);
         }*/
 
-        if (stream.getBoolean()) { // hasNetId
+        if (!instanceItem && stream.getBoolean()) { // hasNetId
             stream.getVarInt(); // netId
         }
 
@@ -143,12 +152,12 @@ public class BinaryStreamHelper116220 extends BinaryStreamHelper116210 {
     }
 
     @Override
-    public void putSlot(BinaryStream stream, Item item) {
+    public final void putSlot(BinaryStream stream, Item item) {
         this.putSlot(stream, item, false);
     }
 
     @Override
-    public void putSlotDummy(BinaryStream stream, Item item) {
+    public final void putSlotDummy(BinaryStream stream, Item item) {
         this.putSlot(stream, item, true);
     }
 

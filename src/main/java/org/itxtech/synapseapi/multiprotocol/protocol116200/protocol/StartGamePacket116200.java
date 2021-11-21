@@ -74,6 +74,7 @@ public class StartGamePacket116200 extends Packet116200 {
     public String premiumWorldTemplateId = "00000000-0000-0000-0000-000000000000";
     public boolean isTrial = false;
     public boolean isMovementServerAuthoritative;
+    public boolean isBlockBreakingServerAuthoritative;
     public boolean isInventoryServerAuthoritative;
     public long currentTick;
 
@@ -147,7 +148,7 @@ public class StartGamePacket116200 extends Packet116200 {
         this.putVarInt(this.isMovementServerAuthoritative ? 1 : 0); // 2 - rewind
         if (this.netease || this.protocol != AbstractProtocol.PROTOCOL_116_200) {
             this.putVarInt(0); // RewindHistorySize
-            this.putBoolean(false); // isServerAuthoritativeBlockBreaking
+            this.putBoolean(this.isBlockBreakingServerAuthoritative);
         }
         this.putLLong(this.currentTick);
         this.putVarInt(this.enchantmentSeed);
