@@ -1,10 +1,22 @@
 package org.itxtech.synapseapi.multiprotocol.protocol116.protocol;
 
+import cn.nukkit.item.Item;
+import cn.nukkit.math.BlockVector3;
 import cn.nukkit.math.Vector3f;
+import cn.nukkit.network.protocol.PlayerActionPacket;
 import cn.nukkit.network.protocol.ProtocolInfo;
+import cn.nukkit.network.protocol.types.InventoryTransactionPacketInterface;
+import cn.nukkit.network.protocol.types.NetworkInventoryAction;
+import lombok.ToString;
+import lombok.extern.log4j.Log4j2;
+import org.itxtech.synapseapi.SynapseSharedConstants;
+import org.itxtech.synapseapi.multiprotocol.AbstractProtocol;
 import org.itxtech.synapseapi.multiprotocol.protocol113.protocol.IPlayerAuthInputPacket;
+import org.itxtech.synapseapi.multiprotocol.protocol116210.protocol.PlayerAuthInputPacket116210;
 
-public class PlayerAuthInputPacket116 extends Packet116 implements IPlayerAuthInputPacket {
+@Log4j2
+@ToString
+public class PlayerAuthInputPacket116 extends Packet116 implements IPlayerAuthInputPacket, InventoryTransactionPacketInterface {
 
     public static final int NETWORK_ID = ProtocolInfo.PLAYER_AUTH_INPUT_PACKET;
 
@@ -77,6 +89,16 @@ public class PlayerAuthInputPacket116 extends Packet116 implements IPlayerAuthIn
     public float deltaY;
     public float deltaZ;
 
+    public boolean hasNetworkIds;
+    public NetworkInventoryAction[] inventoryActions;
+
+    public int[] itemStackRequests; //TODO
+
+    public PlayerBlockAction[] blockActions;
+
+    // facepalm
+    public boolean netease;
+
     @Override
     public int pid() {
         return NETWORK_ID;
@@ -107,11 +129,226 @@ public class PlayerAuthInputPacket116 extends Packet116 implements IPlayerAuthIn
         this.deltaX = delta.x;
         this.deltaY = delta.y;
         this.deltaZ = delta.z;
+
+        // damn netease
+        if (this.feof() || ((AbstractProtocol) this.helper.getProtocol()).getProtocolStart() != AbstractProtocol.PROTOCOL_116_200.getProtocolStart()) {
+            return;
+        }
+        this.netease = true;
+
+        boolean[] debugFlags;
+        if (SynapseSharedConstants.MAC_DEBUG) {
+            debugFlags = new boolean[3];
+        }
+
+        if ((this.inputFlags & (1L << PlayerAuthInputPacket116210.FLAG_PERFORM_ITEM_INTERACTION)) != 0) {
+            if (SynapseSharedConstants.MAC_DEBUG) debugFlags[0] = true;
+
+            int legacyRequestId = this.getVarInt();
+            if (legacyRequestId < -1 && (legacyRequestId & 1) == 0) {
+                int size = (int) this.getUnsignedVarInt();
+                for (int i = 0; i < size; i++) {
+                    int containerId = this.getByte();
+
+                    int length = (int) this.getUnsignedVarInt();
+                    byte[] slots = this.get(length);
+
+                }
+            }
+
+            this.hasNetworkIds = this.getBoolean();
+
+            int size = (int) this.getUnsignedVarInt();
+            this.inventoryActions = new NetworkInventoryAction[size];
+            for (int i = 0; i < size; i++) {
+                this.inventoryActions[i] = new NetworkInventoryAction().read(this, this);
+            }
+
+            int actionType = (int) this.getUnsignedVarInt();
+            BlockVector3 blockPosition = this.getBlockVector3();
+            int face = this.getVarInt();
+            int hotbarSlot = this.getVarInt();
+            Item itemInHand = this.getSlot();
+            Vector3f playerPosition = this.getVector3f();
+            Vector3f clickPosition = this.getVector3f();
+            int blockRuntimeId = (int) this.getUnsignedVarInt();
+        }
+
+        if ((this.inputFlags & (1L << PlayerAuthInputPacket116210.FLAG_PERFORM_ITEM_STACK_REQUEST)) != 0) {
+            if (SynapseSharedConstants.MAC_DEBUG) debugFlags[1] = true;
+
+            int requestId = this.getVarInt();
+
+            int size = (int) this.getUnsignedVarInt();
+            this.itemStackRequests = new int[size];
+            for (int i = 0; i < size; i++) {
+                int type = this.getByte();
+                switch (type) {
+                    case PlayerAuthInputPacket116210.STACK_REQUEST_TAKE:
+                        int count = this.getByte();
+                        Object source = this.getStackRequestSlotInfo();
+                        Object destination = this.getStackRequestSlotInfo();
+                        break;
+                    case PlayerAuthInputPacket116210.STACK_REQUEST_PLACE:
+                        count = this.getByte();
+                        source = this.getStackRequestSlotInfo();
+                        destination = this.getStackRequestSlotInfo();
+                        break;
+                    case PlayerAuthInputPacket116210.STACK_REQUEST_SWAP:
+                        source = this.getStackRequestSlotInfo();
+                        destination = this.getStackRequestSlotInfo();
+                        break;
+                    case PlayerAuthInputPacket116210.STACK_REQUEST_DROP:
+                        count = this.getByte();
+                        source = this.getStackRequestSlotInfo();
+                        boolean unknownBool3 = this.getBoolean();
+                        break;
+                    case PlayerAuthInputPacket116210.STACK_REQUEST_DESTROY:
+                        count = this.getByte();
+                        source = this.getStackRequestSlotInfo();
+                        break;
+                    case PlayerAuthInputPacket116210.STACK_REQUEST_CRAFTING_CONSUME_INPUT:
+                        count = this.getByte();
+                        source = this.getStackRequestSlotInfo();
+                        break;
+                    case PlayerAuthInputPacket116210.STACK_REQUEST_CRAFTING_MARK_SECONDARY_RESULT_SLOT:
+                        int slot = this.getByte();
+                        break;
+                    case PlayerAuthInputPacket116210.STACK_REQUEST_LAB_TABLE_COMBINE:
+                        break;
+                    case PlayerAuthInputPacket116210.STACK_REQUEST_BEACON_PAYMENT:
+                        int primaryEffect = this.getVarInt();
+                        int secondaryEffect = this.getVarInt();
+                        break;
+                    case PlayerAuthInputPacket116210.STACK_REQUEST_MINE_BLOCK:
+                        int unknown9 = this.getVarInt();
+                        int predictedDurability = this.getVarInt();
+                        int stackId = this.getVarInt();
+                        break;
+                    case PlayerAuthInputPacket116210.STACK_REQUEST_CRAFTING_RECIPE:
+                        int recipeNetworkId = (int) this.getUnsignedVarInt();
+                        break;
+                    case PlayerAuthInputPacket116210.STACK_REQUEST_CRAFTING_RECIPE_AUTO:
+                        recipeNetworkId = (int) this.getUnsignedVarInt();
+                        break;
+                    case PlayerAuthInputPacket116210.STACK_REQUEST_CREATIVE_CREATE:
+                        int creativeItemNetworkId = (int) this.getUnsignedVarInt();
+                        break;
+                    case PlayerAuthInputPacket116210.STACK_REQUEST_CRAFTING_RECIPE_OPTIONAL:
+                        recipeNetworkId = (int) this.getUnsignedVarInt();
+                        int filteredStringIndex = this.getLInt();
+                        break;
+                    case PlayerAuthInputPacket116210.STACK_REQUEST_CRAFTING_NON_IMPLEMENTED_DEPRECATED_ASK_TY_LAING:
+                        break;
+                    case PlayerAuthInputPacket116210.STACK_REQUEST_CRAFTING_RESULTS_DEPRECATED_ASK_TY_LAING:
+                        int length = (int) this.getUnsignedVarInt();
+                        for (int j = 0; j < length; j++) {
+                            Item resultItem = this.getSlot();
+                        }
+                        int iterations = this.getByte();
+                        break;
+                    default:
+                        throw new UnsupportedOperationException("Unhandled item stack request action type: " + type);
+                }
+                this.itemStackRequests[i] = type;
+            }
+
+            size = (int) this.getUnsignedVarInt();
+            for (int i = 0; i < size; i++) {
+                String filteredString = this.getString();
+
+            }
+        }
+
+        if ((this.inputFlags & (1L << PlayerAuthInputPacket116210.FLAG_PERFORM_BLOCK_ACTIONS)) != 0) {
+            if (SynapseSharedConstants.MAC_DEBUG) debugFlags[2] = true;
+
+            int size = this.getVarInt();
+            this.blockActions = new PlayerBlockAction[size];
+            for (int i = 0; i < size; i++) {
+                int actionType = this.getVarInt();
+                PlayerBlockAction action = new PlayerBlockAction(actionType);
+
+                switch (actionType) {
+                    case PlayerActionPacket.ACTION_START_BREAK:
+                    case PlayerActionPacket.ACTION_ABORT_BREAK:
+                    case PlayerActionPacket.ACTION_CONTINUE_BREAK:
+                    case PlayerActionPacket.ACTION_BLOCK_PREDICT_DESTROY:
+                    case PlayerActionPacket.ACTION_BLOCK_CONTINUE_DESTROY:
+                        BlockVector3 pos = this.getSignedBlockPosition();
+                        action.x = pos.x;
+                        action.y = pos.y;
+                        action.z = pos.z;
+
+                        action.data = this.getVarInt();
+                        break;
+                    case PlayerActionPacket.ACTION_STOP_BREAK:
+                        break;
+                    default:
+                        throw new UnsupportedOperationException("Unexpected block action type: " + actionType);
+                }
+
+                this.blockActions[i] = action;
+            }
+        }
+
+        if (SynapseSharedConstants.MAC_DEBUG) {
+            String debug = "";
+            if (debugFlags[0]) debug += "PERFORM_ITEM_INTERACTION | ";
+            if (debugFlags[1]) debug += "PERFORM_ITEM_STACK_REQUEST | ";
+            if (debugFlags[2]) debug += "PERFORM_BLOCK_ACTIONS | ";
+            if (!debug.isEmpty()) log.debug("{} {}", debug, this);
+        }
     }
 
     @Override
     public void encode() {
 
+    }
+
+    //TODO
+    public Object getStackRequestSlotInfo() {
+
+        int type = this.getByte();
+        int slot = this.getByte();
+        int stackNetworkId = this.getVarInt();
+
+        return null;
+    }
+
+    @Override
+    public void setCraftingPart(boolean craftingPart) {
+
+    }
+
+    @Override
+    public boolean isCraftingPart() {
+        return false;
+    }
+
+    @Override
+    public void setEnchantingPart(boolean enchantingPart) {
+
+    }
+
+    @Override
+    public boolean isEnchantingPart() {
+        return false;
+    }
+
+    @Override
+    public void setRepairItemPart(boolean repairItemPart) {
+
+    }
+
+    @Override
+    public boolean isRepairItemPart() {
+        return false;
+    }
+
+    @Override
+    public boolean hasNetworkIds() {
+        return this.hasNetworkIds;
     }
 
     @Override
@@ -212,5 +449,25 @@ public class PlayerAuthInputPacket116 extends Packet116 implements IPlayerAuthIn
     @Override
     public void setYaw(float yaw) {
         this.yaw = yaw;
+    }
+
+    @Override
+    public NetworkInventoryAction[] getInventoryActions() {
+        return this.inventoryActions;
+    }
+
+    @Override
+    public PlayerBlockAction[] getBlockActions() {
+        return this.blockActions;
+    }
+
+    @Override
+    public boolean hasInventoryActionsField() {
+        return this.netease;
+    }
+
+    @Override
+    public boolean hasBlockActionsField() {
+        return this.netease;
     }
 }
