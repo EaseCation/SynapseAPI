@@ -14,6 +14,8 @@ import org.itxtech.synapseapi.multiprotocol.AbstractProtocol;
 import org.itxtech.synapseapi.multiprotocol.protocol113.protocol.IPlayerAuthInputPacket;
 import org.itxtech.synapseapi.multiprotocol.protocol116210.protocol.PlayerAuthInputPacket116210;
 
+import java.util.Arrays;
+
 @Log4j2
 @ToString
 public class PlayerAuthInputPacket116 extends Packet116 implements IPlayerAuthInputPacket, InventoryTransactionPacketInterface {
@@ -135,6 +137,9 @@ public class PlayerAuthInputPacket116 extends Packet116 implements IPlayerAuthIn
             return;
         }
         this.netease = true;
+
+        // wtf
+        this.getByte(); // 0
 
         boolean[] debugFlags;
         if (SynapseSharedConstants.MAC_DEBUG) {
@@ -292,11 +297,17 @@ public class PlayerAuthInputPacket116 extends Packet116 implements IPlayerAuthIn
             }
         }
 
+        // discard :(
+//        this.getExtraData();
+
         if (SynapseSharedConstants.MAC_DEBUG) {
             String debug = "";
             if (debugFlags[0]) debug += "PERFORM_ITEM_INTERACTION | ";
             if (debugFlags[1]) debug += "PERFORM_ITEM_STACK_REQUEST | ";
             if (debugFlags[2]) debug += "PERFORM_BLOCK_ACTIONS | ";
+//            if (!this.feof()) {
+//                debug += "!feof | " + Arrays.toString(this.get());
+//            }
             if (!debug.isEmpty()) log.debug("{} {}", debug, this);
         }
     }
@@ -313,6 +324,11 @@ public class PlayerAuthInputPacket116 extends Packet116 implements IPlayerAuthIn
         int slot = this.getByte();
         int stackNetworkId = this.getVarInt();
 
+        return null;
+    }
+
+    public Object getExtraData() {
+        //TODO
         return null;
     }
 
