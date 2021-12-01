@@ -87,8 +87,8 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
             startGamePacket.worldName = this.getServer().getNetwork().getName();
             startGamePacket.generator = 1; // 0 old, 1 infinite, 2 flat
             startGamePacket.gameRules = getSupportedRules();
-            startGamePacket.isMovementServerAuthoritative = false;
-            startGamePacket.isBlockBreakingServerAuthoritative = this.serverAuthoritativeBlockBreaking = false;
+            startGamePacket.isMovementServerAuthoritative = true;
+            startGamePacket.isBlockBreakingServerAuthoritative = this.serverAuthoritativeBlockBreaking = true;
             startGamePacket.currentTick = this.server.getTick();
             return startGamePacket;
         } else if (this.getProtocol() >= AbstractProtocol.PROTOCOL_117_30.getProtocolStart()) {
@@ -562,7 +562,11 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
 
     @Override
     protected void initClientBlobCache() {
-        if (!this.isNetEaseClient() /*&& this.protocol < AbstractProtocol.PROTOCOL_116_210.getProtocolStart()*/) super.initClientBlobCache();
+        if (!this.isNetEaseClient()
+                && this.protocol < AbstractProtocol.PROTOCOL_118.getProtocolStart() //FIXME: client performance is very bad in 1.18, Microjang messed up everything :(
+        ) {
+            super.initClientBlobCache();
+        }
     }
 
     @Override
@@ -578,5 +582,10 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
             pk.animation = animation;
             this.dataPacket(pk);
         }
+    }
+
+    @Override
+    protected boolean isExtendedLevel() {
+        return this.protocol >= AbstractProtocol.PROTOCOL_118.getProtocolStart();
     }
 }

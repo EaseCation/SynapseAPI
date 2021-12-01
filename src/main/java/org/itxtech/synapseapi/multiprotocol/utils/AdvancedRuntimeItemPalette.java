@@ -27,7 +27,7 @@ public final class AdvancedRuntimeItemPalette {
         RuntimeItemPalette palette11710 = new RuntimeItemPalette("runtime_item_ids_11710.json");
         RuntimeItemPalette palette11730 = new RuntimeItemPalette("runtime_item_ids_11730.json");
         RuntimeItemPalette palette11740 = new RuntimeItemPalette("runtime_item_ids_11740.json");
-        RuntimeItemPalette palette118 = new RuntimeItemPalette("runtime_item_ids_11740.json"); //TODO: update me
+        RuntimeItemPalette palette118 = new RuntimeItemPalette("runtime_item_ids_118.json");
 
         register(AbstractProtocol.PROTOCOL_116_100, palette116100, null);
         register(AbstractProtocol.PROTOCOL_116_200, palette116100, palette116200NE);

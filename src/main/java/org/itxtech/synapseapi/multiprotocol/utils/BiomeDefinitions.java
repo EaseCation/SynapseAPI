@@ -21,6 +21,7 @@ public final class BiomeDefinitions {
             byte[] data116 = ByteStreams.toByteArray(SynapseAPI.getInstance().getResource("biome_definitions116.dat"));
             byte[] data116210 = ByteStreams.toByteArray(SynapseAPI.getInstance().getResource("biome_definitions116210.dat"));
             byte[] data11740 = ByteStreams.toByteArray(SynapseAPI.getInstance().getResource("biome_definitions11740.dat"));
+            byte[] data118 = ByteStreams.toByteArray(SynapseAPI.getInstance().getResource("biome_definitions118.dat"));
 
             data.put(AbstractProtocol.PROTOCOL_112, data112);
             data.put(AbstractProtocol.PROTOCOL_113, data112);
@@ -37,7 +38,7 @@ public final class BiomeDefinitions {
             data.put(AbstractProtocol.PROTOCOL_117_10, data116210);
             data.put(AbstractProtocol.PROTOCOL_117_30, data116210);
             data.put(AbstractProtocol.PROTOCOL_117_40, data11740);
-            data.put(AbstractProtocol.PROTOCOL_118, data11740);
+            data.put(AbstractProtocol.PROTOCOL_118, data118);
         } catch (NullPointerException | IOException e) {
             throw new AssertionError("Unable to load biome_definitions.dat");
         }

@@ -4,6 +4,7 @@ import cn.nukkit.Player;
 import cn.nukkit.entity.Entity;
 import cn.nukkit.level.Level;
 import cn.nukkit.level.Position;
+import cn.nukkit.level.format.anvil.Anvil;
 import cn.nukkit.level.format.generic.ChunkBlobCache;
 import cn.nukkit.network.SourceInterface;
 import cn.nukkit.network.protocol.DataPacket;
@@ -113,14 +114,23 @@ public class SynapsePlayer112 extends SynapsePlayer19 {
 				return;
 			}
 			long chunkHash = Level.chunkHash(x, z);
-			long[] blobIds = blobCache.getBlobIds();
+
+			long[] blobIds;
+			Long2ObjectOpenHashMap<byte[]> blobs;
+			if (this.isExtendedLevel()) {
+				subChunkCount += Anvil.LOWER_PADDING_SUB_CHUNK_COUNT;
+				blobIds = blobCache.getExtendedBlobIds();
+				blobs = blobCache.getExtendedClientBlobs();
+			} else {
+				blobIds = blobCache.getBlobIds();
+				blobs = blobCache.getClientBlobs();
+			}
 
 			this.usedChunks.put(chunkHash, true);
 			this.chunkLoadCount++;
 
 			LevelChunkPacket pk = new LevelChunkPacket();
 
-			Long2ObjectOpenHashMap<byte[]> blobs = blobCache.getClientBlobs();
 			ObjectIterator<Long2ObjectMap.Entry<byte[]>> iter = Long2ObjectMaps.fastIterator(blobs);
 			while (iter.hasNext()) {
 				Long2ObjectMap.Entry<? extends byte[]> entry = iter.next();
@@ -190,9 +200,17 @@ public class SynapsePlayer112 extends SynapsePlayer19 {
 			//this.getServer().getLogger().debug("Send self chunk (payload) " + x + ":" + z + " pos=" + this.x + "," + this.y + "," + this.z + " teleportPos=" + teleportPosition);
 		}
 		if (this.clientCacheTrack != null && blobCache != null) {
-			long[] blobIds = blobCache.getBlobIds();
+			long[] blobIds;
+			Long2ObjectOpenHashMap<byte[]> blobs;
+			if (this.isExtendedLevel()) {
+				subChunkCount += Anvil.LOWER_PADDING_SUB_CHUNK_COUNT;
+				blobIds = blobCache.getExtendedBlobIds();
+				blobs = blobCache.getExtendedClientBlobs();
+			} else {
+				blobIds = blobCache.getBlobIds();
+				blobs = blobCache.getClientBlobs();
+			}
 
-			Long2ObjectOpenHashMap<byte[]> blobs = blobCache.getClientBlobs();
 			ObjectIterator<Long2ObjectMap.Entry<byte[]>> iter = Long2ObjectMaps.fastIterator(blobs);
 			while (iter.hasNext()) {
 				Long2ObjectMap.Entry<? extends byte[]> entry = iter.next();
@@ -376,4 +394,8 @@ public class SynapsePlayer112 extends SynapsePlayer19 {
 		}
 		return success;
 	}*/
+
+	protected boolean isExtendedLevel() {
+		return false;
+	}
 }

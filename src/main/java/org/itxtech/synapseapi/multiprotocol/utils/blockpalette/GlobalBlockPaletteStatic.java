@@ -5,11 +5,11 @@ import org.itxtech.synapseapi.multiprotocol.utils.AdvancedGlobalBlockPaletteInte
 
 import java.util.NoSuchElementException;
 
-public class GlobalBlockPaletteHardcode implements GlobalBlockPaletteInterface {
+public class GlobalBlockPaletteStatic implements GlobalBlockPaletteInterface {
 
     private final AdvancedGlobalBlockPaletteInterface palette;
 
-    public GlobalBlockPaletteHardcode(AdvancedGlobalBlockPaletteInterface palette) {
+    public GlobalBlockPaletteStatic(AdvancedGlobalBlockPaletteInterface palette) {
         this.palette = palette;
     }
 

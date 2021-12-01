@@ -13,12 +13,10 @@ import cn.nukkit.item.RuntimeItemPaletteInterface;
 import cn.nukkit.item.RuntimeItems;
 import cn.nukkit.level.GlobalBlockPalette;
 import cn.nukkit.level.GlobalBlockPaletteInterface;
-import cn.nukkit.nbt.tag.CompoundTag;
 import cn.nukkit.network.RakNetInterface;
 import cn.nukkit.network.SourceInterface;
 import cn.nukkit.network.protocol.BatchPacket;
 import cn.nukkit.network.protocol.DataPacket;
-import cn.nukkit.network.protocol.LevelSoundEventPacket;
 import cn.nukkit.network.protocol.ProtocolInfo;
 import cn.nukkit.utils.Binary;
 import cn.nukkit.utils.Utils;
@@ -28,21 +26,15 @@ import cn.nukkit.plugin.PluginBase;
 import cn.nukkit.utils.ConfigSection;
 import org.itxtech.synapseapi.messaging.Messenger;
 import org.itxtech.synapseapi.messaging.StandardMessenger;
-import org.itxtech.synapseapi.multiprotocol.protocol19.protocol.LevelSoundEventPacketV319;
 import org.itxtech.synapseapi.multiprotocol.utils.AdvancedGlobalBlockPalette;
-import org.itxtech.synapseapi.multiprotocol.utils.AdvancedGlobalBlockPaletteInterface;
 import org.itxtech.synapseapi.multiprotocol.utils.AdvancedRuntimeItemPalette;
 import org.itxtech.synapseapi.multiprotocol.utils.AvailableEntityIdentifiersPalette;
 import org.itxtech.synapseapi.multiprotocol.utils.BiomeDefinitions;
 import org.itxtech.synapseapi.multiprotocol.utils.CreativeItemsPalette;
-import org.itxtech.synapseapi.multiprotocol.utils.LevelSoundEventIDTranslator;
-import org.itxtech.synapseapi.multiprotocol.utils.blockpalette.data.PaletteBlockTable;
 import org.itxtech.synapseapi.runnable.TransferDimensionTaskThread;
 import org.itxtech.synapseapi.utils.ClientData;
 import org.itxtech.synapseapi.utils.NetTest;
 
-import java.lang.reflect.Field;
-import java.lang.reflect.Modifier;
 import java.util.*;
 import java.util.Map.Entry;
 import java.util.stream.Collectors;
@@ -121,8 +113,8 @@ public class SynapseAPI extends PluginBase implements Listener {
             }
 
             @Override
-            public GlobalBlockPaletteInterface getHardcodedBlockPalette0(HardcodedVersion version) {
-                return AdvancedGlobalBlockPalette.getHardcodedBlockPalette0(version);
+            public GlobalBlockPaletteInterface getStaticBlockPalette0(StaticVersion version) {
+                return AdvancedGlobalBlockPalette.getStaticBlockPalette0(version);
             }
         });
 
