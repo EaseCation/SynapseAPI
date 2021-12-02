@@ -439,10 +439,6 @@ public class SynapsePlayer116 extends SynapsePlayer113 {
 							return;
 						}
 
-						if(!target.canInteract()){
-							return;
-						}
-
 						type = useItemOnEntityData.actionType;
 
 						if (!useItemOnEntityData.itemInHand.equalsExact(this.inventory.getItemInHand())) {
