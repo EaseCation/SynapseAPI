@@ -138,7 +138,7 @@
             <groupId>net.easecation</groupId>
             <artifactId>AuthLibPackage</artifactId>
             <version>1.0.0</version>
-            <!--<scope>provided</scope>-->
+            <scope>provided</scope>
         </dependency>
         <dependency>
             <groupId>org.msgpack</groupId>
@@ -183,6 +183,7 @@
                             <artifactSet>
                                 <excludes>
                                     <exclude>cn.nukkit:nukkit</exclude>
+                                    <exclude>net.easecation:AuthLibPackage</exclude>
                                 </excludes>
                             </artifactSet>
                         </configuration>
