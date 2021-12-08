@@ -512,6 +512,8 @@ public class SynapsePlayer extends Player {
                 return false;
             }
 
+            this.clearSubChunkQueues();
+
             this.removeAllChunks();
 
             this.getDummyBossBars().values().forEach(DummyBossBar::destroy);
@@ -1046,7 +1048,7 @@ public class SynapsePlayer extends Player {
     }
 
     public long nextForceSpawn = System.currentTimeMillis();
-    private final Timing updateSynapsePlayerTiming = TimingsManager.getTiming("updateSynapsePlayerTiming");
+    protected final Timing updateSynapsePlayerTiming = TimingsManager.getTiming("updateSynapsePlayerTiming");
 
     @Override
     public boolean onUpdate(int currentTick) {
@@ -1243,5 +1245,9 @@ public class SynapsePlayer extends Player {
 
     public void modNotifyToClient(String modName, String systemName, String eventName, MapValue eventData) {
         //SynapsePlayer16
+    }
+
+    protected void clearSubChunkQueues() {
+        // 1.18+
     }
 }

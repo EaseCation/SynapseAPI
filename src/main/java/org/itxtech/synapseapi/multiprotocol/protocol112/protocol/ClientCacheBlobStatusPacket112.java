@@ -1,6 +1,8 @@
 package org.itxtech.synapseapi.multiprotocol.protocol112.protocol;
 
 import cn.nukkit.network.protocol.ProtocolInfo;
+import it.unimi.dsi.fastutil.longs.LongOpenHashSet;
+import it.unimi.dsi.fastutil.longs.LongSet;
 
 public class ClientCacheBlobStatusPacket112 extends Packet112 {
 
@@ -8,6 +10,15 @@ public class ClientCacheBlobStatusPacket112 extends Packet112 {
 
     public long[] missHashes;
     public long[] hitHashes;
+
+    /**
+     * missHashes 的无重复集合.
+     */
+    public LongSet missSet;
+    /**
+     * hitHashes 的无重复集合.
+     */
+    public LongSet hitSet;
 
     @Override
     public int pid() {
@@ -20,7 +31,7 @@ public class ClientCacheBlobStatusPacket112 extends Packet112 {
         int hitCount = (int) this.getUnsignedVarInt();
 
         if (missCount + hitCount > 0xfff) {
-            throw new ArrayIndexOutOfBoundsException("Too many BlobIDs");
+            throw new IndexOutOfBoundsException("Too many BlobIDs");
         }
 
         this.missHashes = new long[missCount];
@@ -32,6 +43,10 @@ public class ClientCacheBlobStatusPacket112 extends Packet112 {
         for (int i = 0; i < hitCount; ++i) {
             this.hitHashes[i] = this.getLLong();
         }
+
+        // 1.18客户端会发送重复的hash...
+        this.missSet = new LongOpenHashSet(this.missHashes);
+        this.hitSet = new LongOpenHashSet(this.hitHashes);
     }
 
     @Override

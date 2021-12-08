@@ -108,7 +108,7 @@ public class SynapsePlayer112 extends SynapsePlayer19 {
 
 	@Override
 	public void sendChunk(int x, int z, int subChunkCount, ChunkBlobCache blobCache, DataPacket packet) {
-		if (this.clientCacheTrack == null || blobCache == null) super.sendChunk(x, z, subChunkCount, blobCache, packet);
+		if (!this.isBlobCacheAvailable() || blobCache == null || this.isBlobCacheDisabled()) super.sendChunk(x, z, subChunkCount, blobCache, packet);
 		else {
 			if (!this.connected) {
 				return;
@@ -116,9 +116,9 @@ public class SynapsePlayer112 extends SynapsePlayer19 {
 			long chunkHash = Level.chunkHash(x, z);
 
 			long[] blobIds;
-			Long2ObjectOpenHashMap<byte[]> blobs;
+			Long2ObjectMap<byte[]> blobs;
 			if (this.isExtendedLevel()) {
-				subChunkCount += Anvil.LOWER_PADDING_SUB_CHUNK_COUNT;
+				subChunkCount += Anvil.PADDING_SUB_CHUNK_COUNT;
 				blobIds = blobCache.getExtendedBlobIds();
 				blobs = blobCache.getExtendedClientBlobs();
 			} else {
@@ -151,7 +151,7 @@ public class SynapsePlayer112 extends SynapsePlayer19 {
 			pk.subChunkCount = subChunkCount;
 			pk.cacheEnabled = true;
 			pk.blobIds = blobIds;
-			pk.data = blobCache.getClientBlobCachedPayload();
+			pk.data = blobCache.getFullChunkCachedPayload();
 			pk.setReliability(RakNetReliability.RELIABLE_ORDERED);
 
 			this.dataPacket(pk);
@@ -180,7 +180,7 @@ public class SynapsePlayer112 extends SynapsePlayer19 {
 	}
 
 	@Override
-	public void sendChunk(int x, int z, int subChunkCount, ChunkBlobCache blobCache, byte[] payload) {
+	public void sendChunk(int x, int z, int subChunkCount, ChunkBlobCache blobCache, byte[] payload, byte[] subModePayload) {
 		if (!this.connected) {
 			return;
 		}
@@ -191,19 +191,17 @@ public class SynapsePlayer112 extends SynapsePlayer19 {
 
 		LevelChunkPacket pk = new LevelChunkPacket();
 
-		if (this.getChunkX() == x && this.getChunkZ() == z) {
-			pk.chunkX = x;
-			pk.chunkZ = z;
-			pk.subChunkCount = subChunkCount;
-			pk.data = payload;
-			pk.setReliability(RakNetReliability.RELIABLE_ORDERED);
+		boolean centerChunk = this.getChunkX() == x && this.getChunkZ() == z;
+		if (centerChunk) {
 			//this.getServer().getLogger().debug("Send self chunk (payload) " + x + ":" + z + " pos=" + this.x + "," + this.y + "," + this.z + " teleportPos=" + teleportPosition);
+			this.teleportChunkLoaded = true;
 		}
-		if (this.clientCacheTrack != null && blobCache != null) {
+
+		if (this.isBlobCacheAvailable() && blobCache != null && !centerChunk && !this.isBlobCacheDisabled()) {
 			long[] blobIds;
-			Long2ObjectOpenHashMap<byte[]> blobs;
+			Long2ObjectMap<byte[]> blobs;
 			if (this.isExtendedLevel()) {
-				subChunkCount += Anvil.LOWER_PADDING_SUB_CHUNK_COUNT;
+				subChunkCount += Anvil.PADDING_SUB_CHUNK_COUNT;
 				blobIds = blobCache.getExtendedBlobIds();
 				blobs = blobCache.getExtendedClientBlobs();
 			} else {
@@ -223,7 +221,7 @@ public class SynapsePlayer112 extends SynapsePlayer19 {
 			pk.subChunkCount = subChunkCount;
 			pk.cacheEnabled = true;
 			pk.blobIds = blobIds;
-			pk.data = blobCache.getClientBlobCachedPayload();
+			pk.data = blobCache.getFullChunkCachedPayload();
 			pk.setReliability(RakNetReliability.RELIABLE_ORDERED);
 
 			this.sendQueuedChunk = false;
@@ -275,7 +273,7 @@ public class SynapsePlayer112 extends SynapsePlayer19 {
 	}
 
 	protected void initClientBlobCache() {
-		if (this.clientCacheTrack == null) {
+		if (SynapseSharedConstants.USE_CLIENT_BLOB_CACHE && this.clientCacheTrack == null) {
 			this.clientCacheTrack = new Long2ObjectOpenHashMap<BlobTrack>() {
 				@Override
 				public BlobTrack put(long hash, BlobTrack track) {
@@ -310,7 +308,7 @@ public class SynapsePlayer112 extends SynapsePlayer19 {
 				break;
 			case ProtocolInfo.CLIENT_CACHE_BLOB_STATUS_PACKET:
 				if (!callPacketReceiveEvent(packet)) break;
-				if (clientCacheTrack != null) {
+				if (this.isBlobCacheAvailable()) {
 					ClientCacheBlobStatusPacket112 pk = (ClientCacheBlobStatusPacket112) packet;
 
 					//this.getServer().getLogger().warning("[ClientCache] recv ClientCacheBlobStatusPacket");
@@ -322,7 +320,7 @@ public class SynapsePlayer112 extends SynapsePlayer19 {
 					//this.getServer().getLogger().warning("hit=" + Arrays.toString(pk.hitHashes));
 
 					ClientCacheMissResponsePacket112 responsePk = new ClientCacheMissResponsePacket112();
-					for (long id : pk.missHashes) {
+					for (long id : pk.missSet) {
 						BlobTrack track = clientCacheTrack.get(id);
 						if (track != null) {
 							responsePk.blobs.put(id, track.getBlob());
@@ -341,7 +339,7 @@ public class SynapsePlayer112 extends SynapsePlayer19 {
 					//this.getServer().getLogger().warning("[ClientCache] sent ClientCacheMissResponsePacket");
 					//this.getServer().getLogger().warning("blobs=" + Arrays.toString(responsePk.blobs.keySet().toArray()));
 
-					for (long id : pk.hitHashes) {
+					for (long id : pk.hitSet) {
 						BlobTrack track = clientCacheTrack.remove(id);
 						if (track != null) {
 							this.clientChunkLoadCount += track.refCnt();
@@ -364,21 +362,26 @@ public class SynapsePlayer112 extends SynapsePlayer19 {
 
 	@Override
 	public boolean onUpdate(int currentTick) {
-		if (this.clientCacheTrack != null) {
-			if (this.teleportChunkLoaded) {
-				if (this.isImmobile() && !this.lastImmobile) {
-					//this.setImmobile(false);
+		int tickDiff = currentTick - this.lastUpdate;
+		if (tickDiff > 0) {
+			this.updateSynapsePlayerTiming.startTiming();
+			if (this.isBlobCacheAvailable() && !this.isBlobCacheDisabled()) {
+				if (this.teleportChunkLoaded) {
+					if (this.isImmobile() && !this.lastImmobile) {
+						//this.setImmobile(false);
+					}
+				} else if (!this.isImmobile()) {
+					//this.setImmobile();
 				}
-			} else if (!this.isImmobile()) {
-				//this.setImmobile();
 			}
+			this.updateSynapsePlayerTiming.stopTiming();
 		}
 		return super.onUpdate(currentTick);
 	}
 
 	@Override
 	protected boolean canDoFirstSpawn() {
-		return this.clientCacheTrack != null ? this.clientChunkLoadCount >= this.spawnThreshold : super.canDoFirstSpawn();
+		return this.isBlobCacheAvailable() && !this.isBlobCacheDisabled() ? this.clientChunkLoadCount >= this.spawnThreshold : super.canDoFirstSpawn();
 	}
 
 	@Override
@@ -394,6 +397,14 @@ public class SynapsePlayer112 extends SynapsePlayer19 {
 		}
 		return success;
 	}*/
+
+	public boolean isBlobCacheAvailable() {
+		return SynapseSharedConstants.USE_CLIENT_BLOB_CACHE && this.clientCacheTrack != null;
+	}
+
+	public boolean isBlobCacheDisabled() {
+		return false;
+	}
 
 	protected boolean isExtendedLevel() {
 		return false;

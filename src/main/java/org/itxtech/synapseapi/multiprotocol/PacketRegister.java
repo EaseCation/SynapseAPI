@@ -37,6 +37,8 @@ import org.itxtech.synapseapi.multiprotocol.protocol11730.protocol.AnimateEntity
 import org.itxtech.synapseapi.multiprotocol.protocol11730.protocol.CraftingDataPacket11730;
 import org.itxtech.synapseapi.multiprotocol.protocol11730.protocol.StartGamePacket11730;
 import org.itxtech.synapseapi.multiprotocol.protocol118.protocol.StartGamePacket118;
+import org.itxtech.synapseapi.multiprotocol.protocol118.protocol.SubChunkRequestPacket118;
+import org.itxtech.synapseapi.multiprotocol.protocol118.protocol.UpdateSubChunkBlocksPacket118;
 import org.itxtech.synapseapi.multiprotocol.protocol15.protocol.AddEntityPacket15;
 import org.itxtech.synapseapi.multiprotocol.protocol15.protocol.ClientboundMapItemDataPacket15;
 import org.itxtech.synapseapi.multiprotocol.protocol15.protocol.MoveEntityAbsolutePacket15;
@@ -222,6 +224,8 @@ public class PacketRegister {
         registerPacket(AbstractProtocol.PROTOCOL_117_30, ProtocolInfo.ANIMATE_ENTITY_PACKET, AnimateEntityPacket11730.class);
 
         registerPacket(AbstractProtocol.PROTOCOL_118, ProtocolInfo.START_GAME_PACKET, StartGamePacket118.class);
+        registerPacket(AbstractProtocol.PROTOCOL_118, ProtocolInfo.SUB_CHUNK_REQUEST_PACKET, SubChunkRequestPacket118.class);
+        registerPacket(AbstractProtocol.PROTOCOL_118, ProtocolInfo.UPDATE_SUB_CHUNK_BLOCKS_PACKET, UpdateSubChunkBlocksPacket118.class);
 
         checkNeteaseSpecialExtend();
         CraftingPacketManager.rebuildPacket();
@@ -396,7 +400,7 @@ public class PacketRegister {
      * @return 检查，兼容后的数据包
      */
     private static DataPacket check16ProtocolCompatible(DataPacket packet, AbstractProtocol endpointProtocol, boolean netease) {
-        if (!(packet instanceof LevelChunkPacket) && endpointProtocol.ordinal() >= AbstractProtocol.PROTOCOL_16.ordinal() && (!(packet instanceof IterationProtocolPacket) || !((IterationProtocolPacket) packet).is16Newer())) {
+        if (!(packet instanceof LevelChunkPacket || packet instanceof SubChunkPacket) && endpointProtocol.ordinal() >= AbstractProtocol.PROTOCOL_16.ordinal() && (!(packet instanceof IterationProtocolPacket) || !((IterationProtocolPacket) packet).is16Newer())) {
             CompatibilityPacket16 cp = new CompatibilityPacket16();
             packet.setHelper(endpointProtocol.getHelper());
             packet.neteaseMode = netease;

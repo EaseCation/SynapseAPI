@@ -934,8 +934,13 @@ public class SynapsePlayer116 extends SynapsePlayer113 {
 
 	@Override
 	public boolean onUpdate(int currentTick) {
-		if (this.serverAuthoritativeBlockBreaking && this.breakingBlockFace != null && this.isBreakingBlock() && this.spawned && this.isAlive()) {
-			this.level.addParticle(new PunchBlockParticle(this.breakingBlock, this.breakingBlock, this.breakingBlockFace));
+		int tickDiff = currentTick - this.lastUpdate;
+		if (tickDiff > 0) {
+			this.updateSynapsePlayerTiming.startTiming();
+			if (this.serverAuthoritativeBlockBreaking && this.breakingBlockFace != null && this.isBreakingBlock() && this.spawned && this.isAlive()) {
+				this.level.addParticle(new PunchBlockParticle(this.breakingBlock, this.breakingBlock, this.breakingBlockFace));
+			}
+			this.updateSynapsePlayerTiming.stopTiming();
 		}
 		return super.onUpdate(currentTick);
 	}

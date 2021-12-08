@@ -1,15 +1,14 @@
 package org.itxtech.synapseapi.multiprotocol.protocol112.protocol;
 
 import cn.nukkit.network.protocol.ProtocolInfo;
+import it.unimi.dsi.fastutil.longs.Long2ObjectMap;
 import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap;
-
-import java.util.Map;
 
 public class ClientCacheMissResponsePacket112 extends Packet112 {
 
     public static final int NETWORK_ID = ProtocolInfo.CLIENT_CACHE_MISS_RESPONSE_PACKET;
 
-    public Map<Long, byte[]> blobs = new Long2ObjectOpenHashMap<>();
+    public Long2ObjectMap<byte[]> blobs = new Long2ObjectOpenHashMap<>();
 
     @Override
     public int pid() {
