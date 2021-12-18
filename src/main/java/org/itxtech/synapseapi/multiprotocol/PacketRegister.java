@@ -445,7 +445,7 @@ public class PacketRegister {
             packets.add(pk);
         }
 
-        return packets.stream().toArray(DataPacket[]::new);
+        return packets.toArray(new DataPacket[0]);
     }
 
 }
