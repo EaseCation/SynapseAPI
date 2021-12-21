@@ -10,6 +10,7 @@ import cn.nukkit.lang.TranslationContainer;
 import cn.nukkit.level.GameRules;
 import cn.nukkit.level.Level;
 import cn.nukkit.level.Position;
+import cn.nukkit.math.MathHelper;
 import cn.nukkit.math.Vector3;
 import cn.nukkit.network.SourceInterface;
 import cn.nukkit.network.protocol.*;
@@ -97,8 +98,8 @@ public class SynapsePlayer16 extends SynapsePlayer14 {
 
 							ResourcePackDataInfoPacket dataInfoPacket = new ResourcePackDataInfoPacket();
 							dataInfoPacket.packId = resourcePack.getPackId();
-							dataInfoPacket.maxChunkSize = 1048576; //megabyte
-							dataInfoPacket.chunkCount = resourcePack.getPackSize() / dataInfoPacket.maxChunkSize;
+							dataInfoPacket.maxChunkSize = RESOURCE_PACK_CHUNK_SIZE;
+							dataInfoPacket.chunkCount = MathHelper.ceil(resourcePack.getPackSize() / (float) RESOURCE_PACK_CHUNK_SIZE);
 							dataInfoPacket.compressedPackSize = resourcePack.getPackSize();
 							dataInfoPacket.sha256 = resourcePack.getSha256();
 							if (resourcePack.getPackType().equals("resources")) {

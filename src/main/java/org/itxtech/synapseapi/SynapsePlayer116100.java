@@ -20,6 +20,7 @@ import cn.nukkit.level.format.anvil.Anvil;
 import cn.nukkit.level.format.generic.ChunkBlobCache;
 import cn.nukkit.level.format.generic.ChunkPacketCache;
 import cn.nukkit.math.BlockFace;
+import cn.nukkit.math.MathHelper;
 import cn.nukkit.math.Vector3;
 import cn.nukkit.math.Vector3f;
 import cn.nukkit.network.SourceInterface;
@@ -318,8 +319,8 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
 
                             ResourcePackDataInfoPacket dataInfoPacket = new ResourcePackDataInfoPacket();
                             dataInfoPacket.packId = resourcePack.getPackId();
-                            dataInfoPacket.maxChunkSize = 1048576; //megabyte
-                            dataInfoPacket.chunkCount = resourcePack.getPackSize() / dataInfoPacket.maxChunkSize;
+                            dataInfoPacket.maxChunkSize = RESOURCE_PACK_CHUNK_SIZE;
+                            dataInfoPacket.chunkCount = MathHelper.ceil(resourcePack.getPackSize() / (float) RESOURCE_PACK_CHUNK_SIZE);
                             dataInfoPacket.compressedPackSize = resourcePack.getPackSize();
                             dataInfoPacket.sha256 = resourcePack.getSha256();
                             if (resourcePack.getPackType().equals("resources")) {
