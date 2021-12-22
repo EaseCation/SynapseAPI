@@ -823,7 +823,7 @@ public class SynapsePlayer116 extends SynapsePlayer113 {
 				}
 
 				if (this.forceMovement != null && (newPos.distanceSquared(this.forceMovement) > 0.1 || revert)) {
-					this.sendPosition(this.forceMovement, playerAuthInputPacket.getYaw(), playerAuthInputPacket.getPitch(), MovePlayerPacket.MODE_RESET);
+					this.sendPosition(this.forceMovement, this.yaw, this.pitch, MovePlayerPacket.MODE_RESET);
 				} else {
 					playerAuthInputPacket.setYaw(playerAuthInputPacket.getYaw() % 360);
 					playerAuthInputPacket.setPitch(playerAuthInputPacket.getPitch() % 360);
