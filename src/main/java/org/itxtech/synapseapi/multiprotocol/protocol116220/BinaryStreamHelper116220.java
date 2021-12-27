@@ -183,7 +183,7 @@ public class BinaryStreamHelper116220 extends BinaryStreamHelper116210 {
 
         if (!instanceItem) {
             stream.putBoolean(true); // hasNetId
-            stream.putVarInt(0); // netId
+            stream.putVarInt(1); // netId
         }
 
         Block block = item.getBlockUnsafe();

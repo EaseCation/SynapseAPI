@@ -806,15 +806,16 @@ public class SynapsePlayer116 extends SynapsePlayer113 {
 				}
 
 				newPos = new Vector3(playerAuthInputPacket.getX(), playerAuthInputPacket.getY() - this.getEyeHeight(), playerAuthInputPacket.getZ());
+				double dis = newPos.distanceSquared(this);
 
-				if (newPos.distanceSquared(this) < 0.01 && playerAuthInputPacket.getYaw() % 360 == this.yaw && playerAuthInputPacket.getPitch() % 360 == this.pitch) {
+				if (dis == 0 && playerAuthInputPacket.getYaw() % 360 == this.yaw && playerAuthInputPacket.getPitch() % 360 == this.pitch) {
 					break;
 				}
 
-				if (newPos.distanceSquared(this) > 100) {
-					this.sendPosition(this, playerAuthInputPacket.getYaw(), playerAuthInputPacket.getPitch(), MovePlayerPacket.MODE_RESET);
-					break;
-				}
+//				if (dis > 100) {
+//					this.sendPosition(this, playerAuthInputPacket.getYaw(), playerAuthInputPacket.getPitch(), MovePlayerPacket.MODE_RESET);
+//					break;
+//				}
 
 				revert = false;
 				if (!this.isAlive() || !this.spawned) {

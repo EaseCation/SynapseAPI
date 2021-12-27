@@ -24,6 +24,7 @@ public final class AdvancedRuntimeItemPalette {
         RuntimeItemPalette palette116100 = new RuntimeItemPalette("runtime_item_ids_116100.json");
         RuntimeItemPalette palette116200NE = new RuntimeItemPalette("runtime_item_ids_116200NE.json");
         RuntimeItemPalette palette117 = new RuntimeItemPalette("runtime_item_ids_117.json");
+        RuntimeItemPalette palette117NE = new RuntimeItemPalette("runtime_item_ids_117NE.json");
         RuntimeItemPalette palette11710 = new RuntimeItemPalette("runtime_item_ids_11710.json");
         RuntimeItemPalette palette11730 = new RuntimeItemPalette("runtime_item_ids_11730.json");
         RuntimeItemPalette palette11740 = new RuntimeItemPalette("runtime_item_ids_11740.json");
@@ -33,7 +34,7 @@ public final class AdvancedRuntimeItemPalette {
         register(AbstractProtocol.PROTOCOL_116_200, palette116100, palette116200NE);
         register(AbstractProtocol.PROTOCOL_116_210, palette116100, null);
         register(AbstractProtocol.PROTOCOL_116_220, palette116100, null);
-        register(AbstractProtocol.PROTOCOL_117, palette117, null);
+        register(AbstractProtocol.PROTOCOL_117, palette117, palette117NE);
         register(AbstractProtocol.PROTOCOL_117_10, palette11710, null);
         register(AbstractProtocol.PROTOCOL_117_30, palette11730, null);
         register(AbstractProtocol.PROTOCOL_117_40, palette11740, null);

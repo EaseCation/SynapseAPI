@@ -260,6 +260,36 @@ public class PaletteBlockTable extends ArrayList<PaletteBlockData> {
         }
     }
 
+    public static PaletteBlockTable fromDumpJson(String file) {
+        Gson gson = new Gson();
+        Type collectionType = new TypeToken<Collection<DumpJsonTableEntry>>() {
+        }.getType();
+
+        Collection<DumpJsonTableEntry> entries;
+
+        try (InputStream stream = SynapseAPI.class.getClassLoader().getResourceAsStream(file)) {
+            if (stream == null) {
+                throw new AssertionError("Unable to locate block_palette.json (dump json)");
+            }
+            try (Reader reader = new InputStreamReader(new ByteArrayInputStream(ByteStreams.toByteArray(stream)), StandardCharsets.UTF_8)) {
+                entries = gson.fromJson(reader, collectionType);
+            }
+            PaletteBlockTable table = new PaletteBlockTable();
+            for (DumpJsonTableEntry entry : entries) {
+                table.add(
+                        new PaletteBlockData(
+                                entry.id,
+                                new PaletteBlockData.LegacyStates[]{new PaletteBlockData.LegacyStates(entry.id, entry.val)},
+                                new PaletteBlockData.Block(entry.name, 0, new ArrayList<>())
+                        )
+                );
+            }
+            return table;
+        } catch (IOException e) {
+            throw new AssertionError("Unable to load block palette", e);
+        }
+    }
+
     @ToString
     static class JsonTableEntry {
         private int id;
@@ -273,6 +303,21 @@ public class PaletteBlockTable extends ArrayList<PaletteBlockData> {
         private int blockId;
         private int meta;
         private String blockName;
+    }
+
+    @ToString
+    static class DumpJsonTableEntry {
+        private String name;
+        private int val;
+        private List<StateEntry> states;
+        private int id;
+    }
+
+    @ToString
+    static class StateEntry {
+        private String name;
+        private String type;
+        private Object value;
     }
 
     public PaletteBlockTable trim(PaletteBlockTable according) {
