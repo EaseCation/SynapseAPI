@@ -187,7 +187,7 @@ public class BinaryStreamHelper116220 extends BinaryStreamHelper116210 {
         }
 
         Block block = item.getBlockUnsafe();
-        int runtimeId = block == null ? 0 : AdvancedGlobalBlockPalette.getOrCreateRuntimeId(this.protocol, false, block.getId(), block.getDamage()); //TODO: NetEase? -- 04/17/2021
+        int runtimeId = block == null ? 0 : AdvancedGlobalBlockPalette.getOrCreateRuntimeId(this.protocol, stream.neteaseMode, block.getId(), block.getDamage());
         stream.putVarInt(runtimeId);
 
         if (SynapseSharedConstants.ITEM_BLOCK_DEBUG) {
