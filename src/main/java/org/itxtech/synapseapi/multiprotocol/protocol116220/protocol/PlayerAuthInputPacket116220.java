@@ -152,6 +152,11 @@ public class PlayerAuthInputPacket116220 extends Packet116220 implements Invento
             debugFlags = new boolean[3];
         }
 
+        if (this.neteaseMode) {
+            // wtf
+            this.getByte(); // 0
+        }
+
         if ((this.inputFlags & (1L << FLAG_PERFORM_ITEM_INTERACTION)) != 0) {
             if (SynapseSharedConstants.MAC_DEBUG) debugFlags[0] = true;
 
