@@ -65,6 +65,12 @@ public class DataPacketEidReplacer {
                         ((SetEntityDataPacket) packet).metadata.putLong(Entity.DATA_OWNER_EID, to);
                     }
                 }
+                if (((SetEntityDataPacket) packet).metadata.exists(Entity.DATA_TARGET_EID)) {
+                    ((SetEntityDataPacket) packet).metadata = cloneEntityMetadata(((SetEntityDataPacket) packet).metadata);
+                    if (((SetEntityDataPacket) packet).metadata.getLong(Entity.DATA_TARGET_EID) == from) {
+                        ((SetEntityDataPacket) packet).metadata.putLong(Entity.DATA_TARGET_EID, to);
+                    }
+                }
                 break;
             case UpdateAttributesPacket.NETWORK_ID:
                 if (((UpdateAttributesPacket) packet).entityId == from) ((UpdateAttributesPacket) packet).entityId = to;
