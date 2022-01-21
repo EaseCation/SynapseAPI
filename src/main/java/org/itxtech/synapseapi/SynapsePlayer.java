@@ -966,9 +966,17 @@ public class SynapsePlayer extends Player {
                 MapInfoRequestPacket pk = (MapInfoRequestPacket) packet;
                 Item mapItem = null;
 
-                for (Item item1 : this.inventory.getContents().values()) {
+                for (Item item1 : this.offhandInventory.getContents().values()) {
                     if (item1 instanceof ItemMap && ((ItemMap) item1).getMapId() == pk.mapId) {
                         mapItem = item1;
+                    }
+                }
+
+                if (mapItem == null) {
+                    for (Item item1 : this.inventory.getContents().values()) {
+                        if (item1 instanceof ItemMap && ((ItemMap) item1).getMapId() == pk.mapId) {
+                            mapItem = item1;
+                        }
                     }
                 }
 
@@ -1215,7 +1223,8 @@ public class SynapsePlayer extends Player {
 
         double diffMotion = (this.motionX - this.lastMotionX) * (this.motionX - this.lastMotionX) + (this.motionY - this.lastMotionY) * (this.motionY - this.lastMotionY) + (this.motionZ - this.lastMotionZ) * (this.motionZ - this.lastMotionZ);
 
-        if (diffPosition > 0.0001 || diffRotation > 1.0) { //0.2 ** 2, 1.5 ** 2
+//        if (diffPosition > 0.0001 || diffRotation > 1.0) { //0.2 ** 2, 1.5 ** 2
+        if (diffPosition != 0 || diffRotation != 0) {
             this.lastX = this.x;
             this.lastY = this.y;
             this.lastZ = this.z;

@@ -370,15 +370,16 @@ public class SynapsePlayer116 extends SynapsePlayer113 {
 								}
 
 								inventory.sendContents(this);
-								target = this.level.getBlock(blockVector.asVector3());
-								BlockEntity blockEntity = this.level.getBlockEntity(blockVector.asVector3());
-
-								this.level.sendBlocks(new Player[]{this}, new Block[]{target}, UpdateBlockPacket.FLAG_ALL_PRIORITY);
-
 								inventory.sendHeldItem(this);
 
-								if (blockEntity instanceof BlockEntitySpawnable) {
-									((BlockEntitySpawnable) blockEntity).spawnTo(this);
+								if (blockVector.distanceSquared(this) < 10000) {
+									target = this.level.getBlock(blockVector.asVector3());
+									this.level.sendBlocks(new Player[]{this}, new Block[]{target}, UpdateBlockPacket.FLAG_ALL_PRIORITY);
+
+									BlockEntity blockEntity = this.level.getBlockEntity(blockVector.asVector3());
+									if (blockEntity instanceof BlockEntitySpawnable) {
+										((BlockEntitySpawnable) blockEntity).spawnTo(this);
+									}
 								}
 
 								break packetswitch;
@@ -684,22 +685,24 @@ public class SynapsePlayer116 extends SynapsePlayer113 {
 					for (PlayerBlockAction blockAction : blockActions) {
 						Vector3 pos = new Vector3(blockAction.x, blockAction.y, blockAction.z);
 						BlockFace face = null;
+						boolean distanceChecked = false;
 
 						actionswitch:
 						switch (blockAction.action) {
 							case PlayerActionPacket14.ACTION_BLOCK_CONTINUE_DESTROY: // server
-								if (this.isBreakingBlock()) {
+								if (this.isBreakingBlock() && pos.distanceSquared(this) < 100) {
 									if (pos.equals(this.breakingBlock)) {
 										this.breakingBlockFace = BlockFace.fromIndex(blockAction.data);
 										break;
 									}
+									distanceChecked = true;
 									this.level.addLevelEvent(this.breakingBlock, LevelEventPacket.EVENT_BLOCK_STOP_BREAK);
 									this.lastBreak = Long.MAX_VALUE;
 									this.breakingBlock = null;
 									this.breakingBlockFace = null;
 								}
 							case PlayerActionPacket14.ACTION_START_BREAK: // both
-								if (!this.spawned || !this.isAlive() || this.isSpectator() || this.lastBreak != Long.MAX_VALUE || pos.distanceSquared(this) > 100) {
+								if (!this.spawned || !this.isAlive() || this.isSpectator() || this.lastBreak != Long.MAX_VALUE || !distanceChecked && pos.distanceSquared(this) > 100) {
 									break;
 								}
 								face = BlockFace.fromIndex(blockAction.data);
@@ -751,9 +754,10 @@ public class SynapsePlayer116 extends SynapsePlayer113 {
 								pos = this.breakingBlock;
 								face = this.breakingBlockFace;
 							case PlayerActionPacket14.ACTION_BLOCK_PREDICT_DESTROY: // server
-								if (!this.spawned || !this.isAlive()) {
+								if (!this.spawned || !this.isAlive() || pos.distanceSquared(this) > 100) {
 									break;
 								}
+								distanceChecked = true;
 								if (face == null) {
 									face = BlockFace.fromIndex(blockAction.data);
 								}
@@ -783,6 +787,9 @@ public class SynapsePlayer116 extends SynapsePlayer113 {
 									}
 								}
 							case PlayerActionPacket14.ACTION_ABORT_BREAK: // both
+								if (!distanceChecked && pos.distanceSquared(this) > 100) {
+									break;
+								}
 								if (face == null) {
 //									int breakTime = blockAction.data;
 								}
@@ -792,7 +799,7 @@ public class SynapsePlayer116 extends SynapsePlayer113 {
 								this.breakingBlockFace = null;
 								break;
 							case PlayerActionPacket14.ACTION_CONTINUE_BREAK: // client
-								if (this.isBreakingBlock()) {
+								if (this.isBreakingBlock() && pos.distanceSquared(this) < 100) {
 									this.breakingBlockFace = BlockFace.fromIndex(blockAction.data);
 									block = this.level.getBlock(pos);
 									this.level.addParticle(new PunchBlockParticle(pos, block, this.breakingBlockFace));

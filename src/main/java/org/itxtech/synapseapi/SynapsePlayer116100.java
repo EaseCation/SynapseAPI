@@ -464,7 +464,10 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
             case ProtocolInfo.FILTER_TEXT_PACKET:
                 if (this.getProtocol() >= AbstractProtocol.PROTOCOL_116_200.getProtocolStart()) {
                     FilterTextPacket116200 filterTextPacket = (FilterTextPacket116200) packet;
-
+                    if (filterTextPacket.text == null || filterTextPacket.text.length() > 64) {
+                        this.getServer().getLogger().debug(this.getName() + ": FilterTextPacket with too long text");
+                        return;
+                    }
                     FilterTextPacket116200 textResponsePacket = new FilterTextPacket116200();
                     textResponsePacket.text = filterTextPacket.text; //TODO: 铁砧重命名物品需要接入网易敏感词检查
                     textResponsePacket.fromServer = true;

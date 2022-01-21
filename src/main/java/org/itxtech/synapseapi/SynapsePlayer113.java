@@ -410,15 +410,16 @@ public class SynapsePlayer113 extends SynapsePlayer112 {
 								}
 
 								inventory.sendContents(this);
-								target = this.level.getBlock(blockVector.asVector3());
-								BlockEntity blockEntity = this.level.getBlockEntity(blockVector.asVector3());
-
-								this.level.sendBlocks(new Player[]{this}, new Block[]{target}, UpdateBlockPacket.FLAG_ALL_PRIORITY);
-
 								inventory.sendHeldItem(this);
 
-								if (blockEntity instanceof BlockEntitySpawnable) {
-									((BlockEntitySpawnable) blockEntity).spawnTo(this);
+								if (blockVector.distanceSquared(this) < 10000) {
+									target = this.level.getBlock(blockVector.asVector3());
+									this.level.sendBlocks(new Player[]{this}, new Block[]{target}, UpdateBlockPacket.FLAG_ALL_PRIORITY);
+
+									BlockEntity blockEntity = this.level.getBlockEntity(blockVector.asVector3());
+									if (blockEntity instanceof BlockEntitySpawnable) {
+										((BlockEntitySpawnable) blockEntity).spawnTo(this);
+									}
 								}
 
 								break packetswitch;

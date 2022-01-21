@@ -255,13 +255,15 @@ public class SynapsePlayer14 extends SynapsePlayer {
 						this.lastBreak = Long.MAX_VALUE;
 						this.breakingBlock = null;
 					case PlayerActionPacket14.ACTION_STOP_BREAK:
-						LevelEventPacket pk = new LevelEventPacket();
-						pk.evid = LevelEventPacket.EVENT_BLOCK_STOP_BREAK;
-						pk.x = (float) pos.x;
-						pk.y = (float) pos.y;
-						pk.z = (float) pos.z;
-						pk.data = 0;
-						this.getLevel().addChunkPacket(pos.getFloorX() >> 4, pos.getFloorZ() >> 4, pk);
+						if (pos.distanceSquared(this) < 100) { // same as with ACTION_START_BREAK
+							LevelEventPacket pk = new LevelEventPacket();
+							pk.evid = LevelEventPacket.EVENT_BLOCK_STOP_BREAK;
+							pk.x = (float) pos.x;
+							pk.y = (float) pos.y;
+							pk.z = (float) pos.z;
+							pk.data = 0;
+							this.getLevel().addChunkPacket(pos.getChunkX(), pos.getChunkZ(), pk);
+						}
 						this.breakingBlock = null;
 						break;
 					case PlayerActionPacket14.ACTION_GET_UPDATED_BLOCK:
