@@ -396,6 +396,7 @@ public class SynapsePlayer14 extends SynapsePlayer {
 				}
 
 				this.startAction = -1;
+				this.startActionTimestamp = -1;
 				this.setDataFlag(Player.DATA_FLAGS, Player.DATA_FLAG_ACTION, false);
 				break;
             case ProtocolInfo.TEXT_PACKET:
