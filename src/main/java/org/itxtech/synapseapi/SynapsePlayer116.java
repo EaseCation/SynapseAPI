@@ -805,7 +805,7 @@ public class SynapsePlayer116 extends SynapsePlayer113 {
 							case PlayerActionPacket14.ACTION_CONTINUE_BREAK: // client
 								if (this.isBreakingBlock() && pos.distanceSquared(this) < 100) {
 									this.breakingBlockFace = BlockFace.fromIndex(blockAction.data);
-									block = this.level.getBlock(pos);
+									block = this.level.getBlock(pos, false);
 									this.level.addParticle(new PunchBlockParticle(pos, block, this.breakingBlockFace));
 								}
 								break;
