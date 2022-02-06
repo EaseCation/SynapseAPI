@@ -133,6 +133,8 @@ public class LoginPacket14 extends Packet14 {
         }
         if (skinToken.has("PlayFabID")) {
             skin.setPlayFabId(skinToken.get("PlayFabID").getAsString());
+        } else if (skinToken.has("PlayFabId")) {
+            skin.setPlayFabId(skinToken.get("PlayFabId").getAsString());
         }
         if (skinToken.has("CapeId")) {
             skin.setCapeId(skinToken.get("CapeId").getAsString());
