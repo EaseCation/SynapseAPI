@@ -212,7 +212,7 @@ public class SynapsePlayer18 extends SynapsePlayer17 {
 	protected void noticeChunkPublisherUpdate() {
 		NetworkChunkPublisherUpdatePacket18 packet = new NetworkChunkPublisherUpdatePacket18();
 		packet.position = this.asBlockVector3();
-		packet.radius = viewDistance << 4;
+		packet.radius = this.getViewDistance() << 4;
 		this.dataPacket(packet);
 	}
 }

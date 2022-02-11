@@ -22,6 +22,11 @@ public final class SynapseSharedConstants {
      */
     public static final boolean USE_SUB_CHUNK_REQUEST = true;
 
+    /**
+     * Enables new change dimension loading screen system?
+     */
+    public static final boolean USE_CHANGE_DIMENSION_PACKET = false;
+
     private SynapseSharedConstants() {
 
     }

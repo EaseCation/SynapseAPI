@@ -362,6 +362,7 @@ public class SynapsePlayer14 extends SynapsePlayer {
 						}
 						break packetswitch;
 					case PlayerActionPacket14.ACTION_DIMENSION_CHANGE_ACK:
+						this.onDimensionChangeSuccess();
 						break; //TODO
 					case PlayerActionPacket14.ACTION_START_GLIDE:
 						PlayerToggleGlideEvent playerToggleGlideEvent = new PlayerToggleGlideEvent(this, true);

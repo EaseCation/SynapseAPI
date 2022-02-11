@@ -113,6 +113,7 @@ public class SynapsePlayer112 extends SynapsePlayer19 {
 			if (!this.connected) {
 				return;
 			}
+			this.noticeChunkPublisherUpdate();
 			long chunkHash = Level.chunkHash(x, z);
 
 			long[] blobIds;
@@ -184,6 +185,7 @@ public class SynapsePlayer112 extends SynapsePlayer19 {
 		if (!this.connected) {
 			return;
 		}
+		this.noticeChunkPublisherUpdate();
 		long chunkHash = Level.chunkHash(x, z);
 
 		this.usedChunks.put(chunkHash, true);

@@ -20,28 +20,37 @@ import cn.nukkit.level.format.anvil.Anvil;
 import cn.nukkit.level.format.generic.ChunkBlobCache;
 import cn.nukkit.level.format.generic.ChunkPacketCache;
 import cn.nukkit.math.BlockFace;
+import cn.nukkit.math.BlockVector3;
 import cn.nukkit.math.MathHelper;
+import cn.nukkit.math.Vector2;
 import cn.nukkit.math.Vector3;
 import cn.nukkit.math.Vector3f;
 import cn.nukkit.network.SourceInterface;
 import cn.nukkit.network.protocol.BatchPacket;
+import cn.nukkit.network.protocol.ChangeDimensionPacket;
 import cn.nukkit.network.protocol.DataPacket;
 import cn.nukkit.network.protocol.LevelChunkPacket;
 import cn.nukkit.network.protocol.LevelEventPacket;
 import cn.nukkit.network.protocol.LevelSoundEventPacket;
+import cn.nukkit.network.protocol.MovePlayerPacket;
 import cn.nukkit.network.protocol.PlayerInputPacket;
 import cn.nukkit.network.protocol.ProtocolInfo;
 import cn.nukkit.network.protocol.ResourcePackClientResponsePacket;
 import cn.nukkit.network.protocol.ResourcePackDataInfoPacket;
 import cn.nukkit.network.protocol.SubChunkPacket;
+import cn.nukkit.network.protocol.SubChunkPacket11810;
 import cn.nukkit.network.protocol.types.ContainerIds;
 import cn.nukkit.resourcepacks.ResourcePack;
 import co.aikar.timings.Timings;
 import it.unimi.dsi.fastutil.ints.IntIterator;
 import it.unimi.dsi.fastutil.ints.IntOpenHashSet;
 import it.unimi.dsi.fastutil.ints.IntSet;
+import it.unimi.dsi.fastutil.longs.Long2BooleanOpenHashMap;
 import it.unimi.dsi.fastutil.longs.Long2ObjectMap;
 import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap;
+import it.unimi.dsi.fastutil.longs.LongOpenHashSet;
+import it.unimi.dsi.fastutil.longs.LongSet;
+import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import it.unimi.dsi.fastutil.objects.ObjectIterator;
 import lombok.extern.log4j.Log4j2;
 import org.itxtech.synapseapi.multiprotocol.AbstractProtocol;
@@ -63,12 +72,17 @@ import org.itxtech.synapseapi.multiprotocol.protocol11730.protocol.AnimateEntity
 import org.itxtech.synapseapi.multiprotocol.protocol11730.protocol.StartGamePacket11730;
 import org.itxtech.synapseapi.multiprotocol.protocol118.protocol.StartGamePacket118;
 import org.itxtech.synapseapi.multiprotocol.protocol118.protocol.SubChunkRequestPacket118;
+import org.itxtech.synapseapi.multiprotocol.protocol11810.protocol.SubChunkRequestPacket11810;
 import org.itxtech.synapseapi.multiprotocol.protocol14.protocol.PlayerActionPacket14;
 import org.itxtech.synapseapi.multiprotocol.protocol16.protocol.ResourcePackClientResponsePacket16;
 import org.itxtech.synapseapi.utils.BlobTrack;
 
 import java.net.InetSocketAddress;
+import java.util.Comparator;
+import java.util.List;
 import java.util.Map;
+
+import static org.itxtech.synapseapi.SynapseSharedConstants.*;
 
 //TODO: 这个类已经用了好几个版本了 有时间可以整理一下 像以前那样分成不同版本
 @Log4j2
@@ -76,6 +90,25 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
 
     protected final Long2ObjectMap<IntSet> subChunkRequestQueue = new Long2ObjectOpenHashMap<>();
     protected final Long2ObjectMap<IntSet> subChunkSendQueue = new Long2ObjectOpenHashMap<>();
+
+    //TODO: 新版加载屏系统接入跨服
+    protected boolean dimensionChanging;
+    protected LongSet dimensionWaitingChunks = new LongOpenHashSet();
+    protected int dimensionRequestedChunkCount;
+    protected int dimensionNeedingChunk;
+    protected boolean dimensionBack;
+    protected LongSet overworldRequestedChunks = new LongOpenHashSet();
+    protected Comparator<LevelChunkPacket> chunkPacketComparator = (packet0, packet1) -> {
+        int spawnX = getChunkX();
+        int spawnZ = getChunkZ();
+        return Integer.compare(distance(spawnX, spawnZ, packet0.chunkX, packet0.chunkZ), distance(spawnX, spawnZ, packet1.chunkX, packet1.chunkZ));
+    };
+    protected long changeDimensionTimeout = -1;
+    protected long changeDimensionAckTimeout = -1;
+    protected long changeDimensionBackTimeout = -1;
+    protected boolean dimensionNeedBackAck;
+    protected boolean changeDimensionImmobile;
+    protected Position changeDimensionPosition;
 
     public SynapsePlayer116100(SourceInterface interfaz, SynapseEntry synapseEntry, Long clientID, InetSocketAddress socketAddress) {
         super(interfaz, synapseEntry, clientID, socketAddress);
@@ -555,68 +588,22 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
                 if (!this.isSubChunkRequestAvailable()) {
                     break;
                 }
-                SubChunkRequestPacket118 subChunkRequest = (SubChunkRequestPacket118) packet;
-                int dimension = subChunkRequest.dimension;
-                int subChunkX = subChunkRequest.subChunkX;
-                int subChunkY = subChunkRequest.subChunkY;
-                int subChunkZ = subChunkRequest.subChunkZ;
 
-                if (subChunkY < -4 || subChunkY > 19) {
-                    SubChunkPacket pk = new SubChunkPacket();
-                    pk.dimension = dimension;
-                    pk.subChunkX = subChunkX;
-                    pk.subChunkY = subChunkY;
-                    pk.subChunkZ = subChunkZ;
-                    pk.requestResult = SubChunkPacket.REQUEST_RESULT_Y_INDEX_OUT_OF_BOUNDS;
-                    this.dataPacket(pk);
-                    break;
-                }
-                if (dimension != Level.DIMENSION_OVERWORLD //TODO: other dimensions are not currently supported
-                        /*&& dimension != Level.DIMENSION_NETHER && dimension != Level.DIMENSION_THE_END*/) {
-                    SubChunkPacket pk = new SubChunkPacket();
-                    pk.dimension = dimension;
-                    pk.subChunkX = subChunkX;
-                    pk.subChunkY = subChunkY;
-                    pk.subChunkZ = subChunkZ;
-                    pk.requestResult = SubChunkPacket.REQUEST_RESULT_WRONG_DIMENSION;
-                    this.dataPacket(pk);
-                    break;
-                }
-                if (subChunkY > 0xf) {
-                    SubChunkPacket pk = new SubChunkPacket();
-                    pk.dimension = dimension;
-                    pk.subChunkX = subChunkX;
-                    pk.subChunkY = subChunkY;
-                    pk.subChunkZ = subChunkZ;
-                    pk.data = Anvil.PADDING_SUB_CHUNK_BLOB; // higher padding
-                    pk.heightMapType = SubChunkPacket.HEIGHT_MAP_TYPE_ALL_TOO_LOW;
-                    this.dataPacket(pk);
-                    break;
-                }
-                if (this.getLoaderId() <= 0) {
-                    SubChunkPacket pk = new SubChunkPacket();
-                    pk.dimension = dimension;
-                    pk.subChunkX = subChunkX;
-                    pk.subChunkY = subChunkY;
-                    pk.subChunkZ = subChunkZ;
-                    pk.requestResult = SubChunkPacket.REQUEST_RESULT_PLAYER_NOT_FOUND;
-                    this.dataPacket(pk);
-                    break;
-                }
+                if (this.getProtocol() < AbstractProtocol.PROTOCOL_118_10.getProtocolStart()) {
+                    SubChunkRequestPacket118 subChunkRequest = (SubChunkRequestPacket118) packet;
+                    this.handleSubChunkRequest(subChunkRequest.dimension, subChunkRequest.subChunkX, subChunkRequest.subChunkY, subChunkRequest.subChunkZ);
+                } else {
+                    SubChunkRequestPacket11810 subChunkRequest = (SubChunkRequestPacket11810) packet;
+                    int dimension = subChunkRequest.dimension;
+                    int subChunkX = subChunkRequest.subChunkX;
+                    int subChunkY = subChunkRequest.subChunkY;
+                    int subChunkZ = subChunkRequest.subChunkZ;
 
-                long index = Level.chunkHash(subChunkX, subChunkZ);
-                if (this.subChunkSendQueue.containsKey(index)) {
-                    this.subChunkSendQueue.get(index).add(subChunkY);
-                    break;
+                    this.handleSubChunkRequest(dimension, subChunkX, subChunkY, subChunkZ);
+                    for (BlockVector3 offset : subChunkRequest.positionOffsets) {
+                        this.handleSubChunkRequest(dimension, subChunkX + offset.x, subChunkY + offset.y, subChunkZ + offset.z);
+                    }
                 }
-
-                IntSet requests = this.subChunkRequestQueue.get(index);
-                if (requests == null) {
-                    requests = new IntOpenHashSet();
-                    this.subChunkRequestQueue.put(index, requests);
-                }
-                requests.add(subChunkY);
-                break;
             default:
                 super.handleDataPacket(packet);
                 break;
@@ -696,11 +683,13 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
         if (!this.connected) {
             return;
         }
+        this.noticeChunkPublisherUpdate();
         long chunkHash = Level.chunkHash(x, z);
         this.usedChunks.put(chunkHash, true);
         this.chunkLoadCount++;
+        boolean centerChunk = this.getChunkX() == x && this.getChunkZ() == z;
 
-        if (this.isBlobCacheAvailable() && this.isSubModeLevelChunkBlobCacheEnabled()) {
+        if (this.isBlobCacheAvailable() && this.isSubModeLevelChunkBlobCacheEnabled() && !centerChunk) {
             long[] ids = blobCache.getExtendedBlobIds();
             long hash = ids[ids.length - 1]; // biome
             this.clientCacheTrack.put(hash, new BlobTrack(hash, blobCache.getExtendedClientBlobs().get(hash)));
@@ -708,7 +697,12 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
             LevelChunkPacket pk = new LevelChunkPacket();
             pk.chunkX = x;
             pk.chunkZ = z;
-            pk.subChunkCount = -1;
+            if (this.protocol >= AbstractProtocol.PROTOCOL_118_10.getProtocolStart()) {
+                pk.subChunkCount = LevelChunkPacket.CLIENT_REQUEST_TRUNCATED_COLUMN_FAKE_COUNT;
+            } else {
+                pk.subChunkCount = LevelChunkPacket.CLIENT_REQUEST_FULL_COLUMN_FAKE_COUNT;
+            }
+            pk.subChunkRequestLimit = subChunkCount;
             pk.blobIds = new long[]{hash};
             pk.cacheEnabled = true;
             pk.data = blobCache.getSubModeCachedPayload();
@@ -736,15 +730,22 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
         if (!this.connected) {
             return;
         }
+        this.noticeChunkPublisherUpdate();
         long chunkHash = Level.chunkHash(x, z);
         this.usedChunks.put(chunkHash, true);
         this.chunkLoadCount++;
+        boolean centerChunk = this.getChunkX() == x && this.getChunkZ() == z;
 
         LevelChunkPacket pk = new LevelChunkPacket();
         pk.chunkX = x;
         pk.chunkZ = z;
-        pk.subChunkCount = -1;
-        if (this.isBlobCacheAvailable() && this.isSubModeLevelChunkBlobCacheEnabled()) {
+        if (this.protocol >= AbstractProtocol.PROTOCOL_118_10.getProtocolStart()) {
+            pk.subChunkCount = LevelChunkPacket.CLIENT_REQUEST_TRUNCATED_COLUMN_FAKE_COUNT;
+        } else {
+            pk.subChunkCount = LevelChunkPacket.CLIENT_REQUEST_FULL_COLUMN_FAKE_COUNT;
+        }
+        pk.subChunkRequestLimit = subChunkCount;
+        if (this.isBlobCacheAvailable() && this.isSubModeLevelChunkBlobCacheEnabled() && !centerChunk) {
             long[] ids = blobCache.getExtendedBlobIds();
             long hash = ids[ids.length - 1]; // biome
             this.clientCacheTrack.put(hash, new BlobTrack(hash, blobCache.getExtendedClientBlobs().get(hash)));
@@ -787,6 +788,7 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
             }
         }
 
+        boolean centerChunk = this.getChunkX() == x && this.getChunkZ() == z;
         if (subChunkCount != 0) {
             subChunkCount += Anvil.PADDING_SUB_CHUNK_COUNT;
         }
@@ -797,7 +799,7 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
             int y = iter.nextInt();
             int index = y + Anvil.PADDING_SUB_CHUNK_COUNT;
 
-            SubChunkPacket pk = new SubChunkPacket();
+            SubChunkPacket pk = this.createSubChunkPacket();
 //            pk.dimension = dimension;
             pk.dimension = Level.DIMENSION_OVERWORLD;
             pk.subChunkX = x;
@@ -812,18 +814,26 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
                 } else {
                     pk.heightMapType = SubChunkPacket.HEIGHT_MAP_TYPE_ALL_TOO_LOW;
                 }
+                if (this.protocol >= AbstractProtocol.PROTOCOL_118_10.getProtocolStart()) {
+                    pk.requestResult = SubChunkPacket.REQUEST_RESULT_SUCCESS_ALL_AIR;
+                }
                 this.dataPacket(pk);
                 iter.remove();
                 continue;
             } else if (index >= subChunkCount) {
                 pk.data = Anvil.PADDING_SUB_CHUNK_BLOB;
                 pk.heightMapType = SubChunkPacket.HEIGHT_MAP_TYPE_ALL_TOO_LOW;
+                if (this.protocol >= AbstractProtocol.PROTOCOL_118_10.getProtocolStart()) {
+                    pk.requestResult = SubChunkPacket.REQUEST_RESULT_SUCCESS_ALL_AIR;
+                }
                 this.dataPacket(pk);
                 iter.remove();
                 continue;
             }
 
-            if (blobCache != null && this.isBlobCacheAvailable() && this.isSubChunkBlobCacheEnabled()) {
+            if (this.protocol >= AbstractProtocol.PROTOCOL_118_10.getProtocolStart() && (y < 0 || blobCache != null && (y >= blobCache.getEmptySection().length || blobCache.getEmptySection()[y]))) {
+                pk.requestResult = SubChunkPacket.REQUEST_RESULT_SUCCESS_ALL_AIR;
+            } else if (blobCache != null && this.isBlobCacheAvailable() && this.isSubChunkBlobCacheEnabled() && !centerChunk) {
                 long hash = blobCache.getExtendedBlobIds()[index];
                 this.clientCacheTrack.put(hash, new BlobTrack(hash, blobCache.getExtendedClientBlobs().get(hash)));
 
@@ -861,6 +871,7 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
             }
         }
 
+        boolean centerChunk = this.getChunkX() == x && this.getChunkZ() == z;
         if (subChunkCount != 0) {
             subChunkCount += Anvil.PADDING_SUB_CHUNK_COUNT;
         }
@@ -872,7 +883,7 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
             int index = y + Anvil.PADDING_SUB_CHUNK_COUNT;
 
             if (subChunkCount == 0) {
-                SubChunkPacket pk = new SubChunkPacket();
+                SubChunkPacket pk = this.createSubChunkPacket();
 //                pk.dimension = dimension;
                 pk.dimension = Level.DIMENSION_OVERWORLD;
                 pk.subChunkX = x;
@@ -885,11 +896,14 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
                 } else {
                     pk.heightMapType = SubChunkPacket.HEIGHT_MAP_TYPE_ALL_TOO_LOW;
                 }
+                if (this.protocol >= AbstractProtocol.PROTOCOL_118_10.getProtocolStart()) {
+                    pk.requestResult = SubChunkPacket.REQUEST_RESULT_SUCCESS_ALL_AIR;
+                }
                 this.dataPacket(pk);
                 iter.remove();
                 continue;
             } else if (index >= subChunkCount) {
-                SubChunkPacket pk = new SubChunkPacket();
+                SubChunkPacket pk = this.createSubChunkPacket();
 //                pk.dimension = dimension;
                 pk.dimension = Level.DIMENSION_OVERWORLD;
                 pk.subChunkX = x;
@@ -897,16 +911,30 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
                 pk.subChunkZ = z;
                 pk.data = Anvil.PADDING_SUB_CHUNK_BLOB;
                 pk.heightMapType = SubChunkPacket.HEIGHT_MAP_TYPE_ALL_TOO_LOW;
+                if (this.protocol >= AbstractProtocol.PROTOCOL_118_10.getProtocolStart()) {
+                    pk.requestResult = SubChunkPacket.REQUEST_RESULT_SUCCESS_ALL_AIR;
+                }
                 this.dataPacket(pk);
                 iter.remove();
                 continue;
             }
 
-            if (blobCache != null && this.isBlobCacheAvailable() && this.isSubChunkBlobCacheEnabled()) {
+            if (this.protocol >= AbstractProtocol.PROTOCOL_118_10.getProtocolStart() && (y < 0 || blobCache != null && (y >= blobCache.getEmptySection().length || blobCache.getEmptySection()[y]))) {
+                SubChunkPacket pk = this.createSubChunkPacket();
+//                pk.dimension = dimension;
+                pk.dimension = Level.DIMENSION_OVERWORLD;
+                pk.subChunkX = x;
+                pk.subChunkY = y;
+                pk.subChunkZ = z;
+                pk.requestResult = SubChunkPacket.REQUEST_RESULT_SUCCESS_ALL_AIR;
+                pk.heightMapType = heightMapType[index];
+                pk.heightMap = heightMap[index];
+                this.dataPacket(pk);
+            } else if (blobCache != null && this.isBlobCacheAvailable() && this.isSubChunkBlobCacheEnabled() && !centerChunk) {
                 long hash = blobCache.getExtendedBlobIds()[index];
                 this.clientCacheTrack.put(hash, new BlobTrack(hash, blobCache.getExtendedClientBlobs().get(hash)));
 
-                SubChunkPacket pk = new SubChunkPacket();
+                SubChunkPacket pk = this.createSubChunkPacket();
 //                pk.dimension = dimension;
                 pk.dimension = Level.DIMENSION_OVERWORLD;
                 pk.subChunkX = x;
@@ -945,7 +973,7 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
             while (yIter.hasNext()) {
                 int chunkY = yIter.nextInt();
 
-                SubChunkPacket pk = new SubChunkPacket();
+                SubChunkPacket pk = this.createSubChunkPacket();
                 pk.dimension = Level.DIMENSION_OVERWORLD;
                 pk.subChunkX = chunkX;
                 pk.subChunkY = chunkY;
@@ -999,7 +1027,7 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
                 while (yIter.hasNext()) {
                     int chunkY = yIter.nextInt();
 
-                    SubChunkPacket pk = new SubChunkPacket();
+                    SubChunkPacket pk = this.createSubChunkPacket();
                     pk.dimension = Level.DIMENSION_OVERWORLD;
                     pk.subChunkX = chunkX;
                     pk.subChunkY = chunkY;
@@ -1022,7 +1050,7 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
 
     @Override
     public boolean isBlobCacheDisabled() {
-        // client performance is very bad in 1.18, Microjang messed up everything :(
+        // client performance is very bad in 1.18.0, Microjang messed up everything :(
         return this.protocol >= AbstractProtocol.PROTOCOL_118.getProtocolStart();
     }
 
@@ -1031,6 +1059,399 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
     }
 
     public boolean isSubModeLevelChunkBlobCacheEnabled() {
-        return false; //FIXME: crash
+        return false; //FIXME: crash 1.18.0
+    }
+
+    protected boolean handleSubChunkRequest(int dimension, int subChunkX, int subChunkY, int subChunkZ) {
+        if (subChunkY < -4 || subChunkY > 19) {
+            SubChunkPacket pk = this.createSubChunkPacket();
+            pk.dimension = dimension;
+            pk.subChunkX = subChunkX;
+            pk.subChunkY = subChunkY;
+            pk.subChunkZ = subChunkZ;
+            pk.requestResult = SubChunkPacket.REQUEST_RESULT_Y_INDEX_OUT_OF_BOUNDS;
+            this.dataPacket(pk);
+            return false;
+        }
+        if (dimension == Level.DIMENSION_NETHER || dimension == Level.DIMENSION_THE_END) {
+            if (this.dimensionChanging && !this.dimensionBack && this.dimensionWaitingChunks.remove(Level.chunkHash(subChunkX, subChunkZ)) && ++this.dimensionRequestedChunkCount >= this.dimensionNeedingChunk) {
+                this.changeDimensionTimeout = -1;
+                this.changeDimensionToOverworld();
+            }
+            if (this.getProtocol() >= AbstractProtocol.PROTOCOL_118_10.getProtocolStart()) {
+                SubChunkPacket pk = this.createSubChunkPacket();
+                pk.dimension = dimension;
+                pk.subChunkX = subChunkX;
+                pk.subChunkY = subChunkY;
+                pk.subChunkZ = subChunkZ;
+                pk.requestResult = SubChunkPacket.REQUEST_RESULT_SUCCESS_ALL_AIR;
+                this.dataPacket(pk);
+            } else /*if (this.dimensionChanging)*/ {
+                SubChunkPacket pk = this.createSubChunkPacket();
+                pk.dimension = dimension;
+                pk.subChunkX = subChunkX;
+                pk.subChunkY = subChunkY;
+                pk.subChunkZ = subChunkZ;
+                pk.requestResult = SubChunkPacket.REQUEST_RESULT_SUCCESS;
+                if (pk.subChunkY == -4) {
+                    pk.heightMapType = SubChunkPacket.HEIGHT_MAP_TYPE_HAS_DATA;
+                    pk.heightMap = Anvil.PAD_256;
+                } else {
+                    pk.heightMapType = SubChunkPacket.HEIGHT_MAP_TYPE_ALL_TOO_LOW;
+                }
+                boolean centerChunk = this.getChunkX() == subChunkX && this.getChunkZ() == subChunkZ;
+                if (false && this.isBlobCacheAvailable() && !centerChunk) {
+                    this.clientCacheTrack.put(Anvil.PADDING_SUB_CHUNK_HASH, new BlobTrack(Anvil.PADDING_SUB_CHUNK_HASH, Anvil.PADDING_SUB_CHUNK_BLOB));
+                    pk.cacheEnabled = true;
+                    pk.blobId = Anvil.PADDING_SUB_CHUNK_HASH;
+                } else {
+                    pk.data = Anvil.PADDING_SUB_CHUNK_BLOB;
+                }
+                this.dataPacket(pk);
+            }
+            return false;
+        }
+        if (dimension != Level.DIMENSION_OVERWORLD) {
+            SubChunkPacket pk = this.createSubChunkPacket();
+            pk.dimension = dimension;
+            pk.subChunkX = subChunkX;
+            pk.subChunkY = subChunkY;
+            pk.subChunkZ = subChunkZ;
+            pk.requestResult = SubChunkPacket.REQUEST_RESULT_WRONG_DIMENSION;
+            this.dataPacket(pk);
+            return false;
+        }
+        if (this.dimensionChanging) {
+            long index = Level.chunkHash(subChunkX, subChunkZ);
+            if (this.overworldRequestedChunks.add(index) && this.overworldRequestedChunks.size() >= this.dimensionNeedingChunk) {
+                this.dimensionChanging = false;
+            }
+        }
+        if (subChunkY > 0xf) {
+            SubChunkPacket pk = this.createSubChunkPacket();
+            pk.dimension = dimension;
+            pk.subChunkX = subChunkX;
+            pk.subChunkY = subChunkY;
+            pk.subChunkZ = subChunkZ;
+            pk.data = Anvil.PADDING_SUB_CHUNK_BLOB; // higher padding
+            pk.heightMapType = SubChunkPacket.HEIGHT_MAP_TYPE_ALL_TOO_LOW;
+            this.dataPacket(pk);
+            return false;
+        }
+        if (this.getLoaderId() <= 0) {
+            SubChunkPacket pk = this.createSubChunkPacket();
+            pk.dimension = dimension;
+            pk.subChunkX = subChunkX;
+            pk.subChunkY = subChunkY;
+            pk.subChunkZ = subChunkZ;
+            pk.requestResult = SubChunkPacket.REQUEST_RESULT_PLAYER_NOT_FOUND;
+            this.dataPacket(pk);
+            return false;
+        }
+
+        long index = Level.chunkHash(subChunkX, subChunkZ);
+        if (this.subChunkSendQueue.containsKey(index)) {
+            this.subChunkSendQueue.get(index).add(subChunkY);
+            return true;
+        }
+
+        IntSet requests = this.subChunkRequestQueue.get(index);
+        if (requests == null) {
+            requests = new IntOpenHashSet();
+            this.subChunkRequestQueue.put(index, requests);
+        }
+        requests.add(subChunkY);
+        return true;
+    }
+
+    protected SubChunkPacket createSubChunkPacket() {
+        return this.protocol < AbstractProtocol.PROTOCOL_118_10.getProtocolStart() ? new SubChunkPacket() : new SubChunkPacket11810();
+    }
+
+    public boolean isDimensionChangingSystemEnabled() {
+        return USE_CHANGE_DIMENSION_PACKET && this.isSubChunkRequestAvailable();
+    }
+
+    @Override
+    protected boolean onLevelSwitch() {
+        if (this.isDimensionChangingSystemEnabled() && !this.dimensionChanging) {
+            this.dimensionChanging = true;
+//            this.dimensionBack = false;
+            this.dimensionRequestedChunkCount = 0;
+            this.dimensionNeedingChunk = Math.min(chunkRadius * chunkRadius, 20);
+
+            ChangeDimensionPacket pk0 = new ChangeDimensionPacket();
+            pk0.dimension = Level.DIMENSION_NETHER;
+            pk0.x = (float) this.x;
+            pk0.y = (float) this.y + this.getEyeHeight();
+            pk0.z = (float) this.z;
+//            pk0.respawn = true;
+            this.dataPacket(pk0);
+
+            int centerChunkX = this.getChunkX();
+            int centerChunkZ = this.getChunkZ();
+            Vector2 chunkPos2d = new Vector2(centerChunkX, centerChunkZ);
+            List<LevelChunkPacket> packets = new ObjectArrayList<>();
+            int count = 0;
+            for (int x = -chunkRadius; x < chunkRadius; x++) {
+                for (int z = -chunkRadius; z < chunkRadius; z++) {
+                    int chunkX = centerChunkX + x;
+                    int chunkZ = centerChunkZ + z;
+                    if (chunkPos2d.distance(chunkX, chunkZ) > chunkRadius) {
+                        continue; // round
+                    }
+                    ++count;
+                    boolean centerChunk = centerChunkX == chunkX && centerChunkZ == chunkZ;
+
+                    LevelChunkPacket packet = new LevelChunkPacket();
+                    packet.chunkX = chunkX;
+                    packet.chunkZ = chunkZ;
+//                    packet.subChunkCount = 0;
+                    if (this.protocol >= AbstractProtocol.PROTOCOL_118_10.getProtocolStart()) {
+                        packet.subChunkCount = LevelChunkPacket.CLIENT_REQUEST_TRUNCATED_COLUMN_FAKE_COUNT;
+                    } else {
+                        packet.subChunkCount = LevelChunkPacket.CLIENT_REQUEST_FULL_COLUMN_FAKE_COUNT;
+                    }
+                    packet.subChunkRequestLimit = 0;
+                    if (false && this.isBlobCacheAvailable() && !centerChunk) {
+                        this.clientCacheTrack.put(Anvil.MINIMIZE_BIOME_PALETTES_HASH, new BlobTrack(Anvil.MINIMIZE_BIOME_PALETTES_HASH, Anvil.MINIMIZE_BIOME_PALETTES));
+                        packet.cacheEnabled = true;
+                        packet.blobIds = new long[]{Anvil.MINIMIZE_BIOME_PALETTES_HASH};
+                        packet.data = new byte[1]; // borderBlocks
+                    } else {
+                        packet.data = Anvil.MINIMIZE_CHUNK_DATA_NO_CACHE;
+                    }
+                    packets.add(packet);
+
+                    this.dimensionWaitingChunks.add(Level.chunkHash(chunkX, chunkZ));
+                }
+            }
+            this.dimensionNeedingChunk = Math.min(count, this.dimensionNeedingChunk);
+            packets.sort(this.chunkPacketComparator);
+            packets.forEach(packet -> {
+                this.noticeChunkPublisherUpdate();
+                this.dataPacket(packet);
+            });
+
+            /*RespawnPacket pkk0 = new RespawnPacket();
+            pkk0.x = pos.x;
+            pkk0.y = pos.y;
+            pkk0.z = pos.z;
+            pkk0.runtimeEntityId = this.getId();
+            pkk0.respawnState = RespawnPacket.STATE_SEARCHING_FOR_SPAWN;
+            this.dataPacket(pkk0);
+
+            RespawnPacket pkk1 = new RespawnPacket();
+            pkk1.x = pos.x;
+            pkk1.y = pos.y;
+            pkk1.z = pos.z;
+            pkk1.runtimeEntityId = this.getId();
+            pkk1.respawnState = RespawnPacket.STATE_CLIENT_READY_TO_SPAWN;
+            this.dataPacket(pkk1);
+
+            SetHealthPacket pk = new SetHealthPacket();
+            pk.health = 20;
+            this.dataPacket(pk);*/
+
+            this.sendPosition(this, this.yaw, this.pitch, MovePlayerPacket.MODE_RESET);
+
+//            this.setImmobile(true);
+            this.changeDimensionImmobile = true;
+            this.changeDimensionPosition = this.getPosition();
+
+            long timeout = System.currentTimeMillis() + 7 * 1000;
+            this.changeDimensionTimeout = timeout;
+            this.changeDimensionAckTimeout = timeout;
+            return true;
+        }
+        return false;
+    }
+
+    protected void changeDimensionToOverworld() {
+        this.dimensionWaitingChunks.clear();
+        this.dimensionRequestedChunkCount = 0;
+        this.dimensionBack = true;
+        this.dimensionNeedBackAck = true;
+
+        ChangeDimensionPacket pk1 = new ChangeDimensionPacket();
+        pk1.dimension = Level.DIMENSION_OVERWORLD;
+        pk1.x = (float) this.x;
+        pk1.y = (float) this.y + this.getEyeHeight();
+        pk1.z = (float) this.z;
+//        pk1.respawn = true;
+        this.dataPacket(pk1);
+
+        int centerChunkX = this.getChunkX();
+        int centerChunkZ = this.getChunkZ();
+        Vector2 chunkPos2d = new Vector2(centerChunkX, centerChunkZ);
+        List<LevelChunkPacket> packets = new ObjectArrayList<>();
+        for (int x = -chunkRadius; x < chunkRadius; x++) {
+            for (int z = -chunkRadius; z < chunkRadius; z++) {
+                int chunkX = centerChunkX + x;
+                int chunkZ = centerChunkZ + z;
+                if (chunkPos2d.distance(chunkX, chunkZ) > chunkRadius) {
+                    continue; // round
+                }
+                boolean centerChunk = centerChunkX == chunkX && centerChunkZ == chunkZ;
+                if (centerChunk) {
+                    continue;
+                }
+
+                LevelChunkPacket packet = new LevelChunkPacket();
+                packet.chunkX = chunkX;
+                packet.chunkZ = chunkZ;
+//                packet.subChunkCount = 0;
+                if (this.protocol >= AbstractProtocol.PROTOCOL_118_10.getProtocolStart()) {
+                    packet.subChunkCount = LevelChunkPacket.CLIENT_REQUEST_TRUNCATED_COLUMN_FAKE_COUNT;
+                } else {
+                    packet.subChunkCount = LevelChunkPacket.CLIENT_REQUEST_FULL_COLUMN_FAKE_COUNT;
+                }
+                packet.subChunkRequestLimit = 0;
+                if (false && this.isBlobCacheAvailable() && !centerChunk) {
+                    this.clientCacheTrack.put(Anvil.MINIMIZE_BIOME_PALETTES_HASH, new BlobTrack(Anvil.MINIMIZE_BIOME_PALETTES_HASH, Anvil.MINIMIZE_BIOME_PALETTES));
+                    packet.cacheEnabled = true;
+                    packet.blobIds = new long[]{Anvil.MINIMIZE_BIOME_PALETTES_HASH};
+                    packet.data = new byte[1]; // borderBlocks
+                } else {
+                    packet.data = Anvil.MINIMIZE_CHUNK_DATA_NO_CACHE;
+                }
+                packets.add(packet);
+
+//                this.dimensionWaitingChunks.add(Level.chunkHash(chunkX, chunkZ));
+            }
+        }
+        packets.sort(this.chunkPacketComparator);
+        packets.forEach(packet -> {
+            this.noticeChunkPublisherUpdate();
+            this.dataPacket(packet);
+        });
+
+        /*RespawnPacket pkk0 = new RespawnPacket();
+        pkk0.x = pos.x;
+        pkk0.y = pos.y;
+        pkk0.z = pos.z;
+        pkk0.runtimeEntityId = this.getId();
+        pkk0.respawnState = RespawnPacket.STATE_SEARCHING_FOR_SPAWN;
+        this.dataPacket(pkk0);
+
+        RespawnPacket pkk1 = new RespawnPacket();
+        pkk1.x = pos.x;
+        pkk1.y = pos.y;
+        pkk1.z = pos.z;
+        pkk1.runtimeEntityId = this.getId();
+        pkk1.respawnState = RespawnPacket.STATE_CLIENT_READY_TO_SPAWN;
+        this.dataPacket(pkk1);
+
+        SetHealthPacket pk = new SetHealthPacket();
+        pk.health = 20;
+        this.dataPacket(pk);*/
+
+        this.sendPosition(this, this.yaw, this.pitch, MovePlayerPacket.MODE_RESET);
+
+        this.removeAllChunks();
+        this.usedChunks = new Long2BooleanOpenHashMap();
+
+        this.changeDimensionPosition = null;
+        this.changeDimensionBackTimeout = System.currentTimeMillis() + 15 * 1000;
+    }
+
+    @Override
+    protected void onDimensionChangeSuccess() {
+        this.changeDimensionAckTimeout = -1;
+        if (this.dimensionBack) {
+            this.dimensionBack = false;
+            this.changeDimensionBackTimeout = -1;
+
+            if (this.changeDimensionImmobile) {
+                this.changeDimensionImmobile = false;
+//                this.setImmobile(false);
+            }
+        }
+//        log.info("dimension change success: {}", this);
+    }
+
+    @Override
+    public boolean onUpdate(int currentTick) {
+        int tickDiff = currentTick - this.lastUpdate;
+        if (tickDiff > 0) {
+            this.updateSynapsePlayerTiming.startTiming();
+            if (this.changeDimensionPosition != null && currentTick % 10 == 0) {
+//                this.sendPosition(this.changeDimensionPosition, this.yaw, this.pitch, MovePlayerPacket.MODE_TELEPORT);
+            }
+
+            long time = System.currentTimeMillis();
+
+            if (this.changeDimensionBackTimeout != -1 && time > this.changeDimensionBackTimeout) {
+//                this.changeDimensionTimeout = -1;
+//                this.changeDimensionToOverworld();
+            }
+
+            if (this.changeDimensionTimeout != -1 && time > this.changeDimensionTimeout) {
+                this.changeDimensionTimeout = -1;
+                this.changeDimensionToOverworld();
+            }
+
+            if (this.changeDimensionAckTimeout != -1 && time > this.changeDimensionAckTimeout) {
+                this.changeDimensionAckTimeout = time + 7 * 1000;
+
+                int centerChunkX = this.getChunkX();
+                int centerChunkZ = this.getChunkZ();
+                Vector2 chunkPos2d = new Vector2(centerChunkX, centerChunkZ);
+                List<LevelChunkPacket> packets = new ObjectArrayList<>();
+                for (int x = -chunkRadius; x < chunkRadius; x++) {
+                    for (int z = -chunkRadius; z < chunkRadius; z++) {
+                        int chunkX = centerChunkX + x;
+                        int chunkZ = centerChunkZ + z;
+                        if (chunkPos2d.distance(chunkX, chunkZ) > chunkRadius) {
+                            continue; // round
+                        }
+                        boolean centerChunk = centerChunkX == chunkX && centerChunkZ == chunkZ;
+                        if (centerChunk) {
+                            continue;
+                        }
+
+                        LevelChunkPacket packet = new LevelChunkPacket();
+                        packet.chunkX = chunkX;
+                        packet.chunkZ = chunkZ;
+//                        packet.subChunkCount = 0;
+                        if (this.protocol >= AbstractProtocol.PROTOCOL_118_10.getProtocolStart()) {
+                            packet.subChunkCount = LevelChunkPacket.CLIENT_REQUEST_TRUNCATED_COLUMN_FAKE_COUNT;
+                        } else {
+                            packet.subChunkCount = LevelChunkPacket.CLIENT_REQUEST_FULL_COLUMN_FAKE_COUNT;
+                        }
+                        packet.subChunkRequestLimit = 0;
+                        if (false && this.isBlobCacheAvailable() && !centerChunk) {
+                            this.clientCacheTrack.put(Anvil.MINIMIZE_BIOME_PALETTES_HASH, new BlobTrack(Anvil.MINIMIZE_BIOME_PALETTES_HASH, Anvil.MINIMIZE_BIOME_PALETTES));
+                            packet.cacheEnabled = true;
+                            packet.blobIds = new long[]{Anvil.MINIMIZE_BIOME_PALETTES_HASH};
+                            packet.data = new byte[1]; // borderBlocks
+                        } else {
+                            packet.data = Anvil.MINIMIZE_CHUNK_DATA_NO_CACHE;
+                        }
+                        packets.add(packet);
+
+//                        this.dimensionWaitingChunks.add(Level.chunkHash(chunkX, chunkZ));
+                    }
+                }
+                packets.sort(this.chunkPacketComparator);
+                packets.forEach(packet -> {
+                    this.noticeChunkPublisherUpdate();
+                    this.dataPacket(packet);
+                });
+
+                this.sendPosition(this, this.yaw, this.pitch, MovePlayerPacket.MODE_RESET);
+
+                this.removeAllChunks();
+                this.usedChunks = new Long2BooleanOpenHashMap();
+            }
+            this.updateSynapsePlayerTiming.stopTiming();
+        }
+        return super.onUpdate(currentTick);
+    }
+
+    private static int distance(int centerX, int centerZ, int x, int z) {
+        int dx = centerX - x;
+        int dz = centerZ - z;
+        return dx * dx + dz * dz;
     }
 }
