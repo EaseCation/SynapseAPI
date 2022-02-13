@@ -384,7 +384,7 @@ public class SynapsePlayer14 extends SynapsePlayer {
 						break packetswitch;
 					case PlayerActionPacket14.ACTION_CONTINUE_BREAK:
 						if (this.isBreakingBlock()) {
-							block = this.level.getBlock(pos);
+							block = this.level.getBlock(pos, false);
 							this.level.addParticle(new PunchBlockParticle(pos, block, face));
 						}
 						break;
@@ -397,6 +397,7 @@ public class SynapsePlayer14 extends SynapsePlayer {
 				}
 
 				this.startAction = -1;
+				this.startActionTimestamp = -1;
 				this.setDataFlag(Player.DATA_FLAGS, Player.DATA_FLAG_ACTION, false);
 				break;
             case ProtocolInfo.TEXT_PACKET:
@@ -444,7 +445,9 @@ public class SynapsePlayer14 extends SynapsePlayer {
 						break;
 					}
 					if (this.riding instanceof EntityBoat) {
-						((EntityBoat) this.riding).onInput(moveEntityAbsolutePacket.x, moveEntityAbsolutePacket.y, moveEntityAbsolutePacket.z, moveEntityAbsolutePacket.yaw);
+						if (this.temporalVector.setComponents(moveEntityAbsolutePacket.x, moveEntityAbsolutePacket.y, moveEntityAbsolutePacket.z).distanceSquared(this.riding) < 1000) {
+							((EntityBoat) this.riding).onInput(moveEntityAbsolutePacket.x, moveEntityAbsolutePacket.y, moveEntityAbsolutePacket.z, moveEntityAbsolutePacket.yaw);
+						}
 					}
 				}
 				break;

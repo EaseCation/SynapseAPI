@@ -223,6 +223,7 @@ public class SynapsePlayer113 extends SynapsePlayer112 {
 						this.scheduleUpdate();
 
 						this.startAction = -1;
+						this.startActionTimestamp = -1;
 						this.setDataFlag(Player.DATA_FLAGS, Player.DATA_FLAG_ACTION, false);
 						break;
 					default:
@@ -455,7 +456,9 @@ public class SynapsePlayer113 extends SynapsePlayer112 {
 									}
 
 									// Used item
-									int ticksUsed = this.server.getTick() - this.startAction;
+									//int ticksUsed = this.server.getTick() - this.startAction;
+									int ticksUsed = (int) (System.currentTimeMillis() - this.startActionTimestamp) / 50;
+
 									this.setUsingItem(false);
 
 									if (!item.onUse(this, ticksUsed)) {
@@ -588,7 +591,9 @@ public class SynapsePlayer113 extends SynapsePlayer112 {
 									if (this.isUsingItem()) {
 										item = this.inventory.getItemInHand();
 
-										int ticksUsed = this.server.getTick() - this.startAction;
+										//int ticksUsed = this.server.getTick() - this.startAction;
+										int ticksUsed = (int) (System.currentTimeMillis() - this.startActionTimestamp) / 50;
+
 										if (!item.onRelease(this, ticksUsed)) {
 											this.inventory.sendContents(this);
 										}
