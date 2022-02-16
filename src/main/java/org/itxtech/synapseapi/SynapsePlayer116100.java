@@ -82,6 +82,7 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 
+import static cn.nukkit.NukkitSharedConstants.*;
 import static org.itxtech.synapseapi.SynapseSharedConstants.*;
 
 //TODO: 这个类已经用了好几个版本了 有时间可以整理一下 像以前那样分成不同版本
@@ -698,7 +699,7 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
             LevelChunkPacket pk = new LevelChunkPacket();
             pk.chunkX = x;
             pk.chunkZ = z;
-            if (this.protocol >= AbstractProtocol.PROTOCOL_118_10.getProtocolStart()) {
+            if (ENABLE_SUB_CHUNK_NETWORK_OPTIMIZATION && this.protocol >= AbstractProtocol.PROTOCOL_118_10.getProtocolStart()) {
                 pk.subChunkCount = LevelChunkPacket.CLIENT_REQUEST_TRUNCATED_COLUMN_FAKE_COUNT;
             } else {
                 pk.subChunkCount = LevelChunkPacket.CLIENT_REQUEST_FULL_COLUMN_FAKE_COUNT;
@@ -740,7 +741,7 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
         LevelChunkPacket pk = new LevelChunkPacket();
         pk.chunkX = x;
         pk.chunkZ = z;
-        if (this.protocol >= AbstractProtocol.PROTOCOL_118_10.getProtocolStart()) {
+        if (ENABLE_SUB_CHUNK_NETWORK_OPTIMIZATION && this.protocol >= AbstractProtocol.PROTOCOL_118_10.getProtocolStart()) {
             pk.subChunkCount = LevelChunkPacket.CLIENT_REQUEST_TRUNCATED_COLUMN_FAKE_COUNT;
         } else {
             pk.subChunkCount = LevelChunkPacket.CLIENT_REQUEST_FULL_COLUMN_FAKE_COUNT;
@@ -1208,7 +1209,7 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
                     packet.chunkX = chunkX;
                     packet.chunkZ = chunkZ;
 //                    packet.subChunkCount = 0;
-                    if (this.protocol >= AbstractProtocol.PROTOCOL_118_10.getProtocolStart()) {
+                    if (ENABLE_SUB_CHUNK_NETWORK_OPTIMIZATION && this.protocol >= AbstractProtocol.PROTOCOL_118_10.getProtocolStart()) {
                         packet.subChunkCount = LevelChunkPacket.CLIENT_REQUEST_TRUNCATED_COLUMN_FAKE_COUNT;
                     } else {
                         packet.subChunkCount = LevelChunkPacket.CLIENT_REQUEST_FULL_COLUMN_FAKE_COUNT;
@@ -1302,7 +1303,7 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
                 packet.chunkX = chunkX;
                 packet.chunkZ = chunkZ;
 //                packet.subChunkCount = 0;
-                if (this.protocol >= AbstractProtocol.PROTOCOL_118_10.getProtocolStart()) {
+                if (ENABLE_SUB_CHUNK_NETWORK_OPTIMIZATION && this.protocol >= AbstractProtocol.PROTOCOL_118_10.getProtocolStart()) {
                     packet.subChunkCount = LevelChunkPacket.CLIENT_REQUEST_TRUNCATED_COLUMN_FAKE_COUNT;
                 } else {
                     packet.subChunkCount = LevelChunkPacket.CLIENT_REQUEST_FULL_COLUMN_FAKE_COUNT;
@@ -1415,7 +1416,7 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
                         packet.chunkX = chunkX;
                         packet.chunkZ = chunkZ;
 //                        packet.subChunkCount = 0;
-                        if (this.protocol >= AbstractProtocol.PROTOCOL_118_10.getProtocolStart()) {
+                        if (ENABLE_SUB_CHUNK_NETWORK_OPTIMIZATION && this.protocol >= AbstractProtocol.PROTOCOL_118_10.getProtocolStart()) {
                             packet.subChunkCount = LevelChunkPacket.CLIENT_REQUEST_TRUNCATED_COLUMN_FAKE_COUNT;
                         } else {
                             packet.subChunkCount = LevelChunkPacket.CLIENT_REQUEST_FULL_COLUMN_FAKE_COUNT;
