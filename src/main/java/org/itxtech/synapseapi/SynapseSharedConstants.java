@@ -27,6 +27,9 @@ public final class SynapseSharedConstants {
      */
     public static final boolean USE_CHANGE_DIMENSION_PACKET = false;
 
+    //FIXME: 1.18.10
+    public static final boolean CENTER_CHUNK_WITHOUT_CACHE = false;
+
     private SynapseSharedConstants() {
 
     }
