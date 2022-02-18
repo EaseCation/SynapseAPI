@@ -27,8 +27,10 @@ public final class SynapseSharedConstants {
      */
     public static final boolean USE_CHANGE_DIMENSION_PACKET = false;
 
-    //FIXME: 1.18.10
-    public static final boolean CENTER_CHUNK_WITHOUT_CACHE = false;
+    /**
+     * 玩家所处的中心区块直接发送不使用 blob cache 以加快加载速度.
+     */
+    public static final boolean CENTER_CHUNK_WITHOUT_CACHE = true;
 
     private SynapseSharedConstants() {
 

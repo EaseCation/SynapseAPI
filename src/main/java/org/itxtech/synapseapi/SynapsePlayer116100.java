@@ -241,7 +241,7 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
             startGamePacket.worldName = this.getServer().getNetwork().getName();
             startGamePacket.generator = 1; // 0 old, 1 infinite, 2 flat
             startGamePacket.gameRules = getSupportedRules();
-            startGamePacket.isMovementServerAuthoritative = /*!this.isNetEaseClient()*/true; //TODO: 已适配 待测试 -- 11/20/2021
+            startGamePacket.isMovementServerAuthoritative = true;
             // 启用后破坏方块时的物品栏事务就不会塞在PlayerAuthInputPacket了
             startGamePacket.isBlockBreakingServerAuthoritative = this.serverAuthoritativeBlockBreaking =
                     //!this.isNetEaseClient() && this.protocol > AbstractProtocol.PROTOCOL_116_200.getProtocolStart();
@@ -672,8 +672,7 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
 
     @Override
     public boolean isSubChunkRequestAvailable() {
-        return SynapseSharedConstants.USE_SUB_CHUNK_REQUEST && this.protocol >= AbstractProtocol.PROTOCOL_118.getProtocolStart()
-                && (this.protocol < AbstractProtocol.PROTOCOL_118_10.getProtocolStart() || this.isBlobCacheAvailable()); //FIXME: 1.18.10
+        return USE_SUB_CHUNK_REQUEST && this.protocol >= AbstractProtocol.PROTOCOL_118.getProtocolStart();
     }
 
     @Override
@@ -704,7 +703,7 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
             } else {
                 pk.subChunkCount = LevelChunkPacket.CLIENT_REQUEST_FULL_COLUMN_FAKE_COUNT;
             }
-            pk.subChunkRequestLimit = subChunkCount;
+            pk.subChunkRequestLimit = subChunkCount + Anvil.PADDING_SUB_CHUNK_COUNT;
             pk.blobIds = new long[]{hash};
             pk.cacheEnabled = true;
             pk.data = blobCache.getSubModeCachedPayload();
@@ -746,7 +745,7 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
         } else {
             pk.subChunkCount = LevelChunkPacket.CLIENT_REQUEST_FULL_COLUMN_FAKE_COUNT;
         }
-        pk.subChunkRequestLimit = subChunkCount;
+        pk.subChunkRequestLimit = subChunkCount + Anvil.PADDING_SUB_CHUNK_COUNT;
         if (this.isBlobCacheAvailable() && this.isSubModeLevelChunkBlobCacheEnabled() && !centerChunk) {
             long[] ids = blobCache.getExtendedBlobIds();
             long hash = ids[ids.length - 1]; // biome
