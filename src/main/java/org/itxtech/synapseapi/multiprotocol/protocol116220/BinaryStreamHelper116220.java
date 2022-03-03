@@ -201,7 +201,7 @@ public class BinaryStreamHelper116220 extends BinaryStreamHelper116210 {
 
         ByteBuf userDataBuf = ByteBufAllocator.DEFAULT.ioBuffer();
         try (LittleEndianByteBufOutputStream out = new LittleEndianByteBufOutputStream(userDataBuf)) {
-            if (item instanceof ItemDurable && item.getDamage() > 0 || block != null && block.getDamage() > 0) {
+            if (item instanceof ItemDurable || item.getDamage() > 0 || block != null && block.getDamage() > 0) {
                 byte[] nbt = item.getCompoundTag();
                 CompoundTag tag;
                 if (nbt == null || nbt.length == 0) {
