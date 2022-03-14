@@ -27,6 +27,8 @@ import org.itxtech.synapseapi.utils.BlobTrack;
 
 import java.net.InetSocketAddress;
 
+import static org.itxtech.synapseapi.SynapseSharedConstants.*;
+
 public class SynapsePlayer112 extends SynapsePlayer19 {
 
 	public Long2ObjectMap<BlobTrack> clientCacheTrack = null; //为null表示客户端未支持 TODO 代理跨服怎么办？
@@ -113,6 +115,7 @@ public class SynapsePlayer112 extends SynapsePlayer19 {
 			if (!this.connected) {
 				return;
 			}
+			this.noticeChunkPublisherUpdate();
 			long chunkHash = Level.chunkHash(x, z);
 
 			long[] blobIds;
@@ -184,6 +187,7 @@ public class SynapsePlayer112 extends SynapsePlayer19 {
 		if (!this.connected) {
 			return;
 		}
+		this.noticeChunkPublisherUpdate();
 		long chunkHash = Level.chunkHash(x, z);
 
 		this.usedChunks.put(chunkHash, true);
@@ -197,7 +201,7 @@ public class SynapsePlayer112 extends SynapsePlayer19 {
 			this.teleportChunkLoaded = true;
 		}
 
-		if (this.isBlobCacheAvailable() && blobCache != null && !centerChunk && !this.isBlobCacheDisabled()) {
+		if (this.isBlobCacheAvailable() && blobCache != null && (!centerChunk || !CENTER_CHUNK_WITHOUT_CACHE) && !this.isBlobCacheDisabled()) {
 			long[] blobIds;
 			Long2ObjectMap<byte[]> blobs;
 			if (this.isExtendedLevel()) {
@@ -273,7 +277,7 @@ public class SynapsePlayer112 extends SynapsePlayer19 {
 	}
 
 	protected void initClientBlobCache() {
-		if (SynapseSharedConstants.USE_CLIENT_BLOB_CACHE && this.clientCacheTrack == null) {
+		if (USE_CLIENT_BLOB_CACHE && this.clientCacheTrack == null) {
 			this.clientCacheTrack = new Long2ObjectOpenHashMap<BlobTrack>() {
 				@Override
 				public BlobTrack put(long hash, BlobTrack track) {
@@ -399,7 +403,7 @@ public class SynapsePlayer112 extends SynapsePlayer19 {
 	}*/
 
 	public boolean isBlobCacheAvailable() {
-		return SynapseSharedConstants.USE_CLIENT_BLOB_CACHE && this.clientCacheTrack != null;
+		return USE_CLIENT_BLOB_CACHE && this.clientCacheTrack != null;
 	}
 
 	public boolean isBlobCacheDisabled() {
