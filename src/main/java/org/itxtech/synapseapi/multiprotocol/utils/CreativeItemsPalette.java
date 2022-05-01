@@ -43,6 +43,7 @@ public class CreativeItemsPalette {
         register(AbstractProtocol.PROTOCOL_117_40, load("creativeitems_11620.json", true), null);
         register(AbstractProtocol.PROTOCOL_118, load("creativeitems_11620.json", true), null);
         register(AbstractProtocol.PROTOCOL_118_10, load("creativeitems_11620.json", true), null);
+        register(AbstractProtocol.PROTOCOL_118_30, load("creativeitems_11620.json", true), null);
     }
 
     private static void register(AbstractProtocol protocol, CreativeItemsList list, CreativeItemsList listNetEase) {
