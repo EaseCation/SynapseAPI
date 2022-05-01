@@ -14,12 +14,16 @@ public class EntityMetadataGenerator {
         EntityMetadata entityMetadata = new EntityMetadata();
         for(@SuppressWarnings("rawtypes") EntityData entityData : v12Metadata.getMap().values()) {
         	int v12Id = entityData.getId();
-        	Integer v14Id = EntityDataItemIDTranslator.translateTo14Id(v12Id);
-        	if(v14Id == null) {
-        		MainLogger.getLogger().warning("Unable to translate to version 14 with id " + v12Id);
-        		continue;
-        	}
-        	if(entityData instanceof ByteEntityData) {
+			if (v12Id == Entity.DATA_NUKKIT_FLAGS) continue;
+        	int v14Id = EntityDataItemIDTranslator.translateTo14Id(v12Id);
+//        	if (v14Id == null) {
+//        		MainLogger.getLogger().warning("Unable to translate to version 14 with id " + v12Id);
+//        		continue;
+//        	}
+			if (v14Id == -1) {
+				continue;
+			}
+        	if (entityData instanceof ByteEntityData) {
         		Integer data = ((ByteEntityData)entityData).getData();
         		ByteEntityData byteEntityData = new ByteEntityData(v14Id, data);
         		entityMetadata.put(byteEntityData);
@@ -29,7 +33,8 @@ public class EntityMetadataGenerator {
         		entityMetadata.put(floatEntityData);
         	} else if(entityData instanceof IntEntityData) {
         		Integer data = ((IntEntityData)entityData).getData();
-        		if (v14Id == EntityDataItemIDTranslator.VARIANT) {
+        		if (v14Id == EntityDataItemIDTranslator.VARIANT
+						&& (v12Metadata.getLong(Entity.DATA_NUKKIT_FLAGS) & Entity.NUKKIT_FLAG_VARIANT_BLOCK) != 0) {
 					int id = data & 0xff;
 					int meta = data >> 8;
 					data = GlobalBlockPalette.getOrCreateRuntimeId(id, meta);  //实体属性中的方块ID转换为RuntimeID
@@ -72,7 +77,7 @@ public class EntityMetadataGenerator {
 		for(@SuppressWarnings("rawtypes") EntityData entityData : v12Metadata.getMap().values()) {
 			int v12Id = entityData.getId();
 			if (v12Id == Entity.DATA_NUKKIT_FLAGS) continue;
-			Integer newId;
+			int newId;
 			if (protocol.ordinal() >= AbstractProtocol.PROTOCOL_117.ordinal()) {
 				newId = EntityDataItemIDTranslator.translateTo117Id(v12Id);
 			} else if (protocol.ordinal() >= AbstractProtocol.PROTOCOL_116_210.ordinal()) {
@@ -84,11 +89,11 @@ public class EntityMetadataGenerator {
 			} else {
 				newId = EntityDataItemIDTranslator.translateTo14Id(v12Id);
 			}
-			if (newId == null) {
-				MainLogger.getLogger().warning("Unable to translate to version " + protocol.name() + " with id " + v12Id);
+//			if (newId == null) {
+//				MainLogger.getLogger().warning("Unable to translate to version " + protocol.name() + " with id " + v12Id);
 				//entityMetadata.put(entityData);
-				continue;
-			}
+//				continue;
+//			}
 			if (newId == -1) {
 				// discard
 				continue;

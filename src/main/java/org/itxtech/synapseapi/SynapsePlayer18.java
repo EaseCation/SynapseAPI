@@ -3,9 +3,11 @@ package org.itxtech.synapseapi;
 import cn.nukkit.Player;
 import cn.nukkit.Server;
 import cn.nukkit.level.GameRules;
+import cn.nukkit.level.Level;
 import cn.nukkit.level.Position;
 import cn.nukkit.math.MathHelper;
 import cn.nukkit.math.Vector3;
+import cn.nukkit.math.Vector3f;
 import cn.nukkit.network.SourceInterface;
 import cn.nukkit.network.protocol.*;
 import cn.nukkit.resourcepacks.ResourcePack;
@@ -214,5 +216,30 @@ public class SynapsePlayer18 extends SynapsePlayer17 {
 		packet.position = this.asBlockVector3();
 		packet.radius = this.getViewDistance() << 4;
 		this.dataPacket(packet);
+	}
+
+	@Override
+	public final void spawnParticleEffect(Vector3f position, String identifier) {
+		spawnParticleEffect(position, identifier, -1);
+	}
+
+	@Override
+	public final void spawnParticleEffect(Vector3f position, String identifier, long entityUniqueId) {
+		spawnParticleEffect(position, identifier, entityUniqueId, Level.DIMENSION_OVERWORLD);
+	}
+
+	@Override
+	public final void spawnParticleEffect(Vector3f position, String identifier, long entityUniqueId, int dimension) {
+		spawnParticleEffect(position, identifier, entityUniqueId, dimension, null);
+	}
+
+	@Override
+	public void spawnParticleEffect(Vector3f position, String identifier, long entityUniqueId, int dimension, String molangVariables) {
+		SpawnParticleEffectPacket18 packet = new SpawnParticleEffectPacket18();
+		packet.position = position;
+		packet.identifier = identifier;
+		packet.uniqueEntityId = entityUniqueId;
+		packet.dimension = dimension;
+		dataPacket(packet);
 	}
 }

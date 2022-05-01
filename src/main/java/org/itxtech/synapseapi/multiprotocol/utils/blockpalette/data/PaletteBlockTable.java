@@ -40,6 +40,10 @@ public class PaletteBlockTable extends ArrayList<PaletteBlockData> {
     }
 
     public static PaletteBlockTable fromNBTV3(String file) {
+        return fromNBTV3(file, false);
+    }
+
+    public static PaletteBlockTable fromNBTV3(String file, boolean newName) {
         PaletteBlockTable table = new PaletteBlockTable();
 
         PaletteBlockData air = PaletteBlockData.createUnknownData();
@@ -63,7 +67,7 @@ public class PaletteBlockTable extends ArrayList<PaletteBlockData> {
                 String name = blockTag.getString("name");
                 int id;
                 try {
-                    id = GlobalBlockPalette.getBlockIdByName(name);
+                    id = newName ? GlobalBlockPalette.getBlockIdByNewName(name) : GlobalBlockPalette.getBlockIdByName(name);
                 } catch (NoSuchElementException e) {
                     //table.add(air);
                     table.add(unknown);

@@ -1,17 +1,18 @@
 package org.itxtech.synapseapi.multiprotocol.utils;
 
-import java.util.HashMap;
-import java.util.Map;
-
 import cn.nukkit.entity.Entity;
+import it.unimi.dsi.fastutil.ints.Int2IntMap;
+import it.unimi.dsi.fastutil.ints.Int2IntOpenHashMap;
+
+import static cn.nukkit.entity.Entity.*;
 
 public class EntityDataItemIDTranslator {
 
-	public final static Map<Integer, Integer> v12ToV14Book = new HashMap<>();
-	public final static Map<Integer, Integer> v12ToV111Book = new HashMap<>();
-	public final static Map<Integer, Integer> v12ToV112Book = new HashMap<>();
-	public final static Map<Integer, Integer> v12ToV116210Book = new HashMap<>();
-	public final static Map<Integer, Integer> v12ToV117Book = new HashMap<>();
+	public final static Int2IntMap v12ToV14Book = new Int2IntOpenHashMap();
+	public final static Int2IntMap v12ToV111Book = new Int2IntOpenHashMap();
+	public final static Int2IntMap v12ToV112Book = new Int2IntOpenHashMap();
+	public final static Int2IntMap v12ToV116210Book = new Int2IntOpenHashMap();
+	public final static Int2IntMap v12ToV117Book = new Int2IntOpenHashMap();
 
 	public final static int FLAGS = 0;
 	public final static int STRUCTURAL_INTEGRITY = 1;
@@ -302,7 +303,12 @@ public class EntityDataItemIDTranslator {
 	public static final int V117_GOAT_HORN_COUNT = 123;
 	public static final int V117_UPDATE_PROPERTIES = 124;
 
+	public static final int V11830_MOVEMENT_SOUND_DISTANCE_OFFSET = 125;
+	public static final int V11830_HEARTBEAT_INTERVAL_TICKS = 126;
+	public static final int V11830_HEARTBEAT_SOUND_EVENT = 127;
+
 	static {
+		v12ToV14Book.defaultReturnValue(-1);
 		v12ToV14Book.put(Entity.DATA_FLAGS, FLAGS);
 		v12ToV14Book.put(Entity.DATA_HEALTH, STRUCTURAL_INTEGRITY);
 		v12ToV14Book.put(Entity.DATA_VARIANT, VARIANT);
@@ -383,6 +389,7 @@ public class EntityDataItemIDTranslator {
 		v12ToV14Book.put(Entity.DATA_LIMITED_LIFE, DATA_LIFETIME_TICKS);
 		v12ToV14Book.put(Entity.DATA_ALWAYS_SHOW_NAMETAG, NAMETAG_ALWAYS_SHOW );
 
+		v12ToV111Book.defaultReturnValue(-1);
 		v12ToV14Book.forEach((from, to) -> {
 			if (to < 40) v12ToV111Book.put(from, to);
 		});
@@ -429,6 +436,7 @@ public class EntityDataItemIDTranslator {
 		v12ToV111Book.put(Entity.DATA_ALWAYS_SHOW_NAMETAG, V111_ALWAYS_SHOW_NAMETAG);
 		v12ToV111Book.put(Entity.DATA_SCORE_TAG, V111_SCORE_TAG);
 
+		v12ToV112Book.defaultReturnValue(-1);
 		v12ToV112Book.putAll(v12ToV111Book);
 		v12ToV112Book.put(Entity.DATA_SKIN_ID, V112_SKIN_ID );
 		v12ToV112Book.put(Entity.DATA_MAX_AIR, V112_MAX_AIR );
@@ -480,6 +488,7 @@ public class EntityDataItemIDTranslator {
 		v12ToV112Book.put(Entity.DATA_IS_BUOYANT, V116_IS_BUOYANT);
 		v12ToV112Book.put(Entity.DATA_BUOYANCY_DATA, V116_BUOYANCY_DATA);
 
+		v12ToV116210Book.defaultReturnValue(-1);
 		v12ToV116210Book.putAll(v12ToV112Book);
 		v12ToV116210Book.put(Entity.DATA_SEAT_ROTATION_OFFSET, V116210_RIDER_ROTATION_OFFSET);
 		v12ToV116210Book.put(Entity.DATA_AREA_EFFECT_CLOUD_RADIUS, V116210_AREA_EFFECT_CLOUD_RADIUS);
@@ -548,31 +557,38 @@ public class EntityDataItemIDTranslator {
 		v12ToV116210Book.put(Entity.DATA_DEFINE_PROPERTIES, V116210_DEFINE_PROPERTIES);
 		v12ToV116210Book.put(Entity.DATA_UPDATE_PROPERTIES, V116210_UPDATE_PROPERTIES);
 
+		// 1.17.0
+		v12ToV117Book.defaultReturnValue(-1);
 		v12ToV117Book.putAll(v12ToV116210Book);
 		v12ToV117Book.put(Entity.DATA_BASE_RUNTIME_ID, V117_BASE_RUNTIME_ID);
 		v12ToV117Book.put(Entity.DATA_FREEZING_EFFECT_STRENGTH, V117_FREEZING_EFFECT_STRENGTH);
 		v12ToV117Book.put(Entity.DATA_BUOYANCY_DATA, V117_BUOYANCY_DATA);
 		v12ToV117Book.put(Entity.DATA_GOAT_HORN_COUNT, V117_GOAT_HORN_COUNT);
 		v12ToV117Book.put(Entity.DATA_UPDATE_PROPERTIES, V117_UPDATE_PROPERTIES);
+
+		// 1.18.30
+		v12ToV117Book.put(DATA_MOVEMENT_SOUND_DISTANCE_OFFSET, V11830_MOVEMENT_SOUND_DISTANCE_OFFSET);
+		v12ToV117Book.put(DATA_HEARTBEAT_INTERVAL_TICKS, V11830_HEARTBEAT_INTERVAL_TICKS);
+		v12ToV117Book.put(DATA_HEARTBEAT_SOUND_EVENT, V11830_HEARTBEAT_SOUND_EVENT);
 	}
-	
-	public static Integer translateTo14Id(int v12Id) {
+
+	public static int translateTo14Id(int v12Id) {
 		return v12ToV14Book.get(v12Id);
 	}
 
-	public static Integer translateTo111Id(int v12Id) {
+	public static int translateTo111Id(int v12Id) {
 		return v12ToV111Book.get(v12Id);
 	}
 
-	public static Integer translateTo112Id(int v12Id) {
+	public static int translateTo112Id(int v12Id) {
 		return v12ToV112Book.get(v12Id);
 	}
 
-	public static Integer translateTo116210Id(int v12Id) {
+	public static int translateTo116210Id(int v12Id) {
 		return v12ToV116210Book.get(v12Id);
 	}
 
-	public static Integer translateTo117Id(int v12Id) {
+	public static int translateTo117Id(int v12Id) {
 		return v12ToV117Book.get(v12Id);
 	}
 }

@@ -40,6 +40,9 @@ import org.itxtech.synapseapi.multiprotocol.protocol118.protocol.StartGamePacket
 import org.itxtech.synapseapi.multiprotocol.protocol118.protocol.SubChunkRequestPacket118;
 import org.itxtech.synapseapi.multiprotocol.protocol118.protocol.UpdateSubChunkBlocksPacket118;
 import org.itxtech.synapseapi.multiprotocol.protocol11810.protocol.SubChunkRequestPacket11810;
+import org.itxtech.synapseapi.multiprotocol.protocol11830.protocol.AddPlayerPacket11830;
+import org.itxtech.synapseapi.multiprotocol.protocol11830.protocol.SpawnParticleEffectPacket11830;
+import org.itxtech.synapseapi.multiprotocol.protocol11830.protocol.StartGamePacket11830;
 import org.itxtech.synapseapi.multiprotocol.protocol15.protocol.AddEntityPacket15;
 import org.itxtech.synapseapi.multiprotocol.protocol15.protocol.ClientboundMapItemDataPacket15;
 import org.itxtech.synapseapi.multiprotocol.protocol15.protocol.MoveEntityAbsolutePacket15;
@@ -229,6 +232,10 @@ public class PacketRegister {
         registerPacket(AbstractProtocol.PROTOCOL_118, ProtocolInfo.UPDATE_SUB_CHUNK_BLOCKS_PACKET, UpdateSubChunkBlocksPacket118.class);
 
         registerPacket(AbstractProtocol.PROTOCOL_118_10, ProtocolInfo.SUB_CHUNK_REQUEST_PACKET, SubChunkRequestPacket11810.class);
+
+        registerPacket(AbstractProtocol.PROTOCOL_118_30, ProtocolInfo.START_GAME_PACKET, StartGamePacket11830.class);
+        registerPacket(AbstractProtocol.PROTOCOL_118_30, ProtocolInfo.ADD_PLAYER_PACKET, AddPlayerPacket11830.class);
+        registerPacket(AbstractProtocol.PROTOCOL_118_30, ProtocolInfo.SPAWN_PARTICLE_EFFECT_PACKET, SpawnParticleEffectPacket11830.class);
 
         checkNeteaseSpecialExtend();
         CraftingPacketManager.rebuildPacket();

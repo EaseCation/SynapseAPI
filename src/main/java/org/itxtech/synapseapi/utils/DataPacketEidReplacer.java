@@ -22,6 +22,7 @@ import cn.nukkit.network.protocol.SetEntityMotionPacket;
 import cn.nukkit.network.protocol.TakeItemEntityPacket;
 import cn.nukkit.network.protocol.UpdateAttributesPacket;
 import org.itxtech.synapseapi.multiprotocol.protocol116100ne.protocol.MovePlayerPacket116100NE;
+import org.itxtech.synapseapi.multiprotocol.protocol11830.protocol.SpawnParticleEffectPacket11830;
 import org.itxtech.synapseapi.multiprotocol.protocol18.protocol.SpawnParticleEffectPacket18;
 
 import java.util.Arrays;
@@ -128,8 +129,14 @@ public class DataPacketEidReplacer {
                 }
                 break;
             case ProtocolInfo.SPAWN_PARTICLE_EFFECT_PACKET:
-                if (((SpawnParticleEffectPacket18) packet).uniqueEntityId == from) {
-                    ((SpawnParticleEffectPacket18) packet).uniqueEntityId = to;
+                if (packet instanceof SpawnParticleEffectPacket11830) {
+                    if (((SpawnParticleEffectPacket11830) packet).uniqueEntityId == from) {
+                        ((SpawnParticleEffectPacket11830) packet).uniqueEntityId = to;
+                    }
+                } else if (packet instanceof SpawnParticleEffectPacket18) {
+                    if (((SpawnParticleEffectPacket18) packet).uniqueEntityId == from) {
+                        ((SpawnParticleEffectPacket18) packet).uniqueEntityId = to;
+                    }
                 }
                 break;
             default:

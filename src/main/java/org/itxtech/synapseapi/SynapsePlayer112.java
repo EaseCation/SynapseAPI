@@ -122,8 +122,13 @@ public class SynapsePlayer112 extends SynapsePlayer19 {
 			Long2ObjectMap<byte[]> blobs;
 			if (this.isExtendedLevel()) {
 				subChunkCount += Anvil.PADDING_SUB_CHUNK_COUNT;
-				blobIds = blobCache.getExtendedBlobIds();
-				blobs = blobCache.getExtendedClientBlobs();
+				if (this.getProtocol() >= AbstractProtocol.PROTOCOL_118_30.getProtocolStart()) {
+					blobIds = blobCache.getExtendedBlobIdsNew();
+					blobs = blobCache.getExtendedClientBlobsNew();
+				} else {
+					blobIds = blobCache.getExtendedBlobIds();
+					blobs = blobCache.getExtendedClientBlobs();
+				}
 			} else {
 				blobIds = blobCache.getBlobIds();
 				blobs = blobCache.getClientBlobs();
@@ -206,8 +211,13 @@ public class SynapsePlayer112 extends SynapsePlayer19 {
 			Long2ObjectMap<byte[]> blobs;
 			if (this.isExtendedLevel()) {
 				subChunkCount += Anvil.PADDING_SUB_CHUNK_COUNT;
-				blobIds = blobCache.getExtendedBlobIds();
-				blobs = blobCache.getExtendedClientBlobs();
+				if (this.getProtocol() >= AbstractProtocol.PROTOCOL_118_30.getProtocolStart()) {
+					blobIds = blobCache.getExtendedBlobIdsNew();
+					blobs = blobCache.getExtendedClientBlobsNew();
+				} else {
+					blobIds = blobCache.getExtendedBlobIds();
+					blobs = blobCache.getExtendedClientBlobs();
+				}
 			} else {
 				blobIds = blobCache.getBlobIds();
 				blobs = blobCache.getClientBlobs();

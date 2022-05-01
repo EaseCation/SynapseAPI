@@ -73,6 +73,8 @@ import org.itxtech.synapseapi.multiprotocol.protocol11730.protocol.StartGamePack
 import org.itxtech.synapseapi.multiprotocol.protocol118.protocol.StartGamePacket118;
 import org.itxtech.synapseapi.multiprotocol.protocol118.protocol.SubChunkRequestPacket118;
 import org.itxtech.synapseapi.multiprotocol.protocol11810.protocol.SubChunkRequestPacket11810;
+import org.itxtech.synapseapi.multiprotocol.protocol11830.protocol.SpawnParticleEffectPacket11830;
+import org.itxtech.synapseapi.multiprotocol.protocol11830.protocol.StartGamePacket11830;
 import org.itxtech.synapseapi.multiprotocol.protocol14.protocol.PlayerActionPacket14;
 import org.itxtech.synapseapi.multiprotocol.protocol16.protocol.ResourcePackClientResponsePacket16;
 import org.itxtech.synapseapi.utils.BlobTrack;
@@ -88,6 +90,18 @@ import static org.itxtech.synapseapi.SynapseSharedConstants.*;
 //TODO: 这个类已经用了好几个版本了 有时间可以整理一下 像以前那样分成不同版本
 @Log4j2
 public class SynapsePlayer116100 extends SynapsePlayer116 {
+
+    public static final int GAME_TYPE_SURVIVAL = 0;
+    public static final int GAME_TYPE_CREATIVE = 1;
+    public static final int GAME_TYPE_ADVENTURE = 2;
+    public static final int GAME_TYPE_SURVIVAL_VIEWER = 3;
+    public static final int GAME_TYPE_CREATIVE_VIEWER = 4;
+    public static final int GAME_TYPE_DEFAULT = 5;
+    /**
+     * 原生的旁观模式.
+     * @since 1.18.30
+     */
+    public static final int GAME_TYPE_SPECTATOR = 6;
 
     protected final Long2ObjectMap<IntSet> subChunkRequestQueue = new Long2ObjectOpenHashMap<>();
     protected final Long2ObjectMap<IntSet> subChunkSendQueue = new Long2ObjectOpenHashMap<>();
@@ -117,7 +131,39 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
 
     @Override
     protected DataPacket generateStartGamePacket(Position spawnPosition) {
-        if (this.getProtocol() >= AbstractProtocol.PROTOCOL_118.getProtocolStart()) {
+        if (this.getProtocol() >= AbstractProtocol.PROTOCOL_118_30.getProtocolStart()) {
+            StartGamePacket11830 startGamePacket = new StartGamePacket11830();
+            startGamePacket.protocol = AbstractProtocol.fromRealProtocol(this.protocol);
+            startGamePacket.netease = this.isNetEaseClient();
+            startGamePacket.entityUniqueId = Long.MAX_VALUE;
+            startGamePacket.entityRuntimeId = Long.MAX_VALUE;
+            startGamePacket.playerGamemode = getClientFriendlyGamemode(this.gamemode);
+            startGamePacket.x = (float) this.x;
+            startGamePacket.y = (float) this.y;
+            startGamePacket.z = (float) this.z;
+            startGamePacket.yaw = (float) this.yaw;
+            startGamePacket.pitch = (float) this.pitch;
+            startGamePacket.seed = -1;
+            startGamePacket.dimension = (byte) (this.level.getDimension() & 0xff);
+            startGamePacket.worldGamemode = getClientFriendlyGamemode(this.gamemode);
+            startGamePacket.difficulty = this.server.getDifficulty();
+            startGamePacket.spawnX = (int) spawnPosition.x;
+            startGamePacket.spawnY = (int) spawnPosition.y;
+            startGamePacket.spawnZ = (int) spawnPosition.z;
+            startGamePacket.hasAchievementsDisabled = true;
+            startGamePacket.dayCycleStopTime = -1;
+            startGamePacket.rainLevel = 0;
+            startGamePacket.lightningLevel = 0;
+            startGamePacket.commandsEnabled = this.isEnableClientCommand();
+            startGamePacket.levelId = "";
+            startGamePacket.worldName = this.getServer().getNetwork().getName();
+            startGamePacket.generator = 1; // 0 old, 1 infinite, 2 flat
+            startGamePacket.gameRules = getSupportedRules();
+            startGamePacket.isMovementServerAuthoritative = true;
+            startGamePacket.isBlockBreakingServerAuthoritative = this.serverAuthoritativeBlockBreaking = true;
+            startGamePacket.currentTick = this.server.getTick();
+            return startGamePacket;
+        } else if (this.getProtocol() >= AbstractProtocol.PROTOCOL_118.getProtocolStart()) {
             StartGamePacket118 startGamePacket = new StartGamePacket118();
             startGamePacket.protocol = AbstractProtocol.fromRealProtocol(this.protocol);
             startGamePacket.netease = this.isNetEaseClient();
@@ -320,9 +366,12 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
      * <p>
      * TODO: remove this when Spectator Mode gets added properly to MCPE
      */
-    private static int getClientFriendlyGamemode(int gamemode) {
+    private int getClientFriendlyGamemode(int gamemode) {
         gamemode &= 0x03;
         if (gamemode == Player.SPECTATOR) {
+//            if (this.getProtocol() >= AbstractProtocol.PROTOCOL_118_30.getProtocolStart()) {
+//                return GAME_TYPE_SPECTATOR; //TODO: test me
+//            }
             return Player.CREATIVE;
         }
         return gamemode;
@@ -691,9 +740,17 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
         boolean centerChunk = CENTER_CHUNK_WITHOUT_CACHE && this.getChunkX() == x && this.getChunkZ() == z;
 
         if (this.isBlobCacheAvailable() && this.isSubModeLevelChunkBlobCacheEnabled() && !centerChunk) {
-            long[] ids = blobCache.getExtendedBlobIds();
+            long[] ids;
+            Long2ObjectMap<byte[]> extendedClientBlobs;
+            if (this.getProtocol() >= AbstractProtocol.PROTOCOL_118_30.getProtocolStart()) {
+                ids = blobCache.getExtendedBlobIdsNew();
+                extendedClientBlobs = blobCache.getExtendedClientBlobsNew();
+            } else {
+                ids = blobCache.getExtendedBlobIds();
+                extendedClientBlobs = blobCache.getExtendedClientBlobs();
+            }
             long hash = ids[ids.length - 1]; // biome
-            this.clientCacheTrack.put(hash, new BlobTrack(hash, blobCache.getExtendedClientBlobs().get(hash)));
+            this.clientCacheTrack.put(hash, new BlobTrack(hash, extendedClientBlobs.get(hash)));
 
             LevelChunkPacket pk = new LevelChunkPacket();
             pk.chunkX = x;
@@ -747,9 +804,17 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
         }
         pk.subChunkRequestLimit = subChunkCount + Anvil.PADDING_SUB_CHUNK_COUNT;
         if (this.isBlobCacheAvailable() && this.isSubModeLevelChunkBlobCacheEnabled() && !centerChunk) {
-            long[] ids = blobCache.getExtendedBlobIds();
+            long[] ids;
+            Long2ObjectMap<byte[]> extendedClientBlobs;
+            if (this.getProtocol() >= AbstractProtocol.PROTOCOL_118_30.getProtocolStart()) {
+                ids = blobCache.getExtendedBlobIdsNew();
+                extendedClientBlobs = blobCache.getExtendedClientBlobsNew();
+            } else {
+                ids = blobCache.getExtendedBlobIds();
+                extendedClientBlobs = blobCache.getExtendedClientBlobs();
+            }
             long hash = ids[ids.length - 1]; // biome
-            this.clientCacheTrack.put(hash, new BlobTrack(hash, blobCache.getExtendedClientBlobs().get(hash)));
+            this.clientCacheTrack.put(hash, new BlobTrack(hash, extendedClientBlobs.get(hash)));
 
             pk.blobIds = new long[]{hash};
             pk.cacheEnabled = true;
@@ -835,8 +900,17 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
             if (ENABLE_EMPTY_SUB_CHUNK_NETWORK_OPTIMIZATION && this.protocol >= AbstractProtocol.PROTOCOL_118_10.getProtocolStart() && (y < 0 || blobCache != null && (y >= blobCache.getEmptySection().length || blobCache.getEmptySection()[y]))) {
                 pk.requestResult = SubChunkPacket.REQUEST_RESULT_SUCCESS_ALL_AIR;
             } else if (blobCache != null && this.isBlobCacheAvailable() && this.isSubChunkBlobCacheEnabled() && !centerChunk) {
-                long hash = blobCache.getExtendedBlobIds()[index];
-                this.clientCacheTrack.put(hash, new BlobTrack(hash, blobCache.getExtendedClientBlobs().get(hash)));
+                long[] ids;
+                Long2ObjectMap<byte[]> extendedClientBlobs;
+                if (this.getProtocol() >= AbstractProtocol.PROTOCOL_118_30.getProtocolStart()) {
+                    ids = blobCache.getExtendedBlobIdsNew();
+                    extendedClientBlobs = blobCache.getExtendedClientBlobsNew();
+                } else {
+                    ids = blobCache.getExtendedBlobIds();
+                    extendedClientBlobs = blobCache.getExtendedClientBlobs();
+                }
+                long hash = ids[index];
+                this.clientCacheTrack.put(hash, new BlobTrack(hash, extendedClientBlobs.get(hash)));
 
                 pk.data = blobCache.getSubChunkCachedPayload()[index];
                 pk.blobId = hash;
@@ -932,8 +1006,17 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
                 pk.heightMap = heightMap[index];
                 this.dataPacket(pk);
             } else if (blobCache != null && this.isBlobCacheAvailable() && this.isSubChunkBlobCacheEnabled() && !centerChunk) {
-                long hash = blobCache.getExtendedBlobIds()[index];
-                this.clientCacheTrack.put(hash, new BlobTrack(hash, blobCache.getExtendedClientBlobs().get(hash)));
+                long[] ids;
+                Long2ObjectMap<byte[]> extendedClientBlobs;
+                if (this.getProtocol() >= AbstractProtocol.PROTOCOL_118_30.getProtocolStart()) {
+                    ids = blobCache.getExtendedBlobIdsNew();
+                    extendedClientBlobs = blobCache.getExtendedClientBlobsNew();
+                } else {
+                    ids = blobCache.getExtendedBlobIds();
+                    extendedClientBlobs = blobCache.getExtendedClientBlobs();
+                }
+                long hash = ids[index];
+                this.clientCacheTrack.put(hash, new BlobTrack(hash, extendedClientBlobs.get(hash)));
 
                 SubChunkPacket pk = this.createSubChunkPacket();
 //                pk.dimension = dimension;
@@ -1448,6 +1531,24 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
             this.updateSynapsePlayerTiming.stopTiming();
         }
         return super.onUpdate(currentTick);
+    }
+
+    @Override
+    public void spawnParticleEffect(Vector3f position, String identifier, long entityUniqueId, int dimension, String molangVariables) {
+        if (this.getProtocol() < AbstractProtocol.PROTOCOL_118_30.getProtocolStart()) {
+            super.spawnParticleEffect(position, identifier, entityUniqueId, dimension, null);
+            return;
+        }
+
+        SpawnParticleEffectPacket11830 packet = new SpawnParticleEffectPacket11830();
+        packet.position = position;
+        packet.identifier = identifier;
+        packet.uniqueEntityId = entityUniqueId;
+        packet.dimension = dimension;
+        if (molangVariables != null) {
+            packet.molangVariables = molangVariables;
+        }
+        dataPacket(packet);
     }
 
     private static int distance(int centerX, int centerZ, int x, int z) {

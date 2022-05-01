@@ -145,6 +145,12 @@
             <artifactId>msgpack-core</artifactId>
             <version>0.9.0</version>
         </dependency>
+        <dependency>
+            <groupId>com.google.code.findbugs</groupId>
+            <artifactId>jsr305</artifactId>
+            <version>3.0.2</version>
+            <scope>provided</scope>
+        </dependency>
     </dependencies>
 
     <build>
