@@ -835,6 +835,8 @@ public class SynapsePlayer116 extends SynapsePlayer113 {
 					this.forceMovement = new Vector3(this.x, this.y, this.z);
 				}
 
+				if (riding != null) forceMovement = null;
+
 				if (this.forceMovement != null && (newPos.distanceSquared(this.forceMovement) > 0.1 || revert)) {
 					this.sendPosition(this.forceMovement, this.yaw, this.pitch, MovePlayerPacket.MODE_RESET);
 				} else {
