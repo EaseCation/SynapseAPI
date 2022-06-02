@@ -8,7 +8,7 @@ import java.util.UUID;
 
 public class ConfirmSkinPacket113 extends Packet113 {
 
-	public static final int NETWORK_ID = ProtocolInfo.CONFIRM_SKIN_PACKET;
+	public static final int NETWORK_ID = ProtocolInfo.PACKET_CONFIRM_SKIN;
 
 	@Override
 	public int pid() {

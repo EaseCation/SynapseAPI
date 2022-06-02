@@ -36,7 +36,6 @@ import org.msgpack.value.*;
 
 import java.net.InetSocketAddress;
 import java.nio.charset.StandardCharsets;
-import java.util.Map;
 import java.util.Optional;
 
 public class SynapsePlayer16 extends SynapsePlayer14 {
@@ -152,7 +151,7 @@ public class SynapsePlayer16 extends SynapsePlayer14 {
 							));
 				}
 				break;
-			case ProtocolInfo.PACKET_PY_PRC:
+			case ProtocolInfo.PACKET_PY_RPC:
 				if (!callPacketReceiveEvent(packet)) break;
 				NEPyRpcPacket16 pyRpcPacket = (NEPyRpcPacket16) packet;
 				NetEasePlayerPyRpcReceiveEvent pyRpcReceiveEvent = new NetEasePlayerPyRpcReceiveEvent(this, pyRpcPacket.data);

@@ -84,7 +84,7 @@ public class CraftingDataPacket116220 extends Packet116220 {
                         this.putRecipeIngredient(ingredient);
                     }
                     this.putUnsignedVarInt(1);
-                    this.putSlotDummy(shapeless.getResult());
+                    this.putItemInstance(shapeless.getResult());
                     this.putUUID(shapeless.getId());
                     this.putString(CRAFTING_TAG_CRAFTING_TABLE);
                     this.putVarInt(shapeless.getPriority());
@@ -106,7 +106,7 @@ public class CraftingDataPacket116220 extends Packet116220 {
                     outputs.addAll(shaped.getExtraResults());
                     this.putUnsignedVarInt(outputs.size());
                     for (Item output : outputs) {
-                        this.putSlotDummy(output);
+                        this.putItemInstance(output);
                     }
                     this.putUUID(shaped.getId());
                     this.putString(CRAFTING_TAG_CRAFTING_TABLE);
@@ -121,7 +121,7 @@ public class CraftingDataPacket116220 extends Packet116220 {
                     if (recipe.getType() == RecipeType.FURNACE_DATA) {
                         this.putVarInt(input.getDamage());
                     }
-                    this.putSlotDummy(furnace.getResult());
+                    this.putItemInstance(furnace.getResult());
                     this.putString(CRAFTING_TAG_FURNACE);
                     break;
             }

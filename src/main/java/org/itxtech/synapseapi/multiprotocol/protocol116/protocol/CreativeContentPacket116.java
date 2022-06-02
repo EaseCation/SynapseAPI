@@ -25,7 +25,7 @@ public class CreativeContentPacket116 extends Packet116 {
         this.putUnsignedVarInt(entries.length);
         for (int i = 0; i < entries.length; i++) {
             this.putUnsignedVarInt(i + 1);
-            this.putSlotDummy(entries[i]);
+            this.putItemInstance(entries[i]);
         }
     }
 }

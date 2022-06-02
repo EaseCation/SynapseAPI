@@ -9,9 +9,14 @@ import cn.nukkit.blockentity.BlockEntity;
 import cn.nukkit.blockentity.BlockEntityItemFrame;
 import cn.nukkit.entity.Entity;
 import cn.nukkit.entity.EntityRideable;
+import cn.nukkit.entity.data.ShortEntityData;
 import cn.nukkit.entity.item.EntityBoat;
 import cn.nukkit.event.inventory.InventoryCloseEvent;
 import cn.nukkit.event.player.PlayerInteractEvent;
+import cn.nukkit.event.player.PlayerRespawnEvent;
+import cn.nukkit.event.player.PlayerToggleGlideEvent;
+import cn.nukkit.event.player.PlayerToggleSneakEvent;
+import cn.nukkit.event.player.PlayerToggleSprintEvent;
 import cn.nukkit.inventory.Inventory;
 import cn.nukkit.level.GlobalBlockPaletteInterface.StaticVersion;
 import cn.nukkit.level.Level;
@@ -19,6 +24,7 @@ import cn.nukkit.level.Position;
 import cn.nukkit.level.format.anvil.Anvil;
 import cn.nukkit.level.format.generic.ChunkBlobCache;
 import cn.nukkit.level.format.generic.ChunkPacketCache;
+import cn.nukkit.level.particle.PunchBlockParticle;
 import cn.nukkit.math.BlockFace;
 import cn.nukkit.math.BlockVector3;
 import cn.nukkit.math.MathHelper;
@@ -75,6 +81,8 @@ import org.itxtech.synapseapi.multiprotocol.protocol118.protocol.SubChunkRequest
 import org.itxtech.synapseapi.multiprotocol.protocol11810.protocol.SubChunkRequestPacket11810;
 import org.itxtech.synapseapi.multiprotocol.protocol11830.protocol.SpawnParticleEffectPacket11830;
 import org.itxtech.synapseapi.multiprotocol.protocol11830.protocol.StartGamePacket11830;
+import org.itxtech.synapseapi.multiprotocol.protocol119.protocol.PlayerActionPacket119;
+import org.itxtech.synapseapi.multiprotocol.protocol119.protocol.StartGamePacket119;
 import org.itxtech.synapseapi.multiprotocol.protocol14.protocol.PlayerActionPacket14;
 import org.itxtech.synapseapi.multiprotocol.protocol16.protocol.ResourcePackClientResponsePacket16;
 import org.itxtech.synapseapi.utils.BlobTrack;
@@ -131,7 +139,39 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
 
     @Override
     protected DataPacket generateStartGamePacket(Position spawnPosition) {
-        if (this.getProtocol() >= AbstractProtocol.PROTOCOL_118_30.getProtocolStart()) {
+        if (this.getProtocol() >= AbstractProtocol.PROTOCOL_119.getProtocolStart()) {
+            StartGamePacket119 startGamePacket = new StartGamePacket119();
+            startGamePacket.protocol = AbstractProtocol.fromRealProtocol(this.protocol);
+            startGamePacket.netease = this.isNetEaseClient();
+            startGamePacket.entityUniqueId = Long.MAX_VALUE;
+            startGamePacket.entityRuntimeId = Long.MAX_VALUE;
+            startGamePacket.playerGamemode = getClientFriendlyGamemode(this.gamemode);
+            startGamePacket.x = (float) this.x;
+            startGamePacket.y = (float) this.y;
+            startGamePacket.z = (float) this.z;
+            startGamePacket.yaw = (float) this.yaw;
+            startGamePacket.pitch = (float) this.pitch;
+            startGamePacket.seed = -1;
+            startGamePacket.dimension = (byte) (this.level.getDimension() & 0xff);
+            startGamePacket.worldGamemode = getClientFriendlyGamemode(this.gamemode);
+            startGamePacket.difficulty = this.server.getDifficulty();
+            startGamePacket.spawnX = (int) spawnPosition.x;
+            startGamePacket.spawnY = (int) spawnPosition.y;
+            startGamePacket.spawnZ = (int) spawnPosition.z;
+            startGamePacket.hasAchievementsDisabled = true;
+            startGamePacket.dayCycleStopTime = -1;
+            startGamePacket.rainLevel = 0;
+            startGamePacket.lightningLevel = 0;
+            startGamePacket.commandsEnabled = this.isEnableClientCommand();
+            startGamePacket.levelId = "";
+            startGamePacket.worldName = this.getServer().getNetwork().getName();
+            startGamePacket.generator = 1; // 0 old, 1 infinite, 2 flat
+            startGamePacket.gameRules = getSupportedRules();
+            startGamePacket.isMovementServerAuthoritative = true;
+            startGamePacket.isBlockBreakingServerAuthoritative = this.serverAuthoritativeBlockBreaking = true;
+            startGamePacket.currentTick = this.server.getTick();
+            return startGamePacket;
+        } else if (this.getProtocol() >= AbstractProtocol.PROTOCOL_118_30.getProtocolStart()) {
             StartGamePacket11830 startGamePacket = new StartGamePacket11830();
             startGamePacket.protocol = AbstractProtocol.fromRealProtocol(this.protocol);
             startGamePacket.netease = this.isNetEaseClient();
@@ -384,6 +424,7 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
             return;
         }
 
+        packetswitch:
         switch (packet.pid()) {
             case ProtocolInfo.RESOURCE_PACK_CLIENT_RESPONSE_PACKET:
                 if (!callPacketReceiveEvent(packet)) break;
@@ -565,6 +606,215 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
                     super.handleDataPacket(packet);
                     break;
                 }
+
+                if (this.getProtocol() >= AbstractProtocol.PROTOCOL_119.getProtocolStart()) {
+                    PlayerActionPacket119 playerActionPacket = (PlayerActionPacket119) packet;
+                    if (!this.callPacketReceiveEvent(playerActionPacket.toDefault())) break;
+
+                    if (!this.spawned || (!this.isAlive() && playerActionPacket.action != PlayerActionPacket119.ACTION_RESPAWN /*&& playerActionPacket.action != PlayerActionPacket119.ACTION_DIMENSION_CHANGE_REQUEST*/)) {
+                        break;
+                    }
+
+                    playerActionPacket.entityId = this.id;
+                    Vector3 pos = new Vector3(playerActionPacket.x, playerActionPacket.y, playerActionPacket.z);
+                    BlockFace face = BlockFace.fromIndex(playerActionPacket.face);
+
+                    actionswitch:
+                    switch (playerActionPacket.action) {
+                        case PlayerActionPacket119.ACTION_RESPAWN:
+                            if (!this.spawned || this.isAlive() || !this.isOnline()) {
+                                break;
+                            }
+
+                            if (this.server.isHardcore()) {
+                                this.setBanned(true);
+                                break;
+                            }
+
+                            this.craftingType = CRAFTING_SMALL;
+                            this.resetCraftingGridType();
+
+                            PlayerRespawnEvent playerRespawnEvent = new PlayerRespawnEvent(this, this.getSpawn());
+                            this.server.getPluginManager().callEvent(playerRespawnEvent);
+
+                            Position respawnPos = playerRespawnEvent.getRespawnPosition();
+
+                            this.teleport(respawnPos, null);
+
+                            this.setSprinting(false);
+                            this.setSneaking(false);
+
+                            this.setDataProperty(new ShortEntityData(Player.DATA_AIR, 400), false);
+                            this.deadTicks = 0;
+                            this.noDamageTicks = 60;
+
+                            this.removeAllEffects();
+                            this.setHealth(this.getMaxHealth());
+                            this.getFoodData().setLevel(20, 20);
+
+                            this.sendData(this);
+
+                            this.setMovementSpeed(DEFAULT_SPEED);
+
+                            this.getAdventureSettings().update();
+                            this.inventory.sendContents(this);
+                            this.inventory.sendArmorContents(this);
+
+                            this.spawnToAll();
+                            this.scheduleUpdate();
+                            break;
+                        case PlayerActionPacket119.ACTION_START_BREAK:
+                            if (!this.spawned || !this.isAlive() || this.isSpectator() || this.lastBreak != Long.MAX_VALUE || pos.distanceSquared(this) > 100) {
+                                break;
+                            }
+                            Block target = this.level.getBlock(pos);
+                            PlayerInteractEvent playerInteractEvent = new PlayerInteractEvent(this, this.inventory.getItemInHand(), target, face, target.getId() == 0 ? PlayerInteractEvent.Action.LEFT_CLICK_AIR : PlayerInteractEvent.Action.LEFT_CLICK_BLOCK);
+                            this.getServer().getPluginManager().callEvent(playerInteractEvent);
+                            if (playerInteractEvent.isCancelled()) {
+                                this.inventory.sendHeldItem(this);
+                                break;
+                            }
+                            switch (target.getId()) {
+                                case Block.NOTEBLOCK:
+                                    ((BlockNoteblock) target).emitSound();
+                                    break actionswitch;
+                                case Block.DRAGON_EGG:
+                                    if (!this.isCreative()) {
+                                        ((BlockDragonEgg) target).teleport();
+                                        break actionswitch;
+                                    }
+                                case Block.ITEM_FRAME_BLOCK:
+                                    BlockEntity itemFrame = this.level.getBlockEntity(pos);
+                                    if (itemFrame instanceof BlockEntityItemFrame && ((BlockEntityItemFrame) itemFrame).dropItem(this)) {
+                                        break actionswitch;
+                                    }
+                            }
+                            Block block = target.getSide(face);
+                            if (block.getId() == Block.FIRE) {
+                                this.level.setBlock(block, Block.get(BlockID.AIR), true);
+                                this.level.addLevelSoundEvent(block, LevelSoundEventPacket.SOUND_EXTINGUISH_FIRE);
+                                break;
+                            }
+                            if (!this.isCreative()) {
+                                //improved this to take stuff like swimming, ladders, enchanted tools into account, fix wrong tool break time calculations for bad tools (pmmp/PocketMine-MP#211)
+                                //Done by lmlstarqaq
+                                double breakTime = Math.ceil(target.getBreakTime(this.inventory.getItemInHand(), this) * 20);
+                                if (breakTime > 0) {
+                                    LevelEventPacket pk = new LevelEventPacket();
+                                    pk.evid = LevelEventPacket.EVENT_BLOCK_START_BREAK;
+                                    pk.x = (float) pos.x;
+                                    pk.y = (float) pos.y;
+                                    pk.z = (float) pos.z;
+                                    pk.data = (int) (65535 / breakTime);
+                                    this.getLevel().addChunkPacket(pos.getFloorX() >> 4, pos.getFloorZ() >> 4, pk);
+                                }
+                            }
+
+                            this.breakingBlock = target;
+                            this.lastBreak = System.currentTimeMillis();
+                            break;
+                        case PlayerActionPacket119.ACTION_ABORT_BREAK:
+                            this.lastBreak = Long.MAX_VALUE;
+                            this.breakingBlock = null;
+                        case PlayerActionPacket119.ACTION_STOP_BREAK:
+                            if (pos.distanceSquared(this) < 100) { // same as with ACTION_START_BREAK
+                                LevelEventPacket pk = new LevelEventPacket();
+                                pk.evid = LevelEventPacket.EVENT_BLOCK_STOP_BREAK;
+                                pk.x = (float) pos.x;
+                                pk.y = (float) pos.y;
+                                pk.z = (float) pos.z;
+                                pk.data = 0;
+                                this.getLevel().addChunkPacket(pos.getChunkX(), pos.getChunkZ(), pk);
+                            }
+                            this.breakingBlock = null;
+                            break;
+                        case PlayerActionPacket119.ACTION_GET_UPDATED_BLOCK:
+                            break; //TODO
+                        case PlayerActionPacket119.ACTION_DROP_ITEM:
+                            break; //TODO
+                        case PlayerActionPacket119.ACTION_STOP_SLEEPING:
+                            this.stopSleep();
+                            break;
+                        case PlayerActionPacket119.ACTION_JUMP:
+                            break packetswitch;
+                        case PlayerActionPacket119.ACTION_START_SPRINT:
+                            PlayerToggleSprintEvent playerToggleSprintEvent = new PlayerToggleSprintEvent(this, true);
+                            this.server.getPluginManager().callEvent(playerToggleSprintEvent);
+                            if (playerToggleSprintEvent.isCancelled()) {
+                                this.sendData(this);
+                            } else {
+                                this.setSprinting(true);
+                            }
+                            this.formWindows.clear();
+                            break packetswitch;
+                        case PlayerActionPacket119.ACTION_STOP_SPRINT:
+                            playerToggleSprintEvent = new PlayerToggleSprintEvent(this, false);
+                            this.server.getPluginManager().callEvent(playerToggleSprintEvent);
+                            if (playerToggleSprintEvent.isCancelled()) {
+                                this.sendData(this);
+                            } else {
+                                this.setSprinting(false);
+                            }
+                            break packetswitch;
+                        case PlayerActionPacket119.ACTION_START_SNEAK:
+                            PlayerToggleSneakEvent playerToggleSneakEvent = new PlayerToggleSneakEvent(this, true);
+                            this.server.getPluginManager().callEvent(playerToggleSneakEvent);
+                            if (playerToggleSneakEvent.isCancelled()) {
+                                this.sendData(this);
+                            } else {
+                                this.setSneaking(true);
+                            }
+                            break packetswitch;
+                        case PlayerActionPacket119.ACTION_STOP_SNEAK:
+                            playerToggleSneakEvent = new PlayerToggleSneakEvent(this, false);
+                            this.server.getPluginManager().callEvent(playerToggleSneakEvent);
+                            if (playerToggleSneakEvent.isCancelled()) {
+                                this.sendData(this);
+                            } else {
+                                this.setSneaking(false);
+                            }
+                            break packetswitch;
+                        case PlayerActionPacket119.ACTION_DIMENSION_CHANGE_ACK:
+                            this.onDimensionChangeSuccess();
+                            break; //TODO
+                        case PlayerActionPacket119.ACTION_START_GLIDE:
+                            PlayerToggleGlideEvent playerToggleGlideEvent = new PlayerToggleGlideEvent(this, true);
+                            this.server.getPluginManager().callEvent(playerToggleGlideEvent);
+                            if (playerToggleGlideEvent.isCancelled()) {
+                                this.sendData(this);
+                            } else {
+                                this.setGliding(true);
+                            }
+                            break packetswitch;
+                        case PlayerActionPacket119.ACTION_STOP_GLIDE:
+                            playerToggleGlideEvent = new PlayerToggleGlideEvent(this, false);
+                            this.server.getPluginManager().callEvent(playerToggleGlideEvent);
+                            if (playerToggleGlideEvent.isCancelled()) {
+                                this.sendData(this);
+                            } else {
+                                this.setGliding(false);
+                            }
+                            break packetswitch;
+                        case PlayerActionPacket119.ACTION_CONTINUE_BREAK:
+                            if (this.isBreakingBlock()) {
+                                block = this.level.getBlock(pos, false);
+                                this.level.addParticle(new PunchBlockParticle(pos, block, face));
+                            }
+                            break;
+                        case PlayerActionPacket119.ACTION_START_SWIMMING:
+                            this.setSwimming(true);
+                            break;
+                        case PlayerActionPacket119.ACTION_STOP_SWIMMING:
+                            this.setSwimming(false);
+                            break;
+                    }
+
+                    this.startAction = -1;
+                    this.startActionTimestamp = -1;
+                    this.setDataFlag(Player.DATA_FLAGS, Player.DATA_FLAG_ACTION, false);
+                    break;
+                }
+
                 PlayerActionPacket14 playerActionPacket = (PlayerActionPacket14) packet;
                 if (!this.callPacketReceiveEvent(((PlayerActionPacket14) packet).toDefault())) break;
 

@@ -6,6 +6,7 @@ import cn.nukkit.math.Vector3f;
 import cn.nukkit.network.protocol.DataPacket;
 import cn.nukkit.network.protocol.PlayerActionPacket;
 import cn.nukkit.network.protocol.ProtocolInfo;
+import cn.nukkit.network.protocol.types.InputInteractionModel;
 import cn.nukkit.network.protocol.types.InventoryTransactionPacketInterface;
 import cn.nukkit.network.protocol.types.NetworkInventoryAction;
 import lombok.ToString;
@@ -13,6 +14,8 @@ import lombok.extern.log4j.Log4j2;
 import org.itxtech.synapseapi.SynapseSharedConstants;
 import org.itxtech.synapseapi.multiprotocol.protocol113.protocol.IPlayerAuthInputPacket;
 import org.itxtech.synapseapi.multiprotocol.protocol116.protocol.PlayerAuthInputPacket116;
+
+import javax.annotation.Nullable;
 
 @Log4j2
 @ToString
@@ -101,6 +104,11 @@ public class PlayerAuthInputPacket116220 extends Packet116220 implements Invento
     public long inputFlags;
     public int inputMode;
     public int playMode;
+    /**
+     * @since 1.19.0
+     */
+    @Nullable
+    public InputInteractionModel interactionModel;
     public float vrGazeDirectionX;
     public float vrGazeDirectionY;
     public float vrGazeDirectionZ;
@@ -135,6 +143,7 @@ public class PlayerAuthInputPacket116220 extends Packet116220 implements Invento
         this.inputFlags = this.getUnsignedVarLong();
         this.inputMode = (int) this.getUnsignedVarInt();
         this.playMode = (int) this.getUnsignedVarInt();
+        interactionModel = helper.getInteractionModel(this);
         if (this.playMode == PLAY_MODE_VR) {
             Vector3f vrGazeDirection = this.getVector3f();
             this.vrGazeDirectionX = vrGazeDirection.x;
@@ -257,7 +266,7 @@ public class PlayerAuthInputPacket116220 extends Packet116220 implements Invento
                     case STACK_REQUEST_CRAFTING_RESULTS_DEPRECATED_ASK_TY_LAING:
                         int length = (int) this.getUnsignedVarInt();
                         for (int j = 0; j < length; j++) {
-                            Item resultItem = this.getSlotDummy();
+                            Item resultItem = this.getItemInstance();
                         }
                         int iterations = this.getByte();
                         break;

@@ -3,11 +3,9 @@ package org.itxtech.synapseapi.multiprotocol.protocol16.protocol;
 import cn.nukkit.network.protocol.ProtocolInfo;
 import org.msgpack.core.MessageBufferPacker;
 import org.msgpack.core.MessagePack;
-import org.msgpack.core.MessagePacker;
 import org.msgpack.core.MessageUnpacker;
 import org.msgpack.value.*;
 
-import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 
 /**
@@ -16,7 +14,7 @@ import java.io.IOException;
  */
 public class NEPyRpcPacket16 extends Packet16 {
 
-    public static final int NETWORK_ID = ProtocolInfo.PACKET_PY_PRC;
+    public static final int NETWORK_ID = ProtocolInfo.PACKET_PY_RPC;
 
     private static final byte[] UNKNOWN_BYTES_SENDING = new byte[]{8, -44, -108, 0};
 

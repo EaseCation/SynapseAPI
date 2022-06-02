@@ -42,7 +42,7 @@ public class BinaryStreamHelper116220 extends BinaryStreamHelper116210 {
     }
 
     @Override
-    public final Item getSlotDummy(BinaryStream stream) {
+    public final Item getItemInstance(BinaryStream stream) {
         return this.getSlot(stream, true);
     }
 
@@ -157,7 +157,7 @@ public class BinaryStreamHelper116220 extends BinaryStreamHelper116210 {
     }
 
     @Override
-    public final void putSlotDummy(BinaryStream stream, Item item) {
+    public final void putItemInstance(BinaryStream stream, Item item) {
         this.putSlot(stream, item, true);
     }
 

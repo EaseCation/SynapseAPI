@@ -1,15 +1,11 @@
-package org.itxtech.synapseapi.multiprotocol.protocol14.protocol;
+package org.itxtech.synapseapi.multiprotocol.protocol119.protocol;
 
 import cn.nukkit.math.BlockVector3;
 import cn.nukkit.network.protocol.DataPacket;
 import cn.nukkit.network.protocol.PlayerActionPacket;
 import cn.nukkit.network.protocol.ProtocolInfo;
 
-/**
- * @author Nukkit Project Team
- */
-public class PlayerActionPacket14 extends Packet14 {
-
+public class PlayerActionPacket119 extends Packet119 {
     public static final int NETWORK_ID = ProtocolInfo.PLAYER_ACTION_PACKET;
 
     public static final int ACTION_START_BREAK = 0;
@@ -55,6 +51,9 @@ public class PlayerActionPacket14 extends Packet14 {
     public int x;
     public int y;
     public int z;
+    public int resultX;
+    public int resultY;
+    public int resultZ;
     public int face;
 
     @Override
@@ -65,16 +64,15 @@ public class PlayerActionPacket14 extends Packet14 {
         this.x = v.x;
         this.y = v.y;
         this.z = v.z;
+        BlockVector3 result = this.getBlockVector3();
+        this.resultX = result.x;
+        this.resultY = result.y;
+        this.resultZ = result.z;
         this.face = this.getVarInt();
     }
 
     @Override
     public void encode() {
-        this.reset();
-        this.putEntityRuntimeId(this.entityId);
-        this.putVarInt(this.action);
-        this.putBlockVector3(this.x, this.y, this.z);
-        this.putVarInt(this.face);
     }
 
     @Override
@@ -83,7 +81,7 @@ public class PlayerActionPacket14 extends Packet14 {
     }
 
     public static Class<? extends DataPacket> getDefaultPacket() {
-        return cn.nukkit.network.protocol.PlayerActionPacket.class;
+        return PlayerActionPacket.class;
     }
 
     @Override

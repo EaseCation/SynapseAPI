@@ -43,6 +43,8 @@ import org.itxtech.synapseapi.multiprotocol.protocol11810.protocol.SubChunkReque
 import org.itxtech.synapseapi.multiprotocol.protocol11830.protocol.AddPlayerPacket11830;
 import org.itxtech.synapseapi.multiprotocol.protocol11830.protocol.SpawnParticleEffectPacket11830;
 import org.itxtech.synapseapi.multiprotocol.protocol11830.protocol.StartGamePacket11830;
+import org.itxtech.synapseapi.multiprotocol.protocol119.protocol.PlayerActionPacket119;
+import org.itxtech.synapseapi.multiprotocol.protocol119.protocol.StartGamePacket119;
 import org.itxtech.synapseapi.multiprotocol.protocol15.protocol.AddEntityPacket15;
 import org.itxtech.synapseapi.multiprotocol.protocol15.protocol.ClientboundMapItemDataPacket15;
 import org.itxtech.synapseapi.multiprotocol.protocol15.protocol.MoveEntityAbsolutePacket15;
@@ -113,7 +115,7 @@ public class PacketRegister {
         registerPacket(AbstractProtocol.PROTOCOL_16, ProtocolInfo.SHOW_STORE_OFFER_PACKET, ShowStoreOfferPacket16.class);
         registerPacket(AbstractProtocol.PROTOCOL_16, ProtocolInfo.PACKET_STORE_BUY_SUCC, NEStoreBuySuccPacket16.class);
         registerPacket(AbstractProtocol.PROTOCOL_16, ProtocolInfo.PACKET_NETEASE_JSON, NENetEaseJsonPacket16.class);
-        registerPacket(AbstractProtocol.PROTOCOL_16, ProtocolInfo.PACKET_PY_PRC, NEPyRpcPacket16.class);
+        registerPacket(AbstractProtocol.PROTOCOL_16, ProtocolInfo.PACKET_PY_RPC, NEPyRpcPacket16.class);
 
         registerPacket(AbstractProtocol.PROTOCOL_17, ProtocolInfo.ADD_ENTITY_PACKET, AddEntityPacket17.class);
         registerPacket(AbstractProtocol.PROTOCOL_17, ProtocolInfo.ADD_ITEM_ENTITY_PACKET, AddItemEntityPacket17.class);
@@ -172,7 +174,7 @@ public class PacketRegister {
         registerPacket(AbstractProtocol.PROTOCOL_113, ProtocolInfo.AVAILABLE_COMMANDS_PACKET, AvailableCommandsPacket113.class);
         registerPacket(AbstractProtocol.PROTOCOL_113, ProtocolInfo.ADD_PLAYER_PACKET, AddPlayerPacket113.class);
         registerPacket(AbstractProtocol.PROTOCOL_113, ProtocolInfo.TICK_SYNC_PACKET, TickSyncPacket113.class);
-        registerPacket(AbstractProtocol.PROTOCOL_113, ProtocolInfo.CONFIRM_SKIN_PACKET, ConfirmSkinPacket113.class);
+        registerPacket(AbstractProtocol.PROTOCOL_113, ProtocolInfo.PACKET_CONFIRM_SKIN, ConfirmSkinPacket113.class);
 
         registerPacket(AbstractProtocol.PROTOCOL_114_60, ProtocolInfo.PLAYER_LIST_PACKET, PlayerListPacket11460.class);
 
@@ -236,6 +238,9 @@ public class PacketRegister {
         registerPacket(AbstractProtocol.PROTOCOL_118_30, ProtocolInfo.START_GAME_PACKET, StartGamePacket11830.class);
         registerPacket(AbstractProtocol.PROTOCOL_118_30, ProtocolInfo.ADD_PLAYER_PACKET, AddPlayerPacket11830.class);
         registerPacket(AbstractProtocol.PROTOCOL_118_30, ProtocolInfo.SPAWN_PARTICLE_EFFECT_PACKET, SpawnParticleEffectPacket11830.class);
+
+        registerPacket(AbstractProtocol.PROTOCOL_119, ProtocolInfo.START_GAME_PACKET, StartGamePacket119.class);
+        registerPacket(AbstractProtocol.PROTOCOL_119, ProtocolInfo.PLAYER_ACTION_PACKET, PlayerActionPacket119.class);
 
         checkNeteaseSpecialExtend();
         CraftingPacketManager.rebuildPacket();
