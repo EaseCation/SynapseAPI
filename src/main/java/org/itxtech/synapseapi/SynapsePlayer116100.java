@@ -1547,9 +1547,7 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
         packet.identifier = identifier;
         packet.uniqueEntityId = entityUniqueId;
         packet.dimension = dimension;
-        if (molangVariables != null) {
-            packet.molangVariables = molangVariables;
-        }
+        packet.molangVariables = molangVariables;
         dataPacket(packet);
     }
 

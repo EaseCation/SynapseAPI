@@ -7,6 +7,8 @@ import lombok.ToString;
 import org.itxtech.synapseapi.multiprotocol.protocol18.protocol.SpawnParticleEffectPacket18;
 import org.itxtech.synapseapi.utils.ClassUtils;
 
+import javax.annotation.Nullable;
+
 @ToString
 public class SpawnParticleEffectPacket11830 extends Packet11830 {
     public static final int NETWORK_ID = ProtocolInfo.SPAWN_PARTICLE_EFFECT_PACKET;
@@ -18,7 +20,8 @@ public class SpawnParticleEffectPacket11830 extends Packet11830 {
     /**
      * JSON.
      */
-    public String molangVariables = "";
+    @Nullable
+    public String molangVariables;
 
     @Override
     public void decode() {
@@ -31,7 +34,10 @@ public class SpawnParticleEffectPacket11830 extends Packet11830 {
         this.putEntityUniqueId(uniqueEntityId);
         this.putVector3f(position);
         this.putString(identifier);
-        this.putString(this.molangVariables);
+        this.putBoolean(this.molangVariables != null);
+        if (this.molangVariables != null) {
+            this.putString(this.molangVariables);
+        }
     }
 
     @Override
