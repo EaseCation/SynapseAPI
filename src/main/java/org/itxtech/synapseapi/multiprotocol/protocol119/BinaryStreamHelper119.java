@@ -50,6 +50,6 @@ public class BinaryStreamHelper119 extends BinaryStreamHelper11830 {
 
     @Override
     public InputInteractionModel getInteractionModel(BinaryStream stream) {
-        return InputInteractionModel.getValues()[stream.getLInt()];
+        return InputInteractionModel.getValues()[(int) stream.getUnsignedVarInt()];
     }
 }

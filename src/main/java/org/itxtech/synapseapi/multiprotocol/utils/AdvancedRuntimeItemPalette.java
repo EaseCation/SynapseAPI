@@ -29,8 +29,10 @@ public final class AdvancedRuntimeItemPalette {
         RuntimeItemPalette palette11730 = new RuntimeItemPalette("runtime_item_ids_11730.json");
         RuntimeItemPalette palette11740 = new RuntimeItemPalette("runtime_item_ids_11740.json");
         RuntimeItemPalette palette118 = new RuntimeItemPalette("runtime_item_ids_118.json");
+        RuntimeItemPalette palette118NE = new RuntimeItemPalette("runtime_item_ids_118.json"); //TODO: update me
         RuntimeItemPalette palette11810 = new RuntimeItemPalette("runtime_item_ids_11810.json");
         RuntimeItemPalette palette11830 = new RuntimeItemPalette("runtime_item_ids_11830.json");
+        RuntimeItemPalette palette119 = new RuntimeItemPalette("runtime_item_ids_119.json");
 
         register(AbstractProtocol.PROTOCOL_116_100, palette116100, null);
         register(AbstractProtocol.PROTOCOL_116_200, palette116100, palette116200NE);
@@ -40,10 +42,10 @@ public final class AdvancedRuntimeItemPalette {
         register(AbstractProtocol.PROTOCOL_117_10, palette11710, null);
         register(AbstractProtocol.PROTOCOL_117_30, palette11730, null);
         register(AbstractProtocol.PROTOCOL_117_40, palette11740, null);
-        register(AbstractProtocol.PROTOCOL_118, palette118, null);
+        register(AbstractProtocol.PROTOCOL_118, palette118, palette118NE);
         register(AbstractProtocol.PROTOCOL_118_10, palette11810, null);
         register(AbstractProtocol.PROTOCOL_118_30, palette11830, null);
-        register(AbstractProtocol.PROTOCOL_119, palette11830, null); //TODO: update me
+        register(AbstractProtocol.PROTOCOL_119, palette119, null);
     }
 
     private static void register(AbstractProtocol protocol, RuntimeItemPalette palette, RuntimeItemPalette paletteNetEase) {
