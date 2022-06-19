@@ -47,7 +47,7 @@ public final class AdvancedGlobalBlockPalette {
         PaletteBlockTable table119 = PaletteBlockTable.fromNBTV3("block_state_list_119.nbt", true);
         PaletteBlockTable table11830 = PaletteBlockTable.fromNBTV3("block_state_list_11830.nbt", true);
         PaletteBlockTable table11810 = PaletteBlockTable.fromNBTV3("block_state_list_11810.dat");
-        PaletteBlockTable table118NE = PaletteBlockTable.fromNBTV3("block_state_list_11740.dat"); //TODO: update me
+        PaletteBlockTable table118NE = PaletteBlockTable.fromDumpJson("block_state_list_118_netease.json");
         PaletteBlockTable table11740 = PaletteBlockTable.fromNBTV3("block_state_list_11740.dat");
         PaletteBlockTable table11730 = PaletteBlockTable.fromNBTV3("block_state_list_11730.dat");
         PaletteBlockTable table11710 = PaletteBlockTable.fromNBTV3("block_state_list_11710.dat");

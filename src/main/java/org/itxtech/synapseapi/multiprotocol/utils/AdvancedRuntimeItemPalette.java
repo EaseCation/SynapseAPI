@@ -29,7 +29,7 @@ public final class AdvancedRuntimeItemPalette {
         RuntimeItemPalette palette11730 = new RuntimeItemPalette("runtime_item_ids_11730.json");
         RuntimeItemPalette palette11740 = new RuntimeItemPalette("runtime_item_ids_11740.json");
         RuntimeItemPalette palette118 = new RuntimeItemPalette("runtime_item_ids_118.json");
-        RuntimeItemPalette palette118NE = new RuntimeItemPalette("runtime_item_ids_118.json"); //TODO: update me
+        RuntimeItemPalette palette118NE = new RuntimeItemPalette("runtime_item_ids_118NE.json");
         RuntimeItemPalette palette11810 = new RuntimeItemPalette("runtime_item_ids_11810.json");
         RuntimeItemPalette palette11830 = new RuntimeItemPalette("runtime_item_ids_11830.json");
         RuntimeItemPalette palette119 = new RuntimeItemPalette("runtime_item_ids_119.json");
