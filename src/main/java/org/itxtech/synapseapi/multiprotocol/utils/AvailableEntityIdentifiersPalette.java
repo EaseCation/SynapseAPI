@@ -3,6 +3,7 @@ package org.itxtech.synapseapi.multiprotocol.utils;
 import cn.nukkit.nbt.NBTIO;
 import com.google.common.io.ByteStreams;
 import org.itxtech.synapseapi.SynapseAPI;
+import org.itxtech.synapseapi.SynapseSharedConstants;
 import org.itxtech.synapseapi.multiprotocol.AbstractProtocol;
 
 import java.io.IOException;
@@ -63,6 +64,9 @@ public final class AvailableEntityIdentifiersPalette {
     }
 
     public static void init() {
+        if (!SynapseSharedConstants.CHECK_RESOURCE_DATA) {
+            return;
+        }
         palettes.forEach((protocol, data) -> {
             try {
                 NBTIO.read(data, ByteOrder.LITTLE_ENDIAN, true); //检查数据

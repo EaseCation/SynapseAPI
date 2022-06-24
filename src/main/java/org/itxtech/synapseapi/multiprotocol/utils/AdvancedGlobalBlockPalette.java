@@ -5,6 +5,7 @@ import cn.nukkit.level.GlobalBlockPaletteInterface;
 import cn.nukkit.level.GlobalBlockPaletteInterface.StaticVersion;
 import it.unimi.dsi.fastutil.ints.IntArrayList;
 import it.unimi.dsi.fastutil.ints.IntList;
+import org.itxtech.synapseapi.SynapseSharedConstants;
 import org.itxtech.synapseapi.multiprotocol.AbstractProtocol;
 import org.itxtech.synapseapi.multiprotocol.utils.blockpalette.*;
 import org.itxtech.synapseapi.multiprotocol.utils.blockpalette.data.PaletteBlockTable;
@@ -203,6 +204,9 @@ public final class AdvancedGlobalBlockPalette {
     }
 
     public static void init() { //检查数据
+        if (!SynapseSharedConstants.CHECK_RESOURCE_DATA) {
+            return;
+        }
         PaletteBlockTable table112 = PaletteBlockTable.fromJson("block_state_list_112.json");
         PaletteBlockTable table113 = PaletteBlockTable.fromNBTOld("block_state_list_113.dat");
         PaletteBlockTable table114 = PaletteBlockTable.fromNBT("block_state_list_114.dat");

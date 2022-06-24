@@ -3,6 +3,11 @@ package org.itxtech.synapseapi;
 public final class SynapseSharedConstants {
 
     /**
+     * 检查资源数据.
+     */
+    public static final boolean CHECK_RESOURCE_DATA = false;
+
+    /**
      * Enables Movement Anti-Cheat debug message output?
      */
     public static final boolean MAC_DEBUG = false;

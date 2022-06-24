@@ -49,7 +49,7 @@ public class BinaryStreamHelper116220 extends BinaryStreamHelper116210 {
     protected Item getSlot(BinaryStream stream, boolean instanceItem) {
         int id = stream.getVarInt();
         if (id == 0) {
-            return Item.get(0, 0, 0);
+            return Item.get(Item.AIR, 0, 0);
         }
 
         int count = stream.getLShort();
@@ -58,16 +58,22 @@ public class BinaryStreamHelper116220 extends BinaryStreamHelper116210 {
         int fullId = AdvancedRuntimeItemPalette.getLegacyFullId(this.protocol, stream.neteaseMode, id);
         id = AdvancedRuntimeItemPalette.getId(this.protocol, stream.neteaseMode, fullId);
 
-        /*boolean hasData = AdvancedRuntimeItemPalette.hasData(this.protocol, fullId); // Unnecessary when the damage is read from NBT
+        boolean hasData = AdvancedRuntimeItemPalette.hasData(this.protocol, stream.neteaseMode, fullId);
         if (hasData) {
-            damage = AdvancedRuntimeItemPalette.getData(this.protocol, fullId);
-        }*/
+            damage = AdvancedRuntimeItemPalette.getData(this.protocol, stream.neteaseMode, fullId);
+        }
 
         if (!instanceItem && stream.getBoolean()) { // hasNetId
             stream.getVarInt(); // netId
         }
 
-        stream.getVarInt(); // blockRuntimeId
+        int blockRuntimeId = stream.getVarInt();
+        if (id < 256 && id != 166) { // ItemBlock
+            int legacyId = AdvancedGlobalBlockPalette.getLegacyId(this.protocol, stream.neteaseMode, blockRuntimeId);
+            if (legacyId != -1) {
+                damage = legacyId & 0x3fff;
+            }
+        }
 
         byte[] bytes = stream.getByteArray();
         ByteBuf buf = AbstractByteBufAllocator.DEFAULT.ioBuffer(bytes.length);
@@ -162,10 +168,15 @@ public class BinaryStreamHelper116220 extends BinaryStreamHelper116210 {
     }
 
     protected void putSlot(BinaryStream stream, Item item, boolean instanceItem) {
-        if (item == null || item.getId() == 0) {
+        if (item == null || item.getId() == Item.AIR) {
             stream.putByte((byte) 0);
             return;
         }
+
+        int id = item.getId();
+        int meta = item.getDamage();
+        boolean isBlock = id < 256 && id != 166;
+        boolean isDurable = item instanceof ItemDurable;
 
         int networkFullId = AdvancedRuntimeItemPalette.getNetworkFullId(this.protocol, stream.neteaseMode, item);
         int networkId = AdvancedRuntimeItemPalette.getNetworkId(this.protocol, stream.neteaseMode, networkFullId);
@@ -173,26 +184,21 @@ public class BinaryStreamHelper116220 extends BinaryStreamHelper116210 {
         stream.putVarInt(networkId);
         stream.putLShort(item.getCount());
 
-        boolean useLegacyData = false;
-        if (item.getId() > 256) { // Not a block
-            if (item instanceof ItemDurable || !AdvancedRuntimeItemPalette.hasData(this.protocol, stream.neteaseMode, networkFullId)) {
-                useLegacyData = true;
-            }
-        }
-        stream.putUnsignedVarInt(useLegacyData ? item.getDamage() : 0);
+        boolean useLegacyData = !isBlock && !isDurable && !AdvancedRuntimeItemPalette.hasData(this.protocol, stream.neteaseMode, networkFullId);
+        stream.putUnsignedVarInt(useLegacyData ? meta : 0);
 
         if (!instanceItem) {
             stream.putBoolean(true); // hasNetId
             stream.putVarInt(1); // netId
         }
 
-        Block block = item.getBlockUnsafe();
+        Block block = isBlock ? item.getBlockUnsafe() : null;
         int runtimeId = block == null ? 0 : AdvancedGlobalBlockPalette.getOrCreateRuntimeId(this.protocol, stream.neteaseMode, block.getId(), block.getDamage());
         stream.putVarInt(runtimeId);
 
         if (SynapseSharedConstants.ITEM_BLOCK_DEBUG) {
-            if (block == null) {
-                Block expected = Item.get(item.getId(), item.getDamage()).getBlockUnsafe();
+            if (block == null && isBlock) {
+                Block expected = Item.get(id, meta).getBlockUnsafe();
                 if (expected != null) {
                     log.warn("Invalid block given: {}\nExpected block: {}", item, expected);
                 }
@@ -201,7 +207,7 @@ public class BinaryStreamHelper116220 extends BinaryStreamHelper116210 {
 
         ByteBuf userDataBuf = ByteBufAllocator.DEFAULT.ioBuffer();
         try (LittleEndianByteBufOutputStream out = new LittleEndianByteBufOutputStream(userDataBuf)) {
-            if (item instanceof ItemDurable || item.getDamage() > 0 || block != null && block.getDamage() > 0) {
+            if (!instanceItem && isDurable && meta > 0) {
                 byte[] nbt = item.getCompoundTag();
                 CompoundTag tag;
                 if (nbt == null || nbt.length == 0) {
@@ -212,7 +218,7 @@ public class BinaryStreamHelper116220 extends BinaryStreamHelper116210 {
                 if (tag.contains("Damage")) {
                     tag.put("__DamageConflict__", tag.removeAndGet("Damage"));
                 }
-                tag.putInt("Damage", item.getDamage());
+                tag.putInt("Damage", meta);
                 out.writeShort(-1);
                 out.writeByte(1); // Hardcoded in current version
                 out.write(NBTIO.write(tag, ByteOrder.LITTLE_ENDIAN));
@@ -236,7 +242,7 @@ public class BinaryStreamHelper116220 extends BinaryStreamHelper116210 {
                 out.writeUTF(string);
             }
 
-            if (item.getId() == ItemID.SHIELD) {
+            if (id == ItemID.SHIELD) {
                 out.writeLong(0);
             }
 
