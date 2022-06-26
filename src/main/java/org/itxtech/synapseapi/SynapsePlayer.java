@@ -1260,4 +1260,12 @@ public class SynapsePlayer extends Player {
     protected void clearSubChunkQueues() {
         // 1.18+
     }
+
+    @Override
+    public boolean isNetEaseClient() {
+        if (SynapseSharedConstants.FORCE_NETEASE_PLAYER) {
+            return true;
+        }
+        return super.isNetEaseClient();
+    }
 }

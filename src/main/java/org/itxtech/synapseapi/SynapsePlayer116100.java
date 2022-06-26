@@ -1831,7 +1831,7 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
         //  Condition is false: table.predict.find(key) == table.predict.end()
         //  Function: CommandRegistry::buildParseTable in .\src\common\server\commands\CommandRegistry.cpp @ 3058 (1.18.0)
         if (this.isNetEaseClient()) {
-            return;
+//            return;
         }
         super.sendCommandData();
     }
