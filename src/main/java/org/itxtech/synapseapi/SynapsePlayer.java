@@ -1079,6 +1079,7 @@ public class SynapsePlayer extends Player {
         this.uuid = uuid;
     }
 
+    @Override
     public void sendCommandData() {
         AvailableCommandsPacket pk = new AvailableCommandsPacket();
         Map<String, CommandDataVersions> data = new HashMap<>();

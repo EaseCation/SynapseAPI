@@ -971,9 +971,18 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
         return this.protocol >= AbstractProtocol.PROTOCOL_118.getProtocolStart();
     }
 
+    //FIXME: 网易 1.18.0 启用子区块请求的情况下切换世界时触发
+    // Assertion failed: Bookkeeping error, subchunk claims all heightmaps are above it, a column said it was all below the heightmap, yet levelchunk thinks it isn't!
+    //  Condition is false: false
+    //  Function: LevelChunk::handleHeightmapDataFromSubChunkPacket in .\src\common\world\level\chunk\LevelChunk.cpp @ 3571 (1.18.0)
+    // ...
+    // Bookkeeping error in subchunk request system, subchunk is in the wrong state, expected state 4, got 7 SubChunk 10 13 3
+    // SubChunk 10 13 5 called the handler once the subchunk was done being processed. Aborting
     @Override
     public boolean isSubChunkRequestAvailable() {
-        return USE_SUB_CHUNK_REQUEST && this.protocol >= AbstractProtocol.PROTOCOL_118.getProtocolStart();
+        return USE_SUB_CHUNK_REQUEST && this.protocol >= AbstractProtocol.PROTOCOL_118.getProtocolStart()
+                && !this.isNetEaseClient() //FIXME: 网易 1.18.0 禁用子区块请求的情况下切换世界会收到畸形区块包
+                ;
     }
 
     @Override
@@ -1806,4 +1815,33 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
         int dz = centerZ - z;
         return dx * dx + dz * dz;
     }
+
+    @Override
+    public void sendCommandData() {
+        //FIXME: 暂时停用网易版本的命令补全以避免 crash. 搬运社区版的命令更新并修复所有断言错误后可重新启用
+        // 发送可用远程命令时触发
+        // Assertion failed: Duplicate command registration for xxx (help/test/restart)
+        //  Condition is false: mSignatures.find(name) == mSignatures.end()
+        //  Function: CommandRegistry::registerCommand in .\src\common\server\commands\CommandRegistry.cpp @ 2101 (1.18.0)
+        // Assertion failed: Commands added interleaved - all overloads of a command must be added at once
+        //  Condition is false: it->derivation.front() == commandSymbol || it->derivation.front() == aliasEnum
+        //  Function: CommandRegistry::setupOverloadRules in .\src\common\server\commands\CommandRegistry.cpp @ 2406 (1.18.0)
+        // 客户端解析输入的命令时触发
+        // Assertion failed: Parser table collision - duplicate command rules
+        //  Condition is false: table.predict.find(key) == table.predict.end()
+        //  Function: CommandRegistry::buildParseTable in .\src\common\server\commands\CommandRegistry.cpp @ 3058 (1.18.0)
+        if (this.isNetEaseClient()) {
+            return;
+        }
+        super.sendCommandData();
+    }
+
+    //FIXME: 以下断言错误需要处理
+    // 推送带有 image 的 modal form 时触发
+    // Assertion failed: Control name could not be resolved: image @ UIControl::_resolveControlNames
+    //  Function:  in .\src-client\common\client\gui\controls\UIControl.cpp @ 1139 (1.17.0)
+    // 切换世界重发区块时触发
+    // Assertion failed: Biome already has initialized Entity!
+    //  Condition is false: !mEntity.hasValue()
+    //  Function: Biome::initEntity in .\src\common\world\level\biome\Biome.cpp @ 107 (1.17.0)
 }
