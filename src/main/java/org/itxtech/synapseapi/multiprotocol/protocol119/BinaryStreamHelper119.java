@@ -40,6 +40,7 @@ public class BinaryStreamHelper119 extends BinaryStreamHelper11830 {
         int ARG_TYPE_VALUE = 4;
         int ARG_TYPE_WILDCARD_INT = 5;
         int ARG_TYPE_OPERATOR = 6;
+        int ARG_TYPE_COMPARE_OPERATOR = 7;
         int ARG_TYPE_TARGET = 8;
         int ARG_TYPE_WILDCARD_TARGET = 10;
         int ARG_TYPE_FILE_PATH = 17;
@@ -56,8 +57,9 @@ public class BinaryStreamHelper119 extends BinaryStreamHelper11830 {
         this.registerCommandParameterType(CommandParamType.FLOAT, ARG_TYPE_FLOAT);
         this.registerCommandParameterType(CommandParamType.VALUE, ARG_TYPE_VALUE);
         this.registerCommandParameterType(CommandParamType.WILDCARD_INT, ARG_TYPE_WILDCARD_INT);
+        this.registerCommandParameterType(CommandParamType.OPERATOR, ARG_TYPE_OPERATOR);
         this.registerCommandParameterType(CommandParamType.TARGET, ARG_TYPE_TARGET);
-        this.registerCommandParameterType(CommandParamType.STRING, ARG_TYPE_RAWTEXT);
+        this.registerCommandParameterType(CommandParamType.STRING, ARG_TYPE_STRING);
         this.registerCommandParameterType(CommandParamType.POSITION, ARG_TYPE_POSITION);
         this.registerCommandParameterType(CommandParamType.MESSAGE, ARG_TYPE_MESSAGE);
         this.registerCommandParameterType(CommandParamType.RAWTEXT, ARG_TYPE_RAWTEXT);

@@ -235,11 +235,11 @@ public class SynapsePlayer18 extends SynapsePlayer17 {
 
 	@Override
 	public void spawnParticleEffect(Vector3f position, String identifier, long entityUniqueId, int dimension, String molangVariables) {
-		SpawnParticleEffectPacket18 packet = new SpawnParticleEffectPacket18();
+		SpawnParticleEffectPacket packet = new SpawnParticleEffectPacket();
 		packet.position = position;
 		packet.identifier = identifier;
 		packet.uniqueEntityId = entityUniqueId;
-		packet.dimension = dimension;
+		packet.dimensionId = dimension;
 		dataPacket(packet);
 	}
 }

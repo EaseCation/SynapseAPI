@@ -4,23 +4,6 @@ import cn.nukkit.entity.Entity;
 import cn.nukkit.entity.data.EntityData;
 import cn.nukkit.entity.data.EntityMetadata;
 import cn.nukkit.network.protocol.*;
-import cn.nukkit.network.protocol.AdventureSettingsPacket;
-import cn.nukkit.network.protocol.AnimatePacket;
-import cn.nukkit.network.protocol.BossEventPacket;
-import cn.nukkit.network.protocol.ClientboundMapItemDataPacket;
-import cn.nukkit.network.protocol.EntityEventPacket;
-import cn.nukkit.network.protocol.MobArmorEquipmentPacket;
-import cn.nukkit.network.protocol.MobEffectPacket;
-import cn.nukkit.network.protocol.MobEquipmentPacket;
-import cn.nukkit.network.protocol.MoveEntityPacket;
-import cn.nukkit.network.protocol.MovePlayerPacket;
-import cn.nukkit.network.protocol.PlayerListPacket;
-import cn.nukkit.network.protocol.ProtocolInfo;
-import cn.nukkit.network.protocol.SetEntityDataPacket;
-import cn.nukkit.network.protocol.SetEntityLinkPacket;
-import cn.nukkit.network.protocol.SetEntityMotionPacket;
-import cn.nukkit.network.protocol.TakeItemEntityPacket;
-import cn.nukkit.network.protocol.UpdateAttributesPacket;
 import org.itxtech.synapseapi.multiprotocol.protocol116100ne.protocol.MovePlayerPacket116100NE;
 import org.itxtech.synapseapi.multiprotocol.protocol11830.protocol.SpawnParticleEffectPacket11830;
 import org.itxtech.synapseapi.multiprotocol.protocol18.protocol.SpawnParticleEffectPacket18;
@@ -136,6 +119,10 @@ public class DataPacketEidReplacer {
                 } else if (packet instanceof SpawnParticleEffectPacket18) {
                     if (((SpawnParticleEffectPacket18) packet).uniqueEntityId == from) {
                         ((SpawnParticleEffectPacket18) packet).uniqueEntityId = to;
+                    }
+                } else if (packet instanceof SpawnParticleEffectPacket) {
+                    if (((SpawnParticleEffectPacket) packet).uniqueEntityId == from) {
+                        ((SpawnParticleEffectPacket) packet).uniqueEntityId = to;
                     }
                 }
                 break;

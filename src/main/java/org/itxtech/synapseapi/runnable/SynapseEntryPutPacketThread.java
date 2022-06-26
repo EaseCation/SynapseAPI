@@ -67,7 +67,7 @@ public class SynapseEntryPutPacketThread extends Thread {
 
     public void addMainToThread(SynapsePlayer player, DataPacket packet, boolean needACK, boolean immediate) {
         //if (packet.pid() == ProtocolInfo.GAME_RULES_CHANGED_PACKET) return;
-        /*switch (packet.pid()) {
+//        switch (packet.pid()) {
             //case ProtocolInfo.SET_COMMANDS_ENABLED_PACKET:
             //case ProtocolInfo.AVAILABLE_COMMANDS_PACKET:
         //    case ProtocolInfo.MOVE_PLAYER_PACKET:
@@ -89,13 +89,13 @@ public class SynapseEntryPutPacketThread extends Thread {
             //case ProtocolInfo.LEVEL_SOUND_EVENT_PACKET_V2:
             //case ProtocolInfo.LEVEL_SOUND_EVENT_PACKET_V3:
         //    case ProtocolInfo.SET_PLAYER_GAME_TYPE_PACKET:
-            case ProtocolInfo.RESPAWN_PACKET:
+            //case ProtocolInfo.AVAILABLE_COMMANDS_PACKET:
                 //case ProtocolInfo.SET_ENTITY_DATA_PACKET:
                 //case ProtocolInfo.ADVENTURE_SETTINGS_PACKET:
                 //case ProtocolInfo.UPDATE_ATTRIBUTES_PACKET:
-                log.warn("blocked packet", new Throwable());
+                //log.warn("blocked packet", new Throwable());
 //                return;
-        }*/
+//        }
 
         if (player.getSynapseEntry().getSynapse().isRecordPacketStack()) packet.stack = new Throwable();
         this.queue.offer(new Entry(player, packet, needACK, immediate));
@@ -182,9 +182,9 @@ public class SynapseEntryPutPacketThread extends Thread {
                         if (!entry.packet.isEncoded) {
                             entry.packet.setHelper(AbstractProtocol.fromRealProtocol(entry.player.getProtocol()).getHelper());
                             entry.packet.tryEncode();
-                            /*
-                            if (entry.packet instanceof MoveEntityPacket) {
-                                Server.getInstance().getLogger().warning("MoveEntityPacket: " + ((MoveEntityPacket) entry.packet).eid + " " + ((MoveEntityPacket) entry.packet).x + "," + ((MoveEntityPacket) entry.packet).y + "," + ((MoveEntityPacket) entry.packet).z + ",");
+
+                            /*if (entry.packet.pid() == ProtocolInfo.AVAILABLE_COMMANDS_PACKET) {
+                                Server.getInstance().getLogger().warning("AvailableCommandsPacket");
                             }*/
                         }
 /*

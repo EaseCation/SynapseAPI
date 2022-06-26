@@ -27,22 +27,24 @@ public class AvailableCommandsPacket113 extends Packet113 {
     public static final int ARG_FLAG_SOFT_ENUM = 0x4000000;
 
     public static final int ARG_TYPE_INT = 1;
-    public static final int ARG_TYPE_FLOAT = 2;
-    public static final int ARG_TYPE_VALUE = 3;
-    public static final int ARG_TYPE_WILDCARD_INT = 4;
-    public static final int ARG_TYPE_OPERATOR = 5;
-    public static final int ARG_TYPE_TARGET = 6;
-    public static final int ARG_TYPE_WILDCARD_TARGET = 7;
-
-    public static final int ARG_TYPE_FILE_PATH = 14;
-
-    public static final int ARG_TYPE_STRING = 29;
-    public static final int ARG_TYPE_POSITION = 37;
-
-    public static final int ARG_TYPE_MESSAGE = 41;
-    public static final int ARG_TYPE_RAWTEXT = 43;
-    public static final int ARG_TYPE_JSON = 47;
-    public static final int ARG_TYPE_COMMAND = 54;
+    public static final int ARG_TYPE_FLOAT = 3;
+    public static final int ARG_TYPE_VALUE = 4;
+    public static final int ARG_TYPE_WILDCARD_INT = 5;
+    public static final int ARG_TYPE_OPERATOR = 6;
+    public static final int ARG_TYPE_COMPARE_OPERATOR = 7;
+    public static final int ARG_TYPE_TARGET = 8;
+    public static final int ARG_TYPE_WILDCARD_TARGET = 10;
+    public static final int ARG_TYPE_FILE_PATH = 17;
+    public static final int ARG_TYPE_FULL_INTEGER_RANGE = 23;
+    public static final int ARG_TYPE_EQUIPMENT_SLOT = 38;
+    public static final int ARG_TYPE_STRING = 39;
+    public static final int ARG_TYPE_BLOCK_POSITION = 47;
+    public static final int ARG_TYPE_POSITION = 48;
+    public static final int ARG_TYPE_MESSAGE = 51;
+    public static final int ARG_TYPE_RAWTEXT = 53;
+    public static final int ARG_TYPE_JSON = 57;
+    public static final int ARG_TYPE_BLOCK_STATES = 67;
+    public static final int ARG_TYPE_COMMAND = 70;
 
     public Map<String, CommandDataVersions> commands;
     public final Map<String, List<String>> softEnums = new HashMap<>();

@@ -3,8 +3,8 @@ package org.itxtech.synapseapi.multiprotocol.protocol11830.protocol;
 import cn.nukkit.math.Vector3f;
 import cn.nukkit.network.protocol.DataPacket;
 import cn.nukkit.network.protocol.ProtocolInfo;
+import cn.nukkit.network.protocol.SpawnParticleEffectPacket;
 import lombok.ToString;
-import org.itxtech.synapseapi.multiprotocol.protocol18.protocol.SpawnParticleEffectPacket18;
 import org.itxtech.synapseapi.utils.ClassUtils;
 
 import javax.annotation.Nullable;
@@ -47,10 +47,10 @@ public class SpawnParticleEffectPacket11830 extends Packet11830 {
 
     @Override
     public DataPacket fromDefault(DataPacket pk) {
-        ClassUtils.requireInstance(pk, SpawnParticleEffectPacket18.class);
+        ClassUtils.requireInstance(pk, SpawnParticleEffectPacket.class);
 
-        SpawnParticleEffectPacket18 packet = (SpawnParticleEffectPacket18) pk;
-        this.dimension = packet.dimension;
+        SpawnParticleEffectPacket packet = (SpawnParticleEffectPacket) pk;
+        this.dimension = packet.dimensionId;
         this.uniqueEntityId = packet.uniqueEntityId;
         this.position = packet.position;
         this.identifier = packet.identifier;
@@ -60,8 +60,8 @@ public class SpawnParticleEffectPacket11830 extends Packet11830 {
 
     @Override
     public DataPacket toDefault() {
-        SpawnParticleEffectPacket18 pk = new SpawnParticleEffectPacket18();
-        pk.dimension = this.dimension;
+        SpawnParticleEffectPacket pk = new SpawnParticleEffectPacket();
+        pk.dimensionId = this.dimension;
         pk.uniqueEntityId = this.uniqueEntityId;
         pk.position = this.position;
         pk.identifier = this.identifier;
@@ -69,6 +69,6 @@ public class SpawnParticleEffectPacket11830 extends Packet11830 {
     }
 
     public static Class<? extends DataPacket> getDefaultPacket() {
-        return SpawnParticleEffectPacket18.class;
+        return SpawnParticleEffectPacket.class;
     }
 }
