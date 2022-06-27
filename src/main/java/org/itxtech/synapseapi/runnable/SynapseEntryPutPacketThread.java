@@ -66,6 +66,14 @@ public class SynapseEntryPutPacketThread extends Thread {
     };
 
     public void addMainToThread(SynapsePlayer player, DataPacket packet, boolean needACK, boolean immediate) {
+//        if (packet instanceof LevelChunkPacket) {
+//            byte[] bytes = ((LevelChunkPacket) packet).data;
+//            if (bytes.length == 25676 && bytes[0] == 5) {
+//                log.fatal("Corrupted chunk packet? (no cache, no sub-req)", new Throwable());
+//                return;
+//            }
+//        }
+
         //if (packet.pid() == ProtocolInfo.GAME_RULES_CHANGED_PACKET) return;
 //        switch (packet.pid()) {
             //case ProtocolInfo.SET_COMMANDS_ENABLED_PACKET:

@@ -18,6 +18,8 @@ public class AvailableCommandsPacket14 extends Packet16 {
     public static final int NETWORK_ID = ProtocolInfo.AVAILABLE_COMMANDS_PACKET;
 
     public static final int ARG_FLAG_VALID = 0x100000;
+    public static final int ARG_FLAG_ENUM = 0x200000;
+    public static final int ARG_FLAG_TEMPLATE = 0x01000000;
 
     public static final int ARG_TYPE_INT = 0x01;
     public static final int ARG_TYPE_FLOAT = 0x02;
@@ -33,9 +35,6 @@ public class AvailableCommandsPacket14 extends Packet16 {
     public static final int ARG_TYPE_RAWTEXT = 0x15;
     public static final int ARG_TYPE_JSON = 0x18;
     public static final int ARG_TYPE_COMMAND = 0x1f;
-
-    public static final int ARG_FLAG_ENUM = 0x200000;
-    public static final int ARG_FLAG_TEMPLATE = 0x01000000;
 
     private static final Map<CommandParamType, Integer> v12To16ArgTypeTable = new HashMap<CommandParamType, Integer>(){{
         put(CommandParamType.INT, ARG_TYPE_INT);
@@ -54,7 +53,6 @@ public class AvailableCommandsPacket14 extends Packet16 {
     }};
 
     public Map<String, CommandDataVersions> commands;
-    public final Map<String, List<String>> softEnums = new HashMap<>();
 
     @Override
     public int pid() {
@@ -74,6 +72,12 @@ public class AvailableCommandsPacket14 extends Packet16 {
         LinkedHashSet<String> postFixes = new LinkedHashSet<>();
         LinkedHashSet<CommandEnum> enums = new LinkedHashSet<>();
 
+        // List of enums which aren't directly referenced by any vanilla command.
+        // This is used for the "CommandName" enum, which is a magic enum used by the "command" argument type.
+        Set<String> commandNames = new HashSet<>(commands.keySet());
+        commandNames.add("help");
+        commandNames.add("?");
+
         commands.forEach((name, data) -> {
             CommandData cmdData = data.versions.get(0);
 
@@ -81,6 +85,8 @@ public class AvailableCommandsPacket14 extends Packet16 {
                 enums.add(new CommandEnum(cmdData.aliases.getName(), cmdData.aliases.getValues()));
 
                 enumValues.addAll(cmdData.aliases.getValues());
+
+                commandNames.addAll(cmdData.aliases.getValues());
             }
 
             for (CommandOverload overload : cmdData.overloads.values()) {
@@ -97,6 +103,9 @@ public class AvailableCommandsPacket14 extends Packet16 {
                 }
             }
         });
+
+        enums.add(new CommandEnum("CommandName", commandNames));
+        enumValues.addAll(commandNames);
 
         List<String> enumIndexes = new ArrayList<>(enumValues);
         List<String> enumDataIndexes = enums.stream().map(CommandEnum::getName).collect(Collectors.toList());
@@ -116,7 +125,7 @@ public class AvailableCommandsPacket14 extends Packet16 {
         enums.forEach((cmdEnum) -> {
             putString(cmdEnum.getName());
 
-            List<String> values = cmdEnum.getValues();
+            Set<String> values = cmdEnum.getValues();
             putUnsignedVarInt(values.size());
 
             for (String val : values) {
@@ -143,8 +152,12 @@ public class AvailableCommandsPacket14 extends Packet16 {
 
             putString(name);
             putString(data.description);
-            putByte((byte) data.flags);
-            putByte((byte) data.permission);
+            int flags = 0;
+            for (CommandFlag flag : data.flags) {
+                flags |= 1 << flag.ordinal();
+            }
+            putByte((byte) flags);
+            putByte((byte) data.permission.ordinal());
 
             putLInt(data.aliases == null ? -1 : enumDataIndexes.indexOf(data.aliases.getName()));
 
@@ -184,7 +197,6 @@ public class AvailableCommandsPacket14 extends Packet16 {
         cn.nukkit.network.protocol.AvailableCommandsPacket packet = (cn.nukkit.network.protocol.AvailableCommandsPacket) pk;
 
         this.commands = packet.commands;
-        //this.softEnums.putAll(packet.softEnums);
 
         return this;
     }

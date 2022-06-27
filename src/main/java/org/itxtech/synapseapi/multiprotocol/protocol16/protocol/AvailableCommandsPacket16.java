@@ -16,6 +16,9 @@ public class AvailableCommandsPacket16 extends Packet16 {
     public static final int NETWORK_ID = ProtocolInfo.AVAILABLE_COMMANDS_PACKET;
 
     public static final int ARG_FLAG_VALID = 0x100000;
+    public static final int ARG_FLAG_ENUM = 0x200000;
+    public static final int ARG_FLAG_POSTFIX = 0x1000000;
+    public static final int ARG_FLAG_SOFT_ENUM = 0x4000000;
 
     public static final int ARG_TYPE_INT = 0x01;
     public static final int ARG_TYPE_FLOAT = 0x02;
@@ -31,9 +34,6 @@ public class AvailableCommandsPacket16 extends Packet16 {
     public static final int ARG_TYPE_RAWTEXT = 0x15;
     public static final int ARG_TYPE_JSON = 0x18;
     public static final int ARG_TYPE_COMMAND = 0x1f;
-
-    public static final int ARG_FLAG_ENUM = 0x200000;
-    public static final int ARG_FLAG_POSTFIX = 0x1000000;
 
     private static final Map<CommandParamType, Integer> v12To16ArgTypeTable = new HashMap<CommandParamType, Integer>(){{
         put(CommandParamType.INT, ARG_TYPE_INT);
@@ -52,7 +52,7 @@ public class AvailableCommandsPacket16 extends Packet16 {
     }};
 
     public Map<String, CommandDataVersions> commands;
-    public final List<CommandEnum> softEnums = new ArrayList<>();
+    public final List<CommandEnum> softEnums = new ArrayList<>(); //TODO
 
     public List<String> enumValues = new ArrayList<>();
     private int enumValuesCount = 0;
@@ -109,8 +109,12 @@ public class AvailableCommandsPacket16 extends Packet16 {
     protected void putCommandData(String name, CommandData data){
         this.putString(name);
         this.putString(data.description);
-        this.putByte((byte) data.flags);
-        this.putByte((byte) data.permission);
+        int flags = 0;
+        for (CommandFlag flag : data.flags) {
+            flags |= 1 << flag.ordinal();
+        }
+        this.putByte((byte) flags);
+        this.putByte((byte) data.permission.ordinal());
         if(data.aliases != null && this.enumMap.containsKey(data.aliases.getName())){
             this.putLInt(this.enumMap.get(data.aliases.getName()));
         }else{
@@ -147,11 +151,19 @@ public class AvailableCommandsPacket16 extends Packet16 {
         List<String> enumValues = new ArrayList<>();
         List<String> postfixes = new ArrayList<>();
         Map<String, CommandEnum> enumMap = new LinkedHashMap<>();
+
+        // List of enums which aren't directly referenced by any vanilla command.
+        // This is used for the "CommandName" enum, which is a magic enum used by the "command" argument type.
+        Set<String> commandNames = new HashSet<>(commands.keySet());
+        commandNames.add("help");
+        commandNames.add("?");
+
         this.commands.forEach((name, data) -> {
             for (CommandData commandData : data.versions) {
                 if (commandData.aliases != null) {
                     enumMap.put(commandData.aliases.getName(), commandData.aliases);
                     enumValues.addAll(commandData.aliases.getValues());
+                    commandNames.addAll(commandData.aliases.getValues());
                 }
                 commandData.overloads.forEach((n, overload) -> {
                     for (CommandParameter parameter : overload.input.parameters) {
@@ -166,6 +178,10 @@ public class AvailableCommandsPacket16 extends Packet16 {
                 });
             }
         });
+
+        CommandEnum commandNameEnum = new CommandEnum("CommandName", commandNames);
+        enumMap.put("CommandName", commandNameEnum);
+        enumValues.addAll(commandNameEnum.getValues());
 
         this.enumValues = enumValues;
         this.putUnsignedVarInt(this.enumValuesCount = this.enumValues.size());
@@ -208,7 +224,6 @@ public class AvailableCommandsPacket16 extends Packet16 {
         cn.nukkit.network.protocol.AvailableCommandsPacket packet = (cn.nukkit.network.protocol.AvailableCommandsPacket) pk;
 
         this.commands = packet.commands;
-        this.softEnums.addAll(packet.softEnums);
 
         return this;
     }

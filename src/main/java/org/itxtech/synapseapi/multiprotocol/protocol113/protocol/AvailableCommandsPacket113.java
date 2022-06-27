@@ -22,8 +22,19 @@ public class AvailableCommandsPacket113 extends Packet113 {
     private static final ObjIntConsumer<BinaryStream> WRITE_INT = BinaryStream::putLInt;
 
     public static final int ARG_FLAG_VALID = 0x100000;
+    /**
+     * List of enums which aren't directly referenced by any vanilla command.
+     * This is used for the `CommandName` enum, which is a magic enum used by the `command` argument type.
+     */
     public static final int ARG_FLAG_ENUM = 0x200000;
+    /**
+     * It can only be applied to integer parameters.
+     */
     public static final int ARG_FLAG_POSTFIX = 0x1000000;
+    /**
+     * List of dynamic command enums, also referred to as "soft" enums.
+     * These can be dynamically updated mid-game without resending this packet.
+     */
     public static final int ARG_FLAG_SOFT_ENUM = 0x4000000;
 
     public static final int ARG_TYPE_INT = 1;
@@ -47,7 +58,7 @@ public class AvailableCommandsPacket113 extends Packet113 {
     public static final int ARG_TYPE_COMMAND = 70;
 
     public Map<String, CommandDataVersions> commands;
-    public final Map<String, List<String>> softEnums = new HashMap<>();
+    public List<CommandEnumConstraint> enumConstraints = new ArrayList<>();
 
     @Override
     public int pid() {
@@ -66,6 +77,13 @@ public class AvailableCommandsPacket113 extends Packet113 {
         LinkedHashSet<String> enumValuesSet = new LinkedHashSet<>();
         LinkedHashSet<String> postFixesSet = new LinkedHashSet<>();
         LinkedHashSet<CommandEnum> enumsSet = new LinkedHashSet<>();
+        LinkedHashSet<CommandEnum> softEnumsSet = new LinkedHashSet<>();
+
+        // List of enums which aren't directly referenced by any vanilla command.
+        // This is used for the "CommandName" enum, which is a magic enum used by the "command" argument type.
+        Set<String> commandNames = new HashSet<>(commands.keySet());
+        commandNames.add("help");
+        commandNames.add("?");
 
         commands.forEach((name, data) -> {
             CommandData cmdData = data.versions.get(0);
@@ -74,14 +92,20 @@ public class AvailableCommandsPacket113 extends Packet113 {
                 enumsSet.add(cmdData.aliases);
 
                 enumValuesSet.addAll(cmdData.aliases.getValues());
+
+                commandNames.addAll(cmdData.aliases.getValues());
             }
 
             for (CommandOverload overload : cmdData.overloads.values()) {
                 for (CommandParameter parameter : overload.input.parameters) {
                     if (parameter.enumData != null) {
-                        enumsSet.add(parameter.enumData);
+                        if (parameter.enumData.isSoft()) {
+                            softEnumsSet.add(parameter.enumData);
+                        } else {
+                            enumsSet.add(parameter.enumData);
 
-                        enumValuesSet.addAll(parameter.enumData.getValues());
+                            enumValuesSet.addAll(parameter.enumData.getValues());
+                        }
                     }
 
                     if (parameter.postFix != null) {
@@ -91,9 +115,13 @@ public class AvailableCommandsPacket113 extends Packet113 {
             }
         });
 
+        enumsSet.add(new CommandEnum("CommandName", commandNames));
+        enumValuesSet.addAll(commandNames);
+
         List<String> enumValues = new ArrayList<>(enumValuesSet);
-        List<CommandEnum> enums = new ArrayList<>(enumsSet);
         List<String> postFixes = new ArrayList<>(postFixesSet);
+        List<CommandEnum> enums = new ArrayList<>(enumsSet);
+        List<CommandEnum> softEnums = new ArrayList<>(softEnumsSet);
 
         this.putUnsignedVarInt(enumValues.size());
         enumValues.forEach(this::putString);
@@ -114,7 +142,7 @@ public class AvailableCommandsPacket113 extends Packet113 {
         enums.forEach((cmdEnum) -> {
             putString(cmdEnum.getName());
 
-            List<String> values = cmdEnum.getValues();
+            Set<String> values = cmdEnum.getValues();
             putUnsignedVarInt(values.size());
 
             for (String val : values) {
@@ -128,17 +156,27 @@ public class AvailableCommandsPacket113 extends Packet113 {
             }
         });
 
-        this.helper.putCommandData(this, this.commands, enums, postFixes);
+        this.helper.putCommandData(this, this.commands, enums, postFixes, softEnums);
 
         this.putUnsignedVarInt(softEnums.size());
+        softEnums.forEach(cmdEnum -> {
+            this.putString(cmdEnum.getName());
 
-        softEnums.forEach((name, values) -> {
-            this.putString(name);
+            Set<String> values = cmdEnum.getValues();
             this.putUnsignedVarInt(values.size());
             values.forEach(this::putString);
         });
 
-        this.putUnsignedVarInt(0);
+        this.putUnsignedVarInt(enumConstraints.size());
+        for (CommandEnumConstraint constraint : enumConstraints) {
+            this.putLInt(enumValues.indexOf(constraint.option));
+            this.putLInt(enums.indexOf(constraint.enumData));
+
+            this.putUnsignedVarInt(constraint.constraints.size());
+            for (CommandEnumConstraintType type : constraint.constraints) {
+                this.putByte((byte) type.ordinal());
+            }
+        }
     }
 
     @Override
@@ -148,7 +186,6 @@ public class AvailableCommandsPacket113 extends Packet113 {
         cn.nukkit.network.protocol.AvailableCommandsPacket packet = (cn.nukkit.network.protocol.AvailableCommandsPacket) pk;
 
         this.commands = packet.commands;
-        //this.softEnums.addAll(packet.softEnums);
 
         return this;
     }

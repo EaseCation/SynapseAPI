@@ -35,7 +35,7 @@ public final class SynapseSharedConstants {
     /**
      * Enables new change dimension loading screen system?
      */
-    public static final boolean USE_CHANGE_DIMENSION_PACKET = false;
+    public static final boolean USE_CHANGE_DIMENSION_PACKET = false; // WIP
 
     /**
      * 玩家所处的中心区块直接发送不使用 blob cache 以加快加载速度.

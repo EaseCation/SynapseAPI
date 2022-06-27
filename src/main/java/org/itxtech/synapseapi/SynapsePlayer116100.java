@@ -981,7 +981,7 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
     @Override
     public boolean isSubChunkRequestAvailable() {
         return USE_SUB_CHUNK_REQUEST && this.protocol >= AbstractProtocol.PROTOCOL_118.getProtocolStart()
-                && !this.isNetEaseClient() //FIXME: 网易 1.18.0 禁用子区块请求的情况下切换世界会收到畸形区块包
+                && !this.isNetEaseClient()
                 ;
     }
 
@@ -1021,7 +1021,7 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
             } else {
                 pk.subChunkCount = LevelChunkPacket.CLIENT_REQUEST_FULL_COLUMN_FAKE_COUNT;
             }
-            pk.subChunkRequestLimit = subChunkCount + Anvil.PADDING_SUB_CHUNK_COUNT;
+            pk.subChunkRequestLimit = subChunkCount /*+ Anvil.PADDING_SUB_CHUNK_COUNT*/;
             pk.blobIds = new long[]{hash};
             pk.cacheEnabled = true;
             pk.data = blobCache.getSubModeCachedPayload();
@@ -1063,7 +1063,7 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
         } else {
             pk.subChunkCount = LevelChunkPacket.CLIENT_REQUEST_FULL_COLUMN_FAKE_COUNT;
         }
-        pk.subChunkRequestLimit = subChunkCount + Anvil.PADDING_SUB_CHUNK_COUNT;
+        pk.subChunkRequestLimit = subChunkCount /*+ Anvil.PADDING_SUB_CHUNK_COUNT*/;
         if (this.isBlobCacheAvailable() && this.isSubModeLevelChunkBlobCacheEnabled() && !centerChunk) {
             long[] ids;
             Long2ObjectMap<byte[]> extendedClientBlobs;
@@ -1816,26 +1816,6 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
         return dx * dx + dz * dz;
     }
 
-    @Override
-    public void sendCommandData() {
-        //FIXME: 暂时停用网易版本的命令补全以避免 crash. 搬运社区版的命令更新并修复所有断言错误后可重新启用
-        // 发送可用远程命令时触发
-        // Assertion failed: Duplicate command registration for xxx (help/test/restart)
-        //  Condition is false: mSignatures.find(name) == mSignatures.end()
-        //  Function: CommandRegistry::registerCommand in .\src\common\server\commands\CommandRegistry.cpp @ 2101 (1.18.0)
-        // Assertion failed: Commands added interleaved - all overloads of a command must be added at once
-        //  Condition is false: it->derivation.front() == commandSymbol || it->derivation.front() == aliasEnum
-        //  Function: CommandRegistry::setupOverloadRules in .\src\common\server\commands\CommandRegistry.cpp @ 2406 (1.18.0)
-        // 客户端解析输入的命令时触发
-        // Assertion failed: Parser table collision - duplicate command rules
-        //  Condition is false: table.predict.find(key) == table.predict.end()
-        //  Function: CommandRegistry::buildParseTable in .\src\common\server\commands\CommandRegistry.cpp @ 3058 (1.18.0)
-        if (this.isNetEaseClient()) {
-//            return;
-        }
-        super.sendCommandData();
-    }
-
     //FIXME: 以下断言错误需要处理
     // 推送带有 image 的 modal form 时触发
     // Assertion failed: Control name could not be resolved: image @ UIControl::_resolveControlNames
@@ -1844,4 +1824,8 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
     // Assertion failed: Biome already has initialized Entity!
     //  Condition is false: !mEntity.hasValue()
     //  Function: Biome::initEntity in .\src\common\world\level\biome\Biome.cpp @ 107 (1.17.0)
+    // 客户端解析输入的命令时触发
+    // Assertion failed: Parser table collision - duplicate command rules
+    //  Condition is false: table.predict.find(key) == table.predict.end()
+    //  Function: CommandRegistry::buildParseTable in .\src\common\server\commands\CommandRegistry.cpp @ 3058 (1.18.0)
 }

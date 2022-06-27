@@ -3,7 +3,9 @@ package org.itxtech.synapseapi.multiprotocol.protocol11710;
 import cn.nukkit.command.data.CommandData;
 import cn.nukkit.command.data.CommandDataVersions;
 import cn.nukkit.command.data.CommandEnum;
+import cn.nukkit.command.data.CommandFlag;
 import cn.nukkit.command.data.CommandOverload;
+import cn.nukkit.command.data.CommandParamOption;
 import cn.nukkit.command.data.CommandParameter;
 import cn.nukkit.utils.BinaryStream;
 import org.itxtech.synapseapi.multiprotocol.protocol113.protocol.AvailableCommandsPacket113;
@@ -24,7 +26,7 @@ public class BinaryStreamHelper11710 extends BinaryStreamHelper117 {
     }
 
     @Override
-    public void putCommandData(BinaryStream stream, Map<String, CommandDataVersions> commands, List<CommandEnum> enums, List<String> postFixes) {
+    public void putCommandData(BinaryStream stream, Map<String, CommandDataVersions> commands, List<CommandEnum> enums, List<String> postFixes, List<CommandEnum> softEnums) {
         stream.putUnsignedVarInt(commands.size());
 
         commands.forEach((name, cmdData) -> {
@@ -32,8 +34,12 @@ public class BinaryStreamHelper11710 extends BinaryStreamHelper117 {
 
             stream.putString(name);
             stream.putString(data.description);
-            stream.putLShort(data.flags);
-            stream.putByte((byte) data.permission);
+            int flags = 0;
+            for (CommandFlag flag : data.flags) {
+                flags |= 1 << flag.ordinal();
+            }
+            stream.putLShort(flags);
+            stream.putByte((byte) data.permission.ordinal());
 
             stream.putLInt(data.aliases == null ? -1 : enums.indexOf(data.aliases));
 
@@ -55,7 +61,11 @@ public class BinaryStreamHelper11710 extends BinaryStreamHelper117 {
                     } else {
                         type |= AvailableCommandsPacket113.ARG_FLAG_VALID;
                         if (parameter.enumData != null) {
-                            type |= AvailableCommandsPacket113.ARG_FLAG_ENUM | enums.indexOf(parameter.enumData);
+                            if (parameter.enumData.isSoft()) {
+                                type |= AvailableCommandsPacket113.ARG_FLAG_SOFT_ENUM | softEnums.indexOf(parameter.enumData);
+                            } else {
+                                type |= AvailableCommandsPacket113.ARG_FLAG_ENUM | enums.indexOf(parameter.enumData);
+                            }
                         } else {
                             type |= translatedType;
                         }
@@ -63,7 +73,11 @@ public class BinaryStreamHelper11710 extends BinaryStreamHelper117 {
 
                     stream.putLInt(type);
                     stream.putBoolean(parameter.optional);
-                    stream.putByte(parameter.options); // TODO: 19/03/2019 Bit flags. Only first bit is used for GameRules.
+                    int options = 0;
+                    for (CommandParamOption option : parameter.options) {
+                        options |= 1 << option.ordinal();
+                    }
+                    stream.putByte((byte) options);
                 }
             }
         });

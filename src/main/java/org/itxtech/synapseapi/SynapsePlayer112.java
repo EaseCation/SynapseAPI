@@ -121,7 +121,7 @@ public class SynapsePlayer112 extends SynapsePlayer19 {
 			long[] blobIds;
 			Long2ObjectMap<byte[]> blobs;
 			if (this.isExtendedLevel()) {
-				subChunkCount += Anvil.PADDING_SUB_CHUNK_COUNT;
+//				subChunkCount += Anvil.PADDING_SUB_CHUNK_COUNT;
 				if (this.getProtocol() >= AbstractProtocol.PROTOCOL_118_30.getProtocolStart()) {
 					blobIds = blobCache.getExtendedBlobIdsNew();
 					blobs = blobCache.getExtendedClientBlobsNew();
@@ -210,7 +210,7 @@ public class SynapsePlayer112 extends SynapsePlayer19 {
 			long[] blobIds;
 			Long2ObjectMap<byte[]> blobs;
 			if (this.isExtendedLevel()) {
-				subChunkCount += Anvil.PADDING_SUB_CHUNK_COUNT;
+//				subChunkCount += Anvil.PADDING_SUB_CHUNK_COUNT;
 				if (this.getProtocol() >= AbstractProtocol.PROTOCOL_118_30.getProtocolStart()) {
 					blobIds = blobCache.getExtendedBlobIdsNew();
 					blobs = blobCache.getExtendedClientBlobsNew();

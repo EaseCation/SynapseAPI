@@ -595,6 +595,7 @@ public class SynapsePlayer extends Player {
         return false;
     }
 
+    @Override
     public void transfer(InetSocketAddress address) {
         String hostName = address.getAddress().getHostAddress();
         int port = address.getPort();
@@ -1077,21 +1078,6 @@ public class SynapsePlayer extends Player {
 
     public void setUniqueId(UUID uuid) {
         this.uuid = uuid;
-    }
-
-    @Override
-    public void sendCommandData() {
-        AvailableCommandsPacket pk = new AvailableCommandsPacket();
-        Map<String, CommandDataVersions> data = new HashMap<>();
-        for (Command command : this.server.getCommandMap().getCommands().values()) {
-            if (!command.testPermissionSilent(this)) {
-                continue;
-            }
-            CommandDataVersions data0 = command.generateCustomCommandData(this);
-            data.put(command.getName(), data0);
-        }
-        pk.commands = data;
-        this.dataPacket(pk, true);
     }
 
     public SynapsePlayer setCleanTextColor(boolean cleanTextColor) {
