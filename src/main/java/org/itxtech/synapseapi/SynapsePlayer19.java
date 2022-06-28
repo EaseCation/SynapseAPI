@@ -42,8 +42,9 @@ public class SynapsePlayer19 extends SynapsePlayer18 {
 						levelSoundEventPacket.entityIdentifier,
 						levelSoundEventPacket.isBabyMob,
 						levelSoundEventPacket.isGlobal);
-				if (this.isSpectator() && (event.getLevelSound() == LevelSoundEventEnum.SOUND_HIT || event.getLevelSound() == LevelSoundEventEnum.SOUND_ATTACK_NODAMAGE))
+				if (this.isSpectator()) {
 					event.setCancelled();
+				}
 				this.getServer().getPluginManager().callEvent(event);
 				if (!event.isCancelled()) {
 					this.getLevel().getChunkPlayers(this.getFloorX() >> 4, this.getFloorZ() >> 4).values().stream()

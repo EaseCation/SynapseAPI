@@ -219,8 +219,9 @@ public class SynapsePlayer extends Player {
         this.adventureSettings = new AdventureSettings(this)
                 .set(Type.WORLD_IMMUTABLE, !isAdventure())
                 .set(Type.AUTO_JUMP, true)
-                .set(Type.ALLOW_FLIGHT, isCreative())
-                .set(Type.NO_CLIP, isSpectator());
+                .set(Type.ALLOW_FLIGHT, isCreative() || isSpectator())
+                .set(Type.NO_CLIP, isSpectator())
+                .set(Type.FLYING, isSpectator());
 
         Level level;
         if ((level = this.server.getLevelByName(nbt.getString("Level"))) == null || !alive) {
@@ -266,7 +267,10 @@ public class SynapsePlayer extends Player {
         float foodSaturationLevel = this.namedTag.getFloat("foodSaturationLevel");
         this.foodData = new PlayerFood(this, foodLevel, foodSaturationLevel);
 
-        if (this.isSpectator()) this.keepMovement = true;
+        if (this.isSpectator()) {
+            this.keepMovement = true;
+            this.onGround = false;
+        }
 
         this.forceMovement = this.teleportPosition = this.getPosition();
 
@@ -344,7 +348,10 @@ public class SynapsePlayer extends Player {
             this.inventory.setHeldItemSlot(this.inventory.getHotbarSlotIndex(0));
         }
 
-        if (this.isSpectator()) this.keepMovement = true;
+        if (this.isSpectator()) {
+            this.keepMovement = true;
+            this.onGround = false;
+        }
 
         Level level;
         if (this.spawnPosition == null && this.namedTag.contains("SpawnLevel") && (level = this.server.getLevelByName(this.namedTag.getString("SpawnLevel"))) != null) {
@@ -356,16 +363,10 @@ public class SynapsePlayer extends Player {
             DataPacket startGamePacket = generateStartGamePacket(spawnPosition);
             this.dataPacket(startGamePacket);
         } else {
-            AdventureSettings newSettings = this.getAdventureSettings().clone(this);
-            newSettings.set(AdventureSettings.Type.WORLD_IMMUTABLE, gamemode != 3);
-            newSettings.set(AdventureSettings.Type.ALLOW_FLIGHT, (gamemode & 0x01) > 0);
-            newSettings.set(AdventureSettings.Type.NO_CLIP, gamemode == 0x03);
-            newSettings.set(AdventureSettings.Type.FLYING, gamemode == 0x03);
-            if (this.isSpectator()) {
-                this.keepMovement = true;
-            } else {
-                this.keepMovement = false;
-            }
+            GameRulesChangedPacket packet = new GameRulesChangedPacket();
+            packet.gameRules = this.level.getGameRules();
+            this.dataPacket(packet);
+
             SetPlayerGameTypePacket pk = new SetPlayerGameTypePacket();
             pk.gamemode = getClientFriendlyGamemode(gamemode);
             this.dataPacket(pk);
@@ -421,6 +422,10 @@ public class SynapsePlayer extends Player {
         this.setDataFlag(DATA_FLAGS, DATA_FLAG_ALWAYS_SHOW_NAMETAG, true, false);
         //this.setCanClimb(true);
         this.setDataFlag(DATA_FLAGS, DATA_FLAG_CAN_CLIMB, true, false);
+        if (this.isSpectator()) {
+            this.setDataFlag(DATA_FLAGS, DATA_FLAG_SILENT, true);
+            this.setDataFlag(DATA_FLAGS, DATA_FLAG_HAS_COLLISION, false);
+        }
 
         this.server.getLogger().info(this.getServer().getLanguage().translateString("nukkit.player.logIn",
                 TextFormat.AQUA + this.username + TextFormat.WHITE,
@@ -1022,6 +1027,9 @@ public class SynapsePlayer extends Player {
                         "minecraft:player",
                         levelSoundEventPacket.isBabyMob,
                         levelSoundEventPacket.isGlobal);
+                if (this.isSpectator()) {
+                    event.setCancelled();
+                }
                 this.getServer().getPluginManager().callEvent(event);
                 if (!event.isCancelled()) {
                     this.getLevel().getChunkPlayers(this.getFloorX() >> 4, this.getFloorZ() >> 4).values().stream()

@@ -1817,15 +1817,15 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
     }
 
     //FIXME: 以下断言错误需要处理
-    // 推送带有 image 的 modal form 时触发
-    // Assertion failed: Control name could not be resolved: image @ UIControl::_resolveControlNames
-    //  Function:  in .\src-client\common\client\gui\controls\UIControl.cpp @ 1139 (1.17.0)
-    // 切换世界重发区块时触发
-    // Assertion failed: Biome already has initialized Entity!
-    //  Condition is false: !mEntity.hasValue()
-    //  Function: Biome::initEntity in .\src\common\world\level\biome\Biome.cpp @ 107 (1.17.0)
-    // 客户端解析输入的命令时触发
-    // Assertion failed: Parser table collision - duplicate command rules
-    //  Condition is false: table.predict.find(key) == table.predict.end()
-    //  Function: CommandRegistry::buildParseTable in .\src\common\server\commands\CommandRegistry.cpp @ 3058 (1.18.0)
+    // 实体 ID 重复!
+    // Assertion failed: The server shouldn't send an actor twice!
+    //  Condition is false: mMultiPlayerLevel->fetchEntity(packet.mId) == nullptr
+    //  Function: LegacyClientNetworkHandler::handle in .\src-client\common\client\network\LegacyClientNetworkHandler.cpp @ 1162
+    // Assertion failed: This entity was already added
+    //  Condition is false: mActorIDEntityIDMap.count(actorID) == 0
+    //  Function: Dimension::registerEntity in .\src\common\world\level\dimension\Dimension.cpp @ 1368
+    // 计分板
+    // Assertion failed: No identity ref found for a scoreboard id while attempting to reset player score
+    //  Condition is false: false
+    //  Function: ClientNetworkHandler::handle in .\src-client\common\client\network\ClientNetworkHandler.cpp @ 3306
 }

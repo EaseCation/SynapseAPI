@@ -423,6 +423,9 @@ public class SynapsePlayer14 extends SynapsePlayer {
 						"minecraft:player",
 						levelSoundEventPacket.isBabyMob,
 						levelSoundEventPacket.isGlobal);
+				if (this.isSpectator()) {
+					event.setCancelled();
+				}
 				this.getServer().getPluginManager().callEvent(event);
 				if (!event.isCancelled()) {
 					this.getLevel().getChunkPlayers(this.getFloorX() >> 4, this.getFloorZ() >> 4).values().stream()

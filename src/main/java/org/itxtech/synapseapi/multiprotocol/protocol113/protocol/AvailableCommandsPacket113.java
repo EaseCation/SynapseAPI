@@ -22,10 +22,6 @@ public class AvailableCommandsPacket113 extends Packet113 {
     private static final ObjIntConsumer<BinaryStream> WRITE_INT = BinaryStream::putLInt;
 
     public static final int ARG_FLAG_VALID = 0x100000;
-    /**
-     * List of enums which aren't directly referenced by any vanilla command.
-     * This is used for the `CommandName` enum, which is a magic enum used by the `command` argument type.
-     */
     public static final int ARG_FLAG_ENUM = 0x200000;
     /**
      * It can only be applied to integer parameters.
@@ -33,7 +29,7 @@ public class AvailableCommandsPacket113 extends Packet113 {
     public static final int ARG_FLAG_POSTFIX = 0x1000000;
     /**
      * List of dynamic command enums, also referred to as "soft" enums.
-     * These can be dynamically updated mid-game without resending this packet.
+     * These can be dynamically updated mid-game without resending this packet. (UpdateSoftEnumPacket)
      */
     public static final int ARG_FLAG_SOFT_ENUM = 0x4000000;
 
