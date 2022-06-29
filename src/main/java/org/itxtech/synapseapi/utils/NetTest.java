@@ -201,6 +201,7 @@ public class NetTest implements PluginMessageListener {
     public class NetTestCommand extends PluginCommand<SynapseAPI> {
         public NetTestCommand(SynapseAPI owner) {
             super("nettest", owner);
+            this.setPermission("console.command.nettest");
         }
 
         @Override

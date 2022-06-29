@@ -971,18 +971,9 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
         return this.protocol >= AbstractProtocol.PROTOCOL_118.getProtocolStart();
     }
 
-    //FIXME: 网易 1.18.0 启用子区块请求的情况下切换世界时触发
-    // Assertion failed: Bookkeeping error, subchunk claims all heightmaps are above it, a column said it was all below the heightmap, yet levelchunk thinks it isn't!
-    //  Condition is false: false
-    //  Function: LevelChunk::handleHeightmapDataFromSubChunkPacket in .\src\common\world\level\chunk\LevelChunk.cpp @ 3571 (1.18.0)
-    // ...
-    // Bookkeeping error in subchunk request system, subchunk is in the wrong state, expected state 4, got 7 SubChunk 10 13 3
-    // SubChunk 10 13 5 called the handler once the subchunk was done being processed. Aborting
     @Override
     public boolean isSubChunkRequestAvailable() {
-        return USE_SUB_CHUNK_REQUEST && this.protocol >= AbstractProtocol.PROTOCOL_118.getProtocolStart()
-                && !this.isNetEaseClient()
-                ;
+        return USE_SUB_CHUNK_REQUEST && this.protocol >= AbstractProtocol.PROTOCOL_118.getProtocolStart();
     }
 
     @Override
@@ -1817,15 +1808,8 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
     }
 
     //FIXME: 以下断言错误需要处理
-    // 实体 ID 重复!
-    // Assertion failed: The server shouldn't send an actor twice!
-    //  Condition is false: mMultiPlayerLevel->fetchEntity(packet.mId) == nullptr
-    //  Function: LegacyClientNetworkHandler::handle in .\src-client\common\client\network\LegacyClientNetworkHandler.cpp @ 1162
-    // Assertion failed: This entity was already added
-    //  Condition is false: mActorIDEntityIDMap.count(actorID) == 0
-    //  Function: Dimension::registerEntity in .\src\common\world\level\dimension\Dimension.cpp @ 1368
-    // 计分板
-    // Assertion failed: No identity ref found for a scoreboard id while attempting to reset player score
-    //  Condition is false: false
-    //  Function: ClientNetworkHandler::handle in .\src-client\common\client\network\ClientNetworkHandler.cpp @ 3306
+    // 跨服时触发
+    // Assertion failed: Biome already has initialized Entity!
+    //  Condition is false: !mEntity.hasValue()
+    //  Function: Biome::initEntity in .\src\common\world\level\biome\Biome.cpp @ 107
 }

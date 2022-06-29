@@ -49,6 +49,7 @@ import org.itxtech.synapseapi.multiprotocol.protocol15.protocol.AddEntityPacket1
 import org.itxtech.synapseapi.multiprotocol.protocol15.protocol.ClientboundMapItemDataPacket15;
 import org.itxtech.synapseapi.multiprotocol.protocol15.protocol.MoveEntityAbsolutePacket15;
 import org.itxtech.synapseapi.multiprotocol.protocol14.protocol.*;
+import org.itxtech.synapseapi.multiprotocol.protocol15.protocol.SetLocalPlayerAsInitializedPacket15;
 import org.itxtech.synapseapi.multiprotocol.protocol16.protocol.*;
 import org.itxtech.synapseapi.multiprotocol.protocol17.protocol.*;
 import org.itxtech.synapseapi.multiprotocol.protocol18.protocol.*;
@@ -92,6 +93,7 @@ public class PacketRegister {
         registerPacket(AbstractProtocol.PROTOCOL_15, ProtocolInfo.ADD_ENTITY_PACKET, AddEntityPacket15.class);
         registerPacket(AbstractProtocol.PROTOCOL_15, ProtocolInfo.MOVE_ENTITY_PACKET, MoveEntityAbsolutePacket15.class);
         registerPacket(AbstractProtocol.PROTOCOL_15, ProtocolInfo.CLIENTBOUND_MAP_ITEM_DATA_PACKET, ClientboundMapItemDataPacket15.class);
+        registerPacket(AbstractProtocol.PROTOCOL_15, ProtocolInfo.SET_LOCAL_PLAYER_AS_INITIALIZED_PACKET, SetLocalPlayerAsInitializedPacket15.class);
 
         registerPacket(AbstractProtocol.PROTOCOL_16, ProtocolInfo.ADD_ENTITY_PACKET, AddEntityPacket16.class);
         registerPacket(AbstractProtocol.PROTOCOL_16, ProtocolInfo.ADD_ITEM_ENTITY_PACKET, AddItemEntityPacket16.class);

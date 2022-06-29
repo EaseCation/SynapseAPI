@@ -7,8 +7,6 @@ import cn.nukkit.PlayerFood;
 import cn.nukkit.Server;
 import cn.nukkit.blockentity.BlockEntity;
 import cn.nukkit.blockentity.BlockEntityItemFrame;
-import cn.nukkit.command.Command;
-import cn.nukkit.command.data.CommandDataVersions;
 import cn.nukkit.entity.Entity;
 import cn.nukkit.entity.data.EntityMetadata;
 import cn.nukkit.entity.data.StringEntityData;
@@ -48,7 +46,6 @@ import org.itxtech.synapseapi.multiprotocol.protocol12.utils.ClientChainData12;
 import org.itxtech.synapseapi.multiprotocol.protocol12.utils.ClientChainData12NetEase;
 import org.itxtech.synapseapi.multiprotocol.protocol12.utils.ClientChainData12Urgency;
 import org.itxtech.synapseapi.multiprotocol.protocol14.protocol.TextPacket14;
-import org.itxtech.synapseapi.multiprotocol.protocol16.protocol.NEPyRpcPacket16;
 import org.itxtech.synapseapi.multiprotocol.protocol17.protocol.TextPacket17;
 import org.itxtech.synapseapi.multiprotocol.utils.CraftingPacketManager;
 import org.itxtech.synapseapi.multiprotocol.utils.CreativeItemsPalette;
@@ -59,13 +56,10 @@ import org.itxtech.synapseapi.utils.BlobTrack;
 import org.itxtech.synapseapi.utils.ClientData;
 import org.itxtech.synapseapi.utils.ClientData.Entry;
 import org.itxtech.synapseapi.utils.DataPacketEidReplacer;
-import org.msgpack.value.ArrayValue;
 import org.msgpack.value.MapValue;
 import org.msgpack.value.Value;
-import org.msgpack.value.ValueFactory;
 
 import java.net.InetSocketAddress;
-import java.nio.charset.StandardCharsets;
 import java.util.*;
 
 /**
@@ -411,6 +405,10 @@ public class SynapsePlayer extends Player {
 
         spawnPosition.level.sendTime(this);
 
+        SetDifficultyPacket pk = new SetDifficultyPacket();
+        pk.difficulty = server.getDifficulty();
+        this.dataPacket(pk);
+
         this.setEnableClientCommand(true);
         this.getAdventureSettings().update();
 
@@ -423,8 +421,11 @@ public class SynapsePlayer extends Player {
         //this.setCanClimb(true);
         this.setDataFlag(DATA_FLAGS, DATA_FLAG_CAN_CLIMB, true, false);
         if (this.isSpectator()) {
-            this.setDataFlag(DATA_FLAGS, DATA_FLAG_SILENT, true);
-            this.setDataFlag(DATA_FLAGS, DATA_FLAG_HAS_COLLISION, false);
+            this.setDataFlag(DATA_FLAGS, DATA_FLAG_SILENT, true, false);
+            this.setDataFlag(DATA_FLAGS, DATA_FLAG_HAS_COLLISION, false, false);
+        } else {
+            this.setDataFlag(DATA_FLAGS, DATA_FLAG_SILENT, false, false);
+            this.setDataFlag(DATA_FLAGS, DATA_FLAG_HAS_COLLISION, true, false);
         }
 
         this.server.getLogger().info(this.getServer().getLanguage().translateString("nukkit.player.logIn",

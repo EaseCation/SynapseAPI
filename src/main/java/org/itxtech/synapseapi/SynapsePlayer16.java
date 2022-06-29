@@ -40,6 +40,8 @@ import java.util.Optional;
 
 public class SynapsePlayer16 extends SynapsePlayer14 {
 
+	protected boolean spawnStatusSent;
+
 	public SynapsePlayer16(SourceInterface interfaz, SynapseEntry synapseEntry, Long clientID, InetSocketAddress socketAddress) {
 		super(interfaz, synapseEntry, clientID, socketAddress);
 	}
@@ -191,6 +193,12 @@ public class SynapsePlayer16 extends SynapsePlayer14 {
 					//ignore
 				}
 				break;
+			case ProtocolInfo.SET_LOCAL_PLAYER_AS_INITIALIZED_PACKET:
+				if (!callPacketReceiveEvent(packet)) {
+					break;
+				}
+				this.spawned = true;
+				break;
 			default:
 				super.handleDataPacket(packet);
 				break;
@@ -260,6 +268,11 @@ public class SynapsePlayer16 extends SynapsePlayer14 {
 	}
 
 	protected void doFirstSpawn() {
+		if (this.spawnStatusSent) {
+			return;
+		}
+		this.spawnStatusSent = true;
+
 		this.sendPotionEffects(this);
 		this.sendData(this);
 
@@ -287,7 +300,9 @@ public class SynapsePlayer16 extends SynapsePlayer14 {
 
 		this.server.getPluginManager().callEvent(playerJoinEvent);
 
-		this.spawned = true;
+		if (!this.isFirstTimeLogin) {
+			this.spawned = true;
+		}
 
 		if (playerJoinEvent.getJoinMessage().toString().trim().length() > 0) {
 			this.server.broadcastMessage(playerJoinEvent.getJoinMessage());
@@ -333,8 +348,6 @@ public class SynapsePlayer16 extends SynapsePlayer14 {
 		if (!this.isSpectator()) {
 			this.spawnToAll();
 		}
-
-		//todo Updater
 
 		//Weather
 		this.getLevel().sendWeather(this);

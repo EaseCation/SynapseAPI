@@ -214,6 +214,10 @@ public class SynapseAPI extends PluginBase implements Listener {
 
         //仅用于开发测试
         this.getServer().getCommandMap().register("dcpk", new Command("dcpk") {
+            {
+                this.setPermission("console.command.dcpk");
+            }
+
             @Override
             public boolean execute(CommandSender sender, String commandLabel, String[] args) {
 
