@@ -197,7 +197,7 @@ public class SynapsePlayer16 extends SynapsePlayer14 {
 				if (!callPacketReceiveEvent(packet)) {
 					break;
 				}
-				this.spawned = true;
+				this.locallyInitialized = true;
 				break;
 			default:
 				super.handleDataPacket(packet);
@@ -272,6 +272,11 @@ public class SynapsePlayer16 extends SynapsePlayer14 {
 			return;
 		}
 		this.spawnStatusSent = true;
+		this.spawned = true;
+
+		this.inventory.sendContents(this);
+		this.inventory.sendArmorContents(this);
+		this.offhandInventory.sendContents(this);
 
 		this.sendPotionEffects(this);
 		this.sendData(this);
@@ -300,16 +305,9 @@ public class SynapsePlayer16 extends SynapsePlayer14 {
 
 		this.server.getPluginManager().callEvent(playerJoinEvent);
 
-		if (!this.isFirstTimeLogin) {
-			this.spawned = true;
-		}
-
 		if (playerJoinEvent.getJoinMessage().toString().trim().length() > 0) {
 			this.server.broadcastMessage(playerJoinEvent.getJoinMessage());
 		}
-
-		this.inventory.sendContents(this);
-		this.inventory.sendArmorContents(this);
 
 		this.noDamageTicks = 60;
 
