@@ -7,6 +7,8 @@ import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 import it.unimi.dsi.fastutil.ints.Int2IntMap;
 import it.unimi.dsi.fastutil.ints.Int2IntOpenHashMap;
+import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
+import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
 import org.itxtech.synapseapi.SynapseAPI;
 
 import java.io.IOException;
@@ -22,6 +24,7 @@ public class RuntimeItemPalette implements AdvancedRuntimeItemPaletteInterface {
     private static final Type ENTRY_TYPE = new TypeToken<ArrayList<Entry>>(){}.getType();
 
     private final Int2IntMap legacyNetworkMap = new Int2IntOpenHashMap();
+    private final Int2ObjectMap<String> legacyStringMap = new Int2ObjectOpenHashMap<>();
     private final Int2IntMap networkLegacyMap = new Int2IntOpenHashMap();
 
     private final byte[] itemDataPalette;
@@ -50,6 +53,7 @@ public class RuntimeItemPalette implements AdvancedRuntimeItemPaletteInterface {
                 boolean hasData = entry.oldData != null;
                 int fullId = getFullId(entry.oldId, hasData ? entry.oldData : 0);
                 legacyNetworkMap.put(fullId, (entry.id << 1) | (hasData ? 1 : 0));
+                legacyStringMap.put(fullId, entry.name);
                 networkLegacyMap.put(entry.id, fullId | (hasData ? 1 : 0));
             }
         }
@@ -69,6 +73,14 @@ public class RuntimeItemPalette implements AdvancedRuntimeItemPaletteInterface {
         }
 
         return networkId;
+    }
+
+    public String getString(Item item) {
+        int fullId = getFullId(item.getId(), item.hasMeta() ? item.getDamage() : -1);
+        if (!legacyStringMap.containsKey(fullId)) {
+            throw new IllegalArgumentException("Unknown item mapping " + item.getId() + ":" + item.getDamage());
+        }
+        return legacyStringMap.get(fullId);
     }
 
     @Override

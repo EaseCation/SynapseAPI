@@ -36,6 +36,11 @@ public class RuntimeItemPaletteLegacy implements AdvancedRuntimeItemPaletteInter
     }
 
     @Override
+    public String getString(Item item) {
+        return "minecraft:unknown";
+    }
+
+    @Override
     public boolean hasData(int id) {
         return false;
     }

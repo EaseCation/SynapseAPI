@@ -94,6 +94,10 @@ public final class AdvancedRuntimeItemPalette {
         return getPalette(protocol, netease).getCompiledData();
     }
 
+    public static String getString(AbstractProtocol protocol, boolean netease, Item item) {
+        return getPalette(protocol, netease).getString(item);
+    }
+
     public static void init() {
         // NOOP
     }
