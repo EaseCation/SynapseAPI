@@ -111,6 +111,7 @@ public class AddPlayerPacket11830 extends Packet11830 {
         this.headYaw = packet.headYaw;
         this.item = packet.item;
         this.metadata = EntityMetadataGenerator.generateFrom(packet.metadata, protocol, netease);
+        this.links = packet.links;
         return this;
     }
 
