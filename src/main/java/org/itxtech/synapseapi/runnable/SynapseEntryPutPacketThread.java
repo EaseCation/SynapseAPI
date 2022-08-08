@@ -110,14 +110,13 @@ public class SynapseEntryPutPacketThread extends Thread {
         if (player.getSynapseEntry().getSynapse().isRecordPacketStack()) packet.stack = new Throwable();
         this.queue.offer(new Entry(player, packet, needACK, immediate));
 
-        /*if (!(packet instanceof MoveEntityPacket)
-                && !(packet instanceof MovePlayerPacket)
+        /*if (!(packet instanceof BossEventPacket)
+                *//*&& !(packet instanceof MovePlayerPacket)
                 && !(packet instanceof SetEntityDataPacket)
                 && !(packet instanceof UpdateAttributesPacket)
                 && !(packet instanceof LevelEventPacket)
                 && !(packet instanceof MobEffectPacket)
-                && !(packet instanceof SetTimePacket)
-                && !(packet instanceof EmotePacket116)
+                && !(packet instanceof SetTimePacket)*//*
         ) {
             Server.getInstance().getLogger().debug("SynapseEntryPutPacketThread Offer: " + packet.getClass().getSimpleName());
             Server.getInstance().getLogger().logException(new Throwable());
