@@ -2,14 +2,18 @@ package org.itxtech.synapseapi.multiprotocol.protocol110.protocol;
 
 import cn.nukkit.math.BlockVector3;
 import cn.nukkit.network.protocol.ProtocolInfo;
+import lombok.ToString;
 
+@ToString
 public class LecternUpdatePacket110 extends Packet110 {
 
     public static final byte NETWORK_ID = ProtocolInfo.LECTERN_UPDATE_PACKET;
 
     public int page;
-    public BlockVector3 blockPosition;
-    public boolean unknownBool;
+    public int x;
+    public int y;
+    public int z;
+    public boolean droppingBook;
 
     @Override
     public int pid() {
@@ -19,8 +23,11 @@ public class LecternUpdatePacket110 extends Packet110 {
     @Override
     public void decode() {
         page = this.getByte();
-        blockPosition = this.getBlockVector3();
-        unknownBool = this.getBoolean();
+        BlockVector3 blockPosition = this.getBlockVector3();
+        x = blockPosition.x;
+        y = blockPosition.y;
+        z = blockPosition.z;
+        droppingBook = this.getBoolean();
     }
 
     @Override

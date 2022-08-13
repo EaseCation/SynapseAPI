@@ -35,13 +35,6 @@ public class InventoryContentPacket116 extends Packet116 {
 
     @Override
     public void decode() {
-        this.inventoryId = (int) this.getUnsignedVarInt();
-        int count = (int) this.getUnsignedVarInt();
-        this.slots = new Item[count];
-
-        for (int s = 0; s < count && !this.feof(); ++s) {
-            this.slots[s] = this.getSlot();
-        }
     }
 
     @Override

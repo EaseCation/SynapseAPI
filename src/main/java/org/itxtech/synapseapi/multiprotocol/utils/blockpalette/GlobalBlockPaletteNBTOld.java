@@ -1,12 +1,14 @@
 package org.itxtech.synapseapi.multiprotocol.utils.blockpalette;
 
 import cn.nukkit.Server;
+import cn.nukkit.block.Block;
 import cn.nukkit.nbt.NBTIO;
 import cn.nukkit.nbt.tag.CompoundTag;
 import cn.nukkit.nbt.tag.ListTag;
 import com.google.common.io.ByteStreams;
 import it.unimi.dsi.fastutil.ints.Int2IntMap;
 import it.unimi.dsi.fastutil.ints.Int2IntOpenHashMap;
+import lombok.extern.log4j.Log4j2;
 import org.itxtech.synapseapi.SynapseAPI;
 import org.itxtech.synapseapi.multiprotocol.AbstractProtocol;
 import org.itxtech.synapseapi.multiprotocol.utils.AdvancedGlobalBlockPaletteInterface;
@@ -20,6 +22,7 @@ import java.nio.ByteOrder;
 import java.util.NoSuchElementException;
 import java.util.concurrent.atomic.AtomicInteger;
 
+@Log4j2
 public class GlobalBlockPaletteNBTOld implements AdvancedGlobalBlockPaletteInterface {
 
     final Int2IntMap legacyToRuntimeId = new Int2IntOpenHashMap();
@@ -47,6 +50,8 @@ public class GlobalBlockPaletteNBTOld implements AdvancedGlobalBlockPaletteInter
                     for (PaletteBlockData.LegacyStates legacyState : data.legacyStates) {
                         int legacyId = legacyState.id << 6 | (short) legacyState.val;
                         legacyToRuntimeId.putIfAbsent(legacyId, i);
+
+//                        if (legacyState.val > 0x3f) log.trace("block meta > 63! id: {}, meta: {}", legacyState.id, legacyState.val);
                     }
                 }
             }
@@ -74,7 +79,6 @@ public class GlobalBlockPaletteNBTOld implements AdvancedGlobalBlockPaletteInter
         ListTag<CompoundTag> tag;
         byte[] data;
         try {
-            //noinspection UnstableApiUsage
             data = ByteStreams.toByteArray(stream);
             //noinspection unchecked
             tag = (ListTag<CompoundTag>) NBTIO.readTag(new ByteArrayInputStream(data), ByteOrder.LITTLE_ENDIAN, true);
@@ -117,7 +121,7 @@ public class GlobalBlockPaletteNBTOld implements AdvancedGlobalBlockPaletteInter
 
     @Override
     public int getOrCreateRuntimeId(int legacyId) throws NoSuchElementException {
-        return getOrCreateRuntimeId(legacyId >> 4, legacyId & 0xf);
+        return getOrCreateRuntimeId(legacyId >> Block.BLOCK_META_BITS, legacyId & Block.BLOCK_META_MASK);
     }
 
     @Override

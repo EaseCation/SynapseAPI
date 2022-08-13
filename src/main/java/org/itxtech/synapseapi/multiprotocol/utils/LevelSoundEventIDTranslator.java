@@ -186,8 +186,7 @@ public class LevelSoundEventIDTranslator {
 	public static final int SOUND_BOTTLE_DRAGONBREATH = 176;
 	public static final int SOUND_PORTAL_TRAVEL = 177;
 	public static final int SOUND_DEFAULT = 178;
-	public static final int SOUND_UNDEFINED = 179;
-	
+
 	static {
 		v12ToNewBook = new HashMap<>();
 		v12ToNewBook.put(LevelSoundEventPacket.SOUND_ITEM_USE_ON, SOUND_ITEM_USE_ON);
@@ -228,7 +227,7 @@ public class LevelSoundEventIDTranslator {
 		v12ToNewBook.put(LevelSoundEventPacket.SOUND_LAND, SOUND_LAND);
 		v12ToNewBook.put(LevelSoundEventPacket.SOUND_SADDLE, SOUND_SADDLE);
 		v12ToNewBook.put(LevelSoundEventPacket.SOUND_ARMOR, SOUND_ARMOR);
-		//v12ToV14Book.put(LevelSoundEventPacket.SOUND_MOB_ARMOR_STAND_PLACE, SOUND_MOB_ARMOR_STAND_PLACE);
+		v12ToNewBook.put(LevelSoundEventPacket.SOUND_MOB_ARMOR_STAND_PLACE, SOUND_MOB_ARMOR_STAND_PLACE);
 		v12ToNewBook.put(LevelSoundEventPacket.SOUND_ADD_CHEST, SOUND_ADD_CHEST);
 		v12ToNewBook.put(LevelSoundEventPacket.SOUND_THROW, SOUND_THROW);
 		v12ToNewBook.put(LevelSoundEventPacket.SOUND_ATTACK, SOUND_ATTACK);
@@ -261,8 +260,8 @@ public class LevelSoundEventIDTranslator {
 		v12ToNewBook.put(LevelSoundEventPacket.SOUND_CHEST_CLOSED, SOUND_CHEST_CLOSED);
 		v12ToNewBook.put(LevelSoundEventPacket.SOUND_SHULKERBOX_OPEN, SOUND_SHULKERBOX_OPEN);
 		v12ToNewBook.put(LevelSoundEventPacket.SOUND_SHULKERBOX_CLOSED, SOUND_SHULKERBOX_CLOSED);
-		//v12ToV14Book.put(LevelSoundEventPacket.SOUND_ENDERCHEST_OPEN, SOUND_ENDERCHEST_OPEN);
-		//v12ToV14Book.put(LevelSoundEventPacket.SOUND_ENDERCHEST_CLOSED, SOUND_ENDERCHEST_CLOSED);
+		v12ToNewBook.put(LevelSoundEventPacket.SOUND_ENDERCHEST_OPEN, SOUND_ENDERCHEST_OPEN);
+		v12ToNewBook.put(LevelSoundEventPacket.SOUND_ENDERCHEST_CLOSED, SOUND_ENDERCHEST_CLOSED);
 		v12ToNewBook.put(LevelSoundEventPacket.SOUND_POWER_ON, SOUND_POWER_ON);
 		v12ToNewBook.put(LevelSoundEventPacket.SOUND_POWER_OFF, SOUND_POWER_OFF);
 		v12ToNewBook.put(LevelSoundEventPacket.SOUND_ATTACH, SOUND_ATTACH);
@@ -284,13 +283,13 @@ public class LevelSoundEventIDTranslator {
 		v12ToNewBook.put(LevelSoundEventPacket.SOUND_BUCKET_FILL_LAVA, SOUND_BUCKET_FILL_LAVA);
 		v12ToNewBook.put(LevelSoundEventPacket.SOUND_BUCKET_EMPTY_WATER, SOUND_BUCKET_EMPTY_WATER);
 		v12ToNewBook.put(LevelSoundEventPacket.SOUND_BUCKET_EMPTY_LAVA, SOUND_BUCKET_EMPTY_LAVA);
-		//v12ToV14Book.put(LevelSoundEventPacket.SOUND_ARMOR_EQUIP_CHAIN, SOUND_ARMOR_EQUIP_CHAIN);
-		//v12ToV14Book.put(LevelSoundEventPacket.SOUND_ARMOR_EQUIP_DIAMOND, SOUND_ARMOR_EQUIP_DIAMOND);
-		//v12ToV14Book.put(LevelSoundEventPacket.SOUND_ARMOR_EQUIP_GENERIC, SOUND_ARMOR_EQUIP_GENERIC);
-		//v12ToV14Book.put(LevelSoundEventPacket.SOUND_ARMOR_EQUIP_GOLD, SOUND_ARMOR_EQUIP_GOLD);
-		//v12ToV14Book.put(LevelSoundEventPacket.SOUND_ARMOR_EQUIP_IRON, SOUND_ARMOR_EQUIP_IRON);
-		//v12ToV14Book.put(LevelSoundEventPacket.SOUND_ARMOR_EQUIP_LEATHER, SOUND_ARMOR_EQUIP_LEATHER);
-		//v12ToV14Book.put(LevelSoundEventPacket.SOUND_ARMOR_EQUIP_ELYTRA, SOUND_ARMOR_EQUIP_ELYTRA);
+		v12ToNewBook.put(LevelSoundEventPacket.SOUND_ARMOR_EQUIP_CHAIN, SOUND_ARMOR_EQUIP_CHAIN);
+		v12ToNewBook.put(LevelSoundEventPacket.SOUND_ARMOR_EQUIP_DIAMOND, SOUND_ARMOR_EQUIP_DIAMOND);
+		v12ToNewBook.put(LevelSoundEventPacket.SOUND_ARMOR_EQUIP_GENERIC, SOUND_ARMOR_EQUIP_GENERIC);
+		v12ToNewBook.put(LevelSoundEventPacket.SOUND_ARMOR_EQUIP_GOLD, SOUND_ARMOR_EQUIP_GOLD);
+		v12ToNewBook.put(LevelSoundEventPacket.SOUND_ARMOR_EQUIP_IRON, SOUND_ARMOR_EQUIP_IRON);
+		v12ToNewBook.put(LevelSoundEventPacket.SOUND_ARMOR_EQUIP_LEATHER, SOUND_ARMOR_EQUIP_LEATHER);
+		v12ToNewBook.put(LevelSoundEventPacket.SOUND_ARMOR_EQUIP_ELYTRA, SOUND_ARMOR_EQUIP_ELYTRA);
 		v12ToNewBook.put(LevelSoundEventPacket.SOUND_RECORD_13, SOUND_RECORD_13);
 		v12ToNewBook.put(LevelSoundEventPacket.SOUND_RECORD_CAT, SOUND_RECORD_CAT);
 		v12ToNewBook.put(LevelSoundEventPacket.SOUND_RECORD_BLOCKS, SOUND_RECORD_BLOCKS);
@@ -317,7 +316,7 @@ public class LevelSoundEventIDTranslator {
 		v12ToNewBook.put(LevelSoundEventPacket.SOUND_CHORUSGROW, SOUND_CHORUSGROW);
 		v12ToNewBook.put(LevelSoundEventPacket.SOUND_CHORUSDEATH, SOUND_CHORUSDEATH);
 		v12ToNewBook.put(LevelSoundEventPacket.SOUND_GLASS, SOUND_GLASS);
-		//v12ToV14Book.put(LevelSoundEventPacket.SOUND_POTION_BREWED, SOUND_POTION_BREWED);
+		v12ToNewBook.put(LevelSoundEventPacket.SOUND_POTION_BREWED, SOUND_POTION_BREWED);
 		v12ToNewBook.put(LevelSoundEventPacket.SOUND_CAST_SPELL, SOUND_CAST_SPELL);
 		v12ToNewBook.put(LevelSoundEventPacket.SOUND_PREPARE_ATTACK, SOUND_PREPARE_ATTACK);
 		v12ToNewBook.put(LevelSoundEventPacket.SOUND_PREPARE_SUMMON, SOUND_PREPARE_SUMMON);
@@ -365,9 +364,8 @@ public class LevelSoundEventIDTranslator {
 		v12ToNewBook.put(LevelSoundEventPacket.SOUND_BLOCK_END_PORTAL_SPAWN, SOUND_BLOCK_END_PORTAL_SPAWN);
 		v12ToNewBook.put(LevelSoundEventPacket.SOUND_RANDOM_ANVIL_USE, SOUND_RANDOM_ANVIL_USE);
 		v12ToNewBook.put(LevelSoundEventPacket.SOUND_BOTTLE_DRAGONBREATH, SOUND_BOTTLE_DRAGONBREATH);
-		//v12ToV14Book.put(LevelSoundEventPacket.SOUND_PORTAL_TRAVEL, SOUND_PORTAL_TRAVEL);
-		v12ToNewBook.put(LevelSoundEventPacket.SOUND_DEFAULT, SOUND_DEFAULT);
-		v12ToNewBook.put(LevelSoundEventPacket.SOUND_UNDEFINED, SOUND_UNDEFINED);
+		v12ToNewBook.put(LevelSoundEventPacket.SOUND_PORTAL_TRAVEL, SOUND_PORTAL_TRAVEL);
+//		v12ToNewBook.put(LevelSoundEventPacket.SOUND_DEFAULT, SOUND_DEFAULT);
 	}
 	
 	public static Integer translateTo14Id(int v12Id) {

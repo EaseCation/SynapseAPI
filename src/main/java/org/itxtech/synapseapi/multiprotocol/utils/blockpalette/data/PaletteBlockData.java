@@ -70,11 +70,17 @@ public class PaletteBlockData {
     public int id;
     public LegacyStates[] legacyStates;
     public Block block;
+    public int legacyIndex;
 
     public PaletteBlockData(int id, LegacyStates[] legacyStates, Block block) {
+        this(id, legacyStates, block, 0);
+    }
+
+    public PaletteBlockData(int id, LegacyStates[] legacyStates, Block block, int legacyIndex) {
         this.id = id;
         this.legacyStates = legacyStates;
         this.block = block;
+        this.legacyIndex = legacyIndex;
     }
 
     private PaletteBlockData() {

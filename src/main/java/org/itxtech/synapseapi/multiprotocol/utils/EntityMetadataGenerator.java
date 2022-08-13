@@ -1,5 +1,6 @@
 package org.itxtech.synapseapi.multiprotocol.utils;
 
+import cn.nukkit.block.Block;
 import cn.nukkit.entity.Entity;
 import cn.nukkit.entity.data.*;
 import cn.nukkit.item.Item;
@@ -35,8 +36,8 @@ public class EntityMetadataGenerator {
         		Integer data = ((IntEntityData)entityData).getData();
         		if (v14Id == EntityDataItemIDTranslator.VARIANT
 						&& (v12Metadata.getLong(Entity.DATA_NUKKIT_FLAGS) & Entity.NUKKIT_FLAG_VARIANT_BLOCK) != 0) {
-					int id = data & 0xff;
-					int meta = data >> 8;
+					int id = data >> Block.BLOCK_META_BITS;
+					int meta = data & Block.BLOCK_META_MASK;
 					data = GlobalBlockPalette.getOrCreateRuntimeId(id, meta);  //实体属性中的方块ID转换为RuntimeID
 				}
         		IntEntityData intEntityData = new IntEntityData(v14Id, data);
@@ -113,8 +114,8 @@ public class EntityMetadataGenerator {
 				Integer data = ((IntEntityData)entityData).getData();
 				if (newId == EntityDataItemIDTranslator.VARIANT
 						&& (v12Metadata.getLong(Entity.DATA_NUKKIT_FLAGS) & Entity.NUKKIT_FLAG_VARIANT_BLOCK) != 0) {
-					int id = data & 0xff;
-					int meta = data >> 8;
+					int id = data >> Block.BLOCK_META_BITS;
+					int meta = data & Block.BLOCK_META_MASK;
 					data = AdvancedGlobalBlockPalette.getOrCreateRuntimeId(protocol, netease, id, meta);  //实体属性中的方块ID转换为RuntimeID
 				}
 				IntEntityData intEntityData = new IntEntityData(newId, data);

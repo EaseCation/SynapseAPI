@@ -5,10 +5,10 @@ import cn.nukkit.item.Item;
 import cn.nukkit.network.protocol.CraftingDataPacket;
 import cn.nukkit.network.protocol.DataPacket;
 import cn.nukkit.network.protocol.ProtocolInfo;
+import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import lombok.ToString;
 import org.itxtech.synapseapi.utils.ClassUtils;
 
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -26,12 +26,14 @@ public class CraftingDataPacket11730 extends Packet11730 {
     public static final String CRAFTING_TAG_STONECUTTER = "stonecutter";
     public static final String CRAFTING_TAG_FURNACE = "furnace";
     public static final String CRAFTING_TAG_CAMPFIRE = "campfire";
+    public static final String CRAFTING_TAG_SOUL_CAMPFIRE = "soul_campfire";
     public static final String CRAFTING_TAG_BLAST_FURNACE = "blast_furnace";
     public static final String CRAFTING_TAG_SMOKER = "smoker";
 
-    private List<Recipe> entries = new ArrayList<>();
-    private List<BrewingRecipe> brewingEntries = new ArrayList<>();
-    private List<ContainerRecipe> containerEntries = new ArrayList<>();
+    private List<Recipe> entries = new ObjectArrayList<>();
+    private List<BrewingRecipe> brewingEntries = new ObjectArrayList<>();
+    private List<ContainerRecipe> containerEntries = new ObjectArrayList<>();
+    public List<MaterialReducerRecipe> materialReducerEntries = new ObjectArrayList<>();
     public boolean cleanRecipes;
 
     public void addShapelessRecipe(ShapelessRecipe... recipe) {
@@ -46,6 +48,10 @@ public class CraftingDataPacket11730 extends Packet11730 {
         Collections.addAll(entries, recipe);
     }
 
+    public void addMultiRecipe(MultiRecipe... recipe) {
+        Collections.addAll(entries, recipe);
+    }
+
     public void addBrewingRecipe(BrewingRecipe... recipe) {
         Collections.addAll(brewingEntries, recipe);
     }
@@ -54,9 +60,13 @@ public class CraftingDataPacket11730 extends Packet11730 {
         Collections.addAll(containerEntries, recipe);
     }
 
+    public void addMaterialReducerRecipe(MaterialReducerRecipe... recipe) {
+        Collections.addAll(materialReducerEntries, recipe);
+    }
+
     @Override
     public DataPacket clean() {
-        entries = new ArrayList<>();
+        entries = new ObjectArrayList<>();
         return super.clean();
     }
 
@@ -76,21 +86,24 @@ public class CraftingDataPacket11730 extends Packet11730 {
             this.putVarInt(recipe.getType().ordinal());
             switch (recipe.getType()) {
                 case SHAPELESS:
+                case SHULKER_BOX:
+                case SHAPELESS_CHEMISTRY:
                     ShapelessRecipe shapeless = (ShapelessRecipe) recipe;
                     this.putString(shapeless.getRecipeId());
                     List<Item> ingredients = shapeless.getIngredientList();
                     this.putUnsignedVarInt(ingredients.size());
                     for (Item ingredient : ingredients) {
-                        this.putRecipeIngredient(ingredient);
+                        this.putCraftingRecipeIngredient(ingredient);
                     }
                     this.putUnsignedVarInt(1);
                     this.putItemInstance(shapeless.getResult());
                     this.putUUID(shapeless.getId());
-                    this.putString(CRAFTING_TAG_CRAFTING_TABLE);
+                    this.putString(shapeless.getTag().toString());
                     this.putVarInt(shapeless.getPriority());
                     this.putUnsignedVarInt(recipeNetworkId++);
                     break;
                 case SHAPED:
+                case SHAPED_CHEMISTRY:
                     ShapedRecipe shaped = (ShapedRecipe) recipe;
                     this.putString(shaped.getRecipeId());
                     this.putVarInt(shaped.getWidth());
@@ -98,10 +111,10 @@ public class CraftingDataPacket11730 extends Packet11730 {
 
                     for (int z = 0; z < shaped.getHeight(); ++z) {
                         for (int x = 0; x < shaped.getWidth(); ++x) {
-                            this.putRecipeIngredient(shaped.getIngredient(x, z));
+                            this.putCraftingRecipeIngredient(shaped.getIngredient(x, z));
                         }
                     }
-                    List<Item> outputs = new ArrayList<>();
+                    List<Item> outputs = new ObjectArrayList<>();
                     outputs.add(shaped.getResult());
                     outputs.addAll(shaped.getExtraResults());
                     this.putUnsignedVarInt(outputs.size());
@@ -109,7 +122,7 @@ public class CraftingDataPacket11730 extends Packet11730 {
                         this.putItemInstance(output);
                     }
                     this.putUUID(shaped.getId());
-                    this.putString(CRAFTING_TAG_CRAFTING_TABLE);
+                    this.putString(shaped.getTag().toString());
                     this.putVarInt(shaped.getPriority());
                     this.putUnsignedVarInt(recipeNetworkId++);
                     break;
@@ -122,7 +135,11 @@ public class CraftingDataPacket11730 extends Packet11730 {
                         this.putVarInt(input.getDamage());
                     }
                     this.putItemInstance(furnace.getResult());
-                    this.putString(CRAFTING_TAG_FURNACE);
+                    this.putString(furnace.getTag().toString());
+                    break;
+                case MULTI:
+                    this.putUUID(((MultiRecipe) recipe).getId());
+                    this.putUnsignedVarInt(recipeNetworkId++);
                     break;
             }
         }
@@ -144,7 +161,17 @@ public class CraftingDataPacket11730 extends Packet11730 {
             this.putVarInt(this.helper.getItemNetworkId(this, recipe.getResult()));
         }
 
-        this.putUnsignedVarInt(0); // Material reducers size
+        this.putUnsignedVarInt(this.materialReducerEntries.size());
+        for (MaterialReducerRecipe recipe : materialReducerEntries) {
+            this.helper.putMaterialReducerRecipeIngredient(this, recipe.getInput());
+
+            List<Item> outputs = recipe.getOutputs();
+            this.putUnsignedVarInt(outputs.size());
+            for (Item output : outputs) {
+                this.putVarInt(this.helper.getItemNetworkId(this, output));
+                this.putVarInt(output.getCount());
+            }
+        }
 
         this.putBoolean(cleanRecipes);
     }
@@ -163,6 +190,7 @@ public class CraftingDataPacket11730 extends Packet11730 {
         this.entries = packet.entries.stream().map(e -> (Recipe) e).collect(Collectors.toList());
         this.brewingEntries = packet.brewingEntries;
         this.containerEntries = packet.containerEntries;
+        this.materialReducerEntries = packet.materialReducerEntries;
         this.cleanRecipes = packet.cleanRecipes;
 
         return this;

@@ -23,9 +23,6 @@ public class InventorySlotPacket116 extends Packet116 {
 
     @Override
     public void decode() {
-        this.inventoryId = (int) this.getUnsignedVarInt();
-        this.slot = (int) this.getUnsignedVarInt();
-        this.item = this.getSlot();
     }
 
     @Override

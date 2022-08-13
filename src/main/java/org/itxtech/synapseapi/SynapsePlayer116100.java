@@ -7,6 +7,7 @@ import cn.nukkit.block.BlockID;
 import cn.nukkit.block.BlockNoteblock;
 import cn.nukkit.blockentity.BlockEntity;
 import cn.nukkit.blockentity.BlockEntityItemFrame;
+import cn.nukkit.blockentity.BlockEntitySpawnable;
 import cn.nukkit.entity.Entity;
 import cn.nukkit.entity.EntityRideable;
 import cn.nukkit.entity.data.ShortEntityData;
@@ -18,16 +19,16 @@ import cn.nukkit.event.player.PlayerToggleGlideEvent;
 import cn.nukkit.event.player.PlayerToggleSneakEvent;
 import cn.nukkit.event.player.PlayerToggleSprintEvent;
 import cn.nukkit.inventory.Inventory;
+import cn.nukkit.lang.TranslationContainer;
 import cn.nukkit.level.GlobalBlockPaletteInterface.StaticVersion;
 import cn.nukkit.level.Level;
 import cn.nukkit.level.Position;
-import cn.nukkit.level.format.anvil.Anvil;
 import cn.nukkit.level.format.generic.ChunkBlobCache;
 import cn.nukkit.level.format.generic.ChunkPacketCache;
 import cn.nukkit.level.particle.PunchBlockParticle;
 import cn.nukkit.math.BlockFace;
 import cn.nukkit.math.BlockVector3;
-import cn.nukkit.math.MathHelper;
+import cn.nukkit.math.Mth;
 import cn.nukkit.math.Vector2;
 import cn.nukkit.math.Vector3;
 import cn.nukkit.math.Vector3f;
@@ -62,7 +63,9 @@ import lombok.extern.log4j.Log4j2;
 import org.itxtech.synapseapi.multiprotocol.AbstractProtocol;
 import org.itxtech.synapseapi.multiprotocol.protocol113.protocol.ResourcePackStackPacket113;
 import org.itxtech.synapseapi.multiprotocol.protocol116100.protocol.AnimateEntityPacket116100;
+import org.itxtech.synapseapi.multiprotocol.protocol116100.protocol.CameraShakePacket116100;
 import org.itxtech.synapseapi.multiprotocol.protocol116100.protocol.ContainerClosePacket116100;
+import org.itxtech.synapseapi.multiprotocol.protocol116100.protocol.ItemComponentPacket116100;
 import org.itxtech.synapseapi.multiprotocol.protocol116100.protocol.ResourcePackStackPacket116100;
 import org.itxtech.synapseapi.multiprotocol.protocol116100.protocol.StartGamePacket116100;
 import org.itxtech.synapseapi.multiprotocol.protocol116100.protocol.TextPacket116100;
@@ -72,27 +75,33 @@ import org.itxtech.synapseapi.multiprotocol.protocol116100ne.protocol.TextPacket
 import org.itxtech.synapseapi.multiprotocol.protocol116200.protocol.FilterTextPacket116200;
 import org.itxtech.synapseapi.multiprotocol.protocol116200.protocol.ResourcePacksInfoPacket116200;
 import org.itxtech.synapseapi.multiprotocol.protocol116200.protocol.StartGamePacket116200;
+import org.itxtech.synapseapi.multiprotocol.protocol116210.protocol.CameraShakePacket116210;
 import org.itxtech.synapseapi.multiprotocol.protocol117.protocol.StartGamePacket117;
 import org.itxtech.synapseapi.multiprotocol.protocol11710.protocol.ResourcePacksInfoPacket11710;
 import org.itxtech.synapseapi.multiprotocol.protocol11730.protocol.AnimateEntityPacket11730;
 import org.itxtech.synapseapi.multiprotocol.protocol11730.protocol.StartGamePacket11730;
 import org.itxtech.synapseapi.multiprotocol.protocol118.protocol.StartGamePacket118;
 import org.itxtech.synapseapi.multiprotocol.protocol118.protocol.SubChunkRequestPacket118;
+import org.itxtech.synapseapi.multiprotocol.protocol11810.protocol.PlayerStartItemCooldownPacket11810;
 import org.itxtech.synapseapi.multiprotocol.protocol11810.protocol.SubChunkRequestPacket11810;
 import org.itxtech.synapseapi.multiprotocol.protocol11830.protocol.SpawnParticleEffectPacket11830;
 import org.itxtech.synapseapi.multiprotocol.protocol11830.protocol.StartGamePacket11830;
 import org.itxtech.synapseapi.multiprotocol.protocol119.protocol.PlayerActionPacket119;
 import org.itxtech.synapseapi.multiprotocol.protocol119.protocol.StartGamePacket119;
+import org.itxtech.synapseapi.multiprotocol.protocol119.protocol.ToastRequestPacket119;
 import org.itxtech.synapseapi.multiprotocol.protocol14.protocol.PlayerActionPacket14;
 import org.itxtech.synapseapi.multiprotocol.protocol16.protocol.ResourcePackClientResponsePacket16;
+import org.itxtech.synapseapi.multiprotocol.utils.ItemComponentDefinitions;
 import org.itxtech.synapseapi.utils.BlobTrack;
 
 import java.net.InetSocketAddress;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ThreadLocalRandom;
 
-import static cn.nukkit.NukkitSharedConstants.*;
+import static cn.nukkit.SharedConstants.*;
+import static cn.nukkit.level.format.generic.ChunkRequestTask.*;
 import static org.itxtech.synapseapi.SynapseSharedConstants.*;
 
 //TODO: 这个类已经用了好几个版本了 有时间可以整理一下 像以前那样分成不同版本
@@ -110,6 +119,8 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
      * @since 1.18.30
      */
     public static final int GAME_TYPE_SPECTATOR = 6;
+
+    protected static final byte[] EMPTY_SUBCHUNK_HEIGHTMAP = new byte[256];
 
     protected final Long2ObjectMap<IntSet> subChunkRequestQueue = new Long2ObjectOpenHashMap<>();
     protected final Long2ObjectMap<IntSet> subChunkSendQueue = new Long2ObjectOpenHashMap<>();
@@ -170,6 +181,7 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
             startGamePacket.isMovementServerAuthoritative = true;
             startGamePacket.isBlockBreakingServerAuthoritative = this.serverAuthoritativeBlockBreaking = true;
             startGamePacket.currentTick = this.server.getTick();
+            startGamePacket.enchantmentSeed = ThreadLocalRandom.current().nextInt();
             return startGamePacket;
         } else if (this.getProtocol() >= AbstractProtocol.PROTOCOL_118_30.getProtocolStart()) {
             StartGamePacket11830 startGamePacket = new StartGamePacket11830();
@@ -202,6 +214,7 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
             startGamePacket.isMovementServerAuthoritative = true;
             startGamePacket.isBlockBreakingServerAuthoritative = this.serverAuthoritativeBlockBreaking = true;
             startGamePacket.currentTick = this.server.getTick();
+            startGamePacket.enchantmentSeed = ThreadLocalRandom.current().nextInt();
             return startGamePacket;
         } else if (this.getProtocol() >= AbstractProtocol.PROTOCOL_118.getProtocolStart()) {
             StartGamePacket118 startGamePacket = new StartGamePacket118();
@@ -234,6 +247,7 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
             startGamePacket.isMovementServerAuthoritative = true;
             startGamePacket.isBlockBreakingServerAuthoritative = this.serverAuthoritativeBlockBreaking = true;
             startGamePacket.currentTick = this.server.getTick();
+            startGamePacket.enchantmentSeed = ThreadLocalRandom.current().nextInt();
             return startGamePacket;
         } else if (this.getProtocol() >= AbstractProtocol.PROTOCOL_117_30.getProtocolStart()) {
             StartGamePacket11730 startGamePacket = new StartGamePacket11730();
@@ -266,6 +280,7 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
             startGamePacket.isMovementServerAuthoritative = true;
             startGamePacket.isBlockBreakingServerAuthoritative = this.serverAuthoritativeBlockBreaking = true;
             startGamePacket.currentTick = this.server.getTick();
+            startGamePacket.enchantmentSeed = ThreadLocalRandom.current().nextInt();
             return startGamePacket;
         } else if (this.getProtocol() >= AbstractProtocol.PROTOCOL_117.getProtocolStart()) {
             StartGamePacket117 startGamePacket = new StartGamePacket117();
@@ -298,6 +313,7 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
             startGamePacket.isMovementServerAuthoritative = true;
             startGamePacket.isBlockBreakingServerAuthoritative = this.serverAuthoritativeBlockBreaking = true;
             startGamePacket.currentTick = this.server.getTick();
+            startGamePacket.enchantmentSeed = ThreadLocalRandom.current().nextInt();
             return startGamePacket;
         } else if (this.getProtocol() >= AbstractProtocol.PROTOCOL_116_200.getProtocolStart()) {
             StartGamePacket116200 startGamePacket = new StartGamePacket116200();
@@ -333,6 +349,7 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
                     //!this.isNetEaseClient() && this.protocol > AbstractProtocol.PROTOCOL_116_200.getProtocolStart();
                     this.isNetEaseClient() || this.protocol > AbstractProtocol.PROTOCOL_116_200.getProtocolStart();
             startGamePacket.currentTick = this.server.getTick();
+            startGamePacket.enchantmentSeed = ThreadLocalRandom.current().nextInt();
             return startGamePacket;
         } else if (this.getProtocol() < AbstractProtocol.PROTOCOL_116_100.getProtocolStart()) {
             StartGamePacket116100NE startGamePacket = new StartGamePacket116100NE();
@@ -364,6 +381,7 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
             startGamePacket.gameRules = getSupportedRules();
             startGamePacket.isMovementServerAuthoritative = this.isNetEaseClient;
             startGamePacket.currentTick = this.server.getTick();
+            startGamePacket.enchantmentSeed = ThreadLocalRandom.current().nextInt();
             return startGamePacket;
         }
         StartGamePacket116100 startGamePacket = new StartGamePacket116100();
@@ -395,7 +413,7 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
         startGamePacket.gameRules = getSupportedRules();
         startGamePacket.isMovementServerAuthoritative = this.isNetEaseClient;
         startGamePacket.currentTick = this.server.getTick();
-
+        startGamePacket.enchantmentSeed = ThreadLocalRandom.current().nextInt();
         return startGamePacket;
     }
 
@@ -444,7 +462,7 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
                             ResourcePackDataInfoPacket dataInfoPacket = new ResourcePackDataInfoPacket();
                             dataInfoPacket.packId = resourcePack.getPackId();
                             dataInfoPacket.maxChunkSize = RESOURCE_PACK_CHUNK_SIZE;
-                            dataInfoPacket.chunkCount = MathHelper.ceil(resourcePack.getPackSize() / (float) RESOURCE_PACK_CHUNK_SIZE);
+                            dataInfoPacket.chunkCount = Mth.ceil(resourcePack.getPackSize() / (float) RESOURCE_PACK_CHUNK_SIZE);
                             dataInfoPacket.compressedPackSize = resourcePack.getPackSize();
                             dataInfoPacket.sha256 = resourcePack.getSha256();
                             if (resourcePack.getPackType().equals("resources")) {
@@ -617,7 +635,6 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
 
                     playerActionPacket.entityId = this.id;
                     Vector3 pos = new Vector3(playerActionPacket.x, playerActionPacket.y, playerActionPacket.z);
-                    BlockFace face = BlockFace.fromIndex(playerActionPacket.face);
 
                     actionswitch:
                     switch (playerActionPacket.action) {
@@ -667,8 +684,9 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
                             if (!this.spawned || !this.isAlive() || this.isSpectator() || this.lastBreak != Long.MAX_VALUE || pos.distanceSquared(this) > 100) {
                                 break;
                             }
-                            Block target = this.level.getBlock(pos);
-                            PlayerInteractEvent playerInteractEvent = new PlayerInteractEvent(this, this.inventory.getItemInHand(), target, face, target.getId() == 0 ? PlayerInteractEvent.Action.LEFT_CLICK_AIR : PlayerInteractEvent.Action.LEFT_CLICK_BLOCK);
+                            Block target = this.level.getBlock(pos, false);
+                            BlockFace face = BlockFace.fromIndex(playerActionPacket.data);
+                            PlayerInteractEvent playerInteractEvent = new PlayerInteractEvent(this, this.inventory.getItemInHand(), target, face, target.getId() == BlockID.AIR ? PlayerInteractEvent.Action.LEFT_CLICK_AIR : PlayerInteractEvent.Action.LEFT_CLICK_BLOCK);
                             this.getServer().getPluginManager().callEvent(playerInteractEvent);
                             if (playerInteractEvent.isCancelled()) {
                                 this.inventory.sendHeldItem(this);
@@ -683,7 +701,8 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
                                         ((BlockDragonEgg) target).teleport();
                                         break actionswitch;
                                     }
-                                case Block.ITEM_FRAME_BLOCK:
+                                case Block.BLOCK_FRAME:
+                                case Block.BLOCK_GLOW_FRAME:
                                     BlockEntity itemFrame = this.level.getBlockEntity(pos);
                                     if (itemFrame instanceof BlockEntityItemFrame && ((BlockEntityItemFrame) itemFrame).dropItem(this)) {
                                         break actionswitch;
@@ -798,6 +817,7 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
                         case PlayerActionPacket119.ACTION_CONTINUE_BREAK:
                             if (this.isBreakingBlock()) {
                                 block = this.level.getBlock(pos, false);
+                                face = BlockFace.fromIndex(playerActionPacket.data);
                                 this.level.addParticle(new PunchBlockParticle(pos, block, face));
                             }
                             break;
@@ -824,7 +844,6 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
 
                 playerActionPacket.entityId = this.id;
                 Vector3 pos = new Vector3(playerActionPacket.x, playerActionPacket.y, playerActionPacket.z);
-                BlockFace face = BlockFace.fromIndex(playerActionPacket.face);
 
                 actionswitch:
                 switch (playerActionPacket.action) {
@@ -832,8 +851,9 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
                         if (!this.spawned || !this.isAlive() || this.isSpectator() || this.lastBreak != Long.MAX_VALUE || pos.distanceSquared(this) > 100) {
                             break;
                         }
-                        Block target = this.level.getBlock(pos);
-                        PlayerInteractEvent playerInteractEvent = new PlayerInteractEvent(this, this.inventory.getItemInHand(), target, face, target.getId() == 0 ? PlayerInteractEvent.Action.LEFT_CLICK_AIR : PlayerInteractEvent.Action.LEFT_CLICK_BLOCK);
+                        Block target = this.level.getBlock(pos, false);
+                        BlockFace face = BlockFace.fromIndex(playerActionPacket.data);
+                        PlayerInteractEvent playerInteractEvent = new PlayerInteractEvent(this, this.inventory.getItemInHand(), target, face, target.getId() == BlockID.AIR ? PlayerInteractEvent.Action.LEFT_CLICK_AIR : PlayerInteractEvent.Action.LEFT_CLICK_BLOCK);
                         this.getServer().getPluginManager().callEvent(playerInteractEvent);
                         if (playerInteractEvent.isCancelled()) {
                             this.inventory.sendHeldItem(this);
@@ -848,7 +868,8 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
                                     ((BlockDragonEgg) target).teleport();
                                     break actionswitch;
                                 }
-                            case Block.ITEM_FRAME_BLOCK:
+                            case Block.BLOCK_FRAME:
+                            case Block.BLOCK_GLOW_FRAME:
                                 BlockEntity itemFrame = this.level.getBlockEntity(pos);
                                 if (itemFrame instanceof BlockEntityItemFrame && ((BlockEntityItemFrame) itemFrame).dropItem(this)) {
                                     break actionswitch;
@@ -1012,13 +1033,20 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
             } else {
                 pk.subChunkCount = LevelChunkPacket.CLIENT_REQUEST_FULL_COLUMN_FAKE_COUNT;
             }
-            pk.subChunkRequestLimit = subChunkCount /*+ Anvil.PADDING_SUB_CHUNK_COUNT*/;
+            pk.subChunkRequestLimit = subChunkCount /*+ PADDING_SUB_CHUNK_COUNT*/;
             pk.blobIds = new long[]{hash};
             pk.cacheEnabled = true;
             pk.data = blobCache.getSubModeCachedPayload();
             this.dataPacket(pk);
         } else {
             this.dataPacket(packet);
+        }
+
+        for (BlockEntity blockEntity : this.level.getChunkBlockEntities(x, z).values()) {
+            if (!(blockEntity instanceof BlockEntitySpawnable)) {
+                continue;
+            }
+            ((BlockEntitySpawnable) blockEntity).spawnTo(this);
         }
 
         //TODO: move to sub chunk response?
@@ -1054,7 +1082,7 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
         } else {
             pk.subChunkCount = LevelChunkPacket.CLIENT_REQUEST_FULL_COLUMN_FAKE_COUNT;
         }
-        pk.subChunkRequestLimit = subChunkCount /*+ Anvil.PADDING_SUB_CHUNK_COUNT*/;
+        pk.subChunkRequestLimit = subChunkCount /*+ PADDING_SUB_CHUNK_COUNT*/;
         if (this.isBlobCacheAvailable() && this.isSubModeLevelChunkBlobCacheEnabled() && !centerChunk) {
             long[] ids;
             Long2ObjectMap<byte[]> extendedClientBlobs;
@@ -1075,6 +1103,13 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
             pk.data = subModePayload;
         }
         this.dataPacket(pk);
+
+        for (BlockEntity blockEntity : this.level.getChunkBlockEntities(x, z).values()) {
+            if (!(blockEntity instanceof BlockEntitySpawnable)) {
+                continue;
+            }
+            ((BlockEntitySpawnable) blockEntity).spawnTo(this);
+        }
 
         //TODO: move to sub chunk response?
         if (this.spawned) {
@@ -1108,14 +1143,14 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
 
         boolean centerChunk = CENTER_CHUNK_WITHOUT_CACHE && this.getChunkX() == x && this.getChunkZ() == z;
         if (subChunkCount != 0) {
-            subChunkCount += Anvil.PADDING_SUB_CHUNK_COUNT;
+            subChunkCount += PADDING_SUB_CHUNK_COUNT;
         }
         byte[][] payloads = payload.get(StaticVersion.fromProtocol(this.protocol, this.isNetEaseClient()));
 
         IntIterator iter = requests.iterator();
         while (iter.hasNext()) {
             int y = iter.nextInt();
-            int index = y + Anvil.PADDING_SUB_CHUNK_COUNT;
+            int index = y + PADDING_SUB_CHUNK_COUNT;
 
             SubChunkPacket pk = this.createSubChunkPacket();
 //            pk.dimension = dimension;
@@ -1125,10 +1160,10 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
             pk.subChunkZ = z;
 
             if (subChunkCount == 0) {
-                pk.data = Anvil.PADDING_SUB_CHUNK_BLOB;
+                pk.data = PADDING_SUB_CHUNK_BLOB;
                 if (index == 0) {
                     pk.heightMapType = SubChunkPacket.HEIGHT_MAP_TYPE_HAS_DATA;
-                    pk.heightMap = Anvil.PAD_256;
+                    pk.heightMap = EMPTY_SUBCHUNK_HEIGHTMAP;
                 } else {
                     pk.heightMapType = SubChunkPacket.HEIGHT_MAP_TYPE_ALL_TOO_LOW;
                 }
@@ -1139,7 +1174,7 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
                 iter.remove();
                 continue;
             } else if (index >= subChunkCount) {
-                pk.data = Anvil.PADDING_SUB_CHUNK_BLOB;
+                pk.data = PADDING_SUB_CHUNK_BLOB;
                 pk.heightMapType = SubChunkPacket.HEIGHT_MAP_TYPE_ALL_TOO_LOW;
                 if (ENABLE_EMPTY_SUB_CHUNK_NETWORK_OPTIMIZATION && this.protocol >= AbstractProtocol.PROTOCOL_118_10.getProtocolStart()) {
                     pk.requestResult = SubChunkPacket.REQUEST_RESULT_SUCCESS_ALL_AIR;
@@ -1200,14 +1235,14 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
 
         boolean centerChunk = CENTER_CHUNK_WITHOUT_CACHE && this.getChunkX() == x && this.getChunkZ() == z;
         if (subChunkCount != 0) {
-            subChunkCount += Anvil.PADDING_SUB_CHUNK_COUNT;
+            subChunkCount += PADDING_SUB_CHUNK_COUNT;
         }
         BatchPacket[] packets = packetCache.getSubPackets(StaticVersion.fromProtocol(this.protocol, this.isNetEaseClient()));
 
         IntIterator iter = requests.iterator();
         while (iter.hasNext()) {
             int y = iter.nextInt();
-            int index = y + Anvil.PADDING_SUB_CHUNK_COUNT;
+            int index = y + PADDING_SUB_CHUNK_COUNT;
 
             if (subChunkCount == 0) {
                 SubChunkPacket pk = this.createSubChunkPacket();
@@ -1216,10 +1251,10 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
                 pk.subChunkX = x;
                 pk.subChunkY = y;
                 pk.subChunkZ = z;
-                pk.data = Anvil.PADDING_SUB_CHUNK_BLOB;
+                pk.data = PADDING_SUB_CHUNK_BLOB;
                 if (index == 0) {
                     pk.heightMapType = SubChunkPacket.HEIGHT_MAP_TYPE_HAS_DATA;
-                    pk.heightMap = Anvil.PAD_256;
+                    pk.heightMap = EMPTY_SUBCHUNK_HEIGHTMAP;
                 } else {
                     pk.heightMapType = SubChunkPacket.HEIGHT_MAP_TYPE_ALL_TOO_LOW;
                 }
@@ -1236,7 +1271,7 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
                 pk.subChunkX = x;
                 pk.subChunkY = y;
                 pk.subChunkZ = z;
-                pk.data = Anvil.PADDING_SUB_CHUNK_BLOB;
+                pk.data = PADDING_SUB_CHUNK_BLOB;
                 pk.heightMapType = SubChunkPacket.HEIGHT_MAP_TYPE_ALL_TOO_LOW;
                 if (ENABLE_EMPTY_SUB_CHUNK_NETWORK_OPTIMIZATION && this.protocol >= AbstractProtocol.PROTOCOL_118_10.getProtocolStart()) {
                     pk.requestResult = SubChunkPacket.REQUEST_RESULT_SUCCESS_ALL_AIR;
@@ -1431,17 +1466,17 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
                 pk.requestResult = SubChunkPacket.REQUEST_RESULT_SUCCESS;
                 if (pk.subChunkY == -4) {
                     pk.heightMapType = SubChunkPacket.HEIGHT_MAP_TYPE_HAS_DATA;
-                    pk.heightMap = Anvil.PAD_256;
+                    pk.heightMap = EMPTY_SUBCHUNK_HEIGHTMAP;
                 } else {
                     pk.heightMapType = SubChunkPacket.HEIGHT_MAP_TYPE_ALL_TOO_LOW;
                 }
                 boolean centerChunk = this.getChunkX() == subChunkX && this.getChunkZ() == subChunkZ;
                 if (false && this.isBlobCacheAvailable() && !centerChunk) {
-                    this.clientCacheTrack.put(Anvil.PADDING_SUB_CHUNK_HASH, new BlobTrack(Anvil.PADDING_SUB_CHUNK_HASH, Anvil.PADDING_SUB_CHUNK_BLOB));
+                    this.clientCacheTrack.put(PADDING_SUB_CHUNK_HASH, new BlobTrack(PADDING_SUB_CHUNK_HASH, PADDING_SUB_CHUNK_BLOB));
                     pk.cacheEnabled = true;
-                    pk.blobId = Anvil.PADDING_SUB_CHUNK_HASH;
+                    pk.blobId = PADDING_SUB_CHUNK_HASH;
                 } else {
-                    pk.data = Anvil.PADDING_SUB_CHUNK_BLOB;
+                    pk.data = PADDING_SUB_CHUNK_BLOB;
                 }
                 this.dataPacket(pk);
             }
@@ -1469,7 +1504,7 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
             pk.subChunkX = subChunkX;
             pk.subChunkY = subChunkY;
             pk.subChunkZ = subChunkZ;
-            pk.data = Anvil.PADDING_SUB_CHUNK_BLOB; // higher padding
+            pk.data = PADDING_SUB_CHUNK_BLOB; // higher padding
             pk.heightMapType = SubChunkPacket.HEIGHT_MAP_TYPE_ALL_TOO_LOW;
             this.dataPacket(pk);
             return false;
@@ -1550,12 +1585,12 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
                     }
                     packet.subChunkRequestLimit = 0;
                     if (false && this.isBlobCacheAvailable() && !centerChunk) {
-                        this.clientCacheTrack.put(Anvil.MINIMIZE_BIOME_PALETTES_HASH, new BlobTrack(Anvil.MINIMIZE_BIOME_PALETTES_HASH, Anvil.MINIMIZE_BIOME_PALETTES));
+                        this.clientCacheTrack.put(MINIMIZE_BIOME_PALETTES_HASH, new BlobTrack(MINIMIZE_BIOME_PALETTES_HASH, MINIMIZE_BIOME_PALETTES));
                         packet.cacheEnabled = true;
-                        packet.blobIds = new long[]{Anvil.MINIMIZE_BIOME_PALETTES_HASH};
+                        packet.blobIds = new long[]{MINIMIZE_BIOME_PALETTES_HASH};
                         packet.data = new byte[1]; // borderBlocks
                     } else {
-                        packet.data = Anvil.MINIMIZE_CHUNK_DATA_NO_CACHE;
+                        packet.data = MINIMIZE_CHUNK_DATA_NO_CACHE;
                     }
                     packets.add(packet);
 
@@ -1644,12 +1679,12 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
                 }
                 packet.subChunkRequestLimit = 0;
                 if (false && this.isBlobCacheAvailable() && !centerChunk) {
-                    this.clientCacheTrack.put(Anvil.MINIMIZE_BIOME_PALETTES_HASH, new BlobTrack(Anvil.MINIMIZE_BIOME_PALETTES_HASH, Anvil.MINIMIZE_BIOME_PALETTES));
+                    this.clientCacheTrack.put(MINIMIZE_BIOME_PALETTES_HASH, new BlobTrack(MINIMIZE_BIOME_PALETTES_HASH, MINIMIZE_BIOME_PALETTES));
                     packet.cacheEnabled = true;
-                    packet.blobIds = new long[]{Anvil.MINIMIZE_BIOME_PALETTES_HASH};
+                    packet.blobIds = new long[]{MINIMIZE_BIOME_PALETTES_HASH};
                     packet.data = new byte[1]; // borderBlocks
                 } else {
-                    packet.data = Anvil.MINIMIZE_CHUNK_DATA_NO_CACHE;
+                    packet.data = MINIMIZE_CHUNK_DATA_NO_CACHE;
                 }
                 packets.add(packet);
 
@@ -1757,12 +1792,12 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
                         }
                         packet.subChunkRequestLimit = 0;
                         if (false && this.isBlobCacheAvailable() && !centerChunk) {
-                            this.clientCacheTrack.put(Anvil.MINIMIZE_BIOME_PALETTES_HASH, new BlobTrack(Anvil.MINIMIZE_BIOME_PALETTES_HASH, Anvil.MINIMIZE_BIOME_PALETTES));
+                            this.clientCacheTrack.put(MINIMIZE_BIOME_PALETTES_HASH, new BlobTrack(MINIMIZE_BIOME_PALETTES_HASH, MINIMIZE_BIOME_PALETTES));
                             packet.cacheEnabled = true;
-                            packet.blobIds = new long[]{Anvil.MINIMIZE_BIOME_PALETTES_HASH};
+                            packet.blobIds = new long[]{MINIMIZE_BIOME_PALETTES_HASH};
                             packet.data = new byte[1]; // borderBlocks
                         } else {
-                            packet.data = Anvil.MINIMIZE_CHUNK_DATA_NO_CACHE;
+                            packet.data = MINIMIZE_CHUNK_DATA_NO_CACHE;
                         }
                         packets.add(packet);
 
@@ -1799,6 +1834,91 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
         packet.dimension = dimension;
         packet.molangVariables = molangVariables;
         dataPacket(packet);
+    }
+
+    @Override
+    public void addCameraShake(float intensity, float duration, int type) {
+        if (this.getProtocol() < AbstractProtocol.PROTOCOL_116_210.getProtocolStart()) {
+            CameraShakePacket116100 pk = new CameraShakePacket116100();
+            pk.intensity = intensity;
+            pk.duration = duration;
+            pk.type = type;
+            this.dataPacket(pk);
+            return;
+        }
+        CameraShakePacket116210 pk = new CameraShakePacket116210();
+        pk.intensity = intensity;
+        pk.duration = duration;
+        pk.type = type;
+        pk.action = CameraShakePacket116210.ACTION_ADD;
+        this.dataPacket(pk);
+    }
+
+    @Override
+    public void stopCameraShake() {
+        if (this.getProtocol() < AbstractProtocol.PROTOCOL_116_210.getProtocolStart()) {
+            CameraShakePacket116100 pk = new CameraShakePacket116100();
+            pk.intensity = 0;
+            pk.duration = 0;
+            this.dataPacket(pk);
+            return;
+        }
+        CameraShakePacket116210 pk = new CameraShakePacket116210();
+        pk.intensity = 0;
+        pk.duration = 0;
+        pk.action = CameraShakePacket116210.ACTION_STOP;
+        this.dataPacket(pk);
+    }
+
+    @Override
+    public void sendItemComponents() {
+        ItemComponentPacket116100 pk = new ItemComponentPacket116100();
+        pk.entries = ItemComponentDefinitions.get(protocol).entrySet().stream()
+                .map(entry -> new ItemComponentPacket116100.Entry(entry.getKey(), entry.getValue()))
+                .toArray(ItemComponentPacket116100.Entry[]::new);
+        this.dataPacket(pk);
+    }
+
+    @Override
+    public void startItemCooldown(String itemCategory, int duration) {
+        if (this.getProtocol() < AbstractProtocol.PROTOCOL_118_10.getProtocolStart()) {
+            return;
+        }
+        PlayerStartItemCooldownPacket11810 pk = new PlayerStartItemCooldownPacket11810();
+        pk.itemCategory = itemCategory;
+        pk.cooldownTicks = duration;
+        this.dataPacket(pk);
+    }
+
+    @Override
+    public void sendToast(String title, String content) {
+        if (this.getProtocol() < AbstractProtocol.PROTOCOL_119.getProtocolStart()) {
+            return;
+        }
+        ToastRequestPacket119 pk = new ToastRequestPacket119();
+        pk.title = title;
+        pk.content = content;
+        this.dataPacket(pk);
+    }
+
+    @Override
+    public void sendJukeboxPopup(TranslationContainer message) {
+        if (this.getProtocol() < AbstractProtocol.PROTOCOL_116_100.getProtocolStart()) {
+            TextPacket116100NE pk = new TextPacket116100NE();
+            pk.type = TextPacket116100NE.TYPE_JUKEBOX_POPUP;
+            pk.isLocalized = true;
+            pk.message = message.getText();
+            pk.parameters = message.getParameters();
+            this.dataPacket(pk);
+            return;
+        }
+
+        TextPacket116100 pk = new TextPacket116100();
+        pk.type = TextPacket116100.TYPE_JUKEBOX_POPUP;
+        pk.isLocalized = true;
+        pk.message = message.getText();
+        pk.parameters = message.getParameters();
+        this.dataPacket(pk);
     }
 
     private static int distance(int centerX, int centerZ, int x, int z) {

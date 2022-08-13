@@ -10,10 +10,9 @@ import cn.nukkit.item.enchantment.EnchantmentList;
 import cn.nukkit.network.protocol.DataPacket;
 import cn.nukkit.network.protocol.ProtocolInfo;
 import cn.nukkit.utils.BinaryStream;
-import org.itxtech.synapseapi.multiprotocol.protocol16.protocol.Packet16;
+import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import org.itxtech.synapseapi.utils.ClassUtils;
 
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
@@ -39,7 +38,7 @@ public class CraftingDataPacket111 extends Packet111 {
     public static final String CRAFTING_TAG_BLAST_FURNACE = "blast_furnace";
     public static final String CRAFTING_TAG_SMOKER = "smoker";
 
-    public List<Object> entries = new ArrayList<>();
+    public List<Object> entries = new ObjectArrayList<>();
     public boolean cleanRecipes;
 
     private static int writeEntry(Object entry, BinaryStream stream) {
@@ -65,9 +64,9 @@ public class CraftingDataPacket111 extends Packet111 {
         stream.putUnsignedVarInt(1);
         stream.putSlot(recipe.getResult());
         stream.putUUID(recipe.getId());
-        stream.putString(CRAFTING_TAG_CRAFTING_TABLE);
+        stream.putString(recipe.getTag().toString());
 
-        return CraftingDataPacket111.ENTRY_SHAPELESS;
+        return recipe.getType().ordinal();
     }
 
     private static int writeShapedRecipe(ShapedRecipe recipe, BinaryStream stream) {
@@ -84,9 +83,9 @@ public class CraftingDataPacket111 extends Packet111 {
         stream.putSlot(recipe.getResult());
 
         stream.putUUID(recipe.getId());
-        stream.putString(CRAFTING_TAG_CRAFTING_TABLE);
+        stream.putString(recipe.getTag().toString());
 
-        return CraftingDataPacket111.ENTRY_SHAPED;
+        return recipe.getType().ordinal();
     }
 
     private static int writeFurnaceRecipe(FurnaceRecipe recipe, BinaryStream stream) {
@@ -94,13 +93,13 @@ public class CraftingDataPacket111 extends Packet111 {
             stream.putVarInt(recipe.getInput().getId());
             stream.putVarInt(recipe.getInput().getDamage());
             stream.putSlot(recipe.getResult());
-            stream.putString(CRAFTING_TAG_FURNACE);
+            stream.putString(recipe.getTag().toString());
 
             return CraftingDataPacket111.ENTRY_FURNACE_DATA;
         } else {
             stream.putVarInt(recipe.getInput().getId());
             stream.putSlot(recipe.getResult());
-            stream.putString(CRAFTING_TAG_FURNACE);
+            stream.putString(recipe.getTag().toString());
 
             return CraftingDataPacket111.ENTRY_FURNACE;
         }
@@ -139,7 +138,7 @@ public class CraftingDataPacket111 extends Packet111 {
 
     @Override
     public DataPacket clean() {
-        entries = new ArrayList<>();
+        entries = new ObjectArrayList<>();
         return super.clean();
     }
 

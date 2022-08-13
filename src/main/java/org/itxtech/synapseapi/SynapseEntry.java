@@ -25,7 +25,6 @@ import org.itxtech.synapseapi.messaging.StandardMessenger;
 import org.itxtech.synapseapi.multiprotocol.AbstractProtocol;
 import org.itxtech.synapseapi.multiprotocol.PacketRegister;
 import org.itxtech.synapseapi.multiprotocol.protocol113.protocol.IPlayerAuthInputPacket;
-import org.itxtech.synapseapi.multiprotocol.protocol116.protocol.PlayerAuthInputPacket116;
 import org.itxtech.synapseapi.multiprotocol.protocol116100ne.protocol.MovePlayerPacket116100NE;
 import org.itxtech.synapseapi.network.SynLibInterface;
 import org.itxtech.synapseapi.network.SynapseInterface;
@@ -475,8 +474,8 @@ public class SynapseEntry {
                                                     oldMovePacket.mode = ((MovePlayerPacket116100NE) subPacket).mode;
                                                     oldMovePacket.onGround = ((MovePlayerPacket116100NE) subPacket).onGround;
                                                     oldMovePacket.ridingEid = ((MovePlayerPacket116100NE) subPacket).ridingEid;
-                                                    oldMovePacket.int1 = ((MovePlayerPacket116100NE) subPacket).int1;
-                                                    oldMovePacket.int2 = ((MovePlayerPacket116100NE) subPacket).int2;
+                                                    oldMovePacket.teleportCause = ((MovePlayerPacket116100NE) subPacket).teleportCause;
+                                                    oldMovePacket.entityType = ((MovePlayerPacket116100NE) subPacket).teleportItem;
                                                     oldMovePacket.setChannel(DataPacket.CHANNEL_PLAYER_MOVING);
                                                 }
                                                 viewer.dataPacket(oldMovePacket);

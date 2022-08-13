@@ -2,6 +2,7 @@ package org.itxtech.synapseapi;
 
 import cn.nukkit.Player;
 import cn.nukkit.Server;
+import cn.nukkit.lang.TranslationContainer;
 import cn.nukkit.level.GameRules;
 import cn.nukkit.level.Position;
 import cn.nukkit.network.SourceInterface;
@@ -12,6 +13,7 @@ import org.itxtech.synapseapi.multiprotocol.protocol17.protocol.StartGamePacket1
 import org.itxtech.synapseapi.multiprotocol.protocol17.protocol.TextPacket17;
 
 import java.net.InetSocketAddress;
+import java.util.concurrent.ThreadLocalRandom;
 
 public class SynapsePlayer17 extends SynapsePlayer16 {
 
@@ -78,7 +80,7 @@ public class SynapsePlayer17 extends SynapsePlayer16 {
 		startGamePacket.worldName = this.getServer().getNetwork().getName();
 		startGamePacket.generator = 1; // 0 old, 1 infinite, 2 flat
 		startGamePacket.gameRules = getSupportedRules();
-
+		startGamePacket.enchantmentSeed = ThreadLocalRandom.current().nextInt();
 		return startGamePacket;
 	}
 
@@ -101,4 +103,13 @@ public class SynapsePlayer17 extends SynapsePlayer16 {
 		return gamemode;
 	}
 
+	@Override
+	public void sendJukeboxPopup(TranslationContainer message) {
+		TextPacket17 pk = new TextPacket17();
+		pk.type = TextPacket17.JUKE_BOX_POPUP;
+		pk.isLocalized = true;
+		pk.message = message.getText();
+		pk.parameters = message.getParameters();
+		this.dataPacket(pk);
+	}
 }

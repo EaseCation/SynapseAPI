@@ -151,7 +151,7 @@ public class StartGamePacket116100 extends Packet116100 {
         this.putVarInt(this.enchantmentSeed);
 
         this.putUnsignedVarInt(0); // Custom blocks
-        this.put(this.itemDataPalette == null ? AdvancedRuntimeItemPalette.getCompiledData(this.protocol, false) : this.itemDataPalette);
+        this.put(this.itemDataPalette == null ? AdvancedRuntimeItemPalette.getCompiledData(this.protocol, netease) : this.itemDataPalette);
         this.putString(this.multiplayerCorrelationId);
         this.putBoolean(this.isInventoryServerAuthoritative);
 

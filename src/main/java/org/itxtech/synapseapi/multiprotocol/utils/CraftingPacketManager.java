@@ -6,17 +6,17 @@ import cn.nukkit.network.protocol.BatchPacket;
 import cn.nukkit.network.protocol.CraftingDataPacket;
 import cn.nukkit.network.protocol.DataPacket;
 import cn.nukkit.utils.MainLogger;
+import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
 import org.itxtech.synapseapi.multiprotocol.AbstractProtocol;
 import org.itxtech.synapseapi.multiprotocol.PacketRegister;
 
-import java.util.HashMap;
 import java.util.Map;
 import java.util.zip.Deflater;
 
 public final class CraftingPacketManager {
 
     private static BatchPacket originPacket;
-    private static final Map<AbstractProtocol, BatchPacket[]> packets = new HashMap<>();
+    private static final Map<AbstractProtocol, BatchPacket[]> packets = new Object2ObjectOpenHashMap<>();
 
     public static void rebuildPacket() {
         CraftingDataPacket pk = new CraftingDataPacket();
@@ -34,12 +34,20 @@ public final class CraftingPacketManager {
             pk.addFurnaceRecipe(recipe);
         }
 
+        for (MultiRecipe recipe : Server.getInstance().getCraftingManager().getMultiRecipes().values()) {
+            pk.addMultiRecipe(recipe);
+        }
+
         for (BrewingRecipe recipe : Server.getInstance().getCraftingManager().getBrewingRecipes().values()) {
             pk.addBrewingRecipe(recipe);
         }
 
         for (ContainerRecipe recipe : Server.getInstance().getCraftingManager().getContainerRecipes().values()) {
             pk.addContainerRecipe(recipe);
+        }
+
+        for (MaterialReducerRecipe recipe : Server.getInstance().getCraftingManager().getMaterialReducerRecipes().values()) {
+            pk.addMaterialReducerRecipe(recipe);
         }
 
         pk.tryEncode();

@@ -147,7 +147,7 @@ public class StartGamePacket116200 extends Packet116200 {
         this.putBoolean(this.isTrial);
         this.putVarInt(this.isMovementServerAuthoritative ? 1 : 0); // 2 - rewind
         if (this.netease || this.protocol != AbstractProtocol.PROTOCOL_116_200) {
-            this.putVarInt(0); // RewindHistorySize
+            this.putVarInt(20); // RewindHistorySize
             this.putBoolean(this.isBlockBreakingServerAuthoritative);
         }
         this.putLLong(this.currentTick);

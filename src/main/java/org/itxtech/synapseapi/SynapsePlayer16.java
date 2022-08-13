@@ -10,7 +10,7 @@ import cn.nukkit.lang.TranslationContainer;
 import cn.nukkit.level.GameRules;
 import cn.nukkit.level.Level;
 import cn.nukkit.level.Position;
-import cn.nukkit.math.MathHelper;
+import cn.nukkit.math.Mth;
 import cn.nukkit.math.Vector3;
 import cn.nukkit.network.SourceInterface;
 import cn.nukkit.network.protocol.*;
@@ -37,6 +37,7 @@ import org.msgpack.value.*;
 import java.net.InetSocketAddress;
 import java.nio.charset.StandardCharsets;
 import java.util.Optional;
+import java.util.concurrent.ThreadLocalRandom;
 
 public class SynapsePlayer16 extends SynapsePlayer14 {
 
@@ -100,7 +101,7 @@ public class SynapsePlayer16 extends SynapsePlayer14 {
 							ResourcePackDataInfoPacket dataInfoPacket = new ResourcePackDataInfoPacket();
 							dataInfoPacket.packId = resourcePack.getPackId();
 							dataInfoPacket.maxChunkSize = RESOURCE_PACK_CHUNK_SIZE;
-							dataInfoPacket.chunkCount = MathHelper.ceil(resourcePack.getPackSize() / (float) RESOURCE_PACK_CHUNK_SIZE);
+							dataInfoPacket.chunkCount = Mth.ceil(resourcePack.getPackSize() / (float) RESOURCE_PACK_CHUNK_SIZE);
 							dataInfoPacket.compressedPackSize = resourcePack.getPackSize();
 							dataInfoPacket.sha256 = resourcePack.getSha256();
 							if (resourcePack.getPackType().equals("resources")) {
@@ -235,7 +236,7 @@ public class SynapsePlayer16 extends SynapsePlayer14 {
 		startGamePacket.worldName = this.getServer().getNetwork().getName();
 		startGamePacket.generator = 1; // 0 old, 1 infinite, 2 flat
 		startGamePacket.gameRules = getSupportedRules();
-
+		startGamePacket.enchantmentSeed = ThreadLocalRandom.current().nextInt();
 		return startGamePacket;
 	}
 

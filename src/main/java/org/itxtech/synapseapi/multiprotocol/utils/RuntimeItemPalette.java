@@ -59,13 +59,18 @@ public class RuntimeItemPalette implements AdvancedRuntimeItemPaletteInterface {
 
     @Override
     public int getNetworkFullId(Item item) {
-        int fullId = getFullId(item.getId(), item.hasMeta() ? item.getDamage() : -1);
+        int id = item.getId();
+        if (id < 0) {
+            return id;
+        }
+        int meta = item.getDamage();
+        int fullId = getFullId(id, item.hasMeta() ? meta : -1);
         int networkId = legacyNetworkMap.get(fullId);
         if (networkId == -1) {
-            networkId = legacyNetworkMap.get(getFullId(item.getId(), 0));
+            networkId = legacyNetworkMap.get(getFullId(id, 0));
         }
         if (networkId == -1) {
-            throw new IllegalArgumentException("Unknown item mapping " + item.getId() + ":" + item.getDamage());
+            throw new IllegalArgumentException("Unknown item mapping " + id + ":" + meta);
         }
 
         return networkId;
@@ -73,6 +78,9 @@ public class RuntimeItemPalette implements AdvancedRuntimeItemPaletteInterface {
 
     @Override
     public int getLegacyFullId(int networkId) {
+        if (networkId < 0) {
+            return networkId;
+        }
         int fullId = networkLegacyMap.get(networkId);
         if (fullId == -1) {
             throw new IllegalArgumentException("Unknown network mapping: " + networkId);
@@ -82,6 +90,9 @@ public class RuntimeItemPalette implements AdvancedRuntimeItemPaletteInterface {
 
     @Override
     public int getId(int fullId) {
+        if (fullId < 0) {
+            return fullId;
+        }
         return (short) (fullId >> 16);
     }
 
@@ -96,11 +107,17 @@ public class RuntimeItemPalette implements AdvancedRuntimeItemPaletteInterface {
 
     @Override
     public int getNetworkId(int networkFullId) {
+        if (networkFullId < 0) {
+            return networkFullId;
+        }
         return networkFullId >> 1;
     }
 
     @Override
     public boolean hasData(int id) {
+        if (id < 0) {
+            return false;
+        }
         return (id & 0x1) != 0;
     }
 

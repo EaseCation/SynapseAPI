@@ -9,9 +9,11 @@ import cn.nukkit.network.protocol.InventoryTransactionPacket;
 import cn.nukkit.network.protocol.ProtocolInfo;
 import cn.nukkit.network.protocol.types.InventoryTransactionPacketInterface;
 import cn.nukkit.network.protocol.types.NetworkInventoryAction;
+import lombok.ToString;
 import org.itxtech.synapseapi.multiprotocol.AbstractProtocol;
 import org.itxtech.synapseapi.utils.ClassUtils;
 
+@ToString
 public class InventoryTransactionPacket116 extends Packet116 implements InventoryTransactionPacketInterface {
 
     public static final int TYPE_NORMAL = 0;

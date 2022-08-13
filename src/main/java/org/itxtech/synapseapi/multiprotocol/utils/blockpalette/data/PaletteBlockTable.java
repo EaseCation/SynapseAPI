@@ -1,17 +1,24 @@
 package org.itxtech.synapseapi.multiprotocol.utils.blockpalette.data;
 
 import cn.nukkit.block.Block;
+import cn.nukkit.block.BlockCoral;
+import cn.nukkit.block.BlockID;
 import cn.nukkit.level.GlobalBlockPalette;
 import cn.nukkit.nbt.NBTIO;
+import cn.nukkit.nbt.tag.ByteTag;
 import cn.nukkit.nbt.tag.CompoundTag;
+import cn.nukkit.nbt.tag.IntTag;
 import cn.nukkit.nbt.tag.ListTag;
+import cn.nukkit.nbt.tag.StringTag;
 import cn.nukkit.nbt.tag.Tag;
 import com.google.common.io.ByteStreams;
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
+import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import lombok.ToString;
 import lombok.extern.log4j.Log4j2;
 import org.itxtech.synapseapi.SynapseAPI;
+import org.itxtech.synapseapi.multiprotocol.utils.blockpalette.data.PaletteBlockData.LegacyStates;
 
 import java.io.*;
 import java.lang.reflect.Type;
@@ -62,6 +69,15 @@ public class PaletteBlockTable extends ArrayList<PaletteBlockData> {
 
         for (CompoundTag state : tag.getAll()) {
             CompoundTag blockTag = state.getCompound("block");
+            PaletteBlockData.LegacyStates[] legacyStates = null;
+
+            /*if (blockTag.getString("name").equals("minecraft:wood")) {
+                log.warn("wood {}", state.getList("LegacyStates", CompoundTag.class).getAll());
+            } else if (blockTag.getString("name").equals("minecraft:log")) {
+                log.warn("log {}", state.getList("LegacyStates", CompoundTag.class).getAll());
+            } else if (blockTag.getString("name").equals("minecraft:log2")) {
+                log.warn("log2 {}",state.getList("LegacyStates", CompoundTag.class).getAll());
+            }*/
 
             if (!state.contains("LegacyStates")) {
                 String name = blockTag.getString("name");
@@ -73,20 +89,67 @@ public class PaletteBlockTable extends ArrayList<PaletteBlockData> {
                     table.add(unknown);
                     continue;
                 }
-                List<Tag> statesData = new ArrayList<>();
-                blockTag.getCompound("states").getTags().forEach((stateName, stateValue) -> statesData.add(stateValue));
-                table.add(new PaletteBlockData(id, null, new PaletteBlockData.Block(name, blockTag.getInt("version"), statesData)));
-                continue;
+                if (id == -1) {
+                    //table.add(air);
+                    table.add(unknown);
+                    continue;
+                }
+
+                CompoundTag states = blockTag.getCompound("states");
+
+                if ("minecraft:coral".equals(name)) {
+                    boolean dead = states.getBoolean("dead_bit");
+                    if (dead) {
+                        String coralColor = states.getString("coral_color");
+                        int color;
+                        switch (coralColor) {
+                            case "blue":
+                                color = 0;
+                                break;
+                            case "pink":
+                                color = 1;
+                                break;
+                            case "purple":
+                                color = 2;
+                                break;
+                            case "red":
+                                color = 3;
+                                break;
+                            case "yellow":
+                                color = 4;
+                                break;
+                            default:
+                                continue;
+                        }
+
+                        id = BlockID.CORAL;
+                        legacyStates = new LegacyStates[]{new LegacyStates(id, color | BlockCoral.DEAD_BIT)};
+
+                        log.debug("Manual mapping: id {} meta {}", id, legacyStates[0].val);
+                    }
+                }
+
+                if (legacyStates == null) {
+                    List<Tag> statesData = new ArrayList<>();
+                    states.getTags().forEach((stateName, stateValue) -> statesData.add(stateValue));
+                    table.add(new PaletteBlockData(id, null, new PaletteBlockData.Block(name, blockTag.getInt("version"), statesData)));
+                    continue;
+                }
+            } else {
+                List<PaletteBlockData.LegacyStates> legacyStatesList = new ArrayList<>();
+                state.getList("LegacyStates", CompoundTag.class).getAll()
+                        .forEach(legacy -> legacyStatesList.add(new PaletteBlockData.LegacyStates(legacy.getInt("id"), legacy.getShort("val"))));
+                legacyStates = legacyStatesList.toArray(new PaletteBlockData.LegacyStates[0]);
             }
 
-            PaletteBlockData.LegacyStates[] legacyStates;
-            List<PaletteBlockData.LegacyStates> legacyStatesList = new ArrayList<>();
-            state.getList("LegacyStates", CompoundTag.class).getAll()
-                    .forEach(legacy -> legacyStatesList.add(new PaletteBlockData.LegacyStates(legacy.getInt("id"), legacy.getShort("val"))));
-            legacyStates = legacyStatesList.toArray(new PaletteBlockData.LegacyStates[0]);
+            int legacyIndex = 0;
+            PaletteBlockData.LegacyStates firstState = legacyStates[legacyIndex];
 
-            // Resolve to first legacy id
-            PaletteBlockData.LegacyStates firstState = legacyStates[0];
+            if ("minecraft:wood".equals(blockTag.getString("name"))) {
+                while (firstState.id == BlockID.LOG || firstState.id == BlockID.LOG2) {
+                    firstState = legacyStates[++legacyIndex];
+                }
+            }
 
             CompoundTag blockStatesTag = blockTag.getCompound("states");
             List<Tag> statesData = new ArrayList<>();
@@ -96,7 +159,8 @@ public class PaletteBlockTable extends ArrayList<PaletteBlockData> {
             PaletteBlockData data = new PaletteBlockData(
                     firstState.id,
                     legacyStates,
-                    block
+                    block,
+                    legacyIndex
             );
             table.add(data);
 
@@ -107,6 +171,10 @@ public class PaletteBlockTable extends ArrayList<PaletteBlockData> {
 
                 unknown.block.version = data.block.version;
             }
+
+            /*if (legacyStates.length > 1) {
+                log.warn("multi-mapping block {} {}", block, Arrays.toString(legacyStates));
+            }*/
         }
         return table;
     }
@@ -138,9 +206,44 @@ public class PaletteBlockTable extends ArrayList<PaletteBlockData> {
             List<Tag> statesData = new ArrayList<>();
             blockStatesTag.getTags().forEach((stateName, stateValue) -> statesData.add(stateValue));
             PaletteBlockData.Block block = new PaletteBlockData.Block(blockTag.getString("name"), blockTag.getInt("version"), statesData);
+            int id = state.getShort("id");
+
+            if (legacyStates == null) { // Manual mapping :<
+                if ("minecraft:coral".equals(blockTag.getString("name"))) {
+                    boolean dead = blockStatesTag.getBoolean("dead_bit");
+                    if (dead) {
+                        String coralColor = blockStatesTag.getString("coral_color");
+                        int color;
+                        switch (coralColor) {
+                            case "blue":
+                                color = 0;
+                                break;
+                            case "pink":
+                                color = 1;
+                                break;
+                            case "purple":
+                                color = 2;
+                                break;
+                            case "red":
+                                color = 3;
+                                break;
+                            case "yellow":
+                                color = 4;
+                                break;
+                            default:
+                                continue;
+                        }
+
+                        id = BlockID.CORAL;
+                        legacyStates = new LegacyStates[]{new LegacyStates(id, color | BlockCoral.DEAD_BIT)};
+
+                        log.debug("Manual mapping: id {} meta {}", id, legacyStates[0].val);
+                    }
+                }
+            }
 
             PaletteBlockData data = new PaletteBlockData(
-                    state.getShort("id"),
+                    id,
                     legacyStates,
                     block
             );
@@ -280,11 +383,29 @@ public class PaletteBlockTable extends ArrayList<PaletteBlockData> {
             }
             PaletteBlockTable table = new PaletteBlockTable();
             for (DumpJsonTableEntry entry : entries) {
+                List<Tag> state = new ObjectArrayList<>(entry.states.size());
+                entry.states.forEach(stateEntry -> {
+                    switch (stateEntry.type) {
+                        case "string":
+                            state.add(new StringTag(stateEntry.name, (String) stateEntry.value));
+                            break;
+                        case "byte":
+                            state.add(new ByteTag(stateEntry.name, ((Number) stateEntry.value).byteValue()));
+                            break;
+                        case "int":
+                            state.add(new IntTag(stateEntry.name, ((Number) stateEntry.value).intValue()));
+                            break;
+                        default:
+                            log.warn("Unknown block state type: {}", stateEntry.type);
+                            break;
+                    }
+                });
+
                 table.add(
                         new PaletteBlockData(
                                 entry.id,
                                 new PaletteBlockData.LegacyStates[]{new PaletteBlockData.LegacyStates(entry.id, entry.val)},
-                                new PaletteBlockData.Block(entry.name, 0, new ArrayList<>())
+                                new PaletteBlockData.Block(entry.name, 0, state)
                         )
                 );
             }

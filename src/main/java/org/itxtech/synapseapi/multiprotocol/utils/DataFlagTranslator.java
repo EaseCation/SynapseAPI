@@ -1,13 +1,12 @@
 package org.itxtech.synapseapi.multiprotocol.utils;
 
-import java.util.HashMap;
-import java.util.Map;
-
 import cn.nukkit.entity.Entity;
+import it.unimi.dsi.fastutil.ints.Int2IntMap;
+import it.unimi.dsi.fastutil.ints.Int2IntOpenHashMap;
 
 public class DataFlagTranslator {
-	public final static Map<Integer, Integer> v12ToV14Book = new HashMap<>();
-	public final static Map<Integer, Integer> v12ToV17Book = new HashMap<>();
+	public final static Int2IntMap v12ToV14Book = new Int2IntOpenHashMap();
+	public final static Int2IntMap v12ToV17Book = new Int2IntOpenHashMap();
 
 	public static final int ONFIRE = 0;
 	public static final int SNEAKING = 1;
@@ -100,7 +99,55 @@ public class DataFlagTranslator {
 	public static final int FLAG_17_LAYING_EGG = 59;
 	public static final int FLAG_17_RIDER_CAN_PICK = 60;
 
+	public static final int FLAG_1_TRANSITION_SETTING = 61;
+	public static final int FLAG_1_EATING = 62;
+	public static final int FLAG_1_LAYING_DOWN = 63;
+	public static final int FLAG_1_SNEEZING = 64;
+	public static final int FLAG_1_TRUSTING = 65;
+	public static final int FLAG_1_ROLLING = 66;
+	public static final int FLAG_1_SCARED = 67;
+	public static final int FLAG_1_IN_SCAFFOLDING = 68;
+	public static final int FLAG_1_OVER_SCAFFOLDING = 69;
+	public static final int FLAG_1_FALL_THROUGH_SCAFFOLDING = 70;
+	public static final int FLAG_1_BLOCKING = 71;
+	public static final int FLAG_1_TRANSITION_BLOCKING = 72;
+	public static final int FLAG_1_BLOCKED_USING_SHIELD = 73;
+	public static final int FLAG_1_BLOCKED_USING_DAMAGED_SHIELD = 74;
+	public static final int FLAG_1_SLEEPING = 75;
+	public static final int FLAG_1_ENTITY_GROW_UP = 76;
+	public static final int FLAG_1_TRADE_INTEREST = 77;
+	public static final int FLAG_1_DOOR_BREAKER = 78;
+	public static final int FLAG_1_BREAKING_OBSTRUCTION = 79;
+	public static final int FLAG_1_DOOR_OPENER = 80;
+	public static final int FLAG_1_IS_ILLAGER_CAPTAIN = 81;
+	public static final int FLAG_1_STUNNED = 82;
+	public static final int FLAG_1_ROARING = 83;
+	public static final int FLAG_1_DELAYED_ATTACK = 84;
+	public static final int FLAG_1_IS_AVOIDING_MOBS = 85;
+	public static final int FLAG_1_IS_AVOIDING_BLOCKS = 86;
+	public static final int FLAG_1_FACING_TARGET_TO_RANGE_ATTACK = 87;
+	public static final int FLAG_1_HIDDEN_WHEN_INVISIBLE = 88;
+	public static final int FLAG_1_IS_IN_UI = 89;
+	public static final int FLAG_1_STALKING = 90;
+	public static final int FLAG_1_EMOTING = 91;
+	public static final int FLAG_1_CELEBRATING = 92;
+	public static final int FLAG_1_ADMIRING = 93;
+	public static final int FLAG_1_CELEBRATING_SPECIAL = 94;
+	public static final int FLAG_1_RAM_ATTACK = 96;
+	public static final int FLAG_1_PLAYING_DEAD = 97;
+	public static final int FLAG_1_IN_ASCENDABLE_BLOCK = 98;
+	public static final int FLAG_1_OVER_DESCENDABLE_BLOCK = 99;
+	public static final int FLAG_1_CROAKING = 100;
+	public static final int FLAG_1_EAT_MOB = 101;
+	public static final int FLAG_1_JUMP_GOAL_JUMP = 102;
+	public static final int FLAG_1_EMERGING = 103;
+	public static final int FLAG_1_SNIFFING = 104;
+	public static final int FLAG_1_DIGGING = 105;
+	public static final int FLAG_1_SONIC_BOOM = 106;
+	public static final int FLAG_1_UNDEFINED = 107;
+
 	static {
+		v12ToV14Book.defaultReturnValue(-1);
 		v12ToV14Book.put(Entity.DATA_FLAG_ONFIRE, ONFIRE);
 		v12ToV14Book.put(Entity.DATA_FLAG_SNEAKING, SNEAKING);
 		v12ToV14Book.put(Entity.DATA_FLAG_RIDING, RIDING);
@@ -159,6 +206,7 @@ public class DataFlagTranslator {
 		v12ToV14Book.put(Entity.DATA_FLAG_SPIN_ATTACK, DAMAGENEARBYMOBS);
 		v12ToV14Book.put(Entity.DATA_FLAG_SWIMMING, SWIMMING);
 
+		v12ToV17Book.defaultReturnValue(-1);
 		v12ToV17Book.put(Entity.DATA_FLAG_ONFIRE, ONFIRE);
 		v12ToV17Book.put(Entity.DATA_FLAG_SNEAKING, SNEAKING);
 		v12ToV17Book.put(Entity.DATA_FLAG_RIDING, RIDING);
@@ -220,9 +268,56 @@ public class DataFlagTranslator {
 		v12ToV17Book.put(Entity.DATA_FLAG_PREGNANT, FLAG_17_PREGNANT);
 		v12ToV17Book.put(Entity.DATA_FLAG_LAYING_EGG, FLAG_17_LAYING_EGG);
 		v12ToV17Book.put(Entity.DATA_FLAG_RIDER_CAN_PICK, FLAG_17_RIDER_CAN_PICK);
+
+		v12ToV17Book.put(Entity.DATA_FLAG_TRANSITION_SETTING, FLAG_1_TRANSITION_SETTING);
+		v12ToV17Book.put(Entity.DATA_FLAG_EATING, FLAG_1_EATING);
+		v12ToV17Book.put(Entity.DATA_FLAG_LAYING_DOWN, FLAG_1_LAYING_DOWN);
+		v12ToV17Book.put(Entity.DATA_FLAG_SNEEZING, FLAG_1_SNEEZING);
+		v12ToV17Book.put(Entity.DATA_FLAG_TRUSTING, FLAG_1_TRUSTING);
+		v12ToV17Book.put(Entity.DATA_FLAG_ROLLING, FLAG_1_ROLLING);
+		v12ToV17Book.put(Entity.DATA_FLAG_SCARED, FLAG_1_SCARED);
+		v12ToV17Book.put(Entity.DATA_FLAG_IN_SCAFFOLDING, FLAG_1_IN_SCAFFOLDING);
+		v12ToV17Book.put(Entity.DATA_FLAG_OVER_SCAFFOLDING, FLAG_1_OVER_SCAFFOLDING);
+		v12ToV17Book.put(Entity.DATA_FLAG_FALL_THROUGH_SCAFFOLDING, FLAG_1_FALL_THROUGH_SCAFFOLDING);
+		v12ToV17Book.put(Entity.DATA_FLAG_BLOCKING, FLAG_1_BLOCKING);
+		v12ToV17Book.put(Entity.DATA_FLAG_TRANSITION_BLOCKING, FLAG_1_TRANSITION_BLOCKING);
+		v12ToV17Book.put(Entity.DATA_FLAG_BLOCKED_USING_SHIELD, FLAG_1_BLOCKED_USING_SHIELD);
+		v12ToV17Book.put(Entity.DATA_FLAG_BLOCKED_USING_DAMAGED_SHIELD, FLAG_1_BLOCKED_USING_DAMAGED_SHIELD);
+		v12ToV17Book.put(Entity.DATA_FLAG_SLEEPING, FLAG_1_SLEEPING);
+		v12ToV17Book.put(Entity.DATA_FLAG_ENTITY_GROW_UP, FLAG_1_ENTITY_GROW_UP);
+		v12ToV17Book.put(Entity.DATA_FLAG_TRADE_INTEREST, FLAG_1_TRADE_INTEREST);
+		v12ToV17Book.put(Entity.DATA_FLAG_DOOR_BREAKER, FLAG_1_DOOR_BREAKER);
+		v12ToV17Book.put(Entity.DATA_FLAG_BREAKING_OBSTRUCTION, FLAG_1_BREAKING_OBSTRUCTION);
+		v12ToV17Book.put(Entity.DATA_FLAG_DOOR_OPENER, FLAG_1_DOOR_OPENER);
+		v12ToV17Book.put(Entity.DATA_FLAG_IS_ILLAGER_CAPTAIN, FLAG_1_IS_ILLAGER_CAPTAIN);
+		v12ToV17Book.put(Entity.DATA_FLAG_STUNNED, FLAG_1_STUNNED);
+		v12ToV17Book.put(Entity.DATA_FLAG_ROARING, FLAG_1_ROARING);
+		v12ToV17Book.put(Entity.DATA_FLAG_DELAYED_ATTACK, FLAG_1_DELAYED_ATTACK);
+		v12ToV17Book.put(Entity.DATA_FLAG_IS_AVOIDING_MOBS, FLAG_1_IS_AVOIDING_MOBS);
+		v12ToV17Book.put(Entity.DATA_FLAG_IS_AVOIDING_BLOCKS, FLAG_1_IS_AVOIDING_BLOCKS);
+		v12ToV17Book.put(Entity.DATA_FLAG_FACING_TARGET_TO_RANGE_ATTACK, FLAG_1_FACING_TARGET_TO_RANGE_ATTACK);
+		v12ToV17Book.put(Entity.DATA_FLAG_HIDDEN_WHEN_INVISIBLE, FLAG_1_HIDDEN_WHEN_INVISIBLE);
+		v12ToV17Book.put(Entity.DATA_FLAG_IS_IN_UI, FLAG_1_IS_IN_UI);
+		v12ToV17Book.put(Entity.DATA_FLAG_STALKING, FLAG_1_STALKING);
+		v12ToV17Book.put(Entity.DATA_FLAG_EMOTING, FLAG_1_EMOTING);
+		v12ToV17Book.put(Entity.DATA_FLAG_CELEBRATING, FLAG_1_CELEBRATING);
+		v12ToV17Book.put(Entity.DATA_FLAG_ADMIRING, FLAG_1_ADMIRING);
+		v12ToV17Book.put(Entity.DATA_FLAG_CELEBRATING_SPECIAL, FLAG_1_CELEBRATING_SPECIAL);
+		v12ToV17Book.put(Entity.DATA_FLAG_RAM_ATTACK, FLAG_1_RAM_ATTACK);
+		v12ToV17Book.put(Entity.DATA_FLAG_PLAYING_DEAD, FLAG_1_PLAYING_DEAD);
+		v12ToV17Book.put(Entity.DATA_FLAG_IN_ASCENDABLE_BLOCK, FLAG_1_IN_ASCENDABLE_BLOCK);
+		v12ToV17Book.put(Entity.DATA_FLAG_OVER_DESCENDABLE_BLOCK, FLAG_1_OVER_DESCENDABLE_BLOCK);
+		v12ToV17Book.put(Entity.DATA_FLAG_CROAKING, FLAG_1_CROAKING);
+		v12ToV17Book.put(Entity.DATA_FLAG_EAT_MOB, FLAG_1_EAT_MOB);
+		v12ToV17Book.put(Entity.DATA_FLAG_JUMP_GOAL_JUMP, FLAG_1_JUMP_GOAL_JUMP);
+		v12ToV17Book.put(Entity.DATA_FLAG_EMERGING, FLAG_1_EMERGING);
+		v12ToV17Book.put(Entity.DATA_FLAG_SNIFFING, FLAG_1_SNIFFING);
+		v12ToV17Book.put(Entity.DATA_FLAG_DIGGING, FLAG_1_DIGGING);
+		v12ToV17Book.put(Entity.DATA_FLAG_SONIC_BOOM, FLAG_1_SONIC_BOOM);
+		v12ToV17Book.put(Entity.DATA_FLAG_UNDEFINED, FLAG_1_UNDEFINED);
 	}
-	
-	public static Integer translateTo14Id(int v12Id) {
+
+	public static int translateTo14Id(int v12Id) {
 		return v12ToV14Book.get(v12Id);
 	}
 
@@ -230,8 +325,8 @@ public class DataFlagTranslator {
 		long flags = 0;
 		for (int i = 0; i < 64; i++) {
 			if ((data & (1L << i)) > 0) {
-				Integer bit = DataFlagTranslator.translateTo14Id(i);
-				if(bit == null) { // unknown version 14 translation.
+				int bit = DataFlagTranslator.translateTo14Id(i);
+				if (bit == -1) { // unknown version 14 translation.
 					continue;
 				}
 				flags |= (1L << bit);
@@ -240,7 +335,7 @@ public class DataFlagTranslator {
 		return flags;
 	}
 
-	public static Integer translateTo17Id(int v12Id) {
+	public static int translateTo17Id(int v12Id) {
 		return v12ToV17Book.get(v12Id);
 	}
 
@@ -248,8 +343,8 @@ public class DataFlagTranslator {
 		long flags = 0;
 		for (int i = 0; i < 64; i++) {
 			if ((data & (1L << i)) > 0) {
-				Integer bit = DataFlagTranslator.translateTo17Id(i);
-				if(bit == null) { // unknown version 14 translation.
+				int bit = DataFlagTranslator.translateTo17Id(i);
+				if (bit == -1) { // unknown version 17 translation.
 					continue;
 				}
 				flags |= (1L << bit);

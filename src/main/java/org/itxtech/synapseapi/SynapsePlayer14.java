@@ -3,12 +3,13 @@ package org.itxtech.synapseapi;
 import cn.nukkit.Player;
 import cn.nukkit.Server;
 import cn.nukkit.block.Block;
-import cn.nukkit.block.BlockAir;
+import cn.nukkit.block.BlockID;
 import cn.nukkit.block.BlockNoteblock;
 import cn.nukkit.entity.data.ShortEntityData;
 import cn.nukkit.entity.data.StringEntityData;
 import cn.nukkit.entity.item.EntityBoat;
 import cn.nukkit.event.player.*;
+import cn.nukkit.lang.TranslationContainer;
 import cn.nukkit.level.GameRules;
 import cn.nukkit.level.Position;
 import cn.nukkit.level.particle.PunchBlockParticle;
@@ -38,6 +39,7 @@ import org.itxtech.synapseapi.network.protocol.spp.PlayerLoginPacket;
 import java.net.InetSocketAddress;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.concurrent.ThreadLocalRandom;
 
 public class SynapsePlayer14 extends SynapsePlayer {
 
@@ -207,16 +209,15 @@ public class SynapsePlayer14 extends SynapsePlayer {
 
 				playerActionPacket.entityId = this.id;
 				Vector3 pos = new Vector3(playerActionPacket.x, playerActionPacket.y, playerActionPacket.z);
-				BlockFace face = BlockFace.fromIndex(playerActionPacket.face);
 
 				switch (playerActionPacket.action) {
 					case PlayerActionPacket14.ACTION_START_BREAK:
-
 						if (!this.spawned || !this.isAlive() || this.isSpectator() || this.lastBreak != Long.MAX_VALUE || pos.distanceSquared(this) > 100) {
 							break;
 						}
-						Block target = this.level.getBlock(pos);
-						PlayerInteractEvent playerInteractEvent = new PlayerInteractEvent(this, this.inventory.getItemInHand(), target, face, target.getId() == 0 ? PlayerInteractEvent.Action.LEFT_CLICK_AIR : PlayerInteractEvent.Action.LEFT_CLICK_BLOCK);
+						Block target = this.level.getBlock(pos, false);
+						BlockFace face = BlockFace.fromIndex(playerActionPacket.data);
+						PlayerInteractEvent playerInteractEvent = new PlayerInteractEvent(this, this.inventory.getItemInHand(), target, face, target.getId() == BlockID.AIR ? PlayerInteractEvent.Action.LEFT_CLICK_AIR : PlayerInteractEvent.Action.LEFT_CLICK_BLOCK);
 						this.getServer().getPluginManager().callEvent(playerInteractEvent);
 						if (playerInteractEvent.isCancelled()) {
 							this.inventory.sendHeldItem(this);
@@ -228,7 +229,7 @@ public class SynapsePlayer14 extends SynapsePlayer {
 						}
 						Block block = target.getSide(face);
 						if (block.getId() == Block.FIRE) {
-							this.level.setBlock(block, new BlockAir(), true);
+							this.level.setBlock(block, Block.get(Block.AIR), true);
 							this.level.addLevelSoundEvent(block, LevelSoundEventPacket.SOUND_EXTINGUISH_FIRE);
 							break;
 						}
@@ -250,7 +251,6 @@ public class SynapsePlayer14 extends SynapsePlayer {
 						this.breakingBlock = target;
 						this.lastBreak = System.currentTimeMillis();
 						break;
-
 					case PlayerActionPacket14.ACTION_ABORT_BREAK:
 						this.lastBreak = Long.MAX_VALUE;
 						this.breakingBlock = null;
@@ -385,6 +385,7 @@ public class SynapsePlayer14 extends SynapsePlayer {
 					case PlayerActionPacket14.ACTION_CONTINUE_BREAK:
 						if (this.isBreakingBlock()) {
 							block = this.level.getBlock(pos, false);
+							face = BlockFace.fromIndex(playerActionPacket.data);
 							this.level.addParticle(new PunchBlockParticle(pos, block, face));
 						}
 						break;
@@ -488,7 +489,7 @@ public class SynapsePlayer14 extends SynapsePlayer {
 		startGamePacket.worldName = this.getServer().getNetwork().getName();
 		startGamePacket.generator = 1; // 0 old, 1 infinite, 2 flat
 		startGamePacket.gameRules = getSupportedRules();
-
+		startGamePacket.enchantmentSeed = ThreadLocalRandom.current().nextInt();
 		return startGamePacket;
 	}
 
@@ -570,4 +571,13 @@ public class SynapsePlayer14 extends SynapsePlayer {
 		this.dataPacket(pk);
 	}
 
+	@Override
+	public void sendJukeboxPopup(TranslationContainer message) {
+		TextPacket14 pk = new TextPacket14();
+		pk.type = TextPacket14.JUKE_BOX_POPUP;
+		pk.isLocalized = true;
+		pk.message = message.getText();
+		pk.parameters = message.getParameters();
+		this.dataPacket(pk);
+	}
 }

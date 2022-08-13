@@ -229,7 +229,7 @@ public class SynapsePlayer extends Player {
             this.setLevel(level);
         }
 
-        for (Tag achievement : nbt.getCompound("Achievements").getAllTags()) {
+        /*for (Tag achievement : nbt.getCompound("Achievements").getAllTags()) {
             if (!(achievement instanceof ByteTag)) {
                 continue;
             }
@@ -237,7 +237,7 @@ public class SynapsePlayer extends Player {
             if (((ByteTag) achievement).getData() > 0) {
                 this.achievements.add(achievement.getName());
             }
-        }
+        }*/
 
         nbt.putLong("lastPlayed", System.currentTimeMillis() / 1000);
 
@@ -356,6 +356,8 @@ public class SynapsePlayer extends Player {
         if (this.isFirstTimeLogin) {
             DataPacket startGamePacket = generateStartGamePacket(spawnPosition);
             this.dataPacket(startGamePacket);
+
+            this.sendItemComponents();
         } else {
             GameRulesChangedPacket packet = new GameRulesChangedPacket();
             packet.gameRules = this.level.getGameRules();
@@ -1262,5 +1264,8 @@ public class SynapsePlayer extends Player {
             return true;
         }
         return super.isNetEaseClient();
+    }
+
+    public void sendItemComponents() {
     }
 }

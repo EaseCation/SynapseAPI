@@ -4,7 +4,6 @@ import cn.nukkit.math.Vector3f;
 import cn.nukkit.network.protocol.DataPacket;
 import cn.nukkit.network.protocol.MovePlayerPacket;
 import cn.nukkit.network.protocol.ProtocolInfo;
-import org.itxtech.synapseapi.multiprotocol.protocol116100.protocol.Packet116100;
 import org.itxtech.synapseapi.utils.ClassUtils;
 
 public class MovePlayerPacket116100NE extends Packet116100NE {
@@ -26,8 +25,8 @@ public class MovePlayerPacket116100NE extends Packet116100NE {
     public int mode = MODE_NORMAL;
     public boolean onGround;
     public long ridingEid;
-    public int int1 = 0;
-    public int int2 = 0;
+    public int teleportCause = 0;
+    public int teleportItem = 0;
     public long frame;
 
     @Override
@@ -44,8 +43,8 @@ public class MovePlayerPacket116100NE extends Packet116100NE {
         this.onGround = this.getBoolean();
         this.ridingEid = this.getEntityRuntimeId();
         if (this.mode == MODE_TELEPORT) {
-            this.int1 = this.getLInt();
-            this.int2 = this.getLInt();
+            this.teleportCause = this.getLInt();
+            this.teleportItem = this.getLInt();
         }
         this.frame = this.getUnsignedVarLong();
     }
@@ -62,8 +61,8 @@ public class MovePlayerPacket116100NE extends Packet116100NE {
         this.putBoolean(this.onGround);
         this.putEntityRuntimeId(this.ridingEid);
         if (this.mode == MODE_TELEPORT) {
-            this.putLInt(this.int1);
-            this.putLInt(this.int2);
+            this.putLInt(this.teleportCause);
+            this.putLInt(this.teleportItem);
         }
         this.putUnsignedVarLong(this.frame);
     }
@@ -88,8 +87,8 @@ public class MovePlayerPacket116100NE extends Packet116100NE {
         this.mode = packet.mode;
         this.onGround = packet.onGround;
         this.ridingEid = packet.ridingEid;
-        this.int1 = packet.int1;
-        this.int2 = packet.int2;
+        this.teleportCause = packet.teleportCause;
+        this.teleportItem = packet.entityType;
 
         return this;
     }

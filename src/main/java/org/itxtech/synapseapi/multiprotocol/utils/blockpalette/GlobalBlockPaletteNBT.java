@@ -1,6 +1,7 @@
 package org.itxtech.synapseapi.multiprotocol.utils.blockpalette;
 
 import cn.nukkit.Server;
+import cn.nukkit.block.Block;
 import cn.nukkit.nbt.NBTIO;
 import cn.nukkit.nbt.tag.CompoundTag;
 import cn.nukkit.nbt.tag.ListTag;
@@ -23,10 +24,13 @@ import java.nio.ByteOrder;
 import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 @Log4j2
 public class GlobalBlockPaletteNBT implements AdvancedGlobalBlockPaletteInterface {
 
+    //TODO: 可以使用O(1)数组
     final Int2IntMap legacyToRuntimeId = new Int2IntOpenHashMap();
     final Int2IntMap runtimeIdToLegacy = new Int2IntOpenHashMap();
     final Int2ObjectMap<CompoundTag> runtimeIdToState = new Int2ObjectOpenHashMap<>();
@@ -34,6 +38,10 @@ public class GlobalBlockPaletteNBT implements AdvancedGlobalBlockPaletteInterfac
     final boolean allowUnknownBlock; // Show 'Update Game!' block
     final byte[] compiledTable;
     final byte[] itemDataPalette;
+
+    private final ReentrantReadWriteLock readWriteLock = new ReentrantReadWriteLock();
+    private final Lock readLock = readWriteLock.readLock();
+    private final Lock writeLock = readWriteLock.writeLock();
 
     public GlobalBlockPaletteNBT(AbstractProtocol protocol, String blockPaletteFile) {
         this(protocol, blockPaletteFile, null);
@@ -56,13 +64,15 @@ public class GlobalBlockPaletteNBT implements AdvancedGlobalBlockPaletteInterfac
                 runtimeIdToState.put(i, data.block.getStatesTag());
 
                 if (data.legacyStates != null && data.legacyStates.length > 0) {
-                    int legacyIdNoMeta = data.legacyStates[0].id << 14;
-                    int legacyId = legacyIdNoMeta | data.legacyStates[0].val;
+                    int legacyIdNoMeta = data.legacyStates[data.legacyIndex].id << 14;
+                    int legacyId = legacyIdNoMeta | data.legacyStates[data.legacyIndex].val;
                     runtimeIdToLegacy.put(i, legacyId);
                     for (PaletteBlockData.LegacyStates legacyState : data.legacyStates) {
                         legacyIdNoMeta = legacyState.id << 14;
                         legacyId = legacyIdNoMeta | legacyState.val;
                         legacyToRuntimeId.putIfAbsent(legacyId, i);
+
+//                        if (legacyState.val > 0x3f) log.trace("block meta > 63! id: {}, meta: {}", legacyState.id, legacyState.val);
                     }
                 }
             }
@@ -128,32 +138,54 @@ public class GlobalBlockPaletteNBT implements AdvancedGlobalBlockPaletteInterfac
 
     @Override
     public int getOrCreateRuntimeId(int id, int meta) {
+        if (id < 0) {
+            log.warn("Block ID must be positive: {}", id, new Throwable("debug trace"));
+            id = 0xff - id;
+        }
+
         int legacyIdNoMeta = id << 14;
         int legacyId = legacyIdNoMeta | meta;
-        int runtimeId = legacyToRuntimeId.get(legacyId);
-        if (runtimeId == -1) {
-            runtimeId = legacyToRuntimeId.get(legacyIdNoMeta);
+        try {
+            readLock.lock();
+
+            int runtimeId = legacyToRuntimeId.get(legacyId);
             if (runtimeId == -1) {
-                if (!this.allowUnknownBlock) {
-                    throw new NoSuchElementException("Unmapped block registered id:" + id + " meta:" + meta);
+                runtimeId = legacyToRuntimeId.get(legacyIdNoMeta);
+                if (runtimeId == -1) {
+                    if (!this.allowUnknownBlock) {
+                        throw new NoSuchElementException("Unmapped block registered id:" + id + " meta:" + meta);
+                    }
+                    log.warn("Creating new runtime ID for unknown block {}", id, new Throwable("debug trace"));
+                    try {
+                        writeLock.lock();
+
+                        runtimeId = runtimeIdAllocator.getAndIncrement();
+                        legacyToRuntimeId.put(legacyIdNoMeta, runtimeId);
+                        runtimeIdToLegacy.put(runtimeId, legacyIdNoMeta);
+                    } finally {
+                        writeLock.unlock();
+                    }
                 }
-                log.info("Creating new runtime ID for unknown block {}", id);
-                runtimeId = runtimeIdAllocator.getAndIncrement();
-                legacyToRuntimeId.put(legacyIdNoMeta, runtimeId);
-                runtimeIdToLegacy.put(runtimeId, legacyIdNoMeta);
             }
+            return runtimeId;
+        } finally {
+            readLock.unlock();
         }
-        return runtimeId;
     }
 
     @Override
     public int getOrCreateRuntimeId(int legacyId) throws NoSuchElementException {
-        return getOrCreateRuntimeId(legacyId >> 4, legacyId & 0xf);
+        return getOrCreateRuntimeId(legacyId >> Block.BLOCK_META_BITS, legacyId & Block.BLOCK_META_MASK);
     }
 
     @Override
     public int getLegacyId(int runtimeId) {
-        return runtimeIdToLegacy.get(runtimeId);
+        try {
+            readLock.lock();
+            return runtimeIdToLegacy.get(runtimeId);
+        } finally {
+            readLock.unlock();
+        }
     }
 
     @Override

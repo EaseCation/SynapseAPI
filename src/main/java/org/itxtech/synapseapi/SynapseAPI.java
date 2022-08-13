@@ -31,6 +31,7 @@ import org.itxtech.synapseapi.multiprotocol.utils.AdvancedRuntimeItemPalette;
 import org.itxtech.synapseapi.multiprotocol.utils.AvailableEntityIdentifiersPalette;
 import org.itxtech.synapseapi.multiprotocol.utils.BiomeDefinitions;
 import org.itxtech.synapseapi.multiprotocol.utils.CreativeItemsPalette;
+import org.itxtech.synapseapi.multiprotocol.utils.ItemComponentDefinitions;
 import org.itxtech.synapseapi.runnable.TransferDimensionTaskThread;
 import org.itxtech.synapseapi.utils.ClientData;
 import org.itxtech.synapseapi.utils.NetTest;
@@ -211,6 +212,7 @@ public class SynapseAPI extends PluginBase implements Listener {
         CreativeItemsPalette.init();
         AvailableEntityIdentifiersPalette.init();
         BiomeDefinitions.init();
+        ItemComponentDefinitions.init();
 
         //仅用于开发测试
         this.getServer().getCommandMap().register("dcpk", new Command("dcpk") {
