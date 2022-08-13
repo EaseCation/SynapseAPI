@@ -1,4 +1,4 @@
-package org.itxtech.synapseapi.multiprotocol.protocol119.protocol;
+package org.itxtech.synapseapi.multiprotocol.protocol11920.protocol;
 
 import cn.nukkit.level.GameRules;
 import cn.nukkit.nbt.NBTIO;
@@ -12,7 +12,7 @@ import java.io.IOException;
 import java.util.UUID;
 
 @ToString
-public class StartGamePacket119 extends Packet119 {
+public class StartGamePacket11920 extends Packet11920 {
     public static final int NETWORK_ID = ProtocolInfo.START_GAME_PACKET;
 
     public static final int GAME_PUBLISH_SETTING_NO_MULTI_PLAY = 0;
@@ -38,6 +38,7 @@ public class StartGamePacket119 extends Packet119 {
     public float z;
     public float yaw;
     public float pitch;
+
     public int seed;
     public byte dimension;
     public int generator = 1;
@@ -47,6 +48,7 @@ public class StartGamePacket119 extends Packet119 {
     public int spawnY;
     public int spawnZ;
     public boolean hasAchievementsDisabled = true;
+    public boolean worldEditor;
     public int dayCycleStopTime = -1; //-1 = not stopped, any positive value = stopped at that time
     public int eduEditionOffer = 0;
     public boolean hasEduFeaturesEnabled = false;
@@ -72,29 +74,33 @@ public class StartGamePacket119 extends Packet119 {
     public boolean isFromWorldTemplate = false;
     public boolean isWorldTemplateOptionLocked = false;
     public boolean isOnlySpawningV1Villagers = false;
-    public String vanillaVersion = "1.19.0";
+    public boolean isDisablingPersonas;
+    public boolean isDisablingCustomSkins;
+    public String vanillaVersion = "1.19.20";
+    public byte chatRestrictionLevel;
+    public boolean disablePlayerInteractions;
+
     public String levelId = ""; //base64 string, usually the same as world folder name in vanilla
     public String worldName;
     public String premiumWorldTemplateId = "00000000-0000-0000-0000-000000000000";
     public boolean isTrial = false;
     public boolean isMovementServerAuthoritative;
+    public int rewindHistorySize = 20;
     public boolean isBlockBreakingServerAuthoritative;
-    public boolean isInventoryServerAuthoritative;
     public long currentTick;
-    public String serverEngine = "1.19.0";
+    public int enchantmentSeed;
+    public byte[] itemDataPalette;
+    public String multiplayerCorrelationId = "";
+    public boolean isInventoryServerAuthoritative;
+    public String serverEngine = "1.19.20";
+    public CompoundTag playerPropertyData = new CompoundTag();
     /**
      * A XXHash64 of all block states by their compound tag.
      * A value of 0 will not be validated by the client.
      */
     public long blockRegistryChecksum = 0;
-
-    public int enchantmentSeed;
-
-    public byte[] itemDataPalette;
-
-    public String multiplayerCorrelationId = "";
-    public CompoundTag playerPropertyData = new CompoundTag();
     public UUID worldTemplateId = new UUID(0, 0);
+    public boolean clientSideGenerationEnabled;
 
     @Override
     public void decode() {
@@ -119,6 +125,7 @@ public class StartGamePacket119 extends Packet119 {
         this.putVarInt(this.difficulty);
         this.putBlockVector3(this.spawnX, this.spawnY, this.spawnZ);
         this.putBoolean(this.hasAchievementsDisabled);
+        this.putBoolean(this.worldEditor);
         this.putVarInt(this.dayCycleStopTime);
         this.putVarInt(this.eduEditionOffer);
         this.putBoolean(this.hasEduFeaturesEnabled);
@@ -146,6 +153,8 @@ public class StartGamePacket119 extends Packet119 {
         this.putBoolean(this.isFromWorldTemplate);
         this.putBoolean(this.isWorldTemplateOptionLocked);
         this.putBoolean(this.isOnlySpawningV1Villagers);
+        this.putBoolean(this.isDisablingPersonas);
+        this.putBoolean(this.isDisablingCustomSkins);
         this.putString("*");//this.putString(this.helper.getGameVersion());
         this.putLInt(16); // Limited world width
         this.putLInt(16); // Limited world height
@@ -153,27 +162,30 @@ public class StartGamePacket119 extends Packet119 {
         this.putString(""); // EduSharedUriResource buttonName
         this.putString(""); // EduSharedUriResource linkUri
         this.putBoolean(false); // Experimental Gameplay
+        this.putByte(this.chatRestrictionLevel);
+        this.putBoolean(this.disablePlayerInteractions);
 
         this.putString(this.levelId);
         this.putString(this.worldName);
         this.putString(this.premiumWorldTemplateId);
         this.putBoolean(this.isTrial);
         this.putUnsignedVarInt(this.isMovementServerAuthoritative ? 1 : 0); // 2 - rewind
-        this.putVarInt(20); // RewindHistorySize
+        this.putVarInt(this.rewindHistorySize);
         this.putBoolean(this.isBlockBreakingServerAuthoritative);
         this.putLLong(this.currentTick);
         this.putVarInt(this.enchantmentSeed);
-        this.putUnsignedVarInt(0); // Custom blocks
+        this.putUnsignedVarInt(0); // custom blocks
         this.put(this.itemDataPalette == null ? AdvancedRuntimeItemPalette.getCompiledData(this.protocol, netease) : this.itemDataPalette);
         this.putString(this.multiplayerCorrelationId);
         this.putBoolean(this.isInventoryServerAuthoritative);
         this.putString(this.helper.getGameVersion());//this.putString(this.serverEngine);
         try {
-            this.put(NBTIO.writeNetwork(playerPropertyData));
+            this.put(NBTIO.writeNetwork(this.playerPropertyData));
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
         this.putLLong(this.blockRegistryChecksum);
         this.putUUID(this.worldTemplateId);
+        this.putBoolean(this.clientSideGenerationEnabled);
     }
 }

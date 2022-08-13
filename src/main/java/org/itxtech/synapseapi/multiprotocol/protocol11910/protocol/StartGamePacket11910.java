@@ -73,7 +73,7 @@ public class StartGamePacket11910 extends Packet11910 {
     public boolean isFromWorldTemplate = false;
     public boolean isWorldTemplateOptionLocked = false;
     public boolean isOnlySpawningV1Villagers = false;
-    public String vanillaVersion = "1.18.30";
+    public String vanillaVersion = "1.19.10";
     public String levelId = ""; //base64 string, usually the same as world folder name in vanilla
     public String worldName;
     public String premiumWorldTemplateId = "00000000-0000-0000-0000-000000000000";
@@ -82,7 +82,7 @@ public class StartGamePacket11910 extends Packet11910 {
     public boolean isBlockBreakingServerAuthoritative;
     public boolean isInventoryServerAuthoritative;
     public long currentTick;
-    public String serverEngine = "1.18.30";
+    public String serverEngine = "1.19.10";
     /**
      * A XXHash64 of all block states by their compound tag.
      * A value of 0 will not be validated by the client.
