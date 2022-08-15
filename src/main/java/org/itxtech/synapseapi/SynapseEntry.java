@@ -45,8 +45,8 @@ import java.util.concurrent.ThreadLocalRandom;
  */
 public class SynapseEntry {
 
-    private final Timing handleDataPacketTiming = TimingsManager.getTiming("SynapseEntry - HandleDataPacket");
-    private final Timing handleRedirectPacketTiming = TimingsManager.getTiming("SynapseEntry - HandleRedirectPacket");
+    // private final Timing handleDataPacketTiming = TimingsManager.getTiming("SynapseEntry - HandleDataPacket");
+    // private final Timing handleRedirectPacketTiming = TimingsManager.getTiming("SynapseEntry - HandleRedirectPacket");
 
     private SynapseAPI synapse;
     private boolean enable;
@@ -379,7 +379,7 @@ public class SynapseEntry {
     private final Queue<RedirectPacketEntry> redirectPacketQueue = new LinkedBlockingQueue<>();
 
     public void handleDataPacket(SynapseDataPacket pk) {
-        this.handleDataPacketTiming.startTiming();
+        // this.handleDataPacketTiming.startTiming();
         //this.getSynapse().getLogger().warning("Received packet " + pk.pid() + "(" + pk.getClass().getSimpleName() + ") from " + this.serverIp + ":" + this.port);
         switch (pk.pid()) {
             case SynapseInfo.DISCONNECT_PACKET:
@@ -432,7 +432,7 @@ public class SynapseEntry {
                     DataPacket pk0 = PacketRegister.getFullPacket(redirectPacket.mcpeBuffer, redirectPacket.protocol);
                     //Server.getInstance().getLogger().info("to server : " + pk0.getClass().getName());
                     if (pk0 != null) {
-                        this.handleRedirectPacketTiming.startTiming();
+                        // this.handleRedirectPacketTiming.startTiming();
                         //pk0.decode();
                         SynapsePlayer player = this.players.get(uuid);
                         if (pk0.pid() == ProtocolInfo.BATCH_PACKET) {
@@ -519,7 +519,7 @@ public class SynapseEntry {
                                 player.getViewers().values().forEach(viewer -> viewer.dataPacket(pk0));
                             }
                         }
-                        this.handleRedirectPacketTiming.stopTiming();
+                        // this.handleRedirectPacketTiming.stopTiming();
                     }
                 }
                 break;

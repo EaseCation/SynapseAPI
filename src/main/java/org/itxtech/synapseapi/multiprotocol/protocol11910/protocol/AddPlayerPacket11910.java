@@ -1,4 +1,4 @@
-package org.itxtech.synapseapi.multiprotocol.protocol11830.protocol;
+package org.itxtech.synapseapi.multiprotocol.protocol11910.protocol;
 
 import cn.nukkit.entity.data.EntityMetadata;
 import cn.nukkit.item.Item;
@@ -17,7 +17,7 @@ import java.util.UUID;
 import static org.itxtech.synapseapi.SynapsePlayer116100.GAME_TYPE_SURVIVAL;
 
 @ToString
-public class AddPlayerPacket11830 extends Packet11830 {
+public class AddPlayerPacket11910 extends Packet11910 {
     public static final int NETWORK_ID = ProtocolInfo.ADD_PLAYER_PACKET;
 
     @Override
@@ -63,7 +63,7 @@ public class AddPlayerPacket11830 extends Packet11830 {
         this.reset();
         this.putUUID(this.uuid);
         this.putString(this.username);
-        this.putEntityUniqueId(this.entityUniqueId);
+        // this.putEntityUniqueId(this.entityUniqueId);
         this.putEntityRuntimeId(this.entityRuntimeId);
         this.putString(this.platformChatId); // platform chat id
         this.putVector3f(this.x, this.y, this.z);
@@ -74,13 +74,15 @@ public class AddPlayerPacket11830 extends Packet11830 {
         this.putSlot(this.item);
         this.putVarInt(this.gameMode);
         this.put(Binary.writeMetadata(this.metadata));
-
-        this.putUnsignedVarInt(flags); // flags
-        this.putUnsignedVarInt(userCommandPermissions); // user command permissions
-        this.putUnsignedVarInt(permissionFlags); // permission flags
-        this.putUnsignedVarInt(playerPermissions); // player permissions
-        this.putUnsignedVarInt(storedCustomAbilities); // stored custom abilities
         this.putLLong(playerUniqueId); // player unique Id
+        this.putUnsignedVarInt(0); // playerPermission
+        this.putUnsignedVarInt(0); // commandPermission
+        this.putUnsignedVarInt(1); // abilitiesLayer size
+        this.putLShort(1); // BASE layer type
+        this.putLInt(262143); // abilitiesSet - all abilities
+        this.putLInt(63); // abilityValues - survival abilities
+        this.putLFloat(0.1f); // flySpeed
+        this.putLFloat(0.05f); // walkSpeed
 
         this.putUnsignedVarInt(links.length);
         for (EntityLink link : links) {

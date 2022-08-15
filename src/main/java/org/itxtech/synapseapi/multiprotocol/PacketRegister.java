@@ -50,6 +50,16 @@ import org.itxtech.synapseapi.multiprotocol.protocol11830.protocol.SpawnParticle
 import org.itxtech.synapseapi.multiprotocol.protocol11830.protocol.StartGamePacket11830;
 import org.itxtech.synapseapi.multiprotocol.protocol119.protocol.PlayerActionPacket119;
 import org.itxtech.synapseapi.multiprotocol.protocol119.protocol.StartGamePacket119;
+import org.itxtech.synapseapi.multiprotocol.protocol11910.protocol.AddEntityPacket11910;
+import org.itxtech.synapseapi.multiprotocol.protocol11910.protocol.AddPlayerPacket11910;
+import org.itxtech.synapseapi.multiprotocol.protocol11910.protocol.StartGamePacket11910;
+import org.itxtech.synapseapi.multiprotocol.protocol11920.protocol.ClientboundMapItemDataPacket11920;
+import org.itxtech.synapseapi.multiprotocol.protocol11920.protocol.FeatureRegistryPacket11920;
+import org.itxtech.synapseapi.multiprotocol.protocol11920.protocol.MapInfoRequestPacket11920;
+import org.itxtech.synapseapi.multiprotocol.protocol11920.protocol.ModalFormResponsePacket11920;
+import org.itxtech.synapseapi.multiprotocol.protocol11920.protocol.NetworkChunkPublisherUpdatePacket11920;
+import org.itxtech.synapseapi.multiprotocol.protocol11920.protocol.StartGamePacket11920;
+import org.itxtech.synapseapi.multiprotocol.protocol11920.protocol.UpdateAttributesPacket11920;
 import org.itxtech.synapseapi.multiprotocol.protocol119.protocol.ToastRequestPacket119;
 import org.itxtech.synapseapi.multiprotocol.protocol15.protocol.AddEntityPacket15;
 import org.itxtech.synapseapi.multiprotocol.protocol15.protocol.ClientboundMapItemDataPacket15;
@@ -265,6 +275,18 @@ public class PacketRegister {
         registerPacket(AbstractProtocol.PROTOCOL_119, ProtocolInfo.START_GAME_PACKET, StartGamePacket119.class);
         registerPacket(AbstractProtocol.PROTOCOL_119, ProtocolInfo.PLAYER_ACTION_PACKET, PlayerActionPacket119.class);
         registerPacket(AbstractProtocol.PROTOCOL_119, ProtocolInfo.TOAST_REQUEST_PACKET, ToastRequestPacket119.class);
+
+        registerPacket(AbstractProtocol.PROTOCOL_119_10, ProtocolInfo.START_GAME_PACKET, StartGamePacket11910.class);
+        registerPacket(AbstractProtocol.PROTOCOL_119_10, ProtocolInfo.ADD_PLAYER_PACKET, AddPlayerPacket11910.class);
+        registerPacket(AbstractProtocol.PROTOCOL_119_10, ProtocolInfo.ADD_ENTITY_PACKET, AddEntityPacket11910.class);
+
+        registerPacket(AbstractProtocol.PROTOCOL_119_20, ProtocolInfo.START_GAME_PACKET, StartGamePacket11920.class);
+        registerPacket(AbstractProtocol.PROTOCOL_119_20, ProtocolInfo.NETWORK_CHUNK_PUBLISHER_UPDATE_PACKET, NetworkChunkPublisherUpdatePacket11920.class);
+        registerPacket(AbstractProtocol.PROTOCOL_119_20, ProtocolInfo.UPDATE_ATTRIBUTES_PACKET, UpdateAttributesPacket11920.class);
+        registerPacket(AbstractProtocol.PROTOCOL_119_20, ProtocolInfo.MAP_INFO_REQUEST_PACKET, MapInfoRequestPacket11920.class);
+        registerPacket(AbstractProtocol.PROTOCOL_119_20, ProtocolInfo.CLIENTBOUND_MAP_ITEM_DATA_PACKET, ClientboundMapItemDataPacket11920.class);
+        registerPacket(AbstractProtocol.PROTOCOL_119_20, ProtocolInfo.MODAL_FORM_RESPONSE_PACKET, ModalFormResponsePacket11920.class);
+        registerPacket(AbstractProtocol.PROTOCOL_119_20, ProtocolInfo.FEATURE_REGISTRY_PACKET, FeatureRegistryPacket11920.class);
 
         checkNeteaseSpecialExtend();
         CraftingPacketManager.rebuildPacket();
