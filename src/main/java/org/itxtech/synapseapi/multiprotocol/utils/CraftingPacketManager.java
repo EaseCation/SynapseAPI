@@ -6,17 +6,17 @@ import cn.nukkit.network.protocol.BatchPacket;
 import cn.nukkit.network.protocol.CraftingDataPacket;
 import cn.nukkit.network.protocol.DataPacket;
 import cn.nukkit.utils.MainLogger;
-import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
 import org.itxtech.synapseapi.multiprotocol.AbstractProtocol;
 import org.itxtech.synapseapi.multiprotocol.PacketRegister;
 
+import java.util.EnumMap;
 import java.util.Map;
 import java.util.zip.Deflater;
 
 public final class CraftingPacketManager {
 
     private static BatchPacket originPacket;
-    private static final Map<AbstractProtocol, BatchPacket[]> packets = new Object2ObjectOpenHashMap<>();
+    private static final Map<AbstractProtocol, BatchPacket[]> packets = new EnumMap<>(AbstractProtocol.class);
 
     public static void rebuildPacket() {
         CraftingDataPacket pk = new CraftingDataPacket();

@@ -61,12 +61,13 @@ import org.msgpack.value.Value;
 
 import java.net.InetSocketAddress;
 import java.util.*;
-import java.util.stream.Collectors;
 
 /**
  * Created by boybook on 16/6/24.
  */
 public class SynapsePlayer extends Player {
+
+    public static final int SYNAPSE_PLAYER_ENTITY_ID = 1;
 
     private static final Map<Integer, Timing> handlePlayerDataPacketTimings = new HashMap<>();
     public boolean isSynapseLogin = false;
@@ -352,6 +353,12 @@ public class SynapsePlayer extends Player {
         if (this.spawnPosition == null && this.namedTag.contains("SpawnLevel") && (level = this.server.getLevelByName(this.namedTag.getString("SpawnLevel"))) != null) {
             this.spawnPosition = new Position(this.namedTag.getInt("SpawnX"), this.namedTag.getInt("SpawnY"), this.namedTag.getInt("SpawnZ"), level);
         }
+        if (this.spawnBlockPosition == null && this.namedTag.contains("SpawnBlockPositionLevel")) {
+            level = this.server.getLevelByName(this.namedTag.getString("SpawnBlockPositionLevel"));
+            if (level != null) {
+                this.spawnBlockPosition = new Position(this.namedTag.getInt("SpawnBlockPositionX"), this.namedTag.getInt("SpawnBlockPositionY"), this.namedTag.getInt("SpawnBlockPositionZ"), level);
+            }
+        }
 
         Position spawnPosition = this.getSpawn();
         if (this.isFirstTimeLogin) {
@@ -453,8 +460,8 @@ public class SynapsePlayer extends Player {
 
 	protected DataPacket generateStartGamePacket(Position spawnPosition) {
 		StartGamePacket startGamePacket = new StartGamePacket();
-		startGamePacket.entityUniqueId = Long.MAX_VALUE;
-		startGamePacket.entityRuntimeId = Long.MAX_VALUE;
+		startGamePacket.entityUniqueId = SYNAPSE_PLAYER_ENTITY_ID;
+		startGamePacket.entityRuntimeId = SYNAPSE_PLAYER_ENTITY_ID;
 		startGamePacket.playerGamemode = getClientFriendlyGamemode(this.gamemode);
 		startGamePacket.x = (float) this.x;
 		startGamePacket.y = (float) this.y;
@@ -1116,7 +1123,7 @@ public class SynapsePlayer extends Player {
             this.processLogin();
             return -1;
         }*/
-        packet = DataPacketEidReplacer.replace(packet, this.getId(), Long.MAX_VALUE);
+        packet = DataPacketEidReplacer.replace(packet, this.getId(), SYNAPSE_PLAYER_ENTITY_ID);
         packet.setHelper(AbstractProtocol.fromRealProtocol(this.protocol).getHelper());
 
         DataPacketSendEvent ev = new DataPacketSendEvent(this, packet);
@@ -1153,7 +1160,7 @@ public class SynapsePlayer extends Player {
     public boolean directDataPacket(DataPacket packet) {
         if (!this.isSynapseLogin) return super.directDataPacket(packet);
 
-        packet = DataPacketEidReplacer.replace(packet, this.getId(), Long.MAX_VALUE);
+        packet = DataPacketEidReplacer.replace(packet, this.getId(), SynapsePlayer.SYNAPSE_PLAYER_ENTITY_ID);
 
         DataPacketSendEvent ev = new DataPacketSendEvent(this, packet);
         this.server.getPluginManager().callEvent(ev);

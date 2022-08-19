@@ -21,6 +21,7 @@ import cn.nukkit.network.protocol.ProtocolInfo;
 import cn.nukkit.utils.Binary;
 import cn.nukkit.utils.Utils;
 import com.google.gson.JsonObject;
+import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
 import org.itxtech.synapseapi.event.player.netease.NetEasePlayerModEventC2SEvent;
 import org.itxtech.synapseapi.multiprotocol.AbstractProtocol;
 import org.itxtech.synapseapi.multiprotocol.PacketRegister;
@@ -53,7 +54,7 @@ public class SynapseAPI extends PluginBase implements Listener {
     private boolean loadingScreen = true;
     private boolean autoCompress = true;  //Compress in Nukkit, not Nemisys
     private boolean recordPacketStack = false;
-    private Map<String, SynapseEntry> synapseEntries = new HashMap<>();
+    private final Map<String, SynapseEntry> synapseEntries = new Object2ObjectOpenHashMap<>();
     private Messenger messenger;
     private boolean networkBroadcastPlayerMove;
 

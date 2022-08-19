@@ -5,6 +5,7 @@ import cn.nukkit.network.protocol.*;
 import cn.nukkit.network.protocol.BatchPacket;
 import cn.nukkit.utils.BinaryStream;
 import cn.nukkit.utils.MainLogger;
+import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import org.itxtech.synapseapi.multiprotocol.protocol110.protocol.AvailableCommandsPacket110;
 import org.itxtech.synapseapi.multiprotocol.protocol110.protocol.LecternUpdatePacket110;
 import org.itxtech.synapseapi.multiprotocol.protocol110.protocol.VideoStreamConnectPacket110;
@@ -80,14 +81,14 @@ import java.util.*;
  */
 public class PacketRegister {
 
-    private static final Map<AbstractProtocol, Class<? extends DataPacket>[]> packetPool = new HashMap<>();
+    private static final Map<AbstractProtocol, Class<? extends DataPacket>[]> packetPool = new EnumMap<>(AbstractProtocol.class);
 
     /**
      * nukkit packet -> multi protocols packet
      */
-    private static final Map<AbstractProtocol, Map<Class<? extends DataPacket>, Class<? extends IterationProtocolPacket>>> replacements = new HashMap<>();
+    private static final Map<AbstractProtocol, Map<Class<? extends DataPacket>, Class<? extends IterationProtocolPacket>>> replacements = new EnumMap<>(AbstractProtocol.class);
 
-    private static final Map<AbstractProtocol, boolean[]> neteaseSpecial = new HashMap<>();
+    private static final Map<AbstractProtocol, boolean[]> neteaseSpecial = new EnumMap<>(AbstractProtocol.class);
 
     public static void init() {
         registerPacket(AbstractProtocol.PROTOCOL_12, ProtocolInfo.LOGIN_PACKET, org.itxtech.synapseapi.multiprotocol.protocol12.protocol.LoginPacket.class);
@@ -197,6 +198,7 @@ public class PacketRegister {
         registerPacket(AbstractProtocol.PROTOCOL_113, ProtocolInfo.ADD_PLAYER_PACKET, AddPlayerPacket113.class);
         registerPacket(AbstractProtocol.PROTOCOL_113, ProtocolInfo.TICK_SYNC_PACKET, TickSyncPacket113.class);
         registerPacket(AbstractProtocol.PROTOCOL_113, ProtocolInfo.SETTINGS_COMMAND_PACKET, SettingsCommandPacket113.class);
+        registerPacket(AbstractProtocol.PROTOCOL_113, ProtocolInfo.MOVE_ENTITY_DELTA_PACKET, MoveEntityDeltaPacket113.class);
         registerPacket(AbstractProtocol.PROTOCOL_113, ProtocolInfo.PACKET_CONFIRM_SKIN, ConfirmSkinPacket113.class);
 
         registerPacket(AbstractProtocol.PROTOCOL_114_60, ProtocolInfo.PLAYER_LIST_PACKET, PlayerListPacket11460.class);
@@ -495,7 +497,7 @@ public class PacketRegister {
         byte[] data;
         data = Binary.appendBytes(payload);*/
 
-        List<DataPacket> packets = new ArrayList<>();
+        List<DataPacket> packets = new ObjectArrayList<>();
 
         byte[] payload = batchPacket.payload;
         BinaryStream stream = new BinaryStream(payload);

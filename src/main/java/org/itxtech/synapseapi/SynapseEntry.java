@@ -298,7 +298,7 @@ public class SynapseEntry {
             RedirectPacketEntry redirectPacketEntry;
             while ((redirectPacketEntry = redirectPacketQueue.poll()) != null) {
                 //Server.getInstance().getLogger().warning("C => S  " + redirectPacketEntry.dataPacket.getClass().getSimpleName());
-                redirectPacketEntry.player.handleDataPacket(DataPacketEidReplacer.replaceBack(redirectPacketEntry.dataPacket, Long.MAX_VALUE, redirectPacketEntry.player.getId()));
+                redirectPacketEntry.player.handleDataPacket(DataPacketEidReplacer.replaceBack(redirectPacketEntry.dataPacket, SynapsePlayer.SYNAPSE_PLAYER_ENTITY_ID, redirectPacketEntry.player.getId()));
             }
 
             PlayerLogoutPacket playerLogoutPacket;

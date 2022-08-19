@@ -4,6 +4,7 @@ import cn.nukkit.Player;
 import cn.nukkit.Server;
 import cn.nukkit.command.CommandSender;
 import cn.nukkit.command.PluginCommand;
+import lombok.extern.log4j.Log4j2;
 import org.itxtech.synapseapi.SynapseAPI;
 import org.itxtech.synapseapi.SynapseEntry;
 import org.itxtech.synapseapi.messaging.PluginMessageListener;
@@ -16,6 +17,7 @@ import java.util.Date;
 import java.util.Random;
 import java.util.concurrent.ThreadLocalRandom;
 
+@Log4j2
 public class NetTest implements PluginMessageListener {
 
     private final SynapseAPI plugin;
@@ -104,7 +106,7 @@ public class NetTest implements PluginMessageListener {
                     System.out.println("当前发送数据[" + (i + 1) + "/" + count + "]");
                 } catch (Exception e) {
                     System.out.println("发送数据[" + (i + 1) + "/" + count + "]时发生错误");
-                    e.printStackTrace();
+                    log.throwing(e);
                 }
                 try {
                     Thread.sleep(sleepTime);

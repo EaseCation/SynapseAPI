@@ -6,6 +6,7 @@ import org.itxtech.synapseapi.multiprotocol.AbstractProtocol;
 import java.util.HashMap;
 import java.util.Map;
 
+@Deprecated
 public class LevelSoundEventIDTranslator {
 
 	public final static Map<Integer, Integer> v12ToNewBook;

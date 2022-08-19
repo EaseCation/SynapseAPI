@@ -76,8 +76,8 @@ public class SynapsePlayer116 extends SynapsePlayer113 {
 		StartGamePacket116 startGamePacket = new StartGamePacket116();
 		startGamePacket.protocol = AbstractProtocol.fromRealProtocol(this.protocol);
 		startGamePacket.netease = this.isNetEaseClient();
-		startGamePacket.entityUniqueId = Long.MAX_VALUE;
-		startGamePacket.entityRuntimeId = Long.MAX_VALUE;
+		startGamePacket.entityUniqueId = SYNAPSE_PLAYER_ENTITY_ID;
+		startGamePacket.entityRuntimeId = SYNAPSE_PLAYER_ENTITY_ID;
 		startGamePacket.playerGamemode = getClientFriendlyGamemode(this.gamemode);
 		startGamePacket.x = (float) this.x;
 		startGamePacket.y = (float) this.y;
@@ -134,7 +134,7 @@ public class SynapsePlayer116 extends SynapsePlayer113 {
 		switch (packet.pid()) {
 			case ProtocolInfo.INTERACT_PACKET:
 				InteractPacket interactPacket = (InteractPacket) packet;
-				if (interactPacket.action == InteractPacket.ACTION_OPEN_INVENTORY && interactPacket.target == Long.MAX_VALUE && !this.inventoryOpen) {
+				if (interactPacket.action == InteractPacket.ACTION_OPEN_INVENTORY && interactPacket.target == SYNAPSE_PLAYER_ENTITY_ID && !this.inventoryOpen) {
 //					this.openInventory();
 					this.inventory.open(this);
 					this.inventoryOpen = true;

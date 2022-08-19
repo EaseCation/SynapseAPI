@@ -21,7 +21,7 @@ public class CreativeItemsPalette {
         }
     }
 
-    private static final Map<AbstractProtocol, CreativeItemsList[]> palettes = new HashMap<>();
+    private static final Map<AbstractProtocol, CreativeItemsList[]> palettes = new EnumMap<>(AbstractProtocol.class);
 
     public static void init() {
         register(AbstractProtocol.PROTOCOL_19, load("creativeitems_19.json"), null);

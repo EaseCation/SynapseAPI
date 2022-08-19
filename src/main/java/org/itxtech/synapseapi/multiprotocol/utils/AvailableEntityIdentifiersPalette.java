@@ -8,12 +8,12 @@ import org.itxtech.synapseapi.multiprotocol.AbstractProtocol;
 
 import java.io.IOException;
 import java.nio.ByteOrder;
-import java.util.HashMap;
+import java.util.EnumMap;
 import java.util.Map;
 
 public final class AvailableEntityIdentifiersPalette {
 
-    private static final Map<AbstractProtocol, byte[]> palettes = new HashMap<>();
+    private static final Map<AbstractProtocol, byte[]> palettes = new EnumMap<>(AbstractProtocol.class);
 
     static {
         try {

@@ -7,6 +7,7 @@ import cn.nukkit.network.protocol.*;
 import cn.nukkit.utils.Binary;
 import cn.nukkit.utils.MainLogger;
 import cn.nukkit.utils.Zlib;
+import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import lombok.extern.log4j.Log4j2;
 import org.itxtech.synapseapi.SynapseAPI;
 import org.itxtech.synapseapi.SynapsePlayer;
@@ -262,7 +263,7 @@ public class SynapseEntryPutPacketThread extends Thread {
                                     .filter(protocol ->
                                             players.stream()
                                                     .anyMatch(p -> AbstractProtocol.fromRealProtocol(p.getProtocol()) == protocol))
-                                    .collect(Collectors.toMap(Function.identity(), v -> new ArrayList<>()));
+                                    .collect(Collectors.toMap(Function.identity(), v -> new ObjectArrayList<>()));
 
                     for (DataPacket targetPk : entry1.packet) {
                         /*RedirectPacket pk = new RedirectPacket();
@@ -292,7 +293,7 @@ public class SynapseEntryPutPacketThread extends Thread {
                         });
                     }
 
-                    Map<AbstractProtocol, byte[][]> finalData = new HashMap<>();
+                    Map<AbstractProtocol, byte[][]> finalData = new EnumMap<>(AbstractProtocol.class);
                     needPackets.forEach((protocol, packets) -> {
                         BatchPacket batch = batchPackets(packets.stream().map(BatchPacketEntry::getNormalVersion).toArray(DataPacket[]::new), protocol);
                         if (batch != null) {
@@ -309,8 +310,8 @@ public class SynapseEntryPutPacketThread extends Thread {
                         }
                     });
 
-                    for(SynapsePlayer player : entry1.player) {
-                        if(player.closed) {
+                    for (SynapsePlayer player : entry1.player) {
+                        if (player.closed) {
                             continue;
                         }
 

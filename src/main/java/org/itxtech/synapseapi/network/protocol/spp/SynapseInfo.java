@@ -15,4 +15,6 @@ public interface SynapseInfo {
     byte BROADCAST_PACKET = 0x09;
     byte FAST_PLAYER_LIST_PACKET = 0x0a;
     byte PLUGIN_MESSAGE_PACKET = 0x0b;
+
+    int COUNT = 0x0c;
 }

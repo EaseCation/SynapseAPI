@@ -1,6 +1,5 @@
 package org.itxtech.synapseapi.multiprotocol.utils.blockpalette.data;
 
-import cn.nukkit.block.Block;
 import cn.nukkit.block.BlockCoral;
 import cn.nukkit.block.BlockID;
 import cn.nukkit.level.GlobalBlockPalette;
@@ -18,22 +17,25 @@ import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import lombok.ToString;
 import lombok.extern.log4j.Log4j2;
 import org.itxtech.synapseapi.SynapseAPI;
+import org.itxtech.synapseapi.multiprotocol.utils.blockpalette.data.PaletteBlockData.Block;
 import org.itxtech.synapseapi.multiprotocol.utils.blockpalette.data.PaletteBlockData.LegacyStates;
 
 import java.io.*;
 import java.lang.reflect.Type;
 import java.nio.ByteOrder;
 import java.nio.charset.StandardCharsets;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 import java.util.NoSuchElementException;
 
 @Log4j2
-public class PaletteBlockTable extends ArrayList<PaletteBlockData> {
+public class PaletteBlockTable extends ObjectArrayList<PaletteBlockData> {
 
     private PaletteBlockTable() { }
+
+    public int totalRuntimeIds;
 
     public ListTag<CompoundTag> toTag() {
         ListTag<CompoundTag> list = new ListTag<>();
@@ -54,7 +56,8 @@ public class PaletteBlockTable extends ArrayList<PaletteBlockData> {
         PaletteBlockTable table = new PaletteBlockTable();
 
         PaletteBlockData air = PaletteBlockData.createUnknownData();
-        PaletteBlockData unknown = new PaletteBlockData(Short.MAX_VALUE, new PaletteBlockData.LegacyStates[0], new PaletteBlockData.Block("minecraft:info_update", 1, new ArrayList<>()));
+        PaletteBlockData unknown = new PaletteBlockData(Short.MAX_VALUE, new LegacyStates[0],
+                new Block("minecraft:info_update", 0, Collections.emptyList()));
 
         ListTag<CompoundTag> tag;
         try (InputStream stream = SynapseAPI.class.getClassLoader().getResourceAsStream(file)) {
@@ -67,7 +70,9 @@ public class PaletteBlockTable extends ArrayList<PaletteBlockData> {
             throw new AssertionError("Unable to load block palette", e);
         }
 
-        for (CompoundTag state : tag.getAll()) {
+        table.totalRuntimeIds = tag.size();
+
+        for (CompoundTag state : tag.getAllUnsafe()) {
             CompoundTag blockTag = state.getCompound("block");
             PaletteBlockData.LegacyStates[] legacyStates = null;
 
@@ -130,13 +135,13 @@ public class PaletteBlockTable extends ArrayList<PaletteBlockData> {
                 }
 
                 if (legacyStates == null) {
-                    List<Tag> statesData = new ArrayList<>();
+                    List<Tag> statesData = new ObjectArrayList<>();
                     states.getTags().forEach((stateName, stateValue) -> statesData.add(stateValue));
                     table.add(new PaletteBlockData(id, null, new PaletteBlockData.Block(name, blockTag.getInt("version"), statesData)));
                     continue;
                 }
             } else {
-                List<PaletteBlockData.LegacyStates> legacyStatesList = new ArrayList<>();
+                List<PaletteBlockData.LegacyStates> legacyStatesList = new ObjectArrayList<>();
                 state.getList("LegacyStates", CompoundTag.class).getAll()
                         .forEach(legacy -> legacyStatesList.add(new PaletteBlockData.LegacyStates(legacy.getInt("id"), legacy.getShort("val"))));
                 legacyStates = legacyStatesList.toArray(new PaletteBlockData.LegacyStates[0]);
@@ -152,7 +157,7 @@ public class PaletteBlockTable extends ArrayList<PaletteBlockData> {
             }
 
             CompoundTag blockStatesTag = blockTag.getCompound("states");
-            List<Tag> statesData = new ArrayList<>();
+            List<Tag> statesData = new ObjectArrayList<>();
             blockStatesTag.getTags().forEach((stateName, stateValue) -> statesData.add(stateValue));
             PaletteBlockData.Block block = new PaletteBlockData.Block(blockTag.getString("name"), blockTag.getInt("version"), statesData);
 
@@ -164,7 +169,7 @@ public class PaletteBlockTable extends ArrayList<PaletteBlockData> {
             );
             table.add(data);
 
-            if (firstState.id == Block.AIR) {
+            if (firstState.id == BlockID.AIR) {
                 air.legacyStates = data.legacyStates;
                 air.id = data.id;
                 air.block = data.block;
@@ -192,10 +197,12 @@ public class PaletteBlockTable extends ArrayList<PaletteBlockData> {
             throw new AssertionError("Unable to load block palette", e);
         }
 
+        table.totalRuntimeIds = tag.size();
+
         for (CompoundTag state : tag.getAll()) {
             PaletteBlockData.LegacyStates[] legacyStates = null;
             if (state.contains("LegacyStates")) {
-                List<PaletteBlockData.LegacyStates> legacyStatesList = new ArrayList<>();
+                List<PaletteBlockData.LegacyStates> legacyStatesList = new ObjectArrayList<>();
                 state.getList("LegacyStates", CompoundTag.class).getAll()
                         .forEach(legacy -> legacyStatesList.add(new PaletteBlockData.LegacyStates(legacy.getInt("id"), legacy.getShort("val"))));
                 legacyStates = legacyStatesList.toArray(new PaletteBlockData.LegacyStates[0]);
@@ -203,7 +210,7 @@ public class PaletteBlockTable extends ArrayList<PaletteBlockData> {
             }
             CompoundTag blockTag = state.getCompound("block");
             CompoundTag blockStatesTag = blockTag.getCompound("states");
-            List<Tag> statesData = new ArrayList<>();
+            List<Tag> statesData = new ObjectArrayList<>();
             blockStatesTag.getTags().forEach((stateName, stateValue) -> statesData.add(stateValue));
             PaletteBlockData.Block block = new PaletteBlockData.Block(blockTag.getString("name"), blockTag.getInt("version"), statesData);
             int id = state.getShort("id");
@@ -251,7 +258,7 @@ public class PaletteBlockTable extends ArrayList<PaletteBlockData> {
 
             if (legacyStates != null && legacyStates.length != 0) {
                 PaletteBlockData.LegacyStates firstState = legacyStates[0];
-                if (firstState.id == Block.LOG || firstState.id == Block.LOG2) { // 六面树皮的中国版临时修复
+                if (firstState.id == BlockID.LOG || firstState.id == BlockID.LOG2) { // 六面树皮的中国版临时修复
                     if (firstState.val < 4) {
                         table.add(new PaletteBlockData(
                                 firstState.id,
@@ -283,11 +290,13 @@ public class PaletteBlockTable extends ArrayList<PaletteBlockData> {
             throw new AssertionError(e);
         }
 
+        table.totalRuntimeIds = tag.size();
+
         for (CompoundTag state : tag.getAll()) {
             int id = state.getShort("id");
             PaletteBlockData.LegacyStates[] legacyStatesData = null;
             if (state.contains("meta")) {
-                List<PaletteBlockData.LegacyStates> legacyStatesList = new ArrayList<>();
+                List<PaletteBlockData.LegacyStates> legacyStatesList = new ObjectArrayList<>();
                 int[] meta = state.getIntArray("meta");
                 for (int m : meta) {
                     legacyStatesList.add(new PaletteBlockData.LegacyStates(id, m));
@@ -296,7 +305,7 @@ public class PaletteBlockTable extends ArrayList<PaletteBlockData> {
             }
             CompoundTag blockTag = state.getCompound("block");
             CompoundTag blockStatesTag = blockTag.getCompound("states");
-            List<Tag> statesData = new ArrayList<>();
+            List<Tag> statesData = new ObjectArrayList<>();
             blockStatesTag.getTags().forEach((stateName, stateValue) -> statesData.add(stateValue));
             PaletteBlockData.Block block = new PaletteBlockData.Block(blockTag.getString("name"), blockTag.getInt("version"), statesData);
 
@@ -324,12 +333,14 @@ public class PaletteBlockTable extends ArrayList<PaletteBlockData> {
         Type collectionType = new TypeToken<Collection<JsonTableEntry>>(){}.getType();
         Collection<JsonTableEntry> entries = gson.fromJson(reader, collectionType);
 
+        table.totalRuntimeIds = entries.size();
+
         for (JsonTableEntry entry : entries) {
             table.add(
                     new PaletteBlockData(
                             entry.id,
                             new PaletteBlockData.LegacyStates[]{new PaletteBlockData.LegacyStates(entry.id, entry.data)},
-                            new PaletteBlockData.Block(entry.name, 0, new ArrayList<>())
+                            new PaletteBlockData.Block(entry.name, 0, new ObjectArrayList<>())
                     )
             );
         }
@@ -352,12 +363,13 @@ public class PaletteBlockTable extends ArrayList<PaletteBlockData> {
                 entries = gson.fromJson(reader, collectionType);
             }
             PaletteBlockTable table = new PaletteBlockTable();
+            table.totalRuntimeIds = entries.size();
             for (NetEaseJsonTableEntry entry : entries) {
                 table.add(
                         new PaletteBlockData(
                                 entry.blockId,
                                 new PaletteBlockData.LegacyStates[]{new PaletteBlockData.LegacyStates(entry.blockId, entry.meta)},
-                                new PaletteBlockData.Block(entry.blockName, 0, new ArrayList<>())
+                                new PaletteBlockData.Block(entry.blockName, 0, new ObjectArrayList<>())
                         )
                 );
             }
@@ -382,6 +394,7 @@ public class PaletteBlockTable extends ArrayList<PaletteBlockData> {
                 entries = gson.fromJson(reader, collectionType);
             }
             PaletteBlockTable table = new PaletteBlockTable();
+            table.totalRuntimeIds = entries.size();
             for (DumpJsonTableEntry entry : entries) {
                 List<Tag> state = new ObjectArrayList<>(entry.states.size());
                 entry.states.forEach(stateEntry -> {
@@ -449,6 +462,7 @@ public class PaletteBlockTable extends ArrayList<PaletteBlockData> {
         if (this == according) return this;
 
         PaletteBlockTable table = new PaletteBlockTable();
+        table.totalRuntimeIds = according.totalRuntimeIds;
         for (PaletteBlockData accordingData : according) {
             PaletteBlockData find = this.stream()
                     .filter(data -> data.id == accordingData.id)
@@ -475,6 +489,7 @@ public class PaletteBlockTable extends ArrayList<PaletteBlockData> {
 
     public PaletteBlockTable cutAdvanced() {
         PaletteBlockTable table = new PaletteBlockTable();
+        table.totalRuntimeIds = totalRuntimeIds;
         for (PaletteBlockData data : this) {
             if (data.id < 256) table.add(data);
         }

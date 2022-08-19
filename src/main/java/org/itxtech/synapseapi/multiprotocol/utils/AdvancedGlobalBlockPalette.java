@@ -10,15 +10,15 @@ import org.itxtech.synapseapi.multiprotocol.AbstractProtocol;
 import org.itxtech.synapseapi.multiprotocol.utils.blockpalette.*;
 import org.itxtech.synapseapi.multiprotocol.utils.blockpalette.data.PaletteBlockTable;
 
-import java.util.HashMap;
+import java.util.EnumMap;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Stream;
 
 public final class AdvancedGlobalBlockPalette {
 
-    public static final Map<AbstractProtocol, AdvancedGlobalBlockPaletteInterface[]> palettes = new HashMap<>();
-    public static final Map<StaticVersion, GlobalBlockPaletteInterface> staticPalettes = new HashMap<>();
+    public static final Map<AbstractProtocol, AdvancedGlobalBlockPaletteInterface[]> palettes = new EnumMap<>(AbstractProtocol.class);
+    public static final Map<StaticVersion, GlobalBlockPaletteInterface> staticPalettes = new EnumMap<>(StaticVersion.class);
 
     static {
         palettes.put(AbstractProtocol.PROTOCOL_16, new AdvancedGlobalBlockPaletteInterface[]{

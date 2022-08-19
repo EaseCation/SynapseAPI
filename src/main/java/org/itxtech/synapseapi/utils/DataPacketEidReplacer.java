@@ -4,10 +4,13 @@ import cn.nukkit.entity.Entity;
 import cn.nukkit.entity.data.EntityData;
 import cn.nukkit.entity.data.EntityMetadata;
 import cn.nukkit.network.protocol.*;
+import org.itxtech.synapseapi.multiprotocol.protocol113.protocol.MoveEntityDeltaPacket113;
 import org.itxtech.synapseapi.multiprotocol.protocol116100.protocol.AnimateEntityPacket116100;
+import org.itxtech.synapseapi.multiprotocol.protocol116100.protocol.MoveEntityDeltaPacket116100;
 import org.itxtech.synapseapi.multiprotocol.protocol116100ne.protocol.MovePlayerPacket116100NE;
 import org.itxtech.synapseapi.multiprotocol.protocol11730.protocol.AnimateEntityPacket11730;
 import org.itxtech.synapseapi.multiprotocol.protocol11830.protocol.SpawnParticleEffectPacket11830;
+import org.itxtech.synapseapi.multiprotocol.protocol15.protocol.MoveEntityDeltaPacket;
 import org.itxtech.synapseapi.multiprotocol.protocol18.protocol.SpawnParticleEffectPacket18;
 
 import java.util.Arrays;
@@ -142,8 +145,25 @@ public class DataPacketEidReplacer {
                         }
                     }
                 }
+                break;
+            case ProtocolInfo.MOVE_ENTITY_DELTA_PACKET:
+                if (packet instanceof MoveEntityDeltaPacket116100) {
+                    if (((MoveEntityDeltaPacket116100) packet).entityRuntimeId == from) {
+                        ((MoveEntityDeltaPacket116100) packet).entityRuntimeId = to;
+                    }
+                } else if (packet instanceof MoveEntityDeltaPacket113) {
+                    if (((MoveEntityDeltaPacket113) packet).entityRuntimeId == from) {
+                        ((MoveEntityDeltaPacket113) packet).entityRuntimeId = to;
+                    }
+                } else if (packet instanceof MoveEntityDeltaPacket) {
+                    if (((MoveEntityDeltaPacket) packet).entityRuntimeId == from) {
+                        ((MoveEntityDeltaPacket) packet).entityRuntimeId = to;
+                    }
+                }
+                break;
             default:
                 change = false;
+                break;
         }
 
         if (change) {

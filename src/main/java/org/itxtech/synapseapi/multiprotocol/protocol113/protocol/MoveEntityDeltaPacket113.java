@@ -1,11 +1,11 @@
-package org.itxtech.synapseapi.multiprotocol.protocol116100.protocol;
+package org.itxtech.synapseapi.multiprotocol.protocol113.protocol;
 
 import cn.nukkit.network.protocol.DataPacket;
 import cn.nukkit.network.protocol.ProtocolInfo;
 import org.itxtech.synapseapi.multiprotocol.protocol15.protocol.MoveEntityDeltaPacket;
 import org.itxtech.synapseapi.utils.ClassUtils;
 
-public class MoveEntityDeltaPacket116100 extends Packet116100 {
+public class MoveEntityDeltaPacket113 extends Packet113 {
 
     public static final int NETWORK_ID = ProtocolInfo.MOVE_ENTITY_DELTA_PACKET;
 
@@ -17,13 +17,13 @@ public class MoveEntityDeltaPacket116100 extends Packet116100 {
     public static final int FLAG_HAS_HEAD_YAW = 0b100000;
 
     public long entityRuntimeId;
-    public int flags = 0;
-    public float x = 0;
-    public float y = 0;
-    public float z = 0;
-    public double pitchDelta = 0;
-    public double yawDelta = 0;
-    public double headYawDelta = 0;
+    public int flags;
+    public int x;
+    public int y;
+    public int z;
+    public double pitchDelta;
+    public double yawDelta;
+    public double headYawDelta;
 
     @Override
     public int pid() {
@@ -47,9 +47,9 @@ public class MoveEntityDeltaPacket116100 extends Packet116100 {
         putRotation(FLAG_HAS_HEAD_YAW, this.headYawDelta);
     }
 
-    private float getCoordinate(int flag) {
+    private int getCoordinate(int flag) {
         if ((flags & flag) != 0) {
-            return this.getLFloat();
+            return this.getVarInt();
         }
         return 0;
     }
@@ -61,9 +61,9 @@ public class MoveEntityDeltaPacket116100 extends Packet116100 {
         return 0d;
     }
 
-    private void putCoordinate(int flag, float value) {
+    private void putCoordinate(int flag, int value) {
         if ((flags & flag) != 0) {
-            this.putLFloat(value);
+            this.putVarInt(value);
         }
     }
 

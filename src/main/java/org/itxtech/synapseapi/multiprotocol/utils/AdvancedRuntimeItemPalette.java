@@ -1,10 +1,10 @@
 package org.itxtech.synapseapi.multiprotocol.utils;
 
 import cn.nukkit.item.Item;
-import it.unimi.dsi.fastutil.objects.Object2ObjectMap;
-import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
 import org.itxtech.synapseapi.multiprotocol.AbstractProtocol;
 
+import java.util.EnumMap;
+import java.util.Map;
 import java.util.Objects;
 
 /**
@@ -13,14 +13,11 @@ import java.util.Objects;
  * 所以需要分版本对数据包进行处理
  * 注意：最好所有涉及到的包都有多协议适配版（XXXPacket116200这类），这样才可以在BinaryStream中自动设置进去neteaseMode，不然都将按照国际版进行编码
  */
-
 public final class AdvancedRuntimeItemPalette {
 
-    public static final Object2ObjectMap<AbstractProtocol, AdvancedRuntimeItemPaletteInterface[]> palettes = new Object2ObjectOpenHashMap<>();
+    public static final Map<AbstractProtocol, AdvancedRuntimeItemPaletteInterface[]> palettes = new EnumMap<>(AbstractProtocol.class);
 
     static {
-        palettes.defaultReturnValue(new AdvancedRuntimeItemPaletteInterface[]{RuntimeItemPaletteLegacy.INSTANCE});
-
         RuntimeItemPalette palette116100 = new RuntimeItemPalette("runtime_item_ids_116100.json");
         RuntimeItemPalette palette116200NE = new RuntimeItemPalette("runtime_item_ids_116200NE.json");
         RuntimeItemPalette palette117 = new RuntimeItemPalette("runtime_item_ids_117.json");
@@ -62,6 +59,9 @@ public final class AdvancedRuntimeItemPalette {
 
     private static AdvancedRuntimeItemPaletteInterface getPalette(AbstractProtocol protocol, boolean netease) {
         AdvancedRuntimeItemPaletteInterface[] interfaces = palettes.get(protocol);
+        if (interfaces == null) {
+            return RuntimeItemPaletteLegacy.INSTANCE;
+        }
         if (netease && interfaces.length > 1) {
             return interfaces[1];
         } else {

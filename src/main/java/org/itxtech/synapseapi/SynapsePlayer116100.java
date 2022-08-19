@@ -46,8 +46,6 @@ import cn.nukkit.network.protocol.DataPacket;
 import cn.nukkit.network.protocol.LevelChunkPacket;
 import cn.nukkit.network.protocol.LevelEventPacket;
 import cn.nukkit.network.protocol.LevelSoundEventPacket;
-import cn.nukkit.network.protocol.MapInfoRequestPacket;
-import cn.nukkit.network.protocol.ModalFormResponsePacket;
 import cn.nukkit.network.protocol.MovePlayerPacket;
 import cn.nukkit.network.protocol.PlayerInputPacket;
 import cn.nukkit.network.protocol.ProtocolInfo;
@@ -169,8 +167,8 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
             StartGamePacket11920 startGamePacket = new StartGamePacket11920();
             startGamePacket.protocol = AbstractProtocol.fromRealProtocol(this.protocol);
             startGamePacket.netease = this.isNetEaseClient();
-            startGamePacket.entityUniqueId = Long.MAX_VALUE;
-            startGamePacket.entityRuntimeId = Long.MAX_VALUE;
+            startGamePacket.entityUniqueId = SYNAPSE_PLAYER_ENTITY_ID;
+            startGamePacket.entityRuntimeId = SYNAPSE_PLAYER_ENTITY_ID;
             startGamePacket.playerGamemode = getClientFriendlyGamemode(this.gamemode);
             startGamePacket.x = (float) this.x;
             startGamePacket.y = (float) this.y;
@@ -202,8 +200,8 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
             StartGamePacket11910 startGamePacket = new StartGamePacket11910();
             startGamePacket.protocol = AbstractProtocol.fromRealProtocol(this.protocol);
             startGamePacket.netease = this.isNetEaseClient();
-            startGamePacket.entityUniqueId = Long.MAX_VALUE;
-            startGamePacket.entityRuntimeId = Long.MAX_VALUE;
+            startGamePacket.entityUniqueId = SYNAPSE_PLAYER_ENTITY_ID;
+            startGamePacket.entityRuntimeId = SYNAPSE_PLAYER_ENTITY_ID;
             startGamePacket.playerGamemode = getClientFriendlyGamemode(this.gamemode);
             startGamePacket.x = (float) this.x;
             startGamePacket.y = (float) this.y;
@@ -235,8 +233,8 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
             StartGamePacket119 startGamePacket = new StartGamePacket119();
             startGamePacket.protocol = AbstractProtocol.fromRealProtocol(this.protocol);
             startGamePacket.netease = this.isNetEaseClient();
-            startGamePacket.entityUniqueId = Long.MAX_VALUE;
-            startGamePacket.entityRuntimeId = Long.MAX_VALUE;
+            startGamePacket.entityUniqueId = SYNAPSE_PLAYER_ENTITY_ID;
+            startGamePacket.entityRuntimeId = SYNAPSE_PLAYER_ENTITY_ID;
             startGamePacket.playerGamemode = getClientFriendlyGamemode(this.gamemode);
             startGamePacket.x = (float) this.x;
             startGamePacket.y = (float) this.y;
@@ -268,8 +266,8 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
             StartGamePacket11830 startGamePacket = new StartGamePacket11830();
             startGamePacket.protocol = AbstractProtocol.fromRealProtocol(this.protocol);
             startGamePacket.netease = this.isNetEaseClient();
-            startGamePacket.entityUniqueId = Long.MAX_VALUE;
-            startGamePacket.entityRuntimeId = Long.MAX_VALUE;
+            startGamePacket.entityUniqueId = SYNAPSE_PLAYER_ENTITY_ID;
+            startGamePacket.entityRuntimeId = SYNAPSE_PLAYER_ENTITY_ID;
             startGamePacket.playerGamemode = getClientFriendlyGamemode(this.gamemode);
             startGamePacket.x = (float) this.x;
             startGamePacket.y = (float) this.y;
@@ -301,8 +299,8 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
             StartGamePacket118 startGamePacket = new StartGamePacket118();
             startGamePacket.protocol = AbstractProtocol.fromRealProtocol(this.protocol);
             startGamePacket.netease = this.isNetEaseClient();
-            startGamePacket.entityUniqueId = Long.MAX_VALUE;
-            startGamePacket.entityRuntimeId = Long.MAX_VALUE;
+            startGamePacket.entityUniqueId = SYNAPSE_PLAYER_ENTITY_ID;
+            startGamePacket.entityRuntimeId = SYNAPSE_PLAYER_ENTITY_ID;
             startGamePacket.playerGamemode = getClientFriendlyGamemode(this.gamemode);
             startGamePacket.x = (float) this.x;
             startGamePacket.y = (float) this.y;
@@ -334,8 +332,8 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
             StartGamePacket11730 startGamePacket = new StartGamePacket11730();
             startGamePacket.protocol = AbstractProtocol.fromRealProtocol(this.protocol);
             startGamePacket.netease = this.isNetEaseClient();
-            startGamePacket.entityUniqueId = Long.MAX_VALUE;
-            startGamePacket.entityRuntimeId = Long.MAX_VALUE;
+            startGamePacket.entityUniqueId = SYNAPSE_PLAYER_ENTITY_ID;
+            startGamePacket.entityRuntimeId = SYNAPSE_PLAYER_ENTITY_ID;
             startGamePacket.playerGamemode = getClientFriendlyGamemode(this.gamemode);
             startGamePacket.x = (float) this.x;
             startGamePacket.y = (float) this.y;
@@ -367,8 +365,8 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
             StartGamePacket117 startGamePacket = new StartGamePacket117();
             startGamePacket.protocol = AbstractProtocol.fromRealProtocol(this.protocol);
             startGamePacket.netease = this.isNetEaseClient();
-            startGamePacket.entityUniqueId = Long.MAX_VALUE;
-            startGamePacket.entityRuntimeId = Long.MAX_VALUE;
+            startGamePacket.entityUniqueId = SYNAPSE_PLAYER_ENTITY_ID;
+            startGamePacket.entityRuntimeId = SYNAPSE_PLAYER_ENTITY_ID;
             startGamePacket.playerGamemode = getClientFriendlyGamemode(this.gamemode);
             startGamePacket.x = (float) this.x;
             startGamePacket.y = (float) this.y;
@@ -400,8 +398,8 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
             StartGamePacket116200 startGamePacket = new StartGamePacket116200();
             startGamePacket.protocol = AbstractProtocol.fromRealProtocol(this.protocol);
             startGamePacket.netease = this.isNetEaseClient();
-            startGamePacket.entityUniqueId = Long.MAX_VALUE;
-            startGamePacket.entityRuntimeId = Long.MAX_VALUE;
+            startGamePacket.entityUniqueId = SYNAPSE_PLAYER_ENTITY_ID;
+            startGamePacket.entityRuntimeId = SYNAPSE_PLAYER_ENTITY_ID;
             startGamePacket.playerGamemode = getClientFriendlyGamemode(this.gamemode);
             startGamePacket.x = (float) this.x;
             startGamePacket.y = (float) this.y;
@@ -436,8 +434,8 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
             StartGamePacket116100NE startGamePacket = new StartGamePacket116100NE();
             startGamePacket.protocol = AbstractProtocol.fromRealProtocol(this.protocol);
             startGamePacket.netease = this.isNetEaseClient();
-            startGamePacket.entityUniqueId = Long.MAX_VALUE;
-            startGamePacket.entityRuntimeId = Long.MAX_VALUE;
+            startGamePacket.entityUniqueId = SYNAPSE_PLAYER_ENTITY_ID;
+            startGamePacket.entityRuntimeId = SYNAPSE_PLAYER_ENTITY_ID;
             startGamePacket.playerGamemode = getClientFriendlyGamemode(this.gamemode);
             startGamePacket.x = (float) this.x;
             startGamePacket.y = (float) this.y;
@@ -468,8 +466,8 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
         StartGamePacket116100 startGamePacket = new StartGamePacket116100();
         startGamePacket.protocol = AbstractProtocol.fromRealProtocol(this.protocol);
         startGamePacket.netease = this.isNetEaseClient();
-        startGamePacket.entityUniqueId = Long.MAX_VALUE;
-        startGamePacket.entityRuntimeId = Long.MAX_VALUE;
+        startGamePacket.entityUniqueId = SYNAPSE_PLAYER_ENTITY_ID;
+        startGamePacket.entityRuntimeId = SYNAPSE_PLAYER_ENTITY_ID;
         startGamePacket.playerGamemode = getClientFriendlyGamemode(this.gamemode);
         startGamePacket.x = (float) this.x;
         startGamePacket.y = (float) this.y;
@@ -1169,7 +1167,7 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
 
     @Override
     public boolean isSubChunkRequestAvailable() {
-        return USE_SUB_CHUNK_REQUEST && this.protocol >= AbstractProtocol.PROTOCOL_118.getProtocolStart();
+        return USE_SUB_CHUNK_REQUEST && this.protocol >= AbstractProtocol.PROTOCOL_118.getProtocolStart() && !this.isNetEaseClient();
     }
 
     @Override
@@ -2048,7 +2046,7 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
     @Override
     public void sendItemComponents() {
         ItemComponentPacket116100 pk = new ItemComponentPacket116100();
-        pk.entries = ItemComponentDefinitions.get(protocol).entrySet().stream()
+        pk.entries = ItemComponentDefinitions.get(AbstractProtocol.fromRealProtocol(protocol)).entrySet().stream()
                 .map(entry -> new ItemComponentPacket116100.Entry(entry.getKey(), entry.getValue()))
                 .toArray(ItemComponentPacket116100.Entry[]::new);
         this.dataPacket(pk);
