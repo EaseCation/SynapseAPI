@@ -24,7 +24,7 @@ import java.util.concurrent.locks.ReentrantReadWriteLock;
 @Log4j2
 public class GlobalBlockPaletteNBT implements AdvancedGlobalBlockPaletteInterface {
 
-    final int[] legacyToRuntimeId = new int[FULL_BLOCK_COUNT];
+    final int[] legacyToRuntimeId = new int[FULL_BLOCK_COUNT]; //TODO: 2D array
     final int[] runtimeIdToLegacy;
     final CompoundTag[] runtimeIdToState;
     final Int2IntMap unknownToRuntimeId = new Int2IntOpenHashMap();
