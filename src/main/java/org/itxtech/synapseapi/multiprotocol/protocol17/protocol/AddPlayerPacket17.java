@@ -4,6 +4,7 @@ import cn.nukkit.entity.data.EntityMetadata;
 import cn.nukkit.item.Item;
 import cn.nukkit.network.protocol.DataPacket;
 import cn.nukkit.network.protocol.ProtocolInfo;
+import cn.nukkit.network.protocol.types.EntityLink;
 import cn.nukkit.utils.Binary;
 import org.itxtech.synapseapi.multiprotocol.AbstractProtocol;
 import org.itxtech.synapseapi.multiprotocol.utils.EntityMetadataGenerator;
@@ -36,15 +37,14 @@ public class AddPlayerPacket17 extends Packet17 {
 	public Item item;
 	public EntityMetadata metadata = new EntityMetadata();
 
-	//public EntityLink links = new EntityLink[0];
+	public EntityLink[] links = new EntityLink[0];
 	public String deviceId = "";
-	
+
 	public int flags = 8;
 	public int userCommandPermissions = 4;
 	public int permissionFlags = 256;
 	public int playerPermissions = 1;
 	public int storedCustomAbilities = 1;
-	public long playerUniqueId = 0L;
 
 	@Override
 	public void decode() {
@@ -58,7 +58,7 @@ public class AddPlayerPacket17 extends Packet17 {
 		this.putString(this.username);
 		this.putEntityUniqueId(this.entityUniqueId);
 		this.putEntityRuntimeId(this.entityRuntimeId);
-		this.putString(this.platformChatId); // platform chat id
+		this.putString(this.platformChatId);
 		this.putVector3f(this.x, this.y, this.z);
 		this.putVector3f(this.speedX, this.speedY, this.speedZ);
 		this.putLFloat(this.pitch);
@@ -68,16 +68,21 @@ public class AddPlayerPacket17 extends Packet17 {
 
 		this.put(Binary.writeMetadata(this.metadata));
 
-		this.putUnsignedVarInt(flags); // flags
-		this.putUnsignedVarInt(userCommandPermissions); // user command permissions
-		this.putUnsignedVarInt(permissionFlags); // permission flags
-		this.putUnsignedVarInt(playerPermissions); // player permissions
-		this.putUnsignedVarInt(storedCustomAbilities); // stored custom abilities
-		this.putLLong(playerUniqueId); // player unique Id
-		this.putUnsignedVarInt(0); // entity links
+		this.putUnsignedVarInt(flags);
+		this.putUnsignedVarInt(userCommandPermissions);
+		this.putUnsignedVarInt(permissionFlags);
+		this.putUnsignedVarInt(playerPermissions);
+		this.putUnsignedVarInt(storedCustomAbilities);
+		this.putLLong(entityUniqueId);
+
+		this.putUnsignedVarInt(links.length);
+		for (EntityLink link : links) {
+			helper.putEntityLink(this, link);
+		}
+
 		this.putString(deviceId);
 	}
-	
+
 	@Override
     public DataPacket fromDefault(DataPacket pk, AbstractProtocol protocol, boolean netease) {
     	ClassUtils.requireInstance(pk, cn.nukkit.network.protocol.AddPlayerPacket.class);
@@ -99,6 +104,7 @@ public class AddPlayerPacket17 extends Packet17 {
 		this.headYaw = packet.headYaw;
     	this.item = packet.item;
         this.metadata = EntityMetadataGenerator.generateFrom(packet.metadata, protocol, netease);
+		this.links = packet.links;
         return this;
 	}
 	

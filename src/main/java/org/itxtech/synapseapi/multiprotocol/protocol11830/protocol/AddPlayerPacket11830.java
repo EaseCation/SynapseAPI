@@ -52,7 +52,6 @@ public class AddPlayerPacket11830 extends Packet11830 {
     public int permissionFlags = 256;
     public int playerPermissions = 1;
     public int storedCustomAbilities = 1;
-    public long playerUniqueId = 0L;
 
     @Override
     public void decode() {
@@ -65,27 +64,28 @@ public class AddPlayerPacket11830 extends Packet11830 {
         this.putString(this.username);
         this.putEntityUniqueId(this.entityUniqueId);
         this.putEntityRuntimeId(this.entityRuntimeId);
-        this.putString(this.platformChatId); // platform chat id
+        this.putString(this.platformChatId);
         this.putVector3f(this.x, this.y, this.z);
         this.putVector3f(this.speedX, this.speedY, this.speedZ);
         this.putLFloat(this.pitch);
-        this.putLFloat(this.yaw); // TODO headrot
+        this.putLFloat(this.yaw);
         this.putLFloat(this.headYaw);
         this.putSlot(this.item);
         this.putVarInt(this.gameMode);
         this.put(Binary.writeMetadata(this.metadata));
 
-        this.putUnsignedVarInt(flags); // flags
-        this.putUnsignedVarInt(userCommandPermissions); // user command permissions
-        this.putUnsignedVarInt(permissionFlags); // permission flags
-        this.putUnsignedVarInt(playerPermissions); // player permissions
-        this.putUnsignedVarInt(storedCustomAbilities); // stored custom abilities
-        this.putLLong(playerUniqueId); // player unique Id
+        this.putUnsignedVarInt(flags);
+        this.putUnsignedVarInt(userCommandPermissions);
+        this.putUnsignedVarInt(permissionFlags);
+        this.putUnsignedVarInt(playerPermissions);
+        this.putUnsignedVarInt(storedCustomAbilities);
+        this.putLLong(entityUniqueId);
 
         this.putUnsignedVarInt(links.length);
         for (EntityLink link : links) {
             helper.putEntityLink(this, link);
         }
+
         this.putString(deviceId);
         this.putLInt(buildPlatform);
     }
