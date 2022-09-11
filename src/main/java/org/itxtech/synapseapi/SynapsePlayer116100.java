@@ -12,12 +12,19 @@ import cn.nukkit.entity.EntityRideable;
 import cn.nukkit.entity.data.ShortEntityData;
 import cn.nukkit.entity.item.EntityBoat;
 import cn.nukkit.event.inventory.InventoryCloseEvent;
+import cn.nukkit.event.player.PlayerFormRespondedEvent;
 import cn.nukkit.event.player.PlayerInteractEvent;
+import cn.nukkit.event.player.PlayerMapInfoRequestEvent;
 import cn.nukkit.event.player.PlayerRespawnEvent;
+import cn.nukkit.event.player.PlayerSettingsRespondedEvent;
 import cn.nukkit.event.player.PlayerToggleGlideEvent;
 import cn.nukkit.event.player.PlayerToggleSneakEvent;
 import cn.nukkit.event.player.PlayerToggleSprintEvent;
+import cn.nukkit.form.window.FormWindow;
+import cn.nukkit.form.window.FormWindowCustom;
 import cn.nukkit.inventory.Inventory;
+import cn.nukkit.item.Item;
+import cn.nukkit.item.ItemMap;
 import cn.nukkit.level.GlobalBlockPaletteInterface.StaticVersion;
 import cn.nukkit.level.Level;
 import cn.nukkit.level.Position;
@@ -38,6 +45,8 @@ import cn.nukkit.network.protocol.DataPacket;
 import cn.nukkit.network.protocol.LevelChunkPacket;
 import cn.nukkit.network.protocol.LevelEventPacket;
 import cn.nukkit.network.protocol.LevelSoundEventPacket;
+import cn.nukkit.network.protocol.MapInfoRequestPacket;
+import cn.nukkit.network.protocol.ModalFormResponsePacket;
 import cn.nukkit.network.protocol.MovePlayerPacket;
 import cn.nukkit.network.protocol.PlayerInputPacket;
 import cn.nukkit.network.protocol.ProtocolInfo;
@@ -47,6 +56,7 @@ import cn.nukkit.network.protocol.SubChunkPacket;
 import cn.nukkit.network.protocol.SubChunkPacket11810;
 import cn.nukkit.network.protocol.types.ContainerIds;
 import cn.nukkit.resourcepacks.ResourcePack;
+import cn.nukkit.scheduler.AsyncTask;
 import co.aikar.timings.Timings;
 import it.unimi.dsi.fastutil.ints.IntIterator;
 import it.unimi.dsi.fastutil.ints.IntOpenHashSet;
@@ -83,6 +93,11 @@ import org.itxtech.synapseapi.multiprotocol.protocol11830.protocol.SpawnParticle
 import org.itxtech.synapseapi.multiprotocol.protocol11830.protocol.StartGamePacket11830;
 import org.itxtech.synapseapi.multiprotocol.protocol119.protocol.PlayerActionPacket119;
 import org.itxtech.synapseapi.multiprotocol.protocol119.protocol.StartGamePacket119;
+import org.itxtech.synapseapi.multiprotocol.protocol11910.protocol.StartGamePacket11910;
+import org.itxtech.synapseapi.multiprotocol.protocol11920.protocol.MapInfoRequestPacket11920;
+import org.itxtech.synapseapi.multiprotocol.protocol11920.protocol.ModalFormResponsePacket11920;
+import org.itxtech.synapseapi.multiprotocol.protocol11920.protocol.NetworkChunkPublisherUpdatePacket11920;
+import org.itxtech.synapseapi.multiprotocol.protocol11920.protocol.StartGamePacket11920;
 import org.itxtech.synapseapi.multiprotocol.protocol14.protocol.PlayerActionPacket14;
 import org.itxtech.synapseapi.multiprotocol.protocol16.protocol.ResourcePackClientResponsePacket16;
 import org.itxtech.synapseapi.utils.BlobTrack;
@@ -139,7 +154,71 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
 
     @Override
     protected DataPacket generateStartGamePacket(Position spawnPosition) {
-        if (this.getProtocol() >= AbstractProtocol.PROTOCOL_119.getProtocolStart()) {
+        if (this.getProtocol() >= AbstractProtocol.PROTOCOL_119_20.getProtocolStart()) {
+            StartGamePacket11920 startGamePacket = new StartGamePacket11920();
+            startGamePacket.protocol = AbstractProtocol.fromRealProtocol(this.protocol);
+            startGamePacket.netease = this.isNetEaseClient();
+            startGamePacket.entityUniqueId = Long.MAX_VALUE;
+            startGamePacket.entityRuntimeId = Long.MAX_VALUE;
+            startGamePacket.playerGamemode = getClientFriendlyGamemode(this.gamemode);
+            startGamePacket.x = (float) this.x;
+            startGamePacket.y = (float) this.y;
+            startGamePacket.z = (float) this.z;
+            startGamePacket.yaw = (float) this.yaw;
+            startGamePacket.pitch = (float) this.pitch;
+            startGamePacket.seed = -1;
+            startGamePacket.dimension = (byte) (this.level.getDimension() & 0xff);
+            startGamePacket.worldGamemode = getClientFriendlyGamemode(this.gamemode);
+            startGamePacket.difficulty = this.server.getDifficulty();
+            startGamePacket.spawnX = (int) spawnPosition.x;
+            startGamePacket.spawnY = (int) spawnPosition.y;
+            startGamePacket.spawnZ = (int) spawnPosition.z;
+            startGamePacket.hasAchievementsDisabled = true;
+            startGamePacket.dayCycleStopTime = -1;
+            startGamePacket.rainLevel = 0;
+            startGamePacket.lightningLevel = 0;
+            startGamePacket.commandsEnabled = this.isEnableClientCommand();
+            startGamePacket.levelId = "";
+            startGamePacket.worldName = this.getServer().getNetwork().getName();
+            startGamePacket.generator = 1; // 0 old, 1 infinite, 2 flat
+            startGamePacket.gameRules = getSupportedRules();
+            startGamePacket.isMovementServerAuthoritative = true;
+            startGamePacket.isBlockBreakingServerAuthoritative = this.serverAuthoritativeBlockBreaking = true;
+            startGamePacket.currentTick = this.server.getTick();
+            return startGamePacket;
+        } else if (this.getProtocol() >= AbstractProtocol.PROTOCOL_119_10.getProtocolStart()) {
+            StartGamePacket11910 startGamePacket = new StartGamePacket11910();
+            startGamePacket.protocol = AbstractProtocol.fromRealProtocol(this.protocol);
+            startGamePacket.netease = this.isNetEaseClient();
+            startGamePacket.entityUniqueId = Long.MAX_VALUE;
+            startGamePacket.entityRuntimeId = Long.MAX_VALUE;
+            startGamePacket.playerGamemode = getClientFriendlyGamemode(this.gamemode);
+            startGamePacket.x = (float) this.x;
+            startGamePacket.y = (float) this.y;
+            startGamePacket.z = (float) this.z;
+            startGamePacket.yaw = (float) this.yaw;
+            startGamePacket.pitch = (float) this.pitch;
+            startGamePacket.seed = -1;
+            startGamePacket.dimension = (byte) (this.level.getDimension() & 0xff);
+            startGamePacket.worldGamemode = getClientFriendlyGamemode(this.gamemode);
+            startGamePacket.difficulty = this.server.getDifficulty();
+            startGamePacket.spawnX = (int) spawnPosition.x;
+            startGamePacket.spawnY = (int) spawnPosition.y;
+            startGamePacket.spawnZ = (int) spawnPosition.z;
+            startGamePacket.hasAchievementsDisabled = true;
+            startGamePacket.dayCycleStopTime = -1;
+            startGamePacket.rainLevel = 0;
+            startGamePacket.lightningLevel = 0;
+            startGamePacket.commandsEnabled = this.isEnableClientCommand();
+            startGamePacket.levelId = "";
+            startGamePacket.worldName = this.getServer().getNetwork().getName();
+            startGamePacket.generator = 1; // 0 old, 1 infinite, 2 flat
+            startGamePacket.gameRules = getSupportedRules();
+            startGamePacket.isMovementServerAuthoritative = true;
+            startGamePacket.isBlockBreakingServerAuthoritative = this.serverAuthoritativeBlockBreaking = true;
+            startGamePacket.currentTick = this.server.getTick();
+            return startGamePacket;
+        } else if (this.getProtocol() >= AbstractProtocol.PROTOCOL_119.getProtocolStart()) {
             StartGamePacket119 startGamePacket = new StartGamePacket119();
             startGamePacket.protocol = AbstractProtocol.fromRealProtocol(this.protocol);
             startGamePacket.netease = this.isNetEaseClient();
@@ -906,6 +985,100 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
                         this.handleSubChunkRequest(dimension, subChunkX + offset.x, subChunkY + offset.y, subChunkZ + offset.z);
                     }
                 }
+                break;
+            case ProtocolInfo.MODAL_FORM_RESPONSE_PACKET:
+                if (getProtocol() < AbstractProtocol.PROTOCOL_119_20.getProtocolStart()) {
+                    super.handleDataPacket(packet);
+                    break;
+                }
+                if (!callPacketReceiveEvent(packet)) {
+                    break;
+                }
+
+                if (!this.spawned || !this.isAlive()) {
+                    break;
+                }
+
+                ModalFormResponsePacket11920 modalFormPacket = (ModalFormResponsePacket11920) packet;
+
+                if (formWindows.containsKey(modalFormPacket.formId)) {
+                    FormWindow window = formWindows.get(modalFormPacket.formId);
+                    window.setResponse(modalFormPacket.data.trim());
+
+                    PlayerFormRespondedEvent event = new PlayerFormRespondedEvent(this, modalFormPacket.formId, window);
+                    getServer().getPluginManager().callEvent(event);
+
+                    formWindows.remove(modalFormPacket.formId);
+                } else if (serverSettings.containsKey(modalFormPacket.formId)) {
+                    FormWindow window = serverSettings.get(modalFormPacket.formId);
+                    window.setResponse(modalFormPacket.data.trim());
+
+                    PlayerSettingsRespondedEvent event = new PlayerSettingsRespondedEvent(this, modalFormPacket.formId, window);
+                    getServer().getPluginManager().callEvent(event);
+
+                    //Set back new settings if not been cancelled
+                    if (!event.isCancelled() && window instanceof FormWindowCustom) {
+                        ((FormWindowCustom) window).setElementsFromResponse();
+                    }
+                }
+
+                break;
+            case ProtocolInfo.MAP_INFO_REQUEST_PACKET:
+                if (getProtocol() < AbstractProtocol.PROTOCOL_119_20.getProtocolStart()) {
+                    super.handleDataPacket(packet);
+                    break;
+                }
+                if (!callPacketReceiveEvent(packet)) {
+                    break;
+                }
+
+                MapInfoRequestPacket11920 mapInfoRequestPacket = (MapInfoRequestPacket11920) packet;
+                Item mapItem = null;
+
+                for (Item item : this.offhandInventory.getContents().values()) {
+                    if (item instanceof ItemMap && ((ItemMap) item).getMapId() == mapInfoRequestPacket.mapId) {
+                        mapItem = item;
+                    }
+                }
+
+                if (mapItem == null) {
+                    for (Item item : this.inventory.getContents().values()) {
+                        if (item instanceof ItemMap && ((ItemMap) item).getMapId() == mapInfoRequestPacket.mapId) {
+                            mapItem = item;
+                        }
+                    }
+                }
+
+                if (mapItem == null) {
+                    for (BlockEntity blockEntity : this.level.getBlockEntities().values()) {
+                        if (blockEntity instanceof BlockEntityItemFrame) {
+                            BlockEntityItemFrame itemFrame = (BlockEntityItemFrame) blockEntity;
+                            Item item = itemFrame.getItem();
+                            if (item instanceof ItemMap && ((ItemMap) item).getMapId() == mapInfoRequestPacket.mapId) {
+                                ((ItemMap) item).sendImage(this);
+                                break;
+                            }
+                        }
+                    }
+                }
+
+                if (mapItem != null) {
+                    final Player player = this;
+                    final Item mapItemFinal = mapItem;
+                    PlayerMapInfoRequestEvent event;
+                    getServer().getPluginManager().callEvent(event = new PlayerMapInfoRequestEvent(this, mapItem));
+
+                    if (!event.isCancelled()) {
+                        this.getServer().getScheduler().scheduleAsyncTask(SynapseAPI.getInstance(), new AsyncTask() {
+                            @Override
+                            public void onRun() {
+                                ((ItemMap) mapItemFinal).sendImage(player);
+                            }
+                        });
+                    }
+                }
+
+                break;
             default:
                 super.handleDataPacket(packet);
                 break;
@@ -1805,6 +1978,21 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
         int dx = centerX - x;
         int dz = centerZ - z;
         return dx * dx + dz * dz;
+    }
+
+    @Override
+    protected void noticeChunkPublisherUpdate() {
+        if (this.getProtocol() < AbstractProtocol.PROTOCOL_119_20.getProtocolStart()) {
+            super.noticeChunkPublisherUpdate();
+            return;
+        }
+
+        NetworkChunkPublisherUpdatePacket11920 packet = new NetworkChunkPublisherUpdatePacket11920();
+        packet.x = getFloorX();
+        packet.y = getFloorY();
+        packet.z = getFloorZ();
+        packet.radius = getViewDistance() << 4;
+        dataPacket(packet);
     }
 
     //FIXME: 以下断言错误需要处理

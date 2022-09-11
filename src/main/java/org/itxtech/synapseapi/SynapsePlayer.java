@@ -61,6 +61,7 @@ import org.msgpack.value.Value;
 
 import java.net.InetSocketAddress;
 import java.util.*;
+import java.util.stream.Collectors;
 
 /**
  * Created by boybook on 16/6/24.
@@ -521,6 +522,14 @@ public class SynapsePlayer extends Player {
             this.clearSubChunkQueues();
 
             this.removeAllChunks();
+
+            if (!this.sentSkins.isEmpty()) {  // 跨服时，移除所有已发送的PlayerList（皮肤）
+                PlayerListPacket pk = new PlayerListPacket();
+                pk.type = PlayerListPacket.TYPE_REMOVE;
+                pk.entries = this.sentSkins.stream().map(PlayerListPacket.Entry::new).toArray(PlayerListPacket.Entry[]::new);
+                this.dataPacket(pk);
+                this.sentSkins.clear();
+            }
 
             this.getDummyBossBars().values().forEach(DummyBossBar::destroy);
             this.getDummyBossBars().clear();

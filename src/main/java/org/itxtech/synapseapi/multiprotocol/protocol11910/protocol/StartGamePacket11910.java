@@ -1,4 +1,4 @@
-package org.itxtech.synapseapi.multiprotocol.protocol119.protocol;
+package org.itxtech.synapseapi.multiprotocol.protocol11910.protocol;
 
 import cn.nukkit.level.GameRules;
 import cn.nukkit.nbt.NBTIO;
@@ -12,7 +12,7 @@ import java.io.IOException;
 import java.util.UUID;
 
 @ToString
-public class StartGamePacket119 extends Packet119 {
+public class StartGamePacket11910 extends Packet11910 {
     public static final int NETWORK_ID = ProtocolInfo.START_GAME_PACKET;
 
     public static final int GAME_PUBLISH_SETTING_NO_MULTI_PLAY = 0;
@@ -47,6 +47,7 @@ public class StartGamePacket119 extends Packet119 {
     public int spawnY;
     public int spawnZ;
     public boolean hasAchievementsDisabled = true;
+    public boolean worldEditor;
     public int dayCycleStopTime = -1; //-1 = not stopped, any positive value = stopped at that time
     public int eduEditionOffer = 0;
     public boolean hasEduFeaturesEnabled = false;
@@ -72,7 +73,7 @@ public class StartGamePacket119 extends Packet119 {
     public boolean isFromWorldTemplate = false;
     public boolean isWorldTemplateOptionLocked = false;
     public boolean isOnlySpawningV1Villagers = false;
-    public String vanillaVersion = "1.19.0";
+    public String vanillaVersion = "1.19.10";
     public String levelId = ""; //base64 string, usually the same as world folder name in vanilla
     public String worldName;
     public String premiumWorldTemplateId = "00000000-0000-0000-0000-000000000000";
@@ -81,7 +82,7 @@ public class StartGamePacket119 extends Packet119 {
     public boolean isBlockBreakingServerAuthoritative;
     public boolean isInventoryServerAuthoritative;
     public long currentTick;
-    public String serverEngine = "1.19.0";
+    public String serverEngine = "1.19.10";
     /**
      * A XXHash64 of all block states by their compound tag.
      * A value of 0 will not be validated by the client.
@@ -119,6 +120,7 @@ public class StartGamePacket119 extends Packet119 {
         this.putVarInt(this.difficulty);
         this.putBlockVector3(this.spawnX, this.spawnY, this.spawnZ);
         this.putBoolean(this.hasAchievementsDisabled);
+        this.putBoolean(this.worldEditor);
         this.putVarInt(this.dayCycleStopTime);
         this.putVarInt(this.eduEditionOffer);
         this.putBoolean(this.hasEduFeaturesEnabled);

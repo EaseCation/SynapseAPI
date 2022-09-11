@@ -63,6 +63,11 @@ public final class ClientChainData12NetEase implements LoginChainData {
     }
 
     @Override
+    public String getNetEaseSid() {
+        return neteaseSid;
+    }
+
+    @Override
     public String getServerAddress() {
         return serverAddress;
     }
@@ -153,6 +158,7 @@ public final class ClientChainData12NetEase implements LoginChainData {
     private String xuid;
     private String identityPublicKey;
     private String neteaseUid;
+    private String neteaseSid;
 
     private long clientId;
     private String serverAddress;
@@ -193,6 +199,7 @@ public final class ClientChainData12NetEase implements LoginChainData {
                 if (extra.has("identity")) this.clientUUID = UUID.fromString(extra.get("identity").getAsString());
                 if (extra.has("XUID")) this.xuid = extra.get("XUID").getAsString();
                 if (extra.has("uid")) this.neteaseUid = extra.get("uid").getAsString();
+                if (extra.has("netease_sid")) this.neteaseSid = extra.get("netease_sid").getAsString();
             }
             if (chainMap.has("identityPublicKey"))
                 this.identityPublicKey = chainMap.get("identityPublicKey").getAsString();
@@ -230,6 +237,7 @@ public final class ClientChainData12NetEase implements LoginChainData {
             if (profile.has("identity")) this.clientUUID = UUID.fromString(profile.get("identity").getAsString());
             if (profile.has("displayName")) this.username = profile.get("displayName").getAsString();
             if (profile.has("uid")) this.neteaseUid = profile.get("uid").getAsString();
+            if (profile.has("netease_sid")) this.neteaseSid = profile.get("netease_sid").getAsString();
         }catch (Exception e) {
             // TODO: handle exception,认证失败
             //Server.getInstance().getLogger().logException(e);

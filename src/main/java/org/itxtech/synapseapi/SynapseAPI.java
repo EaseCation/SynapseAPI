@@ -20,6 +20,8 @@ import cn.nukkit.network.protocol.DataPacket;
 import cn.nukkit.network.protocol.ProtocolInfo;
 import cn.nukkit.utils.Binary;
 import cn.nukkit.utils.Utils;
+import com.google.gson.JsonObject;
+import org.itxtech.synapseapi.event.player.netease.NetEasePlayerModEventC2SEvent;
 import org.itxtech.synapseapi.multiprotocol.AbstractProtocol;
 import org.itxtech.synapseapi.multiprotocol.PacketRegister;
 import cn.nukkit.plugin.PluginBase;
@@ -404,5 +406,20 @@ public class SynapseAPI extends PluginBase implements Listener {
 
     public List<SynapseEntry> getUnusualEntries() {
         return this.getSynapseEntries().values().stream().filter(e -> !e.isVerified() || e.getClientData() == null || e.getClientData().clientList == null).collect(Collectors.toList());
+    }
+
+    @EventHandler
+    public void onNEPlayerModEventS2S(NetEasePlayerModEventC2SEvent event) {
+        // 实现中国版Emote适配
+        if ("Minecraft".equals(event.getModName())) {
+            if (event.getSystemName().equals("emote") && event.getCustomEventName().equals("PlayEmoteEvent")) {
+                JsonObject args = event.getArgs();
+                String emote = args.get("animName").getAsString();
+                event.getPlayer().getViewers().values().forEach(v -> {
+                    v.playAnimation(emote, event.getPlayer().getId());
+                });
+                event.getPlayer().playAnimation(emote, event.getPlayer().getId());
+            }
+        }
     }
 }

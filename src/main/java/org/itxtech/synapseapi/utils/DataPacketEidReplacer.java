@@ -4,7 +4,9 @@ import cn.nukkit.entity.Entity;
 import cn.nukkit.entity.data.EntityData;
 import cn.nukkit.entity.data.EntityMetadata;
 import cn.nukkit.network.protocol.*;
+import org.itxtech.synapseapi.multiprotocol.protocol116100.protocol.AnimateEntityPacket116100;
 import org.itxtech.synapseapi.multiprotocol.protocol116100ne.protocol.MovePlayerPacket116100NE;
+import org.itxtech.synapseapi.multiprotocol.protocol11730.protocol.AnimateEntityPacket11730;
 import org.itxtech.synapseapi.multiprotocol.protocol11830.protocol.SpawnParticleEffectPacket11830;
 import org.itxtech.synapseapi.multiprotocol.protocol18.protocol.SpawnParticleEffectPacket18;
 
@@ -126,6 +128,20 @@ public class DataPacketEidReplacer {
                     }
                 }
                 break;
+            case ProtocolInfo.ANIMATE_ENTITY_PACKET:
+                if (packet instanceof AnimateEntityPacket116100) {
+                    for (int i = 0; i < ((AnimateEntityPacket116100) packet).entityRuntimeIds.length; i++) {
+                        if (((AnimateEntityPacket116100) packet).entityRuntimeIds[i] == from) {
+                            ((AnimateEntityPacket116100) packet).entityRuntimeIds[i] = to;
+                        }
+                    }
+                } else if (packet instanceof AnimateEntityPacket11730) {
+                    for (int i = 0; i < ((AnimateEntityPacket11730) packet).entityRuntimeIds.length; i++) {
+                        if (((AnimateEntityPacket11730) packet).entityRuntimeIds[i] == from) {
+                            ((AnimateEntityPacket11730) packet).entityRuntimeIds[i] = to;
+                        }
+                    }
+                }
             default:
                 change = false;
         }

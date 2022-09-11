@@ -76,7 +76,7 @@ public class SynapseEntryPutPacketThread extends Thread {
 
         //if (packet.pid() == ProtocolInfo.GAME_RULES_CHANGED_PACKET) return;
 //        switch (packet.pid()) {
-            //case ProtocolInfo.SET_COMMANDS_ENABLED_PACKET:
+//            case ProtocolInfo.PLAYER_LIST_PACKET:
             //case ProtocolInfo.AVAILABLE_COMMANDS_PACKET:
         //    case ProtocolInfo.MOVE_PLAYER_PACKET:
         //    case ProtocolInfo.SET_ENTITY_MOTION_PACKET:
@@ -101,21 +101,22 @@ public class SynapseEntryPutPacketThread extends Thread {
                 //case ProtocolInfo.SET_ENTITY_DATA_PACKET:
                 //case ProtocolInfo.ADVENTURE_SETTINGS_PACKET:
                 //case ProtocolInfo.UPDATE_ATTRIBUTES_PACKET:
-                //log.warn("blocked packet", new Throwable());
+//            case ProtocolInfo.ADD_ENTITY_PACKET:
+//            case ProtocolInfo.ADD_PLAYER_PACKET:
+//                log.warn("blocked packet", new Throwable());
 //                return;
 //        }
 
         if (player.getSynapseEntry().getSynapse().isRecordPacketStack()) packet.stack = new Throwable();
         this.queue.offer(new Entry(player, packet, needACK, immediate));
 
-        /*if (!(packet instanceof MoveEntityPacket)
-                && !(packet instanceof MovePlayerPacket)
+        /*if (!(packet instanceof BossEventPacket)
+                *//*&& !(packet instanceof MovePlayerPacket)
                 && !(packet instanceof SetEntityDataPacket)
                 && !(packet instanceof UpdateAttributesPacket)
                 && !(packet instanceof LevelEventPacket)
                 && !(packet instanceof MobEffectPacket)
-                && !(packet instanceof SetTimePacket)
-                && !(packet instanceof EmotePacket116)
+                && !(packet instanceof SetTimePacket)*//*
         ) {
             Server.getInstance().getLogger().debug("SynapseEntryPutPacketThread Offer: " + packet.getClass().getSimpleName());
             Server.getInstance().getLogger().logException(new Throwable());
