@@ -61,7 +61,6 @@ import org.msgpack.value.Value;
 
 import java.net.InetSocketAddress;
 import java.util.*;
-import java.util.stream.Collectors;
 
 /**
  * Created by boybook on 16/6/24.
@@ -297,13 +296,13 @@ public class SynapsePlayer extends Player {
         }
     }
 
-	protected DataPacket generateResourcePackInfoPacket() {
-		ResourcePacksInfoPacket infoPacket = new ResourcePacksInfoPacket();
-		infoPacket.resourcePackEntries = this.resourcePacks.values().toArray(new ResourcePack[0]);
-		infoPacket.behaviourPackEntries = this.behaviourPacks.values().toArray(new ResourcePack[0]);
-		infoPacket.mustAccept = this.forceResources;
-		return infoPacket;
-	}
+    protected DataPacket generateResourcePackInfoPacket() {
+        ResourcePacksInfoPacket infoPacket = new ResourcePacksInfoPacket();
+        infoPacket.resourcePackEntries = this.resourcePacks.values().toArray(new ResourcePack[0]);
+        infoPacket.behaviourPackEntries = this.behaviourPacks.values().toArray(new ResourcePack[0]);
+        infoPacket.mustAccept = this.forceResources;
+        return infoPacket;
+    }
 
     @Override
     @SuppressWarnings("deprecation")
@@ -449,35 +448,35 @@ public class SynapsePlayer extends Player {
         this.server.onPlayerCompleteLoginSequence(this);
     }
 
-	protected DataPacket generateStartGamePacket(Position spawnPosition) {
-		StartGamePacket startGamePacket = new StartGamePacket();
-		startGamePacket.entityUniqueId = Long.MAX_VALUE;
-		startGamePacket.entityRuntimeId = Long.MAX_VALUE;
-		startGamePacket.playerGamemode = getClientFriendlyGamemode(this.gamemode);
-		startGamePacket.x = (float) this.x;
-		startGamePacket.y = (float) this.y;
-		startGamePacket.z = (float) this.z;
-		startGamePacket.yaw = (float) this.yaw;
-		startGamePacket.pitch = (float) this.pitch;
-		startGamePacket.seed = -1;
-		startGamePacket.dimension = (byte) (this.level.getDimension() & 0xff);
-		startGamePacket.worldGamemode = getClientFriendlyGamemode(this.gamemode);
-		startGamePacket.difficulty = this.server.getDifficulty();
-		startGamePacket.spawnX = (int) spawnPosition.x;
-		startGamePacket.spawnY = (int) spawnPosition.y;
-		startGamePacket.spawnZ = (int) spawnPosition.z;
-		startGamePacket.hasAchievementsDisabled = true;
-		startGamePacket.dayCycleStopTime = -1;
-		startGamePacket.eduMode = false;
-		startGamePacket.rainLevel = 0;
-		startGamePacket.lightningLevel = 0;
-		startGamePacket.commandsEnabled = this.isEnableClientCommand();
-		startGamePacket.levelId = "";
-		startGamePacket.worldName = this.getServer().getNetwork().getName();
-		startGamePacket.generator = 1; //0 old, 1 infinite, 2 flat
-		startGamePacket.gameRules = this.level.gameRules;
-		return startGamePacket;
-	}
+    protected DataPacket generateStartGamePacket(Position spawnPosition) {
+        StartGamePacket startGamePacket = new StartGamePacket();
+        startGamePacket.entityUniqueId = Long.MAX_VALUE;
+        startGamePacket.entityRuntimeId = Long.MAX_VALUE;
+        startGamePacket.playerGamemode = getClientFriendlyGamemode(this.gamemode);
+        startGamePacket.x = (float) this.x;
+        startGamePacket.y = (float) this.y;
+        startGamePacket.z = (float) this.z;
+        startGamePacket.yaw = (float) this.yaw;
+        startGamePacket.pitch = (float) this.pitch;
+        startGamePacket.seed = -1;
+        startGamePacket.dimension = (byte) (this.level.getDimension() & 0xff);
+        startGamePacket.worldGamemode = getClientFriendlyGamemode(this.gamemode);
+        startGamePacket.difficulty = this.server.getDifficulty();
+        startGamePacket.spawnX = (int) spawnPosition.x;
+        startGamePacket.spawnY = (int) spawnPosition.y;
+        startGamePacket.spawnZ = (int) spawnPosition.z;
+        startGamePacket.hasAchievementsDisabled = true;
+        startGamePacket.dayCycleStopTime = -1;
+        startGamePacket.eduMode = false;
+        startGamePacket.rainLevel = 0;
+        startGamePacket.lightningLevel = 0;
+        startGamePacket.commandsEnabled = this.isEnableClientCommand();
+        startGamePacket.levelId = "";
+        startGamePacket.worldName = this.getServer().getNetwork().getName();
+        startGamePacket.generator = 1; //0 old, 1 infinite, 2 flat
+        startGamePacket.gameRules = this.level.gameRules;
+        return startGamePacket;
+    }
 
     @Override
     protected void sendRecipeList() {
@@ -539,10 +538,12 @@ public class SynapsePlayer extends Player {
             if (levelChangeLoadScreen) {
                 Task task = new Task() {
                     private SynapsePlayer player;
+
                     Task putPlayer(SynapsePlayer player) {
                         this.player = player;
                         return this;
                     }
+
                     @Override
                     public void onRun(int currentTick) {
                         ChangeDimensionPacket changeDimensionPacket1 = new ChangeDimensionPacket();
@@ -600,7 +601,6 @@ public class SynapsePlayer extends Player {
                         JsonArray behPacks = new JsonArray();
                         getResourcePacks().keySet().forEach(behPacks::add);
                         pk.extra.add("beh_packs", behPacks);
-                        handleTransferData(pk);
                         getSynapseEntry().sendDataPacket(pk);
                     }
                 }, 1);
@@ -610,11 +610,6 @@ public class SynapsePlayer extends Player {
         }
         return false;
     }
-
-    protected void handleTransferData(org.itxtech.synapseapi.network.protocol.spp.TransferPacket packet) {
-
-    }
-
 
     @Override
     public void transfer(InetSocketAddress address) {
@@ -786,15 +781,15 @@ public class SynapsePlayer extends Player {
         pk.username = this.getNameTag();
         pk.entityUniqueId = this.getId();
         pk.entityRuntimeId = this.getId();
-        pk.x = (float)this.x;
-        pk.y = (float)this.y;
-        pk.z = (float)this.z;
-        pk.speedX = (float)this.motionX;
-        pk.speedY = (float)this.motionY;
-        pk.speedZ = (float)this.motionZ;
-        pk.yaw = (float)this.yaw;
-        pk.headYaw = (float)this.yaw;
-        pk.pitch = (float)this.pitch;
+        pk.x = (float) this.x;
+        pk.y = (float) this.y;
+        pk.z = (float) this.z;
+        pk.speedX = (float) this.motionX;
+        pk.speedY = (float) this.motionY;
+        pk.speedZ = (float) this.motionZ;
+        pk.yaw = (float) this.yaw;
+        pk.headYaw = (float) this.yaw;
+        pk.pitch = (float) this.pitch;
         pk.item = this.getInventory().getItemInHand();
         pk.metadata = this.dataProperties;
         Server.broadcastPacket(this.getViewers().values(), pk);
@@ -825,15 +820,15 @@ public class SynapsePlayer extends Player {
         pk.username = this.getNameTag();
         pk.entityUniqueId = this.getId();
         pk.entityRuntimeId = this.getId();
-        pk.x = (float)this.x;
-        pk.y = (float)this.y;
-        pk.z = (float)this.z;
-        pk.speedX = (float)this.motionX;
-        pk.speedY = (float)this.motionY;
-        pk.speedZ = (float)this.motionZ;
-        pk.yaw = (float)this.yaw;
-        pk.headYaw = (float)this.yaw;
-        pk.pitch = (float)this.pitch;
+        pk.x = (float) this.x;
+        pk.y = (float) this.y;
+        pk.z = (float) this.z;
+        pk.speedX = (float) this.motionX;
+        pk.speedY = (float) this.motionY;
+        pk.speedZ = (float) this.motionZ;
+        pk.yaw = (float) this.yaw;
+        pk.headYaw = (float) this.yaw;
+        pk.pitch = (float) this.pitch;
         pk.item = this.getInventory().getItemInHand();
         pk.metadata = this.dataProperties;
         player.dataPacket(pk);
@@ -1073,7 +1068,7 @@ public class SynapsePlayer extends Player {
     }
 
     protected void setLoginChainData(LoginChainData loginChainData) {
-    	this.loginChainData = loginChainData;
+        this.loginChainData = loginChainData;
     }
 
     public String getOriginName() {
