@@ -591,6 +591,7 @@ public class SynapsePlayer extends Player {
                         JsonArray behPacks = new JsonArray();
                         getResourcePacks().keySet().forEach(behPacks::add);
                         pk.extra.add("beh_packs", behPacks);
+                        handleTransferData(pk);
                         getSynapseEntry().sendDataPacket(pk);
                     }
                 }, 1);
@@ -600,6 +601,11 @@ public class SynapsePlayer extends Player {
         }
         return false;
     }
+
+    protected void handleTransferData(org.itxtech.synapseapi.network.protocol.spp.TransferPacket packet) {
+
+    }
+
 
     @Override
     public void transfer(InetSocketAddress address) {
