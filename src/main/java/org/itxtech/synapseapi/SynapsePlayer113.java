@@ -10,6 +10,7 @@ import cn.nukkit.entity.Entity;
 import cn.nukkit.entity.data.ShortEntityData;
 import cn.nukkit.event.entity.EntityDamageByEntityEvent;
 import cn.nukkit.event.entity.EntityDamageEvent;
+import cn.nukkit.event.inventory.ItemAttackDamageEvent;
 import cn.nukkit.event.player.PlayerInteractEntityEvent;
 import cn.nukkit.event.player.PlayerInteractEvent;
 import cn.nukkit.event.player.PlayerRespawnEvent;
@@ -529,7 +530,9 @@ public class SynapsePlayer113 extends SynapsePlayer112 {
 
 								Enchantment[] enchantments = item.getEnchantments();
 
-								float itemDamage = item.getAttackDamage();
+								ItemAttackDamageEvent event = new ItemAttackDamageEvent(item);
+								this.server.getPluginManager().callEvent(event);
+								float itemDamage = event.getAttackDamage();
 								for (Enchantment enchantment : enchantments) {
 									itemDamage += enchantment.getDamageBonus(target);
 								}

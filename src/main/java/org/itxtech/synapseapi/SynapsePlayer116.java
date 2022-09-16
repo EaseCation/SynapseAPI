@@ -16,6 +16,7 @@ import cn.nukkit.entity.item.EntityMinecartAbstract;
 import cn.nukkit.event.entity.EntityDamageByEntityEvent;
 import cn.nukkit.event.entity.EntityDamageEvent;
 import cn.nukkit.event.inventory.InventoryCloseEvent;
+import cn.nukkit.event.inventory.ItemAttackDamageEvent;
 import cn.nukkit.event.player.*;
 import cn.nukkit.inventory.Inventory;
 import cn.nukkit.inventory.transaction.CraftingTransaction;
@@ -480,7 +481,9 @@ public class SynapsePlayer116 extends SynapsePlayer113 {
 								}
 								break;
 							case InventoryTransactionPacket116.USE_ITEM_ON_ENTITY_ACTION_ATTACK:
-								float itemDamage = item.getAttackDamage();
+								ItemAttackDamageEvent event = new ItemAttackDamageEvent(item);
+								this.server.getPluginManager().callEvent(event);
+								float itemDamage = event.getAttackDamage();
 
 								for (Enchantment enchantment : item.getEnchantments()) {
 									itemDamage += enchantment.getDamageBonus(target);
