@@ -540,13 +540,15 @@ public class SynapsePlayer113 extends SynapsePlayer112 {
 								Map<EntityDamageEvent.DamageModifier, Float> damage = new EnumMap<>(EntityDamageEvent.DamageModifier.class);
 								damage.put(EntityDamageEvent.DamageModifier.BASE, itemDamage);
 
-								float knockBack = 0.29f;
+								float knockBackH = EntityDamageByEntityEvent.GLOBAL_KNOCKBACK_H;
+								float knockBackV = EntityDamageByEntityEvent.GLOBAL_KNOCKBACK_V;
 								Enchantment knockBackEnchantment = item.getEnchantment(Enchantment.ID_KNOCKBACK);
 								if (knockBackEnchantment != null) {
-									knockBack += knockBackEnchantment.getLevel() * 0.1f;
+									knockBackH += knockBackEnchantment.getLevel() * 0.1f;
+									knockBackV += knockBackEnchantment.getLevel() * 0.1f;
 								}
 
-								EntityDamageByEntityEvent entityDamageByEntityEvent = new EntityDamageByEntityEvent(this, target, EntityDamageEvent.DamageCause.ENTITY_ATTACK, damage, knockBack, enchantments);
+								EntityDamageByEntityEvent entityDamageByEntityEvent = new EntityDamageByEntityEvent(this, target, EntityDamageEvent.DamageCause.ENTITY_ATTACK, damage, knockBackH, knockBackV, enchantments);
 								if (this.isSpectator()) entityDamageByEntityEvent.setCancelled();
 								if ((target instanceof Player) && !this.level.getGameRules().getBoolean(GameRule.PVP)) {
 									entityDamageByEntityEvent.setCancelled();
