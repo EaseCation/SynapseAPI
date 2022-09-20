@@ -492,6 +492,12 @@ public class SynapsePlayer116 extends SynapsePlayer113 {
 								Map<EntityDamageEvent.DamageModifier, Float> damage = new EnumMap<>(EntityDamageEvent.DamageModifier.class);
 								damage.put(EntityDamageEvent.DamageModifier.BASE, itemDamage);
 
+								float knockBack = 0.29f;
+								Enchantment knockBackEnchantment = item.getEnchantment(Enchantment.ID_KNOCKBACK);
+								if (knockBackEnchantment != null) {
+									knockBack += knockBackEnchantment.getLevel() * 0.1f;
+								}
+
 								if (!this.canInteract(target, isCreative() ? 8 : 5)) {
 									break;
 								} else if (target instanceof Player) {
@@ -502,7 +508,7 @@ public class SynapsePlayer116 extends SynapsePlayer113 {
 									}
 								}
 
-								EntityDamageByEntityEvent entityDamageByEntityEvent = new EntityDamageByEntityEvent(this, target, EntityDamageEvent.DamageCause.ENTITY_ATTACK, damage);
+								EntityDamageByEntityEvent entityDamageByEntityEvent = new EntityDamageByEntityEvent(this, target, EntityDamageEvent.DamageCause.ENTITY_ATTACK, damage, knockBack, item.getEnchantments());
 								if (this.isSpectator()) entityDamageByEntityEvent.setCancelled();
 								if (!target.attack(entityDamageByEntityEvent)) {
 									if (item.isTool() && this.isSurvival()) {
