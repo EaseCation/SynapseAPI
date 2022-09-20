@@ -492,10 +492,12 @@ public class SynapsePlayer116 extends SynapsePlayer113 {
 								Map<EntityDamageEvent.DamageModifier, Float> damage = new EnumMap<>(EntityDamageEvent.DamageModifier.class);
 								damage.put(EntityDamageEvent.DamageModifier.BASE, itemDamage);
 
-								float knockBack = 0.29f;
+								float knockBackH = EntityDamageByEntityEvent.GLOBAL_KNOCKBACK_H;
+								float knockBackV = EntityDamageByEntityEvent.GLOBAL_KNOCKBACK_V;
 								Enchantment knockBackEnchantment = item.getEnchantment(Enchantment.ID_KNOCKBACK);
 								if (knockBackEnchantment != null) {
-									knockBack += knockBackEnchantment.getLevel() * 0.1f;
+									knockBackH += knockBackEnchantment.getLevel() * 0.1f;
+									knockBackV += knockBackEnchantment.getLevel() * 0.1f;
 								}
 
 								if (!this.canInteract(target, isCreative() ? 8 : 5)) {
@@ -508,7 +510,7 @@ public class SynapsePlayer116 extends SynapsePlayer113 {
 									}
 								}
 
-								EntityDamageByEntityEvent entityDamageByEntityEvent = new EntityDamageByEntityEvent(this, target, EntityDamageEvent.DamageCause.ENTITY_ATTACK, damage, knockBack, item.getEnchantments());
+								EntityDamageByEntityEvent entityDamageByEntityEvent = new EntityDamageByEntityEvent(this, target, EntityDamageEvent.DamageCause.ENTITY_ATTACK, damage, knockBackH, knockBackV, item.getEnchantments());
 								if (this.isSpectator()) entityDamageByEntityEvent.setCancelled();
 								if (!target.attack(entityDamageByEntityEvent)) {
 									if (item.isTool() && this.isSurvival()) {
