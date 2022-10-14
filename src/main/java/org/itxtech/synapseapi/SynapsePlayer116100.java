@@ -1,5 +1,7 @@
 package org.itxtech.synapseapi;
 
+import cn.nukkit.AdventureSettings;
+import cn.nukkit.AdventureSettings.Type;
 import cn.nukkit.Player;
 import cn.nukkit.block.Block;
 import cn.nukkit.block.BlockDragonEgg;
@@ -8,6 +10,7 @@ import cn.nukkit.block.BlockNoteblock;
 import cn.nukkit.blockentity.BlockEntity;
 import cn.nukkit.blockentity.BlockEntityItemFrame;
 import cn.nukkit.blockentity.BlockEntitySpawnable;
+import cn.nukkit.command.data.CommandPermission;
 import cn.nukkit.entity.Entity;
 import cn.nukkit.entity.EntityRideable;
 import cn.nukkit.entity.data.ShortEntityData;
@@ -15,9 +18,11 @@ import cn.nukkit.entity.item.EntityBoat;
 import cn.nukkit.event.inventory.InventoryCloseEvent;
 import cn.nukkit.event.player.PlayerFormRespondedEvent;
 import cn.nukkit.event.player.PlayerInteractEvent;
+import cn.nukkit.event.player.PlayerKickEvent;
 import cn.nukkit.event.player.PlayerMapInfoRequestEvent;
 import cn.nukkit.event.player.PlayerRespawnEvent;
 import cn.nukkit.event.player.PlayerSettingsRespondedEvent;
+import cn.nukkit.event.player.PlayerToggleFlightEvent;
 import cn.nukkit.event.player.PlayerToggleGlideEvent;
 import cn.nukkit.event.player.PlayerToggleSneakEvent;
 import cn.nukkit.event.player.PlayerToggleSprintEvent;
@@ -53,6 +58,7 @@ import cn.nukkit.network.protocol.ResourcePackClientResponsePacket;
 import cn.nukkit.network.protocol.ResourcePackDataInfoPacket;
 import cn.nukkit.network.protocol.SubChunkPacket;
 import cn.nukkit.network.protocol.SubChunkPacket11810;
+import cn.nukkit.network.protocol.types.PlayerAbility;
 import cn.nukkit.network.protocol.types.ContainerIds;
 import cn.nukkit.resourcepacks.ResourcePack;
 import cn.nukkit.scheduler.AsyncTask;
@@ -95,8 +101,12 @@ import org.itxtech.synapseapi.multiprotocol.protocol11810.protocol.SubChunkReque
 import org.itxtech.synapseapi.multiprotocol.protocol11830.protocol.SpawnParticleEffectPacket11830;
 import org.itxtech.synapseapi.multiprotocol.protocol11830.protocol.StartGamePacket11830;
 import org.itxtech.synapseapi.multiprotocol.protocol119.protocol.PlayerActionPacket119;
+import org.itxtech.synapseapi.multiprotocol.protocol119.protocol.RequestAbilityPacket119;
 import org.itxtech.synapseapi.multiprotocol.protocol119.protocol.StartGamePacket119;
 import org.itxtech.synapseapi.multiprotocol.protocol11910.protocol.StartGamePacket11910;
+import org.itxtech.synapseapi.multiprotocol.protocol11910.protocol.UpdateAbilitiesPacket11910;
+import org.itxtech.synapseapi.multiprotocol.protocol11910.protocol.UpdateAbilitiesPacket11910.AbilityLayer;
+import org.itxtech.synapseapi.multiprotocol.protocol11910.protocol.UpdateAdventureSettingsPacket11910;
 import org.itxtech.synapseapi.multiprotocol.protocol11920.protocol.MapInfoRequestPacket11920;
 import org.itxtech.synapseapi.multiprotocol.protocol11920.protocol.ModalFormResponsePacket11920;
 import org.itxtech.synapseapi.multiprotocol.protocol11920.protocol.NetworkChunkPublisherUpdatePacket11920;
@@ -109,6 +119,7 @@ import org.itxtech.synapseapi.utils.BlobTrack;
 
 import java.net.InetSocketAddress;
 import java.util.Comparator;
+import java.util.EnumMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ThreadLocalRandom;
@@ -1099,6 +1110,35 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
                     }
                 }
 
+                break;
+            case ProtocolInfo.ADVENTURE_SETTINGS_PACKET:
+                if (getProtocol() >= AbstractProtocol.PROTOCOL_119.getProtocolStart()) {
+                    break;
+                }
+                super.handleDataPacket(packet);
+                break;
+            case ProtocolInfo.REQUEST_ABILITY_PACKET:
+                if (!callPacketReceiveEvent(packet)) {
+                    break;
+                }
+                RequestAbilityPacket119 requestAbilityPacket = (RequestAbilityPacket119) packet;
+                if (requestAbilityPacket.ability == PlayerAbility.FLYING && requestAbilityPacket.type == RequestAbilityPacket119.TYPE_BOOL) {
+                    if (requestAbilityPacket.boolValue && !server.getAllowFlight() && !getAdventureSettings().get(Type.ALLOW_FLIGHT)) {
+                        this.kick(PlayerKickEvent.Reason.FLYING_DISABLED, "Flying is not enabled on this server");
+                        break;
+                    }
+
+                    PlayerToggleFlightEvent playerToggleFlightEvent = new PlayerToggleFlightEvent(this, requestAbilityPacket.boolValue);
+                    if (this.isSpectator()) {
+                        playerToggleFlightEvent.setCancelled();
+                    }
+                    this.server.getPluginManager().callEvent(playerToggleFlightEvent);
+                    if (playerToggleFlightEvent.isCancelled()) {
+                        this.sendAbilities(this, this.getAdventureSettings());
+                    } else {
+                        this.getAdventureSettings().set(Type.FLYING, playerToggleFlightEvent.isFlying());
+                    }
+                }
                 break;
             default:
                 super.handleDataPacket(packet);
@@ -2113,6 +2153,71 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
         packet.z = getFloorZ();
         packet.radius = getViewDistance() << 4;
         dataPacket(packet);
+    }
+
+    @Override
+    public void sendAbilities(Player player, AdventureSettings settings) {
+        if (this.getProtocol() < AbstractProtocol.PROTOCOL_119_10.getProtocolStart()) {
+            super.sendAbilities(player, settings);
+            return;
+        }
+
+        Map<PlayerAbility, Boolean> baseAbilities = new EnumMap<>(PlayerAbility.class);
+        baseAbilities.put(PlayerAbility.BUILD, settings.get(Type.BUILD));
+        baseAbilities.put(PlayerAbility.MINE, settings.get(Type.MINE));
+        baseAbilities.put(PlayerAbility.DOORS_AND_SWITCHES, settings.get(Type.DOORS_AND_SWITCHED));
+        baseAbilities.put(PlayerAbility.OPEN_CONTAINERS, settings.get(Type.OPEN_CONTAINERS));
+        baseAbilities.put(PlayerAbility.ATTACK_PLAYERS, settings.get(Type.ATTACK_PLAYERS));
+        baseAbilities.put(PlayerAbility.ATTACK_MOBS, settings.get(Type.ATTACK_MOBS));
+        baseAbilities.put(PlayerAbility.OPERATOR_COMMANDS, settings.get(Type.OPERATOR));
+        baseAbilities.put(PlayerAbility.TELEPORT, settings.get(Type.TELEPORT));
+        baseAbilities.put(PlayerAbility.INVULNERABLE, settings.get(Type.INVULNERABLE));
+        baseAbilities.put(PlayerAbility.FLYING, settings.get(Type.FLYING));
+        baseAbilities.put(PlayerAbility.MAY_FLY, settings.get(Type.ALLOW_FLIGHT));
+        baseAbilities.put(PlayerAbility.INSTABUILD, settings.get(Type.INSTABUILD));
+        baseAbilities.put(PlayerAbility.LIGHTNING, settings.get(Type.LIGHTNING));
+        baseAbilities.put(PlayerAbility.MUTED, settings.get(Type.MUTED));
+        baseAbilities.put(PlayerAbility.WORLD_BUILDER, settings.get(Type.WORLD_BUILDER));
+        baseAbilities.put(PlayerAbility.NO_CLIP, settings.get(Type.NO_CLIP));
+
+        baseAbilities.put(PlayerAbility.FLY_SPEED, false);
+        baseAbilities.put(PlayerAbility.WALK_SPEED, false);
+
+        UpdateAbilitiesPacket11910 packet = new UpdateAbilitiesPacket11910();
+        packet.entityUniqueId = player.getId();
+        boolean isOp = player.isOp();
+        packet.playerPermission = isOp && !player.isSpectator() ? Player.PERMISSION_OPERATOR : Player.PERMISSION_MEMBER;
+        packet.commandPermission = isOp ? CommandPermission.GAME_DIRECTORS : CommandPermission.ALL;
+        packet.abilityLayers = new AbilityLayer[]{
+                new AbilityLayer(UpdateAbilitiesPacket11910.LAYER_BASE, baseAbilities, 0.05f, 0.1f),
+        };
+        dataPacket(packet);
+    }
+
+    @Override
+    public void sendAdventureSettings(AdventureSettings settings) {
+        if (this.getProtocol() < AbstractProtocol.PROTOCOL_119_10.getProtocolStart()) {
+            super.sendAdventureSettings(settings);
+            return;
+        }
+
+        UpdateAdventureSettingsPacket11910 packet = new UpdateAdventureSettingsPacket11910();
+        packet.noPvM = settings.get(Type.NO_PVM);
+        packet.noMvP = settings.get(Type.NO_MVP);
+        packet.worldImmutable = settings.get(Type.WORLD_IMMUTABLE);
+        packet.showNameTags = settings.get(Type.SHOW_NAME_TAGS);
+        packet.autoJump = settings.get(Type.AUTO_JUMP);
+        dataPacket(packet);
+    }
+
+    @Override
+    public void sendNetworkSettings() {
+        if (this.getProtocol() >= AbstractProtocol.PROTOCOL_119_30.getProtocolStart()) {
+            // handle by nemisys
+            return;
+        }
+
+        super.sendNetworkSettings();
     }
 
     //FIXME: 以下断言错误需要处理

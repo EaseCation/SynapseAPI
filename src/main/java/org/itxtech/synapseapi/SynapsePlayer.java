@@ -213,20 +213,32 @@ public class SynapsePlayer extends Player {
         }
 
         this.adventureSettings = new AdventureSettings(this)
-                .set(Type.WORLD_IMMUTABLE, !isAdventure())
+                .set(Type.WORLD_IMMUTABLE, isAdventure() || isSpectator())
+                .set(Type.MINE, !isAdventure() && !isSpectator())
+                .set(Type.BUILD, !isAdventure() && !isSpectator())
                 .set(Type.AUTO_JUMP, true)
                 .set(Type.ALLOW_FLIGHT, isCreative() || isSpectator())
                 .set(Type.NO_CLIP, isSpectator())
-                .set(Type.FLYING, isSpectator());
+                .set(Type.FLYING, isSpectator())
+                .set(Type.NO_PVM, isSpectator())
+                .set(Type.NO_MVP, isSpectator())
+                .set(Type.DOORS_AND_SWITCHED, !isSpectator())
+                .set(Type.OPEN_CONTAINERS, !isSpectator())
+                .set(Type.ATTACK_PLAYERS, !isSpectator())
+                .set(Type.ATTACK_MOBS, !isSpectator())
+                .set(Type.INSTABUILD, isCreative())
+                .set(Type.INVULNERABLE, isCreative() || isSpectator())
+                .set(Type.OPERATOR, isOp())
+                .set(Type.TELEPORT, hasPermission("nukkit.command.teleport"));
 
         Level level;
         if ((level = this.server.getLevelByName(nbt.getString("Level"))) == null || !alive) {
             this.setLevel(this.server.getDefaultLevel());
             nbt.putString("Level", this.level.getName());
             nbt.getList("Pos", DoubleTag.class)
-                    .add(new DoubleTag("0", this.level.getSpawnLocation().x))
-                    .add(new DoubleTag("1", this.level.getSpawnLocation().y))
-                    .add(new DoubleTag("2", this.level.getSpawnLocation().z));
+                    .add(new DoubleTag("", this.level.getSpawnLocation().x))
+                    .add(new DoubleTag("", this.level.getSpawnLocation().y))
+                    .add(new DoubleTag("", this.level.getSpawnLocation().z));
         } else {
             this.setLevel(level);
         }
@@ -1283,5 +1295,10 @@ public class SynapsePlayer extends Player {
     }
 
     public void sendItemComponents() {
+    }
+
+    @Override
+    public long getLocalEntityId() {
+        return SYNAPSE_PLAYER_ENTITY_ID;
     }
 }

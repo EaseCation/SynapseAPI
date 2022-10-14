@@ -134,7 +134,7 @@ public class SynapsePlayer116 extends SynapsePlayer113 {
 		switch (packet.pid()) {
 			case ProtocolInfo.INTERACT_PACKET:
 				InteractPacket interactPacket = (InteractPacket) packet;
-				if (interactPacket.action == InteractPacket.ACTION_OPEN_INVENTORY && interactPacket.target == SYNAPSE_PLAYER_ENTITY_ID && !this.inventoryOpen) {
+				if (interactPacket.action == InteractPacket.ACTION_OPEN_INVENTORY && interactPacket.target == getLocalEntityId() && !this.inventoryOpen) {
 //					this.openInventory();
 					this.inventory.open(this);
 					this.inventoryOpen = true;
@@ -614,8 +614,8 @@ public class SynapsePlayer116 extends SynapsePlayer113 {
 					break;
 				}
 				EmotePacket116 emotePacket = (EmotePacket116) packet;
-				if (emotePacket.runtimeId != this.id) {
-					server.getLogger().warning(this.username + " sent EmotePacket with invalid entity id: " + emotePacket.runtimeId + " != " + this.id);
+				if (emotePacket.runtimeId != this.getLocalEntityId()) {
+					server.getLogger().warning(this.username + " sent EmotePacket with invalid entity id: " + emotePacket.runtimeId + " != " + this.getLocalEntityId());
 					break;
 				}
 				if ((emotePacket.flags & EmotePacket116.FLAG_SERVER) != 0) {

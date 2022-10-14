@@ -50,10 +50,14 @@ import org.itxtech.synapseapi.multiprotocol.protocol11830.protocol.AddPlayerPack
 import org.itxtech.synapseapi.multiprotocol.protocol11830.protocol.SpawnParticleEffectPacket11830;
 import org.itxtech.synapseapi.multiprotocol.protocol11830.protocol.StartGamePacket11830;
 import org.itxtech.synapseapi.multiprotocol.protocol119.protocol.PlayerActionPacket119;
+import org.itxtech.synapseapi.multiprotocol.protocol119.protocol.RequestAbilityPacket119;
+import org.itxtech.synapseapi.multiprotocol.protocol119.protocol.RequestPermissionsPacket119;
 import org.itxtech.synapseapi.multiprotocol.protocol119.protocol.StartGamePacket119;
 import org.itxtech.synapseapi.multiprotocol.protocol11910.protocol.AddEntityPacket11910;
 import org.itxtech.synapseapi.multiprotocol.protocol11910.protocol.AddPlayerPacket11910;
 import org.itxtech.synapseapi.multiprotocol.protocol11910.protocol.StartGamePacket11910;
+import org.itxtech.synapseapi.multiprotocol.protocol11910.protocol.UpdateAbilitiesPacket11910;
+import org.itxtech.synapseapi.multiprotocol.protocol11910.protocol.UpdateAdventureSettingsPacket11910;
 import org.itxtech.synapseapi.multiprotocol.protocol11920.protocol.ClientboundMapItemDataPacket11920;
 import org.itxtech.synapseapi.multiprotocol.protocol11920.protocol.FeatureRegistryPacket11920;
 import org.itxtech.synapseapi.multiprotocol.protocol11920.protocol.MapInfoRequestPacket11920;
@@ -276,11 +280,15 @@ public class PacketRegister {
 
         registerPacket(AbstractProtocol.PROTOCOL_119, ProtocolInfo.START_GAME_PACKET, StartGamePacket119.class);
         registerPacket(AbstractProtocol.PROTOCOL_119, ProtocolInfo.PLAYER_ACTION_PACKET, PlayerActionPacket119.class);
+        registerPacket(AbstractProtocol.PROTOCOL_119, ProtocolInfo.REQUEST_ABILITY_PACKET, RequestAbilityPacket119.class);
+        registerPacket(AbstractProtocol.PROTOCOL_119, ProtocolInfo.REQUEST_PERMISSIONS_PACKET, RequestPermissionsPacket119.class);
         registerPacket(AbstractProtocol.PROTOCOL_119, ProtocolInfo.TOAST_REQUEST_PACKET, ToastRequestPacket119.class);
 
         registerPacket(AbstractProtocol.PROTOCOL_119_10, ProtocolInfo.START_GAME_PACKET, StartGamePacket11910.class);
         registerPacket(AbstractProtocol.PROTOCOL_119_10, ProtocolInfo.ADD_PLAYER_PACKET, AddPlayerPacket11910.class);
         registerPacket(AbstractProtocol.PROTOCOL_119_10, ProtocolInfo.ADD_ENTITY_PACKET, AddEntityPacket11910.class);
+        registerPacket(AbstractProtocol.PROTOCOL_119_10, ProtocolInfo.UPDATE_ABILITIES_PACKET, UpdateAbilitiesPacket11910.class);
+        registerPacket(AbstractProtocol.PROTOCOL_119_10, ProtocolInfo.UPDATE_ADVENTURE_SETTINGS_PACKET, UpdateAdventureSettingsPacket11910.class);
 
         registerPacket(AbstractProtocol.PROTOCOL_119_20, ProtocolInfo.START_GAME_PACKET, StartGamePacket11920.class);
         registerPacket(AbstractProtocol.PROTOCOL_119_20, ProtocolInfo.NETWORK_CHUNK_PUBLISHER_UPDATE_PACKET, NetworkChunkPublisherUpdatePacket11920.class);

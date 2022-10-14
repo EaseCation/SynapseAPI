@@ -58,6 +58,7 @@ public final class AvailableEntityIdentifiersPalette {
             palettes.put(AbstractProtocol.PROTOCOL_119_10, data11910);
             palettes.put(AbstractProtocol.PROTOCOL_119_20, data11910);
             palettes.put(AbstractProtocol.PROTOCOL_119_21, data11910);
+            palettes.put(AbstractProtocol.PROTOCOL_119_30, data11910);
         } catch (NullPointerException | IOException e) {
             throw new AssertionError("Unable to load entity_identifiers.dat");
         }
