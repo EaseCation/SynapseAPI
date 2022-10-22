@@ -47,7 +47,16 @@ public class SynapsePlayer19 extends SynapsePlayer18 {
 				}
 				this.getServer().getPluginManager().callEvent(event);
 				if (!event.isCancelled()) {
-					this.getLevel().getChunkPlayers(this.getFloorX() >> 4, this.getFloorZ() >> 4).values().stream()
+					this.sendLevelSoundEvent(
+							event.getLevelSound(),
+							event.getPos(),
+							event.getExtraData(),
+							event.getPitch(),
+							event.getEntityIdentifier(),
+							event.isBabyMob(),
+							event.isGlobal()
+					);
+					this.getViewers().values().stream()
 							.filter(p -> p instanceof SynapsePlayer)
 							.forEach(p -> ((SynapsePlayer) p).sendLevelSoundEvent(
 									event.getLevelSound(),
