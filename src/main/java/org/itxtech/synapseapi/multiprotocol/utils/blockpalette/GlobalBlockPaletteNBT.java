@@ -10,12 +10,14 @@ import it.unimi.dsi.fastutil.ints.IntList;
 import lombok.extern.log4j.Log4j2;
 import org.itxtech.synapseapi.multiprotocol.AbstractProtocol;
 import org.itxtech.synapseapi.multiprotocol.utils.AdvancedGlobalBlockPaletteInterface;
+import org.itxtech.synapseapi.multiprotocol.utils.block.BlockPalette.BlockData;
 import org.itxtech.synapseapi.multiprotocol.utils.blockpalette.data.PaletteBlockData;
 import org.itxtech.synapseapi.multiprotocol.utils.blockpalette.data.PaletteBlockTable;
 
 import java.io.IOException;
 import java.nio.ByteOrder;
 import java.util.Arrays;
+import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.locks.Lock;
@@ -24,7 +26,7 @@ import java.util.concurrent.locks.ReentrantReadWriteLock;
 @Log4j2
 public class GlobalBlockPaletteNBT implements AdvancedGlobalBlockPaletteInterface {
 
-    final int[] legacyToRuntimeId = new int[FULL_BLOCK_COUNT]; //TODO: 2D array
+    final int[][] idMetaToRuntimeId = new int[Block.BLOCK_ID_COUNT][];
     final int[] runtimeIdToLegacy;
     final CompoundTag[] runtimeIdToState;
     final Int2IntMap unknownToRuntimeId = new Int2IntOpenHashMap();
@@ -45,12 +47,12 @@ public class GlobalBlockPaletteNBT implements AdvancedGlobalBlockPaletteInterfac
         totalRuntimeIds = Math.max(blockTable.totalRuntimeIds, blockTable.size());
         runtimeIdToLegacy = new int[totalRuntimeIds];
         runtimeIdToState = new CompoundTag[totalRuntimeIds];
-        Arrays.fill(legacyToRuntimeId, -1);
         Arrays.fill(runtimeIdToLegacy, -1);
         unknownToRuntimeId.defaultReturnValue(-1);
 
         this.allowUnknownBlock = allowUnknownBlock;
 
+        IntList[] idMetaToRuntimeId = new IntList[Block.BLOCK_ID_COUNT];
         try {
             compiledTable = NBTIO.write(blockTable.toTag(), ByteOrder.LITTLE_ENDIAN, true);
             for (int i = 0; i < blockTable.size(); i++, runtimeIdAllocator.incrementAndGet()) {
@@ -69,20 +71,116 @@ public class GlobalBlockPaletteNBT implements AdvancedGlobalBlockPaletteInterfac
                         }
 
                         int meta = legacyState.val;
-                        legacyIdNoMeta = id << BLOCK_META_BITS;
-                        legacyId = legacyIdNoMeta | meta;
-                        if (legacyToRuntimeId[legacyId] == -1) {
-                            legacyToRuntimeId[legacyId] = i;
+//                        legacyIdNoMeta = id << BLOCK_META_BITS;
+//                        legacyId = legacyIdNoMeta | meta;
+//                        if (legacyToRuntimeId[legacyId] == -1) {
+//                            legacyToRuntimeId[legacyId] = i;
+//                        }
+                        IntList metaToRuntimeId = idMetaToRuntimeId[id];
+                        if (metaToRuntimeId == null) {
+                            metaToRuntimeId = new IntArrayList();
+                            idMetaToRuntimeId[id] = metaToRuntimeId;
                         }
-
-//                        if (meta > 0x3f) log.trace("block meta > 63! id: {}, meta: {}", id, meta);
+                        while (metaToRuntimeId.size() <= meta) {
+                            metaToRuntimeId.add(-1);
+                        }
+                        if (metaToRuntimeId.getInt(meta) == -1) {
+                            metaToRuntimeId.set(meta, i);
+                        }
                     }
                 }
             }
         } catch (IOException e) {
             throw new AssertionError("Unable to write block palette", e);
         }
+
+        for (int id = 0; id < Block.BLOCK_ID_COUNT; id++) {
+            IntList metaToRuntimeId = idMetaToRuntimeId[id];
+            if (metaToRuntimeId == null) {
+                continue;
+            }
+            int firstRuntimeId = metaToRuntimeId.getInt(0);
+            if (firstRuntimeId == -1) {
+                log.debug("First block runtimeId undefined. id {}", id);
+            }
+            for (int meta = 0; meta < metaToRuntimeId.size(); meta++) {
+                int runtimeId = metaToRuntimeId.getInt(meta);
+                if (runtimeId != -1) {
+                    continue;
+                }
+//                log.trace("Mapping undefined block meta to first runtimeId: id {} meta {} -> runtimeId {}", id, meta, firstRuntimeId);
+                metaToRuntimeId.set(meta, firstRuntimeId);
+            }
+            this.idMetaToRuntimeId[id] = metaToRuntimeId.toIntArray();
+        }
+
         itemDataPalette = loadItemDataPalette(itemDataPaletteJsonFile);
+    }
+
+    public GlobalBlockPaletteNBT(AbstractProtocol protocol, List<BlockData> palette) {
+        this.allowUnknownBlock = true;
+        totalRuntimeIds = palette.size();
+        log.info("Loading Advanced Global Block Palette from runtime mapping for {}. total {}", protocol, totalRuntimeIds);
+        runtimeIdToLegacy = new int[totalRuntimeIds];
+        runtimeIdToState = new CompoundTag[totalRuntimeIds];
+        Arrays.fill(runtimeIdToLegacy, -1);
+        unknownToRuntimeId.defaultReturnValue(-1);
+
+        IntList[] idMetaToRuntimeId = new IntList[Block.BLOCK_ID_COUNT];
+        for (int i = 0; i < palette.size(); i++, runtimeIdAllocator.incrementAndGet()) {
+            BlockData data = palette.get(i);
+            runtimeIdToState[i] = data.states;
+            int id = data.id;
+            if (id == -1) {
+                continue;
+            }
+            if (id >= Block.BLOCK_ID_COUNT) {
+                log.debug("Skip unsupported block: {}", data);
+                continue;
+            }
+            int meta = data.val;
+            int legacyIdNoMeta = id << BLOCK_META_BITS;
+            int legacyId = legacyIdNoMeta | meta;
+            runtimeIdToLegacy[i] = legacyId;
+
+//            if (legacyToRuntimeId[legacyId] == -1) {
+//                legacyToRuntimeId[legacyId] = i;
+//            }
+            IntList metaToRuntimeId = idMetaToRuntimeId[id];
+            if (metaToRuntimeId == null) {
+                metaToRuntimeId = new IntArrayList();
+                idMetaToRuntimeId[id] = metaToRuntimeId;
+            }
+            while (metaToRuntimeId.size() <= meta) {
+                metaToRuntimeId.add(-1);
+            }
+            if (metaToRuntimeId.getInt(meta) == -1) {
+                metaToRuntimeId.set(meta, i);
+            }
+        }
+
+        for (int id = 0; id < Block.BLOCK_ID_COUNT; id++) {
+            IntList metaToRuntimeId = idMetaToRuntimeId[id];
+            if (metaToRuntimeId == null) {
+                continue;
+            }
+            int firstRuntimeId = metaToRuntimeId.getInt(0);
+            if (firstRuntimeId == -1) {
+                log.debug("First block runtimeId undefined. id {}", id);
+            }
+            for (int meta = 0; meta < metaToRuntimeId.size(); meta++) {
+                int runtimeId = metaToRuntimeId.getInt(meta);
+                if (runtimeId != -1) {
+                    continue;
+                }
+//                log.trace("Mapping undefined block meta to first runtimeId: id {} meta {} -> runtimeId {}", id, meta, firstRuntimeId);
+                metaToRuntimeId.set(meta, firstRuntimeId);
+            }
+            this.idMetaToRuntimeId[id] = metaToRuntimeId.toIntArray();
+        }
+
+        compiledTable = null;
+        itemDataPalette = null;
     }
 
     @Override
@@ -92,13 +190,14 @@ public class GlobalBlockPaletteNBT implements AdvancedGlobalBlockPaletteInterfac
             id = 0xff - id;
         }
 
-        int legacyIdNoMeta = id << BLOCK_META_BITS;
-        int legacyId = legacyIdNoMeta | meta;
-
-        if (legacyId >= FULL_BLOCK_COUNT) {
+        int[] metaToRuntimeId;
+        if (id >= Block.BLOCK_ID_COUNT || (metaToRuntimeId = idMetaToRuntimeId[id]) == null) {
             if (!this.allowUnknownBlock) {
                 throw new NoSuchElementException("Unmapped block registered id:" + id + " meta:" + meta);
             }
+
+            int legacyIdNoMeta = id << BLOCK_META_BITS;
+            int legacyId = legacyIdNoMeta | meta;
             try {
                 readLock.lock();
 
@@ -106,7 +205,7 @@ public class GlobalBlockPaletteNBT implements AdvancedGlobalBlockPaletteInterfac
                 if (runtimeId == -1) {
                     runtimeId = unknownToRuntimeId.get(legacyIdNoMeta);
                     if (runtimeId == -1) {
-                        log.warn("Creating new runtime ID for unknown block {}", id, new Throwable("debug trace"));
+                        log.warn("Creating new runtime ID for unknown block: id {} meta {}", id, meta, new Throwable("debug trace"));
                         try {
                             writeLock.lock();
 
@@ -124,6 +223,7 @@ public class GlobalBlockPaletteNBT implements AdvancedGlobalBlockPaletteInterfac
             }
         }
 
+        /*
         int runtimeId = legacyToRuntimeId[legacyId];
         if (runtimeId == -1) {
             runtimeId = legacyToRuntimeId[legacyIdNoMeta];
@@ -144,6 +244,12 @@ public class GlobalBlockPaletteNBT implements AdvancedGlobalBlockPaletteInterfac
             }
         }
         return runtimeId;
+        */
+
+        if (meta >= metaToRuntimeId.length) {
+            return metaToRuntimeId[0];
+        }
+        return metaToRuntimeId[meta];
     }
 
     @Override

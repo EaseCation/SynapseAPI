@@ -4,11 +4,13 @@ import cn.nukkit.Server;
 import cn.nukkit.item.Item;
 import cn.nukkit.utils.Config;
 import cn.nukkit.utils.MainLogger;
+import lombok.extern.log4j.Log4j2;
 import org.itxtech.synapseapi.SynapseAPI;
 import org.itxtech.synapseapi.multiprotocol.AbstractProtocol;
 
 import java.util.*;
 
+@Log4j2
 public class CreativeItemsPalette {
 
     public static class CreativeItemsList extends ArrayList<Item> {
@@ -24,6 +26,8 @@ public class CreativeItemsPalette {
     private static final Map<AbstractProtocol, CreativeItemsList[]> palettes = new EnumMap<>(AbstractProtocol.class);
 
     public static void init() {
+        log.debug("Loading creative items...");
+
         register(AbstractProtocol.PROTOCOL_19, load("creativeitems_19.json"), null);
         register(AbstractProtocol.PROTOCOL_110, load("creativeitems_19.json"), null);
         register(AbstractProtocol.PROTOCOL_111, load("creativeitems_111.json"), null);
@@ -49,6 +53,7 @@ public class CreativeItemsPalette {
         register(AbstractProtocol.PROTOCOL_119_20, load("creativeitems_11620.json", true), null);
         register(AbstractProtocol.PROTOCOL_119_21, load("creativeitems_11620.json", true), null);
         register(AbstractProtocol.PROTOCOL_119_30, load("creativeitems_11620.json", true), null);
+        register(AbstractProtocol.PROTOCOL_119_40, load("creativeitems_11620.json", true), null);
     }
 
     private static void register(AbstractProtocol protocol, CreativeItemsList list, CreativeItemsList listNetEase) {

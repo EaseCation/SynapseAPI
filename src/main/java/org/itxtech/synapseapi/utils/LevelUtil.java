@@ -15,7 +15,7 @@ public class LevelUtil {
 
     public static void addParticle(Level level, Vector3 pos, String identifier, Player[] players) {
         for (Player player : players) {
-            player.spawnParticleEffect(pos.asVector3f(), identifier, -1, level.getDimension());
+            player.spawnParticleEffect(pos.asVector3f(), identifier, -1, level.getDimension().ordinal());
         }
     }
 

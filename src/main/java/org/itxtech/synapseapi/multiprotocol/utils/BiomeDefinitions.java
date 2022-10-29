@@ -2,6 +2,7 @@ package org.itxtech.synapseapi.multiprotocol.utils;
 
 import cn.nukkit.nbt.NBTIO;
 import com.google.common.io.ByteStreams;
+import lombok.extern.log4j.Log4j2;
 import org.itxtech.synapseapi.SynapseAPI;
 import org.itxtech.synapseapi.SynapseSharedConstants;
 import org.itxtech.synapseapi.multiprotocol.AbstractProtocol;
@@ -11,11 +12,14 @@ import java.nio.ByteOrder;
 import java.util.EnumMap;
 import java.util.Map;
 
+@Log4j2
 public final class BiomeDefinitions {
 
     private static final Map<AbstractProtocol, byte[]> data = new EnumMap<>(AbstractProtocol.class);
 
     static {
+        log.debug("Loading biome definitions...");
+
         try {
             //TODO: 1.8-1.11
             byte[] data112 = ByteStreams.toByteArray(SynapseAPI.getInstance().getResource("biome_definitions112.dat"));
@@ -27,6 +31,7 @@ public final class BiomeDefinitions {
             byte[] data119 = ByteStreams.toByteArray(SynapseAPI.getInstance().getResource("biome_definitions119.nbt"));
             byte[] data11920 = ByteStreams.toByteArray(SynapseAPI.getInstance().getResource("biome_definitions11920.nbt"));
             byte[] data11930 = ByteStreams.toByteArray(SynapseAPI.getInstance().getResource("biome_definitions11930.nbt"));
+            byte[] data11940 = ByteStreams.toByteArray(SynapseAPI.getInstance().getResource("biome_definitions11940.nbt"));
 
             data.put(AbstractProtocol.PROTOCOL_112, data112);
             data.put(AbstractProtocol.PROTOCOL_113, data112);
@@ -51,6 +56,7 @@ public final class BiomeDefinitions {
             data.put(AbstractProtocol.PROTOCOL_119_20, data11920);
             data.put(AbstractProtocol.PROTOCOL_119_21, data11920);
             data.put(AbstractProtocol.PROTOCOL_119_30, data11930);
+            data.put(AbstractProtocol.PROTOCOL_119_40, data11940);
         } catch (NullPointerException | IOException e) {
             throw new AssertionError("Unable to load biome_definitions.dat");
         }

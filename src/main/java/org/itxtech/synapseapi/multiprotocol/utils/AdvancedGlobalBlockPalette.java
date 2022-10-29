@@ -5,8 +5,11 @@ import cn.nukkit.level.GlobalBlockPaletteInterface;
 import cn.nukkit.level.GlobalBlockPaletteInterface.StaticVersion;
 import it.unimi.dsi.fastutil.ints.IntArrayList;
 import it.unimi.dsi.fastutil.ints.IntList;
+import lombok.extern.log4j.Log4j2;
 import org.itxtech.synapseapi.SynapseSharedConstants;
 import org.itxtech.synapseapi.multiprotocol.AbstractProtocol;
+import org.itxtech.synapseapi.multiprotocol.utils.block.LegacyBlockSerializer;
+import org.itxtech.synapseapi.multiprotocol.utils.block.RuntimeBlockMapper;
 import org.itxtech.synapseapi.multiprotocol.utils.blockpalette.*;
 import org.itxtech.synapseapi.multiprotocol.utils.blockpalette.data.PaletteBlockTable;
 
@@ -15,12 +18,20 @@ import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Stream;
 
+import static cn.nukkit.SharedConstants.*;
+
+@Log4j2
 public final class AdvancedGlobalBlockPalette {
 
     public static final Map<AbstractProtocol, AdvancedGlobalBlockPaletteInterface[]> palettes = new EnumMap<>(AbstractProtocol.class);
     public static final Map<StaticVersion, GlobalBlockPaletteInterface> staticPalettes = new EnumMap<>(StaticVersion.class);
 
     static {
+        log.debug("Loading advanced global block palette...");
+
+        LegacyBlockSerializer.initialize();
+        RuntimeBlockMapper.initialize();
+
         palettes.put(AbstractProtocol.PROTOCOL_16, new AdvancedGlobalBlockPaletteInterface[]{
                 new GlobalBlockPaletteJson(AbstractProtocol.PROTOCOL_16, "block_state_list_16.json"),
                 new GlobalBlockPaletteJson(AbstractProtocol.PROTOCOL_16, "block_state_list_16_netease.json")
@@ -47,7 +58,7 @@ public final class AdvancedGlobalBlockPalette {
 
         PaletteBlockTable table11920 = PaletteBlockTable.fromNBTV3("block_state_list_11920.nbt", true);
         PaletteBlockTable table119 = PaletteBlockTable.fromNBTV3("block_state_list_119.nbt", true);
-        PaletteBlockTable table11830 = PaletteBlockTable.fromNBTV3("block_state_list_11830.nbt", true);
+        PaletteBlockTable table11830 = PaletteBlockTable.fromNBTV3("block_state_list_11830.nbt", true); //new sorting method
         PaletteBlockTable table11810 = PaletteBlockTable.fromNBTV3("block_state_list_11810.dat");
         PaletteBlockTable table118NE = PaletteBlockTable.fromDumpJson("block_state_list_118_netease.json");
         PaletteBlockTable table11740 = PaletteBlockTable.fromNBTV3("block_state_list_11740.dat");
@@ -136,6 +147,43 @@ public final class AdvancedGlobalBlockPalette {
         palettes.put(AbstractProtocol.PROTOCOL_119_30, new AdvancedGlobalBlockPaletteInterface[]{
                 new GlobalBlockPaletteNBT(AbstractProtocol.PROTOCOL_119_30, table11920, null, true),
         });
+        palettes.put(AbstractProtocol.PROTOCOL_119_40, new AdvancedGlobalBlockPaletteInterface[]{
+                new GlobalBlockPaletteNBT(AbstractProtocol.PROTOCOL_119_40, table11920, null, true),
+        });
+
+        if (NEXT_UPDATE_BLOCK_STATE_PREVIEW) {
+            palettes.put(AbstractProtocol.PROTOCOL_117_40, new AdvancedGlobalBlockPaletteInterface[]{
+                    new GlobalBlockPaletteNBT(AbstractProtocol.PROTOCOL_117_40, RuntimeBlockMapper.PALETTES.get(AbstractProtocol.PROTOCOL_117_40)[0].palette),
+            });
+            palettes.put(AbstractProtocol.PROTOCOL_118, new AdvancedGlobalBlockPaletteInterface[]{
+                    new GlobalBlockPaletteNBT(AbstractProtocol.PROTOCOL_118, RuntimeBlockMapper.PALETTES.get(AbstractProtocol.PROTOCOL_118)[0].palette),
+                    new GlobalBlockPaletteNBT(AbstractProtocol.PROTOCOL_118, RuntimeBlockMapper.PALETTES.get(AbstractProtocol.PROTOCOL_118)[1].palette),
+            });
+            palettes.put(AbstractProtocol.PROTOCOL_118_10, new AdvancedGlobalBlockPaletteInterface[]{
+                    new GlobalBlockPaletteNBT(AbstractProtocol.PROTOCOL_118_10, RuntimeBlockMapper.PALETTES.get(AbstractProtocol.PROTOCOL_118_10)[0].palette)
+            });
+            palettes.put(AbstractProtocol.PROTOCOL_118_30, new AdvancedGlobalBlockPaletteInterface[]{
+                    new GlobalBlockPaletteNBT(AbstractProtocol.PROTOCOL_118_30, RuntimeBlockMapper.PALETTES.get(AbstractProtocol.PROTOCOL_118_30)[0].palette)
+            });
+            palettes.put(AbstractProtocol.PROTOCOL_119, new AdvancedGlobalBlockPaletteInterface[]{
+                    new GlobalBlockPaletteNBT(AbstractProtocol.PROTOCOL_119, RuntimeBlockMapper.PALETTES.get(AbstractProtocol.PROTOCOL_119)[0].palette)
+            });
+            palettes.put(AbstractProtocol.PROTOCOL_119_10, new AdvancedGlobalBlockPaletteInterface[]{
+                    new GlobalBlockPaletteNBT(AbstractProtocol.PROTOCOL_119_10, RuntimeBlockMapper.PALETTES.get(AbstractProtocol.PROTOCOL_119_10)[0].palette)
+            });
+            palettes.put(AbstractProtocol.PROTOCOL_119_20, new AdvancedGlobalBlockPaletteInterface[]{
+                    new GlobalBlockPaletteNBT(AbstractProtocol.PROTOCOL_119_20, RuntimeBlockMapper.PALETTES.get(AbstractProtocol.PROTOCOL_119_20)[0].palette),
+            });
+            palettes.put(AbstractProtocol.PROTOCOL_119_21, new AdvancedGlobalBlockPaletteInterface[]{
+                    new GlobalBlockPaletteNBT(AbstractProtocol.PROTOCOL_119_21, RuntimeBlockMapper.PALETTES.get(AbstractProtocol.PROTOCOL_119_21)[0].palette),
+            });
+            palettes.put(AbstractProtocol.PROTOCOL_119_30, new AdvancedGlobalBlockPaletteInterface[]{
+                    new GlobalBlockPaletteNBT(AbstractProtocol.PROTOCOL_119_30, RuntimeBlockMapper.PALETTES.get(AbstractProtocol.PROTOCOL_119_30)[0].palette),
+            });
+            palettes.put(AbstractProtocol.PROTOCOL_119_40, new AdvancedGlobalBlockPaletteInterface[]{
+                    new GlobalBlockPaletteNBT(AbstractProtocol.PROTOCOL_119_40, RuntimeBlockMapper.PALETTES.get(AbstractProtocol.PROTOCOL_119_40)[0].palette),
+            });
+        }
 
         staticPalettes.put(StaticVersion.V1_16_100, new GlobalBlockPaletteStatic(palettes.get(AbstractProtocol.PROTOCOL_116_100)[0]));
         staticPalettes.put(StaticVersion.V1_16_200_NETEASE, new GlobalBlockPaletteStatic(palettes.get(AbstractProtocol.PROTOCOL_116_200)[1]));

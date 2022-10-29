@@ -18,6 +18,10 @@ public class UpdateAbilitiesPacket11910 extends Packet11910 {
     public static final int LAYER_BASE = 1;
     public static final int LAYER_SPECTATOR = 2;
     public static final int LAYER_COMMANDS = 3;
+    /**
+     * @since 1.19.40
+     */
+    public static final int LAYER_EDITOR = 4;
 
     public long entityUniqueId;
     public int playerPermission = Player.PERMISSION_MEMBER;

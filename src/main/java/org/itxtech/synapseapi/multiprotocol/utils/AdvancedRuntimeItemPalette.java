@@ -1,6 +1,7 @@
 package org.itxtech.synapseapi.multiprotocol.utils;
 
 import cn.nukkit.item.Item;
+import lombok.extern.log4j.Log4j2;
 import org.itxtech.synapseapi.multiprotocol.AbstractProtocol;
 
 import java.util.EnumMap;
@@ -13,11 +14,14 @@ import java.util.Objects;
  * 所以需要分版本对数据包进行处理
  * 注意：最好所有涉及到的包都有多协议适配版（XXXPacket116200这类），这样才可以在BinaryStream中自动设置进去neteaseMode，不然都将按照国际版进行编码
  */
+@Log4j2
 public final class AdvancedRuntimeItemPalette {
 
     public static final Map<AbstractProtocol, AdvancedRuntimeItemPaletteInterface[]> palettes = new EnumMap<>(AbstractProtocol.class);
 
     static {
+        log.debug("Loading advanced runtime item palette...");
+
         RuntimeItemPalette palette116100 = new RuntimeItemPalette("runtime_item_ids_116100.json");
         RuntimeItemPalette palette116200NE = new RuntimeItemPalette("runtime_item_ids_116200NE.json");
         RuntimeItemPalette palette117 = new RuntimeItemPalette("runtime_item_ids_117.json");
@@ -48,6 +52,7 @@ public final class AdvancedRuntimeItemPalette {
         register(AbstractProtocol.PROTOCOL_119_20, palette11910, null);
         register(AbstractProtocol.PROTOCOL_119_21, palette11910, null);
         register(AbstractProtocol.PROTOCOL_119_30, palette11910, null);
+        register(AbstractProtocol.PROTOCOL_119_40, palette11910, null);
     }
 
     private static void register(AbstractProtocol protocol, RuntimeItemPalette palette, RuntimeItemPalette paletteNetEase) {

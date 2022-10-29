@@ -444,18 +444,18 @@ public class PaletteBlockTable extends ObjectArrayList<PaletteBlockData> {
     }
 
     @ToString
-    static class DumpJsonTableEntry {
-        private String name;
-        private int val;
-        private List<StateEntry> states;
-        private int id;
+    public static class DumpJsonTableEntry {
+        public String name;
+        public int val;
+        public List<StateEntry> states;
+        public int id;
     }
 
     @ToString
-    static class StateEntry {
-        private String name;
-        private String type;
-        private Object value;
+    public static class StateEntry {
+        public String name;
+        public String type;
+        public Object value;
     }
 
     public PaletteBlockTable trim(PaletteBlockTable according) {

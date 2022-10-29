@@ -6,6 +6,7 @@ import cn.nukkit.network.protocol.BatchPacket;
 import cn.nukkit.network.protocol.CraftingDataPacket;
 import cn.nukkit.network.protocol.DataPacket;
 import cn.nukkit.utils.MainLogger;
+import lombok.extern.log4j.Log4j2;
 import org.itxtech.synapseapi.multiprotocol.AbstractProtocol;
 import org.itxtech.synapseapi.multiprotocol.PacketRegister;
 
@@ -13,12 +14,15 @@ import java.util.EnumMap;
 import java.util.Map;
 import java.util.zip.Deflater;
 
+@Log4j2
 public final class CraftingPacketManager {
 
     private static BatchPacket originPacket;
     private static final Map<AbstractProtocol, BatchPacket[]> packets = new EnumMap<>(AbstractProtocol.class);
 
     public static void rebuildPacket() {
+        log.debug("Loading crafting data...");
+
         CraftingDataPacket pk = new CraftingDataPacket();
         pk.cleanRecipes = true;
 

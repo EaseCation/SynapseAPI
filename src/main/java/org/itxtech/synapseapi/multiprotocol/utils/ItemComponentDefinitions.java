@@ -5,6 +5,7 @@ import cn.nukkit.nbt.tag.CompoundTag;
 import cn.nukkit.nbt.tag.Tag;
 import com.google.common.io.ByteStreams;
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
+import lombok.extern.log4j.Log4j2;
 import org.itxtech.synapseapi.SynapseAPI;
 import org.itxtech.synapseapi.multiprotocol.AbstractProtocol;
 
@@ -13,10 +14,13 @@ import java.util.Collections;
 import java.util.EnumMap;
 import java.util.Map;
 
+@Log4j2
 public final class ItemComponentDefinitions {
     private static final Map<AbstractProtocol, Map<String, byte[]>> DEFINITIONS = new EnumMap<>(AbstractProtocol.class);
 
     static {
+        log.debug("Loading item component definitions...");
+
         // vanilla 在 1.18.10 前发的都是空的
         try {
             Map<String, byte[]> definition11810 = load("item_components11810.nbt");
@@ -31,6 +35,7 @@ public final class ItemComponentDefinitions {
             DEFINITIONS.put(AbstractProtocol.PROTOCOL_119_20, definition11910);
             DEFINITIONS.put(AbstractProtocol.PROTOCOL_119_21, definition11910);
             DEFINITIONS.put(AbstractProtocol.PROTOCOL_119_30, definition11910);
+            DEFINITIONS.put(AbstractProtocol.PROTOCOL_119_40, definition11910);
         } catch (NullPointerException | IOException e) {
             throw new AssertionError("Unable to load item_components.nbt");
         }

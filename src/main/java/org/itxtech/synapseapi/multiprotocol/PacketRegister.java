@@ -6,6 +6,7 @@ import cn.nukkit.network.protocol.BatchPacket;
 import cn.nukkit.utils.BinaryStream;
 import cn.nukkit.utils.MainLogger;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
+import lombok.extern.log4j.Log4j2;
 import org.itxtech.synapseapi.multiprotocol.protocol110.protocol.AvailableCommandsPacket110;
 import org.itxtech.synapseapi.multiprotocol.protocol110.protocol.LecternUpdatePacket110;
 import org.itxtech.synapseapi.multiprotocol.protocol110.protocol.VideoStreamConnectPacket110;
@@ -66,6 +67,9 @@ import org.itxtech.synapseapi.multiprotocol.protocol11920.protocol.NetworkChunkP
 import org.itxtech.synapseapi.multiprotocol.protocol11920.protocol.StartGamePacket11920;
 import org.itxtech.synapseapi.multiprotocol.protocol11920.protocol.UpdateAttributesPacket11920;
 import org.itxtech.synapseapi.multiprotocol.protocol119.protocol.ToastRequestPacket119;
+import org.itxtech.synapseapi.multiprotocol.protocol11940.protocol.AddEntityPacket11940;
+import org.itxtech.synapseapi.multiprotocol.protocol11940.protocol.AddPlayerPacket11940;
+import org.itxtech.synapseapi.multiprotocol.protocol11940.protocol.SetEntityDataPacket11940;
 import org.itxtech.synapseapi.multiprotocol.protocol15.protocol.AddEntityPacket15;
 import org.itxtech.synapseapi.multiprotocol.protocol15.protocol.ClientboundMapItemDataPacket15;
 import org.itxtech.synapseapi.multiprotocol.protocol15.protocol.MoveEntityAbsolutePacket15;
@@ -83,6 +87,7 @@ import java.util.*;
 /**
  * @author CreeperFace
  */
+@Log4j2
 public class PacketRegister {
 
     private static final Map<AbstractProtocol, Class<? extends DataPacket>[]> packetPool = new EnumMap<>(AbstractProtocol.class);
@@ -95,6 +100,8 @@ public class PacketRegister {
     private static final Map<AbstractProtocol, boolean[]> neteaseSpecial = new EnumMap<>(AbstractProtocol.class);
 
     public static void init() {
+        log.debug("Loading packet registry...");
+
         registerPacket(AbstractProtocol.PROTOCOL_12, ProtocolInfo.LOGIN_PACKET, org.itxtech.synapseapi.multiprotocol.protocol12.protocol.LoginPacket.class);
 
         registerPacket(AbstractProtocol.PROTOCOL_14, ProtocolInfo.LOGIN_PACKET, LoginPacket14.class);
@@ -297,6 +304,10 @@ public class PacketRegister {
         registerPacket(AbstractProtocol.PROTOCOL_119_20, ProtocolInfo.CLIENTBOUND_MAP_ITEM_DATA_PACKET, ClientboundMapItemDataPacket11920.class);
         registerPacket(AbstractProtocol.PROTOCOL_119_20, ProtocolInfo.MODAL_FORM_RESPONSE_PACKET, ModalFormResponsePacket11920.class);
         registerPacket(AbstractProtocol.PROTOCOL_119_20, ProtocolInfo.FEATURE_REGISTRY_PACKET, FeatureRegistryPacket11920.class);
+
+        registerPacket(AbstractProtocol.PROTOCOL_119_40, ProtocolInfo.ADD_ENTITY_PACKET, AddEntityPacket11940.class);
+        registerPacket(AbstractProtocol.PROTOCOL_119_40, ProtocolInfo.ADD_PLAYER_PACKET, AddPlayerPacket11940.class);
+        registerPacket(AbstractProtocol.PROTOCOL_119_40, ProtocolInfo.SET_ENTITY_DATA_PACKET, SetEntityDataPacket11940.class);
 
         checkNeteaseSpecialExtend();
         CraftingPacketManager.rebuildPacket();
