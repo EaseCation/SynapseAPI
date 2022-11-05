@@ -151,7 +151,7 @@ public final class AdvancedGlobalBlockPalette {
                 new GlobalBlockPaletteNBT(AbstractProtocol.PROTOCOL_119_40, table11920, null, true),
         });
 
-        if (NEXT_UPDATE_BLOCK_STATE_PREVIEW) {
+        if (ENABLE_BLOCK_STATE_PERSISTENCE) {
             palettes.put(AbstractProtocol.PROTOCOL_117_40, new AdvancedGlobalBlockPaletteInterface[]{
                     new GlobalBlockPaletteNBT(AbstractProtocol.PROTOCOL_117_40, RuntimeBlockMapper.PALETTES.get(AbstractProtocol.PROTOCOL_117_40)[0].palette),
             });

@@ -66,14 +66,19 @@ public final class RuntimeBlockMapper {
 
     @Nullable
     private static BlockData map(BlockData block, BlockPalette target, List<BlockUpgradeSchema> schemas) {
-        Optional<BlockData> match = target.palette.stream().filter(data -> {
-            CompoundTag tag = new CompoundTag();
-            tag.putString("name", block.name);
-            tag.putCompound("states", block.states.clone());
-            tag.putInt("version", VanillaBlockUpgrader.getCurrentVersion());
-            VanillaBlockUpgrader.upgrade(tag, schemas);
-            return tag.getString("name").equals(data.name) && tag.getCompound("states").equals(data.states);
-        }).findFirst();
+        CompoundTag tag = new CompoundTag();
+        tag.putString("name", block.name);
+        tag.putCompound("states", block.states.clone());
+        tag.putInt("version", VanillaBlockUpgrader.getCurrentVersion());
+
+        VanillaBlockUpgrader.upgrade(tag, schemas);
+
+        String name = tag.getString("name");
+        CompoundTag states = tag.getCompound("states");
+
+        Optional<BlockData> match = target.palette.stream()
+                .filter(data -> name.equals(data.name) && states.equals(data.states))
+                .findFirst();
 
         if (match.isPresent()) {
             BlockData data = match.get();
@@ -156,9 +161,13 @@ public final class RuntimeBlockMapper {
             }
 
             int meta = fullId & Block.BLOCK_META_MASK;
-            if (meta < 0 || meta >= tags.length) {
+            int count = tags.length;
+            if (meta < 0 || meta >= count) {
                 log.warn("Invalid block meta: id {} val {}", id, meta);
-                return infoUpdateBlock;
+                if (count == 0) {
+                    return infoUpdateBlock;
+                }
+                return tags[0];
             }
             return tags[meta];
         });

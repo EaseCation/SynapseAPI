@@ -258,6 +258,7 @@ public final class LegacyBlockSerializer {
         registerDeserializer(STONE, states -> {
             String type = states.getString(STONE_TYPE);
             switch (type) {
+                default:
                 case STONE_TYPE_STONE:
                     return BlockStone.NORMAL;
                 case STONE_TYPE_GRANITE:
@@ -272,20 +273,21 @@ public final class LegacyBlockSerializer {
                     return BlockStone.ANDESITE;
                 case STONE_TYPE_ANDESITE_SMOOTH:
                     return BlockStone.POLISHED_ANDESITE;
-                default:
-                    throw badValueException(STONE_TYPE, type);
+//                default:
+//                    throw badValueException(STONE_TYPE, type);
             }
         });
 
         registerDeserializer(DIRT, states -> {
             String type = states.getString(DIRT_TYPE);
             switch (type) {
+                default:
                 case DIRT_TYPE_NORMAL:
                     return BlockDirt.NORMAL_DIRT;
                 case DIRT_TYPE_COARSE:
                     return BlockDirt.COARSE_DIRT;
-                default:
-                    throw badValueException(DIRT_TYPE, type);
+//                default:
+//                    throw badValueException(DIRT_TYPE, type);
             }
         });
 
@@ -309,12 +311,13 @@ public final class LegacyBlockSerializer {
         registerDeserializer(SAND, states -> {
             String type = states.getString(SAND_TYPE);
             switch (type) {
+                default:
                 case SAND_TYPE_NORMAL:
                     return BlockSand.DEFAULT;
                 case SAND_TYPE_RED:
                     return BlockSand.RED;
-                default:
-                    throw badValueException(SAND_TYPE, type);
+//                default:
+//                    throw badValueException(SAND_TYPE, type);
             }
         });
 
@@ -322,6 +325,7 @@ public final class LegacyBlockSerializer {
             int meta = deserializePillarAxis(states) << 2;
             String type = states.getString(OLD_LOG_TYPE);
             switch (type) {
+                default:
                 case OLD_LOG_TYPE_OAK:
                     meta |= BlockWood.OAK;
                     break;
@@ -334,34 +338,33 @@ public final class LegacyBlockSerializer {
                 case OLD_LOG_TYPE_JUNGLE:
                     meta |= BlockWood.JUNGLE;
                     break;
-                default:
-                    throw badValueException(OLD_LOG_TYPE, type);
+//                default:
+//                    throw badValueException(OLD_LOG_TYPE, type);
             }
             return meta;
         });
         registerDeserializer(LOG2, states -> {
-            int meta = deserializePillarAxis(states) << 2;
-            String type = states.getString(NEW_LOG_TYPE); // 1 bit in vanilla
+            int meta = deserializePillarAxis(states) << 1;
+            String type = states.getString(NEW_LOG_TYPE);
             switch (type) {
+                default:
                 case NEW_LOG_TYPE_ACACIA:
                     meta |= BlockWood2.ACACIA;
                     break;
                 case NEW_LOG_TYPE_DARK_OAK:
                     meta |= BlockWood2.DARK_OAK;
                     break;
-                default:
-                    throw badValueException(NEW_LOG_TYPE, type);
+//                default:
+//                    throw badValueException(NEW_LOG_TYPE, type);
             }
             return meta;
         });
 
         registerDeserializer(LEAVES, states -> {
-            int meta = states.getBoolean(UPDATE_BIT) ? 0b100 : 0;
-            if (states.getBoolean(PERSISTENT_BIT)) {
-                meta |= 0b1000;
-            }
+            int meta = deserializeLeaves(states) << 2;
             String type = states.getString(OLD_LEAF_TYPE);
             switch (type) {
+                default:
                 case OLD_LEAF_TYPE_OAK:
                     meta |= BlockLeaves.OAK;
                     break;
@@ -374,26 +377,24 @@ public final class LegacyBlockSerializer {
                 case OLD_LEAF_TYPE_JUNGLE:
                     meta |= BlockLeaves.JUNGLE;
                     break;
-                default:
-                    throw badValueException(OLD_LEAF_TYPE, type);
+//                default:
+//                    throw badValueException(OLD_LEAF_TYPE, type);
             }
             return meta;
         });
         registerDeserializer(LEAVES2, states -> {
-            int meta = states.getBoolean(UPDATE_BIT) ? 0b100 : 0;
-            if (states.getBoolean(PERSISTENT_BIT)) {
-                meta |= 0b1000;
-            }
-            String type = states.getString(NEW_LEAF_TYPE); //HACK: 1 bit in vanilla
+            int meta = deserializeLeaves(states) << 1;
+            String type = states.getString(NEW_LEAF_TYPE);
             switch (type) {
+                default:
                 case NEW_LEAF_TYPE_ACACIA:
                     meta |= BlockLeaves2.ACACIA;
                     break;
                 case NEW_LEAF_TYPE_DARK_OAK:
                     meta |= BlockLeaves2.DARK_OAK;
                     break;
-                default:
-                    throw badValueException(NEW_LEAF_TYPE, type);
+//                default:
+//                    throw badValueException(NEW_LEAF_TYPE, type);
             }
             return meta;
         });
@@ -401,12 +402,13 @@ public final class LegacyBlockSerializer {
         registerDeserializer(SPONGE, states -> {
             String type = states.getString(SPONGE_TYPE);
             switch (type) {
+                default:
                 case SPONGE_TYPE_DRY:
                     return BlockSponge.DRY;
                 case SPONGE_TYPE_WET:
                     return BlockSponge.WET;
-                default:
-                    throw badValueException(SPONGE_TYPE, type);
+//                default:
+//                    throw badValueException(SPONGE_TYPE, type);
             }
         });
 
@@ -442,14 +444,15 @@ public final class LegacyBlockSerializer {
             switch (type) {
                 case TALL_GRASS_TYPE_DEFAULT:
                     return 0;
+                default:
                 case TALL_GRASS_TYPE_TALL:
                     return 1;
                 case TALL_GRASS_TYPE_FERN:
                     return 2;
                 case TALL_GRASS_TYPE_SNOW:
                     return 3;
-                default:
-                    throw badValueException(TALL_GRASS_TYPE, type);
+//                default:
+//                    throw badValueException(TALL_GRASS_TYPE, type);
             }
         });
 
@@ -467,6 +470,7 @@ public final class LegacyBlockSerializer {
         registerDeserializer(RED_FLOWER, states -> {
             String type = states.getString(FLOWER_TYPE);
             switch (type) {
+                default:
                 case FLOWER_TYPE_POPPY:
                     return BlockFlower.TYPE_POPPY;
                 case FLOWER_TYPE_ORCHID:
@@ -489,8 +493,8 @@ public final class LegacyBlockSerializer {
                     return BlockFlower.TYPE_CORNFLOWER;
                 case FLOWER_TYPE_LILY_OF_THE_VALLEY:
                     return BlockFlower.TYPE_LILY_OF_THE_VALLEY;
-                default:
-                    throw badValueException(FLOWER_TYPE, type);
+//                default:
+//                    throw badValueException(FLOWER_TYPE, type);
             }
         });
 
@@ -637,6 +641,7 @@ public final class LegacyBlockSerializer {
             int meta = states.getBoolean(OPEN_BIT) ? 0b1000 : 0;
             String direction = states.getString(LEVER_DIRECTION);
             switch (direction) {
+                default:
                 case LEVER_DIRECTION_DOWN_EAST_WEST:
                     meta |= 0;
                     break;
@@ -661,8 +666,8 @@ public final class LegacyBlockSerializer {
                 case LEVER_DIRECTION_DOWN_NORTH_SOUTH:
                     meta |= 7;
                     break;
-                default:
-                    throw badValueException(LEVER_DIRECTION, direction);
+//                default:
+//                    throw badValueException(LEVER_DIRECTION, direction);
             }
             return meta;
         });
@@ -714,14 +719,15 @@ public final class LegacyBlockSerializer {
         registerDeserializer(PORTAL, states -> {
             String axis = states.getString(PORTAL_AXIS);
             switch (axis) {
+                default:
                 case PORTAL_AXIS_UNKNOWN:
                     return BlockNetherPortal.AXIS_UNKNOWN;
                 case PORTAL_AXIS_X:
                     return BlockNetherPortal.AXIS_X;
                 case PORTAL_AXIS_Z:
                     return BlockNetherPortal.AXIS_Z;
-                default:
-                    throw badValueException(PORTAL_AXIS, axis);
+//                default:
+//                    throw badValueException(PORTAL_AXIS, axis);
             }
         });
 
@@ -744,6 +750,7 @@ public final class LegacyBlockSerializer {
         registerDeserializer(MONSTER_EGG, states -> {
             String type = states.getString(MONSTER_EGG_STONE_TYPE);
             switch (type) {
+                default:
                 case MONSTER_EGG_STONE_TYPE_STONE:
                     return BlockMonsterEgg.STONE;
                 case MONSTER_EGG_STONE_TYPE_COBBLESTONE:
@@ -756,14 +763,15 @@ public final class LegacyBlockSerializer {
                     return BlockMonsterEgg.CRACKED_BRICK;
                 case MONSTER_EGG_STONE_TYPE_CHISELED_STONE_BRICK:
                     return BlockMonsterEgg.CHISELED_BRICK;
-                default:
-                    throw badValueException(MONSTER_EGG_STONE_TYPE, type);
+//                default:
+//                    throw badValueException(MONSTER_EGG_STONE_TYPE, type);
             }
         });
 
         registerDeserializer(STONEBRICK, states -> {
             String type = states.getString(STONE_BRICK_TYPE);
             switch (type) {
+                default:
                 case STONE_BRICK_TYPE_DEFAULT:
                     return BlockBricksStone.NORMAL;
                 case STONE_BRICK_TYPE_MOSSY:
@@ -774,8 +782,8 @@ public final class LegacyBlockSerializer {
                     return BlockBricksStone.CHISELED;
                 case STONE_BRICK_TYPE_SMOOTH:
                     return BlockBricksStone.SMOOTH;
-                default:
-                    throw badValueException(STONE_BRICK_TYPE, type);
+//                default:
+//                    throw badValueException(STONE_BRICK_TYPE, type);
             }
         });
 
@@ -853,50 +861,51 @@ public final class LegacyBlockSerializer {
             int meta = deserializeWall(states) << 4;
             String type = states.getString(WALL_BLOCK_TYPE);
             switch (type) {
+                default:
                 case WALL_BLOCK_TYPE_COBBLESTONE:
-                    meta |= BlockWall.NORMAL_COBBLESTONE_WALL;
+                    meta |= BlockWallCobblestone.NORMAL_COBBLESTONE_WALL;
                     break;
                 case WALL_BLOCK_TYPE_MOSSY_COBBLESTONE:
-                    meta |= BlockWall.MOSSY_COBBLESTONE_WALL;
+                    meta |= BlockWallCobblestone.MOSSY_COBBLESTONE_WALL;
                     break;
                 case WALL_BLOCK_TYPE_GRANITE:
-                    meta |= BlockWall.GRANITE_WALL;
+                    meta |= BlockWallCobblestone.GRANITE_WALL;
                     break;
                 case WALL_BLOCK_TYPE_DIORITE:
-                    meta |= BlockWall.DIORITE_WALL;
+                    meta |= BlockWallCobblestone.DIORITE_WALL;
                     break;
                 case WALL_BLOCK_TYPE_ANDESITE:
-                    meta |= BlockWall.ANDESITE_WALL;
+                    meta |= BlockWallCobblestone.ANDESITE_WALL;
                     break;
                 case WALL_BLOCK_TYPE_SANDSTONE:
-                    meta |= BlockWall.SANDSTONE_WALL;
+                    meta |= BlockWallCobblestone.SANDSTONE_WALL;
                     break;
                 case WALL_BLOCK_TYPE_BRICK:
-                    meta |= BlockWall.BRICK_WALL;
+                    meta |= BlockWallCobblestone.BRICK_WALL;
                     break;
                 case WALL_BLOCK_TYPE_STONE_BRICK:
-                    meta |= BlockWall.STONE_BRICK_WALL;
+                    meta |= BlockWallCobblestone.STONE_BRICK_WALL;
                     break;
                 case WALL_BLOCK_TYPE_MOSSY_STONE_BRICK:
-                    meta |= BlockWall.MOSSY_STONE_BRICK_WALL;
+                    meta |= BlockWallCobblestone.MOSSY_STONE_BRICK_WALL;
                     break;
                 case WALL_BLOCK_TYPE_NETHER_BRICK:
-                    meta |= BlockWall.NETHER_BRICK_WALL;
+                    meta |= BlockWallCobblestone.NETHER_BRICK_WALL;
                     break;
                 case WALL_BLOCK_TYPE_END_BRICK:
-                    meta |= BlockWall.END_BRICK_WALL;
+                    meta |= BlockWallCobblestone.END_BRICK_WALL;
                     break;
                 case WALL_BLOCK_TYPE_PRISMARINE:
-                    meta |= BlockWall.PRISMARINE_WALL;
+                    meta |= BlockWallCobblestone.PRISMARINE_WALL;
                     break;
                 case WALL_BLOCK_TYPE_RED_SANDSTONE:
-                    meta |= BlockWall.RED_SANDSTONE_WALL;
+                    meta |= BlockWallCobblestone.RED_SANDSTONE_WALL;
                     break;
                 case WALL_BLOCK_TYPE_RED_NETHER_BRICK:
-                    meta |= BlockWall.RED_NETHER_BRICK_WALL;
+                    meta |= BlockWallCobblestone.RED_NETHER_BRICK_WALL;
                     break;
-                default:
-                    throw badValueException(WALL_BLOCK_TYPE, type);
+//                default:
+//                    throw badValueException(WALL_BLOCK_TYPE, type);
             }
             return meta;
         });
@@ -918,6 +927,7 @@ public final class LegacyBlockSerializer {
             int meta = deserializeDirection(states);
             String damage = states.getString(DAMAGE);
             switch (damage) {
+                default:
                 case DAMAGE_UNDAMAGED:
                     break;
                 case DAMAGE_SLIGHTLY_DAMAGED:
@@ -929,8 +939,8 @@ public final class LegacyBlockSerializer {
                 case DAMAGE_BROKEN:
                     meta |= 0b1100;
                     break;
-                default:
-                    throw badValueException(DAMAGE, damage);
+//                default:
+//                    throw badValueException(DAMAGE, damage);
             }
             return meta;
         });
@@ -957,14 +967,15 @@ public final class LegacyBlockSerializer {
         registerDeserializer(PRISMARINE, states -> {
             String type = states.getString(PRISMARINE_BLOCK_TYPE);
             switch (type) {
+                default:
                 case PRISMARINE_BLOCK_TYPE_DEFAULT:
                     return BlockPrismarine.NORMAL;
                 case PRISMARINE_BLOCK_TYPE_DARK:
                     return BlockPrismarine.DARK;
                 case PRISMARINE_BLOCK_TYPE_BRICKS:
                     return BlockPrismarine.BRICKS;
-                default:
-                    throw badValueException(PRISMARINE_BLOCK_TYPE, type);
+//                default:
+//                    throw badValueException(PRISMARINE_BLOCK_TYPE, type);
             }
         });
 
@@ -972,6 +983,7 @@ public final class LegacyBlockSerializer {
             int meta = states.getBoolean(UPPER_BLOCK_BIT) ? 0b1000 : 0;
             String type = states.getString(DOUBLE_PLANT_TYPE);
             switch (type) {
+                default:
                 case DOUBLE_PLANT_TYPE_SUNFLOWER:
                     meta |= BlockDoublePlant.SUNFLOWER;
                     break;
@@ -990,8 +1002,8 @@ public final class LegacyBlockSerializer {
                 case DOUBLE_PLANT_TYPE_PAEONIA:
                     meta |= BlockDoublePlant.PEONY;
                     break;
-                default:
-                    throw badValueException(DOUBLE_PLANT_TYPE, type);
+//                default:
+//                    throw badValueException(DOUBLE_PLANT_TYPE, type);
             }
             return meta;
         });
@@ -1008,12 +1020,13 @@ public final class LegacyBlockSerializer {
         registerDeserializer(STRUCTURE_VOID, states -> {
             String type = states.getString(STRUCTURE_VOID_TYPE);
             switch (type) {
+                default:
                 case STRUCTURE_VOID_TYPE_VOID:
                     return BlockStructureVoid.TYPE_VOID;
                 case STRUCTURE_VOID_TYPE_AIR:
                     return BlockStructureVoid.TYPE_AIR;
-                default:
-                    throw badValueException(STRUCTURE_VOID_TYPE, type);
+//                default:
+//                    throw badValueException(STRUCTURE_VOID_TYPE, type);
             }
         });
 
@@ -1038,6 +1051,7 @@ public final class LegacyBlockSerializer {
             int meta = deserializeDirection(states);
             String type = states.getString(CHEMISTRY_TABLE_TYPE);
             switch (type) {
+                default:
                 case CHEMISTRY_TABLE_TYPE_COMPOUND_CREATOR:
                     meta |= BlockChemistryTable.COMPOUND_CREATOR;
                     break;
@@ -1050,8 +1064,8 @@ public final class LegacyBlockSerializer {
                 case CHEMISTRY_TABLE_TYPE_LAB_TABLE:
                     meta |= BlockChemistryTable.LAB_TABLE;
                     break;
-                default:
-                    throw badValueException(CHEMISTRY_TABLE_TYPE, type);
+//                default:
+//                    throw badValueException(CHEMISTRY_TABLE_TYPE, type);
             }
             return meta;
         });
@@ -1075,12 +1089,13 @@ public final class LegacyBlockSerializer {
                     return BlockStructure.TYPE_LOAD;
                 case STRUCTURE_BLOCK_TYPE_CORNER:
                     return BlockStructure.TYPE_CORNER;
+                default:
                 case STRUCTURE_BLOCK_TYPE_INVALID:
                     return BlockStructure.TYPE_INVALID;
                 case STRUCTURE_BLOCK_TYPE_EXPORT:
                     return BlockStructure.TYPE_EXPORT;
-                default:
-                    throw badValueException(STRUCTURE_BLOCK_TYPE, type);
+//                default:
+//                    throw badValueException(STRUCTURE_BLOCK_TYPE, type);
             }
         });
 
@@ -1094,14 +1109,15 @@ public final class LegacyBlockSerializer {
         registerDeserializer(SEAGRASS, states -> {
             String type = states.getString(SEA_GRASS_TYPE);
             switch (type) {
+                default:
                 case SEA_GRASS_TYPE_DEFAULT:
                     return BlockSeagrass.DEFAULT_SEAGRASS;
                 case SEA_GRASS_TYPE_DOUBLE_TOP:
                     return BlockSeagrass.DOUBLE_SEAGRASS_TOP;
                 case SEA_GRASS_TYPE_DOUBLE_BOT:
                     return BlockSeagrass.DOUBLE_SEAGRASS_BOTTOM;
-                default:
-                    throw badValueException(SEA_GRASS_TYPE, type);
+//                default:
+//                    throw badValueException(SEA_GRASS_TYPE, type);
             }
         });
 
@@ -1129,6 +1145,7 @@ public final class LegacyBlockSerializer {
             int meta;
             String count = states.getString(TURTLE_EGG_COUNT);
             switch (count) {
+                default:
                 case TURTLE_EGG_COUNT_ONE_EGG:
                     meta = 0;
                     break;
@@ -1141,11 +1158,12 @@ public final class LegacyBlockSerializer {
                 case TURTLE_EGG_COUNT_FOUR_EGG:
                     meta = 3;
                     break;
-                default:
-                    throw badValueException(TURTLE_EGG_COUNT, count);
+//                default:
+//                    throw badValueException(TURTLE_EGG_COUNT, count);
             }
             String type = states.getString(CRACKED_STATE);
             switch (type) {
+                default:
                 case CRACKED_STATE_NO_CRACKS:
                     break;
                 case CRACKED_STATE_CRACKED:
@@ -1154,8 +1172,8 @@ public final class LegacyBlockSerializer {
                 case CRACKED_STATE_MAX_CRACKED:
                     meta |= 0b1000;
                     break;
-                default:
-                    throw badValueException(CRACKED_STATE, count);
+//                default:
+//                    throw badValueException(CRACKED_STATE, count);
             }
             return meta;
         });
@@ -1166,16 +1184,18 @@ public final class LegacyBlockSerializer {
             int meta = states.getBoolean(AGE_BIT) ? 0b1000 : 0;
             String count = states.getString(BAMBOO_STALK_THICKNESS);
             switch (count) {
+                default:
                 case BAMBOO_STALK_THICKNESS_THIN:
                     break;
                 case BAMBOO_STALK_THICKNESS_THICK:
                     meta |= 0b1;
                     break;
-                default:
-                    throw badValueException(BAMBOO_STALK_THICKNESS, count);
+//                default:
+//                    throw badValueException(BAMBOO_STALK_THICKNESS, count);
             }
             String type = states.getString(BAMBOO_LEAF_SIZE);
             switch (type) {
+                default:
                 case BAMBOO_LEAF_SIZE_NO_LEAVES:
                     break;
                 case BAMBOO_LEAF_SIZE_SMALL_LEAVES:
@@ -1184,8 +1204,8 @@ public final class LegacyBlockSerializer {
                 case BAMBOO_LEAF_SIZE_LARGE_LEAVES:
                     meta |= 0b100;
                     break;
-                default:
-                    throw badValueException(BAMBOO_LEAF_SIZE, count);
+//                default:
+//                    throw badValueException(BAMBOO_LEAF_SIZE, count);
             }
             return meta;
         });
@@ -1414,6 +1434,7 @@ public final class LegacyBlockSerializer {
     private static int deserializeSandstone(CompoundTag states) {
         String type = states.getString(SAND_STONE_TYPE);
         switch (type) {
+            default:
             case SAND_STONE_TYPE_DEFAULT:
                 return BlockSandstone.NORMAL;
             case SAND_STONE_TYPE_HEIROGLYPHS:
@@ -1422,8 +1443,8 @@ public final class LegacyBlockSerializer {
                 return BlockSandstone.CUT;
             case SAND_STONE_TYPE_SMOOTH:
                 return BlockSandstone.SMOOTH;
-            default:
-                throw badValueException(SAND_STONE_TYPE, type);
+//            default:
+//                throw badValueException(SAND_STONE_TYPE, type);
         }
     }
 
@@ -1438,6 +1459,7 @@ public final class LegacyBlockSerializer {
     private static int deserializeTorch(CompoundTag states) {
         String direction = states.getString(TORCH_FACING_DIRECTION);
         switch (direction) {
+            default:
             case TORCH_FACING_DIRECTION_UNKNOWN:
                 return 0;
             case TORCH_FACING_DIRECTION_WEST:
@@ -1450,8 +1472,8 @@ public final class LegacyBlockSerializer {
                 return 4;
             case TORCH_FACING_DIRECTION_TOP:
                 return 5;
-            default:
-                throw badValueException(TORCH_FACING_DIRECTION, direction);
+//            default:
+//                throw badValueException(TORCH_FACING_DIRECTION, direction);
         }
     }
 
@@ -1475,6 +1497,7 @@ public final class LegacyBlockSerializer {
         int meta = states.getBoolean(TOP_SLOT_BIT) ? 0b1000 : 0;
         String type = states.getString(STONE_SLAB_TYPE);
         switch (type) {
+            default:
             case STONE_SLAB_TYPE_SMOOTH_STONE:
                 meta |= BlockSlabStone.SMOOTH_STONE;
                 break;
@@ -1499,8 +1522,8 @@ public final class LegacyBlockSerializer {
             case STONE_SLAB_TYPE_NETHER_BRICK:
                 meta |= BlockSlabStone.NETHER_BRICK;
                 break;
-            default:
-                throw badValueException(STONE_SLAB_TYPE, type);
+//            default:
+//                throw badValueException(STONE_SLAB_TYPE, type);
         }
         return meta;
     }
@@ -1509,6 +1532,7 @@ public final class LegacyBlockSerializer {
         int meta = states.getBoolean(TOP_SLOT_BIT) ? 0b1000 : 0;
         String type = states.getString(STONE_SLAB_TYPE_2);
         switch (type) {
+            default:
             case STONE_SLAB_TYPE_2_RED_SANDSTONE:
                 meta |= BlockSlabRedSandstone.RED_SANDSTONE;
                 break;
@@ -1533,8 +1557,8 @@ public final class LegacyBlockSerializer {
             case STONE_SLAB_TYPE_2_RED_NETHER_BRICK:
                 meta |= BlockSlabRedSandstone.RED_NETHER_BRICK;
                 break;
-            default:
-                throw badValueException(STONE_SLAB_TYPE_2, type);
+//            default:
+//                throw badValueException(STONE_SLAB_TYPE_2, type);
         }
         return meta;
     }
@@ -1543,6 +1567,7 @@ public final class LegacyBlockSerializer {
         int meta = states.getBoolean(TOP_SLOT_BIT) ? 0b1000 : 0;
         String type = states.getString(STONE_SLAB_TYPE_3);
         switch (type) {
+            default:
             case STONE_SLAB_TYPE_3_END_STONE_BRICK:
                 meta |= BlockSlabStone3.END_STONE_BRICK;
                 break;
@@ -1567,8 +1592,8 @@ public final class LegacyBlockSerializer {
             case STONE_SLAB_TYPE_3_POLISHED_GRANITE:
                 meta |= BlockSlabStone3.POLISHED_GRANITE;
                 break;
-            default:
-                throw badValueException(STONE_SLAB_TYPE_3, type);
+//            default:
+//                throw badValueException(STONE_SLAB_TYPE_3, type);
         }
         return meta;
     }
@@ -1577,6 +1602,7 @@ public final class LegacyBlockSerializer {
         int meta = states.getBoolean(TOP_SLOT_BIT) ? 0b1000 : 0;
         String type = states.getString(STONE_SLAB_TYPE_4);
         switch (type) {
+            default:
             case STONE_SLAB_TYPE_4_MOSSY_STONE_BRICK:
                 meta |= BlockSlabStone4.MOSSY_STONE_BRICK;
                 break;
@@ -1592,8 +1618,8 @@ public final class LegacyBlockSerializer {
             case STONE_SLAB_TYPE_4_CUT_RED_SANDSTONE:
                 meta |= BlockSlabStone4.CUT_RED_SANDSTONE;
                 break;
-            default:
-                throw badValueException(STONE_SLAB_TYPE_4, type);
+//            default:
+//                throw badValueException(STONE_SLAB_TYPE_4, type);
         }
         return meta;
     }
@@ -1669,6 +1695,14 @@ public final class LegacyBlockSerializer {
         return meta;
     }
 
+    private static int deserializeLeaves(CompoundTag states) {
+        int meta = states.getBoolean(UPDATE_BIT) ? 0b1 : 0;
+        if (states.getBoolean(PERSISTENT_BIT)) {
+            meta |= 0b10;
+        }
+        return meta;
+    }
+
     private static int deserializeHugeMushroom(CompoundTag states) {
         return states.getInt(HUGE_MUSHROOM_BITS) & 0b1111;
     }
@@ -1681,6 +1715,7 @@ public final class LegacyBlockSerializer {
         int meta = states.getInt(FILL_LEVEL) & 0b111;
         String type = states.getString(CAULDRON_LIQUID);
         switch (type) {
+            default:
             case CAULDRON_LIQUID_WATER:
                 break;
             case CAULDRON_LIQUID_LAVA:
@@ -1689,8 +1724,8 @@ public final class LegacyBlockSerializer {
             case CAULDRON_LIQUID_POWDER_SNOW:
                 meta |= 0b10000;
                 break;
-            default:
-                throw badValueException(CAULDRON_LIQUID, type);
+//            default:
+//                throw badValueException(CAULDRON_LIQUID, type);
         }
         return meta;
     }
@@ -1703,11 +1738,8 @@ public final class LegacyBlockSerializer {
         return meta;
     }
 
-    private static final int[] FRAME_1_13_REMAP = {4, 5, 3, 2, 1, 0};
-
     private static int deserializeFrame(CompoundTag states) {
         int meta = deserializeFacingDirection(states);
-        meta = FRAME_1_13_REMAP[meta]; //TODO: remove 1.13 HACK
         if (states.getBoolean(ITEM_FRAME_MAP_BIT)) {
             meta |= 0b1000;
         }
@@ -1733,6 +1765,7 @@ public final class LegacyBlockSerializer {
         int meta = deserializePillarAxis(states) << 2;
         String type = states.getString(CHISEL_TYPE);
         switch (type) {
+            default:
             case CHISEL_TYPE_DEFAULT:
                 break;
             case CHISEL_TYPE_CHISELED:
@@ -1744,8 +1777,8 @@ public final class LegacyBlockSerializer {
             case CHISEL_TYPE_SMOOTH:
                 meta |= 0b11;
                 break;
-            default:
-                throw badValueException(CHISEL_TYPE, type);
+//            default:
+//                throw badValueException(CHISEL_TYPE, type);
         }
         return meta;
     }
@@ -1766,20 +1799,22 @@ public final class LegacyBlockSerializer {
     private static int deserializePillarAxis(CompoundTag states) {
         String axis = states.getString(PILLAR_AXIS);
         switch (axis) {
+            default:
             case PILLAR_AXIS_Y:
                 return 0b00;
             case PILLAR_AXIS_X:
                 return 0b01;
             case PILLAR_AXIS_Z:
                 return 0b10;
-            default:
-                throw badValueException(PILLAR_AXIS, axis);
+//            default:
+//                throw badValueException(PILLAR_AXIS, axis);
         }
     }
 
     private static int deserializeColor(CompoundTag states) {
         String color = states.getString(COLOR);
         switch (color) {
+            default:
             case COLOR_WHITE:
                 return 0;
             case COLOR_ORANGE:
@@ -1812,14 +1847,15 @@ public final class LegacyBlockSerializer {
                 return 14;
             case COLOR_BLACK:
                 return 15;
-            default:
-                throw badValueException(COLOR, color);
+//            default:
+//                throw badValueException(COLOR, color);
         }
     }
 
     private static int deserializeCoralColor(CompoundTag states) {
         String color = states.getString(CORAL_COLOR);
         switch (color) {
+            default:
             case CORAL_COLOR_BLUE:
                 return BlockCoral.BLUE;
             case CORAL_COLOR_PINK:
@@ -1830,8 +1866,8 @@ public final class LegacyBlockSerializer {
                 return BlockCoral.RED;
             case CORAL_COLOR_YELLOW:
                 return BlockCoral.YELLOW;
-            default:
-                throw badValueException(CORAL_COLOR, color);
+//            default:
+//                throw badValueException(CORAL_COLOR, color);
         }
     }
 
@@ -1861,6 +1897,7 @@ public final class LegacyBlockSerializer {
     private static int deserializeWoodType(CompoundTag states) {
         String type = states.getString(WOOD_TYPE);
         switch (type) {
+            default:
             case WOOD_TYPE_OAK:
                 return BlockPlanks.OAK;
             case WOOD_TYPE_SPRUCE:
@@ -1873,8 +1910,8 @@ public final class LegacyBlockSerializer {
                 return BlockPlanks.ACACIA;
             case WOOD_TYPE_DARK_OAK:
                 return BlockPlanks.DARK_OAK;
-            default:
-                throw badValueException(WOOD_TYPE, type);
+//            default:
+//                throw badValueException(WOOD_TYPE, type);
         }
     }
 
@@ -1889,6 +1926,7 @@ public final class LegacyBlockSerializer {
     private static int deserializeSaplingType(CompoundTag states) {
         String type = states.getString(SAPLING_TYPE);
         switch (type) {
+            default:
             case SAPLING_TYPE_OAK:
                 return BlockSapling.OAK;
             case SAPLING_TYPE_SPRUCE:
@@ -1901,14 +1939,15 @@ public final class LegacyBlockSerializer {
                 return BlockSapling.ACACIA;
             case SAPLING_TYPE_DARK_OAK:
                 return BlockSapling.DARK_OAK;
-            default:
-                throw badValueException(SAPLING_TYPE, type);
+//            default:
+//                throw badValueException(SAPLING_TYPE, type);
         }
     }
 
     private static int deserializeAttachment(CompoundTag states) {
         String type = states.getString(ATTACHMENT);
         switch (type) {
+            default:
             case ATTACHMENT_STANDING:
                 return 0b00;
             case ATTACHMENT_HANGING:
@@ -1917,8 +1956,8 @@ public final class LegacyBlockSerializer {
                 return 0b10;
             case ATTACHMENT_MULTIPLE:
                 return 0b11;
-            default:
-                throw badValueException(ATTACHMENT, type);
+//            default:
+//                throw badValueException(ATTACHMENT, type);
         }
     }
 
@@ -1934,14 +1973,15 @@ public final class LegacyBlockSerializer {
     private static int deserializeWallConnectionType(CompoundTag states, String direction) {
         String type = states.getString(direction);
         switch (type) {
+            default:
             case WALL_CONNECTION_TYPE_NORTH_NONE:
                 return 0b00;
             case WALL_CONNECTION_TYPE_NORTH_SHORT:
                 return 0b01;
             case WALL_CONNECTION_TYPE_NORTH_TALL:
                 return 0b10;
-            default:
-                throw badValueException(direction, type);
+//            default:
+//                throw badValueException(direction, type);
         }
     }
 
