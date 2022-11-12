@@ -82,6 +82,12 @@ public final class RuntimeBlockMapper {
 
         if (match.isPresent()) {
             BlockData data = match.get();
+
+            if (data.id != -1) {
+                log.trace("already mapped block {}: {}", block, data);
+                return data;
+            }
+
             data.id = block.id;
             data.val = block.val;
             return data;

@@ -41,6 +41,11 @@ public class RuntimeItemPaletteLegacy implements AdvancedRuntimeItemPaletteInter
     }
 
     @Override
+    public int getLegacyFullIdByName(String name) {
+        return -1;
+    }
+
+    @Override
     public boolean hasData(int id) {
         return false;
     }

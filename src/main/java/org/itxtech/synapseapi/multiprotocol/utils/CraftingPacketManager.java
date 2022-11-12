@@ -58,6 +58,11 @@ public final class CraftingPacketManager {
         originPacket = pk.compress(Deflater.BEST_COMPRESSION);
 
         for (AbstractProtocol protocol : AbstractProtocol.values()) {
+            if (protocol.ordinal() < AbstractProtocol.PROTOCOL_117_40.ordinal()) {
+                // drop support for unavailable versions
+                continue;
+            }
+
             if (protocol.ordinal() >= AbstractProtocol.PROTOCOL_14.ordinal()) {
                 DataPacket pk0 = PacketRegister.getCompatiblePacket(pk, protocol, false);
                 if (pk0 != null) {

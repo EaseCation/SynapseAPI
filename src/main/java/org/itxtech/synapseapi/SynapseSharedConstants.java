@@ -1,6 +1,10 @@
 package org.itxtech.synapseapi;
 
 public final class SynapseSharedConstants {
+    /**
+     * 是否启用化学附加包的内容.
+     */
+    public static final boolean ENABLE_CHEMISTRY_FEATURE = false;
 
     /**
      * 检查资源数据.

@@ -79,7 +79,6 @@ import org.itxtech.synapseapi.multiprotocol.protocol16.protocol.*;
 import org.itxtech.synapseapi.multiprotocol.protocol17.protocol.*;
 import org.itxtech.synapseapi.multiprotocol.protocol18.protocol.*;
 import org.itxtech.synapseapi.multiprotocol.protocol19.protocol.*;
-import org.itxtech.synapseapi.multiprotocol.utils.CraftingPacketManager;
 
 import java.lang.reflect.Method;
 import java.util.*;
@@ -310,7 +309,6 @@ public class PacketRegister {
         registerPacket(AbstractProtocol.PROTOCOL_119_40, ProtocolInfo.SET_ENTITY_DATA_PACKET, SetEntityDataPacket11940.class);
 
         checkNeteaseSpecialExtend();
-        CraftingPacketManager.rebuildPacket();
     }
 
     static void registerPacket(AbstractProtocol protocol, int id, Class<? extends IterationProtocolPacket> clazz) {

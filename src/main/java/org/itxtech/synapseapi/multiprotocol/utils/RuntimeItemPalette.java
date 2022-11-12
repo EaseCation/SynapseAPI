@@ -9,6 +9,8 @@ import it.unimi.dsi.fastutil.ints.Int2IntMap;
 import it.unimi.dsi.fastutil.ints.Int2IntOpenHashMap;
 import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
 import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
+import it.unimi.dsi.fastutil.objects.Object2IntMap;
+import it.unimi.dsi.fastutil.objects.Object2IntOpenHashMap;
 import org.itxtech.synapseapi.SynapseAPI;
 
 import java.io.IOException;
@@ -25,6 +27,7 @@ public class RuntimeItemPalette implements AdvancedRuntimeItemPaletteInterface {
 
     private final Int2IntMap legacyNetworkMap = new Int2IntOpenHashMap();
     private final Int2ObjectMap<String> legacyStringMap = new Int2ObjectOpenHashMap<>();
+    private final Object2IntMap<String> nameToLegacy = new Object2IntOpenHashMap<>();
     private final Int2IntMap networkLegacyMap = new Int2IntOpenHashMap();
 
     private final byte[] itemDataPalette;
@@ -42,6 +45,7 @@ public class RuntimeItemPalette implements AdvancedRuntimeItemPaletteInterface {
         paletteBuffer.putUnsignedVarInt(entries.size());
 
         legacyNetworkMap.defaultReturnValue(-1);
+        nameToLegacy.defaultReturnValue(-1);
         networkLegacyMap.defaultReturnValue(-1);
 
         for (Entry entry : entries) {
@@ -54,6 +58,7 @@ public class RuntimeItemPalette implements AdvancedRuntimeItemPaletteInterface {
                 int fullId = getFullId(entry.oldId, hasData ? entry.oldData : 0);
                 legacyNetworkMap.put(fullId, (entry.id << 1) | (hasData ? 1 : 0));
                 legacyStringMap.put(fullId, entry.name);
+                nameToLegacy.put(entry.name, fullId | (hasData ? 1 : 0));
                 networkLegacyMap.put(entry.id, fullId | (hasData ? 1 : 0));
             }
         }
@@ -80,12 +85,18 @@ public class RuntimeItemPalette implements AdvancedRuntimeItemPaletteInterface {
         return networkId;
     }
 
+    @Override
     public String getString(Item item) {
         int fullId = getFullId(item.getId(), item.hasMeta() ? item.getDamage() : -1);
         if (!legacyStringMap.containsKey(fullId)) {
             throw new IllegalArgumentException("Unknown item mapping " + item.getId() + ":" + item.getDamage());
         }
         return legacyStringMap.get(fullId);
+    }
+
+    @Override
+    public int getLegacyFullIdByName(String name) {
+        return nameToLegacy.getInt(name);
     }
 
     @Override

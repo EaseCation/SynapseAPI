@@ -1227,7 +1227,7 @@ public class SynapsePlayer extends Player {
     }
 
     @Override
-    public ArrayList<Item> getCreativeItems() {
+    public List<Item> getCreativeItems() {
         return CreativeItemsPalette.getCreativeItems(AbstractProtocol.fromRealProtocol(this.protocol), this.isNetEaseClient);
     }
 

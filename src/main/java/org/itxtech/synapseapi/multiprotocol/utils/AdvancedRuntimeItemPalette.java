@@ -108,6 +108,10 @@ public final class AdvancedRuntimeItemPalette {
         return getPalette(protocol, netease).getString(item);
     }
 
+    public static int getLegacyFullIdByName(AbstractProtocol protocol, boolean netease, String name) {
+        return getPalette(protocol, netease).getLegacyFullIdByName(name);
+    }
+
     public static void init() {
         // NOOP
     }

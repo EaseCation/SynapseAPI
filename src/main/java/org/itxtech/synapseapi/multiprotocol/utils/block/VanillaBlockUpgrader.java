@@ -2,6 +2,7 @@ package org.itxtech.synapseapi.multiprotocol.utils.block;
 
 import cn.nukkit.GameVersion;
 import cn.nukkit.block.BlockUpgrader;
+import cn.nukkit.block.BlockUpgrader.BedrockBlockUpgrader;
 import cn.nukkit.nbt.stream.NBTInputStream;
 import cn.nukkit.nbt.tag.CompoundTag;
 import cn.nukkit.nbt.tag.Tag;
@@ -279,7 +280,17 @@ public final class VanillaBlockUpgrader {
         addSchema("0141_1.18.30_to_1.19.0.34_beta.json", V1_19_0);
         addSchema("0151_1.19.0.34_beta_to_1.19.20.json", V1_19_20);
 
-        BlockUpgrader.setUpgrader(VanillaBlockUpgrader::upgrade);
+        BlockUpgrader.setUpgrader(new BedrockBlockUpgrader() {
+            @Override
+            public void upgrade(CompoundTag tag) {
+                VanillaBlockUpgrader.upgrade(tag);
+            }
+
+            @Override
+            public int getCurrentVersion() {
+                return VanillaBlockUpgrader.getCurrentVersion();
+            }
+        });
     }
 
     public static void initialize() {
