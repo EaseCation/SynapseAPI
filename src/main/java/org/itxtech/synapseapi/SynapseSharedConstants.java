@@ -10,7 +10,7 @@ public final class SynapseSharedConstants {
     /**
      * 强制识别连接来自中国版客户端, 用于 ProxyPass 抓包调试.
      */
-    public static final boolean FORCE_NETEASE_PLAYER = false;
+    public static final boolean FORCE_NETEASE_PLAYER = true;
 
     /**
      * Enables Movement Anti-Cheat debug message output?
