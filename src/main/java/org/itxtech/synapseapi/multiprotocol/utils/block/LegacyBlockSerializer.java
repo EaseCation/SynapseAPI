@@ -255,6 +255,9 @@ public final class LegacyBlockSerializer {
         registerDeserializer(REINFORCED_DEEPSLATE, LegacyBlockSerializer::deserializeSimple);
         registerDeserializer(722, LegacyBlockSerializer::deserializeSimple);
 
+        registerDeserializer(MANGROVE_PLANKS, LegacyBlockSerializer::deserializeSimple);
+        registerDeserializer(MANGROVE_FENCE, LegacyBlockSerializer::deserializeSimple);
+
         registerDeserializer(STONE, states -> {
             String type = states.getString(STONE_TYPE);
             switch (type) {
@@ -359,6 +362,18 @@ public final class LegacyBlockSerializer {
             }
             return meta;
         });
+        registerDeserializer(MANGROVE_LOG, LegacyBlockSerializer::deserializePillarAxis);
+        registerDeserializer(STRIPPED_MANGROVE_LOG, LegacyBlockSerializer::deserializePillarAxis);
+        registerDeserializer(MANGROVE_WOOD, LegacyBlockSerializer::deserializePillarAxis);
+        registerDeserializer(STRIPPED_MANGROVE_WOOD, LegacyBlockSerializer::deserializePillarAxis);
+        registerDeserializer(CRIMSON_STEM, LegacyBlockSerializer::deserializePillarAxis);
+        registerDeserializer(WARPED_STEM, LegacyBlockSerializer::deserializePillarAxis);
+        registerDeserializer(STRIPPED_CRIMSON_STEM, LegacyBlockSerializer::deserializePillarAxis);
+        registerDeserializer(STRIPPED_WARPED_STEM, LegacyBlockSerializer::deserializePillarAxis);
+        registerDeserializer(CRIMSON_HYPHAE, LegacyBlockSerializer::deserializePillarAxis);
+        registerDeserializer(WARPED_HYPHAE, LegacyBlockSerializer::deserializePillarAxis);
+        registerDeserializer(STRIPPED_CRIMSON_HYPHAE, LegacyBlockSerializer::deserializePillarAxis);
+        registerDeserializer(STRIPPED_WARPED_HYPHAE, LegacyBlockSerializer::deserializePillarAxis);
 
         registerDeserializer(LEAVES, states -> {
             int meta = deserializeLeaves(states) << 2;
@@ -398,6 +413,7 @@ public final class LegacyBlockSerializer {
             }
             return meta;
         });
+        registerDeserializer(MANGROVE_LEAVES, LegacyBlockSerializer::deserializeLeaves);
 
         registerDeserializer(SPONGE, states -> {
             String type = states.getString(SPONGE_TYPE);
@@ -508,6 +524,18 @@ public final class LegacyBlockSerializer {
         registerDeserializer(DOUBLE_STONE_SLAB3, LegacyBlockSerializer::deserializeStoneSlab3);
         registerDeserializer(STONE_SLAB4, LegacyBlockSerializer::deserializeStoneSlab4);
         registerDeserializer(DOUBLE_STONE_SLAB4, LegacyBlockSerializer::deserializeStoneSlab4);
+        registerDeserializer(CRIMSON_SLAB, LegacyBlockSerializer::deserializeSlab);
+        registerDeserializer(CRIMSON_DOUBLE_SLAB, LegacyBlockSerializer::deserializeSlab);
+        registerDeserializer(WARPED_SLAB, LegacyBlockSerializer::deserializeSlab);
+        registerDeserializer(WARPED_DOUBLE_SLAB, LegacyBlockSerializer::deserializeSlab);
+        registerDeserializer(BLACKSTONE_SLAB, LegacyBlockSerializer::deserializeSlab);
+        registerDeserializer(BLACKSTONE_DOUBLE_SLAB, LegacyBlockSerializer::deserializeSlab);
+        registerDeserializer(POLISHED_BLACKSTONE_BRICK_SLAB, LegacyBlockSerializer::deserializeSlab);
+        registerDeserializer(POLISHED_BLACKSTONE_BRICK_DOUBLE_SLAB, LegacyBlockSerializer::deserializeSlab);
+        registerDeserializer(POLISHED_BLACKSTONE_SLAB, LegacyBlockSerializer::deserializeSlab);
+        registerDeserializer(POLISHED_BLACKSTONE_DOUBLE_SLAB, LegacyBlockSerializer::deserializeSlab);
+        registerDeserializer(MANGROVE_SLAB, LegacyBlockSerializer::deserializeSlab);
+        registerDeserializer(MANGROVE_DOUBLE_SLAB, LegacyBlockSerializer::deserializeSlab);
 
         registerDeserializer(TNT, states -> {
             int meta = states.getBoolean(EXPLODE_BIT) ? 0b1 : 0;
@@ -525,7 +553,8 @@ public final class LegacyBlockSerializer {
         registerDeserializer(COLORED_TORCH_RG, LegacyBlockSerializer::deserializeColoredTorch);
         registerDeserializer(COLORED_TORCH_BP, LegacyBlockSerializer::deserializeColoredTorch);
 
-        registerDeserializer(FIRE, states -> states.getInt(AGE) & 0b1111);
+        registerDeserializer(FIRE, LegacyBlockSerializer::deserializeFire);
+        registerDeserializer(SOUL_FIRE, LegacyBlockSerializer::deserializeFire);
 
         registerDeserializer(OAK_STAIRS, LegacyBlockSerializer::deserializeStairs);
         registerDeserializer(SPRUCE_STAIRS, LegacyBlockSerializer::deserializeStairs);
@@ -1131,7 +1160,9 @@ public final class LegacyBlockSerializer {
         registerDeserializer(CORAL_FAN_HANG2, LegacyBlockSerializer::deserializeHangCoralFan);
         registerDeserializer(CORAL_FAN_HANG3, LegacyBlockSerializer::deserializeHangCoralFan);
 
-        registerDeserializer(BLOCK_KELP, states -> states.getInt(AGE) & 0b11111);
+        registerDeserializer(BLOCK_KELP, LegacyBlockSerializer::deserializeGrowthPlant);
+        registerDeserializer(WEEPING_VINES, LegacyBlockSerializer::deserializeGrowthPlant);
+        registerDeserializer(TWISTING_VINES, LegacyBlockSerializer::deserializeGrowthPlant);
 
         registerDeserializer(SEA_PICKLE, states -> {
             int meta = states.getInt(CLUSTER_COUNT) & 0b11;
@@ -1256,7 +1287,8 @@ public final class LegacyBlockSerializer {
             return meta;
         });
 
-        registerDeserializer(LANTERN, states -> states.getBoolean(HANGING) ? 0b1 : 0);
+        registerDeserializer(LANTERN, LegacyBlockSerializer::deserializeLantern);
+        registerDeserializer(SOUL_LANTERN, LegacyBlockSerializer::deserializeLantern);
 
         registerDeserializer(BLOCK_CAMPFIRE, LegacyBlockSerializer::deserializeCampfire);
         registerDeserializer(BLOCK_SOUL_CAMPFIRE, LegacyBlockSerializer::deserializeCampfire);
@@ -1279,8 +1311,13 @@ public final class LegacyBlockSerializer {
         registerDeserializer(BEE_NEST, LegacyBlockSerializer::deserializeBeehive);
 
         //TODO: 1.16+
-//        registerDeserializer(480, states -> );
 
+        registerDeserializer(BASALT, LegacyBlockSerializer::deserializePillarAxis);
+        registerDeserializer(POLISHED_BASALT, LegacyBlockSerializer::deserializePillarAxis);
+
+        registerDeserializer(RESPAWN_ANCHOR, states -> states.getInt(RESPAWN_ANCHOR_CHARGE) & 0b111);
+
+        registerDeserializer(BLOCK_CHAIN, LegacyBlockSerializer::deserializePillarAxis);
 
         registerDeserializer(ELEMENT_0, LegacyBlockSerializer::deserializeSimple);
         registerDeserializer(ELEMENT_1, LegacyBlockSerializer::deserializeSimple);
@@ -1485,16 +1522,16 @@ public final class LegacyBlockSerializer {
         return meta;
     }
 
+    private static int deserializeSlab(CompoundTag states) {
+        return states.getBoolean(TOP_SLOT_BIT) ? 0b1 : 0;
+    }
+
     private static int deserializeWoodenSlab(CompoundTag states) {
-        int meta = deserializeWoodType(states);
-        if (states.getBoolean(TOP_SLOT_BIT)) {
-            meta |= 0b1000;
-        }
-        return meta;
+        return (deserializeSlab(states) << 3) | deserializeWoodType(states);
     }
 
     private static int deserializeStoneSlab1(CompoundTag states) {
-        int meta = states.getBoolean(TOP_SLOT_BIT) ? 0b1000 : 0;
+        int meta = deserializeSlab(states) << 3;
         String type = states.getString(STONE_SLAB_TYPE);
         switch (type) {
             default:
@@ -1529,7 +1566,7 @@ public final class LegacyBlockSerializer {
     }
 
     private static int deserializeStoneSlab2(CompoundTag states) {
-        int meta = states.getBoolean(TOP_SLOT_BIT) ? 0b1000 : 0;
+        int meta = deserializeSlab(states) << 3;
         String type = states.getString(STONE_SLAB_TYPE_2);
         switch (type) {
             default:
@@ -1564,7 +1601,7 @@ public final class LegacyBlockSerializer {
     }
 
     private static int deserializeStoneSlab3(CompoundTag states) {
-        int meta = states.getBoolean(TOP_SLOT_BIT) ? 0b1000 : 0;
+        int meta = deserializeSlab(states) << 3;
         String type = states.getString(STONE_SLAB_TYPE_3);
         switch (type) {
             default:
@@ -1599,7 +1636,7 @@ public final class LegacyBlockSerializer {
     }
 
     private static int deserializeStoneSlab4(CompoundTag states) {
-        int meta = states.getBoolean(TOP_SLOT_BIT) ? 0b1000 : 0;
+        int meta = deserializeSlab(states) << 3;
         String type = states.getString(STONE_SLAB_TYPE_4);
         switch (type) {
             default:
@@ -1755,6 +1792,14 @@ public final class LegacyBlockSerializer {
             meta |= 0b100;
         }
         return meta;
+    }
+
+    private static int deserializeFire(CompoundTag states) {
+        return states.getInt(AGE) & 0b1111;
+    }
+
+    private static int deserializeLantern(CompoundTag states) {
+        return states.getBoolean(HANGING) ? 0b1 : 0;
     }
 
     private static int deserializeBeehive(CompoundTag states) {
@@ -1983,6 +2028,10 @@ public final class LegacyBlockSerializer {
 //            default:
 //                throw badValueException(direction, type);
         }
+    }
+
+    private static int deserializeGrowthPlant(CompoundTag states) {
+        return states.getInt(AGE) & 0b11111;
     }
 
     public static void initialize() {

@@ -146,8 +146,8 @@ public class CraftingManagerLegacy extends CraftingManager {
 
         try {
             registerRecipe(new FurnaceRecipe(
-                    deserializeItem(entry.getAsJsonObject("input")),
                     deserializeItem(entry.getAsJsonObject("output")),
+                    deserializeItem(entry.getAsJsonObject("input")),
                     tag));
         } catch (UnsupportedOperationException e) {
             log.trace("Skip an unsupported smelting recipe: {}", entry);

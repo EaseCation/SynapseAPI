@@ -13,6 +13,7 @@ import java.util.EnumMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.concurrent.CompletableFuture;
 import java.util.function.Predicate;
 
 import static cn.nukkit.GameVersion.*;
@@ -21,7 +22,7 @@ import static cn.nukkit.GameVersion.*;
 public final class RuntimeBlockMapper {
     public static final Map<AbstractProtocol, BlockPalette[]> PALETTES = new EnumMap<>(AbstractProtocol.class);
 
-    static {
+    public static void initialize() {
         log.debug("Loading runtime block mapper...");
 
         VanillaBlockUpgrader.initialize();
@@ -49,11 +50,13 @@ public final class RuntimeBlockMapper {
         BlockPalette basePalette = palette118N;
         log.debug("Base runtime block palette version: {}", baseVersion);
 
-        map(V1_17_40, basePalette, palette11740, ver -> ver.ordinal() >= V1_17_40.ordinal() && ver.ordinal() <= V1_18_0.ordinal());
-        map(V1_18_10, basePalette, palette11810, ver -> ver.ordinal() >= baseVersion.ordinal() && ver.ordinal() <= V1_18_10.ordinal());
-        map(V1_18_30, basePalette, palette11830, ver -> ver.ordinal() >= baseVersion.ordinal() && ver.ordinal() <= V1_18_30.ordinal());
-        map(V1_19_0, basePalette, palette119, ver -> ver.ordinal() >= baseVersion.ordinal() && ver.ordinal() <= V1_19_0.ordinal());
-        map(V1_19_20, basePalette, palette11920, ver -> ver.ordinal() >= baseVersion.ordinal() && ver.ordinal() <= V1_19_20.ordinal());
+        CompletableFuture.allOf(
+                CompletableFuture.runAsync(() -> map(V1_17_40, basePalette, palette11740, ver -> ver.ordinal() >= V1_17_40.ordinal() && ver.ordinal() <= V1_18_0.ordinal())),
+                CompletableFuture.runAsync(() -> map(V1_18_10, basePalette, palette11810, ver -> ver.ordinal() >= baseVersion.ordinal() && ver.ordinal() <= V1_18_10.ordinal())),
+                CompletableFuture.runAsync(() -> map(V1_18_30, basePalette, palette11830, ver -> ver.ordinal() >= baseVersion.ordinal() && ver.ordinal() <= V1_18_30.ordinal())),
+                CompletableFuture.runAsync(() -> map(V1_19_0, basePalette, palette119, ver -> ver.ordinal() >= baseVersion.ordinal() && ver.ordinal() <= V1_19_0.ordinal())),
+                CompletableFuture.runAsync(() -> map(V1_19_20, basePalette, palette11920, ver -> ver.ordinal() >= baseVersion.ordinal() && ver.ordinal() <= V1_19_20.ordinal()))
+        ).join();
 
         setupRuntimeBlockSerializer(basePalette);
     }
@@ -61,11 +64,11 @@ public final class RuntimeBlockMapper {
     private static void map(GameVersion version, BlockPalette base, BlockPalette target, Predicate<GameVersion> upgradeFilter) {
         log.debug("Mapping runtime block palette data to {}", version);
         List<BlockUpgradeSchema> schemas = VanillaBlockUpgrader.getSchemas(upgradeFilter);
-        base.palette.forEach(block -> map(block, target, schemas));
+        base.palette.forEach(block -> map(version, block, target, schemas));
     }
 
     @Nullable
-    private static BlockData map(BlockData block, BlockPalette target, List<BlockUpgradeSchema> schemas) {
+    private static BlockData map(GameVersion version, BlockData block, BlockPalette target, List<BlockUpgradeSchema> schemas) {
         CompoundTag tag = new CompoundTag();
         tag.putString("name", block.name);
         tag.putCompound("states", block.states.clone());
@@ -84,7 +87,7 @@ public final class RuntimeBlockMapper {
             BlockData data = match.get();
 
             if (data.id != -1) {
-                log.trace("already mapped block {}: {}", block, data);
+                log.trace("{} | already mapped block {}: {}", version, block, data);
                 return data;
             }
 
@@ -93,7 +96,7 @@ public final class RuntimeBlockMapper {
             return data;
         }
 
-        log.debug("No corresponding block found: {}", block);
+        log.debug("{} | No corresponding block found: {}", version, block);
         return null;
     }
 
@@ -177,9 +180,6 @@ public final class RuntimeBlockMapper {
             }
             return tags[meta];
         });
-    }
-
-    public static void initialize() {
     }
 
     private RuntimeBlockMapper() {
