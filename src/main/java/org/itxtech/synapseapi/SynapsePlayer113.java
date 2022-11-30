@@ -568,7 +568,7 @@ public class SynapsePlayer113 extends SynapsePlayer112 {
 									knockBack += knockBackEnchantment.getLevel() * 0.1f;
 								}
 
-								EntityDamageByEntityEvent entityDamageByEntityEvent = new EntityDamageByEntityEvent(this, target, EntityDamageEvent.DamageCause.ENTITY_ATTACK, damage, knockBack, enchantments);
+								EntityDamageByEntityEvent entityDamageByEntityEvent = new EntityDamageByEntityEvent(this, target, EntityDamageEvent.DamageCause.ENTITY_ATTACK, damage, knockBack, knockBack, enchantments);
 								if (this.isSpectator()) entityDamageByEntityEvent.setCancelled();
 								if ((target instanceof Player) && !this.level.getGameRules().getBoolean(GameRule.PVP)) {
 									entityDamageByEntityEvent.setCancelled();
