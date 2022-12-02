@@ -7,6 +7,7 @@ import java.util.Arrays;
 public class DataFlagTranslator {
 	public final static int[] v12ToV14Book = new int[Entity.DATA_FLAG_UNDEFINED];
 	public final static int[] v12ToV17Book = new int[Entity.DATA_FLAG_UNDEFINED];
+	public final static int[] v12ToV11950Book = new int[Entity.DATA_FLAG_UNDEFINED];
 
 	public static final int ONFIRE = 0;
 	public static final int SNEAKING = 1;
@@ -132,6 +133,7 @@ public class DataFlagTranslator {
 	public static final int FLAG_1_CELEBRATING = 92;
 	public static final int FLAG_1_ADMIRING = 93;
 	public static final int FLAG_1_CELEBRATING_SPECIAL = 94;
+	public static final int FLAG_1_OUT_OF_CONTROL = 95;
 	public static final int FLAG_1_RAM_ATTACK = 96;
 	public static final int FLAG_1_PLAYING_DEAD = 97;
 	public static final int FLAG_1_IN_ASCENDABLE_BLOCK = 98;
@@ -143,6 +145,71 @@ public class DataFlagTranslator {
 	public static final int FLAG_1_SNIFFING = 104;
 	public static final int FLAG_1_DIGGING = 105;
 	public static final int FLAG_1_SONIC_BOOM = 106;
+
+	public static final int FLAG_11950_CAN_DASH = 46;
+	public static final int FLAG_11950_LINGER = 47;
+	public static final int FLAG_11950_HAS_COLLISION = 48;
+	public static final int FLAG_11950_AFFECTED_BY_GRAVITY = 49;
+	public static final int FLAG_11950_FIRE_IMMUNE = 50;
+	public static final int FLAG_11950_DANCING = 51;
+	public static final int FLAG_11950_ENCHANTED = 52;
+	public static final int FLAG_11950_RETURN_TRIDENT = 53;
+	public static final int FLAG_11950_CONTAINER_IS_PRIVATE = 54;
+	public static final int FLAG_11950_TRANSFORMING = 55;
+	public static final int FLAG_11950_SPIN_ATTACK = 56;
+	public static final int FLAG_11950_SWIMMING = 57;
+	public static final int FLAG_11950_BRIBED = 58;
+	public static final int FLAG_11950_PREGNANT = 59;
+	public static final int FLAG_11950_LAYING_EGG = 60;
+	public static final int FLAG_11950_RIDER_CAN_PICK = 61;
+	public static final int FLAG_11950_TRANSITION_SETTING = 62;
+	public static final int FLAG_11950_EATING = 63;
+	public static final int FLAG_11950_LAYING_DOWN = 64;
+	public static final int FLAG_11950_SNEEZING = 65;
+	public static final int FLAG_11950_TRUSTING = 66;
+	public static final int FLAG_11950_ROLLING = 67;
+	public static final int FLAG_11950_SCARED = 68;
+	public static final int FLAG_11950_IN_SCAFFOLDING = 69;
+	public static final int FLAG_11950_OVER_SCAFFOLDING = 70;
+	public static final int FLAG_11950_FALL_THROUGH_SCAFFOLDING = 71;
+	public static final int FLAG_11950_BLOCKING = 72;
+	public static final int FLAG_11950_TRANSITION_BLOCKING = 73;
+	public static final int FLAG_11950_BLOCKED_USING_SHIELD = 74;
+	public static final int FLAG_11950_BLOCKED_USING_DAMAGED_SHIELD = 75;
+	public static final int FLAG_11950_SLEEPING = 76;
+	public static final int FLAG_11950_ENTITY_GROW_UP = 77;
+	public static final int FLAG_11950_TRADE_INTEREST = 78;
+	public static final int FLAG_11950_DOOR_BREAKER = 79;
+	public static final int FLAG_11950_BREAKING_OBSTRUCTION = 80;
+	public static final int FLAG_11950_DOOR_OPENER = 81;
+	public static final int FLAG_11950_IS_ILLAGER_CAPTAIN = 82;
+	public static final int FLAG_11950_STUNNED = 83;
+	public static final int FLAG_11950_ROARING = 84;
+	public static final int FLAG_11950_DELAYED_ATTACK = 85;
+	public static final int FLAG_11950_IS_AVOIDING_MOBS = 86;
+	public static final int FLAG_11950_IS_AVOIDING_BLOCKS = 87;
+	public static final int FLAG_11950_FACING_TARGET_TO_RANGE_ATTACK = 88;
+	public static final int FLAG_11950_HIDDEN_WHEN_INVISIBLE = 89;
+	public static final int FLAG_11950_IS_IN_UI = 90;
+	public static final int FLAG_11950_STALKING = 91;
+	public static final int FLAG_11950_EMOTING = 92;
+	public static final int FLAG_11950_CELEBRATING = 93;
+	public static final int FLAG_11950_ADMIRING = 94;
+	public static final int FLAG_11950_CELEBRATING_SPECIAL = 95;
+	public static final int FLAG_11950_OUT_OF_CONTROL = 96;
+	public static final int FLAG_11950_RAM_ATTACK = 97;
+	public static final int FLAG_11950_PLAYING_DEAD = 98;
+	public static final int FLAG_11950_IN_ASCENDABLE_BLOCK = 99;
+	public static final int FLAG_11950_OVER_DESCENDABLE_BLOCK = 100;
+	public static final int FLAG_11950_CROAKING = 101;
+	public static final int FLAG_11950_EAT_MOB = 102;
+	public static final int FLAG_11950_JUMP_GOAL_JUMP = 103;
+	public static final int FLAG_11950_EMERGING = 104;
+	public static final int FLAG_11950_SNIFFING = 105;
+	public static final int FLAG_11950_DIGGING = 106;
+	public static final int FLAG_11950_SONIC_BOOM = 107;
+	public static final int FLAG_11950_HAS_DASH_COOLDOWN = 108;
+	public static final int FLAG_11950_PUSH_TOWARDS_CLOSEST_SPACE = 109;
 
 	static {
 		Arrays.fill(v12ToV14Book, -1);
@@ -301,6 +368,7 @@ public class DataFlagTranslator {
 		v12ToV17Book[Entity.DATA_FLAG_CELEBRATING] = FLAG_1_CELEBRATING;
 		v12ToV17Book[Entity.DATA_FLAG_ADMIRING] = FLAG_1_ADMIRING;
 		v12ToV17Book[Entity.DATA_FLAG_CELEBRATING_SPECIAL] = FLAG_1_CELEBRATING_SPECIAL;
+		v12ToV17Book[Entity.DATA_FLAG_OUT_OF_CONTROL] = FLAG_1_OUT_OF_CONTROL;
 		v12ToV17Book[Entity.DATA_FLAG_RAM_ATTACK] = FLAG_1_RAM_ATTACK;
 		v12ToV17Book[Entity.DATA_FLAG_PLAYING_DEAD] = FLAG_1_PLAYING_DEAD;
 		v12ToV17Book[Entity.DATA_FLAG_IN_ASCENDABLE_BLOCK] = FLAG_1_IN_ASCENDABLE_BLOCK;
@@ -312,6 +380,72 @@ public class DataFlagTranslator {
 		v12ToV17Book[Entity.DATA_FLAG_SNIFFING] = FLAG_1_SNIFFING;
 		v12ToV17Book[Entity.DATA_FLAG_DIGGING] = FLAG_1_DIGGING;
 		v12ToV17Book[Entity.DATA_FLAG_SONIC_BOOM] = FLAG_1_SONIC_BOOM;
+
+		System.arraycopy(v12ToV17Book, 0, v12ToV11950Book, 0, Entity.DATA_FLAG_UNDEFINED);
+		v12ToV11950Book[Entity.DATA_FLAG_CAN_DASH] = FLAG_11950_CAN_DASH;
+		v12ToV11950Book[Entity.DATA_FLAG_LINGER] = FLAG_11950_LINGER;
+		v12ToV11950Book[Entity.DATA_FLAG_HAS_COLLISION] = FLAG_11950_HAS_COLLISION;
+		v12ToV11950Book[Entity.DATA_FLAG_GRAVITY] = FLAG_11950_AFFECTED_BY_GRAVITY;
+		v12ToV11950Book[Entity.DATA_FLAG_FIRE_IMMUNE] = FLAG_11950_FIRE_IMMUNE;
+		v12ToV11950Book[Entity.DATA_FLAG_DANCING] = FLAG_11950_DANCING;
+		v12ToV11950Book[Entity.DATA_FLAG_ENCHANTED] = FLAG_11950_ENCHANTED;
+		v12ToV11950Book[Entity.DATA_FLAG_RETURN_TRIDENT] = FLAG_11950_RETURN_TRIDENT;
+		v12ToV11950Book[Entity.DATA_FLAG_CONTAINER_IS_PRIVATE] = FLAG_11950_CONTAINER_IS_PRIVATE;
+		v12ToV11950Book[Entity.DATA_FLAG_TRANSFORMING] = FLAG_11950_TRANSFORMING;
+		v12ToV11950Book[Entity.DATA_FLAG_SPIN_ATTACK] = FLAG_11950_SPIN_ATTACK;
+		v12ToV11950Book[Entity.DATA_FLAG_SWIMMING] = FLAG_11950_SWIMMING;
+		v12ToV11950Book[Entity.DATA_FLAG_BRIBED] = FLAG_11950_BRIBED;
+		v12ToV11950Book[Entity.DATA_FLAG_PREGNANT] = FLAG_11950_PREGNANT;
+		v12ToV11950Book[Entity.DATA_FLAG_LAYING_EGG] = FLAG_11950_LAYING_EGG;
+		v12ToV11950Book[Entity.DATA_FLAG_RIDER_CAN_PICK] = FLAG_11950_RIDER_CAN_PICK;
+		v12ToV11950Book[Entity.DATA_FLAG_TRANSITION_SETTING] = FLAG_11950_TRANSITION_SETTING;
+		v12ToV11950Book[Entity.DATA_FLAG_EATING] = FLAG_11950_EATING;
+		v12ToV11950Book[Entity.DATA_FLAG_LAYING_DOWN] = FLAG_11950_LAYING_DOWN;
+		v12ToV11950Book[Entity.DATA_FLAG_SNEEZING] = FLAG_11950_SNEEZING;
+		v12ToV11950Book[Entity.DATA_FLAG_TRUSTING] = FLAG_11950_TRUSTING;
+		v12ToV11950Book[Entity.DATA_FLAG_ROLLING] = FLAG_11950_ROLLING;
+		v12ToV11950Book[Entity.DATA_FLAG_SCARED] = FLAG_11950_SCARED;
+		v12ToV11950Book[Entity.DATA_FLAG_IN_SCAFFOLDING] = FLAG_11950_IN_SCAFFOLDING;
+		v12ToV11950Book[Entity.DATA_FLAG_OVER_SCAFFOLDING] = FLAG_11950_OVER_SCAFFOLDING;
+		v12ToV11950Book[Entity.DATA_FLAG_FALL_THROUGH_SCAFFOLDING] = FLAG_11950_FALL_THROUGH_SCAFFOLDING;
+		v12ToV11950Book[Entity.DATA_FLAG_BLOCKING] = FLAG_11950_BLOCKING;
+		v12ToV11950Book[Entity.DATA_FLAG_TRANSITION_BLOCKING] = FLAG_11950_TRANSITION_BLOCKING;
+		v12ToV11950Book[Entity.DATA_FLAG_BLOCKED_USING_SHIELD] = FLAG_11950_BLOCKED_USING_SHIELD;
+		v12ToV11950Book[Entity.DATA_FLAG_BLOCKED_USING_DAMAGED_SHIELD] = FLAG_11950_BLOCKED_USING_DAMAGED_SHIELD;
+		v12ToV11950Book[Entity.DATA_FLAG_SLEEPING] = FLAG_11950_SLEEPING;
+		v12ToV11950Book[Entity.DATA_FLAG_ENTITY_GROW_UP] = FLAG_11950_ENTITY_GROW_UP;
+		v12ToV11950Book[Entity.DATA_FLAG_TRADE_INTEREST] = FLAG_11950_TRADE_INTEREST;
+		v12ToV11950Book[Entity.DATA_FLAG_DOOR_BREAKER] = FLAG_11950_DOOR_BREAKER;
+		v12ToV11950Book[Entity.DATA_FLAG_BREAKING_OBSTRUCTION] = FLAG_11950_BREAKING_OBSTRUCTION;
+		v12ToV11950Book[Entity.DATA_FLAG_DOOR_OPENER] = FLAG_11950_DOOR_OPENER;
+		v12ToV11950Book[Entity.DATA_FLAG_IS_ILLAGER_CAPTAIN] = FLAG_11950_IS_ILLAGER_CAPTAIN;
+		v12ToV11950Book[Entity.DATA_FLAG_STUNNED] = FLAG_11950_STUNNED;
+		v12ToV11950Book[Entity.DATA_FLAG_ROARING] = FLAG_11950_ROARING;
+		v12ToV11950Book[Entity.DATA_FLAG_DELAYED_ATTACK] = FLAG_11950_DELAYED_ATTACK;
+		v12ToV11950Book[Entity.DATA_FLAG_IS_AVOIDING_MOBS] = FLAG_11950_IS_AVOIDING_MOBS;
+		v12ToV11950Book[Entity.DATA_FLAG_IS_AVOIDING_BLOCKS] = FLAG_11950_IS_AVOIDING_BLOCKS;
+		v12ToV11950Book[Entity.DATA_FLAG_FACING_TARGET_TO_RANGE_ATTACK] = FLAG_11950_FACING_TARGET_TO_RANGE_ATTACK;
+		v12ToV11950Book[Entity.DATA_FLAG_HIDDEN_WHEN_INVISIBLE] = FLAG_11950_HIDDEN_WHEN_INVISIBLE;
+		v12ToV11950Book[Entity.DATA_FLAG_IS_IN_UI] = FLAG_11950_IS_IN_UI;
+		v12ToV11950Book[Entity.DATA_FLAG_STALKING] = FLAG_11950_STALKING;
+		v12ToV11950Book[Entity.DATA_FLAG_EMOTING] = FLAG_11950_EMOTING;
+		v12ToV11950Book[Entity.DATA_FLAG_CELEBRATING] = FLAG_11950_CELEBRATING;
+		v12ToV11950Book[Entity.DATA_FLAG_ADMIRING] = FLAG_11950_ADMIRING;
+		v12ToV11950Book[Entity.DATA_FLAG_CELEBRATING_SPECIAL] = FLAG_11950_CELEBRATING_SPECIAL;
+		v12ToV11950Book[Entity.DATA_FLAG_OUT_OF_CONTROL] = FLAG_11950_OUT_OF_CONTROL;
+		v12ToV11950Book[Entity.DATA_FLAG_RAM_ATTACK] = FLAG_11950_RAM_ATTACK;
+		v12ToV11950Book[Entity.DATA_FLAG_PLAYING_DEAD] = FLAG_11950_PLAYING_DEAD;
+		v12ToV11950Book[Entity.DATA_FLAG_IN_ASCENDABLE_BLOCK] = FLAG_11950_IN_ASCENDABLE_BLOCK;
+		v12ToV11950Book[Entity.DATA_FLAG_OVER_DESCENDABLE_BLOCK] = FLAG_11950_OVER_DESCENDABLE_BLOCK;
+		v12ToV11950Book[Entity.DATA_FLAG_CROAKING] = FLAG_11950_CROAKING;
+		v12ToV11950Book[Entity.DATA_FLAG_EAT_MOB] = FLAG_11950_EAT_MOB;
+		v12ToV11950Book[Entity.DATA_FLAG_JUMP_GOAL_JUMP] = FLAG_11950_JUMP_GOAL_JUMP;
+		v12ToV11950Book[Entity.DATA_FLAG_EMERGING] = FLAG_11950_EMERGING;
+		v12ToV11950Book[Entity.DATA_FLAG_SNIFFING] = FLAG_11950_SNIFFING;
+		v12ToV11950Book[Entity.DATA_FLAG_DIGGING] = FLAG_11950_DIGGING;
+		v12ToV11950Book[Entity.DATA_FLAG_SONIC_BOOM] = FLAG_11950_SONIC_BOOM;
+		v12ToV11950Book[Entity.DATA_FLAG_HAS_DASH_COOLDOWN] = FLAG_11950_HAS_DASH_COOLDOWN;
+		v12ToV11950Book[Entity.DATA_FLAG_PUSH_TOWARDS_CLOSEST_SPACE] = FLAG_11950_PUSH_TOWARDS_CLOSEST_SPACE;
 	}
 
 	public static int translateTo14Id(int v12Id) {
@@ -348,6 +482,27 @@ public class DataFlagTranslator {
 			if ((data & (1L << i)) > 0) {
 				int bit = DataFlagTranslator.translateTo17Id(i);
 				if (bit == -1) { // unknown version 17 translation.
+					continue;
+				}
+				flags |= (1L << bit);
+			}
+		}
+		return flags;
+	}
+
+	public static int translateTo11950Id(int v12Id) {
+		if (v12Id < 0 || v12Id >= Entity.DATA_FLAG_UNDEFINED) {
+			return -1;
+		}
+		return v12ToV11950Book[v12Id];
+	}
+
+	public static long translate11950(long data) {
+		long flags = 0;
+		for (int i = 0; i < 64; i++) {
+			if ((data & (1L << i)) > 0) {
+				int bit = DataFlagTranslator.translateTo11950Id(i);
+				if (bit == -1) {
 					continue;
 				}
 				flags |= (1L << bit);

@@ -27,6 +27,7 @@ public final class ItemComponentDefinitions {
             Map<String, byte[]> definition11830 = load("item_components11830.nbt");
             Map<String, byte[]> definition119 = load("item_components119.nbt");
             Map<String, byte[]> definition11910 = load("item_components11910.nbt");
+            Map<String, byte[]> definition11950 = load("item_components11950.nbt");
 
             DEFINITIONS.put(AbstractProtocol.PROTOCOL_118_10, definition11810);
             DEFINITIONS.put(AbstractProtocol.PROTOCOL_118_30, definition11830);
@@ -36,8 +37,18 @@ public final class ItemComponentDefinitions {
             DEFINITIONS.put(AbstractProtocol.PROTOCOL_119_21, definition11910);
             DEFINITIONS.put(AbstractProtocol.PROTOCOL_119_30, definition11910);
             DEFINITIONS.put(AbstractProtocol.PROTOCOL_119_40, definition11910);
+            DEFINITIONS.put(AbstractProtocol.PROTOCOL_119_50, definition11950);
         } catch (NullPointerException | IOException e) {
             throw new AssertionError("Unable to load item_components.nbt");
+        }
+
+        for (AbstractProtocol protocol : AbstractProtocol.values0()) {
+            if (protocol.getProtocolStart() < AbstractProtocol.PROTOCOL_118_10.getProtocolStart()) {
+                continue;
+            }
+            if (DEFINITIONS.get(protocol) == null) {
+                throw new AssertionError("Missing item_components.nbt: " + protocol);
+            }
         }
     }
 

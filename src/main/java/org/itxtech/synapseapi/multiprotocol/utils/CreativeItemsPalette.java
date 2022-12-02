@@ -28,6 +28,7 @@ public class CreativeItemsPalette {
         register(AbstractProtocol.PROTOCOL_112, load("creativeitems_111.json"), null);
         register(AbstractProtocol.PROTOCOL_113, load("creativeitems_113.json"), null);
         register(AbstractProtocol.PROTOCOL_114, load("creativeitems_114.json"), null);
+        register(AbstractProtocol.PROTOCOL_114_60, load("creativeitems_114.json"), null);
         register(AbstractProtocol.PROTOCOL_116, load("creativeitems_116.json"), null);
         register(AbstractProtocol.PROTOCOL_116_20, load("creativeitems_11620.json"), null);
         register(AbstractProtocol.PROTOCOL_116_100_NE, load("creativeitems_116.json"), null);
@@ -48,6 +49,16 @@ public class CreativeItemsPalette {
         register(AbstractProtocol.PROTOCOL_119_21, load("creativeitems_116100.json", true), null);
         register(AbstractProtocol.PROTOCOL_119_30, load("creativeitems_116100.json", true), null);
         register(AbstractProtocol.PROTOCOL_119_40, load("creativeitems_116100.json", true), null);
+        register(AbstractProtocol.PROTOCOL_119_50, load("creativeitems_116100.json", true), null);
+
+        for (AbstractProtocol protocol : AbstractProtocol.values0()) {
+            if (protocol.getProtocolStart() < AbstractProtocol.PROTOCOL_19.getProtocolStart()) {
+                continue;
+            }
+            if (palettes.get(protocol) == null) {
+                throw new AssertionError("Missing creative_items.json: " + protocol);
+            }
+        }
 
         if (!V1_19_0.isAvailable()) {
             return;
@@ -58,6 +69,7 @@ public class CreativeItemsPalette {
         register(AbstractProtocol.PROTOCOL_119_21, CreativeInventory.getItems(), null);
         register(AbstractProtocol.PROTOCOL_119_30, CreativeInventory.getItems(), null);
         register(AbstractProtocol.PROTOCOL_119_40, CreativeInventory.getItems(), null);
+        register(AbstractProtocol.PROTOCOL_119_50, CreativeInventory.getItems(), null);
     }
 
     private static void register(AbstractProtocol protocol, List<Item> list, List<Item> listNetEase) {

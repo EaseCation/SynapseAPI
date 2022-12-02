@@ -128,7 +128,9 @@ public class EntityMetadataGenerator {
 				Long data = ((LongEntityData)entityData).getData();
 				//DATA_FLAGS转换
 				if (newId == EntityDataItemIDTranslator.FLAGS) {
-					if (protocol.ordinal() >= AbstractProtocol.PROTOCOL_17.ordinal()) {
+					if (protocol.ordinal() >= AbstractProtocol.PROTOCOL_119_50.ordinal()) {
+						data = DataFlagTranslator.translate11950(data);
+					} else if (protocol.ordinal() >= AbstractProtocol.PROTOCOL_17.ordinal()) {
 						data = DataFlagTranslator.translate17(data);
 					} else {
 						data = DataFlagTranslator.translate14(data);

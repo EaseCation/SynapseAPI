@@ -64,8 +64,18 @@ public final class AvailableEntityIdentifiersPalette {
             palettes.put(AbstractProtocol.PROTOCOL_119_21, data11910);
             palettes.put(AbstractProtocol.PROTOCOL_119_30, data11910);
             palettes.put(AbstractProtocol.PROTOCOL_119_40, data11910);
+            palettes.put(AbstractProtocol.PROTOCOL_119_50, data11910);
         } catch (NullPointerException | IOException e) {
             throw new AssertionError("Unable to load entity_identifiers.dat");
+        }
+
+        for (AbstractProtocol protocol : AbstractProtocol.values0()) {
+            if (protocol.getProtocolStart() < AbstractProtocol.PROTOCOL_18.getProtocolStart()) {
+                continue;
+            }
+            if (palettes.get(protocol) == null) {
+                throw new AssertionError("Missing entity_identifiers.nbt: " + protocol);
+            }
         }
     }
 

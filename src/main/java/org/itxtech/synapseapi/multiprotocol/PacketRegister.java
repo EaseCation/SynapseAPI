@@ -70,6 +70,7 @@ import org.itxtech.synapseapi.multiprotocol.protocol119.protocol.ToastRequestPac
 import org.itxtech.synapseapi.multiprotocol.protocol11940.protocol.AddEntityPacket11940;
 import org.itxtech.synapseapi.multiprotocol.protocol11940.protocol.AddPlayerPacket11940;
 import org.itxtech.synapseapi.multiprotocol.protocol11940.protocol.SetEntityDataPacket11940;
+import org.itxtech.synapseapi.multiprotocol.protocol11950.protocol.UpdateClientInputLocksPacket11950;
 import org.itxtech.synapseapi.multiprotocol.protocol15.protocol.AddEntityPacket15;
 import org.itxtech.synapseapi.multiprotocol.protocol15.protocol.ClientboundMapItemDataPacket15;
 import org.itxtech.synapseapi.multiprotocol.protocol15.protocol.MoveEntityAbsolutePacket15;
@@ -307,6 +308,8 @@ public class PacketRegister {
         registerPacket(AbstractProtocol.PROTOCOL_119_40, ProtocolInfo.ADD_ENTITY_PACKET, AddEntityPacket11940.class);
         registerPacket(AbstractProtocol.PROTOCOL_119_40, ProtocolInfo.ADD_PLAYER_PACKET, AddPlayerPacket11940.class);
         registerPacket(AbstractProtocol.PROTOCOL_119_40, ProtocolInfo.SET_ENTITY_DATA_PACKET, SetEntityDataPacket11940.class);
+
+        registerPacket(AbstractProtocol.PROTOCOL_119_50, ProtocolInfo.UPDATE_CLIENT_INPUT_LOCKS_PACKET, UpdateClientInputLocksPacket11950.class);
 
         checkNeteaseSpecialExtend();
     }
