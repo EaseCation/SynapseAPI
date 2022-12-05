@@ -40,7 +40,7 @@ public class CreativeItemsPalette {
         register(AbstractProtocol.PROTOCOL_117_10, load("creativeitems_116100.json", true), null);
         register(AbstractProtocol.PROTOCOL_117_30, load("creativeitems_116100.json", true), null);
         register(AbstractProtocol.PROTOCOL_117_40, load("creativeitems_116100.json", true), null);
-        register(AbstractProtocol.PROTOCOL_118, load("creativeitems_116100.json", true), null);
+        register(AbstractProtocol.PROTOCOL_118, load("creativeitems_11620.json", true), null);
         register(AbstractProtocol.PROTOCOL_118_10, load("creativeitems_116100.json", true), null);
         register(AbstractProtocol.PROTOCOL_118_30, load("creativeitems_116100.json", true), null);
         register(AbstractProtocol.PROTOCOL_119, load("creativeitems_116100.json", true), null);
