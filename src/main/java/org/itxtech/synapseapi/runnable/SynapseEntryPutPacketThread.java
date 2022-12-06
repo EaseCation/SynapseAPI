@@ -1,6 +1,7 @@
 package org.itxtech.synapseapi.runnable;
 
 import cn.nukkit.Server;
+import cn.nukkit.entity.Entity;
 import cn.nukkit.math.NukkitMath;
 import cn.nukkit.network.Network;
 import cn.nukkit.network.protocol.*;
@@ -76,7 +77,7 @@ public class SynapseEntryPutPacketThread extends Thread {
 //        }
 
         //if (packet.pid() == ProtocolInfo.GAME_RULES_CHANGED_PACKET) return;
-//        switch (packet.pid()) {
+        //switch (packet.pid()) {
 //            case ProtocolInfo.PLAYER_LIST_PACKET:
             //case ProtocolInfo.AVAILABLE_COMMANDS_PACKET:
         //    case ProtocolInfo.MOVE_PLAYER_PACKET:
@@ -102,11 +103,31 @@ public class SynapseEntryPutPacketThread extends Thread {
                 //case ProtocolInfo.SET_ENTITY_DATA_PACKET:
                 //case ProtocolInfo.ADVENTURE_SETTINGS_PACKET:
                 //case ProtocolInfo.UPDATE_ATTRIBUTES_PACKET:
-//            case ProtocolInfo.ADD_ENTITY_PACKET:
-//            case ProtocolInfo.ADD_PLAYER_PACKET:
-//                log.warn("blocked packet", new Throwable());
+            /*case ProtocolInfo.ADD_ENTITY_PACKET:
+            case ProtocolInfo.ADD_PLAYER_PACKET:
+            case ProtocolInfo.REMOVE_ENTITY_PACKET:
+                long eid;
+                if (packet instanceof AddEntityPacket) {
+                    eid = ((AddEntityPacket) packet).entityUniqueId;
+                } else if (packet instanceof AddPlayerPacket) {
+                    eid = ((AddPlayerPacket) packet).entityRuntimeId;
+                } else if (packet instanceof RemoveEntityPacket) {
+                    eid = ((RemoveEntityPacket) packet).eid;
+                } else {
+                    log.warn("Unknown packet: " + packet.getClass().getName());
+                    break;
+                }
+                Entity entity = Server.getInstance().getLevels().values().stream().map(l -> l.getEntity(eid)).filter(Objects::nonNull).findFirst().orElse(null);
+                if (entity == null) {
+                    log.warn("Entity not found: " + eid);
+                    //break;
+                }
+                log.warn("Packet {} to {}, entity={}", packet.getClass().getSimpleName(), player.getName(), entity != null ? entity.getClass().getSimpleName() : "null");
+                log.warn("=== " + packet.getClass().getSimpleName() + " ===", new Throwable());
+                break;*/
+                //log.warn("blocked packet", new Throwable());
 //                return;
-//        }
+        //}
 
         if (player.getSynapseEntry().getSynapse().isRecordPacketStack()) packet.stack = new Throwable();
         this.queue.offer(new Entry(player, packet, needACK, immediate));

@@ -14,6 +14,9 @@ public class LevelUtil {
     }
 
     public static void addParticle(Level level, Vector3 pos, String identifier, Player[] players) {
+        if (players == null) {
+            players = level.getChunkPlayers(pos.getChunkX(), pos.getChunkZ()).values().toArray(new Player[0]);
+        }
         for (Player player : players) {
             player.spawnParticleEffect(pos.asVector3f(), identifier, -1, level.getDimension().ordinal());
         }

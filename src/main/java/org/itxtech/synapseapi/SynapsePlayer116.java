@@ -15,6 +15,7 @@ import cn.nukkit.entity.item.EntityMinecartAbstract;
 import cn.nukkit.event.entity.EntityDamageByEntityEvent;
 import cn.nukkit.event.entity.EntityDamageEvent;
 import cn.nukkit.event.inventory.InventoryCloseEvent;
+import cn.nukkit.event.inventory.ItemAttackDamageEvent;
 import cn.nukkit.event.player.*;
 import cn.nukkit.inventory.Inventory;
 import cn.nukkit.inventory.transaction.CraftingTransaction;
@@ -504,7 +505,9 @@ public class SynapsePlayer116 extends SynapsePlayer113 {
 								}
 								break;
 							case InventoryTransactionPacket116.USE_ITEM_ON_ENTITY_ACTION_ATTACK:
-								float itemDamage = item.getAttackDamage();
+								ItemAttackDamageEvent event = new ItemAttackDamageEvent(item);
+								this.server.getPluginManager().callEvent(event);
+								float itemDamage = event.getAttackDamage();
 
 								for (Enchantment enchantment : item.getEnchantments()) {
 									itemDamage += enchantment.getDamageBonus(target);
@@ -512,6 +515,14 @@ public class SynapsePlayer116 extends SynapsePlayer113 {
 
 								Map<EntityDamageEvent.DamageModifier, Float> damage = new EnumMap<>(EntityDamageEvent.DamageModifier.class);
 								damage.put(EntityDamageEvent.DamageModifier.BASE, itemDamage);
+
+								float knockBackH = EntityDamageByEntityEvent.GLOBAL_KNOCKBACK_H;
+								float knockBackV = EntityDamageByEntityEvent.GLOBAL_KNOCKBACK_V;
+								Enchantment knockBackEnchantment = item.getEnchantment(Enchantment.ID_KNOCKBACK);
+								if (knockBackEnchantment != null) {
+									knockBackH += knockBackEnchantment.getLevel() * 0.1f;
+									knockBackV += knockBackEnchantment.getLevel() * 0.1f;
+								}
 
 								if (!this.canInteract(target, isCreative() ? 8 : 5)) {
 									break;
@@ -523,7 +534,7 @@ public class SynapsePlayer116 extends SynapsePlayer113 {
 									}
 								}
 
-								EntityDamageByEntityEvent entityDamageByEntityEvent = new EntityDamageByEntityEvent(this, target, EntityDamageEvent.DamageCause.ENTITY_ATTACK, damage);
+								EntityDamageByEntityEvent entityDamageByEntityEvent = new EntityDamageByEntityEvent(this, target, EntityDamageEvent.DamageCause.ENTITY_ATTACK, damage, knockBackH, knockBackV, item.getEnchantments());
 								if (this.isSpectator()) entityDamageByEntityEvent.setCancelled();
 								if (!target.attack(entityDamageByEntityEvent)) {
 									if (item.isTool() && this.isSurvival()) {
@@ -872,7 +883,7 @@ public class SynapsePlayer116 extends SynapsePlayer113 {
 				if (riding != null) forceMovement = null;
 
 				if (this.forceMovement != null && (newPos.distanceSquared(this.forceMovement) > 0.1 || revert)) {
-					this.sendPosition(this.forceMovement, this.yaw, this.pitch, MovePlayerPacket.MODE_RESET);
+					this.sendPosition(this.forceMovement, this.yaw, this.pitch, MovePlayerPacket.MODE_TELEPORT);
 				} else {
 					playerAuthInputPacket.setYaw(playerAuthInputPacket.getYaw() % 360);
 					playerAuthInputPacket.setPitch(playerAuthInputPacket.getPitch() % 360);
