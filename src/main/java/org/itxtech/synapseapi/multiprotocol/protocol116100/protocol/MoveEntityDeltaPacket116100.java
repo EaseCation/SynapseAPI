@@ -16,13 +16,14 @@ public class MoveEntityDeltaPacket116100 extends Packet116100 {
     public static final int FLAG_HAS_YAW = 0b10000;
     public static final int FLAG_HAS_HEAD_YAW = 0b100000;
 
+    public long entityRuntimeId;
     public int flags = 0;
     public float x = 0;
     public float y = 0;
     public float z = 0;
+    public double pitchDelta = 0;
     public double yawDelta = 0;
     public double headYawDelta = 0;
-    public double pitchDelta = 0;
 
     @Override
     public int pid() {
@@ -31,20 +32,13 @@ public class MoveEntityDeltaPacket116100 extends Packet116100 {
 
     @Override
     public void decode() {
-        this.flags = this.getByte();
-        this.x = getCoordinate(FLAG_HAS_X);
-        this.y = getCoordinate(FLAG_HAS_Y);
-        this.z = getCoordinate(FLAG_HAS_Z);
-        this.pitchDelta = getRotation(FLAG_HAS_PITCH);
-        this.yawDelta = getRotation(FLAG_HAS_YAW);
-        this.headYawDelta = getRotation(FLAG_HAS_HEAD_YAW);
     }
 
     @Override
     public void encode() {
         this.reset();
-        this.putEntityRuntimeId(Long.MAX_VALUE);
-        this.putByte((byte) flags);
+        this.putEntityRuntimeId(entityRuntimeId);
+        this.putLShort(flags);
         putCoordinate(FLAG_HAS_X, this.x);
         putCoordinate(FLAG_HAS_Y, this.y);
         putCoordinate(FLAG_HAS_Z, this.z);
@@ -88,9 +82,9 @@ public class MoveEntityDeltaPacket116100 extends Packet116100 {
         this.x = packet.xDelta;
         this.y = packet.yDelta;
         this.z = packet.zDelta;
+        this.pitchDelta = packet.pitchDelta;
         this.yawDelta = packet.yawDelta;
         this.headYawDelta = packet.headYawDelta;
-        this.pitchDelta = packet.pitchDelta;
 
         return this;
     }

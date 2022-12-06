@@ -12,13 +12,14 @@ public class MoveEntityDeltaPacket extends Packet15 {
     public static final int FLAG_HAS_YAW = 0b10000;
     public static final int FLAG_HAS_HEAD_YAW = 0b100000;
 
+    public long entityRuntimeId;
     public int flags = 0;
     public int xDelta = 0;
     public int yDelta = 0;
     public int zDelta = 0;
+    public double pitchDelta = 0;
     public double yawDelta = 0;
     public double headYawDelta = 0;
-    public double pitchDelta = 0;
 
     @Override
     public int pid() {
@@ -27,19 +28,12 @@ public class MoveEntityDeltaPacket extends Packet15 {
 
     @Override
     public void decode() {
-        this.flags = this.getByte();
-        this.xDelta = getCoordinate(FLAG_HAS_X);
-        this.yDelta = getCoordinate(FLAG_HAS_Y);
-        this.zDelta = getCoordinate(FLAG_HAS_Z);
-        this.pitchDelta = getRotation(FLAG_HAS_PITCH);
-        this.yawDelta = getRotation(FLAG_HAS_YAW);
-        this.headYawDelta = getRotation(FLAG_HAS_HEAD_YAW);
     }
 
     @Override
     public void encode() {
         this.reset();
-        this.putEntityRuntimeId(Long.MAX_VALUE);
+        this.putEntityRuntimeId(entityRuntimeId);
         this.putByte((byte) flags);
         putCoordinate(FLAG_HAS_X, this.xDelta);
         putCoordinate(FLAG_HAS_Y, this.yDelta);

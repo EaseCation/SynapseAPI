@@ -6,19 +6,23 @@ import cn.nukkit.network.protocol.BatchPacket;
 import cn.nukkit.network.protocol.CraftingDataPacket;
 import cn.nukkit.network.protocol.DataPacket;
 import cn.nukkit.utils.MainLogger;
+import lombok.extern.log4j.Log4j2;
 import org.itxtech.synapseapi.multiprotocol.AbstractProtocol;
 import org.itxtech.synapseapi.multiprotocol.PacketRegister;
 
-import java.util.HashMap;
+import java.util.EnumMap;
 import java.util.Map;
 import java.util.zip.Deflater;
 
+@Log4j2
 public final class CraftingPacketManager {
 
     private static BatchPacket originPacket;
-    private static final Map<AbstractProtocol, BatchPacket[]> packets = new HashMap<>();
+    private static final Map<AbstractProtocol, BatchPacket[]> packets = new EnumMap<>(AbstractProtocol.class);
 
     public static void rebuildPacket() {
+        log.debug("Loading crafting data...");
+
         CraftingDataPacket pk = new CraftingDataPacket();
         pk.cleanRecipes = true;
 
@@ -34,6 +38,10 @@ public final class CraftingPacketManager {
             pk.addFurnaceRecipe(recipe);
         }
 
+        for (MultiRecipe recipe : Server.getInstance().getCraftingManager().getMultiRecipes().values()) {
+            pk.addMultiRecipe(recipe);
+        }
+
         for (BrewingRecipe recipe : Server.getInstance().getCraftingManager().getBrewingRecipes().values()) {
             pk.addBrewingRecipe(recipe);
         }
@@ -42,10 +50,19 @@ public final class CraftingPacketManager {
             pk.addContainerRecipe(recipe);
         }
 
+        for (MaterialReducerRecipe recipe : Server.getInstance().getCraftingManager().getMaterialReducerRecipes().values()) {
+            pk.addMaterialReducerRecipe(recipe);
+        }
+
         pk.tryEncode();
         originPacket = pk.compress(Deflater.BEST_COMPRESSION);
 
         for (AbstractProtocol protocol : AbstractProtocol.values()) {
+            if (protocol.ordinal() < AbstractProtocol.PROTOCOL_117_40.ordinal()) {
+                // drop support for unavailable versions
+                continue;
+            }
+
             if (protocol.ordinal() >= AbstractProtocol.PROTOCOL_14.ordinal()) {
                 DataPacket pk0 = PacketRegister.getCompatiblePacket(pk, protocol, false);
                 if (pk0 != null) {

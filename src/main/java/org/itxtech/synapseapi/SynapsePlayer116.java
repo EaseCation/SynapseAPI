@@ -2,7 +2,6 @@ package org.itxtech.synapseapi;
 
 import cn.nukkit.Player;
 import cn.nukkit.block.Block;
-import cn.nukkit.block.BlockAir;
 import cn.nukkit.block.BlockDoor;
 import cn.nukkit.block.BlockDragonEgg;
 import cn.nukkit.block.BlockNoteblock;
@@ -41,6 +40,7 @@ import cn.nukkit.network.protocol.*;
 import cn.nukkit.network.protocol.types.ContainerIds;
 import cn.nukkit.network.protocol.types.NetworkInventoryAction;
 import cn.nukkit.utils.Binary;
+import lombok.extern.log4j.Log4j2;
 import org.itxtech.synapseapi.event.player.SynapsePlayerInputModeChangeEvent;
 import org.itxtech.synapseapi.multiprotocol.AbstractProtocol;
 import org.itxtech.synapseapi.multiprotocol.protocol113.protocol.IPlayerAuthInputPacket;
@@ -54,7 +54,9 @@ import java.util.Arrays;
 import java.util.EnumMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ThreadLocalRandom;
 
+@Log4j2
 public class SynapsePlayer116 extends SynapsePlayer113 {
 
 	protected boolean inventoryOpen;
@@ -75,8 +77,8 @@ public class SynapsePlayer116 extends SynapsePlayer113 {
 		StartGamePacket116 startGamePacket = new StartGamePacket116();
 		startGamePacket.protocol = AbstractProtocol.fromRealProtocol(this.protocol);
 		startGamePacket.netease = this.isNetEaseClient();
-		startGamePacket.entityUniqueId = Long.MAX_VALUE;
-		startGamePacket.entityRuntimeId = Long.MAX_VALUE;
+		startGamePacket.entityUniqueId = SYNAPSE_PLAYER_ENTITY_ID;
+		startGamePacket.entityRuntimeId = SYNAPSE_PLAYER_ENTITY_ID;
 		startGamePacket.playerGamemode = getClientFriendlyGamemode(this.gamemode);
 		startGamePacket.x = (float) this.x;
 		startGamePacket.y = (float) this.y;
@@ -84,7 +86,7 @@ public class SynapsePlayer116 extends SynapsePlayer113 {
 		startGamePacket.yaw = (float) this.yaw;
 		startGamePacket.pitch = (float) this.pitch;
 		startGamePacket.seed = -1;
-		startGamePacket.dimension = (byte) (this.level.getDimension() & 0xff);
+		startGamePacket.dimension = (byte) (this.level.getDimension().ordinal() & 0xff);
 		startGamePacket.worldGamemode = getClientFriendlyGamemode(this.gamemode);
 		startGamePacket.difficulty = this.server.getDifficulty();
 		startGamePacket.spawnX = (int) spawnPosition.x;
@@ -101,6 +103,7 @@ public class SynapsePlayer116 extends SynapsePlayer113 {
 		startGamePacket.gameRules = getSupportedRules();
 		startGamePacket.isMovementServerAuthoritative = this.isNetEaseClient;
 		startGamePacket.currentTick = this.server.getTick();
+		startGamePacket.enchantmentSeed = ThreadLocalRandom.current().nextInt();
 		return startGamePacket;
 	}
 
@@ -132,7 +135,7 @@ public class SynapsePlayer116 extends SynapsePlayer113 {
 		switch (packet.pid()) {
 			case ProtocolInfo.INTERACT_PACKET:
 				InteractPacket interactPacket = (InteractPacket) packet;
-				if (interactPacket.action == InteractPacket.ACTION_OPEN_INVENTORY && interactPacket.target == Long.MAX_VALUE && !this.inventoryOpen) {
+				if (interactPacket.action == InteractPacket.ACTION_OPEN_INVENTORY && interactPacket.target == getLocalEntityId() && !this.inventoryOpen) {
 //					this.openInventory();
 					this.inventory.open(this);
 					this.inventoryOpen = true;
@@ -174,14 +177,21 @@ public class SynapsePlayer116 extends SynapsePlayer113 {
 				Item item;
 				Block block;
 
-				List<InventoryAction> actions = new ArrayList<>();
+				boolean skipped = false;
+				List<InventoryAction> actions = new ArrayList<>(transactionPacket.actions.length);
 				for (NetworkInventoryAction networkInventoryAction : transactionPacket.actions) {
 					InventoryAction a = networkInventoryAction.createInventoryAction(this);
 
 					if (a == null) {
-						this.getServer().getLogger().debug("Unmatched inventory action from " + this.getName() + ": " + networkInventoryAction);
-						this.sendAllInventories();
-						break packetswitch;
+//						this.getServer().getLogger().debug("Unmatched inventory action from " + this.getName() + ": " + networkInventoryAction);
+//						this.sendAllInventories();
+//						break packetswitch;
+						skipped = true;
+						continue;
+					}
+
+					if (skipped && networkInventoryAction.windowId == ContainerIds.UI) {
+						return;
 					}
 
 					actions.add(a);
@@ -201,9 +211,12 @@ public class SynapsePlayer116 extends SynapsePlayer113 {
 
 						this.craftingTransaction.execute();
 						this.craftingTransaction = null;
+						break;
 					}
 
-					return;
+					if ((craftingType >> 3) == 0 || craftingType == CRAFTING_STONECUTTER) {
+						break;
+					}
 				} else if (transactionPacket.isEnchantingPart) {
 					if (this.enchantTransaction == null) {
 						this.enchantTransaction = new EnchantTransaction(this, actions);
@@ -225,23 +238,31 @@ public class SynapsePlayer116 extends SynapsePlayer113 {
 							this.repairItemTransaction.addAction(action);
 						}
 					}
+
 					if (this.repairItemTransaction.canExecute()) {
 						this.repairItemTransaction.execute();
 						this.repairItemTransaction = null;
+						break;
 					}
-					return;
-				} else if (this.craftingTransaction != null) {
-					if (craftingTransaction.checkForCraftingPart(actions)) {
+
+					if ((this.craftingType >> 3) != 2) {
+						break;
+					}
+				}
+
+				if (this.craftingTransaction != null) {
+					if (CraftingTransaction.checkForCraftingPart(actions)) {
 						for (InventoryAction action : actions) {
 							craftingTransaction.addAction(action);
 						}
 						return;
-					} else {
-						this.server.getLogger().debug("Got unexpected normal inventory action with incomplete crafting transaction from " + this.getName() + ", refusing to execute crafting");
-						this.removeAllWindows(false);
-						this.sendAllInventories();
-						this.craftingTransaction = null;
 					}
+//					else {
+//						this.server.getLogger().debug("Got unexpected normal inventory action with incomplete crafting transaction from " + this.getName() + ", refusing to execute crafting");
+//						this.removeAllWindows(false);
+//						this.sendAllInventories();
+//						this.craftingTransaction = null;
+//					}
 				} else if (this.enchantTransaction != null) {
 					if (enchantTransaction.checkForEnchantPart(actions)) {
 						for (InventoryAction action : actions) {
@@ -267,6 +288,7 @@ public class SynapsePlayer116 extends SynapsePlayer113 {
 						this.repairItemTransaction = null;
 					}
 				}
+
 				switch (transactionPacket.transactionType) {
 					case InventoryTransactionPacket116.TYPE_NORMAL:
 						InventoryTransaction transaction = new InventoryTransaction(this, actions);
@@ -275,8 +297,6 @@ public class SynapsePlayer116 extends SynapsePlayer113 {
 							this.server.getLogger().debug("Failed to execute inventory transaction from " + this.getName() + " with actions: " + Arrays.toString(transactionPacket.actions));
 							break packetswitch; //oops!
 						}
-
-						//TODO: fix achievement for getting iron from furnace
 
 						break packetswitch;
 					case InventoryTransactionPacket116.TYPE_MISMATCH:
@@ -291,8 +311,12 @@ public class SynapsePlayer116 extends SynapsePlayer113 {
 
 						BlockVector3 blockVector = useItemData.blockPos;
 						BlockFace face = useItemData.face;
-
 						int type = useItemData.actionType;
+
+						if (face == null && type != InventoryTransactionPacket116.USE_ITEM_ACTION_CLICK_AIR) {
+							break packetswitch;
+						}
+
 						switch (type) {
 							case InventoryTransactionPacket116.USE_ITEM_ACTION_CLICK_BLOCK:
 								// Remove if client bug is ever fixed
@@ -467,13 +491,13 @@ public class SynapsePlayer116 extends SynapsePlayer113 {
 								if (target.onInteract(this, item, useItemOnEntityData.clickPos) && this.isSurvival()) {
 									if (item.isTool()) {
 										if (item.useOn(target) && item.getDamage() >= item.getMaxDurability()) {
-											item = new ItemBlock(new BlockAir());
+											item = new ItemBlock(Block.get(Block.AIR));
 										}
 									} else {
 										if (item.count > 1) {
 											item.count--;
 										} else {
-											item = new ItemBlock(new BlockAir());
+											item = new ItemBlock(Block.get(Block.AIR));
 										}
 									}
 
@@ -525,7 +549,7 @@ public class SynapsePlayer116 extends SynapsePlayer113 {
 
 								if (item.isTool() && this.isSurvival()) {
 									if (item.useOn(target) && item.getDamage() >= item.getMaxDurability()) {
-										this.inventory.setItemInHand(new ItemBlock(new BlockAir()));
+										this.inventory.setItemInHand(new ItemBlock(Block.get(Block.AIR)));
 									} else {
 										this.inventory.setItemInHand(item);
 									}
@@ -601,8 +625,11 @@ public class SynapsePlayer116 extends SynapsePlayer113 {
 					break;
 				}
 				EmotePacket116 emotePacket = (EmotePacket116) packet;
-				if (emotePacket.runtimeId != this.id) {
-					server.getLogger().warning(this.username + " sent EmotePacket with invalid entity id: " + emotePacket.runtimeId + " != " + this.id);
+				if (emotePacket.runtimeId != this.getLocalEntityId()) {
+					server.getLogger().warning(this.username + " sent EmotePacket with invalid entity id: " + emotePacket.runtimeId + " != " + this.getLocalEntityId());
+					break;
+				}
+				if ((emotePacket.flags & EmotePacket116.FLAG_SERVER) != 0) {
 					break;
 				}
 				for (Player viewer : this.getViewers().values().stream().filter(p -> p.getProtocol() >= AbstractProtocol.PROTOCOL_116.getProtocolStart()).toArray(Player[]::new)) {
@@ -725,7 +752,7 @@ public class SynapsePlayer116 extends SynapsePlayer113 {
 									break;
 								}
 								face = BlockFace.fromIndex(blockAction.data);
-								Block target = this.level.getBlock(pos);
+								Block target = this.level.getBlock(pos, false);
 								PlayerInteractEvent playerInteractEvent = new PlayerInteractEvent(this, this.inventory.getItemInHand(), target, face, target.getId() == Block.AIR ? PlayerInteractEvent.Action.LEFT_CLICK_AIR : PlayerInteractEvent.Action.LEFT_CLICK_BLOCK);
 								this.getServer().getPluginManager().callEvent(playerInteractEvent);
 								if (playerInteractEvent.isCancelled()) {
@@ -741,14 +768,15 @@ public class SynapsePlayer116 extends SynapsePlayer113 {
 											((BlockDragonEgg) target).teleport();
 											break actionswitch;
 										}
-									case Block.ITEM_FRAME_BLOCK:
+									case Block.BLOCK_FRAME:
+									case Block.BLOCK_GLOW_FRAME:
 										BlockEntity itemFrame = this.level.getBlockEntity(pos);
 										if (itemFrame instanceof BlockEntityItemFrame && ((BlockEntityItemFrame) itemFrame).dropItem(this)) {
 											break actionswitch;
 										}
 								}
 								block = target.getSide(face);
-								if (block.getId() == Block.FIRE) {
+								if (block.isFire()) {
 									this.level.setBlock(block, Block.get(Block.AIR), true);
 									this.level.addLevelSoundEvent(block, LevelSoundEventPacket.SOUND_EXTINGUISH_FIRE);
 									break;
@@ -799,6 +827,8 @@ public class SynapsePlayer116 extends SynapsePlayer113 {
 
 									target = this.level.getBlock(pos);
 									this.level.sendBlocks(new Player[]{this}, new Block[]{target}, UpdateBlockPacket.FLAG_ALL_PRIORITY);
+									target = this.level.getExtraBlock(pos);
+									this.level.sendBlocks(new Player[]{this}, new Block[]{target}, UpdateBlockPacket.FLAG_ALL_PRIORITY, 1);
 
 									BlockEntity blockEntity = this.level.getBlockEntity(pos);
 									if (blockEntity instanceof BlockEntitySpawnable) {
@@ -898,7 +928,7 @@ public class SynapsePlayer116 extends SynapsePlayer113 {
 		}
 		int cnt;
 		if (forceId == null) {
-			this.windowCnt = cnt = Math.max(4, ++this.windowCnt % 99);
+			this.windowCnt = cnt = Math.max(FIRST_AVAILABLE_WINDOW_ID, ++this.windowCnt % 99);
 		} else {
 			cnt = forceId;
 		}

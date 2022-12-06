@@ -28,6 +28,10 @@ public class TextPacket116100 extends Packet116100 {
     public static final byte TYPE_ANNOUNCEMENT = 8;
     public static final byte TYPE_OBJECT = 9;
     public static final byte TYPE_OBJECT_WHISPER = 10;
+    /**
+     * @since 1.19.30
+     */
+    public static final byte TYPE_OBJECT_ANNOUNCEMENT = 11;
 
     public byte type;
     public boolean isLocalized = false;
@@ -54,6 +58,7 @@ public class TextPacket116100 extends Packet116100 {
             case TYPE_SYSTEM:
             case TYPE_OBJECT:
             case TYPE_OBJECT_WHISPER:
+            case TYPE_OBJECT_ANNOUNCEMENT:
                 this.message = this.getString();
                 break;
             case TYPE_TRANSLATION:
@@ -88,6 +93,7 @@ public class TextPacket116100 extends Packet116100 {
             case TYPE_SYSTEM:
             case TYPE_OBJECT:
             case TYPE_OBJECT_WHISPER:
+            case TYPE_OBJECT_ANNOUNCEMENT:
                 this.putString(this.message);
                 break;
             case TYPE_TRANSLATION:

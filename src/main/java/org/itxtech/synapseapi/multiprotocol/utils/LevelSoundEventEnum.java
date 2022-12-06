@@ -1,5 +1,6 @@
 package org.itxtech.synapseapi.multiprotocol.utils;
 
+import cn.nukkit.block.Block;
 import org.itxtech.synapseapi.multiprotocol.AbstractProtocol;
 
 import java.util.Arrays;
@@ -292,7 +293,10 @@ public enum LevelSoundEventEnum {
     public int translateTo14ExtraData(int extraData) {
         switch (this) {
             case SOUND_PLACE:
-                return GlobalBlockPalette.getOrCreateRuntimeId(extraData, 0);
+            case SOUND_ITEM_USE_ON:
+            case SOUND_POWER_ON:
+            case SOUND_POWER_OFF:
+                return GlobalBlockPalette.getOrCreateRuntimeId(extraData >> Block.BLOCK_META_BITS, extraData & Block.BLOCK_META_MASK);
             default:
                 return extraData;
         }
@@ -301,7 +305,10 @@ public enum LevelSoundEventEnum {
     public int translateTo16ExtraData(int extraData, AbstractProtocol protocol, boolean netease) {
         switch (this) {
             case SOUND_PLACE:
-                return AdvancedGlobalBlockPalette.getOrCreateRuntimeId(protocol, netease, extraData, 0);
+            case SOUND_ITEM_USE_ON:
+            case SOUND_POWER_ON:
+            case SOUND_POWER_OFF:
+                return AdvancedGlobalBlockPalette.getOrCreateRuntimeId(protocol, netease, extraData >> Block.BLOCK_META_BITS, extraData & Block.BLOCK_META_MASK);
             default:
                 return extraData;
         }
@@ -310,7 +317,10 @@ public enum LevelSoundEventEnum {
     public int translateTo18ExtraData(int extraData, int pitch, AbstractProtocol protocol, boolean netease) {
         switch (this) {
             case SOUND_PLACE:
-                return AdvancedGlobalBlockPalette.getOrCreateRuntimeId(protocol, netease, extraData, 0);
+            case SOUND_ITEM_USE_ON:
+            case SOUND_POWER_ON:
+            case SOUND_POWER_OFF:
+                return AdvancedGlobalBlockPalette.getOrCreateRuntimeId(protocol, netease, extraData >> Block.BLOCK_META_BITS, extraData & Block.BLOCK_META_MASK);
             case SOUND_NOTE:
                 return (extraData << 8) | (pitch & 0b11111111);
             default:

@@ -1,6 +1,11 @@
 package org.itxtech.synapseapi;
 
 import cn.nukkit.Player;
+import cn.nukkit.block.Block;
+import cn.nukkit.block.BlockID;
+import cn.nukkit.block.BlockLectern;
+import cn.nukkit.blockentity.BlockEntity;
+import cn.nukkit.blockentity.BlockEntityLectern;
 import cn.nukkit.level.Position;
 import cn.nukkit.math.Vector3;
 import cn.nukkit.network.SourceInterface;
@@ -9,6 +14,8 @@ import cn.nukkit.network.protocol.ProtocolInfo;
 import cn.nukkit.resourcepacks.ResourcePack;
 import org.itxtech.synapseapi.event.player.SynapsePlayerBroadcastLevelSoundEvent;
 import org.itxtech.synapseapi.multiprotocol.AbstractProtocol;
+import org.itxtech.synapseapi.multiprotocol.protocol110.protocol.LecternUpdatePacket110;
+import org.itxtech.synapseapi.multiprotocol.protocol111.protocol.LecternUpdatePacket111;
 import org.itxtech.synapseapi.multiprotocol.protocol19.protocol.LevelSoundEventPacketV319;
 import org.itxtech.synapseapi.multiprotocol.protocol19.protocol.ResourcePacksInfoPacket19;
 import org.itxtech.synapseapi.multiprotocol.protocol19.protocol.StartGamePacket19;
@@ -16,6 +23,7 @@ import org.itxtech.synapseapi.multiprotocol.utils.AdvancedGlobalBlockPalette;
 import org.itxtech.synapseapi.multiprotocol.utils.LevelSoundEventEnum;
 
 import java.net.InetSocketAddress;
+import java.util.concurrent.ThreadLocalRandom;
 
 public class SynapsePlayer19 extends SynapsePlayer18 {
 
@@ -69,6 +77,80 @@ public class SynapsePlayer19 extends SynapsePlayer18 {
 							));
 				}
 				break;
+			case ProtocolInfo.LECTERN_UPDATE_PACKET:
+				if (getProtocol() >= AbstractProtocol.PROTOCOL_111.getProtocolStart()) {
+					LecternUpdatePacket111 lecternUpdatePacket = (LecternUpdatePacket111) packet;
+
+					if (distanceSquared(lecternUpdatePacket.x, lecternUpdatePacket.y, lecternUpdatePacket.z) > 100) {
+						break;
+					}
+
+					Block block = level.getBlock(lecternUpdatePacket.x, lecternUpdatePacket.y, lecternUpdatePacket.z);
+					if (block.getId() != BlockID.LECTERN) {
+						break;
+					}
+					BlockEntity blockEntity = level.getBlockEntity(block);
+					if (!(blockEntity instanceof BlockEntityLectern)) {
+						break;
+					}
+					BlockEntityLectern lectern = (BlockEntityLectern) blockEntity;
+
+					if (lecternUpdatePacket.droppingBook) {
+						if (lectern.dropBook()) {
+							lectern.spawnToAll();
+						} else {
+							lectern.spawnTo(this);
+						}
+						break;
+					}
+
+					if (lectern.getTotalPages() != lecternUpdatePacket.totalPages) {
+						lectern.spawnTo(this);
+						break;
+					}
+
+					if (lectern.setPage(lecternUpdatePacket.page)) {
+						((BlockLectern) block).onPageTurn();
+
+						lectern.spawnToAll();
+					} else {
+						lectern.spawnTo(this);
+					}
+				} else if (getProtocol() == AbstractProtocol.PROTOCOL_110.getProtocolStart()) {
+					LecternUpdatePacket110 lecternUpdatePacket = (LecternUpdatePacket110) packet;
+
+					if (distanceSquared(lecternUpdatePacket.x, lecternUpdatePacket.y, lecternUpdatePacket.z) > 100) {
+						break;
+					}
+
+					Block block = level.getBlock(lecternUpdatePacket.x, lecternUpdatePacket.y, lecternUpdatePacket.z);
+					if (block.getId() != BlockID.LECTERN) {
+						break;
+					}
+					BlockEntity blockEntity = level.getBlockEntity(block);
+					if (!(blockEntity instanceof BlockEntityLectern)) {
+						break;
+					}
+					BlockEntityLectern lectern = (BlockEntityLectern) blockEntity;
+
+					if (lecternUpdatePacket.droppingBook) {
+						if (lectern.dropBook()) {
+							lectern.spawnToAll();
+						} else {
+							lectern.spawnTo(this);
+						}
+						break;
+					}
+
+					if (lectern.setPage(lecternUpdatePacket.page)) {
+						((BlockLectern) block).onPageTurn();
+
+						lectern.spawnToAll();
+					} else {
+						lectern.spawnTo(this);
+					}
+				}
+				break;
 			default:
 				super.handleDataPacket(packet);
 				break;
@@ -79,8 +161,8 @@ public class SynapsePlayer19 extends SynapsePlayer18 {
 	protected DataPacket generateStartGamePacket(Position spawnPosition) {
 		StartGamePacket19 startGamePacket = new StartGamePacket19();
 		startGamePacket.netease = this.isNetEaseClient();
-		startGamePacket.entityUniqueId = Long.MAX_VALUE;
-		startGamePacket.entityRuntimeId = Long.MAX_VALUE;
+		startGamePacket.entityUniqueId = SYNAPSE_PLAYER_ENTITY_ID;
+		startGamePacket.entityRuntimeId = SYNAPSE_PLAYER_ENTITY_ID;
 		startGamePacket.playerGamemode = getClientFriendlyGamemode(this.gamemode);
 		startGamePacket.x = (float) this.x;
 		startGamePacket.y = (float) this.y;
@@ -88,7 +170,7 @@ public class SynapsePlayer19 extends SynapsePlayer18 {
 		startGamePacket.yaw = (float) this.yaw;
 		startGamePacket.pitch = (float) this.pitch;
 		startGamePacket.seed = -1;
-		startGamePacket.dimension = (byte) (this.level.getDimension() & 0xff);
+		startGamePacket.dimension = (byte) (this.level.getDimension().ordinal() & 0xff);
 		startGamePacket.worldGamemode = getClientFriendlyGamemode(this.gamemode);
 		startGamePacket.difficulty = this.server.getDifficulty();
 		startGamePacket.spawnX = (int) spawnPosition.x;
@@ -105,6 +187,7 @@ public class SynapsePlayer19 extends SynapsePlayer18 {
 		startGamePacket.generator = 1; // 0 old, 1 infinite, 2 flat
 		startGamePacket.gameRules = getSupportedRules();
 		startGamePacket.blockPalette = AdvancedGlobalBlockPalette.getCompiledTable(AbstractProtocol.fromRealProtocol(this.protocol), this.isNetEaseClient());
+		startGamePacket.enchantmentSeed = ThreadLocalRandom.current().nextInt();
 		return startGamePacket;
 	}
 

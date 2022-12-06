@@ -182,29 +182,7 @@ public class BinaryStreamHelper116100 extends BinaryStreamHelper116100NE {
     }
 
     @Override
-    public Item getRecipeIngredient(BinaryStream stream) {
-        int networkId = stream.getVarInt();
-        if (networkId == 0) {
-            return Item.get(0, 0, 0);
-        }
-
-        int legacyFullId = AdvancedRuntimeItemPalette.getLegacyFullId(this.protocol, stream.neteaseMode, networkId);
-        int id = AdvancedRuntimeItemPalette.getId(this.protocol, stream.neteaseMode, legacyFullId);
-        boolean hasData = AdvancedRuntimeItemPalette.hasData(this.protocol, stream.neteaseMode, legacyFullId);
-
-        int damage = stream.getVarInt();
-        if (hasData) {
-            damage = AdvancedRuntimeItemPalette.getData(this.protocol, stream.neteaseMode, legacyFullId);
-        } else if (damage == 0x7fff) {
-            damage = -1;
-        }
-
-        int count = stream.getVarInt();
-        return Item.get(id, damage, count);
-    }
-
-    @Override
-    public void putRecipeIngredient(BinaryStream stream, Item ingredient) {
+    public void putCraftingRecipeIngredient(BinaryStream stream, Item ingredient) {
         if (ingredient == null || ingredient.getId() == 0) {
             stream.putVarInt(0);
             return;

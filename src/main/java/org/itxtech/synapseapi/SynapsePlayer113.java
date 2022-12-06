@@ -10,7 +10,7 @@ import cn.nukkit.entity.Entity;
 import cn.nukkit.entity.data.ShortEntityData;
 import cn.nukkit.event.entity.EntityDamageByEntityEvent;
 import cn.nukkit.event.entity.EntityDamageEvent;
-import cn.nukkit.event.inventory.ItemAttackDamageEvent;
+import cn.nukkit.event.player.PlayerCommandPreprocessEvent;
 import cn.nukkit.event.player.PlayerInteractEntityEvent;
 import cn.nukkit.event.player.PlayerInteractEvent;
 import cn.nukkit.event.player.PlayerRespawnEvent;
@@ -31,19 +31,23 @@ import cn.nukkit.math.BlockVector3;
 import cn.nukkit.math.Vector3;
 import cn.nukkit.network.SourceInterface;
 import cn.nukkit.network.protocol.*;
+import cn.nukkit.network.protocol.types.ContainerIds;
 import cn.nukkit.network.protocol.types.NetworkInventoryAction;
 import cn.nukkit.resourcepacks.ResourcePack;
+import co.aikar.timings.Timings;
 import org.itxtech.synapseapi.multiprotocol.AbstractProtocol;
-import org.itxtech.synapseapi.multiprotocol.protocol113.protocol.NetworkSettingsPacket113;
 import org.itxtech.synapseapi.multiprotocol.protocol113.protocol.ResourcePackStackPacket113;
 import org.itxtech.synapseapi.multiprotocol.protocol113.protocol.RespawnPacket113;
+import org.itxtech.synapseapi.multiprotocol.protocol113.protocol.SettingsCommandPacket113;
 import org.itxtech.synapseapi.multiprotocol.protocol113.protocol.StartGamePacket113;
 import org.itxtech.synapseapi.multiprotocol.protocol113.protocol.TickSyncPacket113;
+import org.itxtech.synapseapi.multiprotocol.protocol116.protocol.InventoryTransactionPacket116;
 import org.itxtech.synapseapi.multiprotocol.protocol14.protocol.PlayerActionPacket14;
 import org.itxtech.synapseapi.multiprotocol.protocol16.protocol.ResourcePackClientResponsePacket16;
 
 import java.net.InetSocketAddress;
 import java.util.*;
+import java.util.concurrent.ThreadLocalRandom;
 
 public class SynapsePlayer113 extends SynapsePlayer112 {
 
@@ -57,8 +61,8 @@ public class SynapsePlayer113 extends SynapsePlayer112 {
 		StartGamePacket113 startGamePacket = new StartGamePacket113();
 		startGamePacket.protocol = AbstractProtocol.fromRealProtocol(this.protocol);
 		startGamePacket.netease = this.isNetEaseClient();
-		startGamePacket.entityUniqueId = Long.MAX_VALUE;
-		startGamePacket.entityRuntimeId = Long.MAX_VALUE;
+		startGamePacket.entityUniqueId = SYNAPSE_PLAYER_ENTITY_ID;
+		startGamePacket.entityRuntimeId = SYNAPSE_PLAYER_ENTITY_ID;
 		startGamePacket.playerGamemode = getClientFriendlyGamemode(this.gamemode);
 		startGamePacket.x = (float) this.x;
 		startGamePacket.y = (float) this.y;
@@ -66,7 +70,7 @@ public class SynapsePlayer113 extends SynapsePlayer112 {
 		startGamePacket.yaw = (float) this.yaw;
 		startGamePacket.pitch = (float) this.pitch;
 		startGamePacket.seed = -1;
-		startGamePacket.dimension = (byte) (this.level.getDimension() & 0xff);
+		startGamePacket.dimension = (byte) (this.level.getDimension().ordinal() & 0xff);
 		startGamePacket.worldGamemode = getClientFriendlyGamemode(this.gamemode);
 		startGamePacket.difficulty = this.server.getDifficulty();
 		startGamePacket.spawnX = (int) spawnPosition.x;
@@ -81,6 +85,7 @@ public class SynapsePlayer113 extends SynapsePlayer112 {
 		startGamePacket.worldName = this.getServer().getNetwork().getName();
 		startGamePacket.generator = 1; // 0 old, 1 infinite, 2 flat
 		startGamePacket.gameRules = getSupportedRules();
+		startGamePacket.enchantmentSeed = ThreadLocalRandom.current().nextInt();
 		return startGamePacket;
 	}
 
@@ -178,7 +183,7 @@ public class SynapsePlayer113 extends SynapsePlayer112 {
 
 				playerActionPacket.entityId = this.id;
 				Vector3 pos = new Vector3(playerActionPacket.x, playerActionPacket.y, playerActionPacket.z);
-				BlockFace face = BlockFace.fromIndex(playerActionPacket.face);
+				BlockFace face = BlockFace.fromIndex(playerActionPacket.data);
 
 				switch (playerActionPacket.action) {
 					case PlayerActionPacket14.ACTION_RESPAWN:
@@ -239,14 +244,21 @@ public class SynapsePlayer113 extends SynapsePlayer112 {
 				Item item;
 				Block block;
 
-				List<InventoryAction> actions = new ArrayList<>();
+				boolean skipped = false;
+				List<InventoryAction> actions = new ArrayList<>(transactionPacket.actions.length);
 				for (NetworkInventoryAction networkInventoryAction : transactionPacket.actions) {
 					InventoryAction a = networkInventoryAction.createInventoryActionLegacy(this);
 
 					if (a == null) {
-						this.getServer().getLogger().debug("Unmatched inventory action from " + this.getName() + ": " + networkInventoryAction);
-						this.sendAllInventories();
-						break packetswitch;
+//						this.getServer().getLogger().debug("Unmatched inventory action from " + this.getName() + ": " + networkInventoryAction);
+//						this.sendAllInventories();
+//						break packetswitch;
+						skipped = true;
+						continue;
+					}
+
+					if (skipped && networkInventoryAction.windowId == ContainerIds.UI) {
+						return;
 					}
 
 					actions.add(a);
@@ -266,9 +278,12 @@ public class SynapsePlayer113 extends SynapsePlayer112 {
 
 						this.craftingTransaction.execute();
 						this.craftingTransaction = null;
+						break;
 					}
 
-					return;
+					if ((craftingType >> 3) == 0 || craftingType == CRAFTING_STONECUTTER) {
+						break;
+					}
 				} else if (transactionPacket.isRepairItemPart) {
 					if (this.repairItemTransaction == null) {
 						this.repairItemTransaction = new RepairItemTransaction(this, actions);
@@ -280,18 +295,25 @@ public class SynapsePlayer113 extends SynapsePlayer112 {
 					if (this.repairItemTransaction.canExecute()) {
 						this.repairItemTransaction.execute();
 						this.repairItemTransaction = null;
+						break;
 					}
-					return;
-				} else if (this.craftingTransaction != null) {
-					if (craftingTransaction.checkForCraftingPart(actions)) {
+
+					if ((this.craftingType >> 3) != 2) {
+						break;
+					}
+				}
+
+				if (this.craftingTransaction != null) {
+					if (CraftingTransaction.checkForCraftingPart(actions)) {
 						for (InventoryAction action : actions) {
 							craftingTransaction.addAction(action);
 						}
 						return;
-					} else {
-						this.server.getLogger().debug("Got unexpected normal inventory action with incomplete crafting transaction from " + this.getName() + ", refusing to execute crafting");
-						this.craftingTransaction = null;
 					}
+//					else {
+//						this.server.getLogger().debug("Got unexpected normal inventory action with incomplete crafting transaction from " + this.getName() + ", refusing to execute crafting");
+//						this.craftingTransaction = null;
+//					}
 				} else if (this.repairItemTransaction != null) {
 					if (RepairItemTransaction.checkForRepairItemPart(actions)) {
 						for (InventoryAction action : actions) {
@@ -313,8 +335,6 @@ public class SynapsePlayer113 extends SynapsePlayer112 {
 							break packetswitch; //oops!
 						}
 
-						//TODO: fix achievement for getting iron from furnace
-
 						break packetswitch;
 					case InventoryTransactionPacket.TYPE_MISMATCH:
 						if (transactionPacket.actions.length > 0) {
@@ -328,8 +348,12 @@ public class SynapsePlayer113 extends SynapsePlayer112 {
 
 						BlockVector3 blockVector = useItemData.blockPos;
 						face = useItemData.face;
-
 						int type = useItemData.actionType;
+
+						if (face == null && type != InventoryTransactionPacket116.USE_ITEM_ACTION_CLICK_AIR) {
+							break packetswitch;
+						}
+
 						switch (type) {
 							case InventoryTransactionPacket.USE_ITEM_ACTION_CLICK_BLOCK:
 								// Remove if client bug is ever fixed
@@ -530,9 +554,7 @@ public class SynapsePlayer113 extends SynapsePlayer112 {
 
 								Enchantment[] enchantments = item.getEnchantments();
 
-								ItemAttackDamageEvent event = new ItemAttackDamageEvent(item);
-								this.server.getPluginManager().callEvent(event);
-								float itemDamage = event.getAttackDamage();
+								float itemDamage = item.getAttackDamage();
 								for (Enchantment enchantment : enchantments) {
 									itemDamage += enchantment.getDamageBonus(target);
 								}
@@ -540,15 +562,13 @@ public class SynapsePlayer113 extends SynapsePlayer112 {
 								Map<EntityDamageEvent.DamageModifier, Float> damage = new EnumMap<>(EntityDamageEvent.DamageModifier.class);
 								damage.put(EntityDamageEvent.DamageModifier.BASE, itemDamage);
 
-								float knockBackH = EntityDamageByEntityEvent.GLOBAL_KNOCKBACK_H;
-								float knockBackV = EntityDamageByEntityEvent.GLOBAL_KNOCKBACK_V;
+								float knockBack = 0.29f;
 								Enchantment knockBackEnchantment = item.getEnchantment(Enchantment.ID_KNOCKBACK);
 								if (knockBackEnchantment != null) {
-									knockBackH += knockBackEnchantment.getLevel() * 0.1f;
-									knockBackV += knockBackEnchantment.getLevel() * 0.1f;
+									knockBack += knockBackEnchantment.getLevel() * 0.1f;
 								}
 
-								EntityDamageByEntityEvent entityDamageByEntityEvent = new EntityDamageByEntityEvent(this, target, EntityDamageEvent.DamageCause.ENTITY_ATTACK, damage, knockBackH, knockBackV, enchantments);
+								EntityDamageByEntityEvent entityDamageByEntityEvent = new EntityDamageByEntityEvent(this, target, EntityDamageEvent.DamageCause.ENTITY_ATTACK, damage, knockBack, knockBack, enchantments);
 								if (this.isSpectator()) entityDamageByEntityEvent.setCancelled();
 								if ((target instanceof Player) && !this.level.getGameRules().getBoolean(GameRule.PVP)) {
 									entityDamageByEntityEvent.setCancelled();
@@ -631,6 +651,26 @@ public class SynapsePlayer113 extends SynapsePlayer112 {
 				tickSyncResponse.clientSendTime = tickSyncRequest.clientSendTime;
 				tickSyncResponse.serverReceiveTime = this.server.getTick();
 				this.dataPacket(tickSyncResponse);
+				break;
+			case ProtocolInfo.SETTINGS_COMMAND_PACKET:
+				if (!callPacketReceiveEvent(packet)) {
+					break;
+				}
+				if (!this.spawned || !this.isAlive()) {
+					break;
+				}
+				this.craftingType = CRAFTING_SMALL;
+
+				SettingsCommandPacket113 settingsCommandPacket = (SettingsCommandPacket113) packet;
+				PlayerCommandPreprocessEvent playerCommandPreprocessEvent = new PlayerCommandPreprocessEvent(this, settingsCommandPacket.command);
+				this.server.getPluginManager().callEvent(playerCommandPreprocessEvent);
+				if (playerCommandPreprocessEvent.isCancelled()) {
+					break;
+				}
+
+				Timings.playerCommandTimer.startTiming();
+				this.server.dispatchCommand(playerCommandPreprocessEvent.getPlayer(), playerCommandPreprocessEvent.getMessage().substring(1));
+				Timings.playerCommandTimer.stopTiming();
 				break;
 			default:
 				super.handleDataPacket(packet);

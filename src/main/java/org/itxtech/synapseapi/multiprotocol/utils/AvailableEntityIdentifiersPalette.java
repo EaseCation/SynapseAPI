@@ -2,20 +2,24 @@ package org.itxtech.synapseapi.multiprotocol.utils;
 
 import cn.nukkit.nbt.NBTIO;
 import com.google.common.io.ByteStreams;
+import lombok.extern.log4j.Log4j2;
 import org.itxtech.synapseapi.SynapseAPI;
 import org.itxtech.synapseapi.SynapseSharedConstants;
 import org.itxtech.synapseapi.multiprotocol.AbstractProtocol;
 
 import java.io.IOException;
 import java.nio.ByteOrder;
-import java.util.HashMap;
+import java.util.EnumMap;
 import java.util.Map;
 
+@Log4j2
 public final class AvailableEntityIdentifiersPalette {
 
-    private static final Map<AbstractProtocol, byte[]> palettes = new HashMap<>();
+    private static final Map<AbstractProtocol, byte[]> palettes = new EnumMap<>(AbstractProtocol.class);
 
     static {
+        log.debug("Loading entity identifiers...");
+
         try {
             byte[] data18 = ByteStreams.toByteArray(SynapseAPI.getInstance().getResource("entity_identifiers_18.dat"));
             byte[] data19 = ByteStreams.toByteArray(SynapseAPI.getInstance().getResource("entity_identifiers_19.dat"));
@@ -58,8 +62,20 @@ public final class AvailableEntityIdentifiersPalette {
             palettes.put(AbstractProtocol.PROTOCOL_119_10, data11910);
             palettes.put(AbstractProtocol.PROTOCOL_119_20, data11910);
             palettes.put(AbstractProtocol.PROTOCOL_119_21, data11910);
+            palettes.put(AbstractProtocol.PROTOCOL_119_30, data11910);
+            palettes.put(AbstractProtocol.PROTOCOL_119_40, data11910);
+            palettes.put(AbstractProtocol.PROTOCOL_119_50, data11910);
         } catch (NullPointerException | IOException e) {
             throw new AssertionError("Unable to load entity_identifiers.dat");
+        }
+
+        for (AbstractProtocol protocol : AbstractProtocol.values0()) {
+            if (protocol.getProtocolStart() < AbstractProtocol.PROTOCOL_18.getProtocolStart()) {
+                continue;
+            }
+            if (palettes.get(protocol) == null) {
+                throw new AssertionError("Missing entity_identifiers.nbt: " + protocol);
+            }
         }
     }
 

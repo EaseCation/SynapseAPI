@@ -148,13 +148,13 @@ public class StartGamePacket11730 extends Packet11730 {
         this.putString(this.worldName);
         this.putString(this.premiumWorldTemplateId);
         this.putBoolean(this.isTrial);
-        this.putUnsignedVarInt(this.isMovementServerAuthoritative ? 1 : 0); // 2 - rewind
+        this.putVarInt(this.isMovementServerAuthoritative ? 1 : 0); // 2 - rewind
         this.putVarInt(20); // RewindHistorySize
         this.putBoolean(this.isBlockBreakingServerAuthoritative);
         this.putLLong(this.currentTick);
         this.putVarInt(this.enchantmentSeed);
         this.putUnsignedVarInt(0); // Custom blocks
-        this.put(this.itemDataPalette == null ? AdvancedRuntimeItemPalette.getCompiledData(this.protocol, false) : this.itemDataPalette);
+        this.put(this.itemDataPalette == null ? AdvancedRuntimeItemPalette.getCompiledData(this.protocol, netease) : this.itemDataPalette);
         this.putString(this.multiplayerCorrelationId);
         this.putBoolean(this.isInventoryServerAuthoritative);
         this.putString(this.helper.getGameVersion());//this.putString(this.serverEngine);

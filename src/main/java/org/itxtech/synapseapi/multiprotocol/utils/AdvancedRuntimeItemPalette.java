@@ -1,10 +1,11 @@
 package org.itxtech.synapseapi.multiprotocol.utils;
 
 import cn.nukkit.item.Item;
-import it.unimi.dsi.fastutil.objects.Object2ObjectMap;
-import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
+import lombok.extern.log4j.Log4j2;
 import org.itxtech.synapseapi.multiprotocol.AbstractProtocol;
 
+import java.util.EnumMap;
+import java.util.Map;
 import java.util.Objects;
 
 /**
@@ -13,13 +14,13 @@ import java.util.Objects;
  * 所以需要分版本对数据包进行处理
  * 注意：最好所有涉及到的包都有多协议适配版（XXXPacket116200这类），这样才可以在BinaryStream中自动设置进去neteaseMode，不然都将按照国际版进行编码
  */
-
+@Log4j2
 public final class AdvancedRuntimeItemPalette {
 
-    public static final Object2ObjectMap<AbstractProtocol, AdvancedRuntimeItemPaletteInterface[]> palettes = new Object2ObjectOpenHashMap<>();
+    public static final Map<AbstractProtocol, AdvancedRuntimeItemPaletteInterface[]> palettes = new EnumMap<>(AbstractProtocol.class);
 
     static {
-        palettes.defaultReturnValue(new AdvancedRuntimeItemPaletteInterface[]{RuntimeItemPaletteLegacy.INSTANCE});
+        log.debug("Loading advanced runtime item palette...");
 
         RuntimeItemPalette palette116100 = new RuntimeItemPalette("runtime_item_ids_116100.json");
         RuntimeItemPalette palette116200NE = new RuntimeItemPalette("runtime_item_ids_116200NE.json");
@@ -34,6 +35,7 @@ public final class AdvancedRuntimeItemPalette {
         RuntimeItemPalette palette11830 = new RuntimeItemPalette("runtime_item_ids_11830.json");
         RuntimeItemPalette palette119 = new RuntimeItemPalette("runtime_item_ids_119.json");
         RuntimeItemPalette palette11910 = new RuntimeItemPalette("runtime_item_ids_11910.json");
+        RuntimeItemPalette palette11950 = new RuntimeItemPalette("runtime_item_ids_11950.json");
 
         register(AbstractProtocol.PROTOCOL_116_100, palette116100, null);
         register(AbstractProtocol.PROTOCOL_116_200, palette116100, palette116200NE);
@@ -50,6 +52,9 @@ public final class AdvancedRuntimeItemPalette {
         register(AbstractProtocol.PROTOCOL_119_10, palette11910, null);
         register(AbstractProtocol.PROTOCOL_119_20, palette11910, null);
         register(AbstractProtocol.PROTOCOL_119_21, palette11910, null);
+        register(AbstractProtocol.PROTOCOL_119_30, palette11910, null);
+        register(AbstractProtocol.PROTOCOL_119_40, palette11910, null);
+        register(AbstractProtocol.PROTOCOL_119_50, palette11950, null);
     }
 
     private static void register(AbstractProtocol protocol, RuntimeItemPalette palette, RuntimeItemPalette paletteNetEase) {
@@ -63,6 +68,9 @@ public final class AdvancedRuntimeItemPalette {
 
     private static AdvancedRuntimeItemPaletteInterface getPalette(AbstractProtocol protocol, boolean netease) {
         AdvancedRuntimeItemPaletteInterface[] interfaces = palettes.get(protocol);
+        if (interfaces == null) {
+            return RuntimeItemPaletteLegacy.INSTANCE;
+        }
         if (netease && interfaces.length > 1) {
             return interfaces[1];
         } else {
@@ -100,6 +108,10 @@ public final class AdvancedRuntimeItemPalette {
 
     public static String getString(AbstractProtocol protocol, boolean netease, Item item) {
         return getPalette(protocol, netease).getString(item);
+    }
+
+    public static int getLegacyFullIdByName(AbstractProtocol protocol, boolean netease, String name) {
+        return getPalette(protocol, netease).getLegacyFullIdByName(name);
     }
 
     public static void init() {

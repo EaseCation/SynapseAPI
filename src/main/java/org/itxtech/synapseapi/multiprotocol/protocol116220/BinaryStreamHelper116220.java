@@ -11,7 +11,6 @@ import cn.nukkit.nbt.tag.StringTag;
 import cn.nukkit.network.LittleEndianByteBufInputStream;
 import cn.nukkit.network.LittleEndianByteBufOutputStream;
 import cn.nukkit.utils.BinaryStream;
-import io.netty.buffer.AbstractByteBufAllocator;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.ByteBufAllocator;
 import lombok.extern.log4j.Log4j2;
@@ -76,7 +75,7 @@ public class BinaryStreamHelper116220 extends BinaryStreamHelper116210 {
         }
 
         byte[] bytes = stream.getByteArray();
-        ByteBuf buf = AbstractByteBufAllocator.DEFAULT.ioBuffer(bytes.length);
+        ByteBuf buf = ByteBufAllocator.DEFAULT.ioBuffer(bytes.length);
         buf.writeBytes(bytes);
 
         byte[] nbt = new byte[0];
@@ -207,7 +206,7 @@ public class BinaryStreamHelper116220 extends BinaryStreamHelper116210 {
 
         ByteBuf userDataBuf = ByteBufAllocator.DEFAULT.ioBuffer();
         try (LittleEndianByteBufOutputStream out = new LittleEndianByteBufOutputStream(userDataBuf)) {
-            if (!instanceItem && isDurable && meta > 0) {
+            if (!instanceItem && isDurable) {
                 byte[] nbt = item.getCompoundTag();
                 CompoundTag tag;
                 if (nbt == null || nbt.length == 0) {

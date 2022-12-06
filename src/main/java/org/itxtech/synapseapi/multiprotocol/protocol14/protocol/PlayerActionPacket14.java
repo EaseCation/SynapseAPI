@@ -55,7 +55,7 @@ public class PlayerActionPacket14 extends Packet14 {
     public int x;
     public int y;
     public int z;
-    public int face;
+    public int data;
 
     @Override
     public void decode() {
@@ -65,16 +65,11 @@ public class PlayerActionPacket14 extends Packet14 {
         this.x = v.x;
         this.y = v.y;
         this.z = v.z;
-        this.face = this.getVarInt();
+        this.data = this.getVarInt();
     }
 
     @Override
     public void encode() {
-        this.reset();
-        this.putEntityRuntimeId(this.entityId);
-        this.putVarInt(this.action);
-        this.putBlockVector3(this.x, this.y, this.z);
-        this.putVarInt(this.face);
     }
 
     @Override
@@ -91,7 +86,7 @@ public class PlayerActionPacket14 extends Packet14 {
         PlayerActionPacket pk = new PlayerActionPacket();
         pk.action = this.action;
         pk.entityId = this.entityId;
-        pk.face = this.face;
+        pk.data = this.data;
         pk.x = this.x;
         pk.y = this.y;
         pk.z = this.z;

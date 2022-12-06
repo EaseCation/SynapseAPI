@@ -1,6 +1,8 @@
 package org.itxtech.synapseapi;
 
 import cn.nukkit.Player;
+import cn.nukkit.blockentity.BlockEntity;
+import cn.nukkit.blockentity.BlockEntitySpawnable;
 import cn.nukkit.entity.Entity;
 import cn.nukkit.level.Level;
 import cn.nukkit.level.Position;
@@ -26,6 +28,7 @@ import org.itxtech.synapseapi.network.protocol.spp.PlayerLoginPacket;
 import org.itxtech.synapseapi.utils.BlobTrack;
 
 import java.net.InetSocketAddress;
+import java.util.concurrent.ThreadLocalRandom;
 
 import static org.itxtech.synapseapi.SynapseSharedConstants.*;
 
@@ -53,8 +56,8 @@ public class SynapsePlayer112 extends SynapsePlayer19 {
 	protected DataPacket generateStartGamePacket(Position spawnPosition) {
 		StartGamePacket112 startGamePacket = new StartGamePacket112();
 		startGamePacket.netease = this.isNetEaseClient();
-		startGamePacket.entityUniqueId = Long.MAX_VALUE;
-		startGamePacket.entityRuntimeId = Long.MAX_VALUE;
+		startGamePacket.entityUniqueId = SYNAPSE_PLAYER_ENTITY_ID;
+		startGamePacket.entityRuntimeId = SYNAPSE_PLAYER_ENTITY_ID;
 		startGamePacket.playerGamemode = getClientFriendlyGamemode(this.gamemode);
 		startGamePacket.x = (float) this.x;
 		startGamePacket.y = (float) this.y;
@@ -62,7 +65,7 @@ public class SynapsePlayer112 extends SynapsePlayer19 {
 		startGamePacket.yaw = (float) this.yaw;
 		startGamePacket.pitch = (float) this.pitch;
 		startGamePacket.seed = -1;
-		startGamePacket.dimension = (byte) (this.level.getDimension() & 0xff);
+		startGamePacket.dimension = (byte) (this.level.getDimension().ordinal() & 0xff);
 		startGamePacket.worldGamemode = getClientFriendlyGamemode(this.gamemode);
 		startGamePacket.difficulty = this.server.getDifficulty();
 		startGamePacket.spawnX = (int) spawnPosition.x;
@@ -78,6 +81,7 @@ public class SynapsePlayer112 extends SynapsePlayer19 {
 		startGamePacket.worldName = this.getServer().getNetwork().getName();
 		startGamePacket.generator = 1; // 0 old, 1 infinite, 2 flat
 		startGamePacket.gameRules = getSupportedRules();
+		startGamePacket.enchantmentSeed = ThreadLocalRandom.current().nextInt();
 		return startGamePacket;
 	}
 
@@ -168,6 +172,13 @@ public class SynapsePlayer112 extends SynapsePlayer19 {
 
 			//chunkDebug = true;
 
+			for (BlockEntity blockEntity : this.level.getChunkBlockEntities(x, z).values()) {
+				if (!(blockEntity instanceof BlockEntitySpawnable)) {
+					continue;
+				}
+				((BlockEntitySpawnable) blockEntity).spawnTo(this);
+			}
+
 			if (this.spawned) {
 				for (Entity entity : this.level.getChunkEntities(x, z).values()) {
 					if (this != entity && !entity.closed && entity.isAlive()) {
@@ -257,6 +268,13 @@ public class SynapsePlayer112 extends SynapsePlayer19 {
 		}
 
 		this.dataPacket(pk);
+
+		for (BlockEntity blockEntity : this.level.getChunkBlockEntities(x, z).values()) {
+			if (!(blockEntity instanceof BlockEntitySpawnable)) {
+				continue;
+			}
+			((BlockEntitySpawnable) blockEntity).spawnTo(this);
+		}
 
 		if (this.spawned) {
 			for (Entity entity : this.level.getChunkEntities(x, z).values()) {

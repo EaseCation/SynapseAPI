@@ -2,6 +2,7 @@ package org.itxtech.synapseapi;
 
 import cn.nukkit.Player;
 import cn.nukkit.Server;
+import cn.nukkit.lang.TranslationContainer;
 import cn.nukkit.level.GameRules;
 import cn.nukkit.level.Position;
 import cn.nukkit.network.SourceInterface;
@@ -12,6 +13,7 @@ import org.itxtech.synapseapi.multiprotocol.protocol17.protocol.StartGamePacket1
 import org.itxtech.synapseapi.multiprotocol.protocol17.protocol.TextPacket17;
 
 import java.net.InetSocketAddress;
+import java.util.concurrent.ThreadLocalRandom;
 
 public class SynapsePlayer17 extends SynapsePlayer16 {
 
@@ -53,8 +55,8 @@ public class SynapsePlayer17 extends SynapsePlayer16 {
 	protected DataPacket generateStartGamePacket(Position spawnPosition) {
 		StartGamePacket17 startGamePacket = new StartGamePacket17();
 		startGamePacket.netease = this.isNetEaseClient();
-		startGamePacket.entityUniqueId = Long.MAX_VALUE;
-		startGamePacket.entityRuntimeId = Long.MAX_VALUE;
+		startGamePacket.entityUniqueId = SYNAPSE_PLAYER_ENTITY_ID;
+		startGamePacket.entityRuntimeId = SYNAPSE_PLAYER_ENTITY_ID;
 		startGamePacket.playerGamemode = getClientFriendlyGamemode(this.gamemode);
 		startGamePacket.x = (float) this.x;
 		startGamePacket.y = (float) this.y;
@@ -62,7 +64,7 @@ public class SynapsePlayer17 extends SynapsePlayer16 {
 		startGamePacket.yaw = (float) this.yaw;
 		startGamePacket.pitch = (float) this.pitch;
 		startGamePacket.seed = -1;
-		startGamePacket.dimension = (byte) (this.level.getDimension() & 0xff);
+		startGamePacket.dimension = (byte) (this.level.getDimension().ordinal() & 0xff);
 		startGamePacket.worldGamemode = getClientFriendlyGamemode(this.gamemode);
 		startGamePacket.difficulty = this.server.getDifficulty();
 		startGamePacket.spawnX = (int) spawnPosition.x;
@@ -78,7 +80,7 @@ public class SynapsePlayer17 extends SynapsePlayer16 {
 		startGamePacket.worldName = this.getServer().getNetwork().getName();
 		startGamePacket.generator = 1; // 0 old, 1 infinite, 2 flat
 		startGamePacket.gameRules = getSupportedRules();
-
+		startGamePacket.enchantmentSeed = ThreadLocalRandom.current().nextInt();
 		return startGamePacket;
 	}
 
@@ -101,4 +103,13 @@ public class SynapsePlayer17 extends SynapsePlayer16 {
 		return gamemode;
 	}
 
+	@Override
+	public void sendJukeboxPopup(TranslationContainer message) {
+		TextPacket17 pk = new TextPacket17();
+		pk.type = TextPacket17.JUKE_BOX_POPUP;
+		pk.isLocalized = true;
+		pk.message = message.getText();
+		pk.parameters = message.getParameters();
+		this.dataPacket(pk);
+	}
 }

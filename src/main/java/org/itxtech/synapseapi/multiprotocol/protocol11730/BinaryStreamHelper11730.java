@@ -1,12 +1,15 @@
 package org.itxtech.synapseapi.multiprotocol.protocol11730;
 
 import cn.nukkit.entity.data.Skin;
+import cn.nukkit.item.Item;
+import cn.nukkit.item.ItemID;
 import cn.nukkit.utils.BinaryStream;
 import cn.nukkit.utils.PersonaPiece;
 import cn.nukkit.utils.PersonaPieceTint;
 import cn.nukkit.utils.SerializedImage;
 import cn.nukkit.utils.SkinAnimation;
 import org.itxtech.synapseapi.multiprotocol.protocol11710.BinaryStreamHelper11710;
+import org.itxtech.synapseapi.multiprotocol.utils.AdvancedRuntimeItemPalette;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -125,5 +128,22 @@ public class BinaryStreamHelper11730 extends BinaryStreamHelper11710 {
         skin.setCapeOnClassic(stream.getBoolean());
         skin.setPrimaryUser(stream.getBoolean());
         return skin;
+    }
+
+    @Override
+    public void putMaterialReducerRecipeIngredient(BinaryStream stream, Item ingredient) {
+        if (ingredient == null || ingredient.getId() == ItemID.AIR) {
+            stream.putVarInt(ItemID.AIR);
+            return;
+        }
+
+        int networkFullId = AdvancedRuntimeItemPalette.getNetworkFullId(this.protocol, stream.neteaseMode, ingredient);
+        int networkId = AdvancedRuntimeItemPalette.getNetworkId(this.protocol, stream.neteaseMode, networkFullId);
+        int damage = ingredient.hasMeta() ? ingredient.getDamage() : 0x7fff;
+        if (AdvancedRuntimeItemPalette.hasData(this.protocol, stream.neteaseMode, networkFullId)) {
+            damage = 0;
+        }
+
+        stream.putVarInt((networkId << 16) | damage);
     }
 }

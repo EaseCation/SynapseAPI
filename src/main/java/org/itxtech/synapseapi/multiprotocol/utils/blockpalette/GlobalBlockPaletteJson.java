@@ -1,6 +1,7 @@
 package org.itxtech.synapseapi.multiprotocol.utils.blockpalette;
 
 import cn.nukkit.Server;
+import cn.nukkit.block.Block;
 import cn.nukkit.utils.BinaryStream;
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
@@ -35,7 +36,7 @@ public class GlobalBlockPaletteJson implements AdvancedGlobalBlockPaletteInterfa
     }
 
     public GlobalBlockPaletteJson(AbstractProtocol protocol, PaletteBlockTable blockTable, String itemDataPaletteJsonFile) {
-        Server.getInstance().getLogger().info("Loading Advanced Global Block Palette from PaletteBlockTable(old json)");
+        log.info("Loading Advanced Global Block Palette from PaletteBlockTable(old json) for {}", protocol);
         legacyToRuntimeId.defaultReturnValue(-1);
         runtimeIdToLegacy.defaultReturnValue(-1);
 
@@ -48,11 +49,13 @@ public class GlobalBlockPaletteJson implements AdvancedGlobalBlockPaletteInterfa
             PaletteBlockData data = blockTable.get(i);
             if (data.legacyStates != null && data.legacyStates.length > 0) {
                 meta = data.legacyStates[0].val;
-                runtimeIdToLegacy.put(i, data.legacyStates[0].id << 4 | (short) data.legacyStates[0].val);
+                runtimeIdToLegacy.put(i, data.legacyStates[0].id << 6 | (short) data.legacyStates[0].val);
                 for (PaletteBlockData.LegacyStates legacyState : data.legacyStates) {
-                    int legacyId = legacyState.id << 4 | (short) legacyState.val;
-                    if (legacyState.val > 0xf) log.trace("block meta > 0xf! id: {}, meta: {}", legacyState.id, legacyState.val);
+                    int legacyId = legacyState.id << 6 | (short) legacyState.val;
                     legacyToRuntimeId.putIfAbsent(legacyId, i);
+
+//                    if (legacyState.val > 0xf) log.trace("block meta > 15! id: {}, meta: {}", legacyState.id, legacyState.val);
+//                    if (legacyState.val > 0x3f) log.trace("block meta > 63! id: {}, meta: {}", legacyState.id, legacyState.val);
                 }
             }
 
@@ -91,7 +94,7 @@ public class GlobalBlockPaletteJson implements AdvancedGlobalBlockPaletteInterfa
         table.putUnsignedVarInt(entries.size());
 
         for (TableEntry entry : entries) {
-            registerMapping((entry.id << 4) | entry.data, entry.name);
+            registerMapping((entry.id << 6) | entry.data, entry.name);
             table.putString(entry.name);
             table.putLShort(entry.data);
             if (protocol.ordinal() >= AbstractProtocol.PROTOCOL_112.ordinal()) table.putLShort(entry.id);
@@ -100,14 +103,14 @@ public class GlobalBlockPaletteJson implements AdvancedGlobalBlockPaletteInterfa
     }
 
     public int getOrCreateRuntimeId(int id, int meta) {
-        return getOrCreateRuntimeId((id << 4) | meta);
+        return getOrCreateRuntimeId((id << 6) | meta);
     }
 
     public int getOrCreateRuntimeId(int legacyId) {
         int runtimeId = legacyToRuntimeId.get(legacyId);
         if (runtimeId == -1) {
             //runtimeId = registerMapping(runtimeIdAllocator.incrementAndGet(), legacyId);
-            throw new RuntimeException("Unmapped block registered id:" + (legacyId >> 4) + " meta:" + (legacyId & 0xf));
+            throw new RuntimeException("Unmapped block registered id:" + (legacyId >> Block.BLOCK_META_BITS) + " meta:" + (legacyId & Block.BLOCK_META_MASK));
         }
         return runtimeId;
     }

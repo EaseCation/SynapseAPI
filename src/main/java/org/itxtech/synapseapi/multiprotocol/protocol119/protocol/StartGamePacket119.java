@@ -158,7 +158,7 @@ public class StartGamePacket119 extends Packet119 {
         this.putString(this.worldName);
         this.putString(this.premiumWorldTemplateId);
         this.putBoolean(this.isTrial);
-        this.putUnsignedVarInt(this.isMovementServerAuthoritative ? 1 : 0); // 2 - rewind
+        this.putVarInt(this.isMovementServerAuthoritative ? 1 : 0); // 2 - rewind
         this.putVarInt(20); // RewindHistorySize
         this.putBoolean(this.isBlockBreakingServerAuthoritative);
         this.putLLong(this.currentTick);

@@ -1,17 +1,19 @@
 package org.itxtech.synapseapi.multiprotocol.utils.blockpalette.data;
 
+import cn.nukkit.block.BlockID;
 import cn.nukkit.nbt.tag.CompoundTag;
 import cn.nukkit.nbt.tag.Tag;
 import lombok.ToString;
 
-import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 
 @ToString
 public class PaletteBlockData {
 
-    public static final PaletteBlockData AIR = new PaletteBlockData(0, new LegacyStates[]{new LegacyStates(0, 0)}, new Block("minecraft:air", 0, new ArrayList<>()));
+    public static final PaletteBlockData AIR = new PaletteBlockData(BlockID.AIR, new LegacyStates[]{new LegacyStates(BlockID.AIR, 0)},
+            new Block("minecraft:air", 0, Collections.emptyList()));
 
     @ToString
     public static class LegacyStates {
@@ -70,11 +72,17 @@ public class PaletteBlockData {
     public int id;
     public LegacyStates[] legacyStates;
     public Block block;
+    public int legacyIndex;
 
     public PaletteBlockData(int id, LegacyStates[] legacyStates, Block block) {
+        this(id, legacyStates, block, 0);
+    }
+
+    public PaletteBlockData(int id, LegacyStates[] legacyStates, Block block, int legacyIndex) {
         this.id = id;
         this.legacyStates = legacyStates;
         this.block = block;
+        this.legacyIndex = legacyIndex;
     }
 
     private PaletteBlockData() {

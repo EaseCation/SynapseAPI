@@ -56,7 +56,7 @@ public class CraftingDataPacket16 extends Packet16 {
         stream.putSlot(recipe.getResult());
         stream.putUUID(recipe.getId());
 
-        return CraftingDataPacket16.ENTRY_SHAPELESS;
+        return recipe.getType().ordinal();
     }
 
     private static int writeShapedRecipe(ShapedRecipe recipe, BinaryStream stream) {
@@ -74,7 +74,7 @@ public class CraftingDataPacket16 extends Packet16 {
 
         stream.putUUID(recipe.getId());
 
-        return CraftingDataPacket16.ENTRY_SHAPED;
+        return recipe.getType().ordinal();
     }
 
     private static int writeFurnaceRecipe(FurnaceRecipe recipe, BinaryStream stream) {

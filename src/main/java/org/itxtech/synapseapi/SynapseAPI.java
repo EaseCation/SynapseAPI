@@ -21,6 +21,7 @@ import cn.nukkit.network.protocol.ProtocolInfo;
 import cn.nukkit.utils.Binary;
 import cn.nukkit.utils.Utils;
 import com.google.gson.JsonObject;
+import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
 import org.itxtech.synapseapi.event.player.netease.NetEasePlayerModEventC2SEvent;
 import org.itxtech.synapseapi.multiprotocol.AbstractProtocol;
 import org.itxtech.synapseapi.multiprotocol.PacketRegister;
@@ -32,7 +33,11 @@ import org.itxtech.synapseapi.multiprotocol.utils.AdvancedGlobalBlockPalette;
 import org.itxtech.synapseapi.multiprotocol.utils.AdvancedRuntimeItemPalette;
 import org.itxtech.synapseapi.multiprotocol.utils.AvailableEntityIdentifiersPalette;
 import org.itxtech.synapseapi.multiprotocol.utils.BiomeDefinitions;
+import org.itxtech.synapseapi.multiprotocol.utils.CraftingPacketManager;
 import org.itxtech.synapseapi.multiprotocol.utils.CreativeItemsPalette;
+import org.itxtech.synapseapi.multiprotocol.utils.ItemComponentDefinitions;
+import org.itxtech.synapseapi.multiprotocol.utils.item.CraftingManagerLegacy;
+import org.itxtech.synapseapi.multiprotocol.utils.item.CraftingManagerNew;
 import org.itxtech.synapseapi.runnable.TransferDimensionTaskThread;
 import org.itxtech.synapseapi.utils.ClientData;
 import org.itxtech.synapseapi.utils.NetTest;
@@ -40,6 +45,8 @@ import org.itxtech.synapseapi.utils.NetTest;
 import java.util.*;
 import java.util.Map.Entry;
 import java.util.stream.Collectors;
+
+import static cn.nukkit.GameVersion.*;
 
 /**
  * @author boybook
@@ -52,7 +59,7 @@ public class SynapseAPI extends PluginBase implements Listener {
     private boolean loadingScreen = true;
     private boolean autoCompress = true;  //Compress in Nukkit, not Nemisys
     private boolean recordPacketStack = false;
-    private Map<String, SynapseEntry> synapseEntries = new HashMap<>();
+    private final Map<String, SynapseEntry> synapseEntries = new Object2ObjectOpenHashMap<>();
     private Messenger messenger;
     private boolean networkBroadcastPlayerMove;
 
@@ -86,6 +93,7 @@ public class SynapseAPI extends PluginBase implements Listener {
         this.recordPacketStack = this.getConfig().getBoolean("record-packet-stack", false);
 
         saveResource("recipes11.json", true);
+
         PacketRegister.init();
 
         GlobalBlockPalette.setInstance(new GlobalBlockPaletteInterface(){
@@ -213,6 +221,10 @@ public class SynapseAPI extends PluginBase implements Listener {
         CreativeItemsPalette.init();
         AvailableEntityIdentifiersPalette.init();
         BiomeDefinitions.init();
+        ItemComponentDefinitions.init();
+
+        getServer().setCraftingManager(V1_19_0.isAvailable() ? new CraftingManagerNew() : new CraftingManagerLegacy());
+        CraftingPacketManager.rebuildPacket();
 
         //仅用于开发测试
         this.getServer().getCommandMap().register("dcpk", new Command("dcpk") {

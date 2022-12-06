@@ -156,14 +156,14 @@ public class PlayerAuthInputPacket116220 extends Packet116220 implements Invento
         this.deltaY = delta.y;
         this.deltaZ = delta.z;
 
-        boolean[] debugFlags;
-        if (SynapseSharedConstants.MAC_DEBUG) {
-            debugFlags = new boolean[3];
-        }
-
         if (this.neteaseMode) {
             // wtf
             this.getByte(); // 0
+        }
+
+        boolean[] debugFlags;
+        if (SynapseSharedConstants.MAC_DEBUG) {
+            debugFlags = new boolean[3];
         }
 
         if ((this.inputFlags & (1L << FLAG_PERFORM_ITEM_INTERACTION)) != 0) {
@@ -322,6 +322,8 @@ public class PlayerAuthInputPacket116220 extends Packet116220 implements Invento
             if (debugFlags[2]) debug += "PERFORM_BLOCK_ACTIONS | ";
             if (!debug.isEmpty()) log.debug("{} {}", debug, this);
         }
+
+        //TODO: more
     }
 
     @Override

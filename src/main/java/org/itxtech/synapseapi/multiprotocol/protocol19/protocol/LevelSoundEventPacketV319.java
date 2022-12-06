@@ -55,12 +55,21 @@ public class LevelSoundEventPacketV319 extends Packet19 {
     public DataPacket fromDefault(DataPacket pk, AbstractProtocol protocol, boolean netease) {
         ClassUtils.requireInstance(pk, cn.nukkit.network.protocol.LevelSoundEventPacket.class);
         LevelSoundEventPacket packet = (cn.nukkit.network.protocol.LevelSoundEventPacket) pk;
-        LevelSoundEventEnum sound = LevelSoundEventEnum.fromV12(packet.sound);
-        this.sound = Optional.ofNullable(sound).orElse(LevelSoundEventEnum.SOUND_UNDEFINED).getV18();
+        if (packet.sound > 254) { // V3 int id
+            if (packet.sound > 1000) { // insert
+                this.sound = packet.sound - 1000;
+            } else {
+                this.sound = packet.sound;
+            }
+            this.extraData = packet.extraData;
+        } else {
+            LevelSoundEventEnum sound = LevelSoundEventEnum.fromV12(packet.sound);
+            this.sound = Optional.ofNullable(sound).orElse(LevelSoundEventEnum.SOUND_UNDEFINED).getV18();
+            this.extraData = Optional.ofNullable(sound).orElse(LevelSoundEventEnum.SOUND_UNDEFINED).translateTo18ExtraData(packet.extraData, packet.pitch, protocol, netease);
+        }
         this.x = packet.x;
         this.y = packet.y;
         this.z = packet.z;
-        this.extraData = Optional.ofNullable(sound).orElse(LevelSoundEventEnum.SOUND_UNDEFINED).translateTo18ExtraData(packet.extraData, packet.pitch, protocol, netease);
         this.entityIdentifier = packet.entityIdentifier;
         this.isBabyMob = packet.isBabyMob;
         this.isGlobal = packet.isGlobal;

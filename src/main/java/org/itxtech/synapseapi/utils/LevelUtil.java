@@ -18,7 +18,7 @@ public class LevelUtil {
             players = level.getChunkPlayers(pos.getChunkX(), pos.getChunkZ()).values().toArray(new Player[0]);
         }
         for (Player player : players) {
-            player.spawnParticleEffect(pos.asVector3f(), identifier, -1, level.getDimension());
+            player.spawnParticleEffect(pos.asVector3f(), identifier, -1, level.getDimension().ordinal());
         }
     }
 

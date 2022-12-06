@@ -2,12 +2,11 @@ package org.itxtech.synapseapi.runnable;
 
 import cn.nukkit.Server;
 import cn.nukkit.network.protocol.PlayStatusPacket;
-import cn.nukkit.utils.TextFormat;
 import com.google.gson.JsonObject;
+import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import org.itxtech.synapseapi.SynapsePlayer;
 import org.itxtech.synapseapi.network.protocol.spp.TransferPacket;
 
-import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -20,8 +19,8 @@ import java.util.List;
  */
 public class TransferDimensionTaskThread extends Thread {
 
-    private List<Entry> sendPlayStatusList = new ArrayList<>();
-    private List<Entry> transferList = new ArrayList<>();
+    private final List<Entry> sendPlayStatusList = new ObjectArrayList<>();
+    private final List<Entry> transferList = new ObjectArrayList<>();
 
     public TransferDimensionTaskThread() {
         super("TransferDimensionTaskThread");
@@ -70,14 +69,14 @@ public class TransferDimensionTaskThread extends Thread {
         while (true) {
             long start = System.currentTimeMillis();
             try {
-                for (Entry entry: new ArrayList<>(sendPlayStatusList)) {
+                for (Entry entry: new ObjectArrayList<>(sendPlayStatusList)) {
                     if (entry.eventTime <= System.currentTimeMillis()) {
                         entry.doPlayStatus();
                         sendPlayStatusList.remove(entry);
                         transferList.add(entry);
                     }
                 }
-                for (Entry entry: new ArrayList<>(transferList)) {
+                for (Entry entry: new ObjectArrayList<>(transferList)) {
                     if (entry.eventTime <= System.currentTimeMillis()) {
                         entry.doTransfer();
                         transferList.remove(entry);
