@@ -13,6 +13,7 @@ import org.itxtech.synapseapi.multiprotocol.utils.item.CreativeInventory;
 import java.util.*;
 
 import static cn.nukkit.GameVersion.*;
+import static org.itxtech.synapseapi.SynapseSharedConstants.*;
 
 @Log4j2
 public class CreativeItemsPalette {
@@ -40,7 +41,7 @@ public class CreativeItemsPalette {
         register(AbstractProtocol.PROTOCOL_117_10, load("creativeitems_116100.json", true), null);
         register(AbstractProtocol.PROTOCOL_117_30, load("creativeitems_116100.json", true), null);
         register(AbstractProtocol.PROTOCOL_117_40, load("creativeitems_116100.json", true), null);
-        register(AbstractProtocol.PROTOCOL_118, load("creativeitems_11620.json", true), null);
+        register(AbstractProtocol.PROTOCOL_118, load("creativeitems_116100.json", true), null);
         register(AbstractProtocol.PROTOCOL_118_10, load("creativeitems_116100.json", true), null);
         register(AbstractProtocol.PROTOCOL_118_30, load("creativeitems_116100.json", true), null);
         register(AbstractProtocol.PROTOCOL_119, load("creativeitems_116100.json", true), null);
@@ -96,7 +97,7 @@ public class CreativeItemsPalette {
         for (Map map : list) {
             try {
                 Item item = Item.fromJson(map, ignoreUnsupported);
-                if (item != null) {
+                if (item != null && (!item.isChemistryFeature() || ENABLE_CHEMISTRY_FEATURE)) {
                     result.add(item.clone());
                 }
             } catch (Exception e) {
