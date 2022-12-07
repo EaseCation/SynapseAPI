@@ -49,11 +49,7 @@ import org.itxtech.synapseapi.multiprotocol.protocol116.protocol.*;
 import org.itxtech.synapseapi.multiprotocol.protocol14.protocol.PlayerActionPacket14;
 
 import java.net.InetSocketAddress;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.EnumMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.concurrent.ThreadLocalRandom;
 
 @Log4j2
@@ -64,7 +60,7 @@ public class SynapsePlayer116 extends SynapsePlayer113 {
 	/**
 	 * Server Authoritative Movement is required.
 	 */
-	protected boolean serverAuthoritativeBlockBreaking;
+	protected boolean serverAuthoritativeBlockBreaking = true;
 	protected BlockFace breakingBlockFace;
 
 	public SynapsePlayer116(SourceInterface interfaz, SynapseEntry synapseEntry, Long clientID, InetSocketAddress socketAddress) {
