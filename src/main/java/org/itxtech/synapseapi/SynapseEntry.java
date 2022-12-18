@@ -19,6 +19,7 @@ import cn.nukkit.utils.Zlib;
 import co.aikar.timings.Timing;
 import co.aikar.timings.TimingsManager;
 import com.google.gson.Gson;
+import lombok.extern.log4j.Log4j2;
 import org.itxtech.synapseapi.event.player.SynapsePlayerClockHackEvent;
 import org.itxtech.synapseapi.event.player.SynapsePlayerCreationEvent;
 import org.itxtech.synapseapi.messaging.StandardMessenger;
@@ -31,6 +32,7 @@ import org.itxtech.synapseapi.network.SynapseInterface;
 import org.itxtech.synapseapi.network.protocol.spp.*;
 import org.itxtech.synapseapi.utils.ClientData;
 import org.itxtech.synapseapi.utils.DataPacketEidReplacer;
+import org.itxtech.synapseapi.utils.PacketLogger;
 import org.itxtech.synapseapi.utils.PlayerNetworkLatencyData;
 
 import java.lang.reflect.Constructor;
@@ -40,9 +42,12 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.ThreadLocalRandom;
 
+import static org.itxtech.synapseapi.SynapseSharedConstants.*;
+
 /**
  * @author boybook
  */
+@Log4j2
 public class SynapseEntry {
 
     // private final Timing handleDataPacketTiming = TimingsManager.getTiming("SynapseEntry - HandleDataPacket");
@@ -298,7 +303,11 @@ public class SynapseEntry {
             RedirectPacketEntry redirectPacketEntry;
             while ((redirectPacketEntry = redirectPacketQueue.poll()) != null) {
                 //Server.getInstance().getLogger().warning("C => S  " + redirectPacketEntry.dataPacket.getClass().getSimpleName());
-                redirectPacketEntry.player.handleDataPacket(DataPacketEidReplacer.replaceBack(redirectPacketEntry.dataPacket, SynapsePlayer.SYNAPSE_PLAYER_ENTITY_ID, redirectPacketEntry.player.getId()));
+                DataPacket packet = DataPacketEidReplacer.replaceBack(redirectPacketEntry.dataPacket, SynapsePlayer.SYNAPSE_PLAYER_ENTITY_ID, redirectPacketEntry.player.getId());
+                if (SERVERBOUND_PACKET_LOGGING && log.isTraceEnabled()) {
+                    PacketLogger.handleServerboundPacket(redirectPacketEntry.player, packet);
+                }
+                redirectPacketEntry.player.handleDataPacket(packet);
             }
 
             PlayerLogoutPacket playerLogoutPacket;

@@ -2365,8 +2365,7 @@
     {
         "name": "minecraft:glow_ink_sac",
         "id": 505,
-        "oldId": 351,
-        "oldData": 20
+        "oldId": 518
     },
     {
         "name": "minecraft:glow_lichen",
@@ -3271,7 +3270,8 @@
     },
     {
         "name": "minecraft:mod_ore",
-        "id": 230
+        "id": 230,
+        "oldId": 230
     },
     {
         "name": "minecraft:mojang_banner_pattern",

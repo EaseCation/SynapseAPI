@@ -44,6 +44,7 @@ public class CreativeItemsPalette {
         register(AbstractProtocol.PROTOCOL_118, load("creativeitems_116100.json", true), null);
         register(AbstractProtocol.PROTOCOL_118_10, load("creativeitems_116100.json", true), null);
         register(AbstractProtocol.PROTOCOL_118_30, load("creativeitems_116100.json", true), null);
+        register(AbstractProtocol.PROTOCOL_118_30_NE, load("creativeitems_116100.json", true), null);
         register(AbstractProtocol.PROTOCOL_119, load("creativeitems_116100.json", true), null);
         register(AbstractProtocol.PROTOCOL_119_10, load("creativeitems_116100.json", true), null);
         register(AbstractProtocol.PROTOCOL_119_20, load("creativeitems_116100.json", true), null);
@@ -90,7 +91,7 @@ public class CreativeItemsPalette {
     private static List<Item> load(String file, boolean ignoreUnsupported) {
         Server.getInstance().getLogger().info("Loading Creative Items Palette from " + file);
         List<Item> result = new ObjectArrayList<>();
-        Config config = new Config(Config.YAML);
+        Config config = new Config(Config.JSON);
         config.load(SynapseAPI.class.getClassLoader().getResourceAsStream(file));
         List<Map> list = config.getMapList("items");
 

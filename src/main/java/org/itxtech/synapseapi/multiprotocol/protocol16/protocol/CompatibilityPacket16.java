@@ -2,7 +2,9 @@ package org.itxtech.synapseapi.multiprotocol.protocol16.protocol;
 
 import cn.nukkit.network.protocol.DataPacket;
 import cn.nukkit.utils.Binary;
+import lombok.ToString;
 
+@ToString
 public class CompatibilityPacket16 extends Packet16 {
 
     public DataPacket origin;

@@ -58,6 +58,7 @@ import cn.nukkit.network.protocol.ResourcePackClientResponsePacket;
 import cn.nukkit.network.protocol.ResourcePackDataInfoPacket;
 import cn.nukkit.network.protocol.SubChunkPacket;
 import cn.nukkit.network.protocol.SubChunkPacket11810;
+import cn.nukkit.network.protocol.UpdateBlockPacket;
 import cn.nukkit.network.protocol.types.PlayerAbility;
 import cn.nukkit.network.protocol.types.ContainerIds;
 import cn.nukkit.resourcepacks.ResourcePack;
@@ -100,6 +101,8 @@ import org.itxtech.synapseapi.multiprotocol.protocol11810.protocol.PlayerStartIt
 import org.itxtech.synapseapi.multiprotocol.protocol11810.protocol.SubChunkRequestPacket11810;
 import org.itxtech.synapseapi.multiprotocol.protocol11830.protocol.SpawnParticleEffectPacket11830;
 import org.itxtech.synapseapi.multiprotocol.protocol11830.protocol.StartGamePacket11830;
+import org.itxtech.synapseapi.multiprotocol.protocol11830ne.protocol.NetworkChunkPublisherUpdatePacket11830NE;
+import org.itxtech.synapseapi.multiprotocol.protocol11830ne.protocol.StartGamePacket11830NE;
 import org.itxtech.synapseapi.multiprotocol.protocol119.protocol.PlayerActionPacket119;
 import org.itxtech.synapseapi.multiprotocol.protocol119.protocol.RequestAbilityPacket119;
 import org.itxtech.synapseapi.multiprotocol.protocol119.protocol.StartGamePacket119;
@@ -202,8 +205,8 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
             startGamePacket.worldName = this.getServer().getNetwork().getName();
             startGamePacket.generator = 1; // 0 old, 1 infinite, 2 flat
             startGamePacket.gameRules = getSupportedRules();
-            startGamePacket.isMovementServerAuthoritative = true;
-            startGamePacket.isBlockBreakingServerAuthoritative = this.serverAuthoritativeBlockBreaking;
+//            startGamePacket.isMovementServerAuthoritative = true;
+//            startGamePacket.isBlockBreakingServerAuthoritative = this.serverAuthoritativeBlockBreaking;
             startGamePacket.currentTick = this.server.getTick();
             startGamePacket.enchantmentSeed = ThreadLocalRandom.current().nextInt();
             return startGamePacket;
@@ -235,8 +238,8 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
             startGamePacket.worldName = this.getServer().getNetwork().getName();
             startGamePacket.generator = 1; // 0 old, 1 infinite, 2 flat
             startGamePacket.gameRules = getSupportedRules();
-            startGamePacket.isMovementServerAuthoritative = true;
-            startGamePacket.isBlockBreakingServerAuthoritative = this.serverAuthoritativeBlockBreaking;
+//            startGamePacket.isMovementServerAuthoritative = true;
+//            startGamePacket.isBlockBreakingServerAuthoritative = this.serverAuthoritativeBlockBreaking;
             startGamePacket.currentTick = this.server.getTick();
             startGamePacket.enchantmentSeed = ThreadLocalRandom.current().nextInt();
             return startGamePacket;
@@ -268,8 +271,41 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
             startGamePacket.worldName = this.getServer().getNetwork().getName();
             startGamePacket.generator = 1; // 0 old, 1 infinite, 2 flat
             startGamePacket.gameRules = getSupportedRules();
-            startGamePacket.isMovementServerAuthoritative = true;
-            startGamePacket.isBlockBreakingServerAuthoritative = this.serverAuthoritativeBlockBreaking;
+//            startGamePacket.isMovementServerAuthoritative = true;
+//            startGamePacket.isBlockBreakingServerAuthoritative = this.serverAuthoritativeBlockBreaking;
+            startGamePacket.currentTick = this.server.getTick();
+            startGamePacket.enchantmentSeed = ThreadLocalRandom.current().nextInt();
+            return startGamePacket;
+        } else if (isNetEaseClient() && this.getProtocol() >= AbstractProtocol.PROTOCOL_118_30_NE.getProtocolStart()) {
+            StartGamePacket11830NE startGamePacket = new StartGamePacket11830NE();
+            startGamePacket.protocol = AbstractProtocol.fromRealProtocol(this.protocol);
+            startGamePacket.netease = this.isNetEaseClient();
+            startGamePacket.entityUniqueId = SYNAPSE_PLAYER_ENTITY_ID;
+            startGamePacket.entityRuntimeId = SYNAPSE_PLAYER_ENTITY_ID;
+            startGamePacket.playerGamemode = getClientFriendlyGamemode(this.gamemode);
+            startGamePacket.x = (float) this.x;
+            startGamePacket.y = (float) this.y;
+            startGamePacket.z = (float) this.z;
+            startGamePacket.yaw = (float) this.yaw;
+            startGamePacket.pitch = (float) this.pitch;
+            startGamePacket.seed = -1;
+            startGamePacket.dimension = (byte) (this.level.getDimension().ordinal() & 0xff);
+            startGamePacket.worldGamemode = getClientFriendlyGamemode(this.gamemode);
+            startGamePacket.difficulty = this.server.getDifficulty();
+            startGamePacket.spawnX = (int) spawnPosition.x;
+            startGamePacket.spawnY = (int) spawnPosition.y;
+            startGamePacket.spawnZ = (int) spawnPosition.z;
+            startGamePacket.hasAchievementsDisabled = true;
+            startGamePacket.dayCycleStopTime = -1;
+            startGamePacket.rainLevel = 0;
+            startGamePacket.lightningLevel = 0;
+            startGamePacket.commandsEnabled = this.isEnableClientCommand();
+            startGamePacket.levelId = "";
+            startGamePacket.worldName = this.getServer().getNetwork().getName();
+            startGamePacket.generator = 1; // 0 old, 1 infinite, 2 flat
+            startGamePacket.gameRules = getSupportedRules();
+//            startGamePacket.isMovementServerAuthoritative = true;
+//            startGamePacket.isBlockBreakingServerAuthoritative = this.serverAuthoritativeBlockBreaking;
             startGamePacket.currentTick = this.server.getTick();
             startGamePacket.enchantmentSeed = ThreadLocalRandom.current().nextInt();
             return startGamePacket;
@@ -301,8 +337,8 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
             startGamePacket.worldName = this.getServer().getNetwork().getName();
             startGamePacket.generator = 1; // 0 old, 1 infinite, 2 flat
             startGamePacket.gameRules = getSupportedRules();
-            startGamePacket.isMovementServerAuthoritative = true;
-            startGamePacket.isBlockBreakingServerAuthoritative = this.serverAuthoritativeBlockBreaking;
+//            startGamePacket.isMovementServerAuthoritative = true;
+//            startGamePacket.isBlockBreakingServerAuthoritative = this.serverAuthoritativeBlockBreaking;
             startGamePacket.currentTick = this.server.getTick();
             startGamePacket.enchantmentSeed = ThreadLocalRandom.current().nextInt();
             return startGamePacket;
@@ -334,8 +370,8 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
             startGamePacket.worldName = this.getServer().getNetwork().getName();
             startGamePacket.generator = 1; // 0 old, 1 infinite, 2 flat
             startGamePacket.gameRules = getSupportedRules();
-            startGamePacket.isMovementServerAuthoritative = true;
-            startGamePacket.isBlockBreakingServerAuthoritative = this.serverAuthoritativeBlockBreaking;
+//            startGamePacket.isMovementServerAuthoritative = true;
+//            startGamePacket.isBlockBreakingServerAuthoritative = this.serverAuthoritativeBlockBreaking;
             startGamePacket.currentTick = this.server.getTick();
             startGamePacket.enchantmentSeed = ThreadLocalRandom.current().nextInt();
             return startGamePacket;
@@ -711,6 +747,83 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
             case ProtocolInfo.PLAYER_ACTION_PACKET:
                 if (this.getProtocol() < AbstractProtocol.PROTOCOL_116_210.getProtocolStart()
                         && (!this.isNetEaseClient || this.getProtocol() < AbstractProtocol.PROTOCOL_116_200.getProtocolStart())) {
+                    PlayerActionPacket14 playerActionPacket = (PlayerActionPacket14) packet;
+
+                    if (playerActionPacket.action == PlayerActionPacket14.ACTION_CREATIVE_PLAYER_DESTROY_BLOCK) {
+                        if (true) {
+                            break;
+                        }
+                        if (gamemode != CREATIVE || !spawned || !isAlive()) {
+                            break;
+                        }
+
+                        BlockVector3 blockPos = new BlockVector3(playerActionPacket.x, playerActionPacket.y, playerActionPacket.z);
+                        BlockFace face = BlockFace.fromIndex(playerActionPacket.data);
+
+                        resetCraftingGridType();
+
+                        if (blockPos.distanceSquared(this) > 10000) {
+                            break;
+                        }
+
+                        Block block = level.getBlock(blockPos);
+
+                        PlayerInteractEvent event = new PlayerInteractEvent(this, inventory.getItemInHand(), block, face,
+                                block.isAir() ? PlayerInteractEvent.Action.LEFT_CLICK_AIR : PlayerInteractEvent.Action.LEFT_CLICK_BLOCK);
+                        event.call();
+                        if (event.isCancelled()) {
+                            inventory.sendHeldItem(this);
+
+                            level.sendBlocks(new Player[]{this}, new Block[]{block}, UpdateBlockPacket.FLAG_ALL_PRIORITY);
+
+                            BlockEntity blockEntity = level.getBlockEntity(blockPos);
+                            if (blockEntity instanceof BlockEntitySpawnable) {
+                                ((BlockEntitySpawnable) blockEntity).spawnTo(this);
+                            }
+
+                            break;
+                        }
+
+                        breakingBlock = block;
+//                        lastBreak = System.currentTimeMillis();
+
+                        Item item = inventory.getItemInHand();
+                        Item oldItem = item.clone();
+
+                        if (!canInteract(blockPos.add(0.5, 0.5, 0.5), 16)
+                                || (item = level.useBreakOn(blockPos.asVector3(), face, item, this, true)) == null) {
+                            inventory.sendHeldItem(this);
+
+                            level.sendBlocks(new Player[]{this}, new Block[]{block}, UpdateBlockPacket.FLAG_ALL_PRIORITY);
+
+                            BlockEntity blockEntity = level.getBlockEntity(blockPos);
+                            if (blockEntity instanceof BlockEntitySpawnable) {
+                                ((BlockEntitySpawnable) blockEntity).spawnTo(this);
+                            }
+
+                            breakingBlock = null;
+                            break;
+                        }
+
+                        breakingBlock = null;
+
+                        if (!isSurvival()) {
+                            break;
+                        }
+
+                        getFoodData().updateFoodExpLevel(0.005);
+
+                        if (!item.equals(oldItem) || item.getCount() != oldItem.getCount()) {
+                            inventory.setItemInHand(item);
+                            inventory.sendHeldItem(getViewers().values());
+                        }
+
+                        this.startAction = -1;
+                        this.startActionTimestamp = -1;
+                        this.setDataFlag(Player.DATA_FLAGS, Player.DATA_FLAG_ACTION, false);
+                        break;
+                    }
+
                     super.handleDataPacket(packet);
                     break;
                 }
@@ -771,7 +884,13 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
                             this.scheduleUpdate();
                             break;
                         case PlayerActionPacket119.ACTION_START_BREAK:
-                            if (!this.spawned || !this.isAlive() || this.isSpectator() || this.lastBreak != Long.MAX_VALUE || pos.distanceSquared(this) > 100) {
+                            if (this.isSpectator()) {
+                                break;
+                            }
+                            long currentBreak = System.currentTimeMillis();
+                            BlockVector3 currentBreakPosition = new BlockVector3(playerActionPacket.x, playerActionPacket.y, playerActionPacket.z);
+                            // HACK: Client spams multiple left clicks so we need to skip them.
+                            if ((lastBreakPosition.equalsVec(currentBreakPosition) && (currentBreak - this.lastBreak) < 10) || pos.distanceSquared(this) > 100) {
                                 break;
                             }
                             Block target = this.level.getBlock(pos, false);
@@ -820,11 +939,10 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
                             }
 
                             this.breakingBlock = target;
-                            this.lastBreak = System.currentTimeMillis();
+                            this.lastBreak = currentBreak;
+                            this.lastBreakPosition = currentBreakPosition;
                             break;
                         case PlayerActionPacket119.ACTION_ABORT_BREAK:
-                            this.lastBreak = Long.MAX_VALUE;
-                            this.breakingBlock = null;
                         case PlayerActionPacket119.ACTION_STOP_BREAK:
                             if (pos.distanceSquared(this) < 100) { // same as with ACTION_START_BREAK
                                 LevelEventPacket pk = new LevelEventPacket();
@@ -917,6 +1035,76 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
                         case PlayerActionPacket119.ACTION_STOP_SWIMMING:
                             this.setSwimming(false);
                             break;
+                        case PlayerActionPacket119.ACTION_CREATIVE_PLAYER_DESTROY_BLOCK:
+                            if (true) {
+                                break;
+                            }
+                            if (gamemode != CREATIVE) {
+                                break;
+                            }
+
+                            BlockVector3 blockPos = new BlockVector3(playerActionPacket.x, playerActionPacket.y, playerActionPacket.z);
+                            face = BlockFace.fromIndex(playerActionPacket.data);
+
+                            resetCraftingGridType();
+
+                            if (blockPos.distanceSquared(this) > 10000) {
+                                break;
+                            }
+
+                            block = level.getBlock(blockPos);
+
+                            PlayerInteractEvent event = new PlayerInteractEvent(this, inventory.getItemInHand(), block, face,
+                                    block.isAir() ? PlayerInteractEvent.Action.LEFT_CLICK_AIR : PlayerInteractEvent.Action.LEFT_CLICK_BLOCK);
+                            event.call();
+                            if (event.isCancelled()) {
+                                inventory.sendHeldItem(this);
+
+                                level.sendBlocks(new Player[]{this}, new Block[]{block}, UpdateBlockPacket.FLAG_ALL_PRIORITY);
+
+                                BlockEntity blockEntity = level.getBlockEntity(blockPos);
+                                if (blockEntity instanceof BlockEntitySpawnable) {
+                                    ((BlockEntitySpawnable) blockEntity).spawnTo(this);
+                                }
+
+                                break;
+                            }
+
+                            breakingBlock = block;
+//                            lastBreak = System.currentTimeMillis();
+
+                            Item item = inventory.getItemInHand();
+                            Item oldItem = item.clone();
+
+                            if (!canInteract(blockPos.add(0.5, 0.5, 0.5), 16)
+                                    || (item = level.useBreakOn(blockPos.asVector3(), face, item, this, true)) == null) {
+                                inventory.sendHeldItem(this);
+
+                                level.sendBlocks(new Player[]{this}, new Block[]{block}, UpdateBlockPacket.FLAG_ALL_PRIORITY);
+
+                                BlockEntity blockEntity = level.getBlockEntity(blockPos);
+                                if (blockEntity instanceof BlockEntitySpawnable) {
+                                    ((BlockEntitySpawnable) blockEntity).spawnTo(this);
+                                }
+
+                                breakingBlock = null;
+                                break;
+                            }
+
+                            breakingBlock = null;
+
+                            if (!isSurvival()) {
+                                break;
+                            }
+
+                            getFoodData().updateFoodExpLevel(0.005);
+
+                            if (!item.equals(oldItem) || item.getCount() != oldItem.getCount()) {
+                                inventory.setItemInHand(item);
+                                inventory.sendHeldItem(getViewers().values());
+                            }
+
+                            break;
                     }
 
                     this.startAction = -1;
@@ -928,7 +1116,7 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
                 PlayerActionPacket14 playerActionPacket = (PlayerActionPacket14) packet;
                 if (!this.callPacketReceiveEvent(((PlayerActionPacket14) packet).toDefault())) break;
 
-                if (!this.spawned || (!this.isAlive() && playerActionPacket.action != PlayerActionPacket14.ACTION_RESPAWN /*&& playerActionPacket.action != PlayerActionPacket14.ACTION_DIMENSION_CHANGE_REQUEST*/)) {
+                if (!this.spawned || (!this.isAlive() && playerActionPacket.action != PlayerActionPacket14.ACTION_RESPAWN)) {
                     break;
                 }
 
@@ -938,7 +1126,13 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
                 actionswitch:
                 switch (playerActionPacket.action) {
                     case PlayerActionPacket14.ACTION_START_BREAK:
-                        if (!this.spawned || !this.isAlive() || this.isSpectator() || this.lastBreak != Long.MAX_VALUE || pos.distanceSquared(this) > 100) {
+                        if (this.isSpectator()) {
+                            break;
+                        }
+                        long currentBreak = System.currentTimeMillis();
+                        BlockVector3 currentBreakPosition = new BlockVector3(playerActionPacket.x, playerActionPacket.y, playerActionPacket.z);
+                        // HACK: Client spams multiple left clicks so we need to skip them.
+                        if ((lastBreakPosition.equalsVec(currentBreakPosition) && (currentBreak - this.lastBreak) < 10) || pos.distanceSquared(this) > 100) {
                             break;
                         }
                         Block target = this.level.getBlock(pos, false);
@@ -987,7 +1181,8 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
                         }
 
                         this.breakingBlock = target;
-                        this.lastBreak = System.currentTimeMillis();
+                        this.lastBreak = currentBreak;
+                        this.lastBreakPosition = currentBreakPosition;
 
                         this.startAction = -1;
                         this.startActionTimestamp = -1;
@@ -2086,7 +2281,7 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
     @Override
     public void sendItemComponents() {
         ItemComponentPacket116100 pk = new ItemComponentPacket116100();
-        pk.entries = ItemComponentDefinitions.get(AbstractProtocol.fromRealProtocol(protocol)).entrySet().stream()
+        pk.entries = ItemComponentDefinitions.get(AbstractProtocol.fromRealProtocol(protocol), isNetEaseClient()).entrySet().stream()
                 .map(entry -> new ItemComponentPacket116100.Entry(entry.getKey(), entry.getValue()))
                 .toArray(ItemComponentPacket116100.Entry[]::new);
         this.dataPacket(pk);
@@ -2142,6 +2337,17 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
 
     @Override
     protected void noticeChunkPublisherUpdate() {
+        if (isNetEaseClient() && getProtocol() >= AbstractProtocol.PROTOCOL_118_30_NE.getProtocolStart()) {
+            NetworkChunkPublisherUpdatePacket11830NE packet = new NetworkChunkPublisherUpdatePacket11830NE();
+            packet.x = getFloorX();
+            packet.y = getFloorY();
+            packet.z = getFloorZ();
+            packet.radius = getViewDistance() << 4;
+            packet.neteaseMode = isNetEaseClient();
+            dataPacket(packet);
+            return;
+        }
+
         if (this.getProtocol() < AbstractProtocol.PROTOCOL_119_20.getProtocolStart()) {
             super.noticeChunkPublisherUpdate();
             return;

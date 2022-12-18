@@ -389,7 +389,7 @@ public class SynapsePlayer116 extends SynapsePlayer113 {
 
 								if (this.canInteract(blockVector.add(0.5, 0.5, 0.5), this.isCreative() ? 16 : 8) && (i = this.level.useBreakOn(blockVector.asVector3(), face, i, this, true)) != null) {
 									if (this.isSurvival()) {
-										this.getFoodData().updateFoodExpLevel(0.025);
+										this.getFoodData().updateFoodExpLevel(0.005);
 										if (!i.equals(oldItem) || i.getCount() != oldItem.getCount()) {
 											inventory.setItemInHand(i);
 											inventory.sendHeldItem(this.getViewers().values());
@@ -743,12 +743,12 @@ public class SynapsePlayer116 extends SynapsePlayer113 {
 									}
 									distanceChecked = true;
 									this.level.addLevelEvent(this.breakingBlock, LevelEventPacket.EVENT_BLOCK_STOP_BREAK);
-									this.lastBreak = Long.MAX_VALUE;
+									this.lastBreak = -1;
 									this.breakingBlock = null;
 									this.breakingBlockFace = null;
 								}
 							case PlayerActionPacket14.ACTION_START_BREAK: // both
-								if (!this.spawned || !this.isAlive() || this.isSpectator() || this.lastBreak != Long.MAX_VALUE || !distanceChecked && pos.distanceSquared(this) > 100) {
+								if (!this.spawned || !this.isAlive() || this.isSpectator() || this.lastBreak != -1 || !distanceChecked && pos.distanceSquared(this) > 100) {
 									break;
 								}
 								face = BlockFace.fromIndex(blockAction.data);
@@ -815,7 +815,7 @@ public class SynapsePlayer116 extends SynapsePlayer113 {
 								if (this.canInteract(pos.add(0.5, 0.5, 0.5), this.isCreative() ? 16 : 8) && (item = this.level.useBreakOn(pos, face, item, this, true)) != null) {
 									// success
 									if (this.isSurvival()) {
-										this.getFoodData().updateFoodExpLevel(0.025);
+										this.getFoodData().updateFoodExpLevel(0.005);
 										if (!item.equals(oldItem) || item.getCount() != oldItem.getCount()) {
 											this.inventory.setItemInHand(item);
 											this.inventory.sendHeldItem(this.getViewers().values());
@@ -843,7 +843,7 @@ public class SynapsePlayer116 extends SynapsePlayer113 {
 //									int breakTime = blockAction.data;
 								}
 								this.level.addLevelEvent(pos, LevelEventPacket.EVENT_BLOCK_STOP_BREAK);
-								this.lastBreak = Long.MAX_VALUE;
+								this.lastBreak = -1;
 								this.breakingBlock = null;
 								this.breakingBlockFace = null;
 								break;

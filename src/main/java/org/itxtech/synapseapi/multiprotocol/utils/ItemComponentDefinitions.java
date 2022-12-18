@@ -31,6 +31,7 @@ public final class ItemComponentDefinitions {
 
             DEFINITIONS.put(AbstractProtocol.PROTOCOL_118_10, definition11810);
             DEFINITIONS.put(AbstractProtocol.PROTOCOL_118_30, definition11830);
+            DEFINITIONS.put(AbstractProtocol.PROTOCOL_118_30_NE, definition11830);
             DEFINITIONS.put(AbstractProtocol.PROTOCOL_119, definition119);
             DEFINITIONS.put(AbstractProtocol.PROTOCOL_119_10, definition11910);
             DEFINITIONS.put(AbstractProtocol.PROTOCOL_119_20, definition11910);
@@ -61,7 +62,12 @@ public final class ItemComponentDefinitions {
         return map;
     }
 
-    public static Map<String, byte[]> get(AbstractProtocol protocol) {
+    public static Map<String, byte[]> get(AbstractProtocol protocol, boolean netease) {
+        if (netease) {
+            //TODO: dump netease data
+            return Collections.emptyMap();
+        }
+
         Map<String, byte[]> data = DEFINITIONS.get(protocol);
         return data != null ? data : Collections.emptyMap();
     }

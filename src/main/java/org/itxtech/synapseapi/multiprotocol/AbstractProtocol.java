@@ -44,6 +44,8 @@ import org.itxtech.synapseapi.multiprotocol.protocol11810.BinaryStreamHelper1181
 import org.itxtech.synapseapi.multiprotocol.protocol11810.protocol.Packet11810;
 import org.itxtech.synapseapi.multiprotocol.protocol11830.BinaryStreamHelper11830;
 import org.itxtech.synapseapi.multiprotocol.protocol11830.protocol.Packet11830;
+import org.itxtech.synapseapi.multiprotocol.protocol11830ne.BinaryStreamHelper11830NE;
+import org.itxtech.synapseapi.multiprotocol.protocol11830ne.protocol.Packet11830NE;
 import org.itxtech.synapseapi.multiprotocol.protocol119.BinaryStreamHelper119;
 import org.itxtech.synapseapi.multiprotocol.protocol119.protocol.Packet119;
 import org.itxtech.synapseapi.multiprotocol.protocol11910.BinaryStreamHelper11910;
@@ -111,6 +113,7 @@ public enum AbstractProtocol {
     PROTOCOL_118(475, Packet118.class, SynapsePlayer116100.class, BinaryStreamHelper118.create(), true),
     PROTOCOL_118_10(486, Packet11810.class, SynapsePlayer116100.class, BinaryStreamHelper11810.create(), true),
     PROTOCOL_118_30(503, Packet11830.class, SynapsePlayer116100.class, BinaryStreamHelper11830.create(), true),
+    PROTOCOL_118_30_NE(504, Packet11830NE.class, SynapsePlayer116100.class, BinaryStreamHelper11830NE.create(), true),
     PROTOCOL_119(527, Packet119.class, SynapsePlayer116100.class, BinaryStreamHelper119.create(), true),
     PROTOCOL_119_10(534, Packet11910.class, SynapsePlayer116100.class, BinaryStreamHelper11910.create(), true),
     PROTOCOL_119_20(544, Packet11920.class, SynapsePlayer116100.class, BinaryStreamHelper11920.create(), true),

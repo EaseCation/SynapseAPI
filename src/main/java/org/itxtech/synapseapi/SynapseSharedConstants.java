@@ -46,6 +46,15 @@ public final class SynapseSharedConstants {
      */
     public static final boolean CENTER_CHUNK_WITHOUT_CACHE = true;
 
+    /**
+     * Enables outgoing packets logging?
+     */
+    public static final boolean CLIENTBOUND_PACKET_LOGGING = false;
+    /**
+     * Enables incoming packets logging?
+     */
+    public static final boolean SERVERBOUND_PACKET_LOGGING = false;
+
     private SynapseSharedConstants() {
 
     }

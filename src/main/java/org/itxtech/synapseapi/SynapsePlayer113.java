@@ -426,7 +426,7 @@ public class SynapsePlayer113 extends SynapsePlayer112 {
 
 								if (this.canInteract(blockVector.add(0.5, 0.5, 0.5), this.isCreative() ? 16 : 8) && (i = this.level.useBreakOn(blockVector.asVector3(), face, i, this, true)) != null) {
 									if (this.isSurvival()) {
-										this.getFoodData().updateFoodExpLevel(0.025);
+										this.getFoodData().updateFoodExpLevel(0.005);
 										if (!i.equals(oldItem) || i.getCount() != oldItem.getCount()) {
 											inventory.setItemInHand(i);
 											inventory.sendHeldItem(this.getViewers().values());
