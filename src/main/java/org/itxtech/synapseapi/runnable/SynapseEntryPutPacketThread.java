@@ -1,7 +1,6 @@
 package org.itxtech.synapseapi.runnable;
 
 import cn.nukkit.Server;
-import cn.nukkit.entity.Entity;
 import cn.nukkit.math.NukkitMath;
 import cn.nukkit.network.Network;
 import cn.nukkit.network.protocol.*;
@@ -25,7 +24,7 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.zip.Deflater;
 
-import static org.itxtech.synapseapi.SynapseSharedConstants.*;
+import static org.itxtech.synapseapi.SynapseSharedConstants.CLIENTBOUND_PACKET_LOGGING;
 
 /**
  * org.itxtech.synapseapi.runnable
@@ -136,12 +135,14 @@ public class SynapseEntryPutPacketThread extends Thread {
         this.queue.offer(new Entry(player, packet, needACK, immediate));
 
         /*if (!(packet instanceof BossEventPacket)
-                *//*&& !(packet instanceof MovePlayerPacket)
+                && !(packet instanceof MovePlayerPacket)
                 && !(packet instanceof SetEntityDataPacket)
                 && !(packet instanceof UpdateAttributesPacket)
                 && !(packet instanceof LevelEventPacket)
                 && !(packet instanceof MobEffectPacket)
-                && !(packet instanceof SetTimePacket)*//*
+                && !(packet instanceof SetTimePacket)
+                && !(packet instanceof SetSpawnPositionPacket)
+                && !(packet instanceof MoveEntityPacket)
         ) {
             Server.getInstance().getLogger().debug("SynapseEntryPutPacketThread Offer: " + packet.getClass().getSimpleName());
             Server.getInstance().getLogger().logException(new Throwable());
