@@ -57,6 +57,10 @@ public class GlobalBlockPalette {
         return runtimeId;
     }
 
+    public static int getLegacyId(int runtimeId) {
+        return runtimeIdToLegacy.get(runtimeId);
+    }
+
     private static class TableEntry {
         private int id;
         private int data;

@@ -1050,10 +1050,11 @@ public class SynapsePlayer extends Player {
             case ProtocolInfo.LEVEL_SOUND_EVENT_PACKET:
                 if (!callPacketReceiveEvent(packet)) break;
                 LevelSoundEventPacket levelSoundEventPacket = (LevelSoundEventPacket) packet;
+                LevelSoundEventEnum sound = LevelSoundEventEnum.fromV12(levelSoundEventPacket.sound);
                 SynapsePlayerBroadcastLevelSoundEvent event = new SynapsePlayerBroadcastLevelSoundEvent(this,
-                        LevelSoundEventEnum.fromV12(levelSoundEventPacket.sound),
+                        sound,
                         new Vector3(levelSoundEventPacket.x, levelSoundEventPacket.y, levelSoundEventPacket.z),
-                        levelSoundEventPacket.extraData,
+                        sound.translateExtraDataFromClient(levelSoundEventPacket.extraData, AbstractProtocol.fromRealProtocol(getProtocol()), isNetEaseClient()),
                         levelSoundEventPacket.pitch,
                         "minecraft:player",
                         levelSoundEventPacket.isBabyMob,

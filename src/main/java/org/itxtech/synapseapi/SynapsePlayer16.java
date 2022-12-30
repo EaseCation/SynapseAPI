@@ -131,10 +131,11 @@ public class SynapsePlayer16 extends SynapsePlayer14 {
 			case ProtocolInfo.LEVEL_SOUND_EVENT_PACKET:
 				if (!callPacketReceiveEvent(packet)) break;
 				LevelSoundEventPacket16 levelSoundEventPacket = (LevelSoundEventPacket16) packet;
+				LevelSoundEventEnum sound = LevelSoundEventEnum.fromV14(levelSoundEventPacket.sound);
 				SynapsePlayerBroadcastLevelSoundEvent event = new SynapsePlayerBroadcastLevelSoundEvent(this,
-						LevelSoundEventEnum.fromV14(levelSoundEventPacket.sound),
+						sound,
 						new Vector3(levelSoundEventPacket.x, levelSoundEventPacket.y, levelSoundEventPacket.z),
-						levelSoundEventPacket.extraData,
+						sound.translateExtraDataFromClient(levelSoundEventPacket.extraData, AbstractProtocol.fromRealProtocol(getProtocol()), isNetEaseClient()),
 						levelSoundEventPacket.pitch,
 						"minecraft:player",
 						levelSoundEventPacket.isBabyMob,

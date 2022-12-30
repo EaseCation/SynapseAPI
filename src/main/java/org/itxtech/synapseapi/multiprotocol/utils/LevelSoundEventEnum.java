@@ -294,6 +294,7 @@ public enum LevelSoundEventEnum {
         switch (this) {
             case SOUND_PLACE:
             case SOUND_ITEM_USE_ON:
+            case SOUND_LAND:
             case SOUND_POWER_ON:
             case SOUND_POWER_OFF:
                 return GlobalBlockPalette.getOrCreateRuntimeId(extraData >> Block.BLOCK_META_BITS, extraData & Block.BLOCK_META_MASK);
@@ -306,6 +307,7 @@ public enum LevelSoundEventEnum {
         switch (this) {
             case SOUND_PLACE:
             case SOUND_ITEM_USE_ON:
+            case SOUND_LAND:
             case SOUND_POWER_ON:
             case SOUND_POWER_OFF:
                 return AdvancedGlobalBlockPalette.getOrCreateRuntimeId(protocol, netease, extraData >> Block.BLOCK_META_BITS, extraData & Block.BLOCK_META_MASK);
@@ -318,6 +320,7 @@ public enum LevelSoundEventEnum {
         switch (this) {
             case SOUND_PLACE:
             case SOUND_ITEM_USE_ON:
+            case SOUND_LAND:
             case SOUND_POWER_ON:
             case SOUND_POWER_OFF:
                 return AdvancedGlobalBlockPalette.getOrCreateRuntimeId(protocol, netease, extraData >> Block.BLOCK_META_BITS, extraData & Block.BLOCK_META_MASK);
@@ -326,6 +329,39 @@ public enum LevelSoundEventEnum {
             default:
                 return extraData;
         }
+    }
+
+    public int translateExtraDataFromClient(int extraData, AbstractProtocol protocol, boolean netease) {
+        switch (this) {
+            case SOUND_ITEM_USE_ON:
+            case SOUND_PLACE:
+            case SOUND_LAND:
+            case SOUND_POWER_ON:
+            case SOUND_POWER_OFF:
+                if (protocol.getProtocolStart() >= AbstractProtocol.PROTOCOL_114.getProtocolStart()) {
+                    int legacyId = AdvancedGlobalBlockPalette.getLegacyId(protocol, netease, extraData);
+                    if (legacyId == -1) {
+                        return 0;
+                    }
+                    return legacyId;
+                }
+                if (protocol.getProtocolStart() >= AbstractProtocol.PROTOCOL_16.getProtocolStart()) {
+                    int legacyId = AdvancedGlobalBlockPalette.getLegacyId(protocol, netease, extraData);
+                    if (legacyId == -1) {
+                        return 0;
+                    }
+                    return ((legacyId >> 6) << Block.BLOCK_META_BITS) | (legacyId & 0x3f);
+                }
+                if (protocol.getProtocolStart() >= AbstractProtocol.PROTOCOL_14.getProtocolStart()) {
+                    int legacyId = GlobalBlockPalette.getLegacyId(extraData);
+                    if (legacyId == -1) {
+                        return 0;
+                    }
+                    return ((legacyId >> 4) << Block.BLOCK_META_BITS) | (legacyId & 0xf);
+                }
+                return ((extraData >> 4) << Block.BLOCK_META_BITS) | (extraData & 0xf);
+        }
+        return extraData;
     }
 
     private static final LevelSoundEventEnum[] $VALUES0 = values();

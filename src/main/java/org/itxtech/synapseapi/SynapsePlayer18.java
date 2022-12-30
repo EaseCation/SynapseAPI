@@ -86,10 +86,11 @@ public class SynapsePlayer18 extends SynapsePlayer17 {
 			case ProtocolInfo.LEVEL_SOUND_EVENT_PACKET_V2:
 				if (!callPacketReceiveEvent(packet)) break;
 				LevelSoundEventPacketV218 levelSoundEventPacket = (LevelSoundEventPacketV218) packet;
+				LevelSoundEventEnum sound = LevelSoundEventEnum.fromV18(levelSoundEventPacket.sound);
 				SynapsePlayerBroadcastLevelSoundEvent event = new SynapsePlayerBroadcastLevelSoundEvent(this,
-						LevelSoundEventEnum.fromV18(levelSoundEventPacket.sound),
+						sound,
 						new Vector3(levelSoundEventPacket.x, levelSoundEventPacket.y, levelSoundEventPacket.z),
-						levelSoundEventPacket.extraData,
+						sound.translateExtraDataFromClient(levelSoundEventPacket.extraData, AbstractProtocol.fromRealProtocol(getProtocol()), isNetEaseClient()),
 						0,
 						levelSoundEventPacket.entityIdentifier,
 						levelSoundEventPacket.isBabyMob,
