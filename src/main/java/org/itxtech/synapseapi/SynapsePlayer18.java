@@ -22,6 +22,8 @@ import org.itxtech.synapseapi.multiprotocol.utils.LevelSoundEventEnum;
 import java.net.InetSocketAddress;
 import java.util.concurrent.ThreadLocalRandom;
 
+import static cn.nukkit.SharedConstants.*;
+
 public class SynapsePlayer18 extends SynapsePlayer17 {
 
 	public SynapsePlayer18(SourceInterface interfaz, SynapseEntry synapseEntry, Long clientID, InetSocketAddress socketAddress) {
@@ -55,13 +57,12 @@ public class SynapsePlayer18 extends SynapsePlayer17 {
 							ResourcePackDataInfoPacket dataInfoPacket = new ResourcePackDataInfoPacket();
 							dataInfoPacket.packId = resourcePack.getPackId();
 							dataInfoPacket.maxChunkSize = RESOURCE_PACK_CHUNK_SIZE;
-							dataInfoPacket.chunkCount = Mth.ceil(resourcePack.getPackSize() / (float) RESOURCE_PACK_CHUNK_SIZE);
+							dataInfoPacket.chunkCount = resourcePack.getChunkCount();
 							dataInfoPacket.compressedPackSize = resourcePack.getPackSize();
 							dataInfoPacket.sha256 = resourcePack.getSha256();
 							if (resourcePack.getPackType().equals("resources")) {
 								dataInfoPacket.type = ResourcePackDataInfoPacket.TYPE_RESOURCE;
-							}
-							else if (resourcePack.getPackType().equals("data")) {
+							} else if (resourcePack.getPackType().equals("data")) {
 								dataInfoPacket.type = ResourcePackDataInfoPacket.TYPE_BEHAVIOR;
 							}
 							this.dataPacket(dataInfoPacket);
