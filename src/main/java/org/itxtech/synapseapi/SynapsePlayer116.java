@@ -67,6 +67,8 @@ public class SynapsePlayer116 extends SynapsePlayer113 {
 	protected boolean serverAuthoritativeBlockBreaking;
 	protected BlockFace breakingBlockFace;
 
+	protected int packetCountAuthPlayerInput = 0;
+
 	public SynapsePlayer116(SourceInterface interfaz, SynapseEntry synapseEntry, Long clientID, InetSocketAddress socketAddress) {
 		super(interfaz, synapseEntry, clientID, socketAddress);
 		this.levelChangeLoadScreen = false;
@@ -637,6 +639,12 @@ public class SynapsePlayer116 extends SynapsePlayer113 {
 				}
 				break;
 			case ProtocolInfo.PLAYER_AUTH_INPUT_PACKET:
+				// 对每tick的玩家数据包进行计数
+				if (this.packetCountAuthPlayerInput++ > 2) {
+					// 丢掉其他的包
+					break;
+				}
+
 				if (!callPacketReceiveEvent(packet)) break;
 				if (this.teleportPosition != null) {
 					break;
@@ -996,6 +1004,7 @@ public class SynapsePlayer116 extends SynapsePlayer113 {
 	public boolean onUpdate(int currentTick) {
 		int tickDiff = currentTick - this.lastUpdate;
 		if (tickDiff > 0) {
+			this.packetCountAuthPlayerInput = 0;
 			this.updateSynapsePlayerTiming.startTiming();
 			if (this.serverAuthoritativeBlockBreaking && this.breakingBlockFace != null && this.isBreakingBlock() && this.spawned && this.isAlive()) {
 				this.level.addParticle(new PunchBlockParticle(this.breakingBlock, this.breakingBlock, this.breakingBlockFace));

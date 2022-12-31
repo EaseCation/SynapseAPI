@@ -16,74 +16,37 @@ import cn.nukkit.entity.EntityRideable;
 import cn.nukkit.entity.data.ShortEntityData;
 import cn.nukkit.entity.item.EntityBoat;
 import cn.nukkit.event.inventory.InventoryCloseEvent;
-import cn.nukkit.event.player.PlayerFormRespondedEvent;
-import cn.nukkit.event.player.PlayerInteractEvent;
-import cn.nukkit.event.player.PlayerKickEvent;
-import cn.nukkit.event.player.PlayerMapInfoRequestEvent;
-import cn.nukkit.event.player.PlayerRespawnEvent;
-import cn.nukkit.event.player.PlayerSettingsRespondedEvent;
-import cn.nukkit.event.player.PlayerToggleFlightEvent;
-import cn.nukkit.event.player.PlayerToggleGlideEvent;
-import cn.nukkit.event.player.PlayerToggleSneakEvent;
-import cn.nukkit.event.player.PlayerToggleSprintEvent;
+import cn.nukkit.event.player.*;
 import cn.nukkit.form.window.FormWindow;
 import cn.nukkit.form.window.FormWindowCustom;
 import cn.nukkit.inventory.Inventory;
-import cn.nukkit.lang.TranslationContainer;
 import cn.nukkit.item.Item;
 import cn.nukkit.item.ItemMap;
+import cn.nukkit.lang.TranslationContainer;
 import cn.nukkit.level.GlobalBlockPaletteInterface.StaticVersion;
 import cn.nukkit.level.Level;
 import cn.nukkit.level.Position;
 import cn.nukkit.level.format.generic.ChunkBlobCache;
 import cn.nukkit.level.format.generic.ChunkPacketCache;
 import cn.nukkit.level.particle.PunchBlockParticle;
-import cn.nukkit.math.BlockFace;
-import cn.nukkit.math.BlockVector3;
-import cn.nukkit.math.Mth;
-import cn.nukkit.math.Vector2;
-import cn.nukkit.math.Vector3;
-import cn.nukkit.math.Vector3f;
+import cn.nukkit.math.*;
 import cn.nukkit.network.SourceInterface;
-import cn.nukkit.network.protocol.BatchPacket;
-import cn.nukkit.network.protocol.ChangeDimensionPacket;
-import cn.nukkit.network.protocol.DataPacket;
-import cn.nukkit.network.protocol.LevelChunkPacket;
-import cn.nukkit.network.protocol.LevelEventPacket;
-import cn.nukkit.network.protocol.LevelSoundEventPacket;
-import cn.nukkit.network.protocol.MovePlayerPacket;
-import cn.nukkit.network.protocol.PlayerInputPacket;
-import cn.nukkit.network.protocol.ProtocolInfo;
-import cn.nukkit.network.protocol.ResourcePackClientResponsePacket;
-import cn.nukkit.network.protocol.ResourcePackDataInfoPacket;
-import cn.nukkit.network.protocol.SubChunkPacket;
-import cn.nukkit.network.protocol.SubChunkPacket11810;
-import cn.nukkit.network.protocol.UpdateBlockPacket;
-import cn.nukkit.network.protocol.types.PlayerAbility;
+import cn.nukkit.network.protocol.*;
 import cn.nukkit.network.protocol.types.ContainerIds;
+import cn.nukkit.network.protocol.types.PlayerAbility;
 import cn.nukkit.resourcepacks.ResourcePack;
 import cn.nukkit.scheduler.AsyncTask;
 import co.aikar.timings.Timings;
 import it.unimi.dsi.fastutil.ints.IntIterator;
 import it.unimi.dsi.fastutil.ints.IntOpenHashSet;
 import it.unimi.dsi.fastutil.ints.IntSet;
-import it.unimi.dsi.fastutil.longs.Long2BooleanOpenHashMap;
-import it.unimi.dsi.fastutil.longs.Long2ObjectMap;
-import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap;
-import it.unimi.dsi.fastutil.longs.LongOpenHashSet;
-import it.unimi.dsi.fastutil.longs.LongSet;
+import it.unimi.dsi.fastutil.longs.*;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import it.unimi.dsi.fastutil.objects.ObjectIterator;
 import lombok.extern.log4j.Log4j2;
 import org.itxtech.synapseapi.multiprotocol.AbstractProtocol;
 import org.itxtech.synapseapi.multiprotocol.protocol113.protocol.ResourcePackStackPacket113;
-import org.itxtech.synapseapi.multiprotocol.protocol116100.protocol.AnimateEntityPacket116100;
-import org.itxtech.synapseapi.multiprotocol.protocol116100.protocol.CameraShakePacket116100;
-import org.itxtech.synapseapi.multiprotocol.protocol116100.protocol.ContainerClosePacket116100;
-import org.itxtech.synapseapi.multiprotocol.protocol116100.protocol.ItemComponentPacket116100;
-import org.itxtech.synapseapi.multiprotocol.protocol116100.protocol.ResourcePackStackPacket116100;
-import org.itxtech.synapseapi.multiprotocol.protocol116100.protocol.StartGamePacket116100;
-import org.itxtech.synapseapi.multiprotocol.protocol116100.protocol.TextPacket116100;
+import org.itxtech.synapseapi.multiprotocol.protocol116100.protocol.*;
 import org.itxtech.synapseapi.multiprotocol.protocol116100ne.protocol.MovePlayerPacket116100NE;
 import org.itxtech.synapseapi.multiprotocol.protocol116100ne.protocol.StartGamePacket116100NE;
 import org.itxtech.synapseapi.multiprotocol.protocol116100ne.protocol.TextPacket116100NE;
@@ -106,6 +69,7 @@ import org.itxtech.synapseapi.multiprotocol.protocol11830ne.protocol.StartGamePa
 import org.itxtech.synapseapi.multiprotocol.protocol119.protocol.PlayerActionPacket119;
 import org.itxtech.synapseapi.multiprotocol.protocol119.protocol.RequestAbilityPacket119;
 import org.itxtech.synapseapi.multiprotocol.protocol119.protocol.StartGamePacket119;
+import org.itxtech.synapseapi.multiprotocol.protocol119.protocol.ToastRequestPacket119;
 import org.itxtech.synapseapi.multiprotocol.protocol11910.protocol.StartGamePacket11910;
 import org.itxtech.synapseapi.multiprotocol.protocol11910.protocol.UpdateAbilitiesPacket11910;
 import org.itxtech.synapseapi.multiprotocol.protocol11910.protocol.UpdateAbilitiesPacket11910.AbilityLayer;
@@ -114,7 +78,6 @@ import org.itxtech.synapseapi.multiprotocol.protocol11920.protocol.MapInfoReques
 import org.itxtech.synapseapi.multiprotocol.protocol11920.protocol.ModalFormResponsePacket11920;
 import org.itxtech.synapseapi.multiprotocol.protocol11920.protocol.NetworkChunkPublisherUpdatePacket11920;
 import org.itxtech.synapseapi.multiprotocol.protocol11920.protocol.StartGamePacket11920;
-import org.itxtech.synapseapi.multiprotocol.protocol119.protocol.ToastRequestPacket119;
 import org.itxtech.synapseapi.multiprotocol.protocol14.protocol.PlayerActionPacket14;
 import org.itxtech.synapseapi.multiprotocol.protocol16.protocol.ResourcePackClientResponsePacket16;
 import org.itxtech.synapseapi.multiprotocol.utils.ItemComponentDefinitions;
@@ -170,6 +133,8 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
     protected boolean dimensionNeedBackAck;
     protected boolean changeDimensionImmobile;
     protected Position changeDimensionPosition;
+
+    protected int packetCountPlayerActionPacket = 0;
 
     public SynapsePlayer116100(SourceInterface interfaz, SynapseEntry synapseEntry, Long clientID, InetSocketAddress socketAddress) {
         super(interfaz, synapseEntry, clientID, socketAddress);
@@ -744,6 +709,9 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
                 }
                 break;
             case ProtocolInfo.PLAYER_ACTION_PACKET:
+                if (this.packetCountPlayerActionPacket++ > 2) {
+                    break;
+                }
                 if (this.getProtocol() < AbstractProtocol.PROTOCOL_116_210.getProtocolStart()
                         && (!this.isNetEaseClient || this.getProtocol() < AbstractProtocol.PROTOCOL_116_200.getProtocolStart())) {
                     PlayerActionPacket14 playerActionPacket = (PlayerActionPacket14) packet;
@@ -2152,6 +2120,7 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
     public boolean onUpdate(int currentTick) {
         int tickDiff = currentTick - this.lastUpdate;
         if (tickDiff > 0) {
+            this.packetCountPlayerActionPacket = 0;
             this.updateSynapsePlayerTiming.startTiming();
             if (this.changeDimensionPosition != null && currentTick % 10 == 0) {
 //                this.sendPosition(this.changeDimensionPosition, this.yaw, this.pitch, MovePlayerPacket.MODE_TELEPORT);
