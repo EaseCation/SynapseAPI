@@ -56,11 +56,14 @@ public class SynapseEntry {
         PACKET_COUNT_LIMIT[ProtocolInfo.INVENTORY_TRANSACTION_PACKET] = 1000;
         PACKET_COUNT_LIMIT[ProtocolInfo.CRAFTING_EVENT_PACKET] = 200;
         PACKET_COUNT_LIMIT[ProtocolInfo.PACKET_PY_RPC] = 50;
-        PACKET_COUNT_LIMIT[ProtocolInfo.SUB_CHUNK_REQUEST_PACKET] = 10;
+        PACKET_COUNT_LIMIT[ProtocolInfo.SUB_CHUNK_REQUEST_PACKET] = 100;
         PACKET_COUNT_LIMIT[ProtocolInfo.PLAYER_ACTION_PACKET] = 15;
         PACKET_COUNT_LIMIT[ProtocolInfo.ANIMATE_PACKET] = 15;
         PACKET_COUNT_LIMIT[ProtocolInfo.INTERACT_PACKET] = 20;
         PACKET_COUNT_LIMIT[ProtocolInfo.RESOURCE_PACK_CHUNK_REQUEST_PACKET] = 1000;
+        PACKET_COUNT_LIMIT[ProtocolInfo.LEVEL_SOUND_EVENT_PACKET] = 30;
+        PACKET_COUNT_LIMIT[ProtocolInfo.LEVEL_SOUND_EVENT_PACKET_V2] = 30;
+        PACKET_COUNT_LIMIT[ProtocolInfo.LEVEL_SOUND_EVENT_PACKET_V3] = 30;
     }
 
     // private final Timing handleDataPacketTiming = TimingsManager.getTiming("SynapseEntry - HandleDataPacket");
