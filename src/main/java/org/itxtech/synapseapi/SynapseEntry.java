@@ -16,12 +16,11 @@ import cn.nukkit.utils.Binary;
 import cn.nukkit.utils.BinaryStream;
 import cn.nukkit.utils.MainLogger;
 import cn.nukkit.utils.Zlib;
-import co.aikar.timings.Timing;
-import co.aikar.timings.TimingsManager;
 import com.google.gson.Gson;
 import lombok.extern.log4j.Log4j2;
 import org.itxtech.synapseapi.event.player.SynapsePlayerClockHackEvent;
 import org.itxtech.synapseapi.event.player.SynapsePlayerCreationEvent;
+import org.itxtech.synapseapi.event.player.SynapsePlayerTooManyPacketsInBatchEvent;
 import org.itxtech.synapseapi.messaging.StandardMessenger;
 import org.itxtech.synapseapi.multiprotocol.AbstractProtocol;
 import org.itxtech.synapseapi.multiprotocol.PacketRegister;
@@ -42,13 +41,25 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.ThreadLocalRandom;
 
-import static org.itxtech.synapseapi.SynapseSharedConstants.*;
+import static org.itxtech.synapseapi.SynapseSharedConstants.SERVERBOUND_PACKET_LOGGING;
 
 /**
  * @author boybook
  */
 @Log4j2
 public class SynapseEntry {
+
+    public static final int[] PACKET_COUNT_LIMIT = new int[256];
+
+    static {
+        Arrays.fill(PACKET_COUNT_LIMIT, 10);
+        PACKET_COUNT_LIMIT[ProtocolInfo.INVENTORY_TRANSACTION_PACKET] = 1000;
+        PACKET_COUNT_LIMIT[ProtocolInfo.CRAFTING_EVENT_PACKET] = 200;
+        PACKET_COUNT_LIMIT[ProtocolInfo.PACKET_PY_RPC] = 50;
+        PACKET_COUNT_LIMIT[ProtocolInfo.SUB_CHUNK_REQUEST_PACKET] = 10;
+        PACKET_COUNT_LIMIT[ProtocolInfo.PLAYER_ACTION_PACKET] = 15;
+        PACKET_COUNT_LIMIT[ProtocolInfo.ANIMATE_PACKET] = 15;
+    }
 
     // private final Timing handleDataPacketTiming = TimingsManager.getTiming("SynapseEntry - HandleDataPacket");
     // private final Timing handleRedirectPacketTiming = TimingsManager.getTiming("SynapseEntry - HandleRedirectPacket");
@@ -445,81 +456,97 @@ public class SynapseEntry {
                         //pk0.decode();
                         SynapsePlayer player = this.players.get(uuid);
                         if (pk0.pid() == ProtocolInfo.BATCH_PACKET) {
-                            processBatch((BatchPacket) pk0, redirectPacket.protocol, player.isNetEaseClient()).forEach(subPacket -> {
-                                this.redirectPacketQueue.offer(new RedirectPacketEntry(player, subPacket));
-                                if (SynapseAPI.getInstance().isNetworkBroadcastPlayerMove() && player.isOnline()) {
-                                    //玩家体验优化：直接不经过主线程广播玩家移动，插件过度干预可能会造成移动鬼畜问题
-                                    if (subPacket instanceof MovePlayerPacket) {
-                                        ((MovePlayerPacket) subPacket).eid = player.getId();
-                                        subPacket.setChannel(DataPacket.CHANNEL_PLAYER_MOVING);
-                                        MovePlayerPacket116100NE newMovePacket = null;
-                                        for (Player viewer : new ArrayList<>(player.getViewers().values())) {
-                                            if (viewer.getProtocol() >= AbstractProtocol.PROTOCOL_116_100.getProtocolStart()) {
-                                                if (newMovePacket == null) {
-                                                    newMovePacket = new MovePlayerPacket116100NE();
-                                                    newMovePacket.fromDefault(subPacket);
-                                                    newMovePacket.setChannel(DataPacket.CHANNEL_PLAYER_MOVING);
-                                                }
-                                                viewer.dataPacket(newMovePacket);
-                                            } else {
-                                                viewer.dataPacket(subPacket);
-                                            }
-                                        }
-                                    } else if (subPacket instanceof MovePlayerPacket116100NE) {
-                                        ((MovePlayerPacket116100NE) subPacket).eid = player.getId();
-                                        subPacket.setChannel(DataPacket.CHANNEL_PLAYER_MOVING);
-                                        MovePlayerPacket oldMovePacket = null;
-                                        for (Player viewer : new ArrayList<>(player.getViewers().values())) {
-                                            if (viewer.getProtocol() < AbstractProtocol.PROTOCOL_116_100.getProtocolStart()) {
-                                                if (oldMovePacket == null) {
-                                                    oldMovePacket = new MovePlayerPacket();
-                                                    oldMovePacket.eid = ((MovePlayerPacket116100NE) subPacket).eid;
-                                                    oldMovePacket.x = ((MovePlayerPacket116100NE) subPacket).x;
-                                                    oldMovePacket.y = ((MovePlayerPacket116100NE) subPacket).y;
-                                                    oldMovePacket.z = ((MovePlayerPacket116100NE) subPacket).z;
-                                                    oldMovePacket.yaw = ((MovePlayerPacket116100NE) subPacket).yaw;
-                                                    oldMovePacket.headYaw = ((MovePlayerPacket116100NE) subPacket).headYaw;
-                                                    oldMovePacket.pitch = ((MovePlayerPacket116100NE) subPacket).pitch;
-                                                    oldMovePacket.mode = ((MovePlayerPacket116100NE) subPacket).mode;
-                                                    oldMovePacket.onGround = ((MovePlayerPacket116100NE) subPacket).onGround;
-                                                    oldMovePacket.ridingEid = ((MovePlayerPacket116100NE) subPacket).ridingEid;
-                                                    oldMovePacket.teleportCause = ((MovePlayerPacket116100NE) subPacket).teleportCause;
-                                                    oldMovePacket.entityType = ((MovePlayerPacket116100NE) subPacket).teleportItem;
-                                                    oldMovePacket.setChannel(DataPacket.CHANNEL_PLAYER_MOVING);
-                                                }
-                                                viewer.dataPacket(oldMovePacket);
-                                            } else {
-                                                viewer.dataPacket(subPacket);
-                                            }
-                                        }
-                                    } else if (subPacket instanceof IPlayerAuthInputPacket) {
-                                        IPlayerAuthInputPacket authInputPacket = (IPlayerAuthInputPacket) subPacket;
-                                        if (authInputPacket.getDeltaX() != 0 || authInputPacket.getDeltaZ() != 0 || authInputPacket.getDeltaY() - player.getEyeHeight() != player.getY() || authInputPacket.getHeadYaw() != player.getYaw() || authInputPacket.getPitch() != player.getPitch()) {
-                                            //Server.getInstance().getLogger().info(player.getName() + ": nkY=" + player.getY() + " y=" + authInputPacket.y + " deltaX=" + authInputPacket.deltaX + " deltaY=" + authInputPacket.deltaY + " deltaZ=" + authInputPacket.deltaZ + " moveVecX=" + authInputPacket.moveVecX + " moveVecZ=" + authInputPacket.moveVecZ);
-                                            MovePlayerPacket packet = new MovePlayerPacket();
-                                            packet.eid = player.getId();
-                                            packet.x = authInputPacket.getX();
-                                            packet.y = authInputPacket.getY();
-                                            packet.z = authInputPacket.getZ();
-                                            packet.yaw = authInputPacket.getYaw();
-                                            packet.headYaw = authInputPacket.getHeadYaw();
-                                            packet.pitch = authInputPacket.getPitch();
-                                            packet.mode = MovePlayerPacket.MODE_NORMAL;
-                                            packet.onGround = player.onGround;
-                                            //packet.ridingEid = authInputPacket.ridingEid;
-                                            //packet.int1 = authInputPacket.int1;
-                                            //packet.int2 = authInputPacket.int2;
-                                            packet.setChannel(DataPacket.CHANNEL_PLAYER_MOVING);
-                                            for (Player viewer : new ArrayList<>(player.getViewers().values())) {
-                                                viewer.dataPacket(packet);
-                                            }
-                                        }
+                            List<DataPacket> packets = processBatch((BatchPacket) pk0, redirectPacket.protocol, player.isNetEaseClient());
+                            // Server.getInstance().getLogger().info("tick: " + Server.getInstance().getTick() + " to server " + packets.size() + " packets");
+                            short[] packetCount = new short[256];
+                            boolean tooManyPackets = false;
+                            for (DataPacket subPacket : packets) {
+                                try {
+                                    if (packetCount[subPacket.pid()]++ > PACKET_COUNT_LIMIT[subPacket.pid()]) {
+                                        tooManyPackets = true;
+                                        continue;
                                     }
-                                    if (!this.movePlayerPacketCount.containsKey(player.getUniqueId())) this.movePlayerPacketCount.put(player.getUniqueId(), 0);
-                                    this.movePlayerPacketCount.replace(player.getUniqueId(), this.movePlayerPacketCount.get(player.getUniqueId()) + 1);
+                                    this.redirectPacketQueue.offer(new RedirectPacketEntry(player, subPacket));
+                                    if (SynapseAPI.getInstance().isNetworkBroadcastPlayerMove() && player.isOnline()) {
+                                        //玩家体验优化：直接不经过主线程广播玩家移动，插件过度干预可能会造成移动鬼畜问题
+                                        if (subPacket instanceof MovePlayerPacket) {
+                                            ((MovePlayerPacket) subPacket).eid = player.getId();
+                                            subPacket.setChannel(DataPacket.CHANNEL_PLAYER_MOVING);
+                                            MovePlayerPacket116100NE newMovePacket = null;
+                                            for (Player viewer : new ArrayList<>(player.getViewers().values())) {
+                                                if (viewer.getProtocol() >= AbstractProtocol.PROTOCOL_116_100.getProtocolStart()) {
+                                                    if (newMovePacket == null) {
+                                                        newMovePacket = new MovePlayerPacket116100NE();
+                                                        newMovePacket.fromDefault(subPacket);
+                                                        newMovePacket.setChannel(DataPacket.CHANNEL_PLAYER_MOVING);
+                                                    }
+                                                    viewer.dataPacket(newMovePacket);
+                                                } else {
+                                                    viewer.dataPacket(subPacket);
+                                                }
+                                            }
+                                        } else if (subPacket instanceof MovePlayerPacket116100NE) {
+                                            ((MovePlayerPacket116100NE) subPacket).eid = player.getId();
+                                            subPacket.setChannel(DataPacket.CHANNEL_PLAYER_MOVING);
+                                            MovePlayerPacket oldMovePacket = null;
+                                            for (Player viewer : new ArrayList<>(player.getViewers().values())) {
+                                                if (viewer.getProtocol() < AbstractProtocol.PROTOCOL_116_100.getProtocolStart()) {
+                                                    if (oldMovePacket == null) {
+                                                        oldMovePacket = new MovePlayerPacket();
+                                                        oldMovePacket.eid = ((MovePlayerPacket116100NE) subPacket).eid;
+                                                        oldMovePacket.x = ((MovePlayerPacket116100NE) subPacket).x;
+                                                        oldMovePacket.y = ((MovePlayerPacket116100NE) subPacket).y;
+                                                        oldMovePacket.z = ((MovePlayerPacket116100NE) subPacket).z;
+                                                        oldMovePacket.yaw = ((MovePlayerPacket116100NE) subPacket).yaw;
+                                                        oldMovePacket.headYaw = ((MovePlayerPacket116100NE) subPacket).headYaw;
+                                                        oldMovePacket.pitch = ((MovePlayerPacket116100NE) subPacket).pitch;
+                                                        oldMovePacket.mode = ((MovePlayerPacket116100NE) subPacket).mode;
+                                                        oldMovePacket.onGround = ((MovePlayerPacket116100NE) subPacket).onGround;
+                                                        oldMovePacket.ridingEid = ((MovePlayerPacket116100NE) subPacket).ridingEid;
+                                                        oldMovePacket.teleportCause = ((MovePlayerPacket116100NE) subPacket).teleportCause;
+                                                        oldMovePacket.entityType = ((MovePlayerPacket116100NE) subPacket).teleportItem;
+                                                        oldMovePacket.setChannel(DataPacket.CHANNEL_PLAYER_MOVING);
+                                                    }
+                                                    viewer.dataPacket(oldMovePacket);
+                                                } else {
+                                                    viewer.dataPacket(subPacket);
+                                                }
+                                            }
+                                        } else if (subPacket instanceof IPlayerAuthInputPacket) {
+                                            IPlayerAuthInputPacket authInputPacket = (IPlayerAuthInputPacket) subPacket;
+                                            if (authInputPacket.getDeltaX() != 0 || authInputPacket.getDeltaZ() != 0 || authInputPacket.getDeltaY() - player.getEyeHeight() != player.getY() || authInputPacket.getHeadYaw() != player.getYaw() || authInputPacket.getPitch() != player.getPitch()) {
+                                                //Server.getInstance().getLogger().info(player.getName() + ": nkY=" + player.getY() + " y=" + authInputPacket.y + " deltaX=" + authInputPacket.deltaX + " deltaY=" + authInputPacket.deltaY + " deltaZ=" + authInputPacket.deltaZ + " moveVecX=" + authInputPacket.moveVecX + " moveVecZ=" + authInputPacket.moveVecZ);
+                                                MovePlayerPacket packet = new MovePlayerPacket();
+                                                packet.eid = player.getId();
+                                                packet.x = authInputPacket.getX();
+                                                packet.y = authInputPacket.getY();
+                                                packet.z = authInputPacket.getZ();
+                                                packet.yaw = authInputPacket.getYaw();
+                                                packet.headYaw = authInputPacket.getHeadYaw();
+                                                packet.pitch = authInputPacket.getPitch();
+                                                packet.mode = MovePlayerPacket.MODE_NORMAL;
+                                                packet.onGround = player.onGround;
+                                                //packet.ridingEid = authInputPacket.ridingEid;
+                                                //packet.int1 = authInputPacket.int1;
+                                                //packet.int2 = authInputPacket.int2;
+                                                packet.setChannel(DataPacket.CHANNEL_PLAYER_MOVING);
+                                                for (Player viewer : new ArrayList<>(player.getViewers().values())) {
+                                                    viewer.dataPacket(packet);
+                                                }
+                                            }
+                                        }
+                                        if (!this.movePlayerPacketCount.containsKey(player.getUniqueId()))
+                                            this.movePlayerPacketCount.put(player.getUniqueId(), 0);
+                                        this.movePlayerPacketCount.replace(player.getUniqueId(), this.movePlayerPacketCount.get(player.getUniqueId()) + 1);
+                                    }
+                                } catch (Exception e) {
+                                    Server.getInstance().getLogger().alert("Error while handling packet " + subPacket.getClass().getSimpleName() + " for " + player.getName() + " (" + player.getAddress() + ")", e);
                                 }
                                 //Server.getInstance().getLogger().info("C => S  " + subPacket.getClass().getSimpleName());
-                            });
+                            }
+                            if (tooManyPackets) {
+                                Server.getInstance().getPluginManager().callEvent(new SynapsePlayerTooManyPacketsInBatchEvent(player, packetCount));
+                            }
                         } else {
                             this.redirectPacketQueue.offer(new RedirectPacketEntry(player, pk0));
                             if (SynapseAPI.getInstance().isNetworkBroadcastPlayerMove() && pk0 instanceof MovePlayerPacket) {

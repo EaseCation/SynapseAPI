@@ -200,24 +200,30 @@ public class SynapsePlayer116 extends SynapsePlayer113 {
 				}
 
 				if (transactionPacket.isCraftingPart) {
-					if (this.craftingTransaction == null) {
-						this.craftingTransaction = new CraftingTransaction(this, actions);
-					} else {
-						for (InventoryAction action : actions) {
-							this.craftingTransaction.addAction(action);
+					try {
+						if (this.craftingTransaction == null) {
+							this.craftingTransaction = new CraftingTransaction(this, actions);
+						} else {
+							for (InventoryAction action : actions) {
+								this.craftingTransaction.addAction(action);
+							}
 						}
-					}
 
-					if (this.craftingTransaction.getPrimaryOutput() != null && this.craftingTransaction.canExecute()) {
-						//we get the actions for this in several packets, so we can't execute it until we get the result
+						if (this.craftingTransaction.getPrimaryOutput() != null && this.craftingTransaction.canExecute()) {
+							//we get the actions for this in several packets, so we can't execute it until we get the result
 
-						this.craftingTransaction.execute();
+							this.craftingTransaction.execute();
+							this.craftingTransaction = null;
+							break;
+						}
+
+						if ((craftingType >> 3) == 0 || craftingType == CRAFTING_STONECUTTER) {
+							break;
+						}
+					} catch (Exception e) {
+						this.getServer().getLogger().logException(e);
 						this.craftingTransaction = null;
-						break;
-					}
-
-					if ((craftingType >> 3) == 0 || craftingType == CRAFTING_STONECUTTER) {
-						break;
+						this.getUIInventory().sendContents(this);
 					}
 				} else if (transactionPacket.isEnchantingPart) {
 					if (this.enchantTransaction == null) {
