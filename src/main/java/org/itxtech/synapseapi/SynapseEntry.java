@@ -59,6 +59,8 @@ public class SynapseEntry {
         PACKET_COUNT_LIMIT[ProtocolInfo.SUB_CHUNK_REQUEST_PACKET] = 10;
         PACKET_COUNT_LIMIT[ProtocolInfo.PLAYER_ACTION_PACKET] = 15;
         PACKET_COUNT_LIMIT[ProtocolInfo.ANIMATE_PACKET] = 15;
+        PACKET_COUNT_LIMIT[ProtocolInfo.INTERACT_PACKET] = 20;
+        PACKET_COUNT_LIMIT[ProtocolInfo.RESOURCE_PACK_CHUNK_REQUEST_PACKET] = 1000;
     }
 
     // private final Timing handleDataPacketTiming = TimingsManager.getTiming("SynapseEntry - HandleDataPacket");
