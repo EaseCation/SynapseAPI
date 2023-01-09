@@ -18,7 +18,6 @@ import cn.nukkit.utils.MainLogger;
 import cn.nukkit.utils.Zlib;
 import com.google.gson.Gson;
 import lombok.extern.log4j.Log4j2;
-import org.itxtech.synapseapi.event.player.SynapsePlayerClockHackEvent;
 import org.itxtech.synapseapi.event.player.SynapsePlayerCreationEvent;
 import org.itxtech.synapseapi.event.player.SynapsePlayerTooManyPacketsInBatchEvent;
 import org.itxtech.synapseapi.messaging.StandardMessenger;
@@ -86,8 +85,6 @@ public class SynapseEntry {
     private ClientData clientData;
     private String serverDescription;
     private Thread asyncTicker;
-    private long lastResetMovePlayerPacketCount = System.currentTimeMillis();
-    private Map<UUID, Integer> movePlayerPacketCount = new ConcurrentHashMap<>();
 
     public SynapseEntry(SynapseAPI synapse, String serverIp, int port, boolean isMainServer, String password, String serverDescription) {
         this.synapse = synapse;
@@ -344,26 +341,10 @@ public class SynapseEntry {
     public void threadTick(){
         this.synapseInterface.process();
         if (!this.getSynapseInterface().isConnected() || !this.verified) {
-            this.movePlayerPacketCount.clear();
             return;
         }
         long time = System.currentTimeMillis();
-        if (time - this.lastResetMovePlayerPacketCount >= 5000) {
-            this.movePlayerPacketCount.forEach((uuid, count) -> {
-                if (this.players.containsKey(uuid)) {
-                    long cha0 = System.currentTimeMillis() - this.lastResetMovePlayerPacketCount;
-                    int countPreSecond = (int) ((double)count / ((double)cha0 / 1000));
-                    if (countPreSecond >= 22) {
-                        SynapsePlayerClockHackEvent event = new SynapsePlayerClockHackEvent(this.players.get(uuid), countPreSecond);
-                        Server.getInstance().getPluginManager().callEvent(event);
-                    }
-                } else {
-                    this.movePlayerPacketCount.remove(uuid);
-                }
-            });
-            this.movePlayerPacketCount.clear();
-            this.lastResetMovePlayerPacketCount = System.currentTimeMillis();
-        }
+
         if ((time - this.lastUpdate) >= 5000) {  //Heartbeat!
             this.lastUpdate = time;
             HeartbeatPacket pk = new HeartbeatPacket();
@@ -396,7 +377,6 @@ public class SynapseEntry {
     public void removePlayer(UUID uuid) {
         this.players.remove(uuid);
         this.networkLatency.remove(uuid);
-        this.movePlayerPacketCount.remove(uuid);
     }
 
     private final Queue<PlayerLoginPacket> playerLoginQueue = new LinkedBlockingQueue<>();
@@ -473,8 +453,18 @@ public class SynapseEntry {
                                     }
                                     this.redirectPacketQueue.offer(new RedirectPacketEntry(player, subPacket));
                                     if (SynapseAPI.getInstance().isNetworkBroadcastPlayerMove() && player.isOnline()) {
+                                        if (player.getViewers().isEmpty()) {
+                                            continue;
+                                        }
                                         //玩家体验优化：直接不经过主线程广播玩家移动，插件过度干预可能会造成移动鬼畜问题
                                         if (subPacket instanceof MovePlayerPacket) {
+                                            //判断是否和玩家自身在附近区块
+                                            if (Math.abs((int) ((MovePlayerPacket) subPacket).x >> 4 - player.getFloorX() >> 4) > 1
+                                                    || Math.abs((int) ((MovePlayerPacket) subPacket).z >> 4 - player.getFloorZ() >> 4) > 1
+                                                    || Math.abs((int) ((MovePlayerPacket) subPacket).y - player.getFloorY()) > 10
+                                            ) {
+                                                continue;
+                                            }
                                             ((MovePlayerPacket) subPacket).eid = player.getId();
                                             subPacket.setChannel(DataPacket.CHANNEL_PLAYER_MOVING);
                                             MovePlayerPacket116100NE newMovePacket = null;
@@ -491,6 +481,13 @@ public class SynapseEntry {
                                                 }
                                             }
                                         } else if (subPacket instanceof MovePlayerPacket116100NE) {
+                                            //判断是否和玩家自身在附近区块
+                                            if (Math.abs((int) ((MovePlayerPacket116100NE) subPacket).x >> 4 - player.getFloorX() >> 4) > 1
+                                                    || Math.abs((int) ((MovePlayerPacket116100NE) subPacket).z >> 4 - player.getFloorZ() >> 4) > 1
+                                                    || Math.abs((int) ((MovePlayerPacket116100NE) subPacket).y - player.getFloorY()) > 10
+                                            ) {
+                                                continue;
+                                            }
                                             ((MovePlayerPacket116100NE) subPacket).eid = player.getId();
                                             subPacket.setChannel(DataPacket.CHANNEL_PLAYER_MOVING);
                                             MovePlayerPacket oldMovePacket = null;
@@ -519,6 +516,13 @@ public class SynapseEntry {
                                             }
                                         } else if (subPacket instanceof IPlayerAuthInputPacket) {
                                             IPlayerAuthInputPacket authInputPacket = (IPlayerAuthInputPacket) subPacket;
+                                            //判断是否和玩家自身在附近区块
+                                            if (Math.abs((int) authInputPacket.getX() >> 4 - player.getFloorX() >> 4) > 1
+                                                    || Math.abs((int) authInputPacket.getZ() >> 4 - player.getFloorZ() >> 4) > 1
+                                                    || Math.abs((int) authInputPacket.getY() - player.getFloorY()) > 10
+                                            ) {
+                                                continue;
+                                            }
                                             if (authInputPacket.getDeltaX() != 0 || authInputPacket.getDeltaZ() != 0 || authInputPacket.getDeltaY() - player.getEyeHeight() != player.getY() || authInputPacket.getHeadYaw() != player.getYaw() || authInputPacket.getPitch() != player.getPitch()) {
                                                 //Server.getInstance().getLogger().info(player.getName() + ": nkY=" + player.getY() + " y=" + authInputPacket.y + " deltaX=" + authInputPacket.deltaX + " deltaY=" + authInputPacket.deltaY + " deltaZ=" + authInputPacket.deltaZ + " moveVecX=" + authInputPacket.moveVecX + " moveVecZ=" + authInputPacket.moveVecZ);
                                                 MovePlayerPacket packet = new MovePlayerPacket();
@@ -540,9 +544,6 @@ public class SynapseEntry {
                                                 }
                                             }
                                         }
-                                        if (!this.movePlayerPacketCount.containsKey(player.getUniqueId()))
-                                            this.movePlayerPacketCount.put(player.getUniqueId(), 0);
-                                        this.movePlayerPacketCount.replace(player.getUniqueId(), this.movePlayerPacketCount.get(player.getUniqueId()) + 1);
                                     }
                                 } catch (Exception e) {
                                     Server.getInstance().getLogger().alert("Error while handling packet " + subPacket.getClass().getSimpleName() + " for " + player.getName() + " (" + player.getAddress() + ")", e);
