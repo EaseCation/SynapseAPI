@@ -453,15 +453,12 @@ public class SynapseEntry {
                                     }
                                     this.redirectPacketQueue.offer(new RedirectPacketEntry(player, subPacket));
                                     if (SynapseAPI.getInstance().isNetworkBroadcastPlayerMove() && player.isOnline()) {
-                                        if (player.getViewers().isEmpty()) {
-                                            continue;
-                                        }
                                         //玩家体验优化：直接不经过主线程广播玩家移动，插件过度干预可能会造成移动鬼畜问题
                                         if (subPacket instanceof MovePlayerPacket) {
                                             //判断是否和玩家自身在附近区块
-                                            if (Math.abs((int) ((MovePlayerPacket) subPacket).x >> 4 - player.getFloorX() >> 4) > 1
-                                                    || Math.abs((int) ((MovePlayerPacket) subPacket).z >> 4 - player.getFloorZ() >> 4) > 1
-                                                    || Math.abs((int) ((MovePlayerPacket) subPacket).y - player.getFloorY()) > 10
+                                            if (Math.abs((int) ((MovePlayerPacket) subPacket).x >> 4 - player.getFloorX() >> 4) > 4
+                                                    || Math.abs((int) ((MovePlayerPacket) subPacket).z >> 4 - player.getFloorZ() >> 4) > 4
+                                                    || Math.abs((int) ((MovePlayerPacket) subPacket).y - player.getFloorY()) > 100
                                             ) {
                                                 continue;
                                             }
@@ -482,9 +479,9 @@ public class SynapseEntry {
                                             }
                                         } else if (subPacket instanceof MovePlayerPacket116100NE) {
                                             //判断是否和玩家自身在附近区块
-                                            if (Math.abs((int) ((MovePlayerPacket116100NE) subPacket).x >> 4 - player.getFloorX() >> 4) > 1
-                                                    || Math.abs((int) ((MovePlayerPacket116100NE) subPacket).z >> 4 - player.getFloorZ() >> 4) > 1
-                                                    || Math.abs((int) ((MovePlayerPacket116100NE) subPacket).y - player.getFloorY()) > 10
+                                            if (Math.abs((int) ((MovePlayerPacket116100NE) subPacket).x >> 4 - player.getFloorX() >> 4) > 4
+                                                    || Math.abs((int) ((MovePlayerPacket116100NE) subPacket).z >> 4 - player.getFloorZ() >> 4) > 4
+                                                    || Math.abs((int) ((MovePlayerPacket116100NE) subPacket).y - player.getFloorY()) > 100
                                             ) {
                                                 continue;
                                             }
@@ -517,9 +514,9 @@ public class SynapseEntry {
                                         } else if (subPacket instanceof IPlayerAuthInputPacket) {
                                             IPlayerAuthInputPacket authInputPacket = (IPlayerAuthInputPacket) subPacket;
                                             //判断是否和玩家自身在附近区块
-                                            if (Math.abs((int) authInputPacket.getX() >> 4 - player.getFloorX() >> 4) > 1
-                                                    || Math.abs((int) authInputPacket.getZ() >> 4 - player.getFloorZ() >> 4) > 1
-                                                    || Math.abs((int) authInputPacket.getY() - player.getFloorY()) > 10
+                                            if (Math.abs((int) authInputPacket.getX() >> 4 - player.getFloorX() >> 4) > 4
+                                                    || Math.abs((int) authInputPacket.getZ() >> 4 - player.getFloorZ() >> 4) > 4
+                                                    || Math.abs((int) authInputPacket.getY() - player.getFloorY()) > 100
                                             ) {
                                                 continue;
                                             }
