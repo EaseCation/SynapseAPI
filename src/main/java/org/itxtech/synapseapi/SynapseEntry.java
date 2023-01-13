@@ -456,12 +456,12 @@ public class SynapseEntry {
                                         //玩家体验优化：直接不经过主线程广播玩家移动，插件过度干预可能会造成移动鬼畜问题
                                         if (subPacket instanceof MovePlayerPacket) {
                                             //判断是否和玩家自身在附近区块
-                                            if (Math.abs((int) ((MovePlayerPacket) subPacket).x >> 4 - player.getFloorX() >> 4) > 4
+                                            /*if (Math.abs((int) ((MovePlayerPacket) subPacket).x >> 4 - player.getFloorX() >> 4) > 4
                                                     || Math.abs((int) ((MovePlayerPacket) subPacket).z >> 4 - player.getFloorZ() >> 4) > 4
                                                     || Math.abs((int) ((MovePlayerPacket) subPacket).y - player.getFloorY()) > 100
                                             ) {
                                                 continue;
-                                            }
+                                            }*/
                                             ((MovePlayerPacket) subPacket).eid = player.getId();
                                             subPacket.setChannel(DataPacket.CHANNEL_PLAYER_MOVING);
                                             MovePlayerPacket116100NE newMovePacket = null;
@@ -479,12 +479,12 @@ public class SynapseEntry {
                                             }
                                         } else if (subPacket instanceof MovePlayerPacket116100NE) {
                                             //判断是否和玩家自身在附近区块
-                                            if (Math.abs((int) ((MovePlayerPacket116100NE) subPacket).x >> 4 - player.getFloorX() >> 4) > 4
+                                            /*if (Math.abs((int) ((MovePlayerPacket116100NE) subPacket).x >> 4 - player.getFloorX() >> 4) > 4
                                                     || Math.abs((int) ((MovePlayerPacket116100NE) subPacket).z >> 4 - player.getFloorZ() >> 4) > 4
                                                     || Math.abs((int) ((MovePlayerPacket116100NE) subPacket).y - player.getFloorY()) > 100
                                             ) {
                                                 continue;
-                                            }
+                                            }*/
                                             ((MovePlayerPacket116100NE) subPacket).eid = player.getId();
                                             subPacket.setChannel(DataPacket.CHANNEL_PLAYER_MOVING);
                                             MovePlayerPacket oldMovePacket = null;
@@ -514,12 +514,12 @@ public class SynapseEntry {
                                         } else if (subPacket instanceof IPlayerAuthInputPacket) {
                                             IPlayerAuthInputPacket authInputPacket = (IPlayerAuthInputPacket) subPacket;
                                             //判断是否和玩家自身在附近区块
-                                            if (Math.abs((int) authInputPacket.getX() >> 4 - player.getFloorX() >> 4) > 4
+                                            /*if (Math.abs((int) authInputPacket.getX() >> 4 - player.getFloorX() >> 4) > 4
                                                     || Math.abs((int) authInputPacket.getZ() >> 4 - player.getFloorZ() >> 4) > 4
                                                     || Math.abs((int) authInputPacket.getY() - player.getFloorY()) > 100
                                             ) {
                                                 continue;
-                                            }
+                                            }*/
                                             if (authInputPacket.getDeltaX() != 0 || authInputPacket.getDeltaZ() != 0 || authInputPacket.getDeltaY() - player.getEyeHeight() != player.getY() || authInputPacket.getHeadYaw() != player.getYaw() || authInputPacket.getPitch() != player.getPitch()) {
                                                 //Server.getInstance().getLogger().info(player.getName() + ": nkY=" + player.getY() + " y=" + authInputPacket.y + " deltaX=" + authInputPacket.deltaX + " deltaY=" + authInputPacket.deltaY + " deltaZ=" + authInputPacket.deltaZ + " moveVecX=" + authInputPacket.moveVecX + " moveVecZ=" + authInputPacket.moveVecZ);
                                                 MovePlayerPacket packet = new MovePlayerPacket();
