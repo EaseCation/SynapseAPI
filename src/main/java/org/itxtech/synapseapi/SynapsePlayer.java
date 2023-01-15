@@ -21,6 +21,7 @@ import cn.nukkit.level.Position;
 import cn.nukkit.math.NukkitMath;
 import cn.nukkit.math.Vector3;
 import cn.nukkit.nbt.tag.*;
+import cn.nukkit.network.PacketViolationReason;
 import cn.nukkit.network.SourceInterface;
 import cn.nukkit.network.protocol.*;
 import cn.nukkit.resourcepacks.ResourcePack;
@@ -890,6 +891,7 @@ public class SynapsePlayer extends Player {
             case ProtocolInfo.LOGIN_PACKET:
                 if (!callPacketReceiveEvent(packet)) break;
                 if (this.loggedIn) {
+                    onPacketViolation(PacketViolationReason.ALREADY_LOGGED_IN);
                     break;
                 }
 

@@ -161,7 +161,11 @@ public class InventoryTransactionPacket116 extends Packet116 implements Inventor
 
         if (field_hasNetworkIds) this.hasNetworkIds = this.getBoolean();
 
-        this.actions = new NetworkInventoryAction[(int) this.getUnsignedVarInt()];
+        int count = (int) this.getUnsignedVarInt();
+        if (count > 100) {
+            throw new IndexOutOfBoundsException("Too many actions in inventory transaction");
+        }
+        this.actions = new NetworkInventoryAction[count];
         for (int i = 0; i < this.actions.length; i++) {
             this.actions[i] = new NetworkInventoryAction().read(this, this);
         }

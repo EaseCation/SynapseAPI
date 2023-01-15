@@ -16,6 +16,7 @@ import cn.nukkit.level.particle.PunchBlockParticle;
 import cn.nukkit.math.BlockFace;
 import cn.nukkit.math.BlockVector3;
 import cn.nukkit.math.Vector3;
+import cn.nukkit.network.PacketViolationReason;
 import cn.nukkit.network.SourceInterface;
 import cn.nukkit.network.protocol.*;
 import cn.nukkit.resourcepacks.ResourcePack;
@@ -90,6 +91,7 @@ public class SynapsePlayer14 extends SynapsePlayer {
 				if (!this.callPacketReceiveEvent(((LoginPacket14) packet).toDefault())) break;
 
 				if (this.loggedIn) {
+					onPacketViolation(PacketViolationReason.ALREADY_LOGGED_IN);
 					break;
 				}
 
