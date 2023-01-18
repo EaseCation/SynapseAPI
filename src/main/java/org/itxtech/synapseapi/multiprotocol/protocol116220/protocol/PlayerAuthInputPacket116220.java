@@ -13,6 +13,7 @@ import cn.nukkit.network.protocol.types.NetworkInventoryAction;
 import cn.nukkit.utils.Utils;
 import lombok.ToString;
 import lombok.extern.log4j.Log4j2;
+import org.apache.commons.lang3.mutable.MutableInt;
 import org.itxtech.synapseapi.SynapseSharedConstants;
 import org.itxtech.synapseapi.multiprotocol.protocol113.protocol.IPlayerAuthInputPacket;
 import org.itxtech.synapseapi.multiprotocol.protocol116.protocol.PlayerAuthInputPacket116;
@@ -193,8 +194,17 @@ public class PlayerAuthInputPacket116220 extends Packet116220 implements Invento
                 }
             }
 
-            this.inventoryActions = this.getArray(NetworkInventoryAction.class, bs -> new NetworkInventoryAction().read(this, this));
+            MutableInt counter = new MutableInt();
+            this.inventoryActions = this.getArray(NetworkInventoryAction.class, bs -> {
+                if (counter.getAndIncrement() > 100) {
+                    throw new IndexOutOfBoundsException("Too many actions in item use transaction (PlayerAuthInputPacket)");
+                }
+                return new NetworkInventoryAction().read(this, this);
+            });
             /*int size = (int) this.getUnsignedVarInt();
+            if (size > 100) {
+                throw new IndexOutOfBoundsException("Too many actions in item use transaction (PlayerAuthInputPacket)");
+            }
             this.inventoryActions = new NetworkInventoryAction[size];
             for (int i = 0; i < size; i++) {
                 this.inventoryActions[i] = new NetworkInventoryAction().read(this, this);
@@ -374,6 +384,9 @@ public class PlayerAuthInputPacket116220 extends Packet116220 implements Invento
 
             ArrayDeque<PlayerBlockAction> deque = new ArrayDeque<>();
             int size = this.getVarInt();
+            if (size > 100) {
+                throw new IndexOutOfBoundsException("Too many block actions in PlayerAuthInputPacket");
+            }
             //this.blockActions = new PlayerBlockAction[size];
             for (int i = 0; i < size; i++) {
                 int actionType = this.getVarInt();

@@ -416,6 +416,12 @@ public class PacketRegister {
         AbstractProtocol.PacketHeadData head = ptl.tryDecodePacketHead(data, maybeBatch);
 
         if (head != null) {
+            int pid = head.getPid();
+            if (pid <= 0 || pid > ProtocolInfo.COUNT) {
+                // invalid packet
+                return null;
+            }
+
             DataPacket pk = getPacket(head.getPid(), protocol);
             if(pk == null) {
                 Server.getInstance().getLogger().notice("C -> S null packet with PID: " + head.getPid());

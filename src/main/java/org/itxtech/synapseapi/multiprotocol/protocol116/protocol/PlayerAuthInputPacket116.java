@@ -175,6 +175,9 @@ public class PlayerAuthInputPacket116 extends Packet116 implements IPlayerAuthIn
             this.hasNetworkIds = this.getBoolean();
 
             int size = (int) this.getUnsignedVarInt();
+            if (size > 100) {
+                throw new IndexOutOfBoundsException("Too many actions in item use transaction (PlayerAuthInputPacket)");
+            }
             this.inventoryActions = new NetworkInventoryAction[size];
             for (int i = 0; i < size; i++) {
                 this.inventoryActions[i] = new NetworkInventoryAction().read(this, this);
@@ -282,6 +285,9 @@ public class PlayerAuthInputPacket116 extends Packet116 implements IPlayerAuthIn
             if (SynapseSharedConstants.MAC_DEBUG) debugFlags[2] = true;
 
             int size = this.getVarInt();
+            if (size > 100) {
+                throw new IndexOutOfBoundsException("Too many block actions in PlayerAuthInputPacket");
+            }
             this.blockActions = new PlayerBlockAction[size];
             for (int i = 0; i < size; i++) {
                 int actionType = this.getVarInt();

@@ -5,6 +5,7 @@ import cn.nukkit.Player;
 import cn.nukkit.Server;
 import cn.nukkit.math.NukkitMath;
 import cn.nukkit.network.Network;
+import cn.nukkit.network.PacketViolationReason;
 import cn.nukkit.network.SourceInterface;
 import cn.nukkit.network.protocol.BatchPacket;
 import cn.nukkit.network.protocol.DataPacket;
@@ -12,10 +13,14 @@ import cn.nukkit.network.protocol.MovePlayerPacket;
 import cn.nukkit.network.protocol.ProtocolInfo;
 import cn.nukkit.plugin.Plugin;
 import cn.nukkit.scheduler.Task;
-import cn.nukkit.utils.Binary;
 import cn.nukkit.utils.BinaryStream;
+import cn.nukkit.utils.JsonUtil;
 import cn.nukkit.utils.MainLogger;
 import cn.nukkit.utils.Zlib;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.core.type.TypeReference;
+import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
+import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import com.google.gson.Gson;
 import it.unimi.dsi.fastutil.objects.Object2IntMap;
 import it.unimi.dsi.fastutil.objects.Object2IntOpenHashMap;
@@ -34,8 +39,8 @@ import org.itxtech.synapseapi.network.protocol.spp.*;
 import org.itxtech.synapseapi.utils.ClientData;
 import org.itxtech.synapseapi.utils.DataPacketEidReplacer;
 import org.itxtech.synapseapi.utils.PacketLogger;
-import org.itxtech.synapseapi.utils.PlayerNetworkLatencyData;
 
+import javax.annotation.Nullable;
 import java.lang.reflect.Constructor;
 import java.net.InetSocketAddress;
 import java.util.*;
@@ -50,6 +55,8 @@ import static org.itxtech.synapseapi.SynapseSharedConstants.SERVERBOUND_PACKET_L
  */
 @Log4j2
 public class SynapseEntry {
+    private static final TypeReference<Map<UUID, Integer>> NETWORK_LATENCY_TYPE_REFERENCE = new TypeReference<Map<UUID, Integer>>() {
+    };
 
     private static final int INCOMING_PACKET_BATCH_PER_TICK = 2; // usually max 1 per tick, but transactions may arrive separately
     private static final int INCOMING_PACKET_BATCH_MAX_BUDGET = 100 * INCOMING_PACKET_BATCH_PER_TICK; // enough to account for a 5-second lag spike
@@ -59,8 +66,8 @@ public class SynapseEntry {
 
     static {
         Arrays.fill(PACKET_COUNT_LIMIT, 10);
-        PACKET_COUNT_LIMIT[ProtocolInfo.INVENTORY_TRANSACTION_PACKET] = 1000;
-        PACKET_COUNT_LIMIT[ProtocolInfo.CRAFTING_EVENT_PACKET] = 200;
+        PACKET_COUNT_LIMIT[ProtocolInfo.INVENTORY_TRANSACTION_PACKET] = 64 * 9 + 64 * 9 + 64; // extreme case (shift-click crafting): 64x9 (inputs) + 64x9 (output on crafting grid) + 64 (outputs to main slot)
+        PACKET_COUNT_LIMIT[ProtocolInfo.CRAFTING_EVENT_PACKET] = 64;
         PACKET_COUNT_LIMIT[ProtocolInfo.PACKET_PY_RPC] = 50;
         PACKET_COUNT_LIMIT[ProtocolInfo.SUB_CHUNK_REQUEST_PACKET] = 100;
         PACKET_COUNT_LIMIT[ProtocolInfo.PLAYER_ACTION_PACKET] = 15;
@@ -86,7 +93,7 @@ public class SynapseEntry {
     private long lastLogin;
     private long lastUpdate;
     private long lastRecvInfo;
-    private final Map<UUID, SynapsePlayer> players = new HashMap<>();
+    private final Map<UUID, SynapsePlayer> players = new Object2ObjectOpenHashMap<>();
     private final Map<UUID, Integer> networkLatency = new ConcurrentHashMap<>();
     private SynLibInterface synLibInterface;
     private ClientData clientData;
@@ -262,6 +269,7 @@ public class SynapseEntry {
     public class AsyncTicker implements Runnable {
         private long tickUseTime;
         private long lastWarning = 0;
+
         @Override
         public void run() {
             long startTime = System.currentTimeMillis();
@@ -291,9 +299,11 @@ public class SynapseEntry {
      */
     public class Ticker implements Runnable {
         private final SynapseEntry entry;
+
         private Ticker(SynapseEntry entry) {
             this.entry = entry;
         }
+
         @Override
         public void run() {
             if (!verified && System.currentTimeMillis() - lastLogin >= 3000) {
@@ -301,6 +311,7 @@ public class SynapseEntry {
                 synapseInterface.getClient().setNeedAuth(true);
                 lastLogin = System.currentTimeMillis();
             }
+
             PlayerLoginPacket playerLoginPacket;
             Random random = ThreadLocalRandom.current();
             while ((playerLoginPacket = playerLoginQueue.poll()) != null) {
@@ -313,8 +324,8 @@ public class SynapseEntry {
                 clazz = ev.getPlayerClass();
 
                 try {
-                    Constructor constructor = clazz.getConstructor(SourceInterface.class, SynapseEntry.class, Long.class, InetSocketAddress.class);
-                    SynapsePlayer player = (SynapsePlayer) constructor.newInstance(synLibInterface, this.entry, ev.getClientId(), ev.getSocketAddress());
+                    Constructor<? extends SynapsePlayer> constructor = clazz.getConstructor(SourceInterface.class, SynapseEntry.class, Long.class, InetSocketAddress.class);
+                    SynapsePlayer player = constructor.newInstance(synLibInterface, this.entry, ev.getClientId(), ev.getSocketAddress());
                     player.setUniqueId(playerLoginPacket.uuid);
                     players.put(playerLoginPacket.uuid, player);
                     getSynapse().getServer().addPlayer(socketAddress, player);
@@ -338,9 +349,10 @@ public class SynapseEntry {
 
             PlayerLogoutPacket playerLogoutPacket;
             while ((playerLogoutPacket = playerLogoutQueue.poll()) != null) {
-                UUID uuid1;
-                if(players.containsKey(uuid1 = playerLogoutPacket.uuid)){
-                    players.get(uuid1).close(playerLogoutPacket.reason, playerLogoutPacket.reason, true);
+                UUID uuid1 = playerLogoutPacket.uuid;
+                Player player = players.get(uuid1);
+                if (player != null) {
+                    player.close(playerLogoutPacket.reason, playerLogoutPacket.reason, true);
                     removePlayer(uuid1);
                 }
             }
@@ -385,7 +397,7 @@ public class SynapseEntry {
         }*/
 
         long finalTime = System.currentTimeMillis();
-        long usedTime = finalTime - time;
+        //long usedTime = finalTime - time;
         //this.getSynapse().getServer().getLogger().warning(time + " -> threadTick 用时 " + usedTime + " 毫秒");
         if(((finalTime - this.lastUpdate) >= 30000) && this.synapseInterface.isConnected()){  //30 seconds timeout
             this.synapseInterface.reconnect();
@@ -434,17 +446,26 @@ public class SynapseEntry {
                         }
                         break;
                     case InformationPacket.TYPE_CLIENT_DATA:
-                        this.clientData = new Gson().fromJson(informationPacket.message, ClientData.class);
+                        try {
+                            this.clientData = JsonUtil.COMMON_JSON_MAPPER.readValue(informationPacket.message, ClientData.class);
+                        } catch (JsonProcessingException e) {
+                            log.throwing(e);
+                        }
                         this.lastRecvInfo = System.currentTimeMillis();
                         //this.getSynapse().getLogger().debug("Received ClientData from " + this.serverIp + ":" + this.port);
                         break;
                     case InformationPacket.TYPE_PLAYER_NETWORK_LATENCY:
-                        PlayerNetworkLatencyData pings = new Gson().fromJson(informationPacket.message, PlayerNetworkLatencyData.class);
-                        pings.forEach((uuid, ping) -> {
-                            if (this.players.containsKey(uuid))
-                                this.networkLatency.put(uuid, ping);
-                            //this.getSynapse().getLogger().debug("更新玩家 " + uuid + " 的PING=" + ping);
-                        });
+                        try {
+                            Map<UUID, Integer> pings = JsonUtil.COMMON_JSON_MAPPER.readValue(informationPacket.message, NETWORK_LATENCY_TYPE_REFERENCE);
+                            pings.forEach((uuid, ping) -> {
+                                if (this.players.containsKey(uuid)) {
+                                    this.networkLatency.put(uuid, ping);
+                                    //this.getSynapse().getLogger().debug("更新玩家 " + uuid + " 的PING=" + ping);
+                                }
+                            });
+                        } catch (JsonProcessingException e) {
+                            log.throwing(e);
+                        }
                         break;
                 }
                 break;
@@ -455,16 +476,20 @@ public class SynapseEntry {
                 RedirectPacket redirectPacket = (RedirectPacket) pk;
 
                 UUID uuid = redirectPacket.uuid;
-                if (this.players.containsKey(uuid)) {
+                SynapsePlayer player = this.players.get(uuid);
+                if (player != null) {
                     DataPacket pk0 = PacketRegister.getFullPacket(redirectPacket.mcpeBuffer, redirectPacket.protocol);
                     //Server.getInstance().getLogger().info("to server : " + pk0.getClass().getName());
                     if (pk0 != null) {
                         // this.handleRedirectPacketTiming.startTiming();
                         //pk0.decode();
-                        SynapsePlayer player = this.players.get(uuid);
                         if (pk0.pid() == ProtocolInfo.BATCH_PACKET) {
                             this.playerBatchPacketCounter.put(player.getUniqueId(), this.playerBatchPacketCounter.getOrDefault(player.getUniqueId(), 0) + 1);
                             List<DataPacket> packets = processBatch((BatchPacket) pk0, redirectPacket.protocol, player.isNetEaseClient());
+                            if (packets == null) {
+                                player.onPacketViolation(PacketViolationReason.MALFORMED_PACKET);
+                                break;
+                            }
                             // Server.getInstance().getLogger().info("tick: " + Server.getInstance().getTick() + " to server " + packets.size() + " packets");
                             short[] packetCount = new short[256];
                             boolean tooManyPackets = false;
@@ -598,32 +623,49 @@ public class SynapseEntry {
     }
 
     private static class RedirectPacketEntry {
-        private SynapsePlayer player;
-        private DataPacket dataPacket;
+        private final SynapsePlayer player;
+        private final DataPacket dataPacket;
+
         private RedirectPacketEntry(SynapsePlayer player, DataPacket dataPacket) {
             this.player = player;
             this.dataPacket = dataPacket;
         }
     }
 
+    @Nullable
     public static List<DataPacket> processBatch(BatchPacket packet, int protocol, boolean netease) {
         byte[] data;
         try {
             if (protocol < 407) data = Zlib.inflate(packet.payload, 64 * 1024 * 1024);
             else data = Network.inflateRaw(packet.payload);
         } catch (Exception e) {
-            return new ArrayList<>();
+            // malformed batch
+            return null;
         }
 
         int len = data.length;
         BinaryStream stream = new BinaryStream(data);
         AbstractProtocol apl = AbstractProtocol.fromRealProtocol(protocol);
+        int count = 0;
+        List<DataPacket> packets = new ObjectArrayList<>();
         try {
-            List<DataPacket> packets = new ArrayList<>();
             while (stream.offset < len) {
+                count++;
+                if (count >= 1300) {
+                    // too many packets in batch
+//                    throw new ProtocolException("Illegal batch with " + count + " packets");
+                    return null;
+                }
+
                 byte[] buf = stream.getByteArray();
                 AbstractProtocol.PacketHeadData head = apl.tryDecodePacketHead(buf, false);
                 if (head != null) {
+                    int pid = head.getPid();
+                    if (pid <= 0 || pid > ProtocolInfo.COUNT) {
+                        // invalid packet
+                        return null;
+                    }
+
                     try {
                         DataPacket pk;
                         if ((pk = PacketRegister.getPacket(head.getPid(), protocol)) != null) {
@@ -635,17 +677,20 @@ public class SynapseEntry {
                         }
                     } catch (Exception e) {
                         MainLogger.getLogger().logException(e);
+                        // malformed packet
+                        return null;
                     }
                 }
-        }
+            }
             return packets;
         } catch (Exception e) {
             if (Nukkit.DEBUG > 0) {
-                Server.getInstance().getLogger().debug("BatchPacket 0x" + Binary.bytesToHexString(packet.payload));
+//                Server.getInstance().getLogger().debug("BatchPacket 0x" + Binary.bytesToHexString(packet.payload));
                 Server.getInstance().getLogger().logException(e);
             }
+            // malformed batch
         }
-        return new ArrayList<>();
+        return null;
     }
 
     public void sendPluginMessage(Plugin plugin, String channel, byte[] message) {
