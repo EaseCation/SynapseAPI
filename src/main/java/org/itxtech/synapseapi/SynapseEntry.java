@@ -21,8 +21,12 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
+import com.google.gson.Gson;
+import it.unimi.dsi.fastutil.objects.Object2IntMap;
+import it.unimi.dsi.fastutil.objects.Object2IntOpenHashMap;
 import lombok.extern.log4j.Log4j2;
 import org.itxtech.synapseapi.event.player.SynapsePlayerCreationEvent;
+import org.itxtech.synapseapi.event.player.SynapsePlayerTooManyBatchPacketsEvent;
 import org.itxtech.synapseapi.event.player.SynapsePlayerTooManyPacketsInBatchEvent;
 import org.itxtech.synapseapi.messaging.StandardMessenger;
 import org.itxtech.synapseapi.multiprotocol.AbstractProtocol;
@@ -54,7 +58,11 @@ public class SynapseEntry {
     private static final TypeReference<Map<UUID, Integer>> NETWORK_LATENCY_TYPE_REFERENCE = new TypeReference<Map<UUID, Integer>>() {
     };
 
+    private static final int INCOMING_PACKET_BATCH_PER_TICK = 2; // usually max 1 per tick, but transactions may arrive separately
+    private static final int INCOMING_PACKET_BATCH_MAX_BUDGET = 100 * INCOMING_PACKET_BATCH_PER_TICK; // enough to account for a 5-second lag spike
+
     public static final int[] PACKET_COUNT_LIMIT = new int[256];
+    public static int[] globalPacketCountThisTick = new int[256];
 
     static {
         Arrays.fill(PACKET_COUNT_LIMIT, 10);
@@ -91,6 +99,7 @@ public class SynapseEntry {
     private ClientData clientData;
     private String serverDescription;
     private Thread asyncTicker;
+    private final Object2IntMap<UUID> playerBatchPacketCounter = new Object2IntOpenHashMap<>();
 
     public SynapseEntry(SynapseAPI synapse, String serverIp, int port, boolean isMainServer, String password, String serverDescription) {
         this.synapse = synapse;
@@ -285,6 +294,9 @@ public class SynapseEntry {
         }
     }
 
+    /**
+     * 这个Ticker运行在主线程
+     */
     public class Ticker implements Runnable {
         private final SynapseEntry entry;
 
@@ -324,9 +336,11 @@ public class SynapseEntry {
             }
 
             RedirectPacketEntry redirectPacketEntry;
+            Arrays.fill(globalPacketCountThisTick, 0);
             while ((redirectPacketEntry = redirectPacketQueue.poll()) != null) {
                 //Server.getInstance().getLogger().warning("C => S  " + redirectPacketEntry.dataPacket.getClass().getSimpleName());
                 DataPacket packet = DataPacketEidReplacer.replaceBack(redirectPacketEntry.dataPacket, SynapsePlayer.SYNAPSE_PLAYER_ENTITY_ID, redirectPacketEntry.player.getId());
+                globalPacketCountThisTick[packet.pid()]++;
                 if (SERVERBOUND_PACKET_LOGGING && log.isTraceEnabled()) {
                     PacketLogger.handleServerboundPacket(redirectPacketEntry.player, packet);
                 }
@@ -349,8 +363,17 @@ public class SynapseEntry {
         return AbstractProtocol.fromRealProtocol(protocol).getPlayerClass();
     }
 
-    public void threadTick(){
+    /**
+     * 这个Ticker运行在异步线程
+     */
+    public void threadTick() {
         this.synapseInterface.process();
+        this.playerBatchPacketCounter.forEach((uuid, count) -> {
+            if (count > INCOMING_PACKET_BATCH_MAX_BUDGET) {
+                Server.getInstance().getPluginManager().callEvent(new SynapsePlayerTooManyBatchPacketsEvent(this.players.get(uuid), count));
+            }
+        });
+        this.playerBatchPacketCounter.clear();
         if (!this.getSynapseInterface().isConnected() || !this.verified) {
             return;
         }
@@ -461,6 +484,7 @@ public class SynapseEntry {
                         // this.handleRedirectPacketTiming.startTiming();
                         //pk0.decode();
                         if (pk0.pid() == ProtocolInfo.BATCH_PACKET) {
+                            this.playerBatchPacketCounter.put(player.getUniqueId(), this.playerBatchPacketCounter.getOrDefault(player.getUniqueId(), 0) + 1);
                             List<DataPacket> packets = processBatch((BatchPacket) pk0, redirectPacket.protocol, player.isNetEaseClient());
                             if (packets == null) {
                                 player.onPacketViolation(PacketViolationReason.MALFORMED_PACKET);
@@ -477,18 +501,15 @@ public class SynapseEntry {
                                     }
                                     this.redirectPacketQueue.offer(new RedirectPacketEntry(player, subPacket));
                                     if (SynapseAPI.getInstance().isNetworkBroadcastPlayerMove() && player.isOnline()) {
-                                        if (player.getViewers().isEmpty()) {
-                                            continue;
-                                        }
                                         //玩家体验优化：直接不经过主线程广播玩家移动，插件过度干预可能会造成移动鬼畜问题
                                         if (subPacket instanceof MovePlayerPacket) {
                                             //判断是否和玩家自身在附近区块
-                                            if (Math.abs((int) ((MovePlayerPacket) subPacket).x >> 4 - player.getFloorX() >> 4) > 1
-                                                    || Math.abs((int) ((MovePlayerPacket) subPacket).z >> 4 - player.getFloorZ() >> 4) > 1
-                                                    || Math.abs((int) ((MovePlayerPacket) subPacket).y - player.getFloorY()) > 10
+                                            /*if (Math.abs((int) ((MovePlayerPacket) subPacket).x >> 4 - player.getFloorX() >> 4) > 4
+                                                    || Math.abs((int) ((MovePlayerPacket) subPacket).z >> 4 - player.getFloorZ() >> 4) > 4
+                                                    || Math.abs((int) ((MovePlayerPacket) subPacket).y - player.getFloorY()) > 100
                                             ) {
                                                 continue;
-                                            }
+                                            }*/
                                             ((MovePlayerPacket) subPacket).eid = player.getId();
                                             subPacket.setChannel(DataPacket.CHANNEL_PLAYER_MOVING);
                                             MovePlayerPacket116100NE newMovePacket = null;
@@ -506,12 +527,12 @@ public class SynapseEntry {
                                             }
                                         } else if (subPacket instanceof MovePlayerPacket116100NE) {
                                             //判断是否和玩家自身在附近区块
-                                            if (Math.abs((int) ((MovePlayerPacket116100NE) subPacket).x >> 4 - player.getFloorX() >> 4) > 1
-                                                    || Math.abs((int) ((MovePlayerPacket116100NE) subPacket).z >> 4 - player.getFloorZ() >> 4) > 1
-                                                    || Math.abs((int) ((MovePlayerPacket116100NE) subPacket).y - player.getFloorY()) > 10
+                                            /*if (Math.abs((int) ((MovePlayerPacket116100NE) subPacket).x >> 4 - player.getFloorX() >> 4) > 4
+                                                    || Math.abs((int) ((MovePlayerPacket116100NE) subPacket).z >> 4 - player.getFloorZ() >> 4) > 4
+                                                    || Math.abs((int) ((MovePlayerPacket116100NE) subPacket).y - player.getFloorY()) > 100
                                             ) {
                                                 continue;
-                                            }
+                                            }*/
                                             ((MovePlayerPacket116100NE) subPacket).eid = player.getId();
                                             subPacket.setChannel(DataPacket.CHANNEL_PLAYER_MOVING);
                                             MovePlayerPacket oldMovePacket = null;
@@ -541,12 +562,12 @@ public class SynapseEntry {
                                         } else if (subPacket instanceof IPlayerAuthInputPacket) {
                                             IPlayerAuthInputPacket authInputPacket = (IPlayerAuthInputPacket) subPacket;
                                             //判断是否和玩家自身在附近区块
-                                            if (Math.abs((int) authInputPacket.getX() >> 4 - player.getFloorX() >> 4) > 1
-                                                    || Math.abs((int) authInputPacket.getZ() >> 4 - player.getFloorZ() >> 4) > 1
-                                                    || Math.abs((int) authInputPacket.getY() - player.getFloorY()) > 10
+                                            /*if (Math.abs((int) authInputPacket.getX() >> 4 - player.getFloorX() >> 4) > 4
+                                                    || Math.abs((int) authInputPacket.getZ() >> 4 - player.getFloorZ() >> 4) > 4
+                                                    || Math.abs((int) authInputPacket.getY() - player.getFloorY()) > 100
                                             ) {
                                                 continue;
-                                            }
+                                            }*/
                                             if (authInputPacket.getDeltaX() != 0 || authInputPacket.getDeltaZ() != 0 || authInputPacket.getDeltaY() - player.getEyeHeight() != player.getY() || authInputPacket.getHeadYaw() != player.getYaw() || authInputPacket.getPitch() != player.getPitch()) {
                                                 //Server.getInstance().getLogger().info(player.getName() + ": nkY=" + player.getY() + " y=" + authInputPacket.y + " deltaX=" + authInputPacket.deltaX + " deltaY=" + authInputPacket.deltaY + " deltaZ=" + authInputPacket.deltaZ + " moveVecX=" + authInputPacket.moveVecX + " moveVecZ=" + authInputPacket.moveVecZ);
                                                 MovePlayerPacket packet = new MovePlayerPacket();
