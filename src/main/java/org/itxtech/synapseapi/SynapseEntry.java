@@ -17,8 +17,11 @@ import cn.nukkit.utils.BinaryStream;
 import cn.nukkit.utils.MainLogger;
 import cn.nukkit.utils.Zlib;
 import com.google.gson.Gson;
+import it.unimi.dsi.fastutil.objects.Object2IntMap;
+import it.unimi.dsi.fastutil.objects.Object2IntOpenHashMap;
 import lombok.extern.log4j.Log4j2;
 import org.itxtech.synapseapi.event.player.SynapsePlayerCreationEvent;
+import org.itxtech.synapseapi.event.player.SynapsePlayerTooManyBatchPacketsEvent;
 import org.itxtech.synapseapi.event.player.SynapsePlayerTooManyPacketsInBatchEvent;
 import org.itxtech.synapseapi.messaging.StandardMessenger;
 import org.itxtech.synapseapi.multiprotocol.AbstractProtocol;
@@ -48,7 +51,11 @@ import static org.itxtech.synapseapi.SynapseSharedConstants.SERVERBOUND_PACKET_L
 @Log4j2
 public class SynapseEntry {
 
+    private static final int INCOMING_PACKET_BATCH_PER_TICK = 2; // usually max 1 per tick, but transactions may arrive separately
+    private static final int INCOMING_PACKET_BATCH_MAX_BUDGET = 100 * INCOMING_PACKET_BATCH_PER_TICK; // enough to account for a 5-second lag spike
+
     public static final int[] PACKET_COUNT_LIMIT = new int[256];
+    public static int[] globalPacketCountThisTick = new int[256];
 
     static {
         Arrays.fill(PACKET_COUNT_LIMIT, 10);
@@ -68,7 +75,7 @@ public class SynapseEntry {
     // private final Timing handleDataPacketTiming = TimingsManager.getTiming("SynapseEntry - HandleDataPacket");
     // private final Timing handleRedirectPacketTiming = TimingsManager.getTiming("SynapseEntry - HandleRedirectPacket");
 
-    private SynapseAPI synapse;
+    private final SynapseAPI synapse;
     private boolean enable;
     private String serverIp;
     private int port;
@@ -79,12 +86,13 @@ public class SynapseEntry {
     private long lastLogin;
     private long lastUpdate;
     private long lastRecvInfo;
-    private Map<UUID, SynapsePlayer> players = new HashMap<>();
+    private final Map<UUID, SynapsePlayer> players = new HashMap<>();
     private final Map<UUID, Integer> networkLatency = new ConcurrentHashMap<>();
     private SynLibInterface synLibInterface;
     private ClientData clientData;
     private String serverDescription;
     private Thread asyncTicker;
+    private final Object2IntMap<UUID> playerBatchPacketCounter = new Object2IntOpenHashMap<>();
 
     public SynapseEntry(SynapseAPI synapse, String serverIp, int port, boolean isMainServer, String password, String serverDescription) {
         this.synapse = synapse;
@@ -278,8 +286,11 @@ public class SynapseEntry {
         }
     }
 
+    /**
+     * 这个Ticker运行在主线程
+     */
     public class Ticker implements Runnable {
-        private SynapseEntry entry;
+        private final SynapseEntry entry;
         private Ticker(SynapseEntry entry) {
             this.entry = entry;
         }
@@ -314,9 +325,11 @@ public class SynapseEntry {
             }
 
             RedirectPacketEntry redirectPacketEntry;
+            Arrays.fill(globalPacketCountThisTick, 0);
             while ((redirectPacketEntry = redirectPacketQueue.poll()) != null) {
                 //Server.getInstance().getLogger().warning("C => S  " + redirectPacketEntry.dataPacket.getClass().getSimpleName());
                 DataPacket packet = DataPacketEidReplacer.replaceBack(redirectPacketEntry.dataPacket, SynapsePlayer.SYNAPSE_PLAYER_ENTITY_ID, redirectPacketEntry.player.getId());
+                globalPacketCountThisTick[packet.pid()]++;
                 if (SERVERBOUND_PACKET_LOGGING && log.isTraceEnabled()) {
                     PacketLogger.handleServerboundPacket(redirectPacketEntry.player, packet);
                 }
@@ -338,8 +351,17 @@ public class SynapseEntry {
         return AbstractProtocol.fromRealProtocol(protocol).getPlayerClass();
     }
 
-    public void threadTick(){
+    /**
+     * 这个Ticker运行在异步线程
+     */
+    public void threadTick() {
         this.synapseInterface.process();
+        this.playerBatchPacketCounter.forEach((uuid, count) -> {
+            if (count > INCOMING_PACKET_BATCH_MAX_BUDGET) {
+                Server.getInstance().getPluginManager().callEvent(new SynapsePlayerTooManyBatchPacketsEvent(this.players.get(uuid), count));
+            }
+        });
+        this.playerBatchPacketCounter.clear();
         if (!this.getSynapseInterface().isConnected() || !this.verified) {
             return;
         }
@@ -441,6 +463,7 @@ public class SynapseEntry {
                         //pk0.decode();
                         SynapsePlayer player = this.players.get(uuid);
                         if (pk0.pid() == ProtocolInfo.BATCH_PACKET) {
+                            this.playerBatchPacketCounter.put(player.getUniqueId(), this.playerBatchPacketCounter.getOrDefault(player.getUniqueId(), 0) + 1);
                             List<DataPacket> packets = processBatch((BatchPacket) pk0, redirectPacket.protocol, player.isNetEaseClient());
                             // Server.getInstance().getLogger().info("tick: " + Server.getInstance().getTick() + " to server " + packets.size() + " packets");
                             short[] packetCount = new short[256];
