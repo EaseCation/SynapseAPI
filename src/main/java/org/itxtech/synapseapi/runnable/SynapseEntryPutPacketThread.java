@@ -1,7 +1,6 @@
 package org.itxtech.synapseapi.runnable;
 
 import cn.nukkit.Server;
-import cn.nukkit.entity.Entity;
 import cn.nukkit.math.NukkitMath;
 import cn.nukkit.network.Network;
 import cn.nukkit.network.protocol.*;
@@ -16,6 +15,7 @@ import org.itxtech.synapseapi.multiprotocol.AbstractProtocol;
 import org.itxtech.synapseapi.multiprotocol.PacketRegister;
 import org.itxtech.synapseapi.network.SynapseInterface;
 import org.itxtech.synapseapi.network.protocol.spp.RedirectPacket;
+import org.itxtech.synapseapi.utils.PacketLogger;
 
 import java.io.ByteArrayOutputStream;
 import java.util.*;
@@ -23,6 +23,8 @@ import java.util.concurrent.LinkedBlockingQueue;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.zip.Deflater;
+
+import static org.itxtech.synapseapi.SynapseSharedConstants.CLIENTBOUND_PACKET_LOGGING;
 
 /**
  * org.itxtech.synapseapi.runnable
@@ -133,12 +135,14 @@ public class SynapseEntryPutPacketThread extends Thread {
         this.queue.offer(new Entry(player, packet, needACK, immediate));
 
         /*if (!(packet instanceof BossEventPacket)
-                *//*&& !(packet instanceof MovePlayerPacket)
+                && !(packet instanceof MovePlayerPacket)
                 && !(packet instanceof SetEntityDataPacket)
                 && !(packet instanceof UpdateAttributesPacket)
                 && !(packet instanceof LevelEventPacket)
                 && !(packet instanceof MobEffectPacket)
-                && !(packet instanceof SetTimePacket)*//*
+                && !(packet instanceof SetTimePacket)
+                && !(packet instanceof SetSpawnPositionPacket)
+                && !(packet instanceof MoveEntityPacket)
         ) {
             Server.getInstance().getLogger().debug("SynapseEntryPutPacketThread Offer: " + packet.getClass().getSimpleName());
             Server.getInstance().getLogger().logException(new Throwable());
@@ -250,6 +254,9 @@ public class SynapseEntryPutPacketThread extends Thread {
                                 throw new RuntimeException(e);
                             }
                             //Server.getInstance().getLogger().notice("S => C  " + entry.packet.getClass().getSimpleName());
+                            if (CLIENTBOUND_PACKET_LOGGING && log.isTraceEnabled()) {
+                                PacketLogger.handleClientboundPacket(entry.player, entry.packet);
+                            }
                         } else {
                             pk.mcpeBuffer = entry.packet instanceof BatchPacket ? Binary.appendBytes((byte) 0xfe, ((BatchPacket) entry.packet).payload) : entry.packet.getBuffer();
                         }

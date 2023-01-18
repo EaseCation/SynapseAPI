@@ -4,10 +4,10 @@ import cn.nukkit.command.data.CommandParamType;
 import cn.nukkit.network.protocol.types.InputInteractionModel;
 import cn.nukkit.utils.BinaryStream;
 import lombok.extern.log4j.Log4j2;
-import org.itxtech.synapseapi.multiprotocol.protocol11830.BinaryStreamHelper11830;
+import org.itxtech.synapseapi.multiprotocol.protocol11830ne.BinaryStreamHelper11830NE;
 
 @Log4j2
-public class BinaryStreamHelper119 extends BinaryStreamHelper11830 {
+public class BinaryStreamHelper119 extends BinaryStreamHelper11830NE {
     public static BinaryStreamHelper119 create() {
         return new BinaryStreamHelper119();
     }

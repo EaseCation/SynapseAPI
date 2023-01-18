@@ -4,10 +4,12 @@ import cn.nukkit.math.BlockVector3;
 import cn.nukkit.network.protocol.DataPacket;
 import cn.nukkit.network.protocol.PlayerActionPacket;
 import cn.nukkit.network.protocol.ProtocolInfo;
+import lombok.ToString;
 
 /**
  * @author Nukkit Project Team
  */
+@ToString
 public class PlayerActionPacket14 extends Packet14 {
 
     public static final int NETWORK_ID = ProtocolInfo.PLAYER_ACTION_PACKET;

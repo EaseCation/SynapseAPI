@@ -4,7 +4,9 @@ import cn.nukkit.math.BlockVector3;
 import cn.nukkit.network.protocol.DataPacket;
 import cn.nukkit.network.protocol.PlayerActionPacket;
 import cn.nukkit.network.protocol.ProtocolInfo;
+import lombok.ToString;
 
+@ToString
 public class PlayerActionPacket119 extends Packet119 {
     public static final int NETWORK_ID = ProtocolInfo.PLAYER_ACTION_PACKET;
 
@@ -21,7 +23,6 @@ public class PlayerActionPacket119 extends Packet119 {
     public static final int ACTION_STOP_SPRINT = 10;
     public static final int ACTION_START_SNEAK = 11;
     public static final int ACTION_STOP_SNEAK = 12;
-    public static final int ACTION_DIMENSION_CHANGE_REQUEST = 13; //sent when dying in different dimension
     public static final int ACTION_CREATIVE_PLAYER_DESTROY_BLOCK = 13; // 1.16.100+
     public static final int ACTION_DIMENSION_CHANGE_ACK = 14; //sent when spawning in a different dimension to tell the server we spawned
     public static final int ACTION_START_GLIDE = 15;

@@ -63,6 +63,8 @@ public class SynapsePlayer116 extends SynapsePlayer113 {
 	protected boolean serverAuthoritativeBlockBreaking = true;
 	protected BlockFace breakingBlockFace;
 
+	protected int packetCountAuthPlayerInput = 0;
+
 	public SynapsePlayer116(SourceInterface interfaz, SynapseEntry synapseEntry, Long clientID, InetSocketAddress socketAddress) {
 		super(interfaz, synapseEntry, clientID, socketAddress);
 		this.levelChangeLoadScreen = false;
@@ -194,24 +196,30 @@ public class SynapsePlayer116 extends SynapsePlayer113 {
 				}
 
 				if (transactionPacket.isCraftingPart) {
-					if (this.craftingTransaction == null) {
-						this.craftingTransaction = new CraftingTransaction(this, actions);
-					} else {
-						for (InventoryAction action : actions) {
-							this.craftingTransaction.addAction(action);
+					try {
+						if (this.craftingTransaction == null) {
+							this.craftingTransaction = new CraftingTransaction(this, actions);
+						} else {
+							for (InventoryAction action : actions) {
+								this.craftingTransaction.addAction(action);
+							}
 						}
-					}
 
-					if (this.craftingTransaction.getPrimaryOutput() != null && this.craftingTransaction.canExecute()) {
-						//we get the actions for this in several packets, so we can't execute it until we get the result
+						if (this.craftingTransaction.getPrimaryOutput() != null && this.craftingTransaction.canExecute()) {
+							//we get the actions for this in several packets, so we can't execute it until we get the result
 
-						this.craftingTransaction.execute();
+							this.craftingTransaction.execute();
+							this.craftingTransaction = null;
+							break;
+						}
+
+						if ((craftingType >> 3) == 0 || craftingType == CRAFTING_STONECUTTER) {
+							break;
+						}
+					} catch (Exception e) {
+						this.getServer().getLogger().logException(e);
 						this.craftingTransaction = null;
-						break;
-					}
-
-					if ((craftingType >> 3) == 0 || craftingType == CRAFTING_STONECUTTER) {
-						break;
+						this.getUIInventory().sendContents(this);
 					}
 				} else if (transactionPacket.isEnchantingPart) {
 					if (this.enchantTransaction == null) {
@@ -385,7 +393,7 @@ public class SynapsePlayer116 extends SynapsePlayer113 {
 
 								if (this.canInteract(blockVector.add(0.5, 0.5, 0.5), this.isCreative() ? 16 : 8) && (i = this.level.useBreakOn(blockVector.asVector3(), face, i, this, true)) != null) {
 									if (this.isSurvival()) {
-										this.getFoodData().updateFoodExpLevel(0.025);
+										this.getFoodData().updateFoodExpLevel(0.005);
 										if (!i.equals(oldItem) || i.getCount() != oldItem.getCount()) {
 											inventory.setItemInHand(i);
 											inventory.sendHeldItem(this.getViewers().values());
@@ -633,6 +641,12 @@ public class SynapsePlayer116 extends SynapsePlayer113 {
 				}
 				break;
 			case ProtocolInfo.PLAYER_AUTH_INPUT_PACKET:
+				// 对每tick的玩家数据包进行计数
+				if (this.packetCountAuthPlayerInput++ > 2) {
+					// 丢掉其他的包
+					break;
+				}
+
 				if (!callPacketReceiveEvent(packet)) break;
 				if (this.teleportPosition != null) {
 					break;
@@ -739,12 +753,12 @@ public class SynapsePlayer116 extends SynapsePlayer113 {
 									}
 									distanceChecked = true;
 									this.level.addLevelEvent(this.breakingBlock, LevelEventPacket.EVENT_BLOCK_STOP_BREAK);
-									this.lastBreak = Long.MAX_VALUE;
+									this.lastBreak = -1;
 									this.breakingBlock = null;
 									this.breakingBlockFace = null;
 								}
 							case PlayerActionPacket14.ACTION_START_BREAK: // both
-								if (!this.spawned || !this.isAlive() || this.isSpectator() || this.lastBreak != Long.MAX_VALUE || !distanceChecked && pos.distanceSquared(this) > 100) {
+								if (!this.spawned || !this.isAlive() || this.isSpectator() || this.lastBreak != -1 || !distanceChecked && pos.distanceSquared(this) > 100) {
 									break;
 								}
 								face = BlockFace.fromIndex(blockAction.data);
@@ -811,7 +825,7 @@ public class SynapsePlayer116 extends SynapsePlayer113 {
 								if (this.canInteract(pos.add(0.5, 0.5, 0.5), this.isCreative() ? 16 : 8) && (item = this.level.useBreakOn(pos, face, item, this, true)) != null) {
 									// success
 									if (this.isSurvival()) {
-										this.getFoodData().updateFoodExpLevel(0.025);
+										this.getFoodData().updateFoodExpLevel(0.005);
 										if (!item.equals(oldItem) || item.getCount() != oldItem.getCount()) {
 											this.inventory.setItemInHand(item);
 											this.inventory.sendHeldItem(this.getViewers().values());
@@ -839,7 +853,7 @@ public class SynapsePlayer116 extends SynapsePlayer113 {
 //									int breakTime = blockAction.data;
 								}
 								this.level.addLevelEvent(pos, LevelEventPacket.EVENT_BLOCK_STOP_BREAK);
-								this.lastBreak = Long.MAX_VALUE;
+								this.lastBreak = -1;
 								this.breakingBlock = null;
 								this.breakingBlockFace = null;
 								break;
@@ -992,6 +1006,7 @@ public class SynapsePlayer116 extends SynapsePlayer113 {
 	public boolean onUpdate(int currentTick) {
 		int tickDiff = currentTick - this.lastUpdate;
 		if (tickDiff > 0) {
+			this.packetCountAuthPlayerInput = 0;
 			this.updateSynapsePlayerTiming.startTiming();
 			if (this.serverAuthoritativeBlockBreaking && this.breakingBlockFace != null && this.isBreakingBlock() && this.spawned && this.isAlive()) {
 				this.level.addParticle(new PunchBlockParticle(this.breakingBlock, this.breakingBlock, this.breakingBlockFace));

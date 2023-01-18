@@ -14,6 +14,7 @@ import cn.nukkit.level.GameRules;
 import cn.nukkit.level.Position;
 import cn.nukkit.level.particle.PunchBlockParticle;
 import cn.nukkit.math.BlockFace;
+import cn.nukkit.math.BlockVector3;
 import cn.nukkit.math.Vector3;
 import cn.nukkit.network.SourceInterface;
 import cn.nukkit.network.protocol.*;
@@ -212,7 +213,13 @@ public class SynapsePlayer14 extends SynapsePlayer {
 
 				switch (playerActionPacket.action) {
 					case PlayerActionPacket14.ACTION_START_BREAK:
-						if (!this.spawned || !this.isAlive() || this.isSpectator() || this.lastBreak != Long.MAX_VALUE || pos.distanceSquared(this) > 100) {
+						if (this.isSpectator()) {
+							break;
+						}
+						long currentBreak = System.currentTimeMillis();
+						BlockVector3 currentBreakPosition = new BlockVector3(playerActionPacket.x, playerActionPacket.y, playerActionPacket.z);
+						// HACK: Client spams multiple left clicks so we need to skip them.
+						if ((lastBreakPosition.equalsVec(currentBreakPosition) && (currentBreak - this.lastBreak) < 10) || pos.distanceSquared(this) > 100) {
 							break;
 						}
 						Block target = this.level.getBlock(pos, false);
@@ -249,11 +256,10 @@ public class SynapsePlayer14 extends SynapsePlayer {
 						}
 
 						this.breakingBlock = target;
-						this.lastBreak = System.currentTimeMillis();
+						this.lastBreak = currentBreak;
+						this.lastBreakPosition = currentBreakPosition;
 						break;
 					case PlayerActionPacket14.ACTION_ABORT_BREAK:
-						this.lastBreak = Long.MAX_VALUE;
-						this.breakingBlock = null;
 					case PlayerActionPacket14.ACTION_STOP_BREAK:
 						if (pos.distanceSquared(this) < 100) { // same as with ACTION_START_BREAK
 							LevelEventPacket pk = new LevelEventPacket();
@@ -416,10 +422,11 @@ public class SynapsePlayer14 extends SynapsePlayer {
 			case ProtocolInfo.LEVEL_SOUND_EVENT_PACKET:
 				if (!callPacketReceiveEvent(packet)) break;
 				LevelSoundEventPacket levelSoundEventPacket = (LevelSoundEventPacket) packet;
+				LevelSoundEventEnum sound = LevelSoundEventEnum.fromV14(levelSoundEventPacket.sound);
 				SynapsePlayerBroadcastLevelSoundEvent event = new SynapsePlayerBroadcastLevelSoundEvent(this,
-						LevelSoundEventEnum.fromV14(levelSoundEventPacket.sound),
+						sound,
 						new Vector3(levelSoundEventPacket.x, levelSoundEventPacket.y, levelSoundEventPacket.z),
-						levelSoundEventPacket.extraData,
+						sound.translateExtraDataFromClient(levelSoundEventPacket.extraData, AbstractProtocol.fromRealProtocol(getProtocol()), isNetEaseClient()),
 						levelSoundEventPacket.pitch,
 						"minecraft:player",
 						levelSoundEventPacket.isBabyMob,

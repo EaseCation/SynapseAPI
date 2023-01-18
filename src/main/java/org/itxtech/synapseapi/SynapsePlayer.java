@@ -528,6 +528,7 @@ public class SynapsePlayer extends Player {
         Entry clientData = clients.clientList.get(hash);
 
         if (clientData != null) {
+            this.sendMessage(TextFormat.GRAY + " -> " + clientData.getDescription());
             if (extra != null) {
                 for (Map.Entry<String, JsonElement> entry : extra.entrySet()) {
                     this.transferExtra.add(entry.getKey(), entry.getValue());
@@ -589,6 +590,7 @@ public class SynapsePlayer extends Player {
 
                         forceSendEmptyChunks(3);
                         SynapseAPI.getInstance().getTransferDimensionTaskThread().queue(player, hash, transferExtra);
+                        SynapsePlayer.this.sendMessage(TextFormat.GRAY + "(dimension) -> " + clientData.getDescription());
                     }
                 }.putPlayer(this);
 
@@ -624,10 +626,12 @@ public class SynapsePlayer extends Player {
                         getSynapseEntry().sendDataPacket(pk);
                     }
                 }, 1);
+                this.sendMessage(TextFormat.GRAY + "(synapse) -> " + clientData.getDescription());
             }
 
             return true;
         }
+        this.sendMessage(TextFormat.GRAY + "[transfer] client not found");
         return false;
     }
 
@@ -1050,10 +1054,11 @@ public class SynapsePlayer extends Player {
             case ProtocolInfo.LEVEL_SOUND_EVENT_PACKET:
                 if (!callPacketReceiveEvent(packet)) break;
                 LevelSoundEventPacket levelSoundEventPacket = (LevelSoundEventPacket) packet;
+                LevelSoundEventEnum sound = LevelSoundEventEnum.fromV12(levelSoundEventPacket.sound);
                 SynapsePlayerBroadcastLevelSoundEvent event = new SynapsePlayerBroadcastLevelSoundEvent(this,
-                        LevelSoundEventEnum.fromV12(levelSoundEventPacket.sound),
+                        sound,
                         new Vector3(levelSoundEventPacket.x, levelSoundEventPacket.y, levelSoundEventPacket.z),
-                        levelSoundEventPacket.extraData,
+                        sound.translateExtraDataFromClient(levelSoundEventPacket.extraData, AbstractProtocol.fromRealProtocol(getProtocol()), isNetEaseClient()),
                         levelSoundEventPacket.pitch,
                         "minecraft:player",
                         levelSoundEventPacket.isBabyMob,

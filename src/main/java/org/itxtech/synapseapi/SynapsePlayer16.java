@@ -10,7 +10,6 @@ import cn.nukkit.lang.TranslationContainer;
 import cn.nukkit.level.GameRules;
 import cn.nukkit.level.Level;
 import cn.nukkit.level.Position;
-import cn.nukkit.math.Mth;
 import cn.nukkit.math.Vector3;
 import cn.nukkit.network.SourceInterface;
 import cn.nukkit.network.protocol.*;
@@ -26,18 +25,24 @@ import org.itxtech.synapseapi.event.player.SynapsePlayerBroadcastLevelSoundEvent
 import org.itxtech.synapseapi.event.player.SynapsePlayerConnectEvent;
 import org.itxtech.synapseapi.event.player.netease.NetEasePlayerModEventC2SEvent;
 import org.itxtech.synapseapi.event.player.netease.NetEasePlayerPyRpcReceiveEvent;
+import org.itxtech.synapseapi.event.player.netease.SynapsePlayerNetEaseStoreBuySuccEvent;
 import org.itxtech.synapseapi.multiprotocol.AbstractProtocol;
 import org.itxtech.synapseapi.multiprotocol.PacketRegister;
-import org.itxtech.synapseapi.multiprotocol.protocol14.protocol.*;
+import org.itxtech.synapseapi.multiprotocol.protocol14.protocol.LoginPacket14;
 import org.itxtech.synapseapi.multiprotocol.protocol16.protocol.*;
 import org.itxtech.synapseapi.multiprotocol.utils.LevelSoundEventEnum;
 import org.itxtech.synapseapi.network.protocol.spp.PlayerLoginPacket;
-import org.msgpack.value.*;
+import org.msgpack.value.ArrayValue;
+import org.msgpack.value.MapValue;
+import org.msgpack.value.Value;
+import org.msgpack.value.ValueFactory;
 
 import java.net.InetSocketAddress;
 import java.nio.charset.StandardCharsets;
 import java.util.Optional;
 import java.util.concurrent.ThreadLocalRandom;
+
+import static cn.nukkit.SharedConstants.RESOURCE_PACK_CHUNK_SIZE;
 
 public class SynapsePlayer16 extends SynapsePlayer14 {
 
@@ -101,13 +106,12 @@ public class SynapsePlayer16 extends SynapsePlayer14 {
 							ResourcePackDataInfoPacket dataInfoPacket = new ResourcePackDataInfoPacket();
 							dataInfoPacket.packId = resourcePack.getPackId();
 							dataInfoPacket.maxChunkSize = RESOURCE_PACK_CHUNK_SIZE;
-							dataInfoPacket.chunkCount = Mth.ceil(resourcePack.getPackSize() / (float) RESOURCE_PACK_CHUNK_SIZE);
+							dataInfoPacket.chunkCount = resourcePack.getChunkCount();
 							dataInfoPacket.compressedPackSize = resourcePack.getPackSize();
 							dataInfoPacket.sha256 = resourcePack.getSha256();
 							if (resourcePack.getPackType().equals("resources")) {
 								dataInfoPacket.type = ResourcePackDataInfoPacket.TYPE_RESOURCE;
-							}
-							else if (resourcePack.getPackType().equals("data")) {
+							} else if (resourcePack.getPackType().equals("data")) {
 								dataInfoPacket.type = ResourcePackDataInfoPacket.TYPE_BEHAVIOR;
 							}
 							this.dataPacket(dataInfoPacket);
@@ -131,10 +135,11 @@ public class SynapsePlayer16 extends SynapsePlayer14 {
 			case ProtocolInfo.LEVEL_SOUND_EVENT_PACKET:
 				if (!callPacketReceiveEvent(packet)) break;
 				LevelSoundEventPacket16 levelSoundEventPacket = (LevelSoundEventPacket16) packet;
+				LevelSoundEventEnum sound = LevelSoundEventEnum.fromV14(levelSoundEventPacket.sound);
 				SynapsePlayerBroadcastLevelSoundEvent event = new SynapsePlayerBroadcastLevelSoundEvent(this,
-						LevelSoundEventEnum.fromV14(levelSoundEventPacket.sound),
+						sound,
 						new Vector3(levelSoundEventPacket.x, levelSoundEventPacket.y, levelSoundEventPacket.z),
-						levelSoundEventPacket.extraData,
+						sound.translateExtraDataFromClient(levelSoundEventPacket.extraData, AbstractProtocol.fromRealProtocol(getProtocol()), isNetEaseClient()),
 						levelSoundEventPacket.pitch,
 						"minecraft:player",
 						levelSoundEventPacket.isBabyMob,
@@ -187,6 +192,9 @@ public class SynapsePlayer16 extends SynapsePlayer14 {
 									);
 									Server.getInstance().getPluginManager().callEvent(modEventC2SEvent);
 								}
+							} else if ("StoreBuySuccServerEvent".equals(value0.get(0).getAsString())) {
+								SynapsePlayerNetEaseStoreBuySuccEvent ev = new SynapsePlayerNetEaseStoreBuySuccEvent(this);
+								Server.getInstance().getPluginManager().callEvent(ev);
 							}
 						}
 					}

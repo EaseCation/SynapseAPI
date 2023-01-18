@@ -10,7 +10,7 @@ public class NpcDialoguePacket11710 extends Packet11710 {
     public static final int ACTION_OPEN = 0;
     public static final int ACTION_CLOSE = 1;
 
-    public int npcEntityUniqueId;
+    public long npcEntityUniqueId;
     public int actionType = ACTION_OPEN;
     public String dialogue = "";
     public String sceneName = "";

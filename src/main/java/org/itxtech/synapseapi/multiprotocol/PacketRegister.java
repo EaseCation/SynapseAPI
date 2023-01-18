@@ -50,6 +50,10 @@ import org.itxtech.synapseapi.multiprotocol.protocol11810.protocol.SubChunkReque
 import org.itxtech.synapseapi.multiprotocol.protocol11830.protocol.AddPlayerPacket11830;
 import org.itxtech.synapseapi.multiprotocol.protocol11830.protocol.SpawnParticleEffectPacket11830;
 import org.itxtech.synapseapi.multiprotocol.protocol11830.protocol.StartGamePacket11830;
+import org.itxtech.synapseapi.multiprotocol.protocol11830ne.protocol.ClientboundMapItemDataPacket11830NE;
+import org.itxtech.synapseapi.multiprotocol.protocol11830ne.protocol.MapInfoRequestPacket11830NE;
+import org.itxtech.synapseapi.multiprotocol.protocol11830ne.protocol.NetworkChunkPublisherUpdatePacket11830NE;
+import org.itxtech.synapseapi.multiprotocol.protocol11830ne.protocol.StartGamePacket11830NE;
 import org.itxtech.synapseapi.multiprotocol.protocol119.protocol.PlayerActionPacket119;
 import org.itxtech.synapseapi.multiprotocol.protocol119.protocol.RequestAbilityPacket119;
 import org.itxtech.synapseapi.multiprotocol.protocol119.protocol.RequestPermissionsPacket119;
@@ -284,6 +288,11 @@ public class PacketRegister {
         registerPacket(AbstractProtocol.PROTOCOL_118_30, ProtocolInfo.START_GAME_PACKET, StartGamePacket11830.class);
         registerPacket(AbstractProtocol.PROTOCOL_118_30, ProtocolInfo.ADD_PLAYER_PACKET, AddPlayerPacket11830.class);
         registerPacket(AbstractProtocol.PROTOCOL_118_30, ProtocolInfo.SPAWN_PARTICLE_EFFECT_PACKET, SpawnParticleEffectPacket11830.class);
+
+        registerPacket(AbstractProtocol.PROTOCOL_118_30_NE, ProtocolInfo.START_GAME_PACKET, StartGamePacket11830NE.class);
+        registerPacket(AbstractProtocol.PROTOCOL_118_30_NE, ProtocolInfo.CLIENTBOUND_MAP_ITEM_DATA_PACKET, ClientboundMapItemDataPacket11830NE.class);
+        registerPacket(AbstractProtocol.PROTOCOL_118_30_NE, ProtocolInfo.NETWORK_CHUNK_PUBLISHER_UPDATE_PACKET, NetworkChunkPublisherUpdatePacket11830NE.class);
+//        registerPacket(AbstractProtocol.PROTOCOL_118_30_NE, ProtocolInfo.MAP_INFO_REQUEST_PACKET, MapInfoRequestPacket11830NE.class);
 
         registerPacket(AbstractProtocol.PROTOCOL_119, ProtocolInfo.START_GAME_PACKET, StartGamePacket119.class);
         registerPacket(AbstractProtocol.PROTOCOL_119, ProtocolInfo.PLAYER_ACTION_PACKET, PlayerActionPacket119.class);

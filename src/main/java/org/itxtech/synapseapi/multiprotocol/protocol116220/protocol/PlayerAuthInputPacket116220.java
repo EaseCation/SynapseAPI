@@ -9,6 +9,7 @@ import cn.nukkit.network.protocol.ProtocolInfo;
 import cn.nukkit.network.protocol.types.InputInteractionModel;
 import cn.nukkit.network.protocol.types.InventoryTransactionPacketInterface;
 import cn.nukkit.network.protocol.types.NetworkInventoryAction;
+import cn.nukkit.utils.Utils;
 import lombok.ToString;
 import lombok.extern.log4j.Log4j2;
 import org.itxtech.synapseapi.SynapseSharedConstants;
@@ -16,6 +17,7 @@ import org.itxtech.synapseapi.multiprotocol.protocol113.protocol.IPlayerAuthInpu
 import org.itxtech.synapseapi.multiprotocol.protocol116.protocol.PlayerAuthInputPacket116;
 
 import javax.annotation.Nullable;
+import java.util.ArrayDeque;
 
 @Log4j2
 @ToString
@@ -181,11 +183,12 @@ public class PlayerAuthInputPacket116220 extends Packet116220 implements Invento
                 }
             }
 
-            int size = (int) this.getUnsignedVarInt();
+            this.inventoryActions = this.getArray(NetworkInventoryAction.class, bs -> new NetworkInventoryAction().read(this, this));
+            /*int size = (int) this.getUnsignedVarInt();
             this.inventoryActions = new NetworkInventoryAction[size];
             for (int i = 0; i < size; i++) {
                 this.inventoryActions[i] = new NetworkInventoryAction().read(this, this);
-            }
+            }*/
 
             int actionType = (int) this.getUnsignedVarInt();
             BlockVector3 blockPosition = this.getBlockVector3();
@@ -202,7 +205,78 @@ public class PlayerAuthInputPacket116220 extends Packet116220 implements Invento
 
             int requestId = this.getVarInt();
 
-            int size = (int) this.getUnsignedVarInt();
+            this.itemStackRequests = Utils.toPrimitive(this.getArray(int.class, bs -> {
+                int type = this.getByte();
+                switch (type) {
+                    case STACK_REQUEST_TAKE:
+                        int count = this.getByte();
+                        Object source = this.getStackRequestSlotInfo();
+                        Object destination = this.getStackRequestSlotInfo();
+                        break;
+                    case STACK_REQUEST_PLACE:
+                        count = this.getByte();
+                        source = this.getStackRequestSlotInfo();
+                        destination = this.getStackRequestSlotInfo();
+                        break;
+                    case STACK_REQUEST_SWAP:
+                        source = this.getStackRequestSlotInfo();
+                        destination = this.getStackRequestSlotInfo();
+                        break;
+                    case STACK_REQUEST_DROP:
+                        count = this.getByte();
+                        source = this.getStackRequestSlotInfo();
+                        boolean unknownBool3 = this.getBoolean();
+                        break;
+                    case STACK_REQUEST_DESTROY:
+                        count = this.getByte();
+                        source = this.getStackRequestSlotInfo();
+                        break;
+                    case STACK_REQUEST_CRAFTING_CONSUME_INPUT:
+                        count = this.getByte();
+                        source = this.getStackRequestSlotInfo();
+                        break;
+                    case STACK_REQUEST_CRAFTING_MARK_SECONDARY_RESULT_SLOT:
+                        int slot = this.getByte();
+                        break;
+                    case STACK_REQUEST_LAB_TABLE_COMBINE:
+                        break;
+                    case STACK_REQUEST_BEACON_PAYMENT:
+                        int primaryEffect = this.getVarInt();
+                        int secondaryEffect = this.getVarInt();
+                        break;
+                    case STACK_REQUEST_MINE_BLOCK:
+                        int unknown9 = this.getVarInt();
+                        int predictedDurability = this.getVarInt();
+                        int stackId = this.getVarInt();
+                        break;
+                    case STACK_REQUEST_CRAFTING_RECIPE:
+                        int recipeNetworkId = (int) this.getUnsignedVarInt();
+                        break;
+                    case STACK_REQUEST_CRAFTING_RECIPE_AUTO:
+                        recipeNetworkId = (int) this.getUnsignedVarInt();
+                        break;
+                    case STACK_REQUEST_CREATIVE_CREATE:
+                        int creativeItemNetworkId = (int) this.getUnsignedVarInt();
+                        break;
+                    case STACK_REQUEST_CRAFTING_RECIPE_OPTIONAL:
+                        recipeNetworkId = (int) this.getUnsignedVarInt();
+                        int filteredStringIndex = this.getLInt();
+                        break;
+                    case STACK_REQUEST_CRAFTING_NON_IMPLEMENTED_DEPRECATED_ASK_TY_LAING:
+                        break;
+                    case STACK_REQUEST_CRAFTING_RESULTS_DEPRECATED_ASK_TY_LAING:
+                        int length = (int) this.getUnsignedVarInt();
+                        for (int j = 0; j < length; j++) {
+                            Item resultItem = this.getItemInstance();
+                        }
+                        int iterations = this.getByte();
+                        break;
+                    default:
+                        throw new UnsupportedOperationException("Unhandled item stack request action type: " + type);
+                }
+                return type;
+            }));
+            /*int size = (int) this.getUnsignedVarInt();
             this.itemStackRequests = new int[size];
             for (int i = 0; i < size; i++) {
                 int type = this.getByte();
@@ -274,9 +348,9 @@ public class PlayerAuthInputPacket116220 extends Packet116220 implements Invento
                         throw new UnsupportedOperationException("Unhandled item stack request action type: " + type);
                 }
                 this.itemStackRequests[i] = type;
-            }
+            }*/
 
-            size = (int) this.getUnsignedVarInt();
+            int size = (int) this.getUnsignedVarInt();
             for (int i = 0; i < size; i++) {
                 String filteredString = this.getString();
 
@@ -286,8 +360,9 @@ public class PlayerAuthInputPacket116220 extends Packet116220 implements Invento
         if ((this.inputFlags & (1L << FLAG_PERFORM_BLOCK_ACTIONS)) != 0) {
             if (SynapseSharedConstants.MAC_DEBUG) debugFlags[2] = true;
 
+            ArrayDeque<PlayerBlockAction> deque = new ArrayDeque<>();
             int size = this.getVarInt();
-            this.blockActions = new PlayerBlockAction[size];
+            //this.blockActions = new PlayerBlockAction[size];
             for (int i = 0; i < size; i++) {
                 int actionType = this.getVarInt();
                 PlayerBlockAction action = new PlayerBlockAction(actionType);
@@ -311,8 +386,9 @@ public class PlayerAuthInputPacket116220 extends Packet116220 implements Invento
                         throw new UnsupportedOperationException("Unexpected block action type: " + actionType);
                 }
 
-                this.blockActions[i] = action;
+                deque.add(action);
             }
+            this.blockActions = deque.toArray(new PlayerBlockAction[0]);
         }
 
         if (SynapseSharedConstants.MAC_DEBUG) {

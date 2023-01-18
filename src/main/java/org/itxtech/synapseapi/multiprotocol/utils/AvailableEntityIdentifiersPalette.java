@@ -58,6 +58,7 @@ public final class AvailableEntityIdentifiersPalette {
             palettes.put(AbstractProtocol.PROTOCOL_118, data118);
             palettes.put(AbstractProtocol.PROTOCOL_118_10, data118);
             palettes.put(AbstractProtocol.PROTOCOL_118_30, data118);
+            palettes.put(AbstractProtocol.PROTOCOL_118_30_NE, data118);
             palettes.put(AbstractProtocol.PROTOCOL_119, data119);
             palettes.put(AbstractProtocol.PROTOCOL_119_10, data11910);
             palettes.put(AbstractProtocol.PROTOCOL_119_20, data11910);
