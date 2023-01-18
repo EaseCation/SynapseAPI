@@ -118,6 +118,7 @@ public class InventoryTransactionPacket116 extends Packet116 implements Inventor
                 this.putSlot(useItemData.itemInHand);
                 this.putVector3f(useItemData.playerPos.asVector3f());
                 this.putVector3f(useItemData.clickPos);
+                this.putUnsignedVarInt(useItemData.blockId);
                 break;
             case TYPE_USE_ITEM_ON_ENTITY:
                 UseItemOnEntityData useItemOnEntityData = (UseItemOnEntityData) this.transactionData;
@@ -181,6 +182,7 @@ public class InventoryTransactionPacket116 extends Packet116 implements Inventor
                 itemData.itemInHand = this.getSlot();
                 itemData.playerPos = this.getVector3f().asVector3();
                 itemData.clickPos = this.getVector3f();
+                itemData.blockId = (int) this.getUnsignedVarInt();
 
                 this.transactionData = itemData;
                 break;

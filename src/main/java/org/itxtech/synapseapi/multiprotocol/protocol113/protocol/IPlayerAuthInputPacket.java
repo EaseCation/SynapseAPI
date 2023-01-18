@@ -1,9 +1,13 @@
 package org.itxtech.synapseapi.multiprotocol.protocol113.protocol;
 
+import cn.nukkit.inventory.transaction.data.UseItemData;
+import cn.nukkit.network.protocol.types.InventoryTransactionPacketInterface;
 import cn.nukkit.network.protocol.types.NetworkInventoryAction;
 import lombok.ToString;
 
-public interface IPlayerAuthInputPacket {
+import javax.annotation.Nullable;
+
+public interface IPlayerAuthInputPacket extends InventoryTransactionPacketInterface {
 
     float getX();
     float getY();
@@ -27,10 +31,17 @@ public interface IPlayerAuthInputPacket {
     void setPitch(float pitch);
     void setYaw(float yaw);
 
+    @Nullable
     default NetworkInventoryAction[] getInventoryActions() {
         return null;
     }
 
+    @Nullable
+    default UseItemData getUseItemData() {
+        return null;
+    }
+
+    @Nullable
     default PlayerBlockAction[] getBlockActions() {
         return null;
     }
