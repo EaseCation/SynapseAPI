@@ -673,7 +673,7 @@ public class SynapseEntry {
                 AbstractProtocol.PacketHeadData head = apl.tryDecodePacketHead(buf, false);
                 if (head != null) {
                     int pid = head.getPid();
-                    if (pid <= 0 || pid > ProtocolInfo.COUNT) {
+                    if (pid <= 0 || pid >= ProtocolInfo.BATCH_PACKET) {
                         // invalid packet
                         return null;
                     }
