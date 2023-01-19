@@ -40,6 +40,7 @@ import cn.nukkit.network.protocol.*;
 import cn.nukkit.network.protocol.types.ContainerIds;
 import cn.nukkit.network.protocol.types.NetworkInventoryAction;
 import cn.nukkit.utils.Binary;
+import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import lombok.extern.log4j.Log4j2;
 import org.itxtech.synapseapi.event.player.SynapsePlayerInputModeChangeEvent;
 import org.itxtech.synapseapi.multiprotocol.AbstractProtocol;
@@ -313,6 +314,7 @@ public class SynapsePlayer116 extends SynapsePlayer113 {
 					case InventoryTransactionPacket116.TYPE_USE_ITEM:
 						UseItemData useItemData = (UseItemData) transactionPacket.transactionData;
 
+						Vector3f clickPos = useItemData.clickPos;
 						BlockVector3 blockVector = useItemData.blockPos;
 						BlockFace face = useItemData.face;
 						int type = useItemData.actionType;
@@ -324,10 +326,13 @@ public class SynapsePlayer116 extends SynapsePlayer113 {
 						switch (type) {
 							case InventoryTransactionPacket116.USE_ITEM_ACTION_CLICK_BLOCK:
 								// Remove if client bug is ever fixed
-								boolean spamBug = (lastRightClickPos != null && System.currentTimeMillis() - lastRightClickTime < 100.0 && blockVector.distanceSquared(lastRightClickPos) < 0.00001);
-								lastRightClickPos = blockVector.asVector3();
+								boolean spamBug = lastRightClickData != null && System.currentTimeMillis() - lastRightClickTime < 100.0 &&
+										lastRightClickData.playerPos.distanceSquared(useItemData.playerPos) < 0.00001 &&
+										lastRightClickData.blockPos.equalsVec(blockVector) &&
+										lastRightClickData.clickPos.distanceSquared(clickPos) < 0.00001; // signature spam bug has 0 distance, but allow some error
+								lastRightClickData = useItemData;
 								lastRightClickTime = System.currentTimeMillis();
-								if (spamBug && !(this.getInventory().getItemInHand() instanceof ItemBlock)) {
+								if (spamBug /*&& !(useItemData.itemInHand instanceof ItemBlock)*/) {
 									return;
 								}
 
@@ -336,14 +341,14 @@ public class SynapsePlayer116 extends SynapsePlayer113 {
 								if (this.canInteract(blockVector.add(0.5, 0.5, 0.5), this.isCreative() ? 13 : 7)) {
 									if (this.isCreative()) {
 										Item i = inventory.getItemInHand();
-										if (this.level.useItemOn(blockVector.asVector3(), i, face, useItemData.clickPos.x, useItemData.clickPos.y, useItemData.clickPos.z, this) != null) {
+										if (this.level.useItemOn(blockVector.asVector3(), i, face, clickPos.x, clickPos.y, clickPos.z, this) != null) {
 											break packetswitch;
 										}
 									} else if (inventory.getItemInHand().equals(useItemData.itemInHand)) {
 										Item i = inventory.getItemInHand();
 										Item oldItem = i.clone();
 										//TODO: Implement adventure mode checks
-										if ((i = this.level.useItemOn(blockVector.asVector3(), i, face, useItemData.clickPos.x, useItemData.clickPos.y, useItemData.clickPos.z, this)) != null) {
+										if ((i = this.level.useItemOn(blockVector.asVector3(), i, face, clickPos.x, clickPos.y, clickPos.z, this)) != null) {
 											if (!i.equals(oldItem) || i.getCount() != oldItem.getCount()) {
 												inventory.setItemInHand(i);
 												inventory.sendHeldItem(this.getViewers().values());
@@ -366,10 +371,9 @@ public class SynapsePlayer116 extends SynapsePlayer113 {
 
 								if (target instanceof BlockDoor) {
 									BlockDoor door = (BlockDoor) target;
-
 									Block part;
 
-									if ((door.getDamage() & 0x08) > 0) { //up
+									if (door.isTop()) {
 										part = target.down();
 
 										if (part.getId() == target.getId()) {
@@ -870,6 +874,294 @@ public class SynapsePlayer116 extends SynapsePlayer113 {
 					this.startAction = -1;
 					this.startActionTimestamp = -1;
 					this.setDataFlag(DATA_FLAGS, DATA_FLAG_ACTION, false);
+				}
+
+				NetworkInventoryAction[] inventoryActions = playerAuthInputPacket.getInventoryActions();
+				if (inventoryActions != null && inventoryActions.length != 0) {
+					boolean resolve = true;
+
+					skipped = false;
+					actions = new ObjectArrayList<>(inventoryActions.length);
+					for (NetworkInventoryAction networkAction : inventoryActions) {
+						InventoryAction action = networkAction.createInventoryAction(this);
+
+						if (action == null) {
+							skipped = true;
+							continue;
+						}
+
+						if (skipped && networkAction.windowId == ContainerIds.UI) {
+							resolve = false;
+							break;
+						}
+
+						actions.add(action);
+					}
+
+					if (resolve) {
+						// 正常情况只有UseItemTransaction的action, 不会触发crafting类事务
+						boolean slotChangeTransaction = true;
+/*
+						boolean incomplete = true;
+
+						if (playerAuthInputPacket.isCraftingPart()) {
+							try {
+								if (this.craftingTransaction == null) {
+									this.craftingTransaction = new CraftingTransaction(this, actions);
+								} else {
+									for (InventoryAction action : actions) {
+										this.craftingTransaction.addAction(action);
+									}
+								}
+
+								if (this.craftingTransaction.getPrimaryOutput() != null && this.craftingTransaction.canExecute()) {
+									//we get the actions for this in several packets, so we can't execute it until we get the result
+
+									this.craftingTransaction.execute();
+									this.craftingTransaction = null;
+									incomplete = false;
+								}
+
+								if ((craftingType >> 3) == 0 || craftingType == CRAFTING_STONECUTTER) {
+									incomplete = false;
+								}
+							} catch (Exception e) {
+								this.getServer().getLogger().logException(e);
+								this.craftingTransaction = null;
+								this.getUIInventory().sendContents(this);
+							}
+						} else if (playerAuthInputPacket.isEnchantingPart()) {
+							if (this.enchantTransaction == null) {
+								this.enchantTransaction = new EnchantTransaction(this, actions);
+							} else {
+								for (InventoryAction action : actions) {
+									this.enchantTransaction.addAction(action);
+								}
+							}
+
+							if (this.enchantTransaction.canExecute()) {
+								this.enchantTransaction.execute();
+								this.enchantTransaction = null;
+							}
+
+							incomplete = false;
+						} else if (playerAuthInputPacket.isRepairItemPart()) {
+							if (this.repairItemTransaction == null) {
+								this.repairItemTransaction = new RepairItemTransaction(this, actions);
+							} else {
+								for (InventoryAction action : actions) {
+									this.repairItemTransaction.addAction(action);
+								}
+							}
+
+							if (this.repairItemTransaction.canExecute()) {
+								this.repairItemTransaction.execute();
+								this.repairItemTransaction = null;
+								incomplete = false;
+							}
+
+							if ((this.craftingType >> 3) != 2) {
+								incomplete = false;
+							}
+						}
+
+						if (incomplete) {
+							if (this.craftingTransaction != null) {
+								if (CraftingTransaction.checkForCraftingPart(actions)) {
+									for (InventoryAction action : actions) {
+										craftingTransaction.addAction(action);
+									}
+
+									slotChangeTransaction = false;
+								}
+//					            else {
+//						            this.server.getLogger().debug("Got unexpected normal inventory action with incomplete crafting transaction (PlayerAuthInputPacket) from " + this.getName() + ", refusing to execute crafting");
+//						            this.removeAllWindows(false);
+//						            this.sendAllInventories();
+//						            this.craftingTransaction = null;
+//					            }
+							} else if (this.enchantTransaction != null) {
+								if (enchantTransaction.checkForEnchantPart(actions)) {
+									for (InventoryAction action : actions) {
+										enchantTransaction.addAction(action);
+									}
+
+									slotChangeTransaction = false;
+								} else {
+									this.server.getLogger().debug("Got unexpected normal inventory action with incomplete enchanting transaction (PlayerAuthInputPacket) from " + this.getName() + ", refusing to execute enchant " + playerAuthInputPacket);
+									this.removeAllWindows(false);
+									this.sendAllInventories();
+									this.enchantTransaction = null;
+								}
+							} else if (this.repairItemTransaction != null) {
+								if (RepairItemTransaction.checkForRepairItemPart(actions)) {
+									for (InventoryAction action : actions) {
+										this.repairItemTransaction.addAction(action);
+									}
+
+									slotChangeTransaction = false;
+								} else {
+									this.server.getLogger().debug("Got unexpected normal inventory action with incomplete repair item transaction (PlayerAuthInputPacket) from " + this.getName() + ", refusing to execute repair item " + playerAuthInputPacket);
+									this.removeAllWindows(false);
+									this.sendAllInventories();
+									this.repairItemTransaction = null;
+								}
+							}
+						}
+*/
+						if (slotChangeTransaction) {
+//							InventoryTransaction transaction = new InventoryTransaction(this, actions);
+//							if (!transaction.execute()) {
+//								this.server.getLogger().debug("Failed to execute inventory transaction (PlayerAuthInputPacket) from " + this.getName() + " with actions: " + Arrays.toString(inventoryActions));
+//							}
+						}
+					}
+				}
+
+				UseItemData useItemData = playerAuthInputPacket.getUseItemData();
+				if (useItemData != null) {
+					Vector3f clickPos = useItemData.clickPos;
+					BlockVector3 blockVector = useItemData.blockPos;
+					BlockFace face = useItemData.face;
+					int type = useItemData.actionType;
+
+					if (face != null || type == InventoryTransactionPacket116.USE_ITEM_ACTION_CLICK_AIR) {
+						switch (type) {
+							case InventoryTransactionPacket116.USE_ITEM_ACTION_CLICK_BLOCK:
+								// Remove if client bug is ever fixed
+								boolean spamBug = lastRightClickData != null && System.currentTimeMillis() - lastRightClickTime < 100.0 &&
+										lastRightClickData.playerPos.distanceSquared(useItemData.playerPos) < 0.00001 &&
+										lastRightClickData.blockPos.equalsVec(blockVector) &&
+										lastRightClickData.clickPos.distanceSquared(clickPos) < 0.00001;
+								lastRightClickData = useItemData;
+								lastRightClickTime = System.currentTimeMillis();
+								if (spamBug /*&& !(useItemData.itemInHand instanceof ItemBlock)*/) {
+									break;
+								}
+
+								if (this.canInteract(blockVector.add(0.5, 0.5, 0.5), this.isCreative() ? 13 : 7)) {
+									if (this.isCreative()) {
+										Item i = inventory.getItemInHand();
+										if (this.level.useItemOn(blockVector.asVector3(), i, face, clickPos.x, clickPos.y, clickPos.z, this) != null) {
+											break;
+										}
+									} else if (inventory.getItemInHand().equals(useItemData.itemInHand)) {
+										Item i = inventory.getItemInHand();
+										Item oldItem = i.clone();
+										//TODO: Implement adventure mode checks
+										if ((i = this.level.useItemOn(blockVector.asVector3(), i, face, clickPos.x, clickPos.y, clickPos.z, this)) != null) {
+											if (!i.equals(oldItem) || i.getCount() != oldItem.getCount()) {
+												inventory.setItemInHand(i);
+												inventory.sendHeldItem(this.getViewers().values());
+											}
+											break;
+										}
+									}
+								}
+
+								inventory.sendHeldItem(this);
+
+								if (blockVector.distanceSquared(this) > 10000) {
+									break;
+								}
+
+								Block target = this.level.getBlock(blockVector.asVector3());
+								block = target.getSide(face);
+
+								this.level.sendBlocks(new Player[]{this}, new Block[]{target, block}, UpdateBlockPacket.FLAG_ALL_PRIORITY);
+
+								if (target.isDoor()) {
+									BlockDoor door = (BlockDoor) target;
+									Block part;
+
+									if (door.isTop()) {
+										part = target.down();
+
+										if (part.getId() == target.getId()) {
+											target = part;
+
+											this.level.sendBlocks(new Player[]{this}, new Block[]{target}, UpdateBlockPacket.FLAG_ALL_PRIORITY);
+										}
+									}
+								}
+								break;
+							case InventoryTransactionPacket116.USE_ITEM_ACTION_BREAK_BLOCK:
+								if (!this.spawned || !this.isAlive()) {
+									break;
+								}
+
+								Item i = this.getInventory().getItemInHand();
+								Item oldItem = i.clone();
+
+								if (this.canInteract(blockVector.add(0.5, 0.5, 0.5), this.isCreative() ? 16 : 8)
+										&& (i = this.level.useBreakOn(blockVector.asVector3(), face, i, this, true)) != null) {
+									if (this.isSurvival()) {
+										this.getFoodData().updateFoodExpLevel(0.005);
+										if (!i.equals(oldItem) || i.getCount() != oldItem.getCount()) {
+											inventory.setItemInHand(i);
+											inventory.sendHeldItem(this.getViewers().values());
+										}
+									}
+									break;
+								}
+
+								inventory.sendContents(this);
+								inventory.sendHeldItem(this);
+
+								if (blockVector.distanceSquared(this) < 10000) {
+									target = this.level.getBlock(blockVector.asVector3());
+									this.level.sendBlocks(new Player[]{this}, new Block[]{target}, UpdateBlockPacket.FLAG_ALL_PRIORITY);
+
+									BlockEntity blockEntity = this.level.getBlockEntity(blockVector.asVector3());
+									if (blockEntity instanceof BlockEntitySpawnable) {
+										((BlockEntitySpawnable) blockEntity).spawnTo(this);
+									}
+								}
+
+								break;
+							case InventoryTransactionPacket116.USE_ITEM_ACTION_CLICK_AIR:
+								Vector3 directionVector = this.getDirectionVector();
+
+								if (this.isCreative()) {
+									item = this.inventory.getItemInHand();
+								} else if (!this.inventory.getItemInHand().equals(useItemData.itemInHand)) {
+									this.inventory.sendHeldItem(this);
+									break ;
+								} else {
+									item = this.inventory.getItemInHand();
+								}
+
+								PlayerInteractEvent interactEvent = new PlayerInteractEvent(this, item, directionVector, face, PlayerInteractEvent.Action.RIGHT_CLICK_AIR);
+								this.server.getPluginManager().callEvent(interactEvent);
+								if (interactEvent.isCancelled()) {
+									this.inventory.sendHeldItem(this);
+									break;
+								}
+
+								if (item.onClickAir(this, directionVector)) {
+									if (this.isSurvival()) {
+										this.inventory.setItemInHand(item);
+									}
+
+									if (!this.isUsingItem()) {
+										this.setUsingItem(true);
+										break;
+									}
+
+									// Used item
+									//int ticksUsed = this.server.getTick() - this.startAction;
+									int ticksUsed = (int) (System.currentTimeMillis() - this.startActionTimestamp) / 50;
+
+									this.setUsingItem(false);
+
+									if (!item.onUse(this, ticksUsed)) {
+										this.inventory.sendContents(this);
+									}
+								}
+
+								break;
+						}
+					}
 				}
 
 				newPos = new Vector3(playerAuthInputPacket.getX(), playerAuthInputPacket.getY() - this.getEyeHeight(), playerAuthInputPacket.getZ());

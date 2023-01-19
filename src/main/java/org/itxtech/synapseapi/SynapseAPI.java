@@ -245,8 +245,13 @@ public class SynapseAPI extends PluginBase implements Listener {
                     if (packet != null) {
                         getLogger().info(packet.toString());
                         if (packet.pid() == ProtocolInfo.BATCH_PACKET) {
-                            for (DataPacket pk: SynapseEntry.processBatch((BatchPacket) packet, protocol, netease)) {
-                                getLogger().info("Packet " + Binary.bytesToHexString(new byte[]{(byte) pk.pid()}));
+                            List<DataPacket> packets = SynapseEntry.processBatch((BatchPacket) packet, protocol, netease);
+                            if (packets == null) {
+                                getLogger().warn("Decoding batch failed!");
+                            } else {
+                                for (DataPacket pk : packets) {
+                                    getLogger().info("Packet " + Binary.bytesToHexString(new byte[]{(byte) pk.pid()}));
+                                }
                             }
                         }
                     } else {

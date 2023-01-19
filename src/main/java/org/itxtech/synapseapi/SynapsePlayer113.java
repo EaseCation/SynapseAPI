@@ -29,6 +29,7 @@ import cn.nukkit.level.Position;
 import cn.nukkit.math.BlockFace;
 import cn.nukkit.math.BlockVector3;
 import cn.nukkit.math.Vector3;
+import cn.nukkit.math.Vector3f;
 import cn.nukkit.network.SourceInterface;
 import cn.nukkit.network.protocol.*;
 import cn.nukkit.network.protocol.types.ContainerIds;
@@ -346,6 +347,7 @@ public class SynapsePlayer113 extends SynapsePlayer112 {
 					case InventoryTransactionPacket.TYPE_USE_ITEM:
 						UseItemData useItemData = (UseItemData) transactionPacket.transactionData;
 
+						Vector3f clickPos = useItemData.clickPos;
 						BlockVector3 blockVector = useItemData.blockPos;
 						face = useItemData.face;
 						int type = useItemData.actionType;
@@ -357,10 +359,13 @@ public class SynapsePlayer113 extends SynapsePlayer112 {
 						switch (type) {
 							case InventoryTransactionPacket.USE_ITEM_ACTION_CLICK_BLOCK:
 								// Remove if client bug is ever fixed
-								boolean spamBug = (lastRightClickPos != null && System.currentTimeMillis() - lastRightClickTime < 100.0 && blockVector.distanceSquared(lastRightClickPos) < 0.00001);
-								lastRightClickPos = blockVector.asVector3();
+								boolean spamBug = lastRightClickData != null && System.currentTimeMillis() - lastRightClickTime < 100.0 &&
+										lastRightClickData.playerPos.distanceSquared(useItemData.playerPos) < 0.00001 &&
+										lastRightClickData.blockPos.equalsVec(blockVector) &&
+										lastRightClickData.clickPos.distanceSquared(clickPos) < 0.00001; // signature spam bug has 0 distance, but allow some error
+								lastRightClickData = useItemData;
 								lastRightClickTime = System.currentTimeMillis();
-								if (spamBug && !(this.getInventory().getItemInHand() instanceof ItemBlock)) {
+								if (spamBug /*&& !(useItemData.itemInHand instanceof ItemBlock)*/) {
 									return;
 								}
 
@@ -369,14 +374,14 @@ public class SynapsePlayer113 extends SynapsePlayer112 {
 								if (this.canInteract(blockVector.add(0.5, 0.5, 0.5), this.isCreative() ? 13 : 7)) {
 									if (this.isCreative()) {
 										Item i = inventory.getItemInHand();
-										if (this.level.useItemOn(blockVector.asVector3(), i, face, useItemData.clickPos.x, useItemData.clickPos.y, useItemData.clickPos.z, this) != null) {
+										if (this.level.useItemOn(blockVector.asVector3(), i, face, clickPos.x, clickPos.y, clickPos.z, this) != null) {
 											break packetswitch;
 										}
 									} else if (inventory.getItemInHand().equals(useItemData.itemInHand)) {
 										Item i = inventory.getItemInHand();
 										Item oldItem = i.clone();
 										//TODO: Implement adventure mode checks
-										if ((i = this.level.useItemOn(blockVector.asVector3(), i, face, useItemData.clickPos.x, useItemData.clickPos.y, useItemData.clickPos.z, this)) != null) {
+										if ((i = this.level.useItemOn(blockVector.asVector3(), i, face, clickPos.x, clickPos.y, clickPos.z, this)) != null) {
 											if (!i.equals(oldItem) || i.getCount() != oldItem.getCount()) {
 												inventory.setItemInHand(i);
 												inventory.sendHeldItem(this.getViewers().values());
@@ -399,10 +404,9 @@ public class SynapsePlayer113 extends SynapsePlayer112 {
 
 								if (target instanceof BlockDoor) {
 									BlockDoor door = (BlockDoor) target;
-
 									Block part;
 
-									if ((door.getDamage() & 0x08) > 0) { //up
+									if (door.isTop()) {
 										part = target.down();
 
 										if (part.getId() == target.getId()) {

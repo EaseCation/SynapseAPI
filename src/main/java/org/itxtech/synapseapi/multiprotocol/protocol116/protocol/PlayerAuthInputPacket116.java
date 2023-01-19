@@ -1,5 +1,6 @@
 package org.itxtech.synapseapi.multiprotocol.protocol116.protocol;
 
+import cn.nukkit.inventory.transaction.data.UseItemData;
 import cn.nukkit.item.Item;
 import cn.nukkit.math.BlockVector3;
 import cn.nukkit.math.Vector3f;
@@ -14,6 +15,7 @@ import org.itxtech.synapseapi.multiprotocol.AbstractProtocol;
 import org.itxtech.synapseapi.multiprotocol.protocol113.protocol.IPlayerAuthInputPacket;
 import org.itxtech.synapseapi.multiprotocol.protocol116210.protocol.PlayerAuthInputPacket116210;
 
+import javax.annotation.Nullable;
 import java.util.Arrays;
 
 @Log4j2
@@ -92,11 +94,20 @@ public class PlayerAuthInputPacket116 extends Packet116 implements IPlayerAuthIn
     public float deltaZ;
 
     public boolean hasNetworkIds;
+    @Nullable
     public NetworkInventoryAction[] inventoryActions;
+    @Nullable
+    public UseItemData useItemData;
 
+    @Nullable
     public int[] itemStackRequests; //TODO
 
+    @Nullable
     public PlayerBlockAction[] blockActions;
+
+    public boolean isCraftingPart = false;
+    public boolean isEnchantingPart = false;
+    public boolean isRepairItemPart = false;
 
     // facepalm
     public boolean netease;
@@ -164,19 +175,24 @@ public class PlayerAuthInputPacket116 extends Packet116 implements IPlayerAuthIn
             this.hasNetworkIds = this.getBoolean();
 
             int size = (int) this.getUnsignedVarInt();
+            if (size > 100) {
+                throw new IndexOutOfBoundsException("Too many actions in item use transaction (PlayerAuthInputPacket)");
+            }
             this.inventoryActions = new NetworkInventoryAction[size];
             for (int i = 0; i < size; i++) {
                 this.inventoryActions[i] = new NetworkInventoryAction().read(this, this);
             }
 
-            int actionType = (int) this.getUnsignedVarInt();
-            BlockVector3 blockPosition = this.getBlockVector3();
-            int face = this.getVarInt();
-            int hotbarSlot = this.getVarInt();
-            Item itemInHand = this.getSlot();
-            Vector3f playerPosition = this.getVector3f();
-            Vector3f clickPosition = this.getVector3f();
-            int blockRuntimeId = (int) this.getUnsignedVarInt();
+            UseItemData itemData = new UseItemData();
+            itemData.actionType = (int) this.getUnsignedVarInt();
+            itemData.blockPos = this.getBlockVector3();
+            itemData.face = this.getBlockFace();
+            itemData.hotbarSlot = this.getVarInt();
+            itemData.itemInHand = this.getSlot();
+            itemData.playerPos = this.getVector3f().asVector3();
+            itemData.clickPos = this.getVector3f();
+            itemData.blockId = (int) this.getUnsignedVarInt();
+            this.useItemData = itemData;
         }
 
         if ((this.inputFlags & (1L << PlayerAuthInputPacket116210.FLAG_PERFORM_ITEM_STACK_REQUEST)) != 0) {
@@ -269,6 +285,9 @@ public class PlayerAuthInputPacket116 extends Packet116 implements IPlayerAuthIn
             if (SynapseSharedConstants.MAC_DEBUG) debugFlags[2] = true;
 
             int size = this.getVarInt();
+            if (size > 100) {
+                throw new IndexOutOfBoundsException("Too many block actions in PlayerAuthInputPacket");
+            }
             this.blockActions = new PlayerBlockAction[size];
             for (int i = 0; i < size; i++) {
                 int actionType = this.getVarInt();
@@ -334,32 +353,32 @@ public class PlayerAuthInputPacket116 extends Packet116 implements IPlayerAuthIn
 
     @Override
     public void setCraftingPart(boolean craftingPart) {
-
+        isCraftingPart = craftingPart;
     }
 
     @Override
     public boolean isCraftingPart() {
-        return false;
+        return isCraftingPart;
     }
 
     @Override
     public void setEnchantingPart(boolean enchantingPart) {
-
+        isEnchantingPart = enchantingPart;
     }
 
     @Override
     public boolean isEnchantingPart() {
-        return false;
+        return isEnchantingPart;
     }
 
     @Override
     public void setRepairItemPart(boolean repairItemPart) {
-
+        this.isRepairItemPart = repairItemPart;
     }
 
     @Override
     public boolean isRepairItemPart() {
-        return false;
+        return isRepairItemPart;
     }
 
     @Override
@@ -470,6 +489,11 @@ public class PlayerAuthInputPacket116 extends Packet116 implements IPlayerAuthIn
     @Override
     public NetworkInventoryAction[] getInventoryActions() {
         return this.inventoryActions;
+    }
+
+    @Override
+    public UseItemData getUseItemData() {
+        return useItemData;
     }
 
     @Override
