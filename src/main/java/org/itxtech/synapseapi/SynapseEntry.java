@@ -379,12 +379,15 @@ public class SynapseEntry {
      */
     public void threadTick() {
         this.synapseInterface.process();
-        this.playerBatchPacketCounter.forEach((uuid, count) -> {
+        /*this.playerBatchPacketCounter.forEach((uuid, count) -> {
             if (count > INCOMING_PACKET_BATCH_MAX_BUDGET) {
-                Server.getInstance().getPluginManager().callEvent(new SynapsePlayerTooManyBatchPacketsEvent(this.players.get(uuid), count));
-                this.players.get(uuid).onPacketViolation(PacketViolationReason.VIOLATION_OVER_THRESHOLD);
+                synapse.getServer().getScheduler().scheduleTask(synapse, () -> {
+                    SynapsePlayer player = this.players.get(uuid);
+                    new SynapsePlayerTooManyBatchPacketsEvent(player, count).call();
+                    player.onPacketViolation(PacketViolationReason.VIOLATION_OVER_THRESHOLD);
+                });
             }
-        });
+        });*/
         this.playerBatchPacketCounter.clear();
         if (!this.getSynapseInterface().isConnected() || !this.verified) {
             return;
@@ -489,20 +492,34 @@ public class SynapseEntry {
 
                 UUID uuid = redirectPacket.uuid;
                 SynapsePlayer player = this.players.get(uuid);
-                if (player != null) {
+                if (player != null && !player.violated) {
                     DataPacket pk0 = PacketRegister.getFullPacket(redirectPacket.mcpeBuffer, redirectPacket.protocol);
                     //Server.getInstance().getLogger().info("to server : " + pk0.getClass().getName());
                     if (pk0 != null) {
                         // this.handleRedirectPacketTiming.startTiming();
                         //pk0.decode();
                         if (pk0.pid() == ProtocolInfo.BATCH_PACKET) {
-                            this.playerBatchPacketCounter.put(player.getUniqueId(), this.playerBatchPacketCounter.getOrDefault(player.getUniqueId(), 0) + 1);
+                            int count = this.playerBatchPacketCounter.getOrDefault(player.getUniqueId(), 0) + 1;
+                            if (count > INCOMING_PACKET_BATCH_MAX_BUDGET) {
+                                player.violated = true;
+                                synapse.getServer().getScheduler().scheduleTask(synapse, () -> {
+                                    new SynapsePlayerTooManyBatchPacketsEvent(player, count).call();
+                                    player.onPacketViolation(PacketViolationReason.RECEIVING_BATCHES_TOO_FAST);
+                                });
+                                break;
+                            }
+                            this.playerBatchPacketCounter.put(player.getUniqueId(), count);
+
                             List<DataPacket> packets = processBatch((BatchPacket) pk0, redirectPacket.protocol, player.isNetEaseClient());
                             if (packets == null) {
-                                player.onPacketViolation(PacketViolationReason.MALFORMED_PACKET);
+                                player.violated = true;
+                                synapse.getServer().getScheduler().scheduleTask(synapse, () -> {
+                                    player.onPacketViolation(PacketViolationReason.MALFORMED_PACKET);
+                                });
                                 break;
                             }
                             // Server.getInstance().getLogger().info("tick: " + Server.getInstance().getTick() + " to server " + packets.size() + " packets");
+
                             short[] packetCount = new short[256];
                             boolean tooManyPackets = false;
                             for (DataPacket subPacket : packets) {
