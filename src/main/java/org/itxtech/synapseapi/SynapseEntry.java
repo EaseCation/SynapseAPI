@@ -60,7 +60,7 @@ public class SynapseEntry {
     };
 
     private static final int INCOMING_PACKET_BATCH_PER_TICK = 2; // usually max 1 per tick, but transactions may arrive separately
-    private static final int INCOMING_PACKET_BATCH_MAX_BUDGET = 100 * INCOMING_PACKET_BATCH_PER_TICK; // enough to account for a 5-second lag spike
+    private static final int INCOMING_PACKET_BATCH_MAX_BUDGET = 150 * INCOMING_PACKET_BATCH_PER_TICK; // enough to account for a 5-second lag spike
 
     public static final int[] PACKET_COUNT_LIMIT = new int[256];
     public static int[] globalPacketCountThisTick = new int[256];
@@ -349,7 +349,7 @@ public class SynapseEntry {
                 }
                 counter[0]++;
                 if (redirectPacketEntry.player.isOnline() && counter[0] > 10000) {
-                    redirectPacketEntry.player.onPacketViolation(PacketViolationReason.VIOLATION_OVER_THRESHOLD);
+                    redirectPacketEntry.player.onPacketViolation(PacketViolationReason.RECEIVING_PACKETS_TOO_FAST);
                     continue;
                 }
                 if (SERVERBOUND_PACKET_LOGGING && log.isTraceEnabled()) {
@@ -382,6 +382,7 @@ public class SynapseEntry {
         this.playerBatchPacketCounter.forEach((uuid, count) -> {
             if (count > INCOMING_PACKET_BATCH_MAX_BUDGET) {
                 Server.getInstance().getPluginManager().callEvent(new SynapsePlayerTooManyBatchPacketsEvent(this.players.get(uuid), count));
+                this.players.get(uuid).onPacketViolation(PacketViolationReason.VIOLATION_OVER_THRESHOLD);
             }
         });
         this.playerBatchPacketCounter.clear();
