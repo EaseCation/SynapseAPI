@@ -19,6 +19,8 @@ import cn.nukkit.utils.MainLogger;
 import cn.nukkit.utils.Zlib;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
+import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
+import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.objects.Object2IntMap;
 import it.unimi.dsi.fastutil.objects.Object2IntOpenHashMap;
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
@@ -336,10 +338,20 @@ public class SynapseEntry {
 
             RedirectPacketEntry redirectPacketEntry;
             Arrays.fill(globalPacketCountThisTick, 0);
+            Int2ObjectMap<int[]> playerPacketCountThisTick = new Int2ObjectOpenHashMap<>();
             while ((redirectPacketEntry = redirectPacketQueue.poll()) != null) {
                 //Server.getInstance().getLogger().warning("C => S  " + redirectPacketEntry.dataPacket.getClass().getSimpleName());
                 DataPacket packet = DataPacketEidReplacer.replaceBack(redirectPacketEntry.dataPacket, SynapsePlayer.SYNAPSE_PLAYER_ENTITY_ID, redirectPacketEntry.player.getId());
                 globalPacketCountThisTick[packet.pid()]++;
+                int[] counter = playerPacketCountThisTick.get((int) redirectPacketEntry.player.getLoaderId());
+                if (counter == null) {
+                    playerPacketCountThisTick.put((int) redirectPacketEntry.player.getLoaderId(), counter = new int[]{1});
+                }
+                counter[0]++;
+                if (redirectPacketEntry.player.isOnline() && counter[0] > 10000) {
+                    redirectPacketEntry.player.onPacketViolation(PacketViolationReason.VIOLATION_OVER_THRESHOLD);
+                    continue;
+                }
                 if (SERVERBOUND_PACKET_LOGGING && log.isTraceEnabled()) {
                     PacketLogger.handleServerboundPacket(redirectPacketEntry.player, packet);
                 }
