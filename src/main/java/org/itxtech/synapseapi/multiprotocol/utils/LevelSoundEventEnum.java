@@ -295,16 +295,25 @@ public enum LevelSoundEventEnum {
     }
 
     public static LevelSoundEventEnum fromV12(int v12) {
+        if (v12 < 0 || v12 >= v12ToEnum.length) {
+            return LevelSoundEventEnum.SOUND_UNDEFINED;
+        }
         return v12ToEnum[v12];
         // return Arrays.stream(values0()).filter(s -> s.v12 == v12).findFirst().orElse(null);
     }
 
     public static LevelSoundEventEnum fromV14(int v14) {
+        if (v14 < 0 || v14 >= v14ToEnum.length) {
+            return LevelSoundEventEnum.SOUND_UNDEFINED;
+        }
         return v14ToEnum[v14];
         // return Arrays.stream(values0()).filter(s -> s.v14 == v14).findFirst().orElse(null);
     }
 
     public static LevelSoundEventEnum fromV18(int v18) {
+        if (v18 < 0 || v18 >= v18ToEnum.length) {
+            return LevelSoundEventEnum.SOUND_UNDEFINED;
+        }
         return v18ToEnum[v18];
         // return Arrays.stream(values0()).filter(s -> s.v18 == v18).findFirst().orElse(null);
     }
