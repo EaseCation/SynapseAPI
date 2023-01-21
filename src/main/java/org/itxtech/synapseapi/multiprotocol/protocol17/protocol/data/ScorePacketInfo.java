@@ -1,5 +1,8 @@
 package org.itxtech.synapseapi.multiprotocol.protocol17.protocol.data;
 
+import lombok.ToString;
+
+@ToString
 public class ScorePacketInfo {
 
     public static final int TYPE_PLAYER = 1;

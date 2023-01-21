@@ -1,30 +1,32 @@
 package org.itxtech.synapseapi.multiprotocol.protocol14.protocol;
 
-import java.nio.charset.StandardCharsets;
-import java.util.*;
-
 import cn.nukkit.Server;
+import cn.nukkit.entity.data.Skin;
+import cn.nukkit.network.protocol.ProtocolInfo;
+import cn.nukkit.utils.JsonUtil;
 import cn.nukkit.utils.PersonaPiece;
 import cn.nukkit.utils.PersonaPieceTint;
 import cn.nukkit.utils.SerializedImage;
 import cn.nukkit.utils.SkinAnimation;
-import com.google.gson.Gson;
-import com.google.gson.JsonArray;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.JsonNode;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
-import com.google.gson.reflect.TypeToken;
-
-import cn.nukkit.entity.data.Skin;
-import cn.nukkit.network.protocol.ProtocolInfo;
-import com.netease.mc.authlib.Profile;
-import com.netease.mc.authlib.TokenChain;
 import com.netease.mc.authlib.TokenChainEC;
-import com.netease.mc.authlib.exception.AuthException;
+import it.unimi.dsi.fastutil.objects.ObjectArrayList;
+import lombok.ToString;
+
+import java.nio.charset.StandardCharsets;
+import java.util.*;
 
 /**
  * Created by on 15-10-13.
  */
+@ToString
 public class LoginPacket14 extends Packet14 {
+    private static final TypeReference<Map<String, List<String>>> CHAIN_DATA_TYPE_REFERENCE = new TypeReference<Map<String, List<String>>>() {
+    };
 
     public static final int NETWORK_ID = ProtocolInfo.LOGIN_PACKET;
 
@@ -48,8 +50,12 @@ public class LoginPacket14 extends Packet14 {
     public void decode() {
         this.protocol = this.getInt();
         this.setBuffer(this.getByteArray(), 0);
-        decodeChainData();
-        decodeSkinData();
+        try {
+            decodeChainData();
+            decodeSkinData();
+        } catch (JsonProcessingException e) {
+            throw new RuntimeException("broken json", e);
+        }
     }
 
     @Override
@@ -61,21 +67,37 @@ public class LoginPacket14 extends Packet14 {
         return protocol;
     }
 
-    private void decodeChainData() {
-        Map<String, List<String>> map = new Gson().fromJson(new String(this.get(getLInt()), StandardCharsets.UTF_8),
-                new TypeToken<Map<String, List<String>>>() {
-                }.getType());
+    private void decodeChainData() throws JsonProcessingException {
+        int length = this.getLInt();
+        if (!this.isReadable(length)) {
+            throw new IndexOutOfBoundsException("array length mismatch");
+        }
+        byte[] bytes = this.get(length);
+        Map<String, List<String>> map = JsonUtil.COMMON_JSON_MAPPER.readValue(new String(bytes, StandardCharsets.UTF_8), CHAIN_DATA_TYPE_REFERENCE);
         try {
-            if (map.isEmpty() || !map.containsKey("chain") || map.get("chain").isEmpty()) return;
+            if (map.isEmpty() || !map.containsKey("chain") || map.get("chain").isEmpty()) {
+                return;
+            }
             List<String> chains = map.get("chain");
             for (String c : chains) {
-                JsonObject chainMap = decodeToken(c);
-                if (chainMap == null) continue;
-                if (chainMap.has("extraData")) {
-                    JsonObject extra = chainMap.get("extraData").getAsJsonObject();
-                    if (extra.has("displayName")) this.username = extra.get("displayName").getAsString();
-                    if (extra.has("identity")) this.clientUUID = UUID.fromString(extra.get("identity").getAsString());
-                    if (extra.has("XUID")) this.xuid = extra.get("XUID").getAsString();
+                JsonNode chainMap = decodeToken(c);
+                if (chainMap == null || !chainMap.isObject()) {
+                    continue;
+                }
+                JsonNode extra = chainMap.get("extraData");
+                if (extra != null && extra.isObject()) {
+                    JsonNode displayNameNode = extra.get("displayName");
+                    if (displayNameNode != null) {
+                        this.username = displayNameNode.asText();
+                    }
+                    JsonNode identityNode = extra.get("identity");
+                    if (identityNode != null) {
+                        this.clientUUID = UUID.fromString(identityNode.asText());
+                    }
+                    JsonNode xuidNode = extra.get("XUID");
+                    if (xuidNode != null) {
+                        this.xuid = xuidNode.asText();
+                    }
                 }
             }
         } catch (Exception e) {
@@ -92,11 +114,15 @@ public class LoginPacket14 extends Packet14 {
     private void neteaseDecode() throws Exception {
         this.clientUUID = null;
         this.username = null;
-        Map<String, List<String>> map = new Gson().fromJson(new String(this.get(this.getLInt()), StandardCharsets.UTF_8),
-                new TypeToken<Map<String, List<String>>>() {
-                }.getType());
-        if (map.isEmpty() || !map.containsKey("chain") || map.get("chain").isEmpty())
+        int length = this.getLInt();
+        if (!this.isReadable(length)) {
+            throw new IndexOutOfBoundsException("array length mismatch");
+        }
+        byte[] bytes = this.get(length);
+        Map<String, List<String>> map = JsonUtil.COMMON_JSON_MAPPER.readValue(new String(bytes, StandardCharsets.UTF_8), CHAIN_DATA_TYPE_REFERENCE);
+        if (map.isEmpty() || !map.containsKey("chain") || map.get("chain").isEmpty()) {
             return;
+        }
         List<String> chains = map.get("chain");
         int chainSize = chains.size();
         if (chainSize < 2) {//最少2个字符串。
@@ -111,11 +137,21 @@ public class LoginPacket14 extends Packet14 {
             chainArr[index] = iterator.next();
             ++index;
         }
-        try{
+        try {
             JsonObject profile = TokenChainEC.check(chainArr);
-            if (profile.has("XUID")) this.xuid = profile.get("XUID").getAsString();
-            if (profile.has("identity")) this.clientUUID = UUID.fromString(profile.get("identity").getAsString());
-            if (profile.has("displayName")) this.username = profile.get("displayName").getAsString();
+
+            JsonElement xuidNode = profile.get("XUID");
+            if (xuidNode != null) {
+                this.xuid = xuidNode.getAsString();
+            }
+            JsonElement identityNode = profile.get("identity");
+            if (identityNode != null) {
+                this.clientUUID = UUID.fromString(identityNode.getAsString());
+            }
+            JsonElement displayNameNode = profile.get("displayName");
+            if (displayNameNode != null) {
+                this.username = displayNameNode.getAsString();
+            }
         } catch (Exception e) {
             // TODO: handle exception,认证失败
             this.clientUUID = null;//若认证失败，则clientUUID为null。
@@ -123,114 +159,148 @@ public class LoginPacket14 extends Packet14 {
         }
     }
 
-    private void decodeSkinData() {
-        JsonObject skinToken = decodeToken(new String(this.get(this.getLInt())));
-        if (skinToken.has("ClientRandomId")) this.clientId = skinToken.get("ClientRandomId").getAsLong();
-        if (skinToken.has("DeviceId")) this.deviceId = skinToken.get("DeviceId").getAsString();
+    private void decodeSkinData() throws JsonProcessingException {
+        int length = this.getLInt();
+        if (!this.isReadable(length)) {
+            throw new IndexOutOfBoundsException("array length mismatch");
+        }
+        byte[] bytes = this.get(length);
+        JsonNode skinToken = decodeToken(new String(bytes));
+
+        JsonNode clientRandomIdNode = skinToken.get("ClientRandomId");
+        if (clientRandomIdNode != null) {
+            this.clientId = clientRandomIdNode.asLong();
+        }
+        JsonNode deviceIdNode = skinToken.get("DeviceId");
+        if (deviceIdNode != null) {
+            this.deviceId = skinToken.get("DeviceId").asText();
+        }
+
         skin = new Skin().setPlayerSkin(true);
-        if (skinToken.has("SkinId")) {
-            skin.setSkinId(skinToken.get("SkinId").getAsString());
+        JsonNode skinIdNode = skinToken.get("SkinId");
+        if (skinIdNode != null) {
+            skin.setSkinId(skinIdNode.asText());
         }
-        if (skinToken.has("PlayFabID")) {
-            skin.setPlayFabId(skinToken.get("PlayFabID").getAsString());
-        } else if (skinToken.has("PlayFabId")) {
-            skin.setPlayFabId(skinToken.get("PlayFabId").getAsString());
+        JsonNode playFabIdNode = skinToken.get("PlayFabId");
+        if (playFabIdNode != null) {
+            skin.setPlayFabId(playFabIdNode.asText());
+        } else if ((playFabIdNode = skinToken.get("PlayFabID")) != null) {
+            skin.setPlayFabId(playFabIdNode.asText());
         }
-        if (skinToken.has("CapeId")) {
-            skin.setCapeId(skinToken.get("CapeId").getAsString());
+        JsonNode capeIdNode = skinToken.get("CapeId");
+        if (capeIdNode != null) {
+            skin.setCapeId(capeIdNode.asText());
         }
 
         skin.setSkinData(getImage(skinToken, "Skin"));
         skin.setCapeData(getImage(skinToken, "Cape"));
-        if (skinToken.has("PremiumSkin")) {
-            skin.setPremium(skinToken.get("PremiumSkin").getAsBoolean());
+        JsonNode premiumSkinNode = skinToken.get("PremiumSkin");
+        if (premiumSkinNode != null) {
+            skin.setPremium(premiumSkinNode.asBoolean());
         }
-        if (skinToken.has("PersonaSkin")) {
-            skin.setPersona(skinToken.get("PersonaSkin").getAsBoolean());
+        JsonNode personaSkinNode = skinToken.get("PersonaSkin");
+        if (personaSkinNode != null) {
+            skin.setPersona(personaSkinNode.asBoolean());
         }
-        if (skinToken.has("CapeOnClassicSkin")) {
-            skin.setCapeOnClassic(skinToken.get("CapeOnClassicSkin").getAsBoolean());
-        }
-
-        if (skinToken.has("SkinResourcePatch")) {
-            skin.setSkinResourcePatch(new String(Base64.getDecoder().decode(skinToken.get("SkinResourcePatch").getAsString()), StandardCharsets.UTF_8));
-        }
-
-        if (skinToken.has("SkinGeometryData")) {
-            skin.setGeometryData(new String(Base64.getDecoder().decode(skinToken.get("SkinGeometryData").getAsString()), StandardCharsets.UTF_8));
+        JsonNode capeOnClassicSkinNode = skinToken.get("CapeOnClassicSkin");
+        if (capeOnClassicSkinNode != null) {
+            skin.setCapeOnClassic(capeOnClassicSkinNode.asBoolean());
         }
 
+        JsonNode skinResourcePatchNode = skinToken.get("SkinResourcePatch");
+        if (skinResourcePatchNode != null) {
+            skin.setSkinResourcePatch(new String(Base64.getDecoder().decode(skinResourcePatchNode.asText()), StandardCharsets.UTF_8));
+        }
+
+        JsonNode skinGeometryDataNode = skinToken.get("SkinGeometryData");
+        if (skinGeometryDataNode != null) {
+            skin.setGeometryData(new String(Base64.getDecoder().decode(skinGeometryDataNode.asText()), StandardCharsets.UTF_8));
+        }
+
+        JsonNode skinGeometryDataEngineVersionNode = skinToken.get("SkinGeometryDataEngineVersion");
         if (skinToken.has("SkinGeometryDataEngineVersion")) {
-            skin.setGeometryDataEngineVersion(new String(Base64.getDecoder().decode(skinToken.get("SkinGeometryDataEngineVersion").getAsString()), StandardCharsets.UTF_8));
+            skin.setGeometryDataEngineVersion(new String(Base64.getDecoder().decode(skinGeometryDataEngineVersionNode.asText()), StandardCharsets.UTF_8));
         }
 
-        if (skinToken.has("AnimationData")) {
-            skin.setAnimationData(new String(Base64.getDecoder().decode(skinToken.get("AnimationData").getAsString()), StandardCharsets.UTF_8));
-        } else if (skinToken.has("SkinAnimationData")) {
-            skin.setAnimationData(new String(Base64.getDecoder().decode(skinToken.get("SkinAnimationData").getAsString()), StandardCharsets.UTF_8));
+        JsonNode skinAnimationDataNode = skinToken.get("SkinAnimationData");
+        if (skinAnimationDataNode != null) {
+            skin.setAnimationData(new String(Base64.getDecoder().decode(skinAnimationDataNode.asText()), StandardCharsets.UTF_8));
+        } else if ((skinAnimationDataNode = skinToken.get("AnimationData")) != null) {
+            skin.setAnimationData(new String(Base64.getDecoder().decode(skinAnimationDataNode.asText()), StandardCharsets.UTF_8));
         }
 
-        if (skinToken.has("AnimatedImageData")) {
-            JsonArray array = skinToken.get("AnimatedImageData").getAsJsonArray();
-            for (JsonElement element : array) {
-                skin.getAnimations().add(getAnimation(element.getAsJsonObject()));
+        JsonNode animatedImageDataNode = skinToken.get("AnimatedImageData");
+        if (animatedImageDataNode != null) {
+            for (JsonNode element : animatedImageDataNode) {
+                skin.getAnimations().add(getAnimation(element));
             }
         }
 
-        if (skinToken.has("SkinColor")) {
-            skin.setSkinColor(skinToken.get("SkinColor").getAsString());
+        JsonNode skinColorNode = skinToken.get("SkinColor");
+        if (skinColorNode != null) {
+            skin.setSkinColor(skinColorNode.asText());
         }
 
-        if (skinToken.has("ArmSize")) {
-            skin.setArmSize(skinToken.get("ArmSize").getAsString());
+        JsonNode armSizeNode = skinToken.get("ArmSize");
+        if (armSizeNode != null) {
+            skin.setArmSize(armSizeNode.asText());
         }
 
-        if (skinToken.has("PersonaPieces")) {
-            for (JsonElement object : skinToken.get("PersonaPieces").getAsJsonArray()) {
-                skin.getPersonaPieces().add(getPersonaPiece(object.getAsJsonObject()));
+        JsonNode personaPiecesNode = skinToken.get("PersonaPieces");
+        if (personaPiecesNode != null) {
+            for (JsonNode object : personaPiecesNode) {
+                skin.getPersonaPieces().add(getPersonaPiece(object));
             }
         }
 
-        if (skinToken.has("PieceTintColors")) {
-            for (JsonElement object : skinToken.get("PieceTintColors").getAsJsonArray()) {
-                skin.getTintColors().add(getTint(object.getAsJsonObject()));
+        JsonNode pieceTintColorsNode = skinToken.get("PieceTintColors");
+        if (pieceTintColorsNode != null) {
+            for (JsonNode object : pieceTintColorsNode) {
+                skin.getTintColors().add(getTint(object));
             }
         }
     }
 
-    private JsonObject decodeToken(String token) {
+    private JsonNode decodeToken(String token) throws JsonProcessingException {
         String[] base = token.split("\\.");
         if (base.length < 2) return null;
         byte[] decode;
         try {
             decode = Base64.getUrlDecoder().decode(base[1]);
-        } catch(IllegalArgumentException e) {
+        } catch (IllegalArgumentException e) {
             decode = Base64.getDecoder().decode(base[1]);
         }
-        return new Gson().fromJson(new String(decode, StandardCharsets.UTF_8), JsonObject.class);
+        return JsonUtil.COMMON_JSON_MAPPER.readTree(new String(decode, StandardCharsets.UTF_8));
     }
 
-    private static SkinAnimation getAnimation(JsonObject element) {
-        float frames = element.get("Frames").getAsFloat();
-        int type = element.get("Type").getAsInt();
-        byte[] data = Base64.getDecoder().decode(element.get("Image").getAsString());
-        int width = element.get("ImageWidth").getAsInt();
-        int height = element.get("ImageHeight").getAsInt();
+    private static SkinAnimation getAnimation(JsonNode element) {
+        float frames = (float) element.get("Frames").asDouble();
+        int type = element.get("Type").asInt();
+        byte[] data = Base64.getDecoder().decode(element.get("Image").asText());
+        int width = element.get("ImageWidth").asInt();
+        int height = element.get("ImageHeight").asInt();
         int expression;
-        if (element.has("AnimationExpression")) {
-            expression = element.get("AnimationExpression").getAsInt();
+        JsonNode node = element.get("AnimationExpression");
+        if (node != null) {
+            expression = node.asInt();
         } else {
             expression = 0;
         }
         return new SkinAnimation(new SerializedImage(width, height, data), type, frames, expression);
     }
 
-    private static SerializedImage getImage(JsonObject token, String name) {
-        if (token.has(name + "Data")) {
-            byte[] skinImage = Base64.getDecoder().decode(token.get(name + "Data").getAsString());
-            if (token.has(name + "ImageHeight") && token.has(name + "ImageWidth")) {
-                int width = token.get(name + "ImageWidth").getAsInt();
-                int height = token.get(name + "ImageHeight").getAsInt();
+    private static SerializedImage getImage(JsonNode token, String name) {
+        String dataKey = name + "Data";
+        JsonNode dataNode = token.get(dataKey);
+        if (dataNode != null) {
+            byte[] skinImage = Base64.getDecoder().decode(dataNode.asText());
+            String widthKey = name + "ImageWidth";
+            String heightKey = name + "ImageHeight";
+            JsonNode widthNode = token.get(widthKey);
+            JsonNode heightNode = token.get(heightKey);
+            if (widthNode != null && heightNode != null) {
+                int width = widthNode.asInt();
+                int height = heightNode.asInt();
                 return new SerializedImage(width, height, skinImage);
             } else {
                 return SerializedImage.fromLegacy(skinImage);
@@ -239,20 +309,20 @@ public class LoginPacket14 extends Packet14 {
         return SerializedImage.EMPTY;
     }
 
-    private static PersonaPiece getPersonaPiece(JsonObject object) {
-        String pieceId = object.get("PieceId").getAsString();
-        String pieceType = object.get("PieceType").getAsString();
-        String packId = object.get("PackId").getAsString();
-        boolean isDefault = object.get("IsDefault").getAsBoolean();
-        String productId = object.get("ProductId").getAsString();
+    private static PersonaPiece getPersonaPiece(JsonNode object) {
+        String pieceId = object.get("PieceId").asText();
+        String pieceType = object.get("PieceType").asText();
+        String packId = object.get("PackId").asText();
+        boolean isDefault = object.get("IsDefault").asBoolean();
+        String productId = object.get("ProductId").asText();
         return new PersonaPiece(pieceId, pieceType, packId, isDefault, productId);
     }
 
-    public static PersonaPieceTint getTint(JsonObject object) {
-        String pieceType = object.get("PieceType").getAsString();
-        List<String> colors = new ArrayList<>();
-        for (JsonElement element : object.get("Colors").getAsJsonArray()) {
-            colors.add(element.getAsString()); // remove #
+    public static PersonaPieceTint getTint(JsonNode object) {
+        String pieceType = object.get("PieceType").asText();
+        List<String> colors = new ObjectArrayList<>();
+        for (JsonNode element : object.get("Colors")) {
+            colors.add(element.asText()); // remove #
         }
         return new PersonaPieceTint(pieceType, colors);
     }
@@ -261,5 +331,4 @@ public class LoginPacket14 extends Packet14 {
     public Skin getSkin() {
         return this.skin;
     }
-    
 }

@@ -4,6 +4,7 @@ import cn.nukkit.entity.data.EntityMetadata;
 import cn.nukkit.network.protocol.DataPacket;
 import cn.nukkit.network.protocol.ProtocolInfo;
 import cn.nukkit.utils.Binary;
+import lombok.ToString;
 import org.itxtech.synapseapi.multiprotocol.AbstractProtocol;
 import org.itxtech.synapseapi.multiprotocol.utils.EntityMetadataGenerator;
 import org.itxtech.synapseapi.utils.ClassUtils;
@@ -12,8 +13,9 @@ import org.itxtech.synapseapi.utils.ClassUtils;
  * author: MagicDroidX
  * Nukkit Project
  */
+@ToString
 public class SetEntityDataPacket16 extends Packet16 {
-    public static final int NETWORK_ID = ProtocolInfo.SET_ENTITY_DATA_PACKET;
+    public static final int NETWORK_ID = ProtocolInfo.SET_ACTOR_DATA_PACKET;
 
     @Override
     public int pid() {
@@ -34,13 +36,13 @@ public class SetEntityDataPacket16 extends Packet16 {
         this.putEntityRuntimeId(this.eid);
         this.put(Binary.writeMetadata(this.metadata));
     }
- 
+
     @Override
     public DataPacket fromDefault(DataPacket pk, AbstractProtocol protocol, boolean netease) {
     	ClassUtils.requireInstance(pk, cn.nukkit.network.protocol.SetEntityDataPacket.class);
 
     	cn.nukkit.network.protocol.SetEntityDataPacket packet = (cn.nukkit.network.protocol.SetEntityDataPacket) pk;
-    	
+
         this.eid = packet.eid;
         this.metadata = EntityMetadataGenerator.generateFrom(packet.metadata, protocol, netease);
         return this;
@@ -49,5 +51,5 @@ public class SetEntityDataPacket16 extends Packet16 {
 	public static Class<? extends DataPacket> getDefaultPacket() {
         return cn.nukkit.network.protocol.SetEntityDataPacket.class;
     }
-    
+
 }

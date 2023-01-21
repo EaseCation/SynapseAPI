@@ -2,11 +2,13 @@ package org.itxtech.synapseapi.multiprotocol.protocol112.protocol;
 
 import cn.nukkit.network.protocol.DataPacket;
 import cn.nukkit.network.protocol.ProtocolInfo;
+import lombok.ToString;
 import org.itxtech.synapseapi.utils.ClassUtils;
 
 /**
  * @author Nukkit Project Team
  */
+@ToString
 public class AddPaintingPacket112 extends Packet112 {
 
     public static final int NETWORK_ID = ProtocolInfo.ADD_PAINTING_PACKET;

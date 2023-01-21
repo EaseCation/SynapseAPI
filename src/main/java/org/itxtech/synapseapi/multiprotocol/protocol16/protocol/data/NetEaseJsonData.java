@@ -4,7 +4,7 @@ import com.google.gson.Gson;
 
 public class NetEaseJsonData {
 
-    public transient static final String EVENT_OPEN_STORE = "ON_OPEN_STORE";
+    public static final String EVENT_OPEN_STORE = "ON_OPEN_STORE";
 
     public String eventName;
     public String category;

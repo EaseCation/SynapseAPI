@@ -1,7 +1,6 @@
 package org.itxtech.synapseapi.multiprotocol.protocol116220.protocol;
 
 import cn.nukkit.inventory.transaction.data.UseItemData;
-import cn.nukkit.item.Item;
 import cn.nukkit.math.BlockVector3;
 import cn.nukkit.math.Vector3f;
 import cn.nukkit.network.protocol.DataPacket;
@@ -10,7 +9,6 @@ import cn.nukkit.network.protocol.ProtocolInfo;
 import cn.nukkit.network.protocol.types.InputInteractionModel;
 import cn.nukkit.network.protocol.types.InventoryTransactionPacketInterface;
 import cn.nukkit.network.protocol.types.NetworkInventoryAction;
-import cn.nukkit.utils.Utils;
 import lombok.ToString;
 import lombok.extern.log4j.Log4j2;
 import org.apache.commons.lang3.mutable.MutableInt;
@@ -80,23 +78,6 @@ public class PlayerAuthInputPacket116220 extends Packet116220 implements Invento
     public static final int PLAY_MODE_EXIT_LEVEL = 7;
     public static final int PLAY_MODE_EXIT_LEVEL_LIVING_ROOM = 8;
 
-    public static final int STACK_REQUEST_TAKE = 0;
-    public static final int STACK_REQUEST_PLACE = 1;
-    public static final int STACK_REQUEST_SWAP = 2;
-    public static final int STACK_REQUEST_DROP = 3;
-    public static final int STACK_REQUEST_DESTROY = 4;
-    public static final int STACK_REQUEST_CRAFTING_CONSUME_INPUT = 5;
-    public static final int STACK_REQUEST_CRAFTING_MARK_SECONDARY_RESULT_SLOT = 6;
-    public static final int STACK_REQUEST_LAB_TABLE_COMBINE = 7;
-    public static final int STACK_REQUEST_BEACON_PAYMENT = 8;
-    public static final int STACK_REQUEST_MINE_BLOCK = 9;
-    public static final int STACK_REQUEST_CRAFTING_RECIPE = 10;
-    public static final int STACK_REQUEST_CRAFTING_RECIPE_AUTO = 11;
-    public static final int STACK_REQUEST_CREATIVE_CREATE = 12;
-    public static final int STACK_REQUEST_CRAFTING_RECIPE_OPTIONAL = 13;
-    public static final int STACK_REQUEST_CRAFTING_NON_IMPLEMENTED_DEPRECATED_ASK_TY_LAING = 14;
-    public static final int STACK_REQUEST_CRAFTING_RESULTS_DEPRECATED_ASK_TY_LAING = 15;
-
     public float x;
     public float y;
     public float z;
@@ -127,8 +108,7 @@ public class PlayerAuthInputPacket116220 extends Packet116220 implements Invento
     @Nullable
     public UseItemData useItemData;
 
-    @Nullable
-    public int[] itemStackRequests; //TODO
+    public int itemStackRequest = Integer.MIN_VALUE; //TODO
 
     @Nullable
     public PlayerBlockAction[] blockActions;
@@ -189,6 +169,9 @@ public class PlayerAuthInputPacket116220 extends Packet116220 implements Invento
                     int containerId = this.getByte();
 
                     int length = (int) this.getUnsignedVarInt();
+                    if (!this.isReadable(length)) {
+                        throw new IndexOutOfBoundsException("array length mismatch");
+                    }
                     byte[] slots = this.get(length);
 
                 }
@@ -225,169 +208,18 @@ public class PlayerAuthInputPacket116220 extends Packet116220 implements Invento
         if ((this.inputFlags & (1L << FLAG_PERFORM_ITEM_STACK_REQUEST)) != 0) {
             if (SynapseSharedConstants.MAC_DEBUG) debugFlags[1] = true;
 
-            int requestId = this.getVarInt();
-
-            this.itemStackRequests = Utils.toPrimitive(this.getArray(int.class, bs -> {
-                int type = this.getByte();
-                switch (type) {
-                    case STACK_REQUEST_TAKE:
-                        int count = this.getByte();
-                        Object source = this.getStackRequestSlotInfo();
-                        Object destination = this.getStackRequestSlotInfo();
-                        break;
-                    case STACK_REQUEST_PLACE:
-                        count = this.getByte();
-                        source = this.getStackRequestSlotInfo();
-                        destination = this.getStackRequestSlotInfo();
-                        break;
-                    case STACK_REQUEST_SWAP:
-                        source = this.getStackRequestSlotInfo();
-                        destination = this.getStackRequestSlotInfo();
-                        break;
-                    case STACK_REQUEST_DROP:
-                        count = this.getByte();
-                        source = this.getStackRequestSlotInfo();
-                        boolean unknownBool3 = this.getBoolean();
-                        break;
-                    case STACK_REQUEST_DESTROY:
-                        count = this.getByte();
-                        source = this.getStackRequestSlotInfo();
-                        break;
-                    case STACK_REQUEST_CRAFTING_CONSUME_INPUT:
-                        count = this.getByte();
-                        source = this.getStackRequestSlotInfo();
-                        break;
-                    case STACK_REQUEST_CRAFTING_MARK_SECONDARY_RESULT_SLOT:
-                        int slot = this.getByte();
-                        break;
-                    case STACK_REQUEST_LAB_TABLE_COMBINE:
-                        break;
-                    case STACK_REQUEST_BEACON_PAYMENT:
-                        int primaryEffect = this.getVarInt();
-                        int secondaryEffect = this.getVarInt();
-                        break;
-                    case STACK_REQUEST_MINE_BLOCK:
-                        int unknown9 = this.getVarInt();
-                        int predictedDurability = this.getVarInt();
-                        int stackId = this.getVarInt();
-                        break;
-                    case STACK_REQUEST_CRAFTING_RECIPE:
-                        int recipeNetworkId = (int) this.getUnsignedVarInt();
-                        break;
-                    case STACK_REQUEST_CRAFTING_RECIPE_AUTO:
-                        recipeNetworkId = (int) this.getUnsignedVarInt();
-                        break;
-                    case STACK_REQUEST_CREATIVE_CREATE:
-                        int creativeItemNetworkId = (int) this.getUnsignedVarInt();
-                        break;
-                    case STACK_REQUEST_CRAFTING_RECIPE_OPTIONAL:
-                        recipeNetworkId = (int) this.getUnsignedVarInt();
-                        int filteredStringIndex = this.getLInt();
-                        break;
-                    case STACK_REQUEST_CRAFTING_NON_IMPLEMENTED_DEPRECATED_ASK_TY_LAING:
-                        break;
-                    case STACK_REQUEST_CRAFTING_RESULTS_DEPRECATED_ASK_TY_LAING:
-                        int length = (int) this.getUnsignedVarInt();
-                        for (int j = 0; j < length; j++) {
-                            Item resultItem = this.getItemInstance();
-                        }
-                        int iterations = this.getByte();
-                        break;
-                    default:
-                        throw new UnsupportedOperationException("Unhandled item stack request action type: " + type);
-                }
-                return type;
-            }));
-            /*int size = (int) this.getUnsignedVarInt();
-            this.itemStackRequests = new int[size];
-            for (int i = 0; i < size; i++) {
-                int type = this.getByte();
-                switch (type) {
-                    case STACK_REQUEST_TAKE:
-                        int count = this.getByte();
-                        Object source = this.getStackRequestSlotInfo();
-                        Object destination = this.getStackRequestSlotInfo();
-                        break;
-                    case STACK_REQUEST_PLACE:
-                        count = this.getByte();
-                        source = this.getStackRequestSlotInfo();
-                        destination = this.getStackRequestSlotInfo();
-                        break;
-                    case STACK_REQUEST_SWAP:
-                        source = this.getStackRequestSlotInfo();
-                        destination = this.getStackRequestSlotInfo();
-                        break;
-                    case STACK_REQUEST_DROP:
-                        count = this.getByte();
-                        source = this.getStackRequestSlotInfo();
-                        boolean unknownBool3 = this.getBoolean();
-                        break;
-                    case STACK_REQUEST_DESTROY:
-                        count = this.getByte();
-                        source = this.getStackRequestSlotInfo();
-                        break;
-                    case STACK_REQUEST_CRAFTING_CONSUME_INPUT:
-                        count = this.getByte();
-                        source = this.getStackRequestSlotInfo();
-                        break;
-                    case STACK_REQUEST_CRAFTING_MARK_SECONDARY_RESULT_SLOT:
-                        int slot = this.getByte();
-                        break;
-                    case STACK_REQUEST_LAB_TABLE_COMBINE:
-                        break;
-                    case STACK_REQUEST_BEACON_PAYMENT:
-                        int primaryEffect = this.getVarInt();
-                        int secondaryEffect = this.getVarInt();
-                        break;
-                    case STACK_REQUEST_MINE_BLOCK:
-                        int unknown9 = this.getVarInt();
-                        int predictedDurability = this.getVarInt();
-                        int stackId = this.getVarInt();
-                        break;
-                    case STACK_REQUEST_CRAFTING_RECIPE:
-                        int recipeNetworkId = (int) this.getUnsignedVarInt();
-                        break;
-                    case STACK_REQUEST_CRAFTING_RECIPE_AUTO:
-                        recipeNetworkId = (int) this.getUnsignedVarInt();
-                        break;
-                    case STACK_REQUEST_CREATIVE_CREATE:
-                        int creativeItemNetworkId = (int) this.getUnsignedVarInt();
-                        break;
-                    case STACK_REQUEST_CRAFTING_RECIPE_OPTIONAL:
-                        recipeNetworkId = (int) this.getUnsignedVarInt();
-                        int filteredStringIndex = this.getLInt();
-                        break;
-                    case STACK_REQUEST_CRAFTING_NON_IMPLEMENTED_DEPRECATED_ASK_TY_LAING:
-                        break;
-                    case STACK_REQUEST_CRAFTING_RESULTS_DEPRECATED_ASK_TY_LAING:
-                        int length = (int) this.getUnsignedVarInt();
-                        for (int j = 0; j < length; j++) {
-                            Item resultItem = this.getItemInstance();
-                        }
-                        int iterations = this.getByte();
-                        break;
-                    default:
-                        throw new UnsupportedOperationException("Unhandled item stack request action type: " + type);
-                }
-                this.itemStackRequests[i] = type;
-            }*/
-
-            int size = (int) this.getUnsignedVarInt();
-            for (int i = 0; i < size; i++) {
-                String filteredString = this.getString();
-
-            }
+            itemStackRequest = helper.getItemStackRequest(this);
         }
 
         if ((this.inputFlags & (1L << FLAG_PERFORM_BLOCK_ACTIONS)) != 0) {
             if (SynapseSharedConstants.MAC_DEBUG) debugFlags[2] = true;
 
-            ArrayDeque<PlayerBlockAction> deque = new ArrayDeque<>();
             int size = this.getVarInt();
             if (size > 100) {
                 throw new IndexOutOfBoundsException("Too many block actions in PlayerAuthInputPacket");
             }
             //this.blockActions = new PlayerBlockAction[size];
+            ArrayDeque<PlayerBlockAction> deque = new ArrayDeque<>();
             for (int i = 0; i < size; i++) {
                 int actionType = this.getVarInt();
                 PlayerBlockAction action = new PlayerBlockAction(actionType);

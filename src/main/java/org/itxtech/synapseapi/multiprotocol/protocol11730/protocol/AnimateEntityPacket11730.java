@@ -2,9 +2,11 @@ package org.itxtech.synapseapi.multiprotocol.protocol11730.protocol;
 
 import cn.nukkit.network.protocol.DataPacket;
 import cn.nukkit.network.protocol.ProtocolInfo;
+import lombok.ToString;
 import org.itxtech.synapseapi.multiprotocol.protocol116100.protocol.AnimateEntityPacket116100;
 import org.itxtech.synapseapi.utils.ClassUtils;
 
+@ToString
 public class AnimateEntityPacket11730 extends Packet11730 {
 
     public static final int NETWORK_ID = ProtocolInfo.ANIMATE_ENTITY_PACKET;

@@ -2,9 +2,8 @@ package org.itxtech.synapseapi.multiprotocol.protocol11460.protocol;
 
 import cn.nukkit.entity.data.Skin;
 import cn.nukkit.network.protocol.DataPacket;
-import cn.nukkit.network.protocol.PlayerListPacket;
 import cn.nukkit.network.protocol.ProtocolInfo;
-import org.itxtech.synapseapi.multiprotocol.protocol113.protocol.Packet113;
+import lombok.ToString;
 import org.itxtech.synapseapi.utils.ClassUtils;
 
 import java.util.ArrayList;
@@ -14,6 +13,7 @@ import java.util.UUID;
 /**
  * @author Nukkit Project Team
  */
+@ToString
 public class PlayerListPacket11460 extends Packet11460 {
 
     public static final int NETWORK_ID = ProtocolInfo.PLAYER_LIST_PACKET;
@@ -59,6 +59,7 @@ public class PlayerListPacket11460 extends Packet11460 {
         return NETWORK_ID;
     }
 
+    @ToString
     public static class Entry {
 
         public final UUID uuid;

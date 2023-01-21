@@ -5,14 +5,15 @@ import cn.nukkit.network.protocol.DataPacket;
 import cn.nukkit.network.protocol.ProtocolInfo;
 import cn.nukkit.network.protocol.SetEntityDataPacket;
 import cn.nukkit.utils.Binary;
+import lombok.ToString;
 import org.itxtech.synapseapi.multiprotocol.AbstractProtocol;
-import org.itxtech.synapseapi.multiprotocol.protocol116100.protocol.Packet116100;
 import org.itxtech.synapseapi.multiprotocol.utils.EntityMetadataGenerator;
 import org.itxtech.synapseapi.utils.ClassUtils;
 
+@ToString
 public class SetEntityDataPacket116100NE extends Packet116100NE {
 
-    public static final int NETWORK_ID = ProtocolInfo.SET_ENTITY_DATA_PACKET;
+    public static final int NETWORK_ID = ProtocolInfo.SET_ACTOR_DATA_PACKET;
 
     @Override
     public int pid() {

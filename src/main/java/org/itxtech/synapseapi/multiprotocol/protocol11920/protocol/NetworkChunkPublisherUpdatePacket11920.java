@@ -1,7 +1,9 @@
 package org.itxtech.synapseapi.multiprotocol.protocol11920.protocol;
 
 import cn.nukkit.network.protocol.ProtocolInfo;
+import lombok.ToString;
 
+@ToString
 public class NetworkChunkPublisherUpdatePacket11920 extends Packet11920 {
 
     public static final int NETWORK_ID = ProtocolInfo.NETWORK_CHUNK_PUBLISHER_UPDATE_PACKET;

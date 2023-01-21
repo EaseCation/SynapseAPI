@@ -10,6 +10,7 @@ import cn.nukkit.item.enchantment.EnchantmentList;
 import cn.nukkit.network.protocol.DataPacket;
 import cn.nukkit.network.protocol.ProtocolInfo;
 import cn.nukkit.utils.BinaryStream;
+import lombok.ToString;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -18,6 +19,7 @@ import java.util.List;
 /**
  * @author Nukkit Project Team
  */
+@ToString
 public class CraftingDataPacket16 extends Packet16 {
 
     public static final int NETWORK_ID = ProtocolInfo.CRAFTING_DATA_PACKET;

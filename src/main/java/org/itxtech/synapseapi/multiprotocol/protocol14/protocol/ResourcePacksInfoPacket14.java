@@ -2,7 +2,9 @@ package org.itxtech.synapseapi.multiprotocol.protocol14.protocol;
 
 import cn.nukkit.network.protocol.ProtocolInfo;
 import cn.nukkit.resourcepacks.ResourcePack;
+import lombok.ToString;
 
+@ToString
 public class ResourcePacksInfoPacket14 extends Packet14 {
 
 	public static final int NETWORK_ID = ProtocolInfo.RESOURCE_PACKS_INFO_PACKET;

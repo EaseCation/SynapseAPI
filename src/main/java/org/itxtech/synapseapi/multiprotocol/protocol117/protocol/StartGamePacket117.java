@@ -6,7 +6,7 @@ import lombok.ToString;
 import org.itxtech.synapseapi.multiprotocol.AbstractProtocol;
 import org.itxtech.synapseapi.multiprotocol.utils.AdvancedRuntimeItemPalette;
 
-@ToString
+@ToString(exclude = "itemDataPalette")
 public class StartGamePacket117 extends Packet117 {
 
     public static final int NETWORK_ID = ProtocolInfo.START_GAME_PACKET;

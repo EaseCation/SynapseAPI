@@ -1,7 +1,9 @@
 package org.itxtech.synapseapi.multiprotocol.protocol112.protocol;
 
 import cn.nukkit.network.protocol.ProtocolInfo;
+import lombok.ToString;
 
+@ToString
 public class ClientCacheStatusPacket112 extends Packet112 {
     public static final int NETWORK_ID = ProtocolInfo.CLIENT_CACHE_STATUS_PACKET;
 
@@ -19,7 +21,5 @@ public class ClientCacheStatusPacket112 extends Packet112 {
 
     @Override
     public void encode() {
-        this.reset();
-        this.putBoolean(this.supported);
     }
 }

@@ -8,7 +8,7 @@ import org.itxtech.synapseapi.utils.ClassUtils;
 
 @ToString
 public class EntityPickRequestPacket11730 extends Packet11730 {
-    public static final int NETWORK_ID = ProtocolInfo.ENTITY_PICK_REQUEST_PACKET;
+    public static final int NETWORK_ID = ProtocolInfo.ACTOR_PICK_REQUEST_PACKET;
 
     public long entityId;
     public int hotbarSlot;

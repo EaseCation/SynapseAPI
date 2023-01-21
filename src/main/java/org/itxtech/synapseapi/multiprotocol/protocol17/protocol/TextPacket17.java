@@ -2,12 +2,14 @@ package org.itxtech.synapseapi.multiprotocol.protocol17.protocol;
 
 import cn.nukkit.network.protocol.DataPacket;
 import cn.nukkit.network.protocol.ProtocolInfo;
-import org.itxtech.synapseapi.multiprotocol.protocol14.protocol.Packet14;
+import cn.nukkit.utils.BinaryStream;
+import lombok.ToString;
 import org.itxtech.synapseapi.utils.ClassUtils;
 
 /**
  * Created on 15-10-13.
  */
+@ToString
 public class TextPacket17 extends Packet17 {
 
 	public static final int NETWORK_ID = ProtocolInfo.TEXT_PACKET;
@@ -52,27 +54,15 @@ public class TextPacket17 extends Packet17 {
 			break;
 		case TYPE_TRANSLATION:
 			message = getString();
-			int count = (int) this.getUnsignedVarInt();
-			this.parameters = new String[count];
-			for (int i = 0; i < count; i++) {
-				this.parameters[i] = this.getString();
-			}
+			parameters = getArray(String.class, BinaryStream::getString);
 			break;
 		case TYPE_POPUP:
 			message = getString();
-			count = (int) this.getUnsignedVarInt();
-			this.parameters = new String[count];
-			for (int i = 0; i < count; i++) {
-				this.parameters[i] = this.getString();
-			}
+			parameters = getArray(String.class, BinaryStream::getString);
 			break;
 		case JUKE_BOX_POPUP:
 			message = getString();
-			count = (int) this.getUnsignedVarInt();
-			this.parameters = new String[count];
-			for (int i = 0; i < count; i++) {
-				this.parameters[i] = this.getString();
-			}
+			parameters = getArray(String.class, BinaryStream::getString);
 			break;
 		case TYPE_TIP:
 			message = getString();

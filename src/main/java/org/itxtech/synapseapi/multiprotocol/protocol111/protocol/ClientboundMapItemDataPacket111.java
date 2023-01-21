@@ -4,15 +4,15 @@ import cn.nukkit.network.protocol.ClientboundMapItemDataPacket;
 import cn.nukkit.network.protocol.DataPacket;
 import cn.nukkit.network.protocol.ProtocolInfo;
 import cn.nukkit.utils.Utils;
-import org.itxtech.synapseapi.multiprotocol.protocol15.protocol.Packet15;
+import lombok.ToString;
 import org.itxtech.synapseapi.utils.ClassUtils;
 
-import java.awt.*;
 import java.awt.image.BufferedImage;
 
 /**
  * Created by CreeperFace on 5.3.2017.
  */
+@ToString
 public class ClientboundMapItemDataPacket111 extends Packet111 {
 
     public long[] eids = new long[0];

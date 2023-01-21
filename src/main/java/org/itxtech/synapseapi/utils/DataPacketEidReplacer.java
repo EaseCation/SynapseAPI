@@ -147,7 +147,7 @@ public class DataPacketEidReplacer {
                     }
                 }
                 break;
-            case ProtocolInfo.MOVE_ENTITY_DELTA_PACKET:
+            case ProtocolInfo.MOVE_ACTOR_DELTA_PACKET:
                 if (packet instanceof MoveEntityDeltaPacket116100) {
                     if (((MoveEntityDeltaPacket116100) packet).entityRuntimeId == from) {
                         ((MoveEntityDeltaPacket116100) packet).entityRuntimeId = to;

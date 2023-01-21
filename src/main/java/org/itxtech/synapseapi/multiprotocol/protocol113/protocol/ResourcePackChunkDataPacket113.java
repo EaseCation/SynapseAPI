@@ -2,10 +2,12 @@ package org.itxtech.synapseapi.multiprotocol.protocol113.protocol;
 
 import cn.nukkit.network.protocol.DataPacket;
 import cn.nukkit.network.protocol.ProtocolInfo;
+import lombok.ToString;
 import org.itxtech.synapseapi.utils.ClassUtils;
 
 import java.util.UUID;
 
+@ToString(exclude = "data")
 public class ResourcePackChunkDataPacket113 extends Packet113 {
 
     public static final int NETWORK_ID = ProtocolInfo.RESOURCE_PACK_CHUNK_DATA_PACKET;
@@ -17,10 +19,6 @@ public class ResourcePackChunkDataPacket113 extends Packet113 {
 
     @Override
     public void decode() {
-        this.packId = UUID.fromString(this.getString());
-        this.chunkIndex = this.getLInt();
-        this.progress = this.getLLong();
-        this.data = this.getByteArray();
     }
 
     @Override

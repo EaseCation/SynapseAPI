@@ -2,9 +2,9 @@ package org.itxtech.synapseapi.multiprotocol.protocol112.protocol;
 
 import cn.nukkit.block.Block;
 import cn.nukkit.level.particle.Particle;
-import cn.nukkit.math.Vector3f;
 import cn.nukkit.network.protocol.DataPacket;
 import cn.nukkit.network.protocol.ProtocolInfo;
+import lombok.ToString;
 import org.itxtech.synapseapi.multiprotocol.AbstractProtocol;
 import org.itxtech.synapseapi.multiprotocol.utils.AdvancedGlobalBlockPalette;
 import org.itxtech.synapseapi.multiprotocol.utils.ParticleIdTranslator;
@@ -14,6 +14,7 @@ import org.itxtech.synapseapi.utils.ClassUtils;
  * author: MagicDroidX
  * Nukkit Project
  */
+@ToString
 public class LevelEventPacket112 extends Packet112 {
     public static final int NETWORK_ID = ProtocolInfo.LEVEL_EVENT_PACKET;
 
@@ -112,12 +113,6 @@ public class LevelEventPacket112 extends Packet112 {
 
     @Override
     public void decode() {
-        this.evid = this.getVarInt();
-        Vector3f v = this.getVector3f();
-        this.x = v.x;
-        this.y = v.y;
-        this.z = v.z;
-        this.data = this.getVarInt();
     }
 
     @Override

@@ -2,8 +2,10 @@ package org.itxtech.synapseapi.multiprotocol.protocol111.protocol;
 
 import cn.nukkit.network.protocol.DataPacket;
 import cn.nukkit.network.protocol.ProtocolInfo;
+import lombok.ToString;
 import org.itxtech.synapseapi.utils.ClassUtils;
 
+@ToString(exclude = "offers")
 public class UpdateTradePacket111 extends Packet111 {
 
     public static final int NETWORK_ID = ProtocolInfo.UPDATE_TRADE_PACKET;
@@ -57,7 +59,6 @@ public class UpdateTradePacket111 extends Packet111 {
         this.player = packet.player;
         this.displayName = packet.displayName;
         this.offers = packet.offers;
-        //this.softEnums.addAll(packet.softEnums);
 
         return this;
     }

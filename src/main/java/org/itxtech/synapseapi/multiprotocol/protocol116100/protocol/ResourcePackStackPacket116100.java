@@ -4,10 +4,12 @@ import cn.nukkit.network.protocol.DataPacket;
 import cn.nukkit.network.protocol.ProtocolInfo;
 import cn.nukkit.network.protocol.ResourcePackStackPacket;
 import cn.nukkit.resourcepacks.ResourcePack;
+import lombok.ToString;
 import org.itxtech.synapseapi.multiprotocol.AbstractProtocol;
 import org.itxtech.synapseapi.multiprotocol.protocol113.protocol.Packet113;
 import org.itxtech.synapseapi.utils.ClassUtils;
 
+@ToString
 public class ResourcePackStackPacket116100 extends Packet113 {
 
     public static final int NETWORK_ID = ProtocolInfo.RESOURCE_PACK_STACK_PACKET;

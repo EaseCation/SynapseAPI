@@ -2,7 +2,9 @@ package org.itxtech.synapseapi.multiprotocol.protocol116.protocol;
 
 import cn.nukkit.item.Item;
 import cn.nukkit.network.protocol.ProtocolInfo;
+import lombok.ToString;
 
+@ToString
 public class CreativeContentPacket116 extends Packet116 {
 
     public static final int NETWORK_ID = ProtocolInfo.CREATIVE_CONTENT_PACKET;

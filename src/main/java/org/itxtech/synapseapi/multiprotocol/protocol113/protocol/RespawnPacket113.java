@@ -3,11 +3,13 @@ package org.itxtech.synapseapi.multiprotocol.protocol113.protocol;
 import cn.nukkit.math.Vector3f;
 import cn.nukkit.network.protocol.DataPacket;
 import cn.nukkit.network.protocol.ProtocolInfo;
+import lombok.ToString;
 import org.itxtech.synapseapi.utils.ClassUtils;
 
 /**
  * @author Nukkit Project Team
  */
+@ToString
 public class RespawnPacket113 extends Packet113 {
 
     public static final int NETWORK_ID = ProtocolInfo.RESPAWN_PACKET;

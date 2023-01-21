@@ -1,7 +1,9 @@
 package org.itxtech.synapseapi.multiprotocol.protocol110.protocol;
 
 import cn.nukkit.network.protocol.ProtocolInfo;
+import lombok.ToString;
 
+@ToString
 public class VideoStreamConnectPacket110 extends Packet110 {
 
     public static final byte NETWORK_ID = ProtocolInfo.VIDEO_STREAM_CONNECT_PACKET;

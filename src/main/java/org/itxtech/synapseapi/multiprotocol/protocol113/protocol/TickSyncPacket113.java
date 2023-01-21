@@ -1,7 +1,9 @@
 package org.itxtech.synapseapi.multiprotocol.protocol113.protocol;
 
 import cn.nukkit.network.protocol.ProtocolInfo;
+import lombok.ToString;
 
+@ToString
 public class TickSyncPacket113 extends Packet113 {
 
     public static final int NETWORK_ID = ProtocolInfo.TICK_SYNC_PACKET;

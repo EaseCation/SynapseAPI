@@ -3,7 +3,9 @@ package org.itxtech.synapseapi.multiprotocol.protocol16.protocol;
 import cn.nukkit.network.protocol.DataPacket;
 import cn.nukkit.network.protocol.ProtocolInfo;
 import cn.nukkit.resourcepacks.ResourcePack;
+import lombok.ToString;
 
+@ToString
 public class ResourcePacksInfoPacket16 extends Packet16 {
 
 	public static final int NETWORK_ID = ProtocolInfo.RESOURCE_PACKS_INFO_PACKET;

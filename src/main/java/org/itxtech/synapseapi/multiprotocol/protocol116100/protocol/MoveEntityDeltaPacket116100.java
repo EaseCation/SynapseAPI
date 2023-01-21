@@ -2,12 +2,14 @@ package org.itxtech.synapseapi.multiprotocol.protocol116100.protocol;
 
 import cn.nukkit.network.protocol.DataPacket;
 import cn.nukkit.network.protocol.ProtocolInfo;
+import lombok.ToString;
 import org.itxtech.synapseapi.multiprotocol.protocol15.protocol.MoveEntityDeltaPacket;
 import org.itxtech.synapseapi.utils.ClassUtils;
 
+@ToString
 public class MoveEntityDeltaPacket116100 extends Packet116100 {
 
-    public static final int NETWORK_ID = ProtocolInfo.MOVE_ENTITY_DELTA_PACKET;
+    public static final int NETWORK_ID = ProtocolInfo.MOVE_ACTOR_DELTA_PACKET;
 
     public static final int FLAG_HAS_X = 0b1;
     public static final int FLAG_HAS_Y = 0b10;

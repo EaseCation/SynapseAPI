@@ -51,7 +51,6 @@ import org.itxtech.synapseapi.multiprotocol.protocol11830.protocol.AddPlayerPack
 import org.itxtech.synapseapi.multiprotocol.protocol11830.protocol.SpawnParticleEffectPacket11830;
 import org.itxtech.synapseapi.multiprotocol.protocol11830.protocol.StartGamePacket11830;
 import org.itxtech.synapseapi.multiprotocol.protocol11830ne.protocol.ClientboundMapItemDataPacket11830NE;
-import org.itxtech.synapseapi.multiprotocol.protocol11830ne.protocol.MapInfoRequestPacket11830NE;
 import org.itxtech.synapseapi.multiprotocol.protocol11830ne.protocol.NetworkChunkPublisherUpdatePacket11830NE;
 import org.itxtech.synapseapi.multiprotocol.protocol11830ne.protocol.StartGamePacket11830NE;
 import org.itxtech.synapseapi.multiprotocol.protocol119.protocol.PlayerActionPacket119;
@@ -111,10 +110,10 @@ public class PacketRegister {
         registerPacket(AbstractProtocol.PROTOCOL_14, ProtocolInfo.LOGIN_PACKET, LoginPacket14.class);
         registerPacket(AbstractProtocol.PROTOCOL_14, ProtocolInfo.TEXT_PACKET, TextPacket14.class);
         registerPacket(AbstractProtocol.PROTOCOL_14, ProtocolInfo.START_GAME_PACKET, StartGamePacket14.class);
-        registerPacket(AbstractProtocol.PROTOCOL_14, ProtocolInfo.SET_ENTITY_DATA_PACKET, SetEntityDataPacket14.class);
+        registerPacket(AbstractProtocol.PROTOCOL_14, ProtocolInfo.SET_ACTOR_DATA_PACKET, SetEntityDataPacket14.class);
         registerPacket(AbstractProtocol.PROTOCOL_14, ProtocolInfo.ADD_PLAYER_PACKET, AddPlayerPacket14.class);
-        registerPacket(AbstractProtocol.PROTOCOL_14, ProtocolInfo.ADD_ENTITY_PACKET, AddEntityPacket14.class);
-        registerPacket(AbstractProtocol.PROTOCOL_14, ProtocolInfo.ADD_ITEM_ENTITY_PACKET, AddItemEntityPacket14.class);
+        registerPacket(AbstractProtocol.PROTOCOL_14, ProtocolInfo.ADD_ACTOR_PACKET, AddEntityPacket14.class);
+        registerPacket(AbstractProtocol.PROTOCOL_14, ProtocolInfo.ADD_ITEM_ACTOR_PACKET, AddItemEntityPacket14.class);
         registerPacket(AbstractProtocol.PROTOCOL_14, ProtocolInfo.LEVEL_SOUND_EVENT_PACKET, LevelSoundEventPacket14.class);
         registerPacket(AbstractProtocol.PROTOCOL_14, ProtocolInfo.LEVEL_EVENT_PACKET, LevelEventPacket14.class);
         registerPacket(AbstractProtocol.PROTOCOL_14, ProtocolInfo.UPDATE_BLOCK_PACKET, UpdateBlockPacket14.class);
@@ -124,13 +123,13 @@ public class PacketRegister {
         registerPacket(AbstractProtocol.PROTOCOL_14, ProtocolInfo.UPDATE_BLOCK_SYNCED_PACKET, UpdateBlockSyncedPacket14.class);
         registerPacket(AbstractProtocol.PROTOCOL_14, ProtocolInfo.LAB_TABLE_PACKET, LabTablePacket14.class);
 
-        registerPacket(AbstractProtocol.PROTOCOL_15, ProtocolInfo.ADD_ENTITY_PACKET, AddEntityPacket15.class);
-        registerPacket(AbstractProtocol.PROTOCOL_15, ProtocolInfo.MOVE_ENTITY_PACKET, MoveEntityAbsolutePacket15.class);
+        registerPacket(AbstractProtocol.PROTOCOL_15, ProtocolInfo.ADD_ACTOR_PACKET, AddEntityPacket15.class);
+        registerPacket(AbstractProtocol.PROTOCOL_15, ProtocolInfo.MOVE_ACTOR_ABSOLUTE_PACKET, MoveEntityAbsolutePacket15.class);
         registerPacket(AbstractProtocol.PROTOCOL_15, ProtocolInfo.CLIENTBOUND_MAP_ITEM_DATA_PACKET, ClientboundMapItemDataPacket15.class);
         registerPacket(AbstractProtocol.PROTOCOL_15, 0x70, SetLocalPlayerAsInitializedPacket15.class); // Packet ID changed...
 
-        registerPacket(AbstractProtocol.PROTOCOL_16, ProtocolInfo.ADD_ENTITY_PACKET, AddEntityPacket16.class);
-        registerPacket(AbstractProtocol.PROTOCOL_16, ProtocolInfo.ADD_ITEM_ENTITY_PACKET, AddItemEntityPacket16.class);
+        registerPacket(AbstractProtocol.PROTOCOL_16, ProtocolInfo.ADD_ACTOR_PACKET, AddEntityPacket16.class);
+        registerPacket(AbstractProtocol.PROTOCOL_16, ProtocolInfo.ADD_ITEM_ACTOR_PACKET, AddItemEntityPacket16.class);
         registerPacket(AbstractProtocol.PROTOCOL_16, ProtocolInfo.ADD_PLAYER_PACKET, AddPlayerPacket16.class);
         registerPacket(AbstractProtocol.PROTOCOL_16, ProtocolInfo.START_GAME_PACKET, StartGamePacket16.class);
         registerPacket(AbstractProtocol.PROTOCOL_16, ProtocolInfo.RESOURCE_PACKS_INFO_PACKET, ResourcePacksInfoPacket16.class);
@@ -143,7 +142,7 @@ public class PacketRegister {
         registerPacket(AbstractProtocol.PROTOCOL_16, ProtocolInfo.SET_DISPLAY_OBJECTIVE_PACKET, SetDisplayObjectivePacket.class);
         registerPacket(AbstractProtocol.PROTOCOL_16, ProtocolInfo.SET_SCORE_PACKET, SetScorePacket.class);
         registerPacket(AbstractProtocol.PROTOCOL_16, ProtocolInfo.SET_SCOREBOARD_IDENTITY_PACKET, SetScoreboardIdentityPacket.class);
-        registerPacket(AbstractProtocol.PROTOCOL_16, ProtocolInfo.SET_ENTITY_DATA_PACKET, SetEntityDataPacket16.class);
+        registerPacket(AbstractProtocol.PROTOCOL_16, ProtocolInfo.SET_ACTOR_DATA_PACKET, SetEntityDataPacket16.class);
         registerPacket(AbstractProtocol.PROTOCOL_16, ProtocolInfo.UPDATE_BLOCK_PACKET, UpdateBlockPacket16.class);
         registerPacket(AbstractProtocol.PROTOCOL_16, ProtocolInfo.RESOURCE_PACK_CLIENT_RESPONSE_PACKET, ResourcePackClientResponsePacket16.class);
         registerPacket(AbstractProtocol.PROTOCOL_16, ProtocolInfo.RESOURCE_PACK_STACK_PACKET, ResourcePackStackPacket16.class);
@@ -154,20 +153,20 @@ public class PacketRegister {
         registerPacket(AbstractProtocol.PROTOCOL_16, ProtocolInfo.PACKET_PY_RPC, NEPyRpcPacket16.class);
         registerPacket(AbstractProtocol.PROTOCOL_16, ProtocolInfo.SET_LOCAL_PLAYER_AS_INITIALIZED_PACKET, SetLocalPlayerAsInitializedPacket16.class);
 
-        registerPacket(AbstractProtocol.PROTOCOL_17, ProtocolInfo.ADD_ENTITY_PACKET, AddEntityPacket17.class);
-        registerPacket(AbstractProtocol.PROTOCOL_17, ProtocolInfo.ADD_ITEM_ENTITY_PACKET, AddItemEntityPacket17.class);
+        registerPacket(AbstractProtocol.PROTOCOL_17, ProtocolInfo.ADD_ACTOR_PACKET, AddEntityPacket17.class);
+        registerPacket(AbstractProtocol.PROTOCOL_17, ProtocolInfo.ADD_ITEM_ACTOR_PACKET, AddItemEntityPacket17.class);
         registerPacket(AbstractProtocol.PROTOCOL_17, ProtocolInfo.ADD_PLAYER_PACKET, AddPlayerPacket17.class);
         registerPacket(AbstractProtocol.PROTOCOL_17, ProtocolInfo.AVAILABLE_COMMANDS_PACKET, AvailableCommandsPacket17.class);
         registerPacket(AbstractProtocol.PROTOCOL_17, ProtocolInfo.PLAYER_LIST_PACKET, PlayerListPacket17.class);
         registerPacket(AbstractProtocol.PROTOCOL_17, ProtocolInfo.SCRIPT_CUSTOM_EVENT_PACKET, ScriptCustomEventPacket17.class);
-        registerPacket(AbstractProtocol.PROTOCOL_17, ProtocolInfo.SET_ENTITY_DATA_PACKET, SetEntityDataPacket17.class);
+        registerPacket(AbstractProtocol.PROTOCOL_17, ProtocolInfo.SET_ACTOR_DATA_PACKET, SetEntityDataPacket17.class);
         registerPacket(AbstractProtocol.PROTOCOL_17, ProtocolInfo.START_GAME_PACKET, StartGamePacket17.class);
         registerPacket(AbstractProtocol.PROTOCOL_17, ProtocolInfo.TEXT_PACKET, TextPacket17.class);
         registerPacket(AbstractProtocol.PROTOCOL_17, ProtocolInfo.UPDATE_BLOCK_PACKET, UpdateBlockPacket17.class);
         registerPacket(AbstractProtocol.PROTOCOL_17, ProtocolInfo.LEVEL_EVENT_PACKET, LevelEventPacket17.class);
         registerPacket(AbstractProtocol.PROTOCOL_17, ProtocolInfo.SET_SCORE_PACKET, SetScorePacket17.class);
 
-        registerPacket(AbstractProtocol.PROTOCOL_18, ProtocolInfo.ADD_ENTITY_PACKET, AddEntityPacket18.class);
+        registerPacket(AbstractProtocol.PROTOCOL_18, ProtocolInfo.ADD_ACTOR_PACKET, AddEntityPacket18.class);
         registerPacket(AbstractProtocol.PROTOCOL_18, ProtocolInfo.NETWORK_CHUNK_PUBLISHER_UPDATE_PACKET, NetworkChunkPublisherUpdatePacket18.class);
         registerPacket(AbstractProtocol.PROTOCOL_18, ProtocolInfo.RESOURCE_PACK_STACK_PACKET, ResourcePackStackPacket18.class);
         registerPacket(AbstractProtocol.PROTOCOL_18, ProtocolInfo.START_GAME_PACKET, StartGamePacket18.class);
@@ -213,7 +212,7 @@ public class PacketRegister {
         registerPacket(AbstractProtocol.PROTOCOL_113, ProtocolInfo.ADD_PLAYER_PACKET, AddPlayerPacket113.class);
         registerPacket(AbstractProtocol.PROTOCOL_113, ProtocolInfo.TICK_SYNC_PACKET, TickSyncPacket113.class);
         registerPacket(AbstractProtocol.PROTOCOL_113, ProtocolInfo.SETTINGS_COMMAND_PACKET, SettingsCommandPacket113.class);
-        registerPacket(AbstractProtocol.PROTOCOL_113, ProtocolInfo.MOVE_ENTITY_DELTA_PACKET, MoveEntityDeltaPacket113.class);
+        registerPacket(AbstractProtocol.PROTOCOL_113, ProtocolInfo.MOVE_ACTOR_DELTA_PACKET, MoveEntityDeltaPacket113.class);
         registerPacket(AbstractProtocol.PROTOCOL_113, ProtocolInfo.PACKET_CONFIRM_SKIN, ConfirmSkinPacket113.class);
 
         registerPacket(AbstractProtocol.PROTOCOL_114_60, ProtocolInfo.PLAYER_LIST_PACKET, PlayerListPacket11460.class);
@@ -226,7 +225,7 @@ public class PacketRegister {
         registerPacket(AbstractProtocol.PROTOCOL_116, ProtocolInfo.INVENTORY_SLOT_PACKET, InventorySlotPacket116.class);
         registerPacket(AbstractProtocol.PROTOCOL_116, ProtocolInfo.INVENTORY_TRANSACTION_PACKET, InventoryTransactionPacket116.class);
         registerPacket(AbstractProtocol.PROTOCOL_116, ProtocolInfo.SET_SPAWN_POSITION_PACKET, SetSpawnPositionPacket116.class);
-        registerPacket(AbstractProtocol.PROTOCOL_116, ProtocolInfo.SET_ENTITY_LINK_PACKET, SetEntityLinkPacket116.class);
+        registerPacket(AbstractProtocol.PROTOCOL_116, ProtocolInfo.SET_ACTOR_LINK_PACKET, SetEntityLinkPacket116.class);
         registerPacket(AbstractProtocol.PROTOCOL_116, ProtocolInfo.EMOTE_PACKET, EmotePacket116.class);
         registerPacket(AbstractProtocol.PROTOCOL_116, ProtocolInfo.EMOTE_LIST_PACKET, EmoteListPacket116.class);
         registerPacket(AbstractProtocol.PROTOCOL_116, ProtocolInfo.PLAYER_AUTH_INPUT_PACKET, PlayerAuthInputPacket116.class);
@@ -236,7 +235,7 @@ public class PacketRegister {
 
         registerPacket(AbstractProtocol.PROTOCOL_116_100_NE, ProtocolInfo.START_GAME_PACKET, StartGamePacket116100NE.class);
         registerPacket(AbstractProtocol.PROTOCOL_116_100_NE, ProtocolInfo.MOVE_PLAYER_PACKET, MovePlayerPacket116100NE.class);
-        registerPacket(AbstractProtocol.PROTOCOL_116_100_NE, ProtocolInfo.SET_ENTITY_DATA_PACKET, SetEntityDataPacket116100NE.class);
+        registerPacket(AbstractProtocol.PROTOCOL_116_100_NE, ProtocolInfo.SET_ACTOR_DATA_PACKET, SetEntityDataPacket116100NE.class);
         registerPacket(AbstractProtocol.PROTOCOL_116_100_NE, ProtocolInfo.UPDATE_ATTRIBUTES_PACKET, UpdateAttributesPacket116100NE.class);
         registerPacket(AbstractProtocol.PROTOCOL_116_100_NE, ProtocolInfo.TEXT_PACKET, TextPacket116100NE.class);
 
@@ -244,7 +243,7 @@ public class PacketRegister {
         registerPacket(AbstractProtocol.PROTOCOL_116_100, ProtocolInfo.START_GAME_PACKET, StartGamePacket116100.class);
         registerPacket(AbstractProtocol.PROTOCOL_116_100, ProtocolInfo.RESOURCE_PACK_STACK_PACKET, ResourcePackStackPacket116100.class);
         registerPacket(AbstractProtocol.PROTOCOL_116_100, ProtocolInfo.CONTAINER_CLOSE_PACKET, ContainerClosePacket116100.class);
-        registerPacket(AbstractProtocol.PROTOCOL_116_100, ProtocolInfo.MOVE_ENTITY_DELTA_PACKET, MoveEntityDeltaPacket116100.class);
+        registerPacket(AbstractProtocol.PROTOCOL_116_100, ProtocolInfo.MOVE_ACTOR_DELTA_PACKET, MoveEntityDeltaPacket116100.class);
         registerPacket(AbstractProtocol.PROTOCOL_116_100, ProtocolInfo.PLAYER_LIST_PACKET, PlayerListPacket116100.class);
         registerPacket(AbstractProtocol.PROTOCOL_116_100, ProtocolInfo.LEVEL_EVENT_PACKET, LevelEventPacket116100.class);
         registerPacket(AbstractProtocol.PROTOCOL_116_100, ProtocolInfo.ANIMATE_ENTITY_PACKET, AnimateEntityPacket116100.class);
@@ -275,7 +274,7 @@ public class PacketRegister {
         registerPacket(AbstractProtocol.PROTOCOL_117_30, ProtocolInfo.START_GAME_PACKET, StartGamePacket11730.class);
         registerPacket(AbstractProtocol.PROTOCOL_117_30, ProtocolInfo.CRAFTING_DATA_PACKET, CraftingDataPacket11730.class);
         registerPacket(AbstractProtocol.PROTOCOL_117_30, ProtocolInfo.ANIMATE_ENTITY_PACKET, AnimateEntityPacket11730.class);
-        registerPacket(AbstractProtocol.PROTOCOL_117_30, ProtocolInfo.ENTITY_PICK_REQUEST_PACKET, EntityPickRequestPacket11730.class);
+        registerPacket(AbstractProtocol.PROTOCOL_117_30, ProtocolInfo.ACTOR_PICK_REQUEST_PACKET, EntityPickRequestPacket11730.class);
 
         registerPacket(AbstractProtocol.PROTOCOL_118, ProtocolInfo.START_GAME_PACKET, StartGamePacket118.class);
         registerPacket(AbstractProtocol.PROTOCOL_118, ProtocolInfo.SUB_CHUNK_REQUEST_PACKET, SubChunkRequestPacket118.class);
@@ -292,7 +291,7 @@ public class PacketRegister {
         registerPacket(AbstractProtocol.PROTOCOL_118_30_NE, ProtocolInfo.START_GAME_PACKET, StartGamePacket11830NE.class);
         registerPacket(AbstractProtocol.PROTOCOL_118_30_NE, ProtocolInfo.CLIENTBOUND_MAP_ITEM_DATA_PACKET, ClientboundMapItemDataPacket11830NE.class);
         registerPacket(AbstractProtocol.PROTOCOL_118_30_NE, ProtocolInfo.NETWORK_CHUNK_PUBLISHER_UPDATE_PACKET, NetworkChunkPublisherUpdatePacket11830NE.class);
-//        registerPacket(AbstractProtocol.PROTOCOL_118_30_NE, ProtocolInfo.MAP_INFO_REQUEST_PACKET, MapInfoRequestPacket11830NE.class);
+//        registerPacket(AbstractProtocol.PROTOCOL_118_30_NE, ProtocolInfo.MAP_INFO_REQUEST_PACKET, MapInfoRequestPacket11830NE.class); // 我们不使用客户端区块生成
 
         registerPacket(AbstractProtocol.PROTOCOL_119, ProtocolInfo.START_GAME_PACKET, StartGamePacket119.class);
         registerPacket(AbstractProtocol.PROTOCOL_119, ProtocolInfo.PLAYER_ACTION_PACKET, PlayerActionPacket119.class);
@@ -302,7 +301,7 @@ public class PacketRegister {
 
         registerPacket(AbstractProtocol.PROTOCOL_119_10, ProtocolInfo.START_GAME_PACKET, StartGamePacket11910.class);
         registerPacket(AbstractProtocol.PROTOCOL_119_10, ProtocolInfo.ADD_PLAYER_PACKET, AddPlayerPacket11910.class);
-        registerPacket(AbstractProtocol.PROTOCOL_119_10, ProtocolInfo.ADD_ENTITY_PACKET, AddEntityPacket11910.class);
+        registerPacket(AbstractProtocol.PROTOCOL_119_10, ProtocolInfo.ADD_ACTOR_PACKET, AddEntityPacket11910.class);
         registerPacket(AbstractProtocol.PROTOCOL_119_10, ProtocolInfo.UPDATE_ABILITIES_PACKET, UpdateAbilitiesPacket11910.class);
         registerPacket(AbstractProtocol.PROTOCOL_119_10, ProtocolInfo.UPDATE_ADVENTURE_SETTINGS_PACKET, UpdateAdventureSettingsPacket11910.class);
 
@@ -314,9 +313,9 @@ public class PacketRegister {
         registerPacket(AbstractProtocol.PROTOCOL_119_20, ProtocolInfo.MODAL_FORM_RESPONSE_PACKET, ModalFormResponsePacket11920.class);
         registerPacket(AbstractProtocol.PROTOCOL_119_20, ProtocolInfo.FEATURE_REGISTRY_PACKET, FeatureRegistryPacket11920.class);
 
-        registerPacket(AbstractProtocol.PROTOCOL_119_40, ProtocolInfo.ADD_ENTITY_PACKET, AddEntityPacket11940.class);
+        registerPacket(AbstractProtocol.PROTOCOL_119_40, ProtocolInfo.ADD_ACTOR_PACKET, AddEntityPacket11940.class);
         registerPacket(AbstractProtocol.PROTOCOL_119_40, ProtocolInfo.ADD_PLAYER_PACKET, AddPlayerPacket11940.class);
-        registerPacket(AbstractProtocol.PROTOCOL_119_40, ProtocolInfo.SET_ENTITY_DATA_PACKET, SetEntityDataPacket11940.class);
+        registerPacket(AbstractProtocol.PROTOCOL_119_40, ProtocolInfo.SET_ACTOR_DATA_PACKET, SetEntityDataPacket11940.class);
 
         registerPacket(AbstractProtocol.PROTOCOL_119_50, ProtocolInfo.UPDATE_CLIENT_INPUT_LOCKS_PACKET, UpdateClientInputLocksPacket11950.class);
 

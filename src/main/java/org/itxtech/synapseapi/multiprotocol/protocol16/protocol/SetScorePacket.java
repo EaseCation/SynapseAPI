@@ -1,8 +1,10 @@
 package org.itxtech.synapseapi.multiprotocol.protocol16.protocol;
 
 import cn.nukkit.network.protocol.ProtocolInfo;
+import lombok.ToString;
 import org.itxtech.synapseapi.multiprotocol.protocol16.protocol.data.ScorePacketEntry;
 
+@ToString
 public class SetScorePacket extends Packet16 {
 
     public static final int TYPE_CHANGE_SCORE = 0;

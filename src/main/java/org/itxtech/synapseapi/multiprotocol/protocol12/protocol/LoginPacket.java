@@ -2,15 +2,13 @@ package org.itxtech.synapseapi.multiprotocol.protocol12.protocol;
 
 import cn.nukkit.Server;
 import cn.nukkit.entity.data.Skin;
-import cn.nukkit.network.protocol.DataPacket;
 import cn.nukkit.network.protocol.ProtocolInfo;
-import cn.nukkit.utils.Binary;
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;
 import com.google.gson.reflect.TypeToken;
 import com.netease.mc.authlib.Profile;
 import com.netease.mc.authlib.TokenChain;
-import com.netease.mc.authlib.exception.AuthException;
+import lombok.ToString;
 
 import java.nio.charset.StandardCharsets;
 import java.util.*;
@@ -18,6 +16,7 @@ import java.util.*;
 /**
  * Created by on 15-10-13.
  */
+@ToString
 public class LoginPacket extends Packet12 {
 
     public static final int NETWORK_ID = ProtocolInfo.LOGIN_PACKET;
@@ -31,10 +30,6 @@ public class LoginPacket extends Packet12 {
     public String xuid;
 
     public Skin skin;
-    public String skinGeometryName;
-    public byte[] skinGeometry;
-
-    public byte[] capeData;
 
     @Override
     public int pid() {
@@ -86,7 +81,7 @@ public class LoginPacket extends Packet12 {
     }
 
     //netease解析客户端信息。
-    private void neteaseDecode() throws AuthException {
+    private void neteaseDecode() {
         this.clientUUID = null;
         this.username = null;
         Map<String, List<String>> map = new Gson().fromJson(new String(this.get(this.getLInt()), StandardCharsets.UTF_8),

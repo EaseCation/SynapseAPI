@@ -4,6 +4,7 @@ import cn.nukkit.network.protocol.ClientboundMapItemDataPacket;
 import cn.nukkit.network.protocol.DataPacket;
 import cn.nukkit.network.protocol.ProtocolInfo;
 import cn.nukkit.utils.Utils;
+import lombok.ToString;
 import org.itxtech.synapseapi.utils.ClassUtils;
 
 import java.awt.*;
@@ -12,6 +13,7 @@ import java.awt.image.BufferedImage;
 /**
  * Created by CreeperFace on 5.3.2017.
  */
+@ToString
 public class ClientboundMapItemDataPacket15 extends Packet15 {
 
     public long[] eids = new long[0];

@@ -1,11 +1,13 @@
 package org.itxtech.synapseapi.multiprotocol.protocol17.protocol;
 
 import cn.nukkit.network.protocol.ProtocolInfo;
+import lombok.ToString;
 import org.itxtech.synapseapi.multiprotocol.protocol17.protocol.data.ScorePacketInfo;
 
 import java.util.ArrayList;
 import java.util.List;
 
+@ToString
 public class SetScorePacket17 extends Packet17 {
 
     public static final int TYPE_CHANGE_SCORE = 0;
@@ -21,8 +23,6 @@ public class SetScorePacket17 extends Packet17 {
 
     @Override
     public void decode() {
-        type = (byte) this.getByte();
-        entries = this.getScorePacketInfos();
     }
 
     @Override

@@ -3,11 +3,13 @@ package org.itxtech.synapseapi.multiprotocol.protocol116.protocol;
 import cn.nukkit.network.protocol.DataPacket;
 import cn.nukkit.network.protocol.ProtocolInfo;
 import cn.nukkit.network.protocol.SetEntityLinkPacket;
+import lombok.ToString;
 import org.itxtech.synapseapi.utils.ClassUtils;
 
-public class SetEntityLinkPacket116  extends Packet116 {
+@ToString
+public class SetEntityLinkPacket116 extends Packet116 {
 
-    public static final int NETWORK_ID = ProtocolInfo.SET_ENTITY_LINK_PACKET;
+    public static final int NETWORK_ID = ProtocolInfo.SET_ACTOR_LINK_PACKET;
 
     @Override
     public int pid() {

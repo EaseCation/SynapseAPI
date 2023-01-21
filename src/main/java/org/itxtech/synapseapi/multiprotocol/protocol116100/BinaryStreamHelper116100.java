@@ -3,6 +3,7 @@ package org.itxtech.synapseapi.multiprotocol.protocol116100;
 import cn.nukkit.entity.data.Skin;
 import cn.nukkit.item.Item;
 import cn.nukkit.item.ItemDurable;
+import cn.nukkit.item.ItemID;
 import cn.nukkit.nbt.NBTIO;
 import cn.nukkit.nbt.tag.CompoundTag;
 import cn.nukkit.nbt.tag.ListTag;
@@ -26,8 +27,8 @@ public class BinaryStreamHelper116100 extends BinaryStreamHelper116100NE {
     @Override
     public Item getSlot(BinaryStream stream) {
         int networkId = stream.getVarInt();
-        if (networkId == 0) {
-            return Item.get(0, 0, 0);
+        if (networkId == ItemID.AIR) {
+            return Item.get(ItemID.AIR, 0, 0);
         }
 
         int legacyFullId = AdvancedRuntimeItemPalette.getLegacyFullId(this.protocol, stream.neteaseMode, networkId);
@@ -121,8 +122,8 @@ public class BinaryStreamHelper116100 extends BinaryStreamHelper116100NE {
 
     @Override
     public void putSlot(BinaryStream stream, Item item) {
-        if (item == null || item.getId() == 0) {
-            stream.putVarInt(0);
+        if (item == null || item.getId() == ItemID.AIR) {
+            stream.putVarInt(ItemID.AIR);
             return;
         }
 
@@ -182,9 +183,31 @@ public class BinaryStreamHelper116100 extends BinaryStreamHelper116100NE {
     }
 
     @Override
+    public Item getCraftingRecipeIngredient(BinaryStream stream) {
+        int networkId = stream.getVarInt();
+        if (networkId == ItemID.AIR) {
+            return Item.get(ItemID.AIR, 0, 0);
+        }
+
+        int legacyFullId = AdvancedRuntimeItemPalette.getLegacyFullId(this.protocol, stream.neteaseMode, networkId);
+        int id = AdvancedRuntimeItemPalette.getId(this.protocol, stream.neteaseMode, legacyFullId);
+        boolean hasData = AdvancedRuntimeItemPalette.hasData(this.protocol, stream.neteaseMode, legacyFullId);
+
+        int damage = stream.getVarInt();
+        if (hasData) {
+            damage = AdvancedRuntimeItemPalette.getData(this.protocol, stream.neteaseMode, legacyFullId);
+        } else if (damage == 0x7fff) {
+            damage = -1;
+        }
+
+        int count = stream.getVarInt();
+        return Item.get(id, damage, count);
+    }
+
+    @Override
     public void putCraftingRecipeIngredient(BinaryStream stream, Item ingredient) {
-        if (ingredient == null || ingredient.getId() == 0) {
-            stream.putVarInt(0);
+        if (ingredient == null || ingredient.getId() == ItemID.AIR) {
+            stream.putVarInt(ItemID.AIR);
             return;
         }
 

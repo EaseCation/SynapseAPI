@@ -3,11 +3,13 @@ package org.itxtech.synapseapi.multiprotocol.protocol14.protocol;
 import cn.nukkit.math.Vector3f;
 import cn.nukkit.network.protocol.DataPacket;
 import cn.nukkit.network.protocol.ProtocolInfo;
+import lombok.ToString;
 import org.itxtech.synapseapi.multiprotocol.utils.LevelSoundEventEnum;
 import org.itxtech.synapseapi.utils.ClassUtils;
 
 import java.util.Optional;
 
+@ToString
 public class LevelSoundEventPacket14 extends Packet14 {
     public static final int NETWORK_ID = ProtocolInfo.LEVEL_SOUND_EVENT_PACKET;
 

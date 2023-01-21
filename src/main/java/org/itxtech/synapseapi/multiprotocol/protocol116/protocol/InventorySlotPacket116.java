@@ -3,12 +3,14 @@ package org.itxtech.synapseapi.multiprotocol.protocol116.protocol;
 import cn.nukkit.item.Item;
 import cn.nukkit.network.protocol.DataPacket;
 import cn.nukkit.network.protocol.ProtocolInfo;
+import lombok.ToString;
 import org.itxtech.synapseapi.utils.ClassUtils;
 
 /**
  * author: MagicDroidX
  * Nukkit Project
  */
+@ToString
 public class InventorySlotPacket116 extends Packet116 {
     public static final int NETWORK_ID = ProtocolInfo.INVENTORY_SLOT_PACKET;
 

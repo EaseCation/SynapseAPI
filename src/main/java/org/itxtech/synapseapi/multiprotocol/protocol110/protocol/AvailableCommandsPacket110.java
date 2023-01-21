@@ -4,6 +4,7 @@ import cn.nukkit.command.data.*;
 import cn.nukkit.network.protocol.DataPacket;
 import cn.nukkit.network.protocol.ProtocolInfo;
 import cn.nukkit.utils.BinaryStream;
+import lombok.ToString;
 import org.itxtech.synapseapi.utils.ClassUtils;
 
 import java.util.*;
@@ -13,6 +14,7 @@ import java.util.function.ObjIntConsumer;
  * author: MagicDroidX
  * Nukkit Project
  */
+@ToString
 public class AvailableCommandsPacket110 extends Packet110 {
 
     public static final byte NETWORK_ID = ProtocolInfo.AVAILABLE_COMMANDS_PACKET;

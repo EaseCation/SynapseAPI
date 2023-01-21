@@ -1,7 +1,9 @@
 package org.itxtech.synapseapi.multiprotocol.protocol11950.protocol;
 
 import cn.nukkit.network.protocol.ProtocolInfo;
+import lombok.ToString;
 
+@ToString
 public class UpdateClientInputLocksPacket11950 extends Packet11950 {
     public static final int NETWORK_ID = ProtocolInfo.UPDATE_CLIENT_INPUT_LOCKS_PACKET;
 

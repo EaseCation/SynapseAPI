@@ -13,14 +13,16 @@ import cn.nukkit.network.protocol.ProtocolInfo;
 import cn.nukkit.network.protocol.types.EntityLink;
 import cn.nukkit.utils.Binary;
 import com.google.common.collect.ImmutableMap;
+import lombok.ToString;
 import org.itxtech.synapseapi.multiprotocol.AbstractProtocol;
 import org.itxtech.synapseapi.multiprotocol.utils.EntityMetadataGenerator;
 import org.itxtech.synapseapi.utils.ClassUtils;
 
+@ToString
 public class AddEntityPacket11940 extends Packet11940 {
-    public static final int NETWORK_ID = ProtocolInfo.ADD_ENTITY_PACKET;
+    public static final int NETWORK_ID = ProtocolInfo.ADD_ACTOR_PACKET;
 
-    public static ImmutableMap<Integer, String> LEGACY_IDS = ImmutableMap.<Integer, String>builder()
+    public static final ImmutableMap<Integer, String> LEGACY_IDS = ImmutableMap.<Integer, String>builder()
             .put(51, "minecraft:npc")
             .put(63, "minecraft:player")
             .put(EntityWitherSkeleton.NETWORK_ID, "minecraft:wither_skeleton")

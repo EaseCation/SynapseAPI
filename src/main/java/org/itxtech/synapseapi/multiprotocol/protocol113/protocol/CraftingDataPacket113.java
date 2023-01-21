@@ -5,6 +5,7 @@ import cn.nukkit.item.Item;
 import cn.nukkit.network.protocol.DataPacket;
 import cn.nukkit.network.protocol.ProtocolInfo;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
+import lombok.ToString;
 import org.itxtech.synapseapi.utils.ClassUtils;
 
 import java.util.Collections;
@@ -14,6 +15,7 @@ import java.util.stream.Collectors;
 /**
  * @author Nukkit Project Team
  */
+@ToString
 public class CraftingDataPacket113 extends Packet113 {
 
     public static final int NETWORK_ID = ProtocolInfo.CRAFTING_DATA_PACKET;

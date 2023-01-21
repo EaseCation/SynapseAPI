@@ -33,6 +33,7 @@ public class MapInfoRequestPacket11830NE extends Packet11830NE {
     public void encode() {
     }
 
+    @ToString
     @AllArgsConstructor
     public static class PixelEntry {
         public static final int Y_INDEX_MULTIPLIER = 128;

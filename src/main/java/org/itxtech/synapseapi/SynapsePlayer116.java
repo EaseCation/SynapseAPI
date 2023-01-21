@@ -610,7 +610,7 @@ public class SynapsePlayer116 extends SynapsePlayer113 {
 						break;
 				}
 				break;
-			case ProtocolInfo.ENTITY_EVENT_PACKET:
+			case ProtocolInfo.ACTOR_EVENT_PACKET:
 				if (!callPacketReceiveEvent(packet)) break;
 				EntityEventPacket entityEventPacket = (EntityEventPacket) packet;
 				if (entityEventPacket.event == EntityEventPacket.ENCHANT && this.getWindowById(ENCHANT_WINDOW_ID) != null) {

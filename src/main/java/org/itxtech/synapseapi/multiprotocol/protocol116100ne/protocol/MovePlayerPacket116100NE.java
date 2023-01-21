@@ -4,8 +4,10 @@ import cn.nukkit.math.Vector3f;
 import cn.nukkit.network.protocol.DataPacket;
 import cn.nukkit.network.protocol.MovePlayerPacket;
 import cn.nukkit.network.protocol.ProtocolInfo;
+import lombok.ToString;
 import org.itxtech.synapseapi.utils.ClassUtils;
 
+@ToString
 public class MovePlayerPacket116100NE extends Packet116100NE {
 
     public static final int NETWORK_ID = ProtocolInfo.MOVE_PLAYER_PACKET;

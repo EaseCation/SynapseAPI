@@ -2,10 +2,12 @@ package org.itxtech.synapseapi.multiprotocol.protocol14.protocol;
 
 import cn.nukkit.level.GameRules;
 import cn.nukkit.network.protocol.ProtocolInfo;
+import lombok.ToString;
 
 /**
  * Created on 15-10-13.
  */
+@ToString
 public class StartGamePacket14 extends Packet14 {
 
 	public static final int NETWORK_ID = ProtocolInfo.START_GAME_PACKET;
@@ -106,7 +108,7 @@ public class StartGamePacket14 extends Packet14 {
 		this.putBoolean(false); // unknown bytes.
 		this.putBoolean(false); // unknown bytes.
 		this.putBoolean(false); // unknown bytes.
-		
+
 		this.putString(this.levelId);
 		this.putString(this.worldName);
 		this.putString(this.premiumWorldTemplateId);

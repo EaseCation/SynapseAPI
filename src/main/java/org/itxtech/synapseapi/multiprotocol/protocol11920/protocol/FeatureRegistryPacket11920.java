@@ -2,7 +2,9 @@ package org.itxtech.synapseapi.multiprotocol.protocol11920.protocol;
 
 import cn.nukkit.network.protocol.ProtocolInfo;
 import lombok.AllArgsConstructor;
+import lombok.ToString;
 
+@ToString
 public class FeatureRegistryPacket11920 extends Packet11920 {
 
     public static final int NETWORK_ID = ProtocolInfo.FEATURE_REGISTRY_PACKET;
@@ -28,6 +30,7 @@ public class FeatureRegistryPacket11920 extends Packet11920 {
         }
     }
 
+    @ToString
     @AllArgsConstructor
     public static class Entry {
         public String featureName;

@@ -2,9 +2,11 @@ package org.itxtech.synapseapi.multiprotocol.protocol118.protocol;
 
 import cn.nukkit.level.GameRules;
 import cn.nukkit.network.protocol.ProtocolInfo;
+import lombok.ToString;
 import org.itxtech.synapseapi.multiprotocol.AbstractProtocol;
 import org.itxtech.synapseapi.multiprotocol.utils.AdvancedRuntimeItemPalette;
 
+@ToString(exclude = "itemDataPalette")
 public class StartGamePacket118 extends Packet118 {
 
     public static final int NETWORK_ID = ProtocolInfo.START_GAME_PACKET;

@@ -1,7 +1,9 @@
 package org.itxtech.synapseapi.multiprotocol.protocol19.protocol;
 
 import cn.nukkit.network.protocol.ProtocolInfo;
+import lombok.ToString;
 
+@ToString
 public class NetworkStackLatencyPacket19 extends Packet19 {
 
     public long timestamp;

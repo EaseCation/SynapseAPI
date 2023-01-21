@@ -2,7 +2,9 @@ package org.itxtech.synapseapi.multiprotocol.protocol16.protocol;
 
 import cn.nukkit.network.protocol.DataPacket;
 import cn.nukkit.network.protocol.ProtocolInfo;
+import lombok.ToString;
 
+@ToString
 public class ResourcePackClientResponsePacket16 extends Packet16 {
 
     public static final int NETWORK_ID = ProtocolInfo.RESOURCE_PACK_CLIENT_RESPONSE_PACKET;
@@ -18,21 +20,14 @@ public class ResourcePackClientResponsePacket16 extends Packet16 {
     @Override
     public void decode() {
         this.responseStatus = (byte) this.getByte();
-        this.packEntries = new Entry[this.getLShort()];
-        for (int i = 0; i < this.packEntries.length; i++) {
+        this.packEntries = this.getArrayLShort(Entry.class, stream -> {
             String[] entry = this.getString().split("_");
-            this.packEntries[i] = new Entry(entry[0], entry[1]);
-        }
+            return new Entry(entry[0], entry[1]);
+        });
     }
 
     @Override
     public void encode() {
-        this.reset();
-        this.putByte(this.responseStatus);
-        this.putLShort(this.packEntries.length);
-        for (Entry entry : this.packEntries) {
-            this.putString(entry.uuid + '_' + entry.version);
-        }
     }
 
     @Override
@@ -40,6 +35,7 @@ public class ResourcePackClientResponsePacket16 extends Packet16 {
         return NETWORK_ID;
     }
 
+    @ToString
     public static class Entry {
         public final String uuid;
         public final String version;

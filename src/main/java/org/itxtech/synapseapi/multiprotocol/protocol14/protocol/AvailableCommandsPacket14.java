@@ -3,6 +3,7 @@ package org.itxtech.synapseapi.multiprotocol.protocol14.protocol;
 import cn.nukkit.command.data.*;
 import cn.nukkit.network.protocol.DataPacket;
 import cn.nukkit.network.protocol.ProtocolInfo;
+import lombok.ToString;
 import org.itxtech.synapseapi.multiprotocol.protocol16.protocol.Packet16;
 import org.itxtech.synapseapi.utils.ClassUtils;
 
@@ -13,6 +14,7 @@ import java.util.stream.Collectors;
  * author: MagicDroidX
  * Nukkit Project
  */
+@ToString
 public class AvailableCommandsPacket14 extends Packet16 {
 
     public static final int NETWORK_ID = ProtocolInfo.AVAILABLE_COMMANDS_PACKET;

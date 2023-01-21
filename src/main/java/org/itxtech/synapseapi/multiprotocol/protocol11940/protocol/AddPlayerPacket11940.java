@@ -7,6 +7,7 @@ import cn.nukkit.network.protocol.DataPacket;
 import cn.nukkit.network.protocol.ProtocolInfo;
 import cn.nukkit.network.protocol.types.EntityLink;
 import cn.nukkit.utils.Binary;
+import lombok.ToString;
 import org.itxtech.synapseapi.multiprotocol.AbstractProtocol;
 import org.itxtech.synapseapi.multiprotocol.utils.EntityMetadataGenerator;
 import org.itxtech.synapseapi.utils.ClassUtils;
@@ -15,6 +16,7 @@ import java.util.UUID;
 
 import static org.itxtech.synapseapi.SynapsePlayer116100.GAME_TYPE_SURVIVAL;
 
+@ToString
 public class AddPlayerPacket11940 extends Packet11940 {
     public static final int NETWORK_ID = ProtocolInfo.ADD_PLAYER_PACKET;
 

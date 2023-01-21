@@ -29,6 +29,7 @@ public class ItemComponentPacket116100 extends Packet116100 {
         }
     }
 
+    @ToString(exclude = "tag")
     @AllArgsConstructor
     public static class Entry {
         public String name;

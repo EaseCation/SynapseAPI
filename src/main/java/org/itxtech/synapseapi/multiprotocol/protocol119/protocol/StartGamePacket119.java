@@ -11,7 +11,7 @@ import org.itxtech.synapseapi.multiprotocol.utils.AdvancedRuntimeItemPalette;
 import java.io.IOException;
 import java.util.UUID;
 
-@ToString
+@ToString(exclude = "itemDataPalette")
 public class StartGamePacket119 extends Packet119 {
     public static final int NETWORK_ID = ProtocolInfo.START_GAME_PACKET;
 

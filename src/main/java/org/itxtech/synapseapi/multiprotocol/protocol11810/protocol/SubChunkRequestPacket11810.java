@@ -3,8 +3,10 @@ package org.itxtech.synapseapi.multiprotocol.protocol11810.protocol;
 import cn.nukkit.math.BlockVector3;
 import cn.nukkit.network.protocol.DataPacket;
 import cn.nukkit.network.protocol.ProtocolInfo;
+import lombok.ToString;
 import org.itxtech.synapseapi.multiprotocol.protocol118.protocol.SubChunkRequestPacket118;
 
+@ToString
 public class SubChunkRequestPacket11810 extends Packet11810 {
 
     public static final int NETWORK_ID = ProtocolInfo.SUB_CHUNK_REQUEST_PACKET;

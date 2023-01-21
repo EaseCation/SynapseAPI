@@ -3,7 +3,9 @@ package org.itxtech.synapseapi.multiprotocol.protocol118.protocol;
 import cn.nukkit.network.protocol.ProtocolInfo;
 import cn.nukkit.network.protocol.UpdateBlockPacket;
 import cn.nukkit.utils.BinaryStream;
+import lombok.ToString;
 
+@ToString
 public class UpdateSubChunkBlocksPacket118 extends Packet118 {
 
     public static final int NETWORK_ID = ProtocolInfo.UPDATE_SUB_CHUNK_BLOCKS_PACKET;
@@ -40,6 +42,7 @@ public class UpdateSubChunkBlocksPacket118 extends Packet118 {
         }
     }
 
+    @ToString
     public static class Entry {
         public final int x;
         public final int y;

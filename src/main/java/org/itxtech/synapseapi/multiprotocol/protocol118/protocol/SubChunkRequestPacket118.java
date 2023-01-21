@@ -1,7 +1,9 @@
 package org.itxtech.synapseapi.multiprotocol.protocol118.protocol;
 
 import cn.nukkit.network.protocol.ProtocolInfo;
+import lombok.ToString;
 
+@ToString
 public class SubChunkRequestPacket118 extends Packet118 {
 
     public static final int NETWORK_ID = ProtocolInfo.SUB_CHUNK_REQUEST_PACKET;

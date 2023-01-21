@@ -6,7 +6,7 @@ import lombok.ToString;
 import org.itxtech.synapseapi.multiprotocol.AbstractProtocol;
 import org.itxtech.synapseapi.multiprotocol.utils.AdvancedRuntimeItemPalette;
 
-@ToString
+@ToString(exclude = "itemDataPalette")
 public class StartGamePacket116100 extends Packet116100 {
 
     public static final int NETWORK_ID = ProtocolInfo.START_GAME_PACKET;
@@ -79,7 +79,6 @@ public class StartGamePacket116100 extends Packet116100 {
 
     public int enchantmentSeed;
 
-    public byte[] blockPalette = null;
     public byte[] itemDataPalette = null;
 
     public String multiplayerCorrelationId = "";

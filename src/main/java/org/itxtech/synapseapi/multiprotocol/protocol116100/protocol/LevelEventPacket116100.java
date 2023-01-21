@@ -3,16 +3,17 @@ package org.itxtech.synapseapi.multiprotocol.protocol116100.protocol;
 import cn.nukkit.block.Block;
 import cn.nukkit.item.Item;
 import cn.nukkit.level.particle.Particle;
-import cn.nukkit.math.Vector3f;
 import cn.nukkit.network.protocol.DataPacket;
 import cn.nukkit.network.protocol.LevelEventPacket;
 import cn.nukkit.network.protocol.ProtocolInfo;
+import lombok.ToString;
 import org.itxtech.synapseapi.multiprotocol.AbstractProtocol;
 import org.itxtech.synapseapi.multiprotocol.utils.AdvancedGlobalBlockPalette;
 import org.itxtech.synapseapi.multiprotocol.utils.AdvancedRuntimeItemPalette;
 import org.itxtech.synapseapi.multiprotocol.utils.ParticleIdTranslator;
 import org.itxtech.synapseapi.utils.ClassUtils;
 
+@ToString
 public class LevelEventPacket116100 extends Packet116100 {
 
     public static final int NETWORK_ID = ProtocolInfo.LEVEL_EVENT_PACKET;
@@ -112,12 +113,6 @@ public class LevelEventPacket116100 extends Packet116100 {
 
     @Override
     public void decode() {
-        this.evid = this.getVarInt();
-        Vector3f v = this.getVector3f();
-        this.x = v.x;
-        this.y = v.y;
-        this.z = v.z;
-        this.data = this.getVarInt();
     }
 
     @Override

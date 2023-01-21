@@ -3,6 +3,7 @@ package org.itxtech.synapseapi.multiprotocol.protocol116100ne.protocol;
 import cn.nukkit.network.protocol.DataPacket;
 import cn.nukkit.network.protocol.ProtocolInfo;
 import cn.nukkit.network.protocol.TextPacket;
+import cn.nukkit.utils.BinaryStream;
 import lombok.ToString;
 import org.itxtech.synapseapi.utils.ClassUtils;
 
@@ -59,11 +60,7 @@ public class TextPacket116100NE extends Packet116100NE {
             case TYPE_POPUP:
             case TYPE_JUKEBOX_POPUP:
                 this.message = this.getString();
-                int count = (int) this.getUnsignedVarInt();
-                this.parameters = new String[count];
-                for (int i = 0; i < count; i++) {
-                    this.parameters[i] = this.getString();
-                }
+                this.parameters = this.getArray(String.class, BinaryStream::getString);
                 break;
             default:
                 break;

@@ -5,6 +5,7 @@ import cn.nukkit.item.Item;
 import cn.nukkit.network.protocol.DataPacket;
 import cn.nukkit.network.protocol.ProtocolInfo;
 import cn.nukkit.utils.Binary;
+import lombok.ToString;
 import org.itxtech.synapseapi.multiprotocol.utils.EntityMetadataGenerator;
 import org.itxtech.synapseapi.utils.ClassUtils;
 
@@ -12,8 +13,9 @@ import org.itxtech.synapseapi.utils.ClassUtils;
  * author: MagicDroidX
  * Nukkit Project
  */
+@ToString
 public class AddItemEntityPacket14 extends Packet14 {
-    public static final int NETWORK_ID = ProtocolInfo.ADD_ITEM_ENTITY_PACKET;
+    public static final int NETWORK_ID = ProtocolInfo.ADD_ITEM_ACTOR_PACKET;
 
     @Override
     public int pid() {

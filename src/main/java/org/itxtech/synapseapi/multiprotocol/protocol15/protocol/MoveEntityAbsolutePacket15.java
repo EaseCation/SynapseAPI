@@ -3,14 +3,16 @@ package org.itxtech.synapseapi.multiprotocol.protocol15.protocol;
 import cn.nukkit.math.Vector3f;
 import cn.nukkit.network.protocol.DataPacket;
 import cn.nukkit.network.protocol.ProtocolInfo;
+import lombok.ToString;
 import org.itxtech.synapseapi.utils.ClassUtils;
 
 /**
  * author: MagicDroidX
  * Nukkit Project
  */
+@ToString
 public class MoveEntityAbsolutePacket15 extends Packet15 {
-    public static final int NETWORK_ID = ProtocolInfo.MOVE_ENTITY_PACKET;
+    public static final int NETWORK_ID = ProtocolInfo.MOVE_ACTOR_ABSOLUTE_PACKET;
 
     public long eid;
     public double x;

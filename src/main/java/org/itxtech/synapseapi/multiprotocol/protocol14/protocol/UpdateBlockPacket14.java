@@ -3,6 +3,7 @@ package org.itxtech.synapseapi.multiprotocol.protocol14.protocol;
 
 import cn.nukkit.network.protocol.DataPacket;
 import cn.nukkit.network.protocol.ProtocolInfo;
+import lombok.ToString;
 import org.itxtech.synapseapi.multiprotocol.utils.GlobalBlockPalette;
 import org.itxtech.synapseapi.utils.ClassUtils;
 
@@ -10,6 +11,7 @@ import org.itxtech.synapseapi.utils.ClassUtils;
  * author: MagicDroidX
  * Nukkit Project
  */
+@ToString
 public class UpdateBlockPacket14 extends Packet14 {
     public static final int NETWORK_ID = ProtocolInfo.UPDATE_BLOCK_PACKET;
 

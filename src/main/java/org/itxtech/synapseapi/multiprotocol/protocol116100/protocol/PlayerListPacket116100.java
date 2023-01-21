@@ -4,12 +4,14 @@ import cn.nukkit.entity.data.Skin;
 import cn.nukkit.network.protocol.DataPacket;
 import cn.nukkit.network.protocol.PlayerListPacket;
 import cn.nukkit.network.protocol.ProtocolInfo;
+import lombok.ToString;
 import org.itxtech.synapseapi.utils.ClassUtils;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
+@ToString
 public class PlayerListPacket116100 extends Packet116100 {
 
     public static final int NETWORK_ID = ProtocolInfo.PLAYER_LIST_PACKET;
@@ -55,6 +57,7 @@ public class PlayerListPacket116100 extends Packet116100 {
         return NETWORK_ID;
     }
 
+    @ToString
     public static class Entry {
 
         public final UUID uuid;

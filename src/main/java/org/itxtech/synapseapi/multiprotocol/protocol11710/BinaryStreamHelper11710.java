@@ -7,8 +7,10 @@ import cn.nukkit.command.data.CommandFlag;
 import cn.nukkit.command.data.CommandOverload;
 import cn.nukkit.command.data.CommandParamOption;
 import cn.nukkit.command.data.CommandParameter;
+import cn.nukkit.item.Item;
 import cn.nukkit.utils.BinaryStream;
 import org.itxtech.synapseapi.multiprotocol.protocol113.protocol.AvailableCommandsPacket113;
+import org.itxtech.synapseapi.multiprotocol.protocol116210.protocol.ItemStackRequestPacket116210;
 import org.itxtech.synapseapi.multiprotocol.protocol117.BinaryStreamHelper117;
 
 import java.util.List;
@@ -81,5 +83,80 @@ public class BinaryStreamHelper11710 extends BinaryStreamHelper117 {
                 }
             }
         });
+    }
+
+    @Override
+    protected Object getItemStackRequestAction(BinaryStream stream) {
+        int type = stream.getByte();
+        switch (type) {
+            case ItemStackRequestPacket116210.ACTION_TAKE:
+                int count = stream.getByte();
+                Object source = this.getItemStackRequestSlotInfo(stream);
+                Object destination = this.getItemStackRequestSlotInfo(stream);
+                break;
+            case ItemStackRequestPacket116210.ACTION_PLACE:
+                count = stream.getByte();
+                source = this.getItemStackRequestSlotInfo(stream);
+                destination = this.getItemStackRequestSlotInfo(stream);
+                break;
+            case ItemStackRequestPacket116210.ACTION_SWAP:
+                source = this.getItemStackRequestSlotInfo(stream);
+                destination = this.getItemStackRequestSlotInfo(stream);
+                break;
+            case ItemStackRequestPacket116210.ACTION_DROP:
+                count = stream.getByte();
+                source = this.getItemStackRequestSlotInfo(stream);
+                boolean randomly = stream.getBoolean();
+                break;
+            case ItemStackRequestPacket116210.ACTION_DESTROY:
+                count = stream.getByte();
+                source = this.getItemStackRequestSlotInfo(stream);
+                break;
+            case ItemStackRequestPacket116210.ACTION_CRAFTING_CONSUME_INPUT:
+                count = stream.getByte();
+                source = this.getItemStackRequestSlotInfo(stream);
+                break;
+            case ItemStackRequestPacket116210.ACTION_CRAFTING_MARK_SECONDARY_RESULT_SLOT:
+                int slot = stream.getByte();
+                break;
+            case ItemStackRequestPacket116210.ACTION_LAB_TABLE_COMBINE:
+                break;
+            case ItemStackRequestPacket116210.ACTION_BEACON_PAYMENT:
+                int primaryEffect = stream.getVarInt();
+                int secondaryEffect = stream.getVarInt();
+                break;
+            case ItemStackRequestPacket116210.ACTION_MINE_BLOCK:
+                int hotbarSlot = stream.getVarInt();
+                int predictedDurability = stream.getVarInt();
+                int stackId = stream.getVarInt();
+                break;
+            case ItemStackRequestPacket116210.ACTION_CRAFTING_RECIPE:
+                int recipeNetworkId = stream.getVarInt();
+                break;
+            case ItemStackRequestPacket116210.ACTION_CRAFTING_RECIPE_AUTO:
+                recipeNetworkId = stream.getVarInt();
+                int repetitions = stream.getByte();
+                break;
+            case ItemStackRequestPacket116210.ACTION_CREATIVE_CREATE:
+                int creativeItemNetworkId = stream.getVarInt();
+                break;
+            case ItemStackRequestPacket116210.ACTION_CRAFTING_RECIPE_OPTIONAL:
+                recipeNetworkId = stream.getVarInt();
+                int filteredStringIndex = stream.getLInt();
+                break;
+            case ItemStackRequestPacket116210.ACTION_CRAFTING_NON_IMPLEMENTED_DEPRECATED_ASK_TY_LAING:
+                break;
+            case ItemStackRequestPacket116210.ACTION_CRAFTING_RESULTS_DEPRECATED_ASK_TY_LAING:
+                int length = (int) stream.getUnsignedVarInt();
+                for (int i = 0; i < length; i++) {
+                    Item result = stream.getItemInstance();
+                }
+                int iterations = stream.getByte();
+                break;
+            default:
+                throw new UnsupportedOperationException("Unhandled item stack request action type: " + type);
+        }
+
+        return null;
     }
 }

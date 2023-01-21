@@ -1,7 +1,9 @@
 package org.itxtech.synapseapi.multiprotocol.protocol116100.protocol;
 
 import cn.nukkit.network.protocol.ProtocolInfo;
+import lombok.ToString;
 
+@ToString
 public class AnimateEntityPacket116100 extends Packet116100 {
 
     public String animation = "";

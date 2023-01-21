@@ -2,13 +2,14 @@ package org.itxtech.synapseapi.multiprotocol.protocol17.protocol;
 
 import cn.nukkit.level.GameRules;
 import cn.nukkit.network.protocol.ProtocolInfo;
+import lombok.ToString;
 import org.itxtech.synapseapi.multiprotocol.AbstractProtocol;
-import org.itxtech.synapseapi.multiprotocol.protocol16.protocol.Packet16;
 import org.itxtech.synapseapi.multiprotocol.utils.AdvancedGlobalBlockPalette;
 
 /**
  * Created on 15-10-13.
  */
+@ToString
 public class StartGamePacket17 extends Packet17 {
 
 	public static final int NETWORK_ID = ProtocolInfo.START_GAME_PACKET;

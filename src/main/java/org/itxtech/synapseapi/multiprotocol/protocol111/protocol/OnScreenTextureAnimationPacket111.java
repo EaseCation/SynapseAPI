@@ -1,7 +1,9 @@
 package org.itxtech.synapseapi.multiprotocol.protocol111.protocol;
 
 import cn.nukkit.network.protocol.ProtocolInfo;
+import lombok.ToString;
 
+@ToString
 public class OnScreenTextureAnimationPacket111 extends Packet111 {
 
     public int effectId;
@@ -13,7 +15,6 @@ public class OnScreenTextureAnimationPacket111 extends Packet111 {
 
     @Override
     public void decode() {
-        this.effectId = this.getLInt();
     }
 
     @Override

@@ -2,10 +2,12 @@ package org.itxtech.synapseapi.multiprotocol.protocol113.protocol;
 
 import cn.nukkit.network.protocol.DataPacket;
 import cn.nukkit.network.protocol.ProtocolInfo;
+import lombok.ToString;
 import org.itxtech.synapseapi.utils.ClassUtils;
 
 import java.util.UUID;
 
+@ToString(exclude = "sha256")
 public class ResourcePackDataInfoPacket113 extends Packet113 {
 
     public static final int NETWORK_ID = ProtocolInfo.RESOURCE_PACK_DATA_INFO_PACKET;
@@ -31,13 +33,6 @@ public class ResourcePackDataInfoPacket113 extends Packet113 {
 
     @Override
     public void decode() {
-        this.packId = UUID.fromString(this.getString());
-        this.maxChunkSize = this.getLInt();
-        this.chunkCount = this.getLInt();
-        this.compressedPackSize = this.getLLong();
-        this.sha256 = this.getByteArray();
-        this.premium = this.getBoolean();
-        this.type = this.getByte();
     }
 
     @Override

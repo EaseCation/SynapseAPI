@@ -3,6 +3,7 @@ package org.itxtech.synapseapi.multiprotocol.protocol14.protocol;
 import java.util.UUID;
 
 import cn.nukkit.network.protocol.types.EntityLink;
+import lombok.ToString;
 import org.itxtech.synapseapi.multiprotocol.utils.EntityMetadataGenerator;
 import org.itxtech.synapseapi.utils.ClassUtils;
 
@@ -12,6 +13,7 @@ import cn.nukkit.network.protocol.DataPacket;
 import cn.nukkit.network.protocol.ProtocolInfo;
 import cn.nukkit.utils.Binary;
 
+@ToString
 public class AddPlayerPacket14 extends Packet14 {
 	public static final int NETWORK_ID = ProtocolInfo.ADD_PLAYER_PACKET;
 
@@ -89,7 +91,7 @@ public class AddPlayerPacket14 extends Packet14 {
     	ClassUtils.requireInstance(pk, cn.nukkit.network.protocol.AddPlayerPacket.class);
 
     	cn.nukkit.network.protocol.AddPlayerPacket packet = (cn.nukkit.network.protocol.AddPlayerPacket) pk;
-    	
+
         this.uuid = packet.uuid;
     	this.username = packet.username;
     	this.entityUniqueId = packet.entityUniqueId;
@@ -108,7 +110,7 @@ public class AddPlayerPacket14 extends Packet14 {
 		this.links = packet.links;
         return this;
 	}
-	
+
 	public static Class<? extends DataPacket> getDefaultPacket() {
         return cn.nukkit.network.protocol.AddPlayerPacket.class;
     }

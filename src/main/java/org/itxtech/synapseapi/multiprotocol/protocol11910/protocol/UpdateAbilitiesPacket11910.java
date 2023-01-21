@@ -66,6 +66,7 @@ public class UpdateAbilitiesPacket11910 extends Packet11910 {
         }
     }
 
+    @ToString
     @AllArgsConstructor
     public static class AbilityLayer {
         public int type;

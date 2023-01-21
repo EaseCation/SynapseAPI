@@ -451,7 +451,7 @@ public class SynapsePlayer14 extends SynapsePlayer {
 							));
 				}
 				break;
-			case ProtocolInfo.MOVE_ENTITY_ABSOLUTE_PACKET:
+			case ProtocolInfo.MOVE_ACTOR_ABSOLUTE_PACKET:
 				if (this.getProtocol() >= AbstractProtocol.PROTOCOL_15.getProtocolStart()) {
 					MoveEntityAbsolutePacket15 moveEntityAbsolutePacket = (MoveEntityAbsolutePacket15) packet;
 					if (this.riding == null || this.riding.getId() != moveEntityAbsolutePacket.eid) {

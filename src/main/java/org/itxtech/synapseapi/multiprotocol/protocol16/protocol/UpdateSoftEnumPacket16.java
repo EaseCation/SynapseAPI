@@ -1,7 +1,9 @@
 package org.itxtech.synapseapi.multiprotocol.protocol16.protocol;
 
 import cn.nukkit.network.protocol.ProtocolInfo;
+import lombok.ToString;
 
+@ToString
 public class UpdateSoftEnumPacket16 extends Packet16 {
 
     public final String[] values = new String[0];

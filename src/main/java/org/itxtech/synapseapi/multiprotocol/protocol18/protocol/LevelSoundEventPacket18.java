@@ -2,7 +2,9 @@ package org.itxtech.synapseapi.multiprotocol.protocol18.protocol;
 
 import cn.nukkit.math.Vector3f;
 import cn.nukkit.network.protocol.ProtocolInfo;
+import lombok.ToString;
 
+@ToString
 public class LevelSoundEventPacket18 extends Packet18 {
     public static final int NETWORK_ID = ProtocolInfo.LEVEL_SOUND_EVENT_PACKET;
 

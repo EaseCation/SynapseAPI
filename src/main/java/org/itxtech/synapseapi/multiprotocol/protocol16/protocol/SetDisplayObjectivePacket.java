@@ -1,8 +1,9 @@
 package org.itxtech.synapseapi.multiprotocol.protocol16.protocol;
 
 import cn.nukkit.network.protocol.ProtocolInfo;
-import org.itxtech.synapseapi.multiprotocol.protocol16.protocol.data.ScorePacketEntry;
+import lombok.ToString;
 
+@ToString
 public class SetDisplayObjectivePacket extends Packet16 {
 
     public static final int SORT_ORDER_ASCENDING = 0;

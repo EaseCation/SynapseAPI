@@ -3,6 +3,7 @@ package org.itxtech.synapseapi.multiprotocol.protocol17.protocol;
 import cn.nukkit.entity.data.Skin;
 import cn.nukkit.network.protocol.DataPacket;
 import cn.nukkit.network.protocol.ProtocolInfo;
+import lombok.ToString;
 import org.itxtech.synapseapi.utils.ClassUtils;
 
 import java.util.ArrayList;
@@ -12,6 +13,7 @@ import java.util.UUID;
 /**
  * @author Nukkit Project Team
  */
+@ToString
 public class PlayerListPacket17 extends Packet17 {
 
     public static final int NETWORK_ID = ProtocolInfo.PLAYER_LIST_PACKET;
@@ -49,6 +51,7 @@ public class PlayerListPacket17 extends Packet17 {
         return NETWORK_ID;
     }
 
+    @ToString
     public static class Entry {
 
         public final UUID uuid;

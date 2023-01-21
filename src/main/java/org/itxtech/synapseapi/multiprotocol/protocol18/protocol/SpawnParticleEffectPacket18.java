@@ -4,8 +4,10 @@ import cn.nukkit.math.Vector3f;
 import cn.nukkit.network.protocol.DataPacket;
 import cn.nukkit.network.protocol.ProtocolInfo;
 import cn.nukkit.network.protocol.SpawnParticleEffectPacket;
+import lombok.ToString;
 import org.itxtech.synapseapi.utils.ClassUtils;
 
+@ToString
 public class SpawnParticleEffectPacket18 extends Packet18 {
 
     public static final int NETWORK_ID = ProtocolInfo.SPAWN_PARTICLE_EFFECT_PACKET;

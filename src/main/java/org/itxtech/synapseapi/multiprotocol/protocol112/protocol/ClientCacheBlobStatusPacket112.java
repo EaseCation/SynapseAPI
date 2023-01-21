@@ -3,13 +3,15 @@ package org.itxtech.synapseapi.multiprotocol.protocol112.protocol;
 import cn.nukkit.network.protocol.ProtocolInfo;
 import it.unimi.dsi.fastutil.longs.LongOpenHashSet;
 import it.unimi.dsi.fastutil.longs.LongSet;
+import lombok.ToString;
 
+@ToString
 public class ClientCacheBlobStatusPacket112 extends Packet112 {
 
     public static final int NETWORK_ID = ProtocolInfo.CLIENT_CACHE_BLOB_STATUS_PACKET;
 
-    public long[] missHashes;
-    public long[] hitHashes;
+//    public long[] missHashes;
+//    public long[] hitHashes;
 
     /**
      * missHashes 的无重复集合.
@@ -30,10 +32,10 @@ public class ClientCacheBlobStatusPacket112 extends Packet112 {
         int missCount = (int) this.getUnsignedVarInt();
         int hitCount = (int) this.getUnsignedVarInt();
 
-        if (missCount + hitCount > 0xfff) {
+        if (missCount > 0xfff || hitCount > 0xfff || missCount + hitCount > 0xfff) {
             throw new IndexOutOfBoundsException("Too many BlobIDs");
         }
-
+/*
         this.missHashes = new long[missCount];
         for (int i = 0; i < missCount; ++i) {
             this.missHashes[i] = this.getLLong();
@@ -47,6 +49,16 @@ public class ClientCacheBlobStatusPacket112 extends Packet112 {
         // 1.18客户端会发送重复的hash...
         this.missSet = new LongOpenHashSet(this.missHashes);
         this.hitSet = new LongOpenHashSet(this.hitHashes);
+*/
+        this.missSet = new LongOpenHashSet();
+        for (int i = 0; i < missCount; ++i) {
+            this.missSet.add(this.getLLong());
+        }
+
+        this.hitSet = new LongOpenHashSet();
+        for (int i = 0; i < hitCount; ++i) {
+            this.hitSet.add(this.getLLong());
+        }
     }
 
     @Override

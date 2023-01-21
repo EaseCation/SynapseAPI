@@ -2,12 +2,14 @@ package org.itxtech.synapseapi.multiprotocol.protocol11620.protocol;
 
 import cn.nukkit.level.GameRules;
 import cn.nukkit.network.protocol.ProtocolInfo;
+import lombok.ToString;
 import org.itxtech.synapseapi.multiprotocol.AbstractProtocol;
 import org.itxtech.synapseapi.multiprotocol.utils.AdvancedGlobalBlockPalette;
 
 /**
  * Created on 15-10-13.
  */
+@ToString(exclude = {"blockPalette", "itemDataPalette"})
 public class StartGamePacket11620 extends Packet11620 {
 
     public static final int NETWORK_ID = ProtocolInfo.START_GAME_PACKET;

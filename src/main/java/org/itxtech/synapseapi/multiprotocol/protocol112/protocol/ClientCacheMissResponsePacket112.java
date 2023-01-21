@@ -3,7 +3,9 @@ package org.itxtech.synapseapi.multiprotocol.protocol112.protocol;
 import cn.nukkit.network.protocol.ProtocolInfo;
 import it.unimi.dsi.fastutil.longs.Long2ObjectMap;
 import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap;
+import lombok.ToString;
 
+@ToString(exclude = "blobs")
 public class ClientCacheMissResponsePacket112 extends Packet112 {
 
     public static final int NETWORK_ID = ProtocolInfo.CLIENT_CACHE_MISS_RESPONSE_PACKET;
