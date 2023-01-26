@@ -35,6 +35,7 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonPrimitive;
 import it.unimi.dsi.fastutil.longs.Long2ObjectMap;
+import org.itxtech.synapseapi.dialogue.NPCDialoguePlayerHandler;
 import org.itxtech.synapseapi.event.player.SynapsePlayerBroadcastLevelSoundEvent;
 import org.itxtech.synapseapi.event.player.SynapsePlayerConnectEvent;
 import org.itxtech.synapseapi.event.player.SynapsePlayerTransferEvent;
@@ -1307,5 +1308,9 @@ public class SynapsePlayer extends Player {
     @Override
     public long getLocalEntityId() {
         return SYNAPSE_PLAYER_ENTITY_ID;
+    }
+
+    public NPCDialoguePlayerHandler getNpcDialoguePlayerHandler() {
+        return null;
     }
 }

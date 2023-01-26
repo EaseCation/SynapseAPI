@@ -44,6 +44,7 @@ import it.unimi.dsi.fastutil.longs.*;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import it.unimi.dsi.fastutil.objects.ObjectIterator;
 import lombok.extern.log4j.Log4j2;
+import org.itxtech.synapseapi.dialogue.NPCDialoguePlayerHandler;
 import org.itxtech.synapseapi.multiprotocol.AbstractProtocol;
 import org.itxtech.synapseapi.multiprotocol.protocol113.protocol.ResourcePackStackPacket113;
 import org.itxtech.synapseapi.multiprotocol.protocol116100.protocol.*;
@@ -55,6 +56,7 @@ import org.itxtech.synapseapi.multiprotocol.protocol116200.protocol.ResourcePack
 import org.itxtech.synapseapi.multiprotocol.protocol116200.protocol.StartGamePacket116200;
 import org.itxtech.synapseapi.multiprotocol.protocol116210.protocol.CameraShakePacket116210;
 import org.itxtech.synapseapi.multiprotocol.protocol117.protocol.StartGamePacket117;
+import org.itxtech.synapseapi.multiprotocol.protocol11710.protocol.NPCRequestPacket11710;
 import org.itxtech.synapseapi.multiprotocol.protocol11710.protocol.ResourcePacksInfoPacket11710;
 import org.itxtech.synapseapi.multiprotocol.protocol11730.protocol.AnimateEntityPacket11730;
 import org.itxtech.synapseapi.multiprotocol.protocol11730.protocol.StartGamePacket11730;
@@ -135,6 +137,8 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
     protected Position changeDimensionPosition;
 
     protected int packetCountPlayerActionPacket = 0;
+
+    public NPCDialoguePlayerHandler npcDialoguePlayerHandler;
 
     public SynapsePlayer116100(SourceInterface interfaz, SynapseEntry synapseEntry, Long clientID, InetSocketAddress socketAddress) {
         super(interfaz, synapseEntry, clientID, socketAddress);
@@ -1302,10 +1306,31 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
                     }
                 }
                 break;
+            case ProtocolInfo.NPC_REQUEST_PACKET:
+                if (!callPacketReceiveEvent(packet)) {
+                    break;
+                }
+                NPCRequestPacket11710 npcRequestPacket = (NPCRequestPacket11710) packet;
+                Entity entity = this.getLevel().getEntity(npcRequestPacket.entityRuntimeId);
+                if (entity == null) {
+                    break;  // 世界中不存在这个实体
+                }
+                String sceneName = npcRequestPacket.sceneName;
+                if (npcRequestPacket.type == NPCRequestPacket11710.TYPE_EXECUTE_COMMAND_ACTION) {
+                    this.getNpcDialoguePlayerHandler().onDialogueResponse(sceneName, npcRequestPacket.actionIndex);
+                }
+                break;
             default:
                 super.handleDataPacket(packet);
                 break;
         }
+    }
+
+    public NPCDialoguePlayerHandler getNpcDialoguePlayerHandler() {
+        if (npcDialoguePlayerHandler == null) {
+            npcDialoguePlayerHandler = new NPCDialoguePlayerHandler(this);
+        }
+        return npcDialoguePlayerHandler;
     }
 
     @Override
