@@ -19,6 +19,10 @@ public class NPCDialoguePlayerHandler {
         return currentEntity;
     }
 
+    public SynapsePlayer getPlayer() {
+        return player;
+    }
+
     public void openDialogue(NPCDialogueScene scene) {
         if (this.currentEntity == null) {
             throw new IllegalStateException("首次发送，请先调用 sendDialogue(NPCDialogueScene scene, Entity entity)");
