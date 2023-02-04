@@ -10,7 +10,7 @@ import org.itxtech.synapseapi.SynapsePlayer;
  */
 public class SynLibInterface implements SourceInterface {
 
-    private SynapseInterface synapseInterface;
+    private final SynapseInterface synapseInterface;
 
     public SynLibInterface(SynapseInterface synapseInterface) {
         this.synapseInterface = synapseInterface;

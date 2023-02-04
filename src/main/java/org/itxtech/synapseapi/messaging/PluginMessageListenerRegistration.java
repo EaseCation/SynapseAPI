@@ -52,16 +52,16 @@ public final class PluginMessageListenerRegistration {
             return false;
         }
         PluginMessageListenerRegistration other = (PluginMessageListenerRegistration) obj;
-        if (!(this.messenger == other.messenger || this.messenger != null && this.messenger.equals(other.messenger))) {
+        if (!(this.messenger == other.messenger || this.messenger.equals(other.messenger))) {
             return false;
         }
-        if (!(this.plugin == other.plugin || this.plugin != null && this.plugin.equals(other.plugin))) {
+        if (!(this.plugin == other.plugin || this.plugin.equals(other.plugin))) {
             return false;
         }
-        if (this.channel == null ? other.channel != null : !this.channel.equals(other.channel)) {
+        if (!this.channel.equals(other.channel)) {
             return false;
         }
-        if (!(this.listener == other.listener || this.listener != null && this.listener.equals(other.listener))) {
+        if (!(this.listener == other.listener || this.listener.equals(other.listener))) {
             return false;
         }
         return true;
@@ -69,10 +69,10 @@ public final class PluginMessageListenerRegistration {
 
     public int hashCode() {
         int hash = 7;
-        hash = 53 * hash + (this.messenger != null ? this.messenger.hashCode() : 0);
-        hash = 53 * hash + (this.plugin != null ? this.plugin.hashCode() : 0);
-        hash = 53 * hash + (this.channel != null ? this.channel.hashCode() : 0);
-        hash = 53 * hash + (this.listener != null ? this.listener.hashCode() : 0);
+        hash = 53 * hash + this.messenger.hashCode();
+        hash = 53 * hash + this.plugin.hashCode();
+        hash = 53 * hash + this.channel.hashCode();
+        hash = 53 * hash + this.listener.hashCode();
         return hash;
     }
 }

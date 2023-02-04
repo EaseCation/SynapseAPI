@@ -660,6 +660,18 @@ public class SynapsePlayer116 extends SynapsePlayer113 {
 				boolean revert;
 
 				IPlayerAuthInputPacket playerAuthInputPacket = (IPlayerAuthInputPacket) packet;
+				if (!validateCoordinate(playerAuthInputPacket.getX()) || !validateCoordinate(playerAuthInputPacket.getY()) || !validateCoordinate(playerAuthInputPacket.getZ())
+						|| !validateFloat(playerAuthInputPacket.getPitch()) || !validateFloat(playerAuthInputPacket.getYaw()) || !validateFloat(playerAuthInputPacket.getHeadYaw())
+						|| !validateFloat(playerAuthInputPacket.getDeltaX()) || !validateFloat(playerAuthInputPacket.getDeltaY()) || !validateFloat(playerAuthInputPacket.getDeltaZ())) {
+					this.getServer().getLogger().warning("Invalid movement received: " + this.getName());
+					this.close("", "Invalid movement");
+					return;
+				}
+				if (!validateVehicleInput(playerAuthInputPacket.getMoveVecX()) || !validateVehicleInput(playerAuthInputPacket.getMoveVecZ())) {
+					this.getServer().getLogger().warning("Invalid vehicle input received: " + this.getName());
+					this.close("", "Invalid vehicle input");
+					return;
+				}
 
 				long inputFlags = playerAuthInputPacket.getInputFlags();
 				if ((inputFlags & (1L << PlayerAuthInputPacket116.FLAG_START_SPRINTING)) != 0 && !this.isSprinting()) {

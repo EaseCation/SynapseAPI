@@ -55,20 +55,6 @@ public class SynapseEntryPutPacketThread extends Thread {
         this.start();
     }
 
-    private static final Map<Integer, String> entityDataTypes = new HashMap<Integer, String>() {
-        {
-            put(0, "DATA_TYPE_BYTE");
-            put(1, "DATA_TYPE_SHORT");
-            put(2, "DATA_TYPE_INT");
-            put(3, "DATA_TYPE_FLOAT");
-            put(4, "DATA_TYPE_STRING");
-            put(5, "DATA_TYPE_SLOT");
-            put(6, "DATA_TYPE_POS");
-            put(7, "DATA_TYPE_LONG");
-            put(8, "DATA_TYPE_VECTOR3F");
-        }
-    };
-
     public void addMainToThread(SynapsePlayer player, DataPacket packet, boolean needACK, boolean immediate) {
 //        if (packet instanceof LevelChunkPacket) {
 //            byte[] bytes = ((LevelChunkPacket) packet).data;
@@ -169,13 +155,16 @@ public class SynapseEntryPutPacketThread extends Thread {
     private static class BatchPacketEntry {
         private final DataPacket normal;
         private final DataPacket netease;
+
         private BatchPacketEntry(DataPacket normal, DataPacket netease) {
             this.normal = normal;
             this.netease = netease;
         }
+
         private DataPacket getNormalVersion() {
             return normal;
         }
+
         private DataPacket getNetEaseVersion() {
             return netease != null ? netease : normal;
         }
@@ -376,7 +365,7 @@ public class SynapseEntryPutPacketThread extends Thread {
     }
 
     private byte[] deflate(byte[] data, int level) throws Exception {
-        if (deflater == null) throw new IllegalArgumentException("No deflate for level "+level+" !");
+//        if (deflater == null) throw new IllegalArgumentException("No deflate for level "+level+" !");
         deflater.reset();
         deflater.setInput(data);
         deflater.finish();
@@ -390,10 +379,11 @@ public class SynapseEntryPutPacketThread extends Thread {
     }
 
     private static class Entry {
-        private SynapsePlayer player;
+        private final SynapsePlayer player;
         private DataPacket packet;
-        private boolean needACK;
-        private boolean immediate;
+        private final boolean needACK;
+        private final boolean immediate;
+
         public Entry(SynapsePlayer player, DataPacket packet, boolean needACK, boolean immediate) {
             this.player = player;
             this.packet = packet;
@@ -403,8 +393,8 @@ public class SynapseEntryPutPacketThread extends Thread {
     }
 
     private static class BroadcastEntry {
-        private SynapsePlayer[] player;
-        private DataPacket[] packet;
+        private final SynapsePlayer[] player;
+        private final DataPacket[] packet;
 
         public BroadcastEntry(SynapsePlayer[] player, DataPacket[] packet) {
             this.player = player;
@@ -441,7 +431,6 @@ public class SynapseEntryPutPacketThread extends Thread {
             } else {
                 packet.payload = Zlib.deflate(data, Server.getInstance().networkCompressionLevel);
             }
-
 
             return packet;
         } catch (Exception e) {

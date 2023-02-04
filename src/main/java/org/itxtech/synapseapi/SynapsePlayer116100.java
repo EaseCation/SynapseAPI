@@ -628,7 +628,14 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
                 if (!this.isAlive() || !this.spawned) {
                     break;
                 }
+
                 PlayerInputPacket ipk = (PlayerInputPacket) packet;
+                if (!validateVehicleInput(ipk.motionX) || !validateVehicleInput(ipk.motionY)) {
+                    this.getServer().getLogger().warning("Invalid vehicle input received: " + this.getName());
+                    this.close("", "Invalid vehicle input");
+                    return;
+                }
+
                 if (riding instanceof EntityRideable) {
                     ((EntityRideable) riding).onPlayerInput(this, ipk.motionX, ipk.motionY);
                 }
@@ -639,6 +646,13 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
                 }
 
                 MovePlayerPacket116100NE movePlayerPacket = (MovePlayerPacket116100NE) packet;
+                if (!validateCoordinate(movePlayerPacket.x) || !validateCoordinate(movePlayerPacket.y) || !validateCoordinate(movePlayerPacket.z)
+                        || !validateFloat(movePlayerPacket.pitch) || !validateFloat(movePlayerPacket.yaw) || !validateFloat(movePlayerPacket.headYaw)) {
+                    this.getServer().getLogger().warning("Invalid movement received: " + this.getName());
+                    this.close("", "Invalid movement");
+                    return;
+                }
+
                 Vector3 newPos = new Vector3(movePlayerPacket.x, movePlayerPacket.y - this.getEyeHeight(), movePlayerPacket.z);
 
                 if (newPos.distanceSquared(this) == 0 && movePlayerPacket.yaw % 360 == this.yaw && movePlayerPacket.pitch % 360 == this.pitch) {

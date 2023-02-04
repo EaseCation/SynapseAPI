@@ -24,13 +24,14 @@ public class TransferDimensionTaskThread extends Thread {
 
     public TransferDimensionTaskThread() {
         super("TransferDimensionTaskThread");
+        setDaemon(true);
     }
 
     private static class Entry {
         private long eventTime;
-        private SynapsePlayer player;
-        private String hash;
-        private JsonObject extra;
+        private final SynapsePlayer player;
+        private final String hash;
+        private final JsonObject extra;
 
         private Entry(SynapsePlayer player, String hash, JsonObject extra) {
             this.eventTime = System.currentTimeMillis() + 500;
