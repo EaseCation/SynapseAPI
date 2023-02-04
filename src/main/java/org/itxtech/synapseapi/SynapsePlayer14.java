@@ -454,9 +454,17 @@ public class SynapsePlayer14 extends SynapsePlayer {
 			case ProtocolInfo.MOVE_ACTOR_ABSOLUTE_PACKET:
 				if (this.getProtocol() >= AbstractProtocol.PROTOCOL_15.getProtocolStart()) {
 					MoveEntityAbsolutePacket15 moveEntityAbsolutePacket = (MoveEntityAbsolutePacket15) packet;
+					if (!validateCoordinate((float) moveEntityAbsolutePacket.x) || !validateCoordinate((float) moveEntityAbsolutePacket.y) || !validateCoordinate((float) moveEntityAbsolutePacket.z)
+							|| !validateFloat((float) moveEntityAbsolutePacket.pitch) || !validateFloat((float) moveEntityAbsolutePacket.yaw) || !validateFloat((float) moveEntityAbsolutePacket.headYaw)) {
+						this.getServer().getLogger().warning("Invalid vehicle movement received: " + this.getName());
+						this.close("", "Invalid vehicle movement");
+						return;
+					}
+
 					if (this.riding == null || this.riding.getId() != moveEntityAbsolutePacket.eid) {
 						break;
 					}
+
 					if (this.riding instanceof EntityBoat) {
 						if (this.temporalVector.setComponents(moveEntityAbsolutePacket.x, moveEntityAbsolutePacket.y, moveEntityAbsolutePacket.z).distanceSquared(this.riding) < 1000) {
 							((EntityBoat) this.riding).onInput(moveEntityAbsolutePacket.x, moveEntityAbsolutePacket.y, moveEntityAbsolutePacket.z, moveEntityAbsolutePacket.yaw);

@@ -123,8 +123,7 @@ public class SynapseEntry {
         this.lastRecvInfo = System.currentTimeMillis();
         this.getSynapse().getServer().getScheduler().scheduleRepeatingTask(SynapseAPI.getInstance(), new Ticker(this), 1);
 
-        this.asyncTicker = new Thread(new AsyncTicker());
-        this.asyncTicker.setName("SynapseAPI Async Ticker");
+        this.asyncTicker = new Thread(new AsyncTicker(), "SynapseAPI Async Ticker");
         this.asyncTicker.start();
 
         this.getSynapse().getServer().getScheduler().scheduleRepeatingTask(SynapseAPI.getInstance(), new Task() {
@@ -132,8 +131,7 @@ public class SynapseEntry {
             public void onRun(int currentTick) {
                 if (Server.getInstance().isRunning() && asyncTicker == null || !asyncTicker.isAlive()) {
                     getSynapse().getLogger().warning("检测到 SynapseAPI 线程 " + getHash() + " 已停止运行！正在重新启动线程！");
-                    asyncTicker = new Thread(new AsyncTicker());
-                    asyncTicker.setName("SynapseAPI Async Ticker");
+                    asyncTicker = new Thread(new AsyncTicker(), "SynapseAPI Async Ticker");
                     asyncTicker.start();
                 }
             }

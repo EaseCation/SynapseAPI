@@ -13,7 +13,7 @@ import java.net.InetSocketAddress;
 public class SynapseClientHandler extends ChannelInboundHandlerAdapter {
 
     //static final ChannelGroup channels = new DefaultChannelGroup(GlobalEventExecutor.INSTANCE);
-    private SynapseClient synapseClient;
+    private final SynapseClient synapseClient;
 
     public SynapseClientHandler(SynapseClient synapseClient) {
         this.synapseClient = synapseClient;

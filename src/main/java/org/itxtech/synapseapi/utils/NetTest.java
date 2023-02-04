@@ -92,6 +92,11 @@ public class NetTest implements PluginMessageListener {
     public class NetTestThread extends Thread {
         public boolean isRunning = true;
         public SynapseEntry target = null;
+
+        NetTestThread() {
+            super("NetTest");
+        }
+
         @Override
         public void run() {
             super.run();
