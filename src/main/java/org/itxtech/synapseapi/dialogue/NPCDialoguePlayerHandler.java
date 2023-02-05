@@ -48,8 +48,10 @@ public class NPCDialoguePlayerHandler {
         }
         try {
             NPCDialogueButton button = this.currentScene.getButton(buttonId);
-            if (button != null && button.getClickCallback() != null) {
-                button.getClickCallback().accept(this);
+            if (button != null) {
+                if (button.getClickCallback() != null) {
+                    button.getClickCallback().accept(this);
+                }
                 if (button.isForceCloseOnClick()) {
                     this.currentScene.close(player, currentEntity.getId(), currentEntity.getName());
                 }
