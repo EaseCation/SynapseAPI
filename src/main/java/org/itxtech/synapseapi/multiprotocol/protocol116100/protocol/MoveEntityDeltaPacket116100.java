@@ -17,6 +17,9 @@ public class MoveEntityDeltaPacket116100 extends Packet116100 {
     public static final int FLAG_HAS_PITCH = 0b1000;
     public static final int FLAG_HAS_YAW = 0b10000;
     public static final int FLAG_HAS_HEAD_YAW = 0b100000;
+    public static final int FLAG_GROUND = 0b1000000;
+    public static final int FLAG_TELEPORT = 0b10000000;
+    public static final int FLAG_FORCE_MOVE_LOCAL_ENTITY = 0b100000000;
 
     public long entityRuntimeId;
     public int flags = 0;
