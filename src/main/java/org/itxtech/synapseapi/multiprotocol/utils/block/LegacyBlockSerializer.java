@@ -1210,8 +1210,8 @@ public final class LegacyBlockSerializer {
 
         registerDeserializer(BLOCK_KELP, states -> states.getInt(KELP_AGE) & 0b11111);
 
-        registerDeserializer(WEEPING_VINES, LegacyBlockSerializer::deserializeGrowthPlant);
-        registerDeserializer(TWISTING_VINES, LegacyBlockSerializer::deserializeGrowthPlant);
+        registerDeserializer(WEEPING_VINES, states -> states.getInt(WEEPING_VINES_AGE) & 0b11111);
+        registerDeserializer(TWISTING_VINES, states -> states.getInt(TWISTING_VINES_AGE) & 0b11111);
 
         registerDeserializer(SEA_PICKLE, states -> {
             int meta = states.getInt(CLUSTER_COUNT) & 0b11;
@@ -2221,10 +2221,6 @@ public final class LegacyBlockSerializer {
 //            default:
 //                throw badValueException(direction, type);
         }
-    }
-
-    private static int deserializeGrowthPlant(CompoundTag states) {
-        return states.getInt(AGE) & 0b11111;
     }
 
     private static int deserializeGrowingPlant(CompoundTag states) {
