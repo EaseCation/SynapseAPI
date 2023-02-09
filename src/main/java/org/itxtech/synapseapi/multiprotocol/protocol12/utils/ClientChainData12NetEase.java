@@ -6,8 +6,6 @@ import cn.nukkit.utils.LoginChainData;
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;
 import com.google.gson.reflect.TypeToken;
-import com.netease.mc.authlib.Profile;
-import com.netease.mc.authlib.TokenChain;
 import com.netease.mc.authlib.TokenChainEC;
 import org.itxtech.synapseapi.multiprotocol.protocol12.protocol.LoginPacket;
 
@@ -65,6 +63,11 @@ public final class ClientChainData12NetEase implements LoginChainData {
     @Override
     public String getNetEaseSid() {
         return neteaseSid;
+    }
+
+    @Override
+    public String  getNetEasePlatform() {
+        return neteasePlatform;
     }
 
     @Override
@@ -159,6 +162,7 @@ public final class ClientChainData12NetEase implements LoginChainData {
     private String identityPublicKey;
     private String neteaseUid;
     private String neteaseSid;
+    private String neteasePlatform;
 
     private long clientId;
     private String serverAddress;
@@ -238,13 +242,13 @@ public final class ClientChainData12NetEase implements LoginChainData {
             if (profile.has("displayName")) this.username = profile.get("displayName").getAsString();
             if (profile.has("uid")) this.neteaseUid = profile.get("uid").getAsString();
             if (profile.has("netease_sid")) this.neteaseSid = profile.get("netease_sid").getAsString();
-        }catch (Exception e) {
+            if (profile.has("platform")) this.neteasePlatform = profile.get("platform").getAsString();
+        } catch (Exception e) {
             // TODO: handle exception,认证失败
             //Server.getInstance().getLogger().logException(e);
             this.clientUUID = null;//若认证失败，则clientUUID为null。
             return;
         }
-        return;
     }
 
     private void decodeSkinData() {

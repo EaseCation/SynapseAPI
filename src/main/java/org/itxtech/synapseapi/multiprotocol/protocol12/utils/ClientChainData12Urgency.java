@@ -59,6 +59,11 @@ public final class ClientChainData12Urgency implements LoginChainData {
     }
 
     @Override
+    public String getNetEasePlatform() {
+        return "";
+    }
+
+    @Override
     public String getDeviceId() {
         return deviceId;
     }

@@ -64,6 +64,11 @@ public final class ClientChainData12 implements LoginChainData {
     }
 
     @Override
+    public String getNetEasePlatform() {
+        return neteasePlatform;
+    }
+
+    @Override
     public String getServerAddress() {
         return serverAddress;
     }
@@ -155,6 +160,7 @@ public final class ClientChainData12 implements LoginChainData {
     private String identityPublicKey;
     private String neteaseUid;
     private String neteaseSid;
+    private String neteasePlatform;
 
     private long clientId;
     private String serverAddress;
@@ -195,6 +201,7 @@ public final class ClientChainData12 implements LoginChainData {
                 if (extra.has("XUID")) this.xuid = extra.get("XUID").getAsString();
                 if (extra.has("uid")) this.neteaseUid = extra.get("uid").getAsString();
                 if (extra.has("netease_sid")) this.neteaseSid = extra.get("sid").getAsString();
+                if (extra.has("platform")) this.neteasePlatform = extra.get("platform").getAsString();
             }
             if (chainMap.has("identityPublicKey"))
                 this.identityPublicKey = chainMap.get("identityPublicKey").getAsString();
