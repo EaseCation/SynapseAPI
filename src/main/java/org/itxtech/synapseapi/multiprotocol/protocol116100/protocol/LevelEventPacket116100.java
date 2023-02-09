@@ -96,6 +96,10 @@ public class LevelEventPacket116100 extends Packet116100 {
 
     public static final int EVENT_SET_DATA = 4000;
 
+    /**
+     * @since 1.19.60
+     */
+    public static final int EVENT_PLAYERS_SLEEPING_NEW = 3603;
     public static final int EVENT_PLAYERS_SLEEPING = 9800;
 
     public static final int EVENT_ADD_PARTICLE_MASK = 0x4000;
@@ -146,6 +150,8 @@ public class LevelEventPacket116100 extends Packet116100 {
 
         if ((this.evid & EVENT_ADD_PARTICLE_MASK) == EVENT_ADD_PARTICLE_MASK) {
             this.evid = (short) (EVENT_ADD_PARTICLE_MASK | ParticleIdTranslator.translateTo(protocol, this.evid ^ EVENT_ADD_PARTICLE_MASK));
+        } else if (evid == LevelEventPacket.EVENT_PLAYERS_SLEEPING && protocol.getProtocolStart() >= AbstractProtocol.PROTOCOL_119_60.getProtocolStart()) {
+            evid = LevelEventPacket.EVENT_PLAYERS_SLEEPING_NEW;
         }
 
         return this;

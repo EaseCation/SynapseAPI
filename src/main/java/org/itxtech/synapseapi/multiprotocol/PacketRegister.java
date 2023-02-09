@@ -74,6 +74,9 @@ import org.itxtech.synapseapi.multiprotocol.protocol11940.protocol.AddEntityPack
 import org.itxtech.synapseapi.multiprotocol.protocol11940.protocol.AddPlayerPacket11940;
 import org.itxtech.synapseapi.multiprotocol.protocol11940.protocol.SetEntityDataPacket11940;
 import org.itxtech.synapseapi.multiprotocol.protocol11950.protocol.UpdateClientInputLocksPacket11950;
+import org.itxtech.synapseapi.multiprotocol.protocol11960.protocol.CommandRequestPacket11960;
+import org.itxtech.synapseapi.multiprotocol.protocol11960.protocol.CraftingDataPacket11960;
+import org.itxtech.synapseapi.multiprotocol.protocol11960.protocol.StartGamePacket11960;
 import org.itxtech.synapseapi.multiprotocol.protocol15.protocol.AddEntityPacket15;
 import org.itxtech.synapseapi.multiprotocol.protocol15.protocol.ClientboundMapItemDataPacket15;
 import org.itxtech.synapseapi.multiprotocol.protocol15.protocol.MoveEntityAbsolutePacket15;
@@ -318,6 +321,10 @@ public class PacketRegister {
         registerPacket(AbstractProtocol.PROTOCOL_119_40, ProtocolInfo.SET_ACTOR_DATA_PACKET, SetEntityDataPacket11940.class);
 
         registerPacket(AbstractProtocol.PROTOCOL_119_50, ProtocolInfo.UPDATE_CLIENT_INPUT_LOCKS_PACKET, UpdateClientInputLocksPacket11950.class);
+
+        registerPacket(AbstractProtocol.PROTOCOL_119_60, ProtocolInfo.START_GAME_PACKET, StartGamePacket11960.class);
+        registerPacket(AbstractProtocol.PROTOCOL_119_60, ProtocolInfo.COMMAND_REQUEST_PACKET, CommandRequestPacket11960.class);
+        registerPacket(AbstractProtocol.PROTOCOL_119_60, ProtocolInfo.CRAFTING_DATA_PACKET, CraftingDataPacket11960.class);
 
         checkNeteaseSpecialExtend();
     }

@@ -9,13 +9,13 @@ public class EmotePacket116 extends Packet116 {
     public static final int NETWORK_ID = ProtocolInfo.EMOTE_PACKET;
 
     /**
-     * C2S.
-     */
-    public static final byte FLAG_CLIENT = 0;
-    /**
      * S2C.
      */
     public static final byte FLAG_SERVER = 1 << 0;
+    /**
+     * @since 1.19.60
+     */
+    public static final byte FLAG_MUTE_ANNOUNCEMENT = 1 << 1;
 
     public long runtimeId;
     public String emoteID;

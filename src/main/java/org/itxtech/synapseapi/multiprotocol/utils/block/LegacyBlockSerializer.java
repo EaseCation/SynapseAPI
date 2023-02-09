@@ -1504,6 +1504,9 @@ public final class LegacyBlockSerializer {
         registerDeserializer(MUDDY_MANGROVE_ROOTS, LegacyBlockSerializer::deserializeSimple);
 //        registerDeserializer(MUDDY_MANGROVE_ROOTS, LegacyBlockSerializer::deserializePillarAxis); //TODO: 1.19.20
 
+        registerDeserializer(BAMBOO_BLOCK, LegacyBlockSerializer::deserializePillarAxis);
+        registerDeserializer(STRIPPED_BAMBOO_BLOCK, LegacyBlockSerializer::deserializePillarAxis);
+
         registerDeserializer(ELEMENT_0, LegacyBlockSerializer::deserializeSimple);
         registerDeserializer(ELEMENT_1, LegacyBlockSerializer::deserializeSimple);
         registerDeserializer(ELEMENT_2, LegacyBlockSerializer::deserializeSimple);

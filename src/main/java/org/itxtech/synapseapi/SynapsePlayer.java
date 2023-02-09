@@ -43,6 +43,7 @@ import org.itxtech.synapseapi.multiprotocol.AbstractProtocol;
 import org.itxtech.synapseapi.multiprotocol.PacketRegister;
 import org.itxtech.synapseapi.multiprotocol.protocol116100.protocol.TextPacket116100;
 import org.itxtech.synapseapi.multiprotocol.protocol116100ne.protocol.TextPacket116100NE;
+import org.itxtech.synapseapi.multiprotocol.protocol119.protocol.PlayerActionPacket119;
 import org.itxtech.synapseapi.multiprotocol.protocol12.protocol.LoginPacket;
 import org.itxtech.synapseapi.multiprotocol.protocol12.utils.ClientChainData12;
 import org.itxtech.synapseapi.multiprotocol.protocol12.utils.ClientChainData12NetEase;
@@ -397,6 +398,19 @@ public class SynapsePlayer extends Player {
                 changeDimensionPacket.z = (float) this.getZ();
                 dataPacket(changeDimensionPacket);
 
+                if (getProtocol() >= AbstractProtocol.PROTOCOL_119_50.getProtocolStart()) {
+                    PlayerActionPacket119 ackPacket = new PlayerActionPacket119();
+                    ackPacket.action = PlayerActionPacket.ACTION_DIMENSION_CHANGE_ACK;
+                    ackPacket.entityId = getId();
+                    ackPacket.x = getFloorX();
+                    ackPacket.y = getFloorY();
+                    ackPacket.z = getFloorZ();
+                    ackPacket.resultX = ackPacket.x;
+                    ackPacket.resultY = ackPacket.y;
+                    ackPacket.resultZ = ackPacket.z;
+                    dataPacket(ackPacket);
+                }
+
                 StopSoundPacket stopSoundPacket = new StopSoundPacket();
                 stopSoundPacket.name = "portal.travel";
                 stopSoundPacket.stopAll = false;
@@ -576,6 +590,19 @@ public class SynapsePlayer extends Player {
                         changeDimensionPacket1.z = (float) getZ();
                         dataPacket(changeDimensionPacket1);
 
+                        if (getProtocol() >= AbstractProtocol.PROTOCOL_119_50.getProtocolStart()) {
+                            PlayerActionPacket119 ackPacket = new PlayerActionPacket119();
+                            ackPacket.action = PlayerActionPacket.ACTION_DIMENSION_CHANGE_ACK;
+                            ackPacket.entityId = getId();
+                            ackPacket.x = getFloorX();
+                            ackPacket.y = getFloorY();
+                            ackPacket.z = getFloorZ();
+                            ackPacket.resultX = ackPacket.x;
+                            ackPacket.resultY = ackPacket.y;
+                            ackPacket.resultZ = ackPacket.z;
+                            dataPacket(ackPacket);
+                        }
+
                         StopSoundPacket stopSoundPacket = new StopSoundPacket();
                         stopSoundPacket.name = "portal.travel";
                         stopSoundPacket.stopAll = false;
@@ -740,6 +767,19 @@ public class SynapsePlayer extends Player {
                 changeDimensionPacket1.z = (float) this.getZ();
                 this.dataPacket(changeDimensionPacket1);
 
+                if (getProtocol() >= AbstractProtocol.PROTOCOL_119_50.getProtocolStart()) {
+                    PlayerActionPacket119 ackPacket = new PlayerActionPacket119();
+                    ackPacket.action = PlayerActionPacket.ACTION_DIMENSION_CHANGE_ACK;
+                    ackPacket.entityId = getId();
+                    ackPacket.x = getFloorX();
+                    ackPacket.y = getFloorY();
+                    ackPacket.z = getFloorZ();
+                    ackPacket.resultX = ackPacket.x;
+                    ackPacket.resultY = ackPacket.y;
+                    ackPacket.resultZ = ackPacket.z;
+                    dataPacket(ackPacket);
+                }
+
                 StopSoundPacket stopSoundPacket = new StopSoundPacket();
                 stopSoundPacket.name = "portal.travel";
                 stopSoundPacket.stopAll = false;
@@ -768,6 +808,19 @@ public class SynapsePlayer extends Player {
                     changeDimensionPacket.y = (float) this.getY() + this.getEyeHeight();
                     changeDimensionPacket.z = (float) this.getZ();
                     dataPacket(changeDimensionPacket);
+
+                    if (getProtocol() >= AbstractProtocol.PROTOCOL_119_50.getProtocolStart()) {
+                        PlayerActionPacket119 ackPacket = new PlayerActionPacket119();
+                        ackPacket.action = PlayerActionPacket.ACTION_DIMENSION_CHANGE_ACK;
+                        ackPacket.entityId = getId();
+                        ackPacket.x = getFloorX();
+                        ackPacket.y = getFloorY();
+                        ackPacket.z = getFloorZ();
+                        ackPacket.resultX = ackPacket.x;
+                        ackPacket.resultY = ackPacket.y;
+                        ackPacket.resultZ = ackPacket.z;
+                        dataPacket(ackPacket);
+                    }
 
                     dataPacket(stopSoundPacket);
 

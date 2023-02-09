@@ -80,6 +80,8 @@ import org.itxtech.synapseapi.multiprotocol.protocol11920.protocol.MapInfoReques
 import org.itxtech.synapseapi.multiprotocol.protocol11920.protocol.ModalFormResponsePacket11920;
 import org.itxtech.synapseapi.multiprotocol.protocol11920.protocol.NetworkChunkPublisherUpdatePacket11920;
 import org.itxtech.synapseapi.multiprotocol.protocol11920.protocol.StartGamePacket11920;
+import org.itxtech.synapseapi.multiprotocol.protocol11960.protocol.CommandRequestPacket11960;
+import org.itxtech.synapseapi.multiprotocol.protocol11960.protocol.StartGamePacket11960;
 import org.itxtech.synapseapi.multiprotocol.protocol14.protocol.PlayerActionPacket14;
 import org.itxtech.synapseapi.multiprotocol.protocol16.protocol.ResourcePackClientResponsePacket16;
 import org.itxtech.synapseapi.multiprotocol.utils.ItemComponentDefinitions;
@@ -146,7 +148,40 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
 
     @Override
     protected DataPacket generateStartGamePacket(Position spawnPosition) {
-        if (this.getProtocol() >= AbstractProtocol.PROTOCOL_119_20.getProtocolStart()) {
+        if (this.getProtocol() >= AbstractProtocol.PROTOCOL_119_60.getProtocolStart()) {
+            StartGamePacket11960 startGamePacket = new StartGamePacket11960();
+            startGamePacket.protocol = AbstractProtocol.fromRealProtocol(this.protocol);
+            startGamePacket.netease = this.isNetEaseClient();
+            startGamePacket.entityUniqueId = SYNAPSE_PLAYER_ENTITY_ID;
+            startGamePacket.entityRuntimeId = SYNAPSE_PLAYER_ENTITY_ID;
+            startGamePacket.playerGamemode = getClientFriendlyGamemode(this.gamemode);
+            startGamePacket.x = (float) this.x;
+            startGamePacket.y = (float) this.y;
+            startGamePacket.z = (float) this.z;
+            startGamePacket.yaw = (float) this.yaw;
+            startGamePacket.pitch = (float) this.pitch;
+            startGamePacket.seed = -1;
+            startGamePacket.dimension = (byte) (this.level.getDimension().ordinal() & 0xff);
+            startGamePacket.worldGamemode = getClientFriendlyGamemode(this.gamemode);
+            startGamePacket.difficulty = this.server.getDifficulty();
+            startGamePacket.spawnX = (int) spawnPosition.x;
+            startGamePacket.spawnY = (int) spawnPosition.y;
+            startGamePacket.spawnZ = (int) spawnPosition.z;
+            startGamePacket.hasAchievementsDisabled = true;
+            startGamePacket.dayCycleStopTime = -1;
+            startGamePacket.rainLevel = 0;
+            startGamePacket.lightningLevel = 0;
+            startGamePacket.commandsEnabled = this.isEnableClientCommand();
+            startGamePacket.levelId = "";
+            startGamePacket.worldName = this.getServer().getNetwork().getName();
+            startGamePacket.generator = 1; // 0 old, 1 infinite, 2 flat
+            startGamePacket.gameRules = getSupportedRules();
+//            startGamePacket.isMovementServerAuthoritative = true;
+//            startGamePacket.isBlockBreakingServerAuthoritative = this.serverAuthoritativeBlockBreaking;
+            startGamePacket.currentTick = this.server.getTick();
+            startGamePacket.enchantmentSeed = ThreadLocalRandom.current().nextInt();
+            return startGamePacket;
+        } else if (this.getProtocol() >= AbstractProtocol.PROTOCOL_119_20.getProtocolStart()) {
             StartGamePacket11920 startGamePacket = new StartGamePacket11920();
             startGamePacket.protocol = AbstractProtocol.fromRealProtocol(this.protocol);
             startGamePacket.netease = this.isNetEaseClient();
@@ -1334,6 +1369,28 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
                     this.getNpcDialoguePlayerHandler().onDialogueResponse(sceneName, npcRequestPacket.actionIndex);
                 }
                 break;
+            case ProtocolInfo.COMMAND_REQUEST_PACKET:
+                if (getProtocol() < AbstractProtocol.PROTOCOL_119_60.getProtocolStart()) {
+                    super.handleDataPacket(packet);
+                    break;
+                }
+
+                if (!this.spawned || !this.isAlive()) {
+                    break;
+                }
+                this.craftingType = CRAFTING_SMALL;
+
+                CommandRequestPacket11960 commandRequestPacket = (CommandRequestPacket11960) packet;
+                PlayerCommandPreprocessEvent playerCommandPreprocessEvent = new PlayerCommandPreprocessEvent(this, commandRequestPacket.command);
+                playerCommandPreprocessEvent.call();
+                if (playerCommandPreprocessEvent.isCancelled()) {
+                    break;
+                }
+
+                Timings.playerCommandTimer.startTiming();
+                this.server.dispatchCommand(playerCommandPreprocessEvent.getPlayer(), playerCommandPreprocessEvent.getMessage().substring(1));
+                Timings.playerCommandTimer.stopTiming();
+                break;
             default:
                 super.handleDataPacket(packet);
                 break;
@@ -2040,6 +2097,19 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
 
             this.sendPosition(this, this.yaw, this.pitch, MovePlayerPacket.MODE_RESET);
 
+            if (getProtocol() >= AbstractProtocol.PROTOCOL_119_50.getProtocolStart()) {
+                PlayerActionPacket119 ackPacket = new PlayerActionPacket119();
+                ackPacket.action = PlayerActionPacket.ACTION_DIMENSION_CHANGE_ACK;
+                ackPacket.entityId = getId();
+                ackPacket.x = getFloorX();
+                ackPacket.y = getFloorY();
+                ackPacket.z = getFloorZ();
+                ackPacket.resultX = ackPacket.x;
+                ackPacket.resultY = ackPacket.y;
+                ackPacket.resultZ = ackPacket.z;
+                dataPacket(ackPacket);
+            }
+
 //            this.setImmobile(true);
             this.changeDimensionImmobile = true;
             this.changeDimensionPosition = this.getPosition();
@@ -2132,6 +2202,19 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
         this.dataPacket(pk);*/
 
         this.sendPosition(this, this.yaw, this.pitch, MovePlayerPacket.MODE_RESET);
+
+        if (getProtocol() >= AbstractProtocol.PROTOCOL_119_50.getProtocolStart()) {
+            PlayerActionPacket119 ackPacket = new PlayerActionPacket119();
+            ackPacket.action = PlayerActionPacket.ACTION_DIMENSION_CHANGE_ACK;
+            ackPacket.entityId = getId();
+            ackPacket.x = getFloorX();
+            ackPacket.y = getFloorY();
+            ackPacket.z = getFloorZ();
+            ackPacket.resultX = ackPacket.x;
+            ackPacket.resultY = ackPacket.y;
+            ackPacket.resultZ = ackPacket.z;
+            dataPacket(ackPacket);
+        }
 
         this.removeAllChunks();
         this.usedChunks = new Long2BooleanOpenHashMap();
@@ -2431,6 +2514,26 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
         }
 
         super.sendNetworkSettings();
+    }
+
+    @Override
+    public void setDimension(int dimension) {
+        super.setDimension(dimension);
+
+        if (getProtocol() < AbstractProtocol.PROTOCOL_119_50.getProtocolStart()) {
+            return;
+        }
+
+        PlayerActionPacket119 packet = new PlayerActionPacket119();
+        packet.action = PlayerActionPacket.ACTION_DIMENSION_CHANGE_ACK;
+        packet.entityId = getId();
+        packet.x = getFloorX();
+        packet.y = getFloorY();
+        packet.z = getFloorZ();
+        packet.resultX = packet.x;
+        packet.resultY = packet.y;
+        packet.resultZ = packet.z;
+        dataPacket(packet);
     }
 
     //FIXME: 以下断言错误需要处理

@@ -15,6 +15,7 @@ import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
 
+import static cn.nukkit.GameVersion.*;
 import static org.itxtech.synapseapi.SynapseSharedConstants.*;
 
 @Log4j2
@@ -41,6 +42,10 @@ public class CraftingManagerNew extends CraftingManagerLegacy {
         loadRecipes("smelting.json").forEach(this::loadSmelting);
 
         loadRecipes("special_hardcoded.json").forEach(this::loadHardcoded);
+
+        if (V1_19_60.isAvailable()) {
+            loadRecipes("smithing.json").forEach(this::loadSmithing);
+        }
 
         loadRecipes("potion_type.json").forEach(this::loadPotionType);
 
@@ -75,6 +80,35 @@ public class CraftingManagerNew extends CraftingManagerLegacy {
         } catch (UnsupportedOperationException e) {
             log.trace("Skip an unsupported potion container recipe: {}", entry);
         }
+    }
+
+    protected void loadSmithing(JsonElement element) {
+        JsonObject entry = element.getAsJsonObject();
+
+        RecipeTag tag = getSmithingRecipeTag(entry.get("block").getAsString());
+        if (tag == null) {
+            return;
+        }
+
+        try {
+            registerRecipe(new SmithingTransformRecipe(
+                    String.valueOf(++RECIPE_COUNT),
+                    deserializeItem(entry.getAsJsonObject("output")),
+                    deserializeItem(entry.getAsJsonObject("input")),
+                    deserializeItem(entry.getAsJsonObject("addition")),
+                    tag));
+        } catch (UnsupportedOperationException e) {
+            log.trace("Skip an unsupported smithing recipe: {}", entry);
+        }
+    }
+
+    protected RecipeTag getSmithingRecipeTag(String block) {
+        RecipeTag tag = RecipeTag.byName(block);
+        if (tag != RecipeTag.SMITHING_TABLE) {
+            log.trace("Unexpected smithing recipe block: {}", block);
+            return null;
+        }
+        return tag;
     }
 
     @Override

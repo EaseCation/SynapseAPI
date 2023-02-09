@@ -30,6 +30,7 @@ import org.itxtech.synapseapi.event.player.SynapsePlayerBroadcastLevelSoundEvent
 import org.itxtech.synapseapi.event.player.SynapsePlayerConnectEvent;
 import org.itxtech.synapseapi.multiprotocol.AbstractProtocol;
 import org.itxtech.synapseapi.multiprotocol.PacketRegister;
+import org.itxtech.synapseapi.multiprotocol.protocol119.protocol.PlayerActionPacket119;
 import org.itxtech.synapseapi.multiprotocol.protocol12.utils.ClientChainData12;
 import org.itxtech.synapseapi.multiprotocol.protocol12.utils.ClientChainData12NetEase;
 import org.itxtech.synapseapi.multiprotocol.protocol12.utils.ClientChainData12Urgency;
@@ -555,6 +556,20 @@ public class SynapsePlayer14 extends SynapsePlayer {
         this.dataPacket(changeDimensionPacket1);
 
         this.forceSendEmptyChunks();
+
+		if (getProtocol() >= AbstractProtocol.PROTOCOL_119_50.getProtocolStart()) {
+			PlayerActionPacket119 ackPacket = new PlayerActionPacket119();
+			ackPacket.action = PlayerActionPacket.ACTION_DIMENSION_CHANGE_ACK;
+			ackPacket.entityId = getId();
+			ackPacket.x = getFloorX();
+			ackPacket.y = getFloorY();
+			ackPacket.z = getFloorZ();
+			ackPacket.resultX = ackPacket.x;
+			ackPacket.resultY = ackPacket.y;
+			ackPacket.resultZ = ackPacket.z;
+			dataPacket(ackPacket);
+		}
+
         this.getServer().getScheduler().scheduleDelayedTask(() -> {
             PlayStatusPacket statusPacket0 = new PlayStatusPacket();
             statusPacket0.status = PlayStatusPacket.PLAYER_SPAWN;
@@ -568,8 +583,23 @@ public class SynapsePlayer14 extends SynapsePlayer {
             changeDimensionPacket.y = (float) this.getY() + this.getEyeHeight();
             changeDimensionPacket.z = (float) this.getZ();
             dataPacket(changeDimensionPacket);
+
             nextChunkOrderRun = 0;
+
             sendPosition(getPosition(), yaw, pitch, MovePlayerPacket.MODE_RESET);
+
+			if (getProtocol() >= AbstractProtocol.PROTOCOL_119_50.getProtocolStart()) {
+				PlayerActionPacket119 ackPacket = new PlayerActionPacket119();
+				ackPacket.action = PlayerActionPacket.ACTION_DIMENSION_CHANGE_ACK;
+				ackPacket.entityId = getId();
+				ackPacket.x = getFloorX();
+				ackPacket.y = getFloorY();
+				ackPacket.z = getFloorZ();
+				ackPacket.resultX = ackPacket.x;
+				ackPacket.resultY = ackPacket.y;
+				ackPacket.resultZ = ackPacket.z;
+				dataPacket(ackPacket);
+			}
         }, 20);
     }
 

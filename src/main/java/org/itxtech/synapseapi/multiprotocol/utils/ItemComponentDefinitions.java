@@ -28,6 +28,7 @@ public final class ItemComponentDefinitions {
             Map<String, byte[]> definition119 = load("item_components119.nbt");
             Map<String, byte[]> definition11910 = load("item_components11910.nbt");
             Map<String, byte[]> definition11950 = load("item_components11950.nbt");
+            Map<String, byte[]> definition11960 = load("item_components11960.nbt");
 
             DEFINITIONS.put(AbstractProtocol.PROTOCOL_118_10, definition11810);
             DEFINITIONS.put(AbstractProtocol.PROTOCOL_118_30, definition11830);
@@ -39,6 +40,7 @@ public final class ItemComponentDefinitions {
             DEFINITIONS.put(AbstractProtocol.PROTOCOL_119_30, definition11910);
             DEFINITIONS.put(AbstractProtocol.PROTOCOL_119_40, definition11910);
             DEFINITIONS.put(AbstractProtocol.PROTOCOL_119_50, definition11950);
+            DEFINITIONS.put(AbstractProtocol.PROTOCOL_119_60, definition11960);
         } catch (NullPointerException | IOException e) {
             throw new AssertionError("Unable to load item_components.nbt");
         }
