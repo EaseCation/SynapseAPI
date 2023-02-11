@@ -169,7 +169,6 @@ public class SynapsePlayer116 extends SynapsePlayer113 {
 				}
 				break;
 			case ProtocolInfo.INVENTORY_TRANSACTION_PACKET:
-				if (inventoryTransactionPacketCountThisTick++ > 10) return;
 				if (!callPacketReceiveEvent(packet)) break;
 				InventoryTransactionPacket116 transactionPacket = (InventoryTransactionPacket116) packet;
 
