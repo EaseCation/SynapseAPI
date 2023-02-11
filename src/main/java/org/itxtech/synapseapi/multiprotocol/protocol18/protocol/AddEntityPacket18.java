@@ -1,6 +1,7 @@
 package org.itxtech.synapseapi.multiprotocol.protocol18.protocol;
 
 import cn.nukkit.entity.Attribute;
+import cn.nukkit.entity.Entities;
 import cn.nukkit.entity.data.EntityMetadata;
 import cn.nukkit.entity.item.*;
 import cn.nukkit.entity.mob.*;
@@ -166,7 +167,7 @@ public class AddEntityPacket18 extends Packet18 {
         this.putEntityUniqueId(this.entityUniqueId);
         this.putEntityRuntimeId(this.entityRuntimeId);
         if (id == null) {
-            id = LEGACY_IDS.get(type);
+            id = Entities.getIdentifierByType(type);
         }
         this.putString(this.id);
         this.putVector3f(this.x, this.y, this.z);

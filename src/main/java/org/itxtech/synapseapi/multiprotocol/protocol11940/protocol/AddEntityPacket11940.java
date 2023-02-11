@@ -1,6 +1,7 @@
 package org.itxtech.synapseapi.multiprotocol.protocol11940.protocol;
 
 import cn.nukkit.entity.Attribute;
+import cn.nukkit.entity.Entities;
 import cn.nukkit.entity.data.EntityMetadata;
 import cn.nukkit.entity.item.*;
 import cn.nukkit.entity.mob.*;
@@ -162,7 +163,7 @@ public class AddEntityPacket11940 extends Packet11940 {
         this.putEntityUniqueId(this.entityUniqueId);
         this.putEntityRuntimeId(this.entityRuntimeId);
         if (id == null) {
-            id = LEGACY_IDS.get(type);
+            id = Entities.getIdentifierByType(type);
         }
         this.putString(this.id);
         this.putVector3f(this.x, this.y, this.z);
