@@ -28,7 +28,11 @@ public class SetEntityLinkPacket116 extends Packet116 {
 
     @Override
     public void decode() {
-
+        this.vehicleUniqueId = this.getEntityUniqueId();
+        this.riderUniqueId = this.getEntityUniqueId();
+        this.type = (byte) this.getByte();
+        this.immediate = (byte) this.getByte();
+        this.riderInitiated = this.getBoolean();
     }
 
     @Override

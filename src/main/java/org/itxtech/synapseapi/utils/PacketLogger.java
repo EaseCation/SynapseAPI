@@ -32,8 +32,9 @@ public final class PacketLogger {
 
     static {
 //        CLIENTBOUND_FILTER[ProtocolInfo.FULL_CHUNK_DATA_PACKET] = true;
-//        CLIENTBOUND_FILTER[ProtocolInfo.SUB_CHUNK_PACKET] = true;
+        CLIENTBOUND_FILTER[ProtocolInfo.SUB_CHUNK_PACKET] = true;
         CLIENTBOUND_FILTER[ProtocolInfo.CLIENT_CACHE_MISS_RESPONSE_PACKET] = true;
+        CLIENTBOUND_FILTER[ProtocolInfo.NETWORK_CHUNK_PUBLISHER_UPDATE_PACKET] = true;
 
         SERVERBOUND_FILTER[ProtocolInfo.MOVE_PLAYER_PACKET] = true;
         SERVERBOUND_FILTER[ProtocolInfo.PLAYER_AUTH_INPUT_PACKET] = true;

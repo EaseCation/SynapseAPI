@@ -74,6 +74,12 @@ public class PlayerActionPacket119 extends Packet119 {
 
     @Override
     public void encode() {
+        this.reset();
+        this.putEntityRuntimeId(this.entityId);
+        this.putVarInt(this.action);
+        this.putBlockVector3(this.x, this.y, this.z);
+        this.putBlockVector3(this.resultX, this.resultY, this.resultZ);
+        this.putVarInt(this.data);
     }
 
     @Override

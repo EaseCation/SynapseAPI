@@ -121,9 +121,6 @@ public class SynapsePlayer116 extends SynapsePlayer113 {
 		return gamemode;
 	}
 
-	// 用于防止客户端发了过多的包，导致服务端卡顿
-	private int inventoryTransactionPacketCountThisTick = 0;
-
 	@Override
 	public void handleDataPacket(DataPacket packet) {
 		if (!this.isSynapseLogin) {
@@ -1313,9 +1310,6 @@ public class SynapsePlayer116 extends SynapsePlayer113 {
 			this.updateSynapsePlayerTiming.startTiming();
 			if (this.serverAuthoritativeBlockBreaking && this.breakingBlockFace != null && this.isBreakingBlock() && this.spawned && this.isAlive()) {
 				this.level.addParticle(new PunchBlockParticle(this.breakingBlock, this.breakingBlock, this.breakingBlockFace));
-			}
-			if (this.inventoryTransactionPacketCountThisTick > 0) {
-				this.inventoryTransactionPacketCountThisTick = 0;
 			}
 			this.updateSynapsePlayerTiming.stopTiming();
 		}

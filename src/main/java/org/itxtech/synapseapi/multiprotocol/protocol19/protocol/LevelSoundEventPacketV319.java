@@ -64,10 +64,13 @@ public class LevelSoundEventPacketV319 extends Packet19 {
                 this.sound = packet.sound;
             }
             this.extraData = packet.extraData;
-        } else {
+        } else if (packet.sound <= LevelSoundEventPacket.SOUND_DEFAULT) { // need to convert
             LevelSoundEventEnum sound = LevelSoundEventEnum.fromV12(packet.sound);
             this.sound = Optional.ofNullable(sound).orElse(LevelSoundEventEnum.SOUND_UNDEFINED).getV18();
             this.extraData = Optional.ofNullable(sound).orElse(LevelSoundEventEnum.SOUND_UNDEFINED).translateTo18ExtraData(packet.extraData, packet.pitch, protocol, netease);
+        } else {
+            this.sound = packet.sound;
+            this.extraData = packet.extraData;
         }
         this.x = packet.x;
         this.y = packet.y;
