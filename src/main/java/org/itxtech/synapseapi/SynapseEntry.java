@@ -624,6 +624,7 @@ public class SynapseEntry {
                             }
                             if (tooManyPackets) {
                                 Server.getInstance().getPluginManager().callEvent(new SynapsePlayerTooManyPacketsInBatchEvent(player, packetCount));
+                                synapse.getServer().getScheduler().scheduleTask(synapse, () -> player.violation += 10);
                             }
                         } else {
                             this.redirectPacketQueue.offer(new RedirectPacketEntry(player, pk0));
