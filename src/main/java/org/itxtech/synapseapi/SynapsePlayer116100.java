@@ -138,8 +138,6 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
     protected boolean changeDimensionImmobile;
     protected Position changeDimensionPosition;
 
-    protected int packetCountPlayerActionPacket = 0;
-
     public NPCDialoguePlayerHandler npcDialoguePlayerHandler;
 
     public SynapsePlayer116100(SourceInterface interfaz, SynapseEntry synapseEntry, Long clientID, InetSocketAddress socketAddress) {
@@ -762,9 +760,6 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
                 }
                 break;
             case ProtocolInfo.PLAYER_ACTION_PACKET:
-                if (this.packetCountPlayerActionPacket++ > 2) {
-                    break;
-                }
                 if (this.getProtocol() < AbstractProtocol.PROTOCOL_116_210.getProtocolStart()
                         && (!this.isNetEaseClient || this.getProtocol() < AbstractProtocol.PROTOCOL_116_200.getProtocolStart())) {
                     PlayerActionPacket14 playerActionPacket = (PlayerActionPacket14) packet;
@@ -889,10 +884,16 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
                             this.noDamageTicks = 60;
 
                             this.removeAllEffects();
+
+                            SetHealthPacket healthPacket = new SetHealthPacket();
+                            healthPacket.health = getMaxHealth();
+                            this.dataPacket(healthPacket);
+
                             this.setHealth(this.getMaxHealth());
                             this.getFoodData().setLevel(20, 20);
 
                             this.sendData(this);
+                            this.sendData(this.getViewers().values().toArray(new Player[0]));
 
                             this.setMovementSpeed(DEFAULT_SPEED);
 
@@ -2242,7 +2243,6 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
     public boolean onUpdate(int currentTick) {
         int tickDiff = currentTick - this.lastUpdate;
         if (tickDiff > 0) {
-            this.packetCountPlayerActionPacket = 0;
             this.updateSynapsePlayerTiming.startTiming();
             if (this.changeDimensionPosition != null && currentTick % 10 == 0) {
 //                this.sendPosition(this.changeDimensionPosition, this.yaw, this.pitch, MovePlayerPacket.MODE_TELEPORT);

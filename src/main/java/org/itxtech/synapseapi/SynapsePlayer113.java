@@ -183,8 +183,7 @@ public class SynapsePlayer113 extends SynapsePlayer112 {
 				}
 
 				playerActionPacket.entityId = this.id;
-				Vector3 pos = new Vector3(playerActionPacket.x, playerActionPacket.y, playerActionPacket.z);
-				BlockFace face = BlockFace.fromIndex(playerActionPacket.data);
+				BlockFace face;
 
 				switch (playerActionPacket.action) {
 					case PlayerActionPacket14.ACTION_RESPAWN:
@@ -215,10 +214,16 @@ public class SynapsePlayer113 extends SynapsePlayer112 {
 						this.noDamageTicks = 60;
 
 						this.removeAllEffects();
+
+						SetHealthPacket healthPacket = new SetHealthPacket();
+						healthPacket.health = getMaxHealth();
+						this.dataPacket(healthPacket);
+
 						this.setHealth(this.getMaxHealth());
 						this.getFoodData().setLevel(20, 20);
 
 						this.sendData(this);
+						this.sendData(this.getViewers().values().toArray(new Player[0]));
 
 						this.setMovementSpeed(DEFAULT_SPEED);
 

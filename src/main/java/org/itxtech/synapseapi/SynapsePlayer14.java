@@ -317,10 +317,16 @@ public class SynapsePlayer14 extends SynapsePlayer {
 						this.noDamageTicks = 60;
 
 						this.removeAllEffects();
+
+						SetHealthPacket healthPacket = new SetHealthPacket();
+						healthPacket.health = getMaxHealth();
+						this.dataPacket(healthPacket);
+
 						this.setHealth(this.getMaxHealth());
 						this.getFoodData().setLevel(20, 20);
 
 						this.sendData(this);
+						this.sendData(this.getViewers().values().toArray(new Player[0]));
 
 						this.setMovementSpeed(DEFAULT_SPEED);
 
