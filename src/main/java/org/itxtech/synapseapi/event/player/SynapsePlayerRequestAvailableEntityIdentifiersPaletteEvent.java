@@ -42,13 +42,21 @@ public class SynapsePlayerRequestAvailableEntityIdentifiersPaletteEvent extends 
     }
 
     public SynapsePlayerRequestAvailableEntityIdentifiersPaletteEvent addEntity(String id) {
+        return this.addEntity(id, "", maxRid++);
+    }
+
+    public SynapsePlayerRequestAvailableEntityIdentifiersPaletteEvent addEntity(String id, String baseId) {
+        return this.addEntity(id, baseId, maxRid++);
+    }
+
+    public SynapsePlayerRequestAvailableEntityIdentifiersPaletteEvent addEntity(String id, String baseId, int runtimeId) {
         this.getNamedTag().getList("idlist", CompoundTag.class).add(
                 new CompoundTag()
                         .putBoolean("hasspawnegg", false)
                         .putBoolean("summonable", false)
                         .putString("id", id)
-                        .putString("bid", "")
-                        .putInt("rid", maxRid++)
+                        .putString("bid", baseId)
+                        .putInt("rid", runtimeId)
         );
         return this;
     }
