@@ -64,7 +64,7 @@ public class SynapsePlayer116 extends SynapsePlayer113 {
 	protected boolean serverAuthoritativeBlockBreaking = true;
 	protected BlockFace breakingBlockFace;
 
-	protected int packetCountAuthPlayerInput = 0;
+	private int currentTickAttackPacketCount = 0;
 
 	public SynapsePlayer116(SourceInterface interfaz, SynapseEntry synapseEntry, Long clientID, InetSocketAddress socketAddress) {
 		super(interfaz, synapseEntry, clientID, socketAddress);
@@ -509,6 +509,11 @@ public class SynapsePlayer116 extends SynapsePlayer113 {
 								}
 								break;
 							case InventoryTransactionPacket116.USE_ITEM_ON_ENTITY_ACTION_ATTACK:
+								if (++currentTickAttackPacketCount >= 10) {
+									violation += 8;
+									return;
+								}
+
 								ItemAttackDamageEvent event = new ItemAttackDamageEvent(item);
 								this.server.getPluginManager().callEvent(event);
 								float itemDamage = event.getAttackDamage();
@@ -522,7 +527,7 @@ public class SynapsePlayer116 extends SynapsePlayer113 {
 
 								float knockBackH = EntityDamageByEntityEvent.GLOBAL_KNOCKBACK_H;
 								float knockBackV = EntityDamageByEntityEvent.GLOBAL_KNOCKBACK_V;
-								Enchantment knockBackEnchantment = item.getEnchantment(Enchantment.ID_KNOCKBACK);
+								Enchantment knockBackEnchantment = item.getEnchantment(Enchantment.KNOCKBACK);
 								if (knockBackEnchantment != null) {
 									knockBackH += knockBackEnchantment.getLevel() * 0.1f;
 									knockBackV += knockBackEnchantment.getLevel() * 0.1f;
@@ -636,17 +641,16 @@ public class SynapsePlayer116 extends SynapsePlayer113 {
 				if ((emotePacket.flags & EmotePacket116.FLAG_SERVER) != 0) {
 					break;
 				}
+
+				EmotePacket116 emoteBroadcast = new EmotePacket116();
+				emoteBroadcast.runtimeId = this.getId();
+				emoteBroadcast.emoteID = emotePacket.emoteID;
+				emoteBroadcast.flags = emotePacket.flags | EmotePacket116.FLAG_SERVER;
 				for (Player viewer : this.getViewers().values().stream().filter(p -> p.getProtocol() >= AbstractProtocol.PROTOCOL_116.getProtocolStart()).toArray(Player[]::new)) {
-					viewer.dataPacket(emotePacket);
+					viewer.dataPacket(emoteBroadcast);
 				}
 				break;
 			case ProtocolInfo.PLAYER_AUTH_INPUT_PACKET:
-				// 对每tick的玩家数据包进行计数
-				if (this.packetCountAuthPlayerInput++ > 2) {
-					// 丢掉其他的包
-					break;
-				}
-
 				if (!callPacketReceiveEvent(packet)) break;
 				if (this.teleportPosition != null) {
 					break;
@@ -1306,11 +1310,14 @@ public class SynapsePlayer116 extends SynapsePlayer113 {
 	public boolean onUpdate(int currentTick) {
 		int tickDiff = currentTick - this.lastUpdate;
 		if (tickDiff > 0) {
-			this.packetCountAuthPlayerInput = 0;
 			this.updateSynapsePlayerTiming.startTiming();
+
 			if (this.serverAuthoritativeBlockBreaking && this.breakingBlockFace != null && this.isBreakingBlock() && this.spawned && this.isAlive()) {
 				this.level.addParticle(new PunchBlockParticle(this.breakingBlock, this.breakingBlock, this.breakingBlockFace));
 			}
+
+			this.currentTickAttackPacketCount = 0;
+
 			this.updateSynapsePlayerTiming.stopTiming();
 		}
 		return super.onUpdate(currentTick);

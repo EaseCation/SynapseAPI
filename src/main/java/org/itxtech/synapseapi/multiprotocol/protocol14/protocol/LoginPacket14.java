@@ -184,8 +184,6 @@ public class LoginPacket14 extends Packet14 {
         JsonNode playFabIdNode = skinToken.get("PlayFabId");
         if (playFabIdNode != null) {
             skin.setPlayFabId(playFabIdNode.asText());
-        } else if ((playFabIdNode = skinToken.get("PlayFabID")) != null) {
-            skin.setPlayFabId(playFabIdNode.asText());
         }
         JsonNode capeIdNode = skinToken.get("CapeId");
         if (capeIdNode != null) {
@@ -258,6 +256,11 @@ public class LoginPacket14 extends Packet14 {
             for (JsonNode object : pieceTintColorsNode) {
                 skin.getTintColors().add(getTint(object));
             }
+        }
+
+        JsonNode overrideSkinNode = skinToken.get("OverrideSkin");
+        if (overrideSkinNode != null) {
+            skin.setOverridingPlayerAppearance(overrideSkinNode.asBoolean());
         }
     }
 

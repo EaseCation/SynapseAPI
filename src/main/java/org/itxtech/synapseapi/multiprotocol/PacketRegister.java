@@ -76,6 +76,7 @@ import org.itxtech.synapseapi.multiprotocol.protocol11940.protocol.SetEntityData
 import org.itxtech.synapseapi.multiprotocol.protocol11950.protocol.UpdateClientInputLocksPacket11950;
 import org.itxtech.synapseapi.multiprotocol.protocol11960.protocol.CommandRequestPacket11960;
 import org.itxtech.synapseapi.multiprotocol.protocol11960.protocol.CraftingDataPacket11960;
+import org.itxtech.synapseapi.multiprotocol.protocol11960.protocol.PlayerSkinPacket11960;
 import org.itxtech.synapseapi.multiprotocol.protocol11960.protocol.StartGamePacket11960;
 import org.itxtech.synapseapi.multiprotocol.protocol15.protocol.AddEntityPacket15;
 import org.itxtech.synapseapi.multiprotocol.protocol15.protocol.ClientboundMapItemDataPacket15;
@@ -325,6 +326,7 @@ public class PacketRegister {
         registerPacket(AbstractProtocol.PROTOCOL_119_60, ProtocolInfo.START_GAME_PACKET, StartGamePacket11960.class);
         registerPacket(AbstractProtocol.PROTOCOL_119_60, ProtocolInfo.COMMAND_REQUEST_PACKET, CommandRequestPacket11960.class);
         registerPacket(AbstractProtocol.PROTOCOL_119_60, ProtocolInfo.CRAFTING_DATA_PACKET, CraftingDataPacket11960.class);
+        registerPacket(AbstractProtocol.PROTOCOL_119_60, ProtocolInfo.PLAYER_SKIN_PACKET, PlayerSkinPacket11960.class);
 
         checkNeteaseSpecialExtend();
     }
@@ -361,6 +363,7 @@ public class PacketRegister {
                 }
 
                 if(method != null) {
+                    method.setAccessible(true);
                     Class c = (Class<? extends DataPacket>) method.invoke(null);
                     if (c != null) {
                         if (!replacements.containsKey(protocol)) replacements.put(protocol, new HashMap<>());

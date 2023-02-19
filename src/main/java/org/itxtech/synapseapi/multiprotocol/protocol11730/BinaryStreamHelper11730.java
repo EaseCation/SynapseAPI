@@ -98,7 +98,7 @@ public class BinaryStreamHelper11730 extends BinaryStreamHelper11710 {
         skin.setGeometryDataEngineVersion(stream.getString());
         skin.setAnimationData(stream.getString());
         skin.setCapeId(stream.getString());
-        stream.getString(); // TODO: Full skin id
+        skin.setFullSkinId(stream.getString());
         skin.setArmSize(stream.getString());
         skin.setSkinColor(stream.getString());
 

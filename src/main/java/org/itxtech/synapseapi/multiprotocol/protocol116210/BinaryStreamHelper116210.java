@@ -93,7 +93,7 @@ public class BinaryStreamHelper116210 extends BinaryStreamHelper116200 {
         skin.setPersona(stream.getBoolean());
         skin.setCapeOnClassic(stream.getBoolean());
         skin.setCapeId(stream.getString());
-        stream.getString(); // TODO: Full skin id
+        skin.setFullSkinId(stream.getString());
         skin.setArmSize(stream.getString());
         skin.setSkinColor(stream.getString());
 

@@ -11,15 +11,15 @@ public class EmotePacket116 extends Packet116 {
     /**
      * S2C.
      */
-    public static final byte FLAG_SERVER = 1 << 0;
+    public static final int FLAG_SERVER = 1 << 0;
     /**
      * @since 1.19.60
      */
-    public static final byte FLAG_MUTE_ANNOUNCEMENT = 1 << 1;
+    public static final int FLAG_MUTE_ANNOUNCEMENT = 1 << 1;
 
     public long runtimeId;
     public String emoteID;
-    public byte flags;
+    public int flags;
 
     @Override
     public int pid() {
@@ -30,7 +30,7 @@ public class EmotePacket116 extends Packet116 {
     public void decode() {
         this.runtimeId = this.getEntityRuntimeId();
         this.emoteID = this.getString();
-        this.flags = (byte) this.getByte();
+        this.flags = this.getByte();
     }
 
     @Override
@@ -38,6 +38,6 @@ public class EmotePacket116 extends Packet116 {
         this.reset();
         this.putEntityRuntimeId(this.runtimeId);
         this.putString(this.emoteID);
-        this.putByte(flags);
+        this.putByte((byte) flags);
     }
 }

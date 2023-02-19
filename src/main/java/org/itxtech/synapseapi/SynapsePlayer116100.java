@@ -36,6 +36,7 @@ import cn.nukkit.network.protocol.types.ContainerIds;
 import cn.nukkit.network.protocol.types.PlayerAbility;
 import cn.nukkit.resourcepacks.ResourcePack;
 import cn.nukkit.scheduler.AsyncTask;
+import cn.nukkit.utils.LoginChainData;
 import co.aikar.timings.Timings;
 import it.unimi.dsi.fastutil.ints.IntIterator;
 import it.unimi.dsi.fastutil.ints.IntOpenHashSet;
@@ -81,6 +82,7 @@ import org.itxtech.synapseapi.multiprotocol.protocol11920.protocol.ModalFormResp
 import org.itxtech.synapseapi.multiprotocol.protocol11920.protocol.NetworkChunkPublisherUpdatePacket11920;
 import org.itxtech.synapseapi.multiprotocol.protocol11920.protocol.StartGamePacket11920;
 import org.itxtech.synapseapi.multiprotocol.protocol11960.protocol.CommandRequestPacket11960;
+import org.itxtech.synapseapi.multiprotocol.protocol11960.protocol.PlayerSkinPacket11960;
 import org.itxtech.synapseapi.multiprotocol.protocol11960.protocol.StartGamePacket11960;
 import org.itxtech.synapseapi.multiprotocol.protocol14.protocol.PlayerActionPacket14;
 import org.itxtech.synapseapi.multiprotocol.protocol16.protocol.ResourcePackClientResponsePacket16;
@@ -139,6 +141,8 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
     protected Position changeDimensionPosition;
 
     public NPCDialoguePlayerHandler npcDialoguePlayerHandler;
+
+    private byte skinHack; // 1.19.62
 
     public SynapsePlayer116100(SourceInterface interfaz, SynapseEntry synapseEntry, Long clientID, InetSocketAddress socketAddress) {
         super(interfaz, synapseEntry, clientID, socketAddress);
@@ -1391,6 +1395,48 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
                 Timings.playerCommandTimer.startTiming();
                 this.server.dispatchCommand(playerCommandPreprocessEvent.getPlayer(), playerCommandPreprocessEvent.getMessage().substring(1));
                 Timings.playerCommandTimer.stopTiming();
+                break;
+            case ProtocolInfo.PLAYER_SKIN_PACKET:
+                if (getProtocol() >= AbstractProtocol.PROTOCOL_119_60.getProtocolStart()) {
+                    PlayerSkinPacket11960 playerSkinPacket = (PlayerSkinPacket11960) packet;
+
+                    if (skinHack == 0) {
+                        LoginChainData loginData = getLoginChainData();
+                        String gameVersion = loginData.getGameVersion();
+                        if (gameVersion != null && gameVersion.length() == 7 && gameVersion.startsWith("1.19.6")) {
+                            char patch = gameVersion.charAt(6);
+                            if (patch == '0' || patch == '1') {
+                                skinHack = -1;
+                            } else {
+                                skinHack = 1;
+                            }
+                        } else {
+                            skinHack = -1;
+                        }
+                    }
+
+                    PlayerSkinPacket11960 skinResponse = new PlayerSkinPacket11960();
+                    skinResponse.uuid = playerSkinPacket.uuid;
+                    skinResponse.skin = playerSkinPacket.skin;
+                    skinResponse.newSkinName = playerSkinPacket.newSkinName;
+                    skinResponse.oldSkinName = playerSkinPacket.oldSkinName;
+                    if (skinHack == 1) {
+                        skinResponse.extend = true;
+                    }
+                    dataPacket(skinResponse);
+                }
+
+                //TODO: PlayerChangeSkinEvent
+                /*
+                LoginChainData loginData = getLoginChainData();
+                String uid = loginData.getNetEaseUID();
+                if (uid == null || uid.isEmpty()) {
+                    uid = loginData.getXUID();
+                }
+                server.updatePlayerListData(getUniqueId(), getId(), getDisplayName(), skin, uid, new Player[]{this});
+
+                super.handleDataPacket(packet);
+                */
                 break;
             default:
                 super.handleDataPacket(packet);
