@@ -137,11 +137,11 @@ public class LevelEventPacket116100 extends Packet116100 {
         this.y = packet.y;
         this.z = packet.z;
 
-        if (packet.evid == EVENT_PARTICLE_DESTROY || packet.evid == (short) (EVENT_ADD_PARTICLE_MASK | Particle.TYPE_TERRAIN)) {
+        if (packet.evid == EVENT_PARTICLE_DESTROY || packet.evid == (short) (EVENT_ADD_PARTICLE_MASK | Particle.TERRAIN)) {
             this.data = AdvancedGlobalBlockPalette.getOrCreateRuntimeId(protocol, netease, packet.data >> Block.BLOCK_META_BITS, packet.data & Block.BLOCK_META_MASK);
         } else if (packet.evid == EVENT_PARTICLE_PUNCH_BLOCK) {
             this.data = AdvancedGlobalBlockPalette.getOrCreateRuntimeId(protocol, netease, (packet.data >> Block.BLOCK_META_BITS) & Block.BLOCK_ID_MASK, packet.data & Block.BLOCK_META_MASK) | ((packet.data >> 30) & 0x7) << 24;
-        } else if (packet.evid == (short) (EVENT_ADD_PARTICLE_MASK | Particle.TYPE_ITEM_BREAK)) {
+        } else if (packet.evid == (short) (EVENT_ADD_PARTICLE_MASK | Particle.ICON_CRACK)) {
             int damage = packet.data & 0xffff;
             this.data = AdvancedRuntimeItemPalette.getNetworkId(protocol, netease, AdvancedRuntimeItemPalette.getNetworkFullId(protocol, netease, Item.get(packet.data >> 16, damage))) << 16 | damage;
         } else {

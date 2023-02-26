@@ -27,7 +27,7 @@ import cn.nukkit.inventory.transaction.data.ReleaseItemData;
 import cn.nukkit.inventory.transaction.data.UseItemData;
 import cn.nukkit.inventory.transaction.data.UseItemOnEntityData;
 import cn.nukkit.item.Item;
-import cn.nukkit.item.ItemBlock;
+import cn.nukkit.item.Items;
 import cn.nukkit.item.enchantment.Enchantment;
 import cn.nukkit.level.Position;
 import cn.nukkit.level.particle.PunchBlockParticle;
@@ -495,13 +495,13 @@ public class SynapsePlayer116 extends SynapsePlayer113 {
 								if (target.onInteract(this, item, useItemOnEntityData.clickPos) && this.isSurvival()) {
 									if (item.isTool()) {
 										if (item.useOn(target) && item.getDamage() >= item.getMaxDurability()) {
-											item = new ItemBlock(Block.get(Block.AIR));
+											item = Items.air();
 										}
 									} else {
 										if (item.count > 1) {
 											item.count--;
 										} else {
-											item = new ItemBlock(Block.get(Block.AIR));
+											item = Items.air();
 										}
 									}
 
@@ -558,7 +558,7 @@ public class SynapsePlayer116 extends SynapsePlayer113 {
 
 								if (item.isTool() && this.isSurvival()) {
 									if (item.useOn(target) && item.getDamage() >= item.getMaxDurability()) {
-										this.inventory.setItemInHand(new ItemBlock(Block.get(Block.AIR)));
+										this.inventory.setItemInHand(Items.air());
 									} else {
 										this.inventory.setItemInHand(item);
 									}

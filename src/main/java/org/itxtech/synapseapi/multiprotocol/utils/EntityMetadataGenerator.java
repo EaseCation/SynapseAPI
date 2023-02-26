@@ -117,6 +117,10 @@ public class EntityMetadataGenerator {
 					int id = data >> Block.BLOCK_META_BITS;
 					int meta = data & Block.BLOCK_META_MASK;
 					data = AdvancedGlobalBlockPalette.getOrCreateRuntimeId(protocol, netease, id, meta);  //实体属性中的方块ID转换为RuntimeID
+				} else if (entityData.getId() == Entity.DATA_AREA_EFFECT_CLOUD_PARTICLE_ID) {
+					data = ParticleIdTranslator.translateTo(protocol, data);
+//				} else if (entityData.getId() == Entity.DATA_HEARTBEAT_SOUND_EVENT) {
+//					data = LevelSoundEventEnum.translateTo(protocol, data); //TODO
 				}
 				IntEntityData intEntityData = new IntEntityData(newId, data);
 				entityMetadata.put(intEntityData);

@@ -1,4 +1,4 @@
-package org.itxtech.synapseapi.multiprotocol.protocol11960;
+package org.itxtech.synapseapi.multiprotocol.protocol11963;
 
 import cn.nukkit.entity.data.Skin;
 import cn.nukkit.utils.BinaryStream;
@@ -6,21 +6,21 @@ import cn.nukkit.utils.PersonaPiece;
 import cn.nukkit.utils.PersonaPieceTint;
 import cn.nukkit.utils.SerializedImage;
 import cn.nukkit.utils.SkinAnimation;
-import org.itxtech.synapseapi.multiprotocol.protocol11950.BinaryStreamHelper11950;
+import org.itxtech.synapseapi.multiprotocol.protocol11960.BinaryStreamHelper11960;
 
 import java.util.ArrayList;
 import java.util.List;
 
-public class BinaryStreamHelper11960 extends BinaryStreamHelper11950 {
-    public static BinaryStreamHelper11960 create() {
-        return new BinaryStreamHelper11960();
+public class BinaryStreamHelper11963 extends BinaryStreamHelper11960 {
+    public static BinaryStreamHelper11963 create() {
+        return new BinaryStreamHelper11963();
     }
 
     @Override
     public String getGameVersion() {
-        return "1.19.60";
+        return "1.19.63";
     }
-/*
+
     @Override
     public void putSkin(BinaryStream stream, Skin skin) {
         stream.putString(skin.getSkinId());
@@ -70,7 +70,7 @@ public class BinaryStreamHelper11960 extends BinaryStreamHelper11950 {
         stream.putBoolean(skin.isPersona());
         stream.putBoolean(skin.isCapeOnClassic());
         stream.putBoolean(skin.isPrimaryUser());
-//        stream.putBoolean(skin.isOverridingPlayerAppearance()); // 1.19.62
+        stream.putBoolean(skin.isOverridingPlayerAppearance());
     }
 
     @Override
@@ -124,8 +124,7 @@ public class BinaryStreamHelper11960 extends BinaryStreamHelper11950 {
         skin.setPersona(stream.getBoolean());
         skin.setCapeOnClassic(stream.getBoolean());
         skin.setPrimaryUser(stream.getBoolean());
-//        skin.setOverridingPlayerAppearance(stream.getBoolean()); // 1.19.62
+        skin.setOverridingPlayerAppearance(stream.getBoolean());
         return skin;
     }
-*/
 }

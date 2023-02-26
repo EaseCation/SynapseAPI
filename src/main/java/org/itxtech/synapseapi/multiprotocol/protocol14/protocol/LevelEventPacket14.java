@@ -131,7 +131,7 @@ public class LevelEventPacket14 extends Packet14 {
         this.y = packet.y;
         this.z = packet.z;
 
-        if (packet.evid == EVENT_PARTICLE_DESTROY || packet.evid == (short) (EVENT_ADD_PARTICLE_MASK | Particle.TYPE_TERRAIN)) {
+        if (packet.evid == EVENT_PARTICLE_DESTROY || packet.evid == (short) (EVENT_ADD_PARTICLE_MASK | Particle.TERRAIN)) {
             this.data = GlobalBlockPalette.getOrCreateRuntimeId(packet.data >> Block.BLOCK_META_BITS, packet.data & Block.BLOCK_META_MASK);
         } else if (packet.evid == EVENT_PARTICLE_PUNCH_BLOCK) {
             this.data = GlobalBlockPalette.getOrCreateRuntimeId((packet.data >> Block.BLOCK_META_BITS) & Block.BLOCK_ID_MASK, packet.data & Block.BLOCK_META_MASK) | ((packet.data >> 30) & 0x7) << 24;

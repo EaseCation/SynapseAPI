@@ -78,6 +78,7 @@ import org.itxtech.synapseapi.multiprotocol.protocol11960.protocol.CommandReques
 import org.itxtech.synapseapi.multiprotocol.protocol11960.protocol.CraftingDataPacket11960;
 import org.itxtech.synapseapi.multiprotocol.protocol11960.protocol.PlayerSkinPacket11960;
 import org.itxtech.synapseapi.multiprotocol.protocol11960.protocol.StartGamePacket11960;
+import org.itxtech.synapseapi.multiprotocol.protocol11963.protocol.PlayerSkinPacket11963;
 import org.itxtech.synapseapi.multiprotocol.protocol15.protocol.AddEntityPacket15;
 import org.itxtech.synapseapi.multiprotocol.protocol15.protocol.ClientboundMapItemDataPacket15;
 import org.itxtech.synapseapi.multiprotocol.protocol15.protocol.MoveEntityAbsolutePacket15;
@@ -328,6 +329,8 @@ public class PacketRegister {
         registerPacket(AbstractProtocol.PROTOCOL_119_60, ProtocolInfo.CRAFTING_DATA_PACKET, CraftingDataPacket11960.class);
         registerPacket(AbstractProtocol.PROTOCOL_119_60, ProtocolInfo.PLAYER_SKIN_PACKET, PlayerSkinPacket11960.class);
 
+        registerPacket(AbstractProtocol.PROTOCOL_119_63, ProtocolInfo.PLAYER_SKIN_PACKET, PlayerSkinPacket11963.class);
+
         checkNeteaseSpecialExtend();
     }
 
@@ -366,7 +369,7 @@ public class PacketRegister {
                     method.setAccessible(true);
                     Class c = (Class<? extends DataPacket>) method.invoke(null);
                     if (c != null) {
-                        if (!replacements.containsKey(protocol)) replacements.put(protocol, new HashMap<>());
+                        if (!replacements.containsKey(protocol)) replacements.put(protocol, new IdentityHashMap<>());
                         replacements.get(protocol).put(c, clazz);
                     }
                 }
@@ -380,8 +383,8 @@ public class PacketRegister {
         neteaseSpecial.forEach(((protocol, data) -> {
             AbstractProtocol next = protocol;
             while ((next = next.next()) != null) {
-                if (neteaseSpecial.containsKey(next)) {
-                    boolean[] array = neteaseSpecial.get(next);
+                boolean[] array = neteaseSpecial.get(next);
+                if (array != null) {
                     for (int i = 0; i < 1024; i++) {
                         if (data[i]) array[i] = true;
                     }
@@ -472,7 +475,7 @@ public class PacketRegister {
             if (endpointProtocol.ordinal() >= AbstractProtocol.PROTOCOL_12.ordinal()) {
                 AbstractProtocol index = endpointProtocol;
                 do {
-                    Class<? extends IterationProtocolPacket> clazz = replacements.getOrDefault(index, new HashMap<>()).get(packet.getClass());
+                    Class<? extends IterationProtocolPacket> clazz = replacements.getOrDefault(index, Collections.emptyMap()).get(packet.getClass());
                     if(clazz != null) {
                         try {
                             IterationProtocolPacket replaced = clazz.newInstance();
@@ -520,8 +523,9 @@ public class PacketRegister {
     }
 
     public static boolean isNetEaseSpecial(AbstractProtocol protocol, int pid) {
-        if (neteaseSpecial.containsKey(protocol)) {
-            return neteaseSpecial.get(protocol)[pid];
+        boolean[] special = neteaseSpecial.get(protocol);
+        if (special != null) {
+            return special[pid];
         }
         return false;
     }

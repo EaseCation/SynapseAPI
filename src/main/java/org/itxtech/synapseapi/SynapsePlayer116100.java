@@ -84,6 +84,7 @@ import org.itxtech.synapseapi.multiprotocol.protocol11920.protocol.StartGamePack
 import org.itxtech.synapseapi.multiprotocol.protocol11960.protocol.CommandRequestPacket11960;
 import org.itxtech.synapseapi.multiprotocol.protocol11960.protocol.PlayerSkinPacket11960;
 import org.itxtech.synapseapi.multiprotocol.protocol11960.protocol.StartGamePacket11960;
+import org.itxtech.synapseapi.multiprotocol.protocol11963.protocol.PlayerSkinPacket11963;
 import org.itxtech.synapseapi.multiprotocol.protocol14.protocol.PlayerActionPacket14;
 import org.itxtech.synapseapi.multiprotocol.protocol16.protocol.ResourcePackClientResponsePacket16;
 import org.itxtech.synapseapi.multiprotocol.utils.ItemComponentDefinitions;
@@ -1397,19 +1398,23 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
                 Timings.playerCommandTimer.stopTiming();
                 break;
             case ProtocolInfo.PLAYER_SKIN_PACKET:
-                if (getProtocol() >= AbstractProtocol.PROTOCOL_119_60.getProtocolStart()) {
+                if (getProtocol() >= AbstractProtocol.PROTOCOL_119_63.getProtocolStart()) {
+                    PlayerSkinPacket11963 playerSkinPacket = (PlayerSkinPacket11963) packet;
+
+                    PlayerSkinPacket11963 skinResponse = new PlayerSkinPacket11963();
+                    skinResponse.uuid = playerSkinPacket.uuid;
+                    skinResponse.skin = playerSkinPacket.skin;
+                    skinResponse.newSkinName = playerSkinPacket.newSkinName;
+                    skinResponse.oldSkinName = playerSkinPacket.oldSkinName;
+                    dataPacket(skinResponse);
+                } else if (getProtocol() >= AbstractProtocol.PROTOCOL_119_60.getProtocolStart()) {
                     PlayerSkinPacket11960 playerSkinPacket = (PlayerSkinPacket11960) packet;
 
                     if (skinHack == 0) {
                         LoginChainData loginData = getLoginChainData();
                         String gameVersion = loginData.getGameVersion();
-                        if (gameVersion != null && gameVersion.length() == 7 && gameVersion.startsWith("1.19.6")) {
-                            char patch = gameVersion.charAt(6);
-                            if (patch == '0' || patch == '1') {
-                                skinHack = -1;
-                            } else {
-                                skinHack = 1;
-                            }
+                        if ("1.19.62".equals(gameVersion)) {
+                            skinHack = 1;
                         } else {
                             skinHack = -1;
                         }

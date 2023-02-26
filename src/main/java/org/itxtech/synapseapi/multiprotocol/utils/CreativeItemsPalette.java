@@ -53,6 +53,7 @@ public class CreativeItemsPalette {
         register(AbstractProtocol.PROTOCOL_119_40, load("creativeitems_116100.json", true), null);
         register(AbstractProtocol.PROTOCOL_119_50, load("creativeitems_116100.json", true), null);
         register(AbstractProtocol.PROTOCOL_119_60, load("creativeitems_116100.json", true), null);
+        register(AbstractProtocol.PROTOCOL_119_63, load("creativeitems_116100.json", true), null);
 
         for (AbstractProtocol protocol : AbstractProtocol.values0()) {
             if (protocol.getProtocolStart() < AbstractProtocol.PROTOCOL_19.getProtocolStart()) {
@@ -74,6 +75,7 @@ public class CreativeItemsPalette {
         register(AbstractProtocol.PROTOCOL_119_40, CreativeInventory.getItems(), null);
         register(AbstractProtocol.PROTOCOL_119_50, CreativeInventory.getItems(), null);
         register(AbstractProtocol.PROTOCOL_119_60, CreativeInventory.getItems(), null);
+        register(AbstractProtocol.PROTOCOL_119_63, CreativeInventory.getItems(), null);
     }
 
     private static void register(AbstractProtocol protocol, List<Item> list, List<Item> listNetEase) {

@@ -41,6 +41,7 @@ public final class ItemComponentDefinitions {
             DEFINITIONS.put(AbstractProtocol.PROTOCOL_119_40, definition11910);
             DEFINITIONS.put(AbstractProtocol.PROTOCOL_119_50, definition11950);
             DEFINITIONS.put(AbstractProtocol.PROTOCOL_119_60, definition11960);
+            DEFINITIONS.put(AbstractProtocol.PROTOCOL_119_63, definition11960);
         } catch (NullPointerException | IOException e) {
             throw new AssertionError("Unable to load item_components.nbt");
         }
