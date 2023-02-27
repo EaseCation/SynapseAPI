@@ -25,12 +25,13 @@ public class RuntimeItemPalette implements AdvancedRuntimeItemPaletteInterface {
     private static final Gson GSON = new Gson();
     private static final Type ENTRY_TYPE = new TypeToken<ArrayList<Entry>>(){}.getType();
 
+    private final List<Entry> entries = new ArrayList<>();
     private final Int2IntMap legacyNetworkMap = new Int2IntOpenHashMap();
     private final Int2ObjectMap<String> legacyStringMap = new Int2ObjectOpenHashMap<>();
     private final Object2IntMap<String> nameToLegacy = new Object2IntOpenHashMap<>();
     private final Int2IntMap networkLegacyMap = new Int2IntOpenHashMap();
 
-    private final byte[] itemDataPalette;
+    private byte[] itemDataPalette;
 
     public RuntimeItemPalette(String runtimeItemIdJsonFile) {
         List<Entry> entries;
@@ -41,28 +42,37 @@ public class RuntimeItemPalette implements AdvancedRuntimeItemPaletteInterface {
             throw new AssertionError("Unable to load runtime item palette", e);
         }
 
-        BinaryStream paletteBuffer = new BinaryStream();
-        paletteBuffer.putUnsignedVarInt(entries.size());
-
         legacyNetworkMap.defaultReturnValue(-1);
         nameToLegacy.defaultReturnValue(-1);
         networkLegacyMap.defaultReturnValue(-1);
 
         for (Entry entry : entries) {
+            registerItem(entry);
+        }
+
+        this.buildPaletteBuffer();
+    }
+
+    public void registerItem(Entry entry) {
+        entries.add(entry);
+        if (entry.oldId != null) {
+            boolean hasData = entry.oldData != null;
+            int fullId = getFullId(entry.oldId, hasData ? entry.oldData : 0);
+            legacyNetworkMap.put(fullId, (entry.id << 1) | (hasData ? 1 : 0));
+            legacyStringMap.put(fullId, entry.name);
+            nameToLegacy.put(entry.name, fullId | (hasData ? 1 : 0));
+            networkLegacyMap.put(entry.id, fullId | (hasData ? 1 : 0));
+        }
+    }
+
+    public void buildPaletteBuffer() {
+        BinaryStream paletteBuffer = new BinaryStream();
+        paletteBuffer.putUnsignedVarInt(entries.size());
+        for (Entry entry : entries) {
             paletteBuffer.putString(entry.name);
             paletteBuffer.putLShort(entry.id);
             paletteBuffer.putBoolean(false); // Component item
-
-            if (entry.oldId != null) {
-                boolean hasData = entry.oldData != null;
-                int fullId = getFullId(entry.oldId, hasData ? entry.oldData : 0);
-                legacyNetworkMap.put(fullId, (entry.id << 1) | (hasData ? 1 : 0));
-                legacyStringMap.put(fullId, entry.name);
-                nameToLegacy.put(entry.name, fullId | (hasData ? 1 : 0));
-                networkLegacyMap.put(entry.id, fullId | (hasData ? 1 : 0));
-            }
         }
-
         itemDataPalette = paletteBuffer.getBuffer();
     }
 

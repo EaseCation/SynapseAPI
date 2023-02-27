@@ -1,6 +1,9 @@
 package org.itxtech.synapseapi.multiprotocol.utils;
 
 import cn.nukkit.item.Item;
+import cn.nukkit.item.ItemFactory;
+import cn.nukkit.item.Items;
+import cn.nukkit.item.RuntimeItemPaletteInterface;
 import lombok.extern.log4j.Log4j2;
 import org.itxtech.synapseapi.multiprotocol.AbstractProtocol;
 
@@ -69,6 +72,23 @@ public final class AdvancedRuntimeItemPalette {
                         ? new AdvancedRuntimeItemPaletteInterface[]{palette, paletteNetEase}
                         : new AdvancedRuntimeItemPaletteInterface[]{palette};
         palettes.put(protocol, data);
+    }
+
+    public static void registerCustomItem(String fullName, int id, Class<? extends Item> clazz, ItemFactory factory) {
+        registerCustomItem(fullName, id, id, null, clazz, factory);
+    }
+
+    public static void registerCustomItem(String fullName, int id, Integer oldId, Integer oldData, Class<? extends Item> clazz, ItemFactory factory) {
+        for (AdvancedRuntimeItemPaletteInterface[] interfaces : palettes.values()) {
+            for (AdvancedRuntimeItemPaletteInterface palette : interfaces) {
+                if (palette instanceof RuntimeItemPalette) {
+                    RuntimeItemPaletteInterface.Entry entry = new RuntimeItemPaletteInterface.Entry(fullName, id, oldId, oldData);
+                    ((RuntimeItemPalette) palette).registerItem(entry);
+                    ((RuntimeItemPalette) palette).buildPaletteBuffer();
+                }
+            }
+        }
+        Items.registerItem(id, clazz, factory);
     }
 
     private static AdvancedRuntimeItemPaletteInterface getPalette(AbstractProtocol protocol, boolean netease) {
