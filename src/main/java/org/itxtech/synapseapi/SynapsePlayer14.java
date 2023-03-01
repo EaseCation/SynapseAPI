@@ -15,6 +15,7 @@ import cn.nukkit.level.Position;
 import cn.nukkit.level.particle.PunchBlockParticle;
 import cn.nukkit.math.BlockFace;
 import cn.nukkit.math.BlockVector3;
+import cn.nukkit.math.Mth;
 import cn.nukkit.math.Vector3;
 import cn.nukkit.network.PacketViolationReason;
 import cn.nukkit.network.SourceInterface;
@@ -246,7 +247,7 @@ public class SynapsePlayer14 extends SynapsePlayer {
 						if (!this.isCreative()) {
 							//improved this to take stuff like swimming, ladders, enchanted tools into account, fix wrong tool break time calculations for bad tools (pmmp/PocketMine-MP#211)
 							//Done by lmlstarqaq
-							double breakTime = Math.ceil(target.getBreakTime(this.inventory.getItemInHand(), this) * 20);
+							double breakTime = Mth.ceil(target.getBreakTime(this.inventory.getItemInHand(), this) * 20);
 							if (breakTime > 0) {
 								LevelEventPacket pk = new LevelEventPacket();
 								pk.evid = LevelEventPacket.EVENT_BLOCK_START_BREAK;
