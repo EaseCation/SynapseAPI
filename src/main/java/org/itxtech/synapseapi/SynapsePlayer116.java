@@ -355,7 +355,9 @@ public class SynapsePlayer116 extends SynapsePlayer113 {
 									}
 								}
 
-								inventory.sendHeldItem(this);
+								if (useItemData.hotbarSlot != inventory.getHeldItemIndex() || !inventory.getItemInHand().equals(useItemData.itemInHand)) {
+									inventory.sendHeldItem(this);
+								}
 
 								if (blockVector.distanceSquared(this) > 10000) {
 									break packetswitch;

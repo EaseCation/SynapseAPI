@@ -65,58 +65,13 @@ public class SynapseEntryPutPacketThread extends Thread {
 //        }
 
         //if (packet.pid() == ProtocolInfo.GAME_RULES_CHANGED_PACKET) return;
-        //switch (packet.pid()) {
-//            case ProtocolInfo.PLAYER_LIST_PACKET:
-            //case ProtocolInfo.AVAILABLE_COMMANDS_PACKET:
-        //    case ProtocolInfo.MOVE_PLAYER_PACKET:
-        //    case ProtocolInfo.SET_ENTITY_MOTION_PACKET:
-        //    case ProtocolInfo.MOVE_ENTITY_PACKET:
-        //    case ProtocolInfo.MOVE_ENTITY_DELTA_PACKET:
-            //case ProtocolInfo.MOB_EQUIPMENT_PACKET:
-            //case ProtocolInfo.MOB_ARMOR_EQUIPMENT_PACKET:
-        //    case ProtocolInfo.MOB_EFFECT_PACKET:
-       //     case ProtocolInfo.TICK_SYNC_PACKET:
-            //case ProtocolInfo.INVENTORY_SLOT_PACKET:
-            //case ProtocolInfo.INVENTORY_CONTENT_PACKET:
-            //case ProtocolInfo.CRAFTING_DATA_PACKET:
-            //case ProtocolInfo.SET_TITLE_PACKET:
-            //case ProtocolInfo.TEXT_PACKET:
-            //case ProtocolInfo.UPDATE_BLOCK_PACKET:
-            //case ProtocolInfo.LEVEL_EVENT_PACKET:
-            //case ProtocolInfo.LEVEL_SOUND_EVENT_PACKET:
-            //case ProtocolInfo.LEVEL_SOUND_EVENT_PACKET_V2:
-            //case ProtocolInfo.LEVEL_SOUND_EVENT_PACKET_V3:
-        //    case ProtocolInfo.SET_PLAYER_GAME_TYPE_PACKET:
-            //case ProtocolInfo.AVAILABLE_COMMANDS_PACKET:
-                //case ProtocolInfo.SET_ENTITY_DATA_PACKET:
-                //case ProtocolInfo.ADVENTURE_SETTINGS_PACKET:
-                //case ProtocolInfo.UPDATE_ATTRIBUTES_PACKET:
-            /*case ProtocolInfo.ADD_ENTITY_PACKET:
-            case ProtocolInfo.ADD_PLAYER_PACKET:
-            case ProtocolInfo.REMOVE_ENTITY_PACKET:
-                long eid;
-                if (packet instanceof AddEntityPacket) {
-                    eid = ((AddEntityPacket) packet).entityUniqueId;
-                } else if (packet instanceof AddPlayerPacket) {
-                    eid = ((AddPlayerPacket) packet).entityRuntimeId;
-                } else if (packet instanceof RemoveEntityPacket) {
-                    eid = ((RemoveEntityPacket) packet).eid;
-                } else {
-                    log.warn("Unknown packet: " + packet.getClass().getName());
-                    break;
-                }
-                Entity entity = Server.getInstance().getLevels().values().stream().map(l -> l.getEntity(eid)).filter(Objects::nonNull).findFirst().orElse(null);
-                if (entity == null) {
-                    log.warn("Entity not found: " + eid);
-                    //break;
-                }
-                log.warn("Packet {} to {}, entity={}", packet.getClass().getSimpleName(), player.getName(), entity != null ? entity.getClass().getSimpleName() : "null");
+        /*switch (packet.pid()) {
+            case ProtocolInfo.INVENTORY_CONTENT_PACKET:
+            case ProtocolInfo.MOB_EQUIPMENT_PACKET:
                 log.warn("=== " + packet.getClass().getSimpleName() + " ===", new Throwable());
-                break;*/
-                //log.warn("blocked packet", new Throwable());
-//                return;
-        //}
-
+                break;
+        }
+*/
         if (player.getSynapseEntry().getSynapse().isRecordPacketStack()) packet.stack = new Throwable();
         this.queue.offer(new Entry(player, packet, needACK, immediate));
 
