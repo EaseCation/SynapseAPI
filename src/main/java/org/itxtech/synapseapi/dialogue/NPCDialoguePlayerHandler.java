@@ -33,10 +33,14 @@ public class NPCDialoguePlayerHandler {
     }
 
     public void openDialogue(NPCDialogueScene scene, Entity entity) {
+        this.openDialogue(scene, entity, entity.getNameTag());
+    }
+
+    public void openDialogue(NPCDialogueScene scene, Entity entity, String name) {
         this.currentSceneName = scene.getSceneName();
         this.currentScene = scene;
         this.currentEntity = entity;
-        scene.sendTo(player, entity.getId(), entity.getName());
+        scene.sendTo(player, entity.getId(), name);
     }
 
     public void onDialogueResponse(String sceneName, int buttonId) {
