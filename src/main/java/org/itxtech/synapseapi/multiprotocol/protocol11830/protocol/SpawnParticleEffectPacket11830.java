@@ -54,6 +54,7 @@ public class SpawnParticleEffectPacket11830 extends Packet11830 {
         this.uniqueEntityId = packet.uniqueEntityId;
         this.position = packet.position;
         this.identifier = packet.identifier;
+        this.molangVariables = packet.molangVariables;
 
         return this;
     }
@@ -65,6 +66,7 @@ public class SpawnParticleEffectPacket11830 extends Packet11830 {
         pk.uniqueEntityId = this.uniqueEntityId;
         pk.position = this.position;
         pk.identifier = this.identifier;
+        pk.molangVariables = this.molangVariables;
         return pk;
     }
 
