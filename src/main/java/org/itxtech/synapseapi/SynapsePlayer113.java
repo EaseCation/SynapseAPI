@@ -34,6 +34,7 @@ import cn.nukkit.network.protocol.*;
 import cn.nukkit.network.protocol.types.ContainerIds;
 import cn.nukkit.network.protocol.types.NetworkInventoryAction;
 import cn.nukkit.resourcepacks.ResourcePack;
+import cn.nukkit.utils.TextFormat;
 import co.aikar.timings.Timings;
 import org.itxtech.synapseapi.multiprotocol.AbstractProtocol;
 import org.itxtech.synapseapi.multiprotocol.protocol113.protocol.ResourcePackStackPacket113;
@@ -664,13 +665,31 @@ public class SynapsePlayer113 extends SynapsePlayer112 {
 				if (!callPacketReceiveEvent(packet)) {
 					break;
 				}
+
 				if (!this.spawned || !this.isAlive()) {
 					break;
 				}
+
+				this.resetCraftingGridType();
 				this.craftingType = CRAFTING_SMALL;
 
+				if (this.messageCounter <= 0) {
+					break;
+				}
+
 				SettingsCommandPacket113 settingsCommandPacket = (SettingsCommandPacket113) packet;
-				PlayerCommandPreprocessEvent playerCommandPreprocessEvent = new PlayerCommandPreprocessEvent(this, settingsCommandPacket.command);
+				if (settingsCommandPacket.command.length() > 512) {
+					break;
+				}
+
+				this.messageCounter--;
+
+				String command = settingsCommandPacket.command;
+				if (this.removeFormat) {
+					command = TextFormat.clean(command, true);
+				}
+
+				PlayerCommandPreprocessEvent playerCommandPreprocessEvent = new PlayerCommandPreprocessEvent(this, command);
 				this.server.getPluginManager().callEvent(playerCommandPreprocessEvent);
 				if (playerCommandPreprocessEvent.isCancelled()) {
 					break;

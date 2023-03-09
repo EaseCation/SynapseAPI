@@ -37,6 +37,7 @@ import cn.nukkit.network.protocol.types.PlayerAbility;
 import cn.nukkit.resourcepacks.ResourcePack;
 import cn.nukkit.scheduler.AsyncTask;
 import cn.nukkit.utils.LoginChainData;
+import cn.nukkit.utils.TextFormat;
 import co.aikar.timings.Timings;
 import it.unimi.dsi.fastutil.ints.IntIterator;
 import it.unimi.dsi.fastutil.ints.IntOpenHashSet;
@@ -1384,10 +1385,27 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
                 if (!this.spawned || !this.isAlive()) {
                     break;
                 }
+
+                this.resetCraftingGridType();
                 this.craftingType = CRAFTING_SMALL;
 
+                if (this.messageCounter <= 0) {
+                    break;
+                }
+
                 CommandRequestPacket11960 commandRequestPacket = (CommandRequestPacket11960) packet;
-                PlayerCommandPreprocessEvent playerCommandPreprocessEvent = new PlayerCommandPreprocessEvent(this, commandRequestPacket.command);
+                if (commandRequestPacket.command.length() > 512) {
+                    break;
+                }
+
+                this.messageCounter--;
+
+                String command = commandRequestPacket.command;
+                if (this.removeFormat) {
+                    command = TextFormat.clean(command, true);
+                }
+
+                PlayerCommandPreprocessEvent playerCommandPreprocessEvent = new PlayerCommandPreprocessEvent(this, command);
                 playerCommandPreprocessEvent.call();
                 if (playerCommandPreprocessEvent.isCancelled()) {
                     break;
