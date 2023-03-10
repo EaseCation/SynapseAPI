@@ -45,6 +45,7 @@ import java.util.concurrent.ThreadLocalRandom;
 import static cn.nukkit.SharedConstants.RESOURCE_PACK_CHUNK_SIZE;
 
 public class SynapsePlayer16 extends SynapsePlayer14 {
+	private static final Gson GSON = new Gson();
 
 	protected boolean spawnStatusSent;
 
@@ -172,7 +173,7 @@ public class SynapsePlayer16 extends SynapsePlayer14 {
 				try {
 					if (data.isMapValue()) {
 						String json = data.toJson();
-						JsonObject obj = new Gson().fromJson(json, JsonObject.class);
+						JsonObject obj = GSON.fromJson(json, JsonObject.class);
 						if (obj.has("value") && obj.get("value").isJsonArray()) {
 							JsonArray value0 = obj.get("value").getAsJsonArray();
 							if ("ModEventC2S".equals(value0.get(0).getAsString()) && value0.get(1).isJsonObject()) {

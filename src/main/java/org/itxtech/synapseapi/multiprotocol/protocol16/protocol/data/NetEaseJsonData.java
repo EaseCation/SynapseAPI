@@ -3,6 +3,7 @@ package org.itxtech.synapseapi.multiprotocol.protocol16.protocol.data;
 import com.google.gson.Gson;
 
 public class NetEaseJsonData {
+    private static final Gson GSON = new Gson();
 
     public static final String EVENT_OPEN_STORE = "ON_OPEN_STORE";
 
@@ -15,6 +16,6 @@ public class NetEaseJsonData {
     }
 
     public String toJson() {
-        return new Gson().toJson(this);
+        return GSON.toJson(this);
     }
 }

@@ -31,6 +31,10 @@ public class BinaryStreamHelper116100 extends BinaryStreamHelper116100NE {
             return Item.get(ItemID.AIR, 0, 0);
         }
 
+        if (networkId < Short.MIN_VALUE || networkId >= Short.MAX_VALUE) {
+            throw new RuntimeException("Invalid item networkID received: " + networkId);
+        }
+
         int legacyFullId = AdvancedRuntimeItemPalette.getLegacyFullId(this.protocol, stream.neteaseMode, networkId);
         boolean hasData = AdvancedRuntimeItemPalette.hasData(this.protocol, stream.neteaseMode, legacyFullId);
         int id = AdvancedRuntimeItemPalette.getId(this.protocol, stream.neteaseMode, legacyFullId);
@@ -75,45 +79,60 @@ public class BinaryStreamHelper116100 extends BinaryStreamHelper116100NE {
             stream.setOffset(offset + (int) inputStream.position());
         }
 
-        String[] canPlaceOn = new String[stream.getVarInt()];
-        for (int i = 0; i < canPlaceOn.length; ++i) {
-            canPlaceOn[i] = stream.getString();
+        if (data < 0 || data >= Short.MAX_VALUE) {
+            throw new RuntimeException("Invalid item meta received: " + data);
         }
 
-        String[] canDestroy = new String[stream.getVarInt()];
-        for (int i = 0; i < canDestroy.length; ++i) {
-            canDestroy[i] = stream.getString();
+        ListTag<StringTag> canPlace;
+        ListTag<StringTag> canBreak;
+
+        int canPlaceCount = stream.getVarInt();
+        if (canPlaceCount > 0) {
+            if (canPlaceCount > 4096) {
+                throw new IndexOutOfBoundsException("Too many CanPlaceOn blocks");
+            }
+            canPlace = new ListTag<>("CanPlaceOn");
+            for (int i = 0; i < canPlaceCount; i++) {
+                canPlace.add(new StringTag("", stream.getString()));
+            }
+        } else {
+            canPlace = null;
+        }
+
+        int canBreakCount = stream.getVarInt();
+        if (canBreakCount > 0) {
+            if (canBreakCount > 4096) {
+                throw new IndexOutOfBoundsException("Too many CanDestroy blocks");
+            }
+            canBreak = new ListTag<>("CanDestroy");
+            for (int i = 0; i < canBreakCount; i++) {
+                canBreak.add(new StringTag("", stream.getString()));
+            }
+        } else {
+            canBreak = null;
         }
 
         Item item = Item.get(
                 id, data, cnt, nbt
         );
 
-        if (canDestroy.length > 0 || canPlaceOn.length > 0) {
+        if (canPlace != null || canBreak != null) {
             CompoundTag namedTag = item.getNamedTag();
             if (namedTag == null) {
                 namedTag = new CompoundTag();
             }
 
-            if (canDestroy.length > 0) {
-                ListTag<StringTag> listTag = new ListTag<>("CanDestroy");
-                for (String blockName : canDestroy) {
-                    listTag.add(new StringTag("", blockName));
-                }
-                namedTag.put("CanDestroy", listTag);
+            if (canPlace != null) {
+                namedTag.putList(canPlace);
+            }
+            if (canBreak != null) {
+                namedTag.putList(canBreak);
             }
 
-            if (canPlaceOn.length > 0) {
-                ListTag<StringTag> listTag = new ListTag<>("CanPlaceOn");
-                for (String blockName : canPlaceOn) {
-                    listTag.add(new StringTag("", blockName));
-                }
-                namedTag.put("CanPlaceOn", listTag);
-            }
             item.setNamedTag(namedTag);
         }
 
-        if (item.getId() == 513) { // TODO: Shields
+        if (item.getId() == ItemID.SHIELD) { // TODO: Shields
             stream.getVarLong();
         }
 
@@ -177,7 +196,7 @@ public class BinaryStreamHelper116100 extends BinaryStreamHelper116100NE {
             stream.putString(block);
         }
 
-        if (item.getId() == 513) { // TODO: Shields
+        if (item.getId() == ItemID.SHIELD) { // TODO: Shields
             stream.putVarLong(0);
         }
     }
@@ -193,11 +212,19 @@ public class BinaryStreamHelper116100 extends BinaryStreamHelper116100NE {
         int id = AdvancedRuntimeItemPalette.getId(this.protocol, stream.neteaseMode, legacyFullId);
         boolean hasData = AdvancedRuntimeItemPalette.hasData(this.protocol, stream.neteaseMode, legacyFullId);
 
+        if (id < Short.MIN_VALUE || id >= Short.MAX_VALUE) {
+            throw new RuntimeException("Invalid item ID received: " + id);
+        }
+
         int damage = stream.getVarInt();
         if (hasData) {
             damage = AdvancedRuntimeItemPalette.getData(this.protocol, stream.neteaseMode, legacyFullId);
         } else if (damage == 0x7fff) {
             damage = -1;
+        }
+
+        if (damage < Short.MIN_VALUE || damage >= Short.MAX_VALUE) {
+            throw new RuntimeException("Invalid item meta received: " + id);
         }
 
         int count = stream.getVarInt();

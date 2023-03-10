@@ -1,6 +1,7 @@
 package org.itxtech.synapseapi.multiprotocol.protocol110;
 
 import cn.nukkit.item.Item;
+import cn.nukkit.item.ItemID;
 import cn.nukkit.utils.BinaryStream;
 import org.itxtech.synapseapi.multiprotocol.protocol19.BinaryStreamHelper19;
 
@@ -14,7 +15,7 @@ public class BinaryStreamHelper110 extends BinaryStreamHelper19 {
     public Item getSlot(BinaryStream stream) {
         Item item = super.getSlot(stream);
 
-        if (item.getId() == 513) { // TODO: Shields
+        if (item.getId() == ItemID.SHIELD) { // TODO: Shields
             stream.getVarLong();
         }
 
@@ -25,7 +26,7 @@ public class BinaryStreamHelper110 extends BinaryStreamHelper19 {
     public void putSlot(BinaryStream stream, Item item) {
         super.putSlot(stream, item);
 
-        if (item.getId() == 513) { // TODO: Shields
+        if (item.getId() == ItemID.SHIELD) { // TODO: Shields
             stream.putVarLong(0);
         }
     }

@@ -18,6 +18,7 @@ import java.util.*;
  */
 @ToString
 public class LoginPacket extends Packet12 {
+    private static final Gson GSON = new Gson();
 
     public static final int NETWORK_ID = ProtocolInfo.LOGIN_PACKET;
 
@@ -54,7 +55,7 @@ public class LoginPacket extends Packet12 {
     }
 
     private void decodeChainData() {
-        Map<String, List<String>> map = new Gson().fromJson(new String(this.get(getLInt()), StandardCharsets.UTF_8),
+        Map<String, List<String>> map = GSON.fromJson(new String(this.get(getLInt()), StandardCharsets.UTF_8),
                 new TypeToken<Map<String, List<String>>>() {
                 }.getType());
         try {
@@ -84,7 +85,7 @@ public class LoginPacket extends Packet12 {
     private void neteaseDecode() {
         this.clientUUID = null;
         this.username = null;
-        Map<String, List<String>> map = new Gson().fromJson(new String(this.get(this.getLInt()), StandardCharsets.UTF_8),
+        Map<String, List<String>> map = GSON.fromJson(new String(this.get(this.getLInt()), StandardCharsets.UTF_8),
                 new TypeToken<Map<String, List<String>>>() {
                 }.getType());
         if (map.isEmpty() || !map.containsKey("chain") || map.get("chain").isEmpty())
@@ -148,7 +149,7 @@ public class LoginPacket extends Packet12 {
         } catch(IllegalArgumentException e) {
         	decode = Base64.getDecoder().decode(base[1]);
         }
-        return new Gson().fromJson(new String(decode, StandardCharsets.UTF_8), JsonObject.class);
+        return GSON.fromJson(new String(decode, StandardCharsets.UTF_8), JsonObject.class);
     }
 
     @Override

@@ -9,6 +9,7 @@ import java.util.UUID;
  * Created by boybook on 16/6/24.
  */
 public class PlayerLoginPacket extends SynapseDataPacket {
+    private static final Gson GSON = new Gson();
 
     public static final int NETWORK_ID = SynapseInfo.PLAYER_LOGIN_PACKET;
 
@@ -36,7 +37,7 @@ public class PlayerLoginPacket extends SynapseDataPacket {
         this.putByte(this.isFirstTime ? (byte) 1 : (byte) 0);
         this.putUnsignedVarInt(this.cachedLoginPacket.length);
         this.put(this.cachedLoginPacket);
-        this.putString(new Gson().toJson(this.extra));
+        this.putString(GSON.toJson(this.extra));
     }
 
     @Override
@@ -47,6 +48,6 @@ public class PlayerLoginPacket extends SynapseDataPacket {
         this.port = this.getInt();
         this.isFirstTime = this.getByte() == 1;
         this.cachedLoginPacket = this.get((int) this.getUnsignedVarInt());
-        this.extra = new Gson().fromJson(this.getString(), JsonObject.class);
+        this.extra = GSON.fromJson(this.getString(), JsonObject.class);
     }
 }

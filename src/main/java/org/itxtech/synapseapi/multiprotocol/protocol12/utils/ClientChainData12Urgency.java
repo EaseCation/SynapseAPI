@@ -15,6 +15,7 @@ import java.util.UUID;
  * @author CreeperFace
  */
 public final class ClientChainData12Urgency implements LoginChainData {
+    private static final Gson GSON = new Gson();
 
     public static ClientChainData12Urgency of(byte[] buffer) {
         return new ClientChainData12Urgency(buffer);
@@ -199,7 +200,7 @@ public final class ClientChainData12Urgency implements LoginChainData {
         }
         String json = new String(decode, StandardCharsets.UTF_8);
         //Server.getInstance().getLogger().debug(json);
-        return new Gson().fromJson(json, JsonObject.class);
+        return GSON.fromJson(json, JsonObject.class);
     }
 
     @Override

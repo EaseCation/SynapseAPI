@@ -9,6 +9,7 @@ import java.util.UUID;
  * Created by boybook on 16/6/24.
  */
 public class TransferPacket extends SynapseDataPacket {
+    private static final Gson GSON = new Gson();
 
     public static final int NETWORK_ID = SynapseInfo.TRANSFER_PACKET;
     public UUID uuid;
@@ -25,13 +26,13 @@ public class TransferPacket extends SynapseDataPacket {
         this.reset();
         this.putUUID(this.uuid);
         this.putString(this.clientHash);
-        this.putString(new Gson().toJson(this.extra));
+        this.putString(GSON.toJson(this.extra));
     }
 
     @Override
     public void decode() {
         this.uuid = this.getUUID();
         this.clientHash = this.getString();
-        this.extra = new Gson().fromJson(this.getString(), JsonObject.class);
+        this.extra = GSON.fromJson(this.getString(), JsonObject.class);
     }
 }

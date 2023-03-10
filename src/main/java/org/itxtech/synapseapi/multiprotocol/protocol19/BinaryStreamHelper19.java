@@ -2,6 +2,7 @@ package org.itxtech.synapseapi.multiprotocol.protocol19;
 
 import cn.nukkit.item.Item;
 import cn.nukkit.item.ItemDurable;
+import cn.nukkit.item.ItemID;
 import cn.nukkit.nbt.NBTIO;
 import cn.nukkit.nbt.tag.CompoundTag;
 import cn.nukkit.nbt.tag.ListTag;
@@ -23,10 +24,14 @@ public class BinaryStreamHelper19 extends BinaryStreamHelper18 {
     @Override
     public Item getSlot(BinaryStream stream) {
         int id = stream.getVarInt();
-
-        if (id == 0) {
-            return Item.get(0, 0, 0);
+        if (id == ItemID.AIR) {
+            return Item.get(ItemID.AIR, 0, 0);
         }
+
+        if (id < Short.MIN_VALUE || id >= Short.MAX_VALUE) {
+            throw new RuntimeException("Invalid item ID received: " + id);
+        }
+
         int auxValue = stream.getVarInt();
         int data = auxValue >> 8;
         if (data == Short.MAX_VALUE) {
@@ -64,41 +69,56 @@ public class BinaryStreamHelper19 extends BinaryStreamHelper18 {
             stream.setOffset(offset + (int) inputStream.position());
         }
 
-        String[] canPlaceOn = new String[stream.getVarInt()];
-        for (int i = 0; i < canPlaceOn.length; ++i) {
-            canPlaceOn[i] = stream.getString();
+        if (data < 0 || data >= Short.MAX_VALUE) {
+            throw new RuntimeException("Invalid item meta received: " + data);
         }
 
-        String[] canDestroy = new String[stream.getVarInt()];
-        for (int i = 0; i < canDestroy.length; ++i) {
-            canDestroy[i] = stream.getString();
+        ListTag<StringTag> canPlace;
+        ListTag<StringTag> canBreak;
+
+        int canPlaceCount = stream.getVarInt();
+        if (canPlaceCount > 0) {
+            if (canPlaceCount > 4096) {
+                throw new IndexOutOfBoundsException("Too many CanPlaceOn blocks");
+            }
+            canPlace = new ListTag<>("CanPlaceOn");
+            for (int i = 0; i < canPlaceCount; i++) {
+                canPlace.add(new StringTag("", stream.getString()));
+            }
+        } else {
+            canPlace = null;
+        }
+
+        int canBreakCount = stream.getVarInt();
+        if (canBreakCount > 0) {
+            if (canBreakCount > 4096) {
+                throw new IndexOutOfBoundsException("Too many CanDestroy blocks");
+            }
+            canBreak = new ListTag<>("CanDestroy");
+            for (int i = 0; i < canBreakCount; i++) {
+                canBreak.add(new StringTag("", stream.getString()));
+            }
+        } else {
+            canBreak = null;
         }
 
         Item item = Item.get(
                 id, data, cnt, nbt
         );
 
-        if (canDestroy.length > 0 || canPlaceOn.length > 0) {
+        if (canPlace != null || canBreak != null) {
             CompoundTag namedTag = item.getNamedTag();
             if (namedTag == null) {
                 namedTag = new CompoundTag();
             }
 
-            if (canDestroy.length > 0) {
-                ListTag<StringTag> listTag = new ListTag<>("CanDestroy");
-                for (String blockName : canDestroy) {
-                    listTag.add(new StringTag("", blockName));
-                }
-                namedTag.put("CanDestroy", listTag);
+            if (canPlace != null) {
+                namedTag.putList(canPlace);
+            }
+            if (canBreak != null) {
+                namedTag.putList(canBreak);
             }
 
-            if (canPlaceOn.length > 0) {
-                ListTag<StringTag> listTag = new ListTag<>("CanPlaceOn");
-                for (String blockName : canPlaceOn) {
-                    listTag.add(new StringTag("", blockName));
-                }
-                namedTag.put("CanPlaceOn", listTag);
-            }
             item.setNamedTag(namedTag);
         }
 
@@ -107,7 +127,7 @@ public class BinaryStreamHelper19 extends BinaryStreamHelper18 {
 
     @Override
     public void putSlot(BinaryStream stream, Item item) {
-        if (item == null || item.getId() == 0) {
+        if (item == null || item.getId() == ItemID.AIR) {
             stream.putVarInt(0);
             return;
         }

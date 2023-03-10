@@ -51,6 +51,10 @@ public class BinaryStreamHelper116220 extends BinaryStreamHelper116210 {
             return Item.get(Item.AIR, 0, 0);
         }
 
+        if (id < Short.MIN_VALUE || id >= Short.MAX_VALUE) {
+            throw new RuntimeException("Invalid item networkID received: " + id);
+        }
+
         int count = stream.getLShort();
         int damage = (int) stream.getUnsignedVarInt();
 
@@ -79,8 +83,8 @@ public class BinaryStreamHelper116220 extends BinaryStreamHelper116210 {
         buf.writeBytes(bytes);
 
         byte[] nbt = new byte[0];
-        String[] canPlace;
-        String[] canBreak;
+        ListTag<StringTag> canPlace;
+        ListTag<StringTag> canBreak;
 
         try (LittleEndianByteBufInputStream in = new LittleEndianByteBufInputStream(buf)) {
             int nbtSize = in.readShort();
@@ -107,14 +111,30 @@ public class BinaryStreamHelper116220 extends BinaryStreamHelper116210 {
                 }
             }
 
-            canPlace = new String[in.readInt()];
-            for (int i = 0; i < canPlace.length; i++) {
-                canPlace[i] = in.readUTF();
+            int canPlaceCount = in.readInt();
+            if (canPlaceCount > 0) {
+                if (canPlaceCount > 4096) {
+                    throw new IndexOutOfBoundsException("Too many CanPlaceOn blocks");
+                }
+                canPlace = new ListTag<>("CanPlaceOn");
+                for (int i = 0; i < canPlaceCount; i++) {
+                    canPlace.add(new StringTag("", in.readUTF()));
+                }
+            } else {
+                canPlace = null;
             }
 
-            canBreak = new String[in.readInt()];
-            for (int i = 0; i < canBreak.length; i++) {
-                canBreak[i] = in.readUTF();
+            int canBreakCount = in.readInt();
+            if (canBreakCount > 0) {
+                if (canBreakCount > 4096) {
+                    throw new IndexOutOfBoundsException("Too many CanDestroy blocks");
+                }
+                canBreak = new ListTag<>("CanDestroy");
+                for (int i = 0; i < canBreakCount; i++) {
+                    canBreak.add(new StringTag("", in.readUTF()));
+                }
+            } else {
+                canBreak = null;
             }
 
             if (id == ItemID.SHIELD) {
@@ -126,28 +146,23 @@ public class BinaryStreamHelper116220 extends BinaryStreamHelper116210 {
             buf.release();
         }
 
+        if (damage < 0 || damage >= Short.MAX_VALUE) {
+            throw new RuntimeException("Invalid item meta received: " + damage);
+        }
+
         Item item = Item.get(id, damage, count, nbt);
 
-        if (canBreak.length > 0 || canPlace.length > 0) {
+        if (canPlace != null || canBreak != null) {
             CompoundTag namedTag = item.getNamedTag();
             if (namedTag == null) {
                 namedTag = new CompoundTag();
             }
 
-            if (canBreak.length > 0) {
-                ListTag<StringTag> listTag = new ListTag<>("CanDestroy");
-                for (String blockName : canBreak) {
-                    listTag.add(new StringTag("", blockName));
-                }
-                namedTag.put("CanDestroy", listTag);
+            if (canPlace != null) {
+                namedTag.putList(canPlace);
             }
-
-            if (canPlace.length > 0) {
-                ListTag<StringTag> listTag = new ListTag<>("CanPlaceOn");
-                for (String blockName : canPlace) {
-                    listTag.add(new StringTag("", blockName));
-                }
-                namedTag.put("CanPlaceOn", listTag);
+            if (canBreak != null) {
+                namedTag.putList(canBreak);
             }
 
             item.setNamedTag(namedTag);
