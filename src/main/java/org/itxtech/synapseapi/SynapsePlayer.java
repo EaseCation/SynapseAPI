@@ -72,7 +72,11 @@ public class SynapsePlayer extends Player {
 
     public static final int SYNAPSE_PLAYER_ENTITY_ID = 1;
 
+    static final int INCOMING_PACKET_BATCH_PER_TICK = 2; // usually max 1 per tick, but transactions may arrive separately
+    static final int INCOMING_PACKET_BATCH_MAX_BUDGET = 100 * INCOMING_PACKET_BATCH_PER_TICK; // enough to account for a 5-second lag spike
+
     private static final Map<Integer, Timing> handlePlayerDataPacketTimings = new HashMap<>();
+
     public boolean isSynapseLogin = false;
     protected SynapseEntry synapseEntry;
     protected boolean isFirstTimeLogin = false;
@@ -85,10 +89,22 @@ public class SynapsePlayer extends Player {
     protected JsonObject cachedExtra = new JsonObject();
     protected final JsonObject transferExtra = new JsonObject();
 
+    /**
+     * At most this many more packets can be received.
+     * If this reaches zero, any additional packets received will cause the player to be kicked from the server.
+     * This number is increased every tick up to a maximum limit.
+     *
+     * @see #INCOMING_PACKET_BATCH_PER_TICK
+     * @see #INCOMING_PACKET_BATCH_MAX_BUDGET
+     */
+    int incomingPacketBatchBudget = INCOMING_PACKET_BATCH_MAX_BUDGET;
+    long lastPacketBudgetUpdateTimeNs;
+
     public SynapsePlayer(SourceInterface interfaz, SynapseEntry synapseEntry, Long clientID, InetSocketAddress socketAddress) {
         super(interfaz, clientID, socketAddress);
         this.synapseEntry = synapseEntry;
         this.isSynapseLogin = this.synapseEntry != null;
+        lastPacketBudgetUpdateTimeNs = System.nanoTime();
     }
 
     public boolean isSynapseLogin() {
@@ -466,15 +482,15 @@ public class SynapsePlayer extends Player {
             this.setDataFlag(DATA_FLAGS, DATA_FLAG_HAS_COLLISION, true, false);
         }
 
-        this.server.getLogger().info(this.getServer().getLanguage().translateString("nukkit.player.logIn",
+        this.server.getLogger().info(this.getServer().getLanguage().translate("nukkit.player.logIn",
                 TextFormat.AQUA + this.username + TextFormat.WHITE,
                 this.getAddress(),
-                String.valueOf(this.getPort()),
-                String.valueOf(this.id),
+                this.getPort(),
+                this.id,
                 this.level.getName(),
-                String.valueOf(NukkitMath.round(this.x, 4)),
-                String.valueOf(NukkitMath.round(this.y, 4)),
-                String.valueOf(NukkitMath.round(this.z, 4))));
+                NukkitMath.round(this.x, 4),
+                NukkitMath.round(this.y, 4),
+                NukkitMath.round(this.z, 4)));
 
         if (this.isOp()) {
             this.setRemoveFormat(false);

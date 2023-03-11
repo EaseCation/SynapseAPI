@@ -308,9 +308,7 @@ public class SynapsePlayer16 extends SynapsePlayer14 {
 		this.sendPlayStatus(PlayStatusPacket.PLAYER_SPAWN);
 
 		PlayerJoinEvent playerJoinEvent = new PlayerJoinEvent(this,
-				new TranslationContainer(TextFormat.YELLOW + "%multiplayer.player.joined", new String[]{
-						this.getDisplayName()
-				})
+				new TranslationContainer(TextFormat.YELLOW + "%multiplayer.player.joined", this.getDisplayName())
 		);
 
 		this.server.getPluginManager().callEvent(playerJoinEvent);

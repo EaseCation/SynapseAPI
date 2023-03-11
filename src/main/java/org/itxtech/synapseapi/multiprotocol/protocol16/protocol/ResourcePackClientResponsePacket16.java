@@ -21,7 +21,7 @@ public class ResourcePackClientResponsePacket16 extends Packet16 {
     public void decode() {
         this.responseStatus = (byte) this.getByte();
         this.packEntries = this.getArrayLShort(Entry.class, stream -> {
-            String[] entry = this.getString().split("_");
+            String[] entry = this.getString().split("_", 2);
             return new Entry(entry[0], entry[1]);
         });
     }

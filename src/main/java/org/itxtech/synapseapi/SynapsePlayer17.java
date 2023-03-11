@@ -13,6 +13,7 @@ import org.itxtech.synapseapi.multiprotocol.protocol17.protocol.StartGamePacket1
 import org.itxtech.synapseapi.multiprotocol.protocol17.protocol.TextPacket17;
 
 import java.net.InetSocketAddress;
+import java.util.Arrays;
 import java.util.concurrent.ThreadLocalRandom;
 
 public class SynapsePlayer17 extends SynapsePlayer16 {
@@ -109,7 +110,7 @@ public class SynapsePlayer17 extends SynapsePlayer16 {
 		pk.type = TextPacket17.JUKE_BOX_POPUP;
 		pk.isLocalized = true;
 		pk.message = message.getText();
-		pk.parameters = message.getParameters();
+		pk.parameters = Arrays.stream(message.getParameters()).map(String::valueOf).toArray(String[]::new);
 		this.dataPacket(pk);
 	}
 }

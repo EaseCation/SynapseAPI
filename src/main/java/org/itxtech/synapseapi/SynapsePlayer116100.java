@@ -92,6 +92,7 @@ import org.itxtech.synapseapi.multiprotocol.utils.ItemComponentDefinitions;
 import org.itxtech.synapseapi.utils.BlobTrack;
 
 import java.net.InetSocketAddress;
+import java.util.Arrays;
 import java.util.Comparator;
 import java.util.EnumMap;
 import java.util.List;
@@ -2475,7 +2476,7 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
             pk.type = TextPacket116100NE.TYPE_JUKEBOX_POPUP;
             pk.isLocalized = true;
             pk.message = message.getText();
-            pk.parameters = message.getParameters();
+            pk.parameters = Arrays.stream(message.getParameters()).map(String::valueOf).toArray(String[]::new);
             this.dataPacket(pk);
             return;
         }
@@ -2484,7 +2485,7 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
         pk.type = TextPacket116100.TYPE_JUKEBOX_POPUP;
         pk.isLocalized = true;
         pk.message = message.getText();
-        pk.parameters = message.getParameters();
+        pk.parameters = Arrays.stream(message.getParameters()).map(String::valueOf).toArray(String[]::new);
         this.dataPacket(pk);
     }
 

@@ -21,8 +21,6 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
 import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
-import it.unimi.dsi.fastutil.objects.Object2IntMap;
-import it.unimi.dsi.fastutil.objects.Object2IntOpenHashMap;
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import lombok.extern.log4j.Log4j2;
@@ -59,8 +57,7 @@ public class SynapseEntry {
     private static final TypeReference<Map<UUID, Integer>> NETWORK_LATENCY_TYPE_REFERENCE = new TypeReference<Map<UUID, Integer>>() {
     };
 
-    private static final int INCOMING_PACKET_BATCH_PER_TICK = 2; // usually max 1 per tick, but transactions may arrive separately
-    private static final int INCOMING_PACKET_BATCH_MAX_BUDGET = 150 * INCOMING_PACKET_BATCH_PER_TICK; // enough to account for a 5-second lag spike
+    public static final int MAX_SIZE = 12 * 1024 * 1024; // 12MB
 
     public static final int[] PACKET_COUNT_LIMIT = new int[256];
     public static int[] globalPacketCountThisTick = new int[256];
@@ -100,7 +97,6 @@ public class SynapseEntry {
     private ClientData clientData;
     private String serverDescription;
     private Thread asyncTicker;
-    private final Object2IntMap<UUID> playerBatchPacketCounter = new Object2IntOpenHashMap<>();
 
     public SynapseEntry(SynapseAPI synapse, String serverIp, int port, boolean isMainServer, String password, String serverDescription) {
         this.synapse = synapse;
@@ -275,9 +271,9 @@ public class SynapseEntry {
             while (Server.getInstance().isRunning()) {
                 threadTick();
                 tickUseTime = System.currentTimeMillis() - startTime;
-                if (tickUseTime < 10) {
+                if (tickUseTime < 50) {
                     try{
-                        Thread.sleep(10 - tickUseTime);
+                        Thread.sleep(50 - tickUseTime);
                     } catch (InterruptedException ignore) {}
                 } else if (System.currentTimeMillis() - lastWarning >= 5000) {
                     Server.getInstance().getLogger().warning("SynapseEntry<" + getHash() + "> Async Thread is overloading! TPS: " + getTicksPerSecond() + " tickUseTime: " + tickUseTime);
@@ -286,10 +282,11 @@ public class SynapseEntry {
                 startTime = System.currentTimeMillis();
             }
         }
+
         public double getTicksPerSecond() {
-            long more = this.tickUseTime - 10;
-            if (more < 0) return 100;
-            return NukkitMath.round(10f / (double)this.tickUseTime, 3) * 100;
+            long more = this.tickUseTime - 50;
+            if (more <= 0) return 20;
+            return NukkitMath.round(50d / this.tickUseTime, 3) * 20;
         }
     }
 
@@ -386,7 +383,6 @@ public class SynapseEntry {
                 });
             }
         });*/
-        this.playerBatchPacketCounter.clear();
         if (!this.getSynapseInterface().isConnected() || !this.verified) {
             return;
         }
@@ -497,16 +493,29 @@ public class SynapseEntry {
                         // this.handleRedirectPacketTiming.startTiming();
                         //pk0.decode();
                         if (pk0.pid() == ProtocolInfo.BATCH_PACKET) {
-                            int count = this.playerBatchPacketCounter.getOrDefault(player.getUniqueId(), 0) + 1;
-                            if (count > INCOMING_PACKET_BATCH_MAX_BUDGET) {
-                                player.violated = true;
-                                synapse.getServer().getScheduler().scheduleTask(synapse, () -> {
-                                    new SynapsePlayerTooManyBatchPacketsEvent(player, count).call();
-                                    player.onPacketViolation(PacketViolationReason.RECEIVING_BATCHES_TOO_FAST);
-                                });
-                                break;
+                            if (player.incomingPacketBatchBudget <= 0) {
+                                long nowNs = System.nanoTime();
+                                long timeSinceLastUpdateNs = nowNs - player.lastPacketBudgetUpdateTimeNs;
+                                if (timeSinceLastUpdateNs > 50_000_000) {
+                                    int ticksSinceLastUpdate = (int) (timeSinceLastUpdateNs / 50_000_000);
+                                    // If the server takes an abnormally long time to process a tick, add the budget for time difference to compensate.
+                                    // This extra budget may be very large, but it will disappear the next time a normal update occurs.
+                                    // This ensures that backlogs during a large lag spike don't cause everyone to get kicked.
+                                    // As long as all the backlogged packets are processed before the next tick, everything should be OK for clients behaving normally.
+                                    player.incomingPacketBatchBudget = Math.min(player.incomingPacketBatchBudget, SynapsePlayer.INCOMING_PACKET_BATCH_MAX_BUDGET) + SynapsePlayer.INCOMING_PACKET_BATCH_PER_TICK * 2 * ticksSinceLastUpdate;
+                                    player.lastPacketBudgetUpdateTimeNs = nowNs;
+                                }
+
+                                if (player.incomingPacketBatchBudget <= 0) {
+                                    player.violated = true;
+                                    synapse.getServer().getScheduler().scheduleTask(synapse, () -> {
+                                        new SynapsePlayerTooManyBatchPacketsEvent(player, SynapsePlayer.INCOMING_PACKET_BATCH_MAX_BUDGET + 1).call();
+                                        player.onPacketViolation(PacketViolationReason.RECEIVING_BATCHES_TOO_FAST);
+                                    });
+                                    break;
+                                }
                             }
-                            this.playerBatchPacketCounter.put(player.getUniqueId(), count);
+                            player.incomingPacketBatchBudget--;
 
                             List<DataPacket> packets = processBatch((BatchPacket) pk0, redirectPacket.protocol, player.isNetEaseClient());
                             if (packets == null) {
@@ -624,7 +633,7 @@ public class SynapseEntry {
                             }
                             if (tooManyPackets) {
                                 Server.getInstance().getPluginManager().callEvent(new SynapsePlayerTooManyPacketsInBatchEvent(player, packetCount));
-                                synapse.getServer().getScheduler().scheduleTask(synapse, () -> player.violation += 10);
+                                synapse.getServer().getScheduler().scheduleTask(synapse, () -> player.violation += 35);
                             }
                         } else {
                             this.redirectPacketQueue.offer(new RedirectPacketEntry(player, pk0));
@@ -664,8 +673,8 @@ public class SynapseEntry {
     public static List<DataPacket> processBatch(BatchPacket packet, int protocol, boolean netease) {
         byte[] data;
         try {
-            if (protocol < 407) data = Zlib.inflate(packet.payload, 64 * 1024 * 1024);
-            else data = Network.inflateRaw(packet.payload);
+            if (protocol < 407) data = Zlib.inflate(packet.payload, MAX_SIZE);
+            else data = Network.inflateRaw(packet.payload, MAX_SIZE);
         } catch (Exception e) {
             // malformed batch
             return null;

@@ -265,7 +265,7 @@ public class LoginPacket14 extends Packet14 {
     }
 
     private JsonNode decodeToken(String token) throws JsonProcessingException {
-        String[] base = token.split("\\.");
+        String[] base = token.split("\\.", 4);
         if (base.length < 2) return null;
         byte[] decode;
         try {

@@ -41,6 +41,7 @@ import org.itxtech.synapseapi.multiprotocol.utils.LevelSoundEventEnum;
 import org.itxtech.synapseapi.network.protocol.spp.PlayerLoginPacket;
 
 import java.net.InetSocketAddress;
+import java.util.Arrays;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.concurrent.ThreadLocalRandom;
@@ -631,7 +632,7 @@ public class SynapsePlayer14 extends SynapsePlayer {
 		pk.type = TextPacket14.JUKE_BOX_POPUP;
 		pk.isLocalized = true;
 		pk.message = message.getText();
-		pk.parameters = message.getParameters();
+		pk.parameters = Arrays.stream(message.getParameters()).map(String::valueOf).toArray(String[]::new);
 		this.dataPacket(pk);
 	}
 }

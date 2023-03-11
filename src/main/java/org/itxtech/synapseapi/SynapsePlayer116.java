@@ -513,7 +513,7 @@ public class SynapsePlayer116 extends SynapsePlayer113 {
 								break;
 							case InventoryTransactionPacket116.USE_ITEM_ON_ENTITY_ACTION_ATTACK:
 								if (++currentTickAttackPacketCount >= 10) {
-									violation += 8;
+									violation += 25;
 									return;
 								}
 
