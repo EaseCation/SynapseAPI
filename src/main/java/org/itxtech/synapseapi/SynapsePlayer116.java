@@ -641,6 +641,9 @@ public class SynapsePlayer116 extends SynapsePlayer113 {
 					server.getLogger().warning(this.username + " sent EmotePacket with invalid entity id: " + emotePacket.runtimeId + " != " + this.getLocalEntityId());
 					break;
 				}
+				if (emotePacket.emoteID.length() != 32 + 4) { // 00000000-0000-0000-0000-000000000000
+					break;
+				}
 				if ((emotePacket.flags & EmotePacket116.FLAG_SERVER) != 0) {
 					break;
 				}
