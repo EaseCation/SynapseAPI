@@ -59,8 +59,8 @@ public class SynapseEntry {
 
     public static final int MAX_SIZE = 12 * 1024 * 1024; // 12MB
 
-    public static final int[] PACKET_COUNT_LIMIT = new int[256];
-    public static int[] globalPacketCountThisTick = new int[256];
+    public static final int[] PACKET_COUNT_LIMIT = new int[ProtocolInfo.COUNT];
+    public static int[] globalPacketCountThisTick = new int[ProtocolInfo.COUNT];
 
     static {
         Arrays.fill(PACKET_COUNT_LIMIT, 10);
@@ -429,6 +429,7 @@ public class SynapseEntry {
     public void handleDataPacket(SynapseDataPacket pk) {
         // this.handleDataPacketTiming.startTiming();
         //this.getSynapse().getLogger().warning("Received packet " + pk.pid() + "(" + pk.getClass().getSimpleName() + ") from " + this.serverIp + ":" + this.port);
+        HANDLER:
         switch (pk.pid()) {
             case SynapseInfo.DISCONNECT_PACKET:
                 DisconnectPacket disconnectPacket = (DisconnectPacket) pk;
@@ -527,11 +528,19 @@ public class SynapseEntry {
                             }
                             // Server.getInstance().getLogger().info("tick: " + Server.getInstance().getTick() + " to server " + packets.size() + " packets");
 
-                            short[] packetCount = new short[256];
+                            short[] packetCount = new short[ProtocolInfo.COUNT - 512]; // 目前没有ID大于0x1ff的包, 节省一半内存. 未来不够用了再改
                             boolean tooManyPackets = false;
                             for (DataPacket subPacket : packets) {
+                                int packetId = subPacket.pid();
+                                if (packetId >= ProtocolInfo.COUNT - 512) {
+                                    player.violated = true;
+                                    synapse.getServer().getScheduler().scheduleTask(synapse, () -> {
+                                        player.onPacketViolation(PacketViolationReason.MALFORMED_PACKET);
+                                    });
+                                    break HANDLER;
+                                }
                                 try {
-                                    if (packetCount[subPacket.pid()]++ > PACKET_COUNT_LIMIT[subPacket.pid()]) {
+                                    if (packetCount[packetId]++ > PACKET_COUNT_LIMIT[packetId]) {
                                         tooManyPackets = true;
                                         continue;
                                     }
@@ -698,7 +707,7 @@ public class SynapseEntry {
                 AbstractProtocol.PacketHeadData head = apl.tryDecodePacketHead(buf, false);
                 if (head != null) {
                     int pid = head.getPid();
-                    if (pid <= 0 || pid >= ProtocolInfo.BATCH_PACKET) {
+                    if (pid <= 0 || pid >= ProtocolInfo.COUNT) {
                         // invalid packet
                         return null;
                     }

@@ -335,10 +335,10 @@ public class PacketRegister {
     }
 
     static void registerPacket(AbstractProtocol protocol, int id, Class<? extends IterationProtocolPacket> clazz) {
-        if (!packetPool.containsKey(protocol)) packetPool.put(protocol, new Class[1024]);
-        if (!neteaseSpecial.containsKey(protocol)) neteaseSpecial.put(protocol, new boolean[1024]);
+        if (!packetPool.containsKey(protocol)) packetPool.put(protocol, new Class[ProtocolInfo.COUNT]);
+        if (!neteaseSpecial.containsKey(protocol)) neteaseSpecial.put(protocol, new boolean[ProtocolInfo.COUNT]);
         Class<? extends DataPacket>[] pool = packetPool.get(protocol);
-        pool[id & 0xff] = clazz;
+        pool[id] = clazz;
         boolean addToReplace = protocol.getPacketClass() != null && protocol.getPacketClass().isAssignableFrom(clazz);
         try {
             Method method;
@@ -385,7 +385,7 @@ public class PacketRegister {
             while ((next = next.next()) != null) {
                 boolean[] array = neteaseSpecial.get(next);
                 if (array != null) {
-                    for (int i = 0; i < 1024; i++) {
+                    for (int i = 0; i < ProtocolInfo.COUNT; i++) {
                         if (data[i]) array[i] = true;
                     }
                 }

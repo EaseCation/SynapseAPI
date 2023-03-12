@@ -7,13 +7,13 @@ import lombok.extern.log4j.Log4j2;
 
 @Log4j2
 public final class PacketLogger {
-    public static final boolean[] CLIENTBOUND_FILTER = new boolean[256];
-    public static final boolean[] SERVERBOUND_FILTER = new boolean[256];
+    public static final boolean[] CLIENTBOUND_FILTER = new boolean[ProtocolInfo.COUNT];
+    public static final boolean[] SERVERBOUND_FILTER = new boolean[ProtocolInfo.COUNT];
 
     public static void handleClientboundPacket(Player player, DataPacket packet) {
         int id = packet.pid();
 
-        if (id > 0 && id < 256 && CLIENTBOUND_FILTER[id]) {
+        if (id > 0 && id < ProtocolInfo.COUNT && CLIENTBOUND_FILTER[id]) {
             return;
         }
 
@@ -23,7 +23,7 @@ public final class PacketLogger {
     public static void handleServerboundPacket(Player player, DataPacket packet) {
         int id = packet.pid();
 
-        if (id > 0 && id < 256 && SERVERBOUND_FILTER[id]) {
+        if (id > 0 && id < ProtocolInfo.COUNT && SERVERBOUND_FILTER[id]) {
             return;
         }
 
