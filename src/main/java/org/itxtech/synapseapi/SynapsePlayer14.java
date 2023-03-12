@@ -340,6 +340,8 @@ public class SynapsePlayer14 extends SynapsePlayer {
 						this.scheduleUpdate();
 						break;
 					case PlayerActionPacket14.ACTION_JUMP:
+						PlayerJumpEvent playerJumpEvent = new PlayerJumpEvent(this);
+						this.server.getPluginManager().callEvent(playerJumpEvent);
 						break packetswitch;
 					case PlayerActionPacket14.ACTION_START_SPRINT:
 						PlayerToggleSprintEvent playerToggleSprintEvent = new PlayerToggleSprintEvent(this, true);

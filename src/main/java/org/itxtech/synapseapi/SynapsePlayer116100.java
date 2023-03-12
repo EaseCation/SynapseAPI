@@ -991,6 +991,8 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
                             this.stopSleep();
                             break;
                         case PlayerActionPacket119.ACTION_JUMP:
+                            PlayerJumpEvent playerJumpEvent = new PlayerJumpEvent(this);
+                            this.server.getPluginManager().callEvent(playerJumpEvent);
                             break packetswitch;
                         case PlayerActionPacket119.ACTION_START_SPRINT:
                             PlayerToggleSprintEvent playerToggleSprintEvent = new PlayerToggleSprintEvent(this, true);
