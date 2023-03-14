@@ -11,6 +11,7 @@ import lombok.extern.log4j.Log4j2;
 import org.itxtech.synapseapi.network.protocol.spp.SynapseDataPacket;
 
 import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
  * Created by boybook on 16/6/24.
@@ -26,7 +27,7 @@ public class SynapseClient extends Thread {
     private final ThreadedLogger logger;
     private final String interfaz;
     private final int port;
-    private boolean shutdown;
+    private final AtomicBoolean shutdown;
     private boolean needAuth = true;
     private boolean connected = false;
     private EventLoopGroup clientGroup;
@@ -43,7 +44,7 @@ public class SynapseClient extends Thread {
         if (port < 1 || port > 65536) {
             throw new IllegalArgumentException("Invalid port range");
         }
-        this.shutdown = false;
+        this.shutdown = new AtomicBoolean();
         this.externalQueue = new ConcurrentLinkedQueue<>();
         this.internalQueue = new ConcurrentLinkedQueue<>();
 
@@ -79,11 +80,11 @@ public class SynapseClient extends Thread {
     }
 
     public boolean isShutdown() {
-        return shutdown;
+        return shutdown.get();
     }
 
     public void shutdown() {
-        this.shutdown = true;
+        this.shutdown.compareAndSet(false, true);
     }
 
     public int getPort() {
@@ -167,7 +168,7 @@ public class SynapseClient extends Thread {
 
     public class ShutdownHandler extends Thread {
         public void run() {
-            if (!shutdown) {
+            if (!shutdown.get()) {
                 logger.emergency("SynLib Client crashed!");
             }
         }

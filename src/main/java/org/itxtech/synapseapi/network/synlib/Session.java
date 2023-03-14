@@ -46,9 +46,9 @@ public class Session {
             }
             long time = System.currentTimeMillis() - start;
             this.tickUseTime = time;
-            if (time < 10) {
+            if (time < 50) {
                 try {
-                    Thread.sleep(10 - time);
+                    Thread.sleep(50 - time);
                 } catch (InterruptedException e) {
                     //ignore
                 }
@@ -127,9 +127,9 @@ public class Session {
     }
 
     public float getTicksPerSecond() {
-        long more = this.tickUseTime - 10;
-        if (more < 0) return 100;
-        return Math.round(10f / (float) this.tickUseTime) * 100;
+        long more = this.tickUseTime - 50;
+        if (more <= 0) return 20;
+        return Math.round(50f / (float) this.tickUseTime) * 20;
     }
 
 }

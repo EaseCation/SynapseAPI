@@ -46,6 +46,7 @@ public class SynapseEntryPutPacketThread extends Thread {
 
     private final boolean isAutoCompress;
     private long tickUseTime = 0;
+    private long lastWarning;
     private boolean isRunning = true;
 
     public SynapseEntryPutPacketThread(SynapseInterface synapseInterface) {
@@ -309,13 +310,16 @@ public class SynapseEntryPutPacketThread extends Thread {
             }
 
             tickUseTime = System.currentTimeMillis() - start;
-            if (tickUseTime < 10){
+            if (tickUseTime < 50){
                 try {
-                    Thread.sleep(10 - tickUseTime);
+                    Thread.sleep(50 - tickUseTime);
                 } catch (InterruptedException e) {
                     //ignore
                 }
-            }
+            } /*else if (System.currentTimeMillis() - lastWarning >= 5000) {
+                Server.getInstance().getLogger().warning("SynapseOutgoing<" + synapseInterface.getSynapse().getHash() + "> Async Thread is overloading! TPS: " + getTicksPerSecond() + " tickUseTime: " + tickUseTime);
+                lastWarning = System.currentTimeMillis();
+            }*/
         }
     }
 
@@ -358,9 +362,9 @@ public class SynapseEntryPutPacketThread extends Thread {
     }
 
     public double getTicksPerSecond() {
-        long more = this.tickUseTime - 10;
-        if (more < 0) return 100;
-        return NukkitMath.round(10f / (double)this.tickUseTime, 3) * 100;
+        long more = this.tickUseTime - 50;
+        if (more <= 0) return 20;
+        return NukkitMath.round(50d / this.tickUseTime, 3) * 20;
     }
 
     private BatchPacket batchPackets(DataPacket[] packets, AbstractProtocol protocol) {
