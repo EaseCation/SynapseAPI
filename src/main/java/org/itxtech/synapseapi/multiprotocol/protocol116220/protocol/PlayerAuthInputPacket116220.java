@@ -71,6 +71,10 @@ public class PlayerAuthInputPacket116220 extends Packet116220 implements Invento
      * @since 1.19.60
      */
     public static final int FLAG_HANDLED_TELEPORT = 37;
+    /**
+     * @since 1.19.70
+     */
+    public static final int FLAG_EMOTING = 38;
 
     public static final int PLAY_MODE_NORMAL = 0;
     public static final int PLAY_MODE_TEASER = 1;

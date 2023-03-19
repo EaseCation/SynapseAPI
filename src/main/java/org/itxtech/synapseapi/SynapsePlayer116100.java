@@ -2547,6 +2547,7 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
         baseAbilities.put(PlayerAbility.MUTED, settings.get(Type.MUTED));
         baseAbilities.put(PlayerAbility.WORLD_BUILDER, settings.get(Type.WORLD_BUILDER));
         baseAbilities.put(PlayerAbility.NO_CLIP, settings.get(Type.NO_CLIP));
+        baseAbilities.put(PlayerAbility.PRIVILEGED_BUILDER, settings.get(Type.PRIVILEGED_BUILDER));
 
         baseAbilities.put(PlayerAbility.FLY_SPEED, false);
         baseAbilities.put(PlayerAbility.WALK_SPEED, false);

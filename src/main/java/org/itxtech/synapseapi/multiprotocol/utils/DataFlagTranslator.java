@@ -211,6 +211,11 @@ public class DataFlagTranslator {
 	public static final int FLAG_11950_HAS_DASH_COOLDOWN = 108;
 	public static final int FLAG_11950_PUSH_TOWARDS_CLOSEST_SPACE = 109;
 
+	public static final int FLAG_11970_SCENTING = 110;
+	public static final int FLAG_11970_RISING = 111;
+	public static final int FLAG_11970_HAPPY = 112;
+	public static final int FLAG_11970_SEARCHING = 113;
+
 	static {
 		Arrays.fill(v12ToV14Book, -1);
 		v12ToV14Book[Entity.DATA_FLAG_ONFIRE] = ONFIRE;
@@ -446,6 +451,11 @@ public class DataFlagTranslator {
 		v12ToV11950Book[Entity.DATA_FLAG_SONIC_BOOM] = FLAG_11950_SONIC_BOOM;
 		v12ToV11950Book[Entity.DATA_FLAG_HAS_DASH_COOLDOWN] = FLAG_11950_HAS_DASH_COOLDOWN;
 		v12ToV11950Book[Entity.DATA_FLAG_PUSH_TOWARDS_CLOSEST_SPACE] = FLAG_11950_PUSH_TOWARDS_CLOSEST_SPACE;
+
+		v12ToV11950Book[Entity.DATA_FLAG_SCENTING] = FLAG_11970_SCENTING;
+		v12ToV11950Book[Entity.DATA_FLAG_RISING] = FLAG_11970_RISING;
+		v12ToV11950Book[Entity.DATA_FLAG_HAPPY] = FLAG_11970_HAPPY;
+		v12ToV11950Book[Entity.DATA_FLAG_SEARCHING] = FLAG_11970_SEARCHING;
 	}
 
 	public static int translateTo14Id(int v12Id) {

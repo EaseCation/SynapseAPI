@@ -116,7 +116,7 @@ public final class VanillaBlockUpgrader {
             BlockRemap[] remappedStates = schema.getRemappedStates().get(name);
             if (remappedStates != null) {
                 for (BlockRemap remap : remappedStates) {
-                    if (!states.equals(remap.getOldStates())) {
+                    if (!states.equalsTags(remap.getOldStates())) {
                         continue;
                     }
 
@@ -280,6 +280,7 @@ public final class VanillaBlockUpgrader {
         addSchema("0141_1.18.30_to_1.19.0.34_beta.json", V1_19_0);
         addSchema("0151_1.19.0.34_beta_to_1.19.20.json", V1_19_20);
         addSchema("0161_1.19.50_to_1.19.60.26_beta.json", V1_19_60);
+        addSchema("0171_1.19.60_to_1.19.70.26_beta.json", V1_19_70);
 
         BlockUpgrader.setUpgrader(new BedrockBlockUpgrader() {
             @Override

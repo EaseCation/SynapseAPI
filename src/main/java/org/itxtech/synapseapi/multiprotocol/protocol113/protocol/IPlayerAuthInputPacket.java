@@ -46,6 +46,22 @@ public interface IPlayerAuthInputPacket extends InventoryTransactionPacketInterf
         return null;
     }
 
+    /**
+     * @since 1.19.70
+     */
+    default float getAnalogMoveVecX() {
+        //TODO
+        return 0;
+    }
+
+    /**
+     * @since 1.19.70
+     */
+    default float getAnalogMoveVecZ() {
+        //TODO
+        return 0;
+    }
+
     default boolean hasInventoryActionsField() {
         return false;
     }

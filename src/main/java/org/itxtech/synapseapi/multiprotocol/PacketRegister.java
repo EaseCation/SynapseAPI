@@ -79,6 +79,7 @@ import org.itxtech.synapseapi.multiprotocol.protocol11960.protocol.CraftingDataP
 import org.itxtech.synapseapi.multiprotocol.protocol11960.protocol.PlayerSkinPacket11960;
 import org.itxtech.synapseapi.multiprotocol.protocol11960.protocol.StartGamePacket11960;
 import org.itxtech.synapseapi.multiprotocol.protocol11963.protocol.PlayerSkinPacket11963;
+import org.itxtech.synapseapi.multiprotocol.protocol11970.protocol.UnlockedRecipesPacket11970;
 import org.itxtech.synapseapi.multiprotocol.protocol15.protocol.AddEntityPacket15;
 import org.itxtech.synapseapi.multiprotocol.protocol15.protocol.ClientboundMapItemDataPacket15;
 import org.itxtech.synapseapi.multiprotocol.protocol15.protocol.MoveEntityAbsolutePacket15;
@@ -330,6 +331,8 @@ public class PacketRegister {
         registerPacket(AbstractProtocol.PROTOCOL_119_60, ProtocolInfo.PLAYER_SKIN_PACKET, PlayerSkinPacket11960.class);
 
         registerPacket(AbstractProtocol.PROTOCOL_119_63, ProtocolInfo.PLAYER_SKIN_PACKET, PlayerSkinPacket11963.class);
+
+        registerPacket(AbstractProtocol.PROTOCOL_119_70, ProtocolInfo.UNLOCKED_RECIPES_PACKET, UnlockedRecipesPacket11970.class);
 
         checkNeteaseSpecialExtend();
     }
