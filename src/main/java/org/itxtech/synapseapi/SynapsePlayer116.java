@@ -31,11 +31,7 @@ import cn.nukkit.item.Items;
 import cn.nukkit.item.enchantment.Enchantment;
 import cn.nukkit.level.Position;
 import cn.nukkit.level.particle.PunchBlockParticle;
-import cn.nukkit.math.BlockFace;
-import cn.nukkit.math.BlockVector3;
-import cn.nukkit.math.Mth;
-import cn.nukkit.math.Vector3;
-import cn.nukkit.math.Vector3f;
+import cn.nukkit.math.*;
 import cn.nukkit.network.SourceInterface;
 import cn.nukkit.network.protocol.*;
 import cn.nukkit.network.protocol.types.ContainerIds;
@@ -335,6 +331,9 @@ public class SynapsePlayer116 extends SynapsePlayer113 {
 
 								this.setDataFlag(DATA_FLAGS, DATA_FLAG_ACTION, false);
 
+								// 从useItemData中设置玩家坐标，用于最精准的碰撞箱判断
+								this.newPosition = useItemData.playerPos.subtract(0, this.getEyeHeight(), 0);
+
 								if (this.canInteract(blockVector.add(0.5, 0.5, 0.5), this.isCreative() ? 13 : 7)) {
 									if (this.isCreative()) {
 										Item i = inventory.getItemInHand();
@@ -355,7 +354,8 @@ public class SynapsePlayer116 extends SynapsePlayer113 {
 									}
 								}
 
-								if (useItemData.hotbarSlot != inventory.getHeldItemIndex() || !inventory.getItemInHand().equals(useItemData.itemInHand)) {
+								// 解决卡物品栏问题（只发送物品正确的物品栏）
+                                if (inventory.getItemInHand().getId() == useItemData.itemInHand.getId() && inventory.getItemInHand().getCount() != useItemData.itemInHand.getCount()) {
 									inventory.sendHeldItem(this);
 								}
 
@@ -363,10 +363,21 @@ public class SynapsePlayer116 extends SynapsePlayer113 {
 									break packetswitch;
 								}
 
-								Block target = this.level.getBlock(blockVector.asVector3());
-								block = target.getSide(face);
+								Runnable blockSend = () -> {
+									Block target = this.level.getBlock(blockVector.asVector3());
+									Block block0 = target.getSide(face);
 
-								this.level.sendBlocks(new Player[]{this}, new Block[]{target, block}, UpdateBlockPacket.FLAG_ALL_PRIORITY);
+									this.level.sendBlocks(new Player[]{SynapsePlayer116.this}, new Block[]{target, block0}, UpdateBlockPacket.FLAG_ALL_PRIORITY);
+								};
+
+								// 如果与玩家较近，则延迟发送
+								if (blockVector.add(0.5, 0.5, 0.5).distanceSquared(this) < 4) {
+									this.server.getScheduler().scheduleDelayedTask(blockSend, 20);
+								} else {
+									blockSend.run();
+								}
+
+								Block target = level.getBlock(blockVector.asVector3());
 
 								if (target instanceof BlockDoor) {
 									BlockDoor door = (BlockDoor) target;
