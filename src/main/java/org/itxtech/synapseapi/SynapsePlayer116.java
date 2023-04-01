@@ -333,6 +333,7 @@ public class SynapsePlayer116 extends SynapsePlayer113 {
 
 								// 从useItemData中设置玩家坐标，用于最精准的碰撞箱判断
 								this.newPosition = useItemData.playerPos.subtract(0, this.getEyeHeight(), 0);
+								boolean entityInBlock = false;
 
 								if (this.canInteract(blockVector.add(0.5, 0.5, 0.5), this.isCreative() ? 13 : 7)) {
 									if (this.isCreative()) {
@@ -345,11 +346,15 @@ public class SynapsePlayer116 extends SynapsePlayer113 {
 										Item oldItem = i.clone();
 										//TODO: Implement adventure mode checks
 										if ((i = this.level.useItemOn(blockVector.asVector3(), i, face, clickPos.x, clickPos.y, clickPos.z, this)) != null) {
-											if (!i.equals(oldItem) || i.getCount() != oldItem.getCount()) {
-												inventory.setItemInHand(i);
-												inventory.sendHeldItem(this.getViewers().values());
+											if (i.getId() == 10000) {  // Hack!
+												entityInBlock = true;
+											} else {
+												if (!i.equals(oldItem) || i.getCount() != oldItem.getCount()) {
+													inventory.setItemInHand(i);
+													inventory.sendHeldItem(this.getViewers().values());
+												}
+												break packetswitch;
 											}
-											break packetswitch;
 										}
 									}
 								}
@@ -371,7 +376,7 @@ public class SynapsePlayer116 extends SynapsePlayer113 {
 								};
 
 								// 如果与玩家较近，则延迟发送
-								if (blockVector.add(0.5, 0.5, 0.5).distanceSquared(this) < 4) {
+								if (entityInBlock && blockVector.add(0.5, 0.5, 0.5).distanceSquared(this) < 4) {
 									this.server.getScheduler().scheduleDelayedTask(blockSend, 20);
 								} else {
 									blockSend.run();
@@ -1079,11 +1084,13 @@ public class SynapsePlayer116 extends SynapsePlayer113 {
 										Item oldItem = i.clone();
 										//TODO: Implement adventure mode checks
 										if ((i = this.level.useItemOn(blockVector.asVector3(), i, face, clickPos.x, clickPos.y, clickPos.z, this)) != null) {
-											if (!i.equals(oldItem) || i.getCount() != oldItem.getCount()) {
-												inventory.setItemInHand(i);
-												inventory.sendHeldItem(this.getViewers().values());
+											if (i.getId() != 10000) {  // Hack
+												if (!i.equals(oldItem) || i.getCount() != oldItem.getCount()) {
+													inventory.setItemInHand(i);
+													inventory.sendHeldItem(this.getViewers().values());
+												}
+												break;
 											}
-											break;
 										}
 									}
 								}
