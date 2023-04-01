@@ -17,6 +17,13 @@ public class StartGamePacket116200 extends Packet116200 {
     public static final int GAME_PUBLISH_SETTING_FRIENDS_OF_FRIENDS = 3;
     public static final int GAME_PUBLISH_SETTING_PUBLIC = 4;
 
+    public static final int BIOME_TYPE_DEFAULT = 0;
+    public static final int BIOME_TYPE_USER_DEFINED = 1;
+
+    public static final int MOVEMENT_CLIENT_AUTHORITATIVE = 0;
+    public static final int MOVEMENT_SERVER_AUTHORITATIVE = 1;
+    public static final int MOVEMENT_SERVER_AUTHORITATIVE_WITH_REWIND = 2;
+
     @Override
     public int pid() {
         return NETWORK_ID;
@@ -35,6 +42,8 @@ public class StartGamePacket116200 extends Packet116200 {
     public float yaw;
     public float pitch;
     public int seed;
+    public int spawnBiomeType = BIOME_TYPE_DEFAULT;
+    public String userDefinedBiomeName = "plains";
     public byte dimension;
     public int generator = 1;
     public int worldGamemode;
@@ -46,6 +55,7 @@ public class StartGamePacket116200 extends Packet116200 {
     public int dayCycleStopTime = -1; //-1 = not stopped, any positive value = stopped at that time
     public int eduEditionOffer = 0;
     public boolean hasEduFeaturesEnabled = false;
+    public String eduProductUUID = "";
     public float rainLevel;
     public float lightningLevel;
     public boolean hasConfirmedPlatformLockedContent = false;
@@ -56,6 +66,7 @@ public class StartGamePacket116200 extends Packet116200 {
     public boolean commandsEnabled;
     public boolean isTexturePacksRequired = false;
     public GameRules gameRules;
+    public boolean hasPreviouslyUsedExperiments;
     public boolean bonusChest = false;
     public boolean hasStartWithMapEnabled = false;
     public boolean trustingPlayers;
@@ -69,11 +80,16 @@ public class StartGamePacket116200 extends Packet116200 {
     public boolean isWorldTemplateOptionLocked = false;
     public boolean isOnlySpawningV1Villagers = false;
     public String vanillaVersion = "1.16.210";
+    public int limitedWorldWidth = 16;
+    public int limitedWorldLength = 16;
+    public boolean isNewNether;
+    public boolean experimentalGameplayOverride;
     public String levelId = ""; //base64 string, usually the same as world folder name in vanilla
     public String worldName;
     public String premiumWorldTemplateId = "00000000-0000-0000-0000-000000000000";
     public boolean isTrial = false;
-    public boolean isMovementServerAuthoritative;
+    public int movementType;
+    public int rewindHistorySize = 20;
     public boolean isBlockBreakingServerAuthoritative;
     public boolean isInventoryServerAuthoritative;
     public long currentTick;
@@ -100,8 +116,8 @@ public class StartGamePacket116200 extends Packet116200 {
         this.putLFloat(this.yaw);
 
         this.putVarInt(this.seed);
-        this.putLShort(0x00); // SpawnBiomeType - Default
-        this.putString("plains"); // UserDefinedBiomeName
+        this.putLShort(this.spawnBiomeType);
+        this.putString(this.userDefinedBiomeName);
         this.putVarInt(this.dimension);
         this.putVarInt(this.generator);
         this.putVarInt(this.worldGamemode);
@@ -111,7 +127,7 @@ public class StartGamePacket116200 extends Packet116200 {
         this.putVarInt(this.dayCycleStopTime);
         this.putVarInt(this.eduEditionOffer);
         this.putBoolean(this.hasEduFeaturesEnabled);
-        this.putString(""); // Education Edition Product ID
+        this.putString(this.eduProductUUID);
         this.putLFloat(this.rainLevel);
         this.putLFloat(this.lightningLevel);
         this.putBoolean(this.hasConfirmedPlatformLockedContent);
@@ -123,7 +139,7 @@ public class StartGamePacket116200 extends Packet116200 {
         this.putBoolean(this.isTexturePacksRequired);
         this.putGameRules(this.gameRules);
         this.putLInt(0); // Experiment count
-        this.putBoolean(false); // Were experiments previously toggled
+        this.putBoolean(this.hasPreviouslyUsedExperiments);
         this.putBoolean(this.bonusChest);
         this.putBoolean(this.hasStartWithMapEnabled);
         this.putVarInt(this.permissionLevel);
@@ -136,18 +152,18 @@ public class StartGamePacket116200 extends Packet116200 {
         this.putBoolean(this.isWorldTemplateOptionLocked);
         this.putBoolean(this.isOnlySpawningV1Villagers);
         this.putString("*");//this.putString(this.helper.getGameVersion());
-        this.putLInt(16); // Limited world width
-        this.putLInt(16); // Limited world height
-        this.putBoolean(false); // Nether type
-        this.putBoolean(false); // Experimental Gameplay
+        this.putLInt(this.limitedWorldWidth);
+        this.putLInt(this.limitedWorldLength);
+        this.putBoolean(this.isNewNether);
+        this.putBoolean(this.experimentalGameplayOverride);
 
         this.putString(this.levelId);
         this.putString(this.worldName);
         this.putString(this.premiumWorldTemplateId);
         this.putBoolean(this.isTrial);
-        this.putVarInt(this.isMovementServerAuthoritative ? 1 : 0); // 2 - rewind
+        this.putVarInt(this.movementType);
         if (this.netease || this.protocol != AbstractProtocol.PROTOCOL_116_200) {
-            this.putVarInt(20); // RewindHistorySize
+            this.putVarInt(this.rewindHistorySize);
             this.putBoolean(this.isBlockBreakingServerAuthoritative);
         }
         this.putLLong(this.currentTick);
