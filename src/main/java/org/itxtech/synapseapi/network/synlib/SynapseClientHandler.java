@@ -25,7 +25,7 @@ public class SynapseClientHandler extends ChannelInboundHandlerAdapter {
 
     @Override
     public void channelActive(final ChannelHandlerContext ctx) {  //客户端启动时调用该方法
-        Server.getInstance().getLogger().debug("client-ChannelActive");
+        //Server.getInstance().getLogger().debug("client-ChannelActive");
         this.getSynapseClient().getSession().channel = ctx.channel();
         InetSocketAddress address = (InetSocketAddress) ctx.channel().remoteAddress();
         this.getSynapseClient().getSession().updateAddress(address);
@@ -36,9 +36,8 @@ public class SynapseClientHandler extends ChannelInboundHandlerAdapter {
 
     @Override
     public void channelInactive(ChannelHandlerContext ctx) throws Exception {
-        Server.getInstance().getLogger().debug("client-ChannelInactive");
+        //Server.getInstance().getLogger().debug("client-ChannelInactive");
         this.getSynapseClient().setConnected(false);
-        this.getSynapseClient().getClientGroup().shutdownGracefully();
         this.getSynapseClient().reconnect();
     }
 

@@ -170,6 +170,10 @@ public class SynapseEntry {
     }
 
     public void shutdown() {
+        if (this.synapseInterface != null) {
+            this.synapseInterface.markClosing();
+        }
+
         if (this.verified) {
             DisconnectPacket pk = new DisconnectPacket();
             pk.type = DisconnectPacket.TYPE_GENERIC;

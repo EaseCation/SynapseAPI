@@ -54,9 +54,6 @@ public class Session {
                 }
             }
         }
-        if (this.connected) {
-            this.client.getClientGroup().shutdownGracefully();
-        }
     }
 
     private void tick() throws Exception {
@@ -103,7 +100,7 @@ public class Session {
             this.connected = false;
             this.client.needReconnect = false;
         }
-        if (!this.connected && !this.client.isShutdown()) {
+        if (!this.connected && !this.client.isClosing() && !this.client.isShutdown()) {
             long time;
             if (((time = System.currentTimeMillis()) - this.lastCheck) >= 3000) {//re-connect
                 this.client.getLogger().notice("Trying to re-connect to Synapse Server");

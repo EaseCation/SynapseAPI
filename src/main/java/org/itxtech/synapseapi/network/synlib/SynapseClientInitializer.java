@@ -15,6 +15,7 @@
  */
 package org.itxtech.synapseapi.network.synlib;
 
+import io.netty.channel.ChannelException;
 import io.netty.channel.ChannelInitializer;
 import io.netty.channel.ChannelPipeline;
 import io.netty.channel.socket.SocketChannel;
@@ -32,6 +33,15 @@ public class SynapseClientInitializer extends ChannelInitializer<SocketChannel> 
 
     @Override
     public void initChannel(SocketChannel ch) throws Exception {
+        try {
+            ch.config().setTcpNoDelay(true);
+        } catch (ChannelException ignored) {
+        }
+        try {
+            ch.config().setTrafficClass(0x10 | 0x8); // IPTOS_LOWDELAY | IPTOS_THROUGHPUT
+        } catch (ChannelException ignored) {
+        }
+
         ChannelPipeline pipeline = ch.pipeline();
         //pipeline.addLast(new DelimiterBasedFrameDecoder(8192, Delimiters.lineDelimiter()));
         pipeline.addLast(new SynapsePacketDecoder());
