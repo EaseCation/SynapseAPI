@@ -42,6 +42,7 @@ public class SynapsePlayer19 extends SynapsePlayer18 {
 			case ProtocolInfo.LEVEL_SOUND_EVENT_PACKET_V3:
 				if (!callPacketReceiveEvent(packet)) break;
 				LevelSoundEventPacketV319 levelSoundEventPacket = (LevelSoundEventPacketV319) packet;
+				//TODO: 256+ IDs -- 04/05/2023
 				LevelSoundEventEnum sound = LevelSoundEventEnum.fromV18(levelSoundEventPacket.sound);
 				SynapsePlayerBroadcastLevelSoundEvent event = new SynapsePlayerBroadcastLevelSoundEvent(this,
 						sound,
@@ -51,6 +52,9 @@ public class SynapsePlayer19 extends SynapsePlayer18 {
 						levelSoundEventPacket.entityIdentifier,
 						levelSoundEventPacket.isBabyMob,
 						levelSoundEventPacket.isGlobal);
+				if (sound == LevelSoundEventEnum.SOUND_UNDEFINED) {
+					event.setCancelled();
+				}
 				if (this.isSpectator()) {
 					event.setCancelled();
 				}
