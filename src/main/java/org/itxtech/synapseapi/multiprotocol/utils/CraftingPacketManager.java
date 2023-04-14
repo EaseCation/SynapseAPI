@@ -3,12 +3,14 @@ package org.itxtech.synapseapi.multiprotocol.utils;
 import cn.nukkit.Server;
 import cn.nukkit.inventory.*;
 import cn.nukkit.network.protocol.BatchPacket;
+import cn.nukkit.network.protocol.BatchPacket.Track;
 import cn.nukkit.network.protocol.CraftingDataPacket;
 import cn.nukkit.network.protocol.DataPacket;
 import cn.nukkit.utils.MainLogger;
 import lombok.extern.log4j.Log4j2;
 import org.itxtech.synapseapi.multiprotocol.AbstractProtocol;
 import org.itxtech.synapseapi.multiprotocol.PacketRegister;
+import org.itxtech.synapseapi.multiprotocol.protocol16.protocol.CompatibilityPacket16;
 
 import java.util.EnumMap;
 import java.util.Map;
@@ -69,9 +71,13 @@ public final class CraftingPacketManager {
                     pk0.setHelper(protocol.getHelper());
                     pk0.tryEncode();
                     if (protocol.ordinal() >= AbstractProtocol.PROTOCOL_116.ordinal()) {
-                        pk0 = pk0.compress(Deflater.BEST_COMPRESSION, true);
+                        BatchPacket batch = pk0.compress(Deflater.BEST_COMPRESSION, true);
+                        batch.tracks = new Track[]{new Track(pk0 instanceof CompatibilityPacket16 ? ((CompatibilityPacket16) pk0).origin.pid() : pk0.pid(), pk0.getCount())};
+                        pk0 = batch;
                     } else {
-                        pk0 = pk0.compress(Deflater.BEST_COMPRESSION);
+                        BatchPacket batch = pk0.compress(Deflater.BEST_COMPRESSION);
+                        batch.tracks = new Track[]{new Track(pk0 instanceof CompatibilityPacket16 ? ((CompatibilityPacket16) pk0).origin.pid() : pk0.pid(), pk0.getCount())};
+                        pk0 = batch;
                     }
                 } else {
                     MainLogger.getLogger().warning("CraftingDataPacket for version " + protocol.name() + " with null compatible packet!");
@@ -82,9 +88,13 @@ public final class CraftingPacketManager {
                     pkNE.neteaseMode = true;
                     pkNE.tryEncode();
                     if (protocol.ordinal() >= AbstractProtocol.PROTOCOL_116.ordinal()) {
-                        pkNE = pkNE.compress(Deflater.BEST_COMPRESSION, true);
+                        BatchPacket batch = pkNE.compress(Deflater.BEST_COMPRESSION, true);
+                        batch.tracks = new Track[]{new Track(pkNE instanceof CompatibilityPacket16 ? ((CompatibilityPacket16) pkNE).origin.pid() : pkNE.pid(), pkNE.getCount())};
+                        pkNE = batch;
                     } else {
-                        pkNE = pkNE.compress(Deflater.BEST_COMPRESSION);
+                        BatchPacket batch = pkNE.compress(Deflater.BEST_COMPRESSION);
+                        batch.tracks = new Track[]{new Track(pkNE instanceof CompatibilityPacket16 ? ((CompatibilityPacket16) pkNE).origin.pid() : pkNE.pid(), pkNE.getCount())};
+                        pkNE = batch;
                     }
                 } else {
                     MainLogger.getLogger().warning("CraftingDataPacket for version " + protocol.name() + "(NetEase) with null compatible packet!");

@@ -34,6 +34,8 @@ import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonPrimitive;
+import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
+import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.longs.Long2ObjectMap;
 import org.itxtech.synapseapi.dialogue.NPCDialoguePlayerHandler;
 import org.itxtech.synapseapi.event.player.SynapsePlayerBroadcastLevelSoundEvent;
@@ -75,7 +77,7 @@ public class SynapsePlayer extends Player {
     static final int INCOMING_PACKET_BATCH_PER_TICK = 2; // usually max 1 per tick, but transactions may arrive separately
     static final int INCOMING_PACKET_BATCH_MAX_BUDGET = 100 * INCOMING_PACKET_BATCH_PER_TICK; // enough to account for a 5-second lag spike
 
-    private static final Map<Integer, Timing> handlePlayerDataPacketTimings = new HashMap<>();
+    private static final Int2ObjectMap<Timing> handlePlayerDataPacketTimings = new Int2ObjectOpenHashMap<>();
 
     public boolean isSynapseLogin = false;
     protected SynapseEntry synapseEntry;
@@ -135,7 +137,7 @@ public class SynapsePlayer extends Player {
 
     public void handleLoginPacket(PlayerLoginPacket packet) {
         if (!this.isSynapseLogin) {
-            super.handleDataPacket(SynapseAPI.getInstance().getPacket(packet.cachedLoginPacket));
+            super.handleDataPacket(SynapseAPI.getPacket(packet.cachedLoginPacket));
             return;
         }
         this.isFirstTimeLogin = packet.isFirstTime;
@@ -700,7 +702,7 @@ public class SynapsePlayer extends Player {
             int chunkZ = (int) this.teleportPosition.z >> 4;
 
             long centerChunkIndex = Level.chunkHash(chunkX, chunkZ);
-            if (!this.usedChunks.containsKey(centerChunkIndex) || !this.usedChunks.get(centerChunkIndex)) {
+            if (!this.usedChunks.get(centerChunkIndex)) {
                 if (this.teleportChunkLoaded) {
                     this.lastImmobile = this.isImmobile();
                 }
@@ -712,7 +714,7 @@ public class SynapsePlayer extends Player {
             for (int X = -1; X <= 1; ++X) {
                 for (int Z = -1; Z <= 1; ++Z) {
                     long index = Level.chunkHash(chunkX + X, chunkZ + Z);
-                    if (!this.usedChunks.containsKey(index) || !this.usedChunks.get(index)) {
+                    if (!this.usedChunks.get(index)) {
                         return false;
                     }
                 }
@@ -954,7 +956,7 @@ public class SynapsePlayer extends Player {
             super.handleDataPacket(packet);
             return;
         }
-        Timing dataPacketTiming = handlePlayerDataPacketTimings.getOrDefault(packet.pid(), TimingsManager.getTiming("SynapseEntry - HandlePlayerDataPacket - " + packet.getClass().getSimpleName()));
+        Timing dataPacketTiming = handlePlayerDataPacketTimings.computeIfAbsent(packet.pid(), key -> TimingsManager.getTiming("SynapseEntry - HandlePlayerDataPacket - " + packet.getClass().getSimpleName()));
         dataPacketTiming.startTiming();
 
         switch (packet.pid()) {
@@ -1159,9 +1161,6 @@ public class SynapsePlayer extends Player {
         }
 
         dataPacketTiming.stopTiming();
-        if (!handlePlayerDataPacketTimings.containsKey(packet.pid()))
-            handlePlayerDataPacketTimings.put(packet.pid(), dataPacketTiming);
-
     }
 
     protected void setLoginChainData(LoginChainData loginChainData) {

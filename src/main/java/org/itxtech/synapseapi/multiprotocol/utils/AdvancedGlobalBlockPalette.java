@@ -244,8 +244,8 @@ public final class AdvancedGlobalBlockPalette {
     }
 
     public static int getOrCreateRuntimeId(AbstractProtocol protocol, boolean netease, int legacyId) {
-        if (palettes.containsKey(protocol)) {
-            AdvancedGlobalBlockPaletteInterface[] versions = palettes.get(protocol);
+        AdvancedGlobalBlockPaletteInterface[] versions = palettes.get(protocol);
+        if (versions != null) {
             if (versions.length > 1) {
                 return netease ? versions[1].getOrCreateRuntimeId(legacyId) : versions[0].getOrCreateRuntimeId(legacyId);
             }
@@ -256,8 +256,8 @@ public final class AdvancedGlobalBlockPalette {
     }
 
     public static int getOrCreateRuntimeId(AbstractProtocol protocol, boolean netease, int id, int meta) {
-        if (palettes.containsKey(protocol)) {
-            AdvancedGlobalBlockPaletteInterface[] versions = palettes.get(protocol);
+        AdvancedGlobalBlockPaletteInterface[] versions = palettes.get(protocol);
+        if (versions != null) {
             if (versions.length > 1) {
                 return netease ? versions[1].getOrCreateRuntimeId(id, meta) : versions[0].getOrCreateRuntimeId(id, meta);
             }
@@ -268,8 +268,8 @@ public final class AdvancedGlobalBlockPalette {
     }
 
     public static int getLegacyId(AbstractProtocol protocol, boolean netease, int runtimeId) {
-        if (palettes.containsKey(protocol)) {
-            AdvancedGlobalBlockPaletteInterface[] versions = palettes.get(protocol);
+        AdvancedGlobalBlockPaletteInterface[] versions = palettes.get(protocol);
+        if (versions != null) {
             if (versions.length > 1) {
                 return netease ? versions[1].getLegacyId(runtimeId) : versions[0].getLegacyId(runtimeId);
             }
@@ -280,8 +280,8 @@ public final class AdvancedGlobalBlockPalette {
     }
 
     public static byte[] getCompiledTable(AbstractProtocol protocol, boolean netease) {
-        if (palettes.containsKey(protocol)) {
-            AdvancedGlobalBlockPaletteInterface[] versions = palettes.get(protocol);
+        AdvancedGlobalBlockPaletteInterface[] versions = palettes.get(protocol);
+        if (versions != null) {
             if (versions.length > 1) {
                 return netease ? versions[1].getCompiledTable() : versions[0].getCompiledTable();
             }
@@ -292,8 +292,8 @@ public final class AdvancedGlobalBlockPalette {
     }
 
     public static byte[] getCompiledItemDataPalette(AbstractProtocol protocol, boolean netease) {
-        if (palettes.containsKey(protocol)) {
-            AdvancedGlobalBlockPaletteInterface[] versions = palettes.get(protocol);
+        AdvancedGlobalBlockPaletteInterface[] versions = palettes.get(protocol);
+        if (versions != null) {
             if (versions.length > 1) {
                 return netease ? versions[1].getItemDataPalette() : versions[0].getItemDataPalette();
             }

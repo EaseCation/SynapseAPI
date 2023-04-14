@@ -3,6 +3,7 @@ package org.itxtech.synapseapi.multiprotocol;
 import cn.nukkit.Server;
 import cn.nukkit.network.protocol.BatchPacket;
 import cn.nukkit.network.protocol.DataPacket;
+import cn.nukkit.network.protocol.ProtocolInfo;
 import cn.nukkit.utils.BinaryStream;
 import cn.nukkit.utils.BinaryStream.BinaryStreamHelper;
 import org.itxtech.synapseapi.*;
@@ -199,7 +200,7 @@ public enum AbstractProtocol {
     public PacketHeadData tryDecodePacketHead(byte[] data, boolean maybeBatch) {
         if (maybeBatch) {
             //System.out.println(Binary.bytesToHexString(new byte[]{data[0]}));
-            if (data[0] == (byte) 0xfe) {
+            if (data[0] == (byte) ProtocolInfo.BATCH_PACKET) {
                 return new PacketHeadData(BatchPacket.NETWORK_ID, 1);
             } else if (data[0] == (byte) 0x78) {
                 return new PacketHeadData(BatchPacket.NETWORK_ID, 0);

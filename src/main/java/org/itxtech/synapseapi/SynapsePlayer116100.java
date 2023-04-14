@@ -644,8 +644,9 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
                 }
                 //this.getServer().getLogger().warning("Got ContainerClosePacket: " + containerClosePacket);
 
-                if (this.windowIndex.containsKey(containerClosePacket.windowId)) {
-                    this.server.getPluginManager().callEvent(new InventoryCloseEvent(this.windowIndex.get(containerClosePacket.windowId), this));
+                Inventory windowInventory = this.windowIndex.get(containerClosePacket.windowId);
+                if (windowInventory != null) {
+                    this.server.getPluginManager().callEvent(new InventoryCloseEvent(windowInventory, this));
 
                     if (containerClosePacket.windowId == ContainerIds.INVENTORY) this.inventoryOpen = false;
 
@@ -1258,16 +1259,19 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
 
                 ModalFormResponsePacket11920 modalFormPacket = (ModalFormResponsePacket11920) packet;
 
-                if (formWindows.containsKey(modalFormPacket.formId)) {
-                    FormWindow window = formWindows.get(modalFormPacket.formId);
+                FormWindow window = formWindows.get(modalFormPacket.formId);
+                if (window != null) {
                     window.setResponse(modalFormPacket.data.trim());
 
                     PlayerFormRespondedEvent event = new PlayerFormRespondedEvent(this, modalFormPacket.formId, window);
                     getServer().getPluginManager().callEvent(event);
 
                     formWindows.remove(modalFormPacket.formId);
-                } else if (serverSettings.containsKey(modalFormPacket.formId)) {
-                    FormWindow window = serverSettings.get(modalFormPacket.formId);
+                    break;
+                }
+
+                window = serverSettings.get(modalFormPacket.formId);
+                if (window != null) {
                     window.setResponse(modalFormPacket.data.trim());
 
                     PlayerSettingsRespondedEvent event = new PlayerSettingsRespondedEvent(this, modalFormPacket.formId, window);
@@ -1278,7 +1282,6 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
                         ((FormWindowCustom) window).setElementsFromResponse();
                     }
                 }
-
                 break;
             case ProtocolInfo.MAP_INFO_REQUEST_PACKET:
                 if (getProtocol() < AbstractProtocol.PROTOCOL_119_20.getProtocolStart()) {
@@ -2065,8 +2068,9 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
         }
 
         long index = Level.chunkHash(subChunkX, subChunkZ);
-        if (this.subChunkSendQueue.containsKey(index)) {
-            this.subChunkSendQueue.get(index).add(subChunkY);
+        IntSet queue = this.subChunkSendQueue.get(index);
+        if (queue != null) {
+            queue.add(subChunkY);
             return true;
         }
 

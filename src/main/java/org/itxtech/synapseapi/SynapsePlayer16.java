@@ -55,7 +55,7 @@ public class SynapsePlayer16 extends SynapsePlayer14 {
 
 	public void handleLoginPacket(PlayerLoginPacket packet) {
 		if (!this.isSynapseLogin) {
-			super.handleDataPacket(SynapseAPI.getInstance().getPacket(packet.cachedLoginPacket));
+			super.handleDataPacket(SynapseAPI.getPacket(packet.cachedLoginPacket));
 			return;
 		}
 		this.isFirstTimeLogin = packet.isFirstTime;

@@ -141,8 +141,9 @@ public class SynapsePlayer116 extends SynapsePlayer113 {
 					break;
 				}
 
-				if (this.windowIndex.containsKey(containerClosePacket.windowId)) {
-					this.server.getPluginManager().callEvent(new InventoryCloseEvent(this.windowIndex.get(containerClosePacket.windowId), this));
+				Inventory windowInventory = this.windowIndex.get(containerClosePacket.windowId);
+				if (windowInventory != null) {
+					this.server.getPluginManager().callEvent(new InventoryCloseEvent(windowInventory, this));
 
 					if (containerClosePacket.windowId == ContainerIds.INVENTORY) this.inventoryOpen = false;
 
@@ -1261,8 +1262,9 @@ public class SynapsePlayer116 extends SynapsePlayer113 {
 
 	@Override
 	public int addWindow(Inventory inventory, Integer forceId, boolean isPermanent, boolean alwaysOpen) {
-		if (this.windows.containsKey(inventory)) {
-			return this.windows.get(inventory);
+		Integer index = this.windows.get(inventory);
+		if (index != null) {
+			return index;
 		}
 		int cnt;
 		if (forceId == null) {

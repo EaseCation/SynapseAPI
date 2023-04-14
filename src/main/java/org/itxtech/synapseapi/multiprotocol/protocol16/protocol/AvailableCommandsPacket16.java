@@ -37,7 +37,7 @@ public class AvailableCommandsPacket16 extends Packet16 {
     public static final int ARG_TYPE_JSON = 0x18;
     public static final int ARG_TYPE_COMMAND = 0x1f;
 
-    private static final Map<CommandParamType, Integer> v12To16ArgTypeTable = new HashMap<CommandParamType, Integer>(){{
+    private static final Map<CommandParamType, Integer> v12To16ArgTypeTable = new HashMap<CommandParamType, Integer>() {{
         put(CommandParamType.INT, ARG_TYPE_INT);
         put(CommandParamType.FLOAT, ARG_TYPE_FLOAT);
         put(CommandParamType.VALUE, ARG_TYPE_VALUE);
@@ -108,7 +108,7 @@ public class AvailableCommandsPacket16 extends Packet16 {
         }
     }
 
-    protected void putCommandData(String name, CommandData data){
+    protected void putCommandData(String name, CommandData data) {
         this.putString(name);
         this.putString(data.description);
         int flags = 0;
@@ -117,9 +117,10 @@ public class AvailableCommandsPacket16 extends Packet16 {
         }
         this.putByte((byte) flags);
         this.putByte((byte) data.permission.ordinal());
-        if(data.aliases != null && this.enumMap.containsKey(data.aliases.getName())){
-            this.putLInt(this.enumMap.get(data.aliases.getName()));
-        }else{
+        Integer index = data.aliases != null ? this.enumMap.get(data.aliases.getName()) : null;
+        if (index != null) {
+            this.putLInt(index);
+        } else {
             this.putLInt(-1);
         }
 
@@ -129,12 +130,12 @@ public class AvailableCommandsPacket16 extends Packet16 {
             for (CommandParameter parameter : overload.input.parameters) {
                 this.putString(parameter.name);
                 int type;
-                if(parameter.enumData != null) {
+                if (parameter.enumData != null) {
                     int t = this.enumMap.getOrDefault(parameter.enumData.getName(), -1);
                     type = ARG_FLAG_ENUM | ARG_FLAG_VALID | t;
-                } else if (parameter.postFix != null){
+                } else if (parameter.postFix != null) {
                     int key = this.postfixes.indexOf(parameter.postFix);
-                    if(key == -1) {
+                    if (key == -1) {
                         throw new RuntimeException("Postfix " + parameter.postFix + " not in postfixes array");
                     }
                     type = ARG_FLAG_POSTFIX | key;

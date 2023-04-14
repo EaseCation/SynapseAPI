@@ -98,10 +98,11 @@ public class RuntimeItemPalette implements AdvancedRuntimeItemPaletteInterface {
     @Override
     public String getString(Item item) {
         int fullId = getFullId(item.getId(), item.hasMeta() ? item.getDamage() : -1);
-        if (!legacyStringMap.containsKey(fullId)) {
+        String name = legacyStringMap.get(fullId);
+        if (name == null) {
             throw new IllegalArgumentException("Unknown item mapping " + item.getId() + ":" + item.getDamage());
         }
-        return legacyStringMap.get(fullId);
+        return name;
     }
 
     @Override

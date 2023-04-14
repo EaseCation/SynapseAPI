@@ -303,12 +303,12 @@ public class SynapseAPI extends PluginBase implements Listener {
         this.shutdownAll();
     }
 
-    public DataPacket getPacket(byte[] buffer) {
+    public static DataPacket getPacket(byte[] buffer) {
         byte pid = buffer[0];
 
         byte start = 3;
         DataPacket data;
-        data = this.getServer().getNetwork().getPacket(pid);
+        data = Server.getInstance().getNetwork().getPacket(pid);
 
         if (data == null) {
             Server.getInstance().getLogger().notice("C => S 未找到匹配数据包");
