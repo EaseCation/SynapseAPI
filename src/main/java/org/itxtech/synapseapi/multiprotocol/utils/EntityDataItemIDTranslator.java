@@ -299,6 +299,7 @@ public class EntityDataItemIDTranslator {
 
 	public static final int V117_BASE_RUNTIME_ID = 120;
 	public static final int V117_FREEZING_EFFECT_STRENGTH = 121;
+	public static final int V117_IS_BUOYANT = 119;
 	public static final int V117_BUOYANCY_DATA = 122;
 	public static final int V117_GOAT_HORN_COUNT = 123;
 	public static final int V117_UPDATE_PROPERTIES = 124;
