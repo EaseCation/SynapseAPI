@@ -86,6 +86,9 @@ import org.itxtech.synapseapi.multiprotocol.protocol11960.protocol.CommandReques
 import org.itxtech.synapseapi.multiprotocol.protocol11960.protocol.PlayerSkinPacket11960;
 import org.itxtech.synapseapi.multiprotocol.protocol11960.protocol.StartGamePacket11960;
 import org.itxtech.synapseapi.multiprotocol.protocol11963.protocol.PlayerSkinPacket11963;
+import org.itxtech.synapseapi.multiprotocol.protocol11980.protocol.OpenSignPacket11980;
+import org.itxtech.synapseapi.multiprotocol.protocol11980.protocol.RequestChunkRadiusPacket11980;
+import org.itxtech.synapseapi.multiprotocol.protocol11980.protocol.StartGamePacket11980;
 import org.itxtech.synapseapi.multiprotocol.protocol14.protocol.PlayerActionPacket14;
 import org.itxtech.synapseapi.multiprotocol.protocol16.protocol.ResourcePackClientResponsePacket16;
 import org.itxtech.synapseapi.multiprotocol.utils.ItemComponentDefinitions;
@@ -153,7 +156,40 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
 
     @Override
     protected DataPacket generateStartGamePacket(Position spawnPosition) {
-        if (this.getProtocol() >= AbstractProtocol.PROTOCOL_119_60.getProtocolStart()) {
+        if (this.getProtocol() >= AbstractProtocol.PROTOCOL_119_80.getProtocolStart()) {
+            StartGamePacket11980 startGamePacket = new StartGamePacket11980();
+            startGamePacket.protocol = AbstractProtocol.fromRealProtocol(this.protocol);
+            startGamePacket.netease = this.isNetEaseClient();
+            startGamePacket.entityUniqueId = SYNAPSE_PLAYER_ENTITY_ID;
+            startGamePacket.entityRuntimeId = SYNAPSE_PLAYER_ENTITY_ID;
+            startGamePacket.playerGamemode = getClientFriendlyGamemode(this.gamemode);
+            startGamePacket.x = (float) this.x;
+            startGamePacket.y = (float) this.y;
+            startGamePacket.z = (float) this.z;
+            startGamePacket.yaw = (float) this.yaw;
+            startGamePacket.pitch = (float) this.pitch;
+            startGamePacket.seed = -1;
+            startGamePacket.dimension = (byte) (this.level.getDimension().ordinal() & 0xff);
+            startGamePacket.worldGamemode = getClientFriendlyGamemode(this.gamemode);
+            startGamePacket.difficulty = this.server.getDifficulty();
+            startGamePacket.spawnX = (int) spawnPosition.x;
+            startGamePacket.spawnY = (int) spawnPosition.y;
+            startGamePacket.spawnZ = (int) spawnPosition.z;
+            startGamePacket.hasAchievementsDisabled = true;
+            startGamePacket.dayCycleStopTime = -1;
+            startGamePacket.rainLevel = 0;
+            startGamePacket.lightningLevel = 0;
+            startGamePacket.commandsEnabled = this.isEnableClientCommand();
+            startGamePacket.levelId = "";
+            startGamePacket.worldName = this.getServer().getNetwork().getName();
+            startGamePacket.generator = 1; // 0 old, 1 infinite, 2 flat
+            startGamePacket.gameRules = getSupportedRules();
+//            startGamePacket.movementType = StartGamePacket11960.MOVEMENT_SERVER_AUTHORITATIVE;
+//            startGamePacket.isBlockBreakingServerAuthoritative = this.serverAuthoritativeBlockBreaking;
+            startGamePacket.currentTick = this.server.getTick();
+            startGamePacket.enchantmentSeed = ThreadLocalRandom.current().nextInt();
+            return startGamePacket;
+        } else if (this.getProtocol() >= AbstractProtocol.PROTOCOL_119_60.getProtocolStart()) {
             StartGamePacket11960 startGamePacket = new StartGamePacket11960();
             startGamePacket.protocol = AbstractProtocol.fromRealProtocol(this.protocol);
             startGamePacket.netease = this.isNetEaseClient();
@@ -1467,6 +1503,19 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
                 super.handleDataPacket(packet);
                 */
                 break;
+            case ProtocolInfo.REQUEST_CHUNK_RADIUS_PACKET:
+                if (getProtocol() < AbstractProtocol.PROTOCOL_119_80.getProtocolStart()) {
+                    super.handleDataPacket(packet);
+                    break;
+                }
+
+                RequestChunkRadiusPacket11980 requestChunkRadiusPacket = (RequestChunkRadiusPacket11980) packet;
+                this.chunkRadius = Math.max(3, Math.min(requestChunkRadiusPacket.radius, this.viewDistance));
+
+                ChunkRadiusUpdatedPacket chunkRadiusUpdatePacket = new ChunkRadiusUpdatedPacket();
+                chunkRadiusUpdatePacket.radius = this.chunkRadius;
+                this.dataPacket(chunkRadiusUpdatePacket);
+                break;
             default:
                 super.handleDataPacket(packet);
                 break;
@@ -2610,6 +2659,20 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
         packet.resultX = packet.x;
         packet.resultY = packet.y;
         packet.resultZ = packet.z;
+        dataPacket(packet);
+    }
+
+    @Override
+    public void openSignEditor(BlockVector3 pos, boolean front) {
+        if (getProtocol() < AbstractProtocol.PROTOCOL_119_80.getProtocolStart()) {
+            return;
+        }
+
+        OpenSignPacket11980 packet = new OpenSignPacket11980();
+        packet.x = pos.x;
+        packet.y = pos.y;
+        packet.z = pos.z;
+        packet.front = front;
         dataPacket(packet);
     }
 

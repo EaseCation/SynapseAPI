@@ -94,6 +94,7 @@ public class CraftingManagerNew extends CraftingManagerLegacy {
             registerRecipe(new SmithingTransformRecipe(
                     String.valueOf(++RECIPE_COUNT),
                     deserializeItem(entry.getAsJsonObject("output")),
+                    deserializeItem(entry.getAsJsonObject("template")), //TODO: 1.19.80+
                     deserializeItem(entry.getAsJsonObject("input")),
                     deserializeItem(entry.getAsJsonObject("addition")),
                     tag));

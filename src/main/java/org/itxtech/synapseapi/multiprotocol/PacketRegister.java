@@ -80,6 +80,11 @@ import org.itxtech.synapseapi.multiprotocol.protocol11960.protocol.PlayerSkinPac
 import org.itxtech.synapseapi.multiprotocol.protocol11960.protocol.StartGamePacket11960;
 import org.itxtech.synapseapi.multiprotocol.protocol11963.protocol.PlayerSkinPacket11963;
 import org.itxtech.synapseapi.multiprotocol.protocol11970.protocol.UnlockedRecipesPacket11970;
+import org.itxtech.synapseapi.multiprotocol.protocol11980.protocol.CompressedBiomeDefinitionListPacket11980;
+import org.itxtech.synapseapi.multiprotocol.protocol11980.protocol.CraftingDataPacket11980;
+import org.itxtech.synapseapi.multiprotocol.protocol11980.protocol.OpenSignPacket11980;
+import org.itxtech.synapseapi.multiprotocol.protocol11980.protocol.RequestChunkRadiusPacket11980;
+import org.itxtech.synapseapi.multiprotocol.protocol11980.protocol.StartGamePacket11980;
 import org.itxtech.synapseapi.multiprotocol.protocol15.protocol.AddEntityPacket15;
 import org.itxtech.synapseapi.multiprotocol.protocol15.protocol.ClientboundMapItemDataPacket15;
 import org.itxtech.synapseapi.multiprotocol.protocol15.protocol.MoveEntityAbsolutePacket15;
@@ -333,6 +338,12 @@ public class PacketRegister {
         registerPacket(AbstractProtocol.PROTOCOL_119_63, ProtocolInfo.PLAYER_SKIN_PACKET, PlayerSkinPacket11963.class);
 
         registerPacket(AbstractProtocol.PROTOCOL_119_70, ProtocolInfo.UNLOCKED_RECIPES_PACKET, UnlockedRecipesPacket11970.class);
+
+        registerPacket(AbstractProtocol.PROTOCOL_119_80, ProtocolInfo.START_GAME_PACKET, StartGamePacket11980.class);
+        registerPacket(AbstractProtocol.PROTOCOL_119_80, ProtocolInfo.CRAFTING_DATA_PACKET, CraftingDataPacket11980.class);
+        registerPacket(AbstractProtocol.PROTOCOL_119_80, ProtocolInfo.REQUEST_CHUNK_RADIUS_PACKET, RequestChunkRadiusPacket11980.class);
+        registerPacket(AbstractProtocol.PROTOCOL_119_80, ProtocolInfo.OPEN_SIGN_PACKET, OpenSignPacket11980.class);
+        registerPacket(AbstractProtocol.PROTOCOL_119_80, ProtocolInfo.COMPRESSED_BIOME_DEFINITION_LIST_PACKET, CompressedBiomeDefinitionListPacket11980.class);
 
         checkNeteaseSpecialExtend();
     }

@@ -281,6 +281,7 @@ public final class VanillaBlockUpgrader {
         addSchema("0151_1.19.0.34_beta_to_1.19.20.json", V1_19_20);
         addSchema("0161_1.19.50_to_1.19.60.26_beta.json", V1_19_60);
         addSchema("0171_1.19.60_to_1.19.70.26_beta.json", V1_19_70);
+        addSchema("0181_1.19.70_to_1.19.80.24_beta.json", V1_19_80);
 
         BlockUpgrader.setUpgrader(new BedrockBlockUpgrader() {
             @Override
