@@ -29,7 +29,8 @@ public final class ItemComponentDefinitions {
             Map<String, byte[]> definition11910 = load("item_components11910.nbt");
             Map<String, byte[]> definition11950 = load("item_components11950.nbt");
             Map<String, byte[]> definition11960 = load("item_components11960.nbt");
-//            Map<String, byte[]> definition11970 = load("item_components11970.nbt");
+            Map<String, byte[]> definition11970 = load("item_components11970.nbt");
+            Map<String, byte[]> definition11980 = load("item_components11980.nbt");
 
             DEFINITIONS.put(AbstractProtocol.PROTOCOL_118_10, definition11810);
             DEFINITIONS.put(AbstractProtocol.PROTOCOL_118_30, definition11830);
@@ -43,9 +44,8 @@ public final class ItemComponentDefinitions {
             DEFINITIONS.put(AbstractProtocol.PROTOCOL_119_50, definition11950);
             DEFINITIONS.put(AbstractProtocol.PROTOCOL_119_60, definition11960);
             DEFINITIONS.put(AbstractProtocol.PROTOCOL_119_63, definition11960);
-//            DEFINITIONS.put(AbstractProtocol.PROTOCOL_119_70, definition11970); //TODO: 1.19.70
-            DEFINITIONS.put(AbstractProtocol.PROTOCOL_119_70, Collections.emptyMap());
-            DEFINITIONS.put(AbstractProtocol.PROTOCOL_119_80, Collections.emptyMap());
+            DEFINITIONS.put(AbstractProtocol.PROTOCOL_119_70, definition11970);
+            DEFINITIONS.put(AbstractProtocol.PROTOCOL_119_80, definition11980);
         } catch (NullPointerException | IOException e) {
             throw new AssertionError("Unable to load item_components.nbt");
         }
