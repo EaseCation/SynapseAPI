@@ -13,10 +13,12 @@ import cn.nukkit.network.protocol.DataPacket;
 import cn.nukkit.network.protocol.ProtocolInfo;
 import cn.nukkit.resourcepacks.ResourcePack;
 import org.itxtech.synapseapi.event.player.SynapsePlayerBroadcastLevelSoundEvent;
+import org.itxtech.synapseapi.event.player.SynapsePlayerNetworkStackLatencyUpdateEvent;
 import org.itxtech.synapseapi.multiprotocol.AbstractProtocol;
 import org.itxtech.synapseapi.multiprotocol.protocol110.protocol.LecternUpdatePacket110;
 import org.itxtech.synapseapi.multiprotocol.protocol111.protocol.LecternUpdatePacket111;
 import org.itxtech.synapseapi.multiprotocol.protocol19.protocol.LevelSoundEventPacketV319;
+import org.itxtech.synapseapi.multiprotocol.protocol19.protocol.NetworkStackLatencyPacket19;
 import org.itxtech.synapseapi.multiprotocol.protocol19.protocol.ResourcePacksInfoPacket19;
 import org.itxtech.synapseapi.multiprotocol.protocol19.protocol.StartGamePacket19;
 import org.itxtech.synapseapi.multiprotocol.utils.AdvancedGlobalBlockPalette;
@@ -81,6 +83,11 @@ public class SynapsePlayer19 extends SynapsePlayer18 {
 									event.isGlobal()
 							));
 				}
+				break;
+			case ProtocolInfo.NETWORK_STACK_LATENCY_PACKET:
+				NetworkStackLatencyPacket19 networkStackLatencyPacket = (NetworkStackLatencyPacket19) packet;
+				long legacy = System.currentTimeMillis() - networkStackLatencyPacket.timestamp;
+				new SynapsePlayerNetworkStackLatencyUpdateEvent(this, networkStackLatencyPacket.timestamp, legacy).call();
 				break;
 			case ProtocolInfo.LECTERN_UPDATE_PACKET:
 				if (getProtocol() >= AbstractProtocol.PROTOCOL_111.getProtocolStart()) {
@@ -233,6 +240,14 @@ public class SynapsePlayer19 extends SynapsePlayer18 {
 		pk.isBabyMob = isBabyMob;
 		pk.isGlobal = isGlobal;
 		this.dataPacket(pk);
+	}
+
+	@Override
+	public void requestPing() {
+		NetworkStackLatencyPacket19 packet = new NetworkStackLatencyPacket19();
+		packet.timestamp = System.currentTimeMillis();
+		packet.isFromServer = true;
+		this.dataPacket(packet);
 	}
 
 }

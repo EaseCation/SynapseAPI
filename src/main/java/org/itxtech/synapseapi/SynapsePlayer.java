@@ -1381,4 +1381,8 @@ public class SynapsePlayer extends Player {
     public NPCDialoguePlayerHandler getNpcDialoguePlayerHandler() {
         return null;
     }
+
+    public void requestPing() {
+        // SynapsePlayer19 实现
+    }
 }
