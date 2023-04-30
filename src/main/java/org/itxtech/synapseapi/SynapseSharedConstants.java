@@ -55,6 +55,11 @@ public final class SynapseSharedConstants {
      */
     public static final boolean SERVERBOUND_PACKET_LOGGING = false;
 
+    /**
+     * NetworkStackLatencyPacket ping pong.
+     */
+    public static final boolean NETWORK_STACK_LATENCY_TELEMETRY = true;
+
     private SynapseSharedConstants() {
 
     }

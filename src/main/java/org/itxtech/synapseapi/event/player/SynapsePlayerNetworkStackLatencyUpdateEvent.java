@@ -8,12 +8,15 @@ public class SynapsePlayerNetworkStackLatencyUpdateEvent extends SynapsePlayerEv
 
     private static final HandlerList handlers = new HandlerList();
     private final long originTimestamp;
-    private final long legacy;
+    private final long latency;
 
-    public SynapsePlayerNetworkStackLatencyUpdateEvent(SynapsePlayer player, long originTimestamp, long legacy) {
+    /**
+     * @param latency ns
+     */
+    public SynapsePlayerNetworkStackLatencyUpdateEvent(SynapsePlayer player, long originTimestamp, long latency) {
         super(player);
         this.originTimestamp = originTimestamp;
-        this.legacy = legacy;
+        this.latency = latency;
     }
 
     public static HandlerList getHandlers() {
@@ -24,7 +27,10 @@ public class SynapsePlayerNetworkStackLatencyUpdateEvent extends SynapsePlayerEv
         return originTimestamp;
     }
 
-    public long getLegacy() {
-        return legacy;
+    /**
+     * @return ns
+     */
+    public long getLatency() {
+        return latency;
     }
 }

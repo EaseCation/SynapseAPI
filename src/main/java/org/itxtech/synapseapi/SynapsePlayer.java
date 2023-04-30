@@ -1385,4 +1385,11 @@ public class SynapsePlayer extends Player {
     public void requestPing() {
         // SynapsePlayer19 实现
     }
+
+    /**
+     * @return ns
+     */
+    public long getLatency() {
+        return -1;
+    }
 }

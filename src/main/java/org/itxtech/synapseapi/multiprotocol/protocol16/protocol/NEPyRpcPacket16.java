@@ -29,8 +29,7 @@ public class NEPyRpcPacket16 extends Packet16 {
 
     @Override
     public void decode() {
-        MessageUnpacker unpacker = MessagePack.newDefaultUnpacker(this.getByteArray());
-        try {
+        try (MessageUnpacker unpacker = MessagePack.newDefaultUnpacker(this.getByteArray())) {
             if (unpacker.hasNext()) {
                 data = unpacker.unpackValue();
             }
@@ -42,11 +41,9 @@ public class NEPyRpcPacket16 extends Packet16 {
     @Override
     public void encode() {
         this.reset();
-        MessageBufferPacker packer = MessagePack.newDefaultBufferPacker();
-        try {
+        try (MessageBufferPacker packer = MessagePack.newDefaultBufferPacker()) {
             packer.packValue(data);
             this.putByteArray(packer.toByteArray());
-            packer.close();
         } catch (IOException e) {
             throw new RuntimeException("MsgPack encode failed: " + e.getMessage(), e);
         }

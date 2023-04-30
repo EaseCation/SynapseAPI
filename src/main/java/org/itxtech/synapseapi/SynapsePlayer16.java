@@ -43,16 +43,21 @@ import java.util.Optional;
 import java.util.concurrent.ThreadLocalRandom;
 
 import static cn.nukkit.SharedConstants.RESOURCE_PACK_CHUNK_SIZE;
+import static org.itxtech.synapseapi.SynapseSharedConstants.*;
 
 public class SynapsePlayer16 extends SynapsePlayer14 {
 	private static final Gson GSON = new Gson();
 
 	protected boolean spawnStatusSent;
 
+	protected long pingNs;
+	protected long latencyNs;
+
 	public SynapsePlayer16(SourceInterface interfaz, SynapseEntry synapseEntry, Long clientID, InetSocketAddress socketAddress) {
 		super(interfaz, synapseEntry, clientID, socketAddress);
 	}
 
+	@Override
 	public void handleLoginPacket(PlayerLoginPacket packet) {
 		if (!this.isSynapseLogin) {
 			super.handleDataPacket(SynapseAPI.getPacket(packet.cachedLoginPacket));
@@ -209,6 +214,15 @@ public class SynapsePlayer16 extends SynapsePlayer14 {
 				}
 				this.locallyInitialized = true;
 				break;
+			case ProtocolInfo.NETWORK_STACK_LATENCY_PACKET:
+				if (!callPacketReceiveEvent(packet)) {
+					break;
+				}
+				if (NETWORK_STACK_LATENCY_TELEMETRY) {
+					latencyNs = System.nanoTime() - pingNs;
+					ping();
+				}
+				break;
 			default:
 				super.handleDataPacket(packet);
 				break;
@@ -249,6 +263,7 @@ public class SynapsePlayer16 extends SynapsePlayer14 {
 		return startGamePacket;
 	}
 
+	@Override
 	protected GameRules getSupportedRules() {
 		return this.level.gameRules;
 	}
@@ -380,12 +395,14 @@ public class SynapsePlayer16 extends SynapsePlayer14 {
 		this.dataPacket(pk);
 	}
 
+	@Override
 	public void sendPyRpcData(Value data) {
 		NEPyRpcPacket16 pk = new NEPyRpcPacket16();
 		pk.data = data;
 		this.dataPacket(pk);
 	}
 
+	@Override
 	public void modNotifyToClient(String modName, String systemName, String eventName, MapValue eventData) {
 		ArrayValue data = ValueFactory.newArray(
 				ValueFactory.newBinary("ModEventS2C".getBytes(StandardCharsets.UTF_8)),
@@ -400,4 +417,17 @@ public class SynapsePlayer16 extends SynapsePlayer14 {
 		this.sendPyRpcData(data);
 	}
 
+	public void ping() {
+		long time = System.nanoTime();
+		pingNs = time;
+
+		NetworkStackLatencyPacket16 packet = new NetworkStackLatencyPacket16();
+		packet.timestamp = time;
+		dataPacket(packet);
+	}
+
+	@Override
+	public long getLatency() {
+		return latencyNs;
+	}
 }

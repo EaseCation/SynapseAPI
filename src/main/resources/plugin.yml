@@ -11,3 +11,8 @@ description: The basic APIs provide for Synapse Client
 
 depend:
 - "AuthLibPackage"
+
+permissions:
+  synapseapi.command.latency:
+    description: /latency
+    default: true

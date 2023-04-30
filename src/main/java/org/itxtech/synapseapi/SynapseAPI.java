@@ -22,6 +22,7 @@ import cn.nukkit.utils.Binary;
 import cn.nukkit.utils.Utils;
 import com.google.gson.JsonObject;
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
+import org.itxtech.synapseapi.command.LatencyCommand;
 import org.itxtech.synapseapi.event.player.netease.NetEasePlayerModEventC2SEvent;
 import org.itxtech.synapseapi.multiprotocol.AbstractProtocol;
 import org.itxtech.synapseapi.multiprotocol.PacketRegister;
@@ -47,6 +48,7 @@ import java.util.Map.Entry;
 import java.util.stream.Collectors;
 
 import static cn.nukkit.GameVersion.*;
+import static org.itxtech.synapseapi.SynapseSharedConstants.*;
 
 /**
  * @author boybook
@@ -262,6 +264,9 @@ public class SynapseAPI extends PluginBase implements Listener {
                 return false;
             }
         });
+        if (NETWORK_STACK_LATENCY_TELEMETRY) {
+            this.getServer().getCommandMap().register("synapse", new LatencyCommand(this));
+        }
     }
 
     public TransferDimensionTaskThread getTransferDimensionTaskThread() {

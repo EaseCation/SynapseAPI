@@ -134,7 +134,7 @@ public class SynapseEntryPutPacketThread extends Thread {
     @Override
     public void run() {
         while (this.isRunning) {
-            long start = System.currentTimeMillis();
+//            long start = System.currentTimeMillis();
             Entry entry;
             while ((entry = queue.poll()) != null) {
                 try {
@@ -366,14 +366,18 @@ public class SynapseEntryPutPacketThread extends Thread {
                 }
             }
 
-            tickUseTime = System.currentTimeMillis() - start;
+            try {
+                Thread.sleep(1);
+            } catch (InterruptedException ignored) {
+            }
+            /*tickUseTime = System.currentTimeMillis() - start;
             if (tickUseTime < 50){
                 try {
                     Thread.sleep(50 - tickUseTime);
                 } catch (InterruptedException e) {
                     //ignore
                 }
-            } /*else if (System.currentTimeMillis() - lastWarning >= 5000) {
+            }*/ /*else if (System.currentTimeMillis() - lastWarning >= 5000) {
                 Server.getInstance().getLogger().warning("SynapseOutgoing<" + synapseInterface.getSynapse().getHash() + "> Async Thread is overloading! TPS: " + getTicksPerSecond() + " tickUseTime: " + tickUseTime);
                 lastWarning = System.currentTimeMillis();
             }*/
@@ -382,16 +386,18 @@ public class SynapseEntryPutPacketThread extends Thread {
 
     private byte[] deflate(byte[] data, int level) throws Exception {
 //        if (deflater == null) throw new IllegalArgumentException("No deflate for level "+level+" !");
-        deflater.reset();
-        deflater.setInput(data);
-        deflater.finish();
-        ByteArrayOutputStream bos = new ByteArrayOutputStream(data.length);
-        while (!deflater.finished()) {
-            int i = deflater.deflate(buf);
-            bos.write(buf, 0, i);
+        try {
+            deflater.setInput(data);
+            deflater.finish();
+            ByteArrayOutputStream bos = new ByteArrayOutputStream(data.length);
+            while (!deflater.finished()) {
+                int i = deflater.deflate(buf);
+                bos.write(buf, 0, i);
+            }
+            return bos.toByteArray();
+        } finally {
+            deflater.reset();
         }
-        //Deflater::end is called the time when the process exits.
-        return bos.toByteArray();
     }
 
     private static class Entry {

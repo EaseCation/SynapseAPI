@@ -27,7 +27,10 @@ import org.itxtech.synapseapi.multiprotocol.utils.LevelSoundEventEnum;
 import java.net.InetSocketAddress;
 import java.util.concurrent.ThreadLocalRandom;
 
+import static org.itxtech.synapseapi.SynapseSharedConstants.*;
+
 public class SynapsePlayer19 extends SynapsePlayer18 {
+	private boolean pingNeedUpdate;
 
 	public SynapsePlayer19(SourceInterface interfaz, SynapseEntry synapseEntry, Long clientID, InetSocketAddress socketAddress) {
 		super(interfaz, synapseEntry, clientID, socketAddress);
@@ -86,8 +89,23 @@ public class SynapsePlayer19 extends SynapsePlayer18 {
 				break;
 			case ProtocolInfo.NETWORK_STACK_LATENCY_PACKET:
 				NetworkStackLatencyPacket19 networkStackLatencyPacket = (NetworkStackLatencyPacket19) packet;
-				long legacy = System.currentTimeMillis() - networkStackLatencyPacket.timestamp;
-				new SynapsePlayerNetworkStackLatencyUpdateEvent(this, networkStackLatencyPacket.timestamp, legacy).call();
+				if (!networkStackLatencyPacket.isFromServer) {
+					NetworkStackLatencyPacket19 pong = new NetworkStackLatencyPacket19();
+					pong.isFromServer = false;
+					pong.timestamp = networkStackLatencyPacket.timestamp;
+					dataPacket(pong);
+					break;
+				}
+
+				if (NETWORK_STACK_LATENCY_TELEMETRY) {
+					latencyNs = System.nanoTime() - pingNs;
+					ping();
+				}
+
+				if (pingNeedUpdate) {
+					pingNeedUpdate = false;
+					new SynapsePlayerNetworkStackLatencyUpdateEvent(this, networkStackLatencyPacket.timestamp, latencyNs).call();
+				}
 				break;
 			case ProtocolInfo.LECTERN_UPDATE_PACKET:
 				if (getProtocol() >= AbstractProtocol.PROTOCOL_111.getProtocolStart()) {
@@ -244,10 +262,17 @@ public class SynapsePlayer19 extends SynapsePlayer18 {
 
 	@Override
 	public void requestPing() {
-		NetworkStackLatencyPacket19 packet = new NetworkStackLatencyPacket19();
-		packet.timestamp = System.currentTimeMillis();
-		packet.isFromServer = true;
-		this.dataPacket(packet);
+		pingNeedUpdate = true;
 	}
 
+	@Override
+	public void ping() {
+		long time = System.nanoTime();
+		pingNs = time;
+
+		NetworkStackLatencyPacket19 packet = new NetworkStackLatencyPacket19();
+		packet.isFromServer = true;
+		packet.timestamp = time;
+		dataPacket(packet);
+	}
 }
