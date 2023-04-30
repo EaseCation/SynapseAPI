@@ -292,6 +292,7 @@ public class SynapsePlayer16 extends SynapsePlayer14 {
 		return resoucePacket;
 	}
 
+	@Override
 	protected void doFirstSpawn() {
 		if (this.spawnStatusSent) {
 			return;
@@ -417,6 +418,7 @@ public class SynapsePlayer16 extends SynapsePlayer14 {
 		this.sendPyRpcData(data);
 	}
 
+	@Override
 	public void ping() {
 		long time = System.nanoTime();
 		pingNs = time;

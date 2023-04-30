@@ -67,6 +67,8 @@ import org.msgpack.value.Value;
 import java.net.InetSocketAddress;
 import java.util.*;
 
+import static org.itxtech.synapseapi.SynapseSharedConstants.*;
+
 /**
  * Created by boybook on 16/6/24.
  */
@@ -443,7 +445,7 @@ public class SynapsePlayer extends Player {
                 playSoundPacket.volume = 1;
                 dataPacket(playSoundPacket);
             } else {
-                long flags = (long) (1 << Entity.DATA_FLAG_IMMOBILE);
+                long flags = 1 << Entity.DATA_FLAG_IMMOBILE;
                 this.sendData(this, new EntityMetadata().putLong(Entity.DATA_FLAGS, flags));
             }
         }
@@ -502,6 +504,10 @@ public class SynapsePlayer extends Player {
 
         this.server.addOnlinePlayer(this);
         this.server.onPlayerCompleteLoginSequence(this);
+
+        if (NETWORK_STACK_LATENCY_TELEMETRY) {
+            this.ping();
+        }
     }
 
 	protected DataPacket generateStartGamePacket(Position spawnPosition) {
@@ -1384,6 +1390,10 @@ public class SynapsePlayer extends Player {
 
     public void requestPing() {
         // SynapsePlayer19 实现
+    }
+
+    public void ping() {
+        // 1.6+
     }
 
     /**

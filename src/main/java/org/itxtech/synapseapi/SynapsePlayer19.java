@@ -97,6 +97,10 @@ public class SynapsePlayer19 extends SynapsePlayer18 {
 					break;
 				}
 
+				if (pingNs == 0) {
+					break;
+				}
+
 				if (NETWORK_STACK_LATENCY_TELEMETRY) {
 					latencyNs = System.nanoTime() - pingNs;
 					ping();

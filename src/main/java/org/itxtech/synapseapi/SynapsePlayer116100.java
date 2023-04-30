@@ -615,16 +615,6 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
 
         packetswitch:
         switch (packet.pid()) {
-            case ProtocolInfo.SET_LOCAL_PLAYER_AS_INITIALIZED_PACKET:
-                if (!callPacketReceiveEvent(packet)) {
-                    break;
-                }
-                this.locallyInitialized = true;
-
-                if (NETWORK_STACK_LATENCY_TELEMETRY) {
-                    this.ping();
-                }
-                break;
             case ProtocolInfo.RESOURCE_PACK_CLIENT_RESPONSE_PACKET:
                 if (!callPacketReceiveEvent(packet)) break;
                 ResourcePackClientResponsePacket16 responsePacket = (ResourcePackClientResponsePacket16) packet;

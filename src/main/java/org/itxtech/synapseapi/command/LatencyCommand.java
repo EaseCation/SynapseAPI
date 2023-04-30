@@ -14,7 +14,7 @@ public class LatencyCommand extends Command implements PluginIdentifiableCommand
     private final Plugin plugin;
 
     public LatencyCommand(Plugin plugin) {
-        super("latency", "latency telemetry (1s = 20ticks, 1tick = 50ms)", "/latency");
+        super("latency", "latency telemetry", "/latency");
         setPermission("synapseapi.command.latency");
         commandParameters.clear();
         this.plugin = plugin;
@@ -34,7 +34,7 @@ public class LatencyCommand extends Command implements PluginIdentifiableCommand
         SynapsePlayer player = (SynapsePlayer) sender;
         float latencyMs = player.getLatency() / 1_000_000f;
         int latencyTicks = Math.round(latencyMs / 50);
-        player.sendMessage("ping: " + latencyTicks + " ticks (" + latencyMs + " ms)");
+        player.sendMessage("ping: " + latencyTicks + " ticks (" + latencyMs + " ms)\ntps: " + sender.getServer().getTicksPerSecondRaw());
         return true;
     }
 
