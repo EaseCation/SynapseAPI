@@ -337,13 +337,7 @@ public class SynapsePlayer16 extends SynapsePlayer14 {
 
 		this.sendRecipeList();
 
-		if (this.gamemode == Player.SPECTATOR) {
-			InventoryContentPacket inventoryContentPacket = new InventoryContentPacket();
-			inventoryContentPacket.inventoryId = ContainerIds.CREATIVE;
-			this.dataPacket(inventoryContentPacket);
-		} else {
-			this.sendCreativeContents();
-		}
+		this.sendCreativeContents();
 
 		for (long index : this.usedChunks.keySet()) {
 			int chunkX = Level.getHashX(index);
