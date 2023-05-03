@@ -75,6 +75,8 @@ public class SynapseEntry {
         PACKET_COUNT_LIMIT[ProtocolInfo.LEVEL_SOUND_EVENT_PACKET] = 30;
         PACKET_COUNT_LIMIT[ProtocolInfo.LEVEL_SOUND_EVENT_PACKET_V2] = 30;
         PACKET_COUNT_LIMIT[ProtocolInfo.LEVEL_SOUND_EVENT_PACKET_V3] = 30;
+        PACKET_COUNT_LIMIT[ProtocolInfo.COMMAND_REQUEST_PACKET] = 5;
+        PACKET_COUNT_LIMIT[ProtocolInfo.SETTINGS_COMMAND_PACKET] = 5;
     }
 
     // private final Timing handleDataPacketTiming = TimingsManager.getTiming("SynapseEntry - HandleDataPacket");

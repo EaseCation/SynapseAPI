@@ -1424,6 +1424,8 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
                     break;
                 }
 
+                this.violation += 5;
+
                 if (!this.spawned || !this.isAlive()) {
                     break;
                 }

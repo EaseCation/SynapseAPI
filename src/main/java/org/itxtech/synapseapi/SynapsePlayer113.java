@@ -664,6 +664,8 @@ public class SynapsePlayer113 extends SynapsePlayer112 {
 				this.dataPacket(tickSyncResponse);
 				break;
 			case ProtocolInfo.SETTINGS_COMMAND_PACKET:
+				this.violation += 5;
+
 				if (!callPacketReceiveEvent(packet)) {
 					break;
 				}
