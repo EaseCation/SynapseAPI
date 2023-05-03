@@ -371,9 +371,9 @@ public class SynapseEntryPutPacketThread extends Thread {
             } catch (InterruptedException ignored) {
             }
             /*tickUseTime = System.currentTimeMillis() - start;
-            if (tickUseTime < 50){
+            if (tickUseTime < 10){
                 try {
-                    Thread.sleep(50 - tickUseTime);
+                    Thread.sleep(10 - tickUseTime);
                 } catch (InterruptedException e) {
                     //ignore
                 }
@@ -425,9 +425,9 @@ public class SynapseEntryPutPacketThread extends Thread {
     }
 
     public double getTicksPerSecond() {
-        long more = this.tickUseTime - 50;
-        if (more <= 0) return 20;
-        return NukkitMath.round(50d / this.tickUseTime, 3) * 20;
+        long more = this.tickUseTime - 10;
+        if (more <= 0) return 100;
+        return NukkitMath.round(10d / this.tickUseTime, 3) * 100;
     }
 
     private static BatchPacket batchPackets(DataPacket[] packets, AbstractProtocol protocol) {

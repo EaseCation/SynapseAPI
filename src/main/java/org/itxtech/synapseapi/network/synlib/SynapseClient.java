@@ -1,5 +1,6 @@
 package org.itxtech.synapseapi.network.synlib;
 
+import cn.nukkit.Server;
 import cn.nukkit.utils.ThreadedLogger;
 import com.nukkitx.network.util.Bootstraps;
 import com.nukkitx.network.util.EventLoops;
@@ -144,7 +145,7 @@ public class SynapseClient extends Thread {
             this.connect();
             this.session.run();
         } catch (Exception e) {
-            log.throwing(e);
+            Server.getInstance().getLogger().logException(e);
         }
     }
 

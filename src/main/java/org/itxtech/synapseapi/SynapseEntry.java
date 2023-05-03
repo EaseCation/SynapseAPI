@@ -234,7 +234,7 @@ public class SynapseEntry {
         BroadcastPacket broadcastPacket = new BroadcastPacket();
         broadcastPacket.direct = direct;
         broadcastPacket.payload = packet.getBuffer();
-        broadcastPacket.entries = new ArrayList<>();
+        broadcastPacket.entries = new ObjectArrayList<>();
         for (SynapsePlayer player : players) {
             broadcastPacket.entries.add(player.getUniqueId());
         }
@@ -275,9 +275,9 @@ public class SynapseEntry {
             while (Server.getInstance().isRunning()) {
                 threadTick();
                 tickUseTime = System.currentTimeMillis() - startTime;
-                if (tickUseTime < 50) {
+                if (tickUseTime < 10) {
                     try{
-                        Thread.sleep(50 - tickUseTime);
+                        Thread.sleep(10 - tickUseTime);
                     } catch (InterruptedException ignore) {}
                 } else if (System.currentTimeMillis() - lastWarning >= 5000) {
                     Server.getInstance().getLogger().warning("SynapseEntry<" + getHash() + "> Async Thread is overloading! TPS: " + getTicksPerSecond() + " tickUseTime: " + tickUseTime);
@@ -288,9 +288,9 @@ public class SynapseEntry {
         }
 
         public double getTicksPerSecond() {
-            long more = this.tickUseTime - 50;
-            if (more <= 0) return 20;
-            return NukkitMath.round(50d / this.tickUseTime, 3) * 20;
+            long more = this.tickUseTime - 10;
+            if (more <= 0) return 100;
+            return NukkitMath.round(10d / this.tickUseTime, 3) * 100;
         }
     }
 
@@ -412,7 +412,7 @@ public class SynapseEntry {
         long finalTime = System.currentTimeMillis();
         //long usedTime = finalTime - time;
         //this.getSynapse().getServer().getLogger().warning(time + " -> threadTick 用时 " + usedTime + " 毫秒");
-        if(((finalTime - this.lastUpdate) >= 30000) && this.synapseInterface.isConnected()){  //30 seconds timeout
+        if (((finalTime - this.lastUpdate) >= 30000) && this.synapseInterface.isConnected()) {  //30 seconds timeout
             this.synapseInterface.reconnect();
         }
     }
@@ -463,7 +463,7 @@ public class SynapseEntry {
                         try {
                             this.clientData = JsonUtil.COMMON_JSON_MAPPER.readValue(informationPacket.message, ClientData.class);
                         } catch (JsonProcessingException e) {
-                            log.throwing(e);
+                            synapse.getServer().getLogger().logException(e);
                         }
                         this.lastRecvInfo = System.currentTimeMillis();
                         //this.getSynapse().getLogger().debug("Received ClientData from " + this.serverIp + ":" + this.port);
@@ -478,7 +478,7 @@ public class SynapseEntry {
                                 }
                             });
                         } catch (JsonProcessingException e) {
-                            log.throwing(e);
+                            synapse.getServer().getLogger().logException(e);
                         }
                         break;
                 }
@@ -548,7 +548,9 @@ public class SynapseEntry {
                                         tooManyPackets = true;
                                         continue;
                                     }
+
                                     this.redirectPacketQueue.offer(new RedirectPacketEntry(player, subPacket));
+
                                     if (SynapseAPI.getInstance().isNetworkBroadcastPlayerMove() && player.isOnline()) {
                                         //玩家体验优化：直接不经过主线程广播玩家移动，插件过度干预可能会造成移动鬼畜问题
                                         if (subPacket instanceof MovePlayerPacket) {
@@ -562,7 +564,7 @@ public class SynapseEntry {
                                             ((MovePlayerPacket) subPacket).eid = player.getId();
                                             subPacket.setChannel(DataPacket.CHANNEL_PLAYER_MOVING);
                                             MovePlayerPacket116100NE newMovePacket = null;
-                                            for (Player viewer : new ArrayList<>(player.getViewers().values())) {
+                                            for (Player viewer : new ObjectArrayList<>(player.getViewers().values())) {
                                                 if (viewer.getProtocol() >= AbstractProtocol.PROTOCOL_116_100.getProtocolStart()) {
                                                     if (newMovePacket == null) {
                                                         newMovePacket = new MovePlayerPacket116100NE();
@@ -585,7 +587,7 @@ public class SynapseEntry {
                                             ((MovePlayerPacket116100NE) subPacket).eid = player.getId();
                                             subPacket.setChannel(DataPacket.CHANNEL_PLAYER_MOVING);
                                             MovePlayerPacket oldMovePacket = null;
-                                            for (Player viewer : new ArrayList<>(player.getViewers().values())) {
+                                            for (Player viewer : new ObjectArrayList<>(player.getViewers().values())) {
                                                 if (viewer.getProtocol() < AbstractProtocol.PROTOCOL_116_100.getProtocolStart()) {
                                                     if (oldMovePacket == null) {
                                                         oldMovePacket = new MovePlayerPacket();
@@ -633,7 +635,7 @@ public class SynapseEntry {
                                                 //packet.int1 = authInputPacket.int1;
                                                 //packet.int2 = authInputPacket.int2;
                                                 packet.setChannel(DataPacket.CHANNEL_PLAYER_MOVING);
-                                                for (Player viewer : new ArrayList<>(player.getViewers().values())) {
+                                                for (Player viewer : new ObjectArrayList<>(player.getViewers().values())) {
                                                     viewer.dataPacket(packet);
                                                 }
                                             }
