@@ -13,7 +13,6 @@ import cn.nukkit.level.Position;
 import cn.nukkit.math.Vector3;
 import cn.nukkit.network.SourceInterface;
 import cn.nukkit.network.protocol.*;
-import cn.nukkit.network.protocol.types.ContainerIds;
 import cn.nukkit.resourcepacks.ResourcePack;
 import cn.nukkit.utils.MainLogger;
 import cn.nukkit.utils.TextFormat;
@@ -43,7 +42,7 @@ import java.util.Optional;
 import java.util.concurrent.ThreadLocalRandom;
 
 import static cn.nukkit.SharedConstants.RESOURCE_PACK_CHUNK_SIZE;
-import static org.itxtech.synapseapi.SynapseSharedConstants.*;
+import static org.itxtech.synapseapi.SynapseSharedConstants.NETWORK_STACK_LATENCY_TELEMETRY;
 
 public class SynapsePlayer16 extends SynapsePlayer14 {
 	private static final Gson GSON = new Gson();
@@ -199,6 +198,30 @@ public class SynapsePlayer16 extends SynapsePlayer14 {
 									Server.getInstance().getPluginManager().callEvent(modEventC2SEvent);
 								}
 							} else if ("StoreBuySuccServerEvent".equals(value0.get(0).getAsString())) {
+								SynapsePlayerNetEaseStoreBuySuccEvent ev = new SynapsePlayerNetEaseStoreBuySuccEvent(this);
+								Server.getInstance().getPluginManager().callEvent(ev);
+							}
+						}
+					} else if (data.isArrayValue()) {
+						String json = data.toJson();
+						JsonArray array = GSON.fromJson(json, JsonArray.class);
+						if (array.size() >= 1 && array.get(0).isJsonPrimitive()) {
+							String type = array.get(0).getAsString();
+							if ("ModEventC2S".equals(type) && array.size() >= 2 && array.get(1).isJsonArray()) {
+								JsonArray value0 = array.get(1).getAsJsonArray();
+								String modName = value0.get(0).getAsString();
+								String systemName = value0.get(1).getAsString();
+								String eventName = value0.get(2).getAsString();
+								JsonObject eventData = value0.get(3).getAsJsonObject();
+								NetEasePlayerModEventC2SEvent modEventC2SEvent = new NetEasePlayerModEventC2SEvent(
+										this,
+										modName,
+										systemName,
+										eventName,
+										eventData
+								);
+								Server.getInstance().getPluginManager().callEvent(modEventC2SEvent);
+							} else if ("StoreBuySuccServerEvent".equals(type)) {
 								SynapsePlayerNetEaseStoreBuySuccEvent ev = new SynapsePlayerNetEaseStoreBuySuccEvent(this);
 								Server.getInstance().getPluginManager().callEvent(ev);
 							}
