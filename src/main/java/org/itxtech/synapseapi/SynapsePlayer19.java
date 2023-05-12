@@ -123,7 +123,7 @@ public class SynapsePlayer19 extends SynapsePlayer18 {
 					if (block.getId() != BlockID.LECTERN) {
 						break;
 					}
-					BlockEntity blockEntity = level.getBlockEntity(block);
+					BlockEntity blockEntity = level.getBlockEntityIfLoaded(block);
 					if (!(blockEntity instanceof BlockEntityLectern)) {
 						break;
 					}
@@ -161,7 +161,7 @@ public class SynapsePlayer19 extends SynapsePlayer18 {
 					if (block.getId() != BlockID.LECTERN) {
 						break;
 					}
-					BlockEntity blockEntity = level.getBlockEntity(block);
+					BlockEntity blockEntity = level.getBlockEntityIfLoaded(block);
 					if (!(blockEntity instanceof BlockEntityLectern)) {
 						break;
 					}

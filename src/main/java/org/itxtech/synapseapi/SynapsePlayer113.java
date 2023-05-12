@@ -453,7 +453,7 @@ public class SynapsePlayer113 extends SynapsePlayer112 {
 									target = this.level.getBlock(blockVector.asVector3());
 									this.level.sendBlocks(new Player[]{this}, new Block[]{target}, UpdateBlockPacket.FLAG_ALL_PRIORITY);
 
-									BlockEntity blockEntity = this.level.getBlockEntity(blockVector.asVector3());
+									BlockEntity blockEntity = this.level.getBlockEntityIfLoaded(blockVector);
 									if (blockEntity instanceof BlockEntitySpawnable) {
 										((BlockEntitySpawnable) blockEntity).spawnTo(this);
 									}

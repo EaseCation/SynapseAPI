@@ -835,7 +835,7 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
 
                             level.sendBlocks(new Player[]{this}, new Block[]{block}, UpdateBlockPacket.FLAG_ALL_PRIORITY);
 
-                            BlockEntity blockEntity = level.getBlockEntity(blockPos);
+                            BlockEntity blockEntity = level.getBlockEntityIfLoaded(blockPos);
                             if (blockEntity instanceof BlockEntitySpawnable) {
                                 ((BlockEntitySpawnable) blockEntity).spawnTo(this);
                             }
@@ -855,7 +855,7 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
 
                             level.sendBlocks(new Player[]{this}, new Block[]{block}, UpdateBlockPacket.FLAG_ALL_PRIORITY);
 
-                            BlockEntity blockEntity = level.getBlockEntity(blockPos);
+                            BlockEntity blockEntity = level.getBlockEntityIfLoaded(blockPos);
                             if (blockEntity instanceof BlockEntitySpawnable) {
                                 ((BlockEntitySpawnable) blockEntity).spawnTo(this);
                             }
@@ -977,7 +977,7 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
                                     }
                                 case Block.BLOCK_FRAME:
                                 case Block.BLOCK_GLOW_FRAME:
-                                    BlockEntity itemFrame = this.level.getBlockEntity(pos);
+                                    BlockEntity itemFrame = this.level.getBlockEntityIfLoaded(pos);
                                     if (itemFrame instanceof BlockEntityItemFrame && ((BlockEntityItemFrame) itemFrame).dropItem(this)) {
                                         break actionswitch;
                                     }
@@ -1129,7 +1129,7 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
 
                                 level.sendBlocks(new Player[]{this}, new Block[]{block}, UpdateBlockPacket.FLAG_ALL_PRIORITY);
 
-                                BlockEntity blockEntity = level.getBlockEntity(blockPos);
+                                BlockEntity blockEntity = level.getBlockEntityIfLoaded(blockPos);
                                 if (blockEntity instanceof BlockEntitySpawnable) {
                                     ((BlockEntitySpawnable) blockEntity).spawnTo(this);
                                 }
@@ -1149,7 +1149,7 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
 
                                 level.sendBlocks(new Player[]{this}, new Block[]{block}, UpdateBlockPacket.FLAG_ALL_PRIORITY);
 
-                                BlockEntity blockEntity = level.getBlockEntity(blockPos);
+                                BlockEntity blockEntity = level.getBlockEntityIfLoaded(blockPos);
                                 if (blockEntity instanceof BlockEntitySpawnable) {
                                     ((BlockEntitySpawnable) blockEntity).spawnTo(this);
                                 }
@@ -1221,7 +1221,7 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
                                 }
                             case Block.BLOCK_FRAME:
                             case Block.BLOCK_GLOW_FRAME:
-                                BlockEntity itemFrame = this.level.getBlockEntity(pos);
+                                BlockEntity itemFrame = this.level.getBlockEntityIfLoaded(pos);
                                 if (itemFrame instanceof BlockEntityItemFrame && ((BlockEntityItemFrame) itemFrame).dropItem(this)) {
                                     break actionswitch;
                                 }

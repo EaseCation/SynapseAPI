@@ -429,7 +429,7 @@ public class SynapsePlayer116 extends SynapsePlayer113 {
 									target = this.level.getBlock(blockVector.asVector3());
 									this.level.sendBlocks(new Player[]{this}, new Block[]{target}, UpdateBlockPacket.FLAG_ALL_PRIORITY);
 
-									BlockEntity blockEntity = this.level.getBlockEntity(blockVector.asVector3());
+									BlockEntity blockEntity = this.level.getBlockEntityIfLoaded(blockVector);
 									if (blockEntity instanceof BlockEntitySpawnable) {
 										((BlockEntitySpawnable) blockEntity).spawnTo(this);
 									}
@@ -819,7 +819,7 @@ public class SynapsePlayer116 extends SynapsePlayer113 {
 										}
 									case Block.BLOCK_FRAME:
 									case Block.BLOCK_GLOW_FRAME:
-										BlockEntity itemFrame = this.level.getBlockEntity(pos);
+										BlockEntity itemFrame = this.level.getBlockEntityIfLoaded(pos);
 										if (itemFrame instanceof BlockEntityItemFrame && ((BlockEntityItemFrame) itemFrame).dropItem(this)) {
 											break actionswitch;
 										}
@@ -879,7 +879,7 @@ public class SynapsePlayer116 extends SynapsePlayer113 {
 									target = this.level.getExtraBlock(pos);
 									this.level.sendBlocks(new Player[]{this}, new Block[]{target}, UpdateBlockPacket.FLAG_ALL_PRIORITY, 1);
 
-									BlockEntity blockEntity = this.level.getBlockEntity(pos);
+									BlockEntity blockEntity = this.level.getBlockEntityIfLoaded(pos);
 									if (blockEntity instanceof BlockEntitySpawnable) {
 										((BlockEntitySpawnable) blockEntity).spawnTo(this);
 									}
@@ -1149,7 +1149,7 @@ public class SynapsePlayer116 extends SynapsePlayer113 {
 									target = this.level.getBlock(blockVector.asVector3());
 									this.level.sendBlocks(new Player[]{this}, new Block[]{target}, UpdateBlockPacket.FLAG_ALL_PRIORITY);
 
-									BlockEntity blockEntity = this.level.getBlockEntity(blockVector.asVector3());
+									BlockEntity blockEntity = this.level.getBlockEntityIfLoaded(blockVector);
 									if (blockEntity instanceof BlockEntitySpawnable) {
 										((BlockEntitySpawnable) blockEntity).spawnTo(this);
 									}
