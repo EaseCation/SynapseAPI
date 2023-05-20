@@ -17,6 +17,14 @@ public final class SynapseSharedConstants {
     public static final boolean FORCE_NETEASE_PLAYER = false;
 
     /**
+     * Enables Movement Anti-Cheat?
+     */
+    public static final boolean SERVER_AUTHORITATIVE_MOVEMENT = true;
+    /**
+     * Enables Block Breaking Anti-Cheat? (Server Authoritative Movement is required)
+     */
+    public static final boolean SERVER_AUTHORITATIVE_BLOCK_BREAKING = true;
+    /**
      * Enables Movement Anti-Cheat debug message output?
      */
     public static final boolean MAC_DEBUG = false;

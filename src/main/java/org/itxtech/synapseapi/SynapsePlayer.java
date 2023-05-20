@@ -104,6 +104,9 @@ public class SynapsePlayer extends Player {
     int incomingPacketBatchBudget = INCOMING_PACKET_BATCH_MAX_BUDGET;
     long lastPacketBudgetUpdateTimeNs;
 
+    long lastAuthInputPacketTick = -1;
+    float lastAuthInputY;
+
     public SynapsePlayer(SourceInterface interfaz, SynapseEntry synapseEntry, Long clientID, InetSocketAddress socketAddress) {
         super(interfaz, clientID, socketAddress);
         this.synapseEntry = synapseEntry;
@@ -1401,5 +1404,9 @@ public class SynapsePlayer extends Player {
      */
     public long getLatency() {
         return -1;
+    }
+
+    public boolean isServerAuthoritativeMovementEnabled() {
+        return false;
     }
 }

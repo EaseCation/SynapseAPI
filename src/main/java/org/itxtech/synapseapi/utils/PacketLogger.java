@@ -41,5 +41,6 @@ public final class PacketLogger {
         SERVERBOUND_FILTER[ProtocolInfo.CLIENT_CACHE_BLOB_STATUS_PACKET] = true;
         SERVERBOUND_FILTER[ProtocolInfo.SUB_CHUNK_REQUEST_PACKET] = true;
         SERVERBOUND_FILTER[ProtocolInfo.ANIMATE_PACKET] = true;
+        SERVERBOUND_FILTER[ProtocolInfo.NETWORK_STACK_LATENCY_PACKET] = true;
     }
 }

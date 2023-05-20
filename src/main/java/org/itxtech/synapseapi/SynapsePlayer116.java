@@ -50,15 +50,19 @@ import java.net.InetSocketAddress;
 import java.util.*;
 import java.util.concurrent.ThreadLocalRandom;
 
+import static org.itxtech.synapseapi.SynapseSharedConstants.*;
+
 @Log4j2
 public class SynapsePlayer116 extends SynapsePlayer113 {
 
 	protected boolean inventoryOpen;
 
+	protected boolean serverAuthoritativeMovement = SERVER_AUTHORITATIVE_MOVEMENT;
+
 	/**
 	 * Server Authoritative Movement is required.
 	 */
-	protected boolean serverAuthoritativeBlockBreaking = true;
+	protected boolean serverAuthoritativeBlockBreaking = SERVER_AUTHORITATIVE_BLOCK_BREAKING;
 	protected BlockFace breakingBlockFace;
 
 	private int currentTickAttackPacketCount = 0;
@@ -1253,6 +1257,12 @@ public class SynapsePlayer116 extends SynapsePlayer113 {
 				}
 
 				break;
+			case ProtocolInfo.MOVE_PLAYER_PACKET:
+				if (this.serverAuthoritativeMovement) {
+					break;
+				}
+				super.handleDataPacket(packet);
+				break;
 			default:
 				super.handleDataPacket(packet);
 				break;
@@ -1330,6 +1340,11 @@ public class SynapsePlayer116 extends SynapsePlayer113 {
 		pk.windowId = this.getWindowId(this.inventory);
 		pk.wasServerInitiated = this.closingWindowId != pk.windowId;
 		this.dataPacket(pk);
+	}
+
+	@Override
+	public boolean isServerAuthoritativeMovementEnabled() {
+		return serverAuthoritativeMovement;
 	}
 
 	@Override

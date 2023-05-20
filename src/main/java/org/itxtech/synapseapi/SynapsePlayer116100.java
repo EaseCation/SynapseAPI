@@ -184,8 +184,8 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
             startGamePacket.worldName = this.getServer().getNetwork().getName();
             startGamePacket.generator = 1; // 0 old, 1 infinite, 2 flat
             startGamePacket.gameRules = getSupportedRules();
-//            startGamePacket.movementType = StartGamePacket11960.MOVEMENT_SERVER_AUTHORITATIVE;
-//            startGamePacket.isBlockBreakingServerAuthoritative = this.serverAuthoritativeBlockBreaking;
+            startGamePacket.movementType = serverAuthoritativeMovement ? StartGamePacket11960.MOVEMENT_SERVER_AUTHORITATIVE : StartGamePacket11960.MOVEMENT_CLIENT_AUTHORITATIVE;
+            startGamePacket.isBlockBreakingServerAuthoritative = this.serverAuthoritativeBlockBreaking;
             startGamePacket.currentTick = this.server.getTick();
             startGamePacket.enchantmentSeed = ThreadLocalRandom.current().nextInt();
             return startGamePacket;
@@ -217,8 +217,8 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
             startGamePacket.worldName = this.getServer().getNetwork().getName();
             startGamePacket.generator = 1; // 0 old, 1 infinite, 2 flat
             startGamePacket.gameRules = getSupportedRules();
-//            startGamePacket.movementType = StartGamePacket11960.MOVEMENT_SERVER_AUTHORITATIVE;
-//            startGamePacket.isBlockBreakingServerAuthoritative = this.serverAuthoritativeBlockBreaking;
+            startGamePacket.movementType = serverAuthoritativeMovement ? StartGamePacket11960.MOVEMENT_SERVER_AUTHORITATIVE : StartGamePacket11960.MOVEMENT_CLIENT_AUTHORITATIVE;
+            startGamePacket.isBlockBreakingServerAuthoritative = this.serverAuthoritativeBlockBreaking;
             startGamePacket.currentTick = this.server.getTick();
             startGamePacket.enchantmentSeed = ThreadLocalRandom.current().nextInt();
             return startGamePacket;
@@ -250,8 +250,8 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
             startGamePacket.worldName = this.getServer().getNetwork().getName();
             startGamePacket.generator = 1; // 0 old, 1 infinite, 2 flat
             startGamePacket.gameRules = getSupportedRules();
-//            startGamePacket.movementType = StartGamePacket11920.MOVEMENT_SERVER_AUTHORITATIVE;
-//            startGamePacket.isBlockBreakingServerAuthoritative = this.serverAuthoritativeBlockBreaking;
+            startGamePacket.movementType = serverAuthoritativeMovement ? StartGamePacket11920.MOVEMENT_SERVER_AUTHORITATIVE : StartGamePacket11920.MOVEMENT_CLIENT_AUTHORITATIVE;
+            startGamePacket.isBlockBreakingServerAuthoritative = this.serverAuthoritativeBlockBreaking;
             startGamePacket.currentTick = this.server.getTick();
             startGamePacket.enchantmentSeed = ThreadLocalRandom.current().nextInt();
             return startGamePacket;
@@ -283,8 +283,8 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
             startGamePacket.worldName = this.getServer().getNetwork().getName();
             startGamePacket.generator = 1; // 0 old, 1 infinite, 2 flat
             startGamePacket.gameRules = getSupportedRules();
-//            startGamePacket.movementType = StartGamePacket11910.MOVEMENT_SERVER_AUTHORITATIVE;
-//            startGamePacket.isBlockBreakingServerAuthoritative = this.serverAuthoritativeBlockBreaking;
+            startGamePacket.movementType = serverAuthoritativeMovement ? StartGamePacket11910.MOVEMENT_SERVER_AUTHORITATIVE : StartGamePacket11910.MOVEMENT_CLIENT_AUTHORITATIVE;
+            startGamePacket.isBlockBreakingServerAuthoritative = this.serverAuthoritativeBlockBreaking;
             startGamePacket.currentTick = this.server.getTick();
             startGamePacket.enchantmentSeed = ThreadLocalRandom.current().nextInt();
             return startGamePacket;
@@ -316,8 +316,8 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
             startGamePacket.worldName = this.getServer().getNetwork().getName();
             startGamePacket.generator = 1; // 0 old, 1 infinite, 2 flat
             startGamePacket.gameRules = getSupportedRules();
-//            startGamePacket.movementType = StartGamePacket119.MOVEMENT_SERVER_AUTHORITATIVE;
-//            startGamePacket.isBlockBreakingServerAuthoritative = this.serverAuthoritativeBlockBreaking;
+            startGamePacket.movementType = serverAuthoritativeMovement ? StartGamePacket119.MOVEMENT_SERVER_AUTHORITATIVE : StartGamePacket119.MOVEMENT_CLIENT_AUTHORITATIVE;
+            startGamePacket.isBlockBreakingServerAuthoritative = this.serverAuthoritativeBlockBreaking;
             startGamePacket.currentTick = this.server.getTick();
             startGamePacket.enchantmentSeed = ThreadLocalRandom.current().nextInt();
             return startGamePacket;
@@ -349,8 +349,8 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
             startGamePacket.worldName = this.getServer().getNetwork().getName();
             startGamePacket.generator = 1; // 0 old, 1 infinite, 2 flat
             startGamePacket.gameRules = getSupportedRules();
-//            startGamePacket.movementType = StartGamePacket11830NE.MOVEMENT_SERVER_AUTHORITATIVE;
-//            startGamePacket.isBlockBreakingServerAuthoritative = this.serverAuthoritativeBlockBreaking;
+            startGamePacket.movementType = serverAuthoritativeMovement ? StartGamePacket11830NE.MOVEMENT_SERVER_AUTHORITATIVE : StartGamePacket11830NE.MOVEMENT_CLIENT_AUTHORITATIVE;
+            startGamePacket.isBlockBreakingServerAuthoritative = this.serverAuthoritativeBlockBreaking;
             startGamePacket.currentTick = this.server.getTick();
             startGamePacket.enchantmentSeed = ThreadLocalRandom.current().nextInt();
             return startGamePacket;
@@ -382,8 +382,8 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
             startGamePacket.worldName = this.getServer().getNetwork().getName();
             startGamePacket.generator = 1; // 0 old, 1 infinite, 2 flat
             startGamePacket.gameRules = getSupportedRules();
-//            startGamePacket.movementType = StartGamePacket11830.MOVEMENT_SERVER_AUTHORITATIVE;
-//            startGamePacket.isBlockBreakingServerAuthoritative = this.serverAuthoritativeBlockBreaking;
+            startGamePacket.movementType = serverAuthoritativeMovement ? StartGamePacket11830.MOVEMENT_SERVER_AUTHORITATIVE : StartGamePacket11830.MOVEMENT_CLIENT_AUTHORITATIVE;
+            startGamePacket.isBlockBreakingServerAuthoritative = this.serverAuthoritativeBlockBreaking;
             startGamePacket.currentTick = this.server.getTick();
             startGamePacket.enchantmentSeed = ThreadLocalRandom.current().nextInt();
             return startGamePacket;
@@ -415,8 +415,8 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
             startGamePacket.worldName = this.getServer().getNetwork().getName();
             startGamePacket.generator = 1; // 0 old, 1 infinite, 2 flat
             startGamePacket.gameRules = getSupportedRules();
-//            startGamePacket.movementType = StartGamePacket118.MOVEMENT_SERVER_AUTHORITATIVE;
-//            startGamePacket.isBlockBreakingServerAuthoritative = this.serverAuthoritativeBlockBreaking;
+            startGamePacket.movementType = serverAuthoritativeMovement ? StartGamePacket118.MOVEMENT_SERVER_AUTHORITATIVE : StartGamePacket118.MOVEMENT_CLIENT_AUTHORITATIVE;
+            startGamePacket.isBlockBreakingServerAuthoritative = this.serverAuthoritativeBlockBreaking;
             startGamePacket.currentTick = this.server.getTick();
             startGamePacket.enchantmentSeed = ThreadLocalRandom.current().nextInt();
             return startGamePacket;
@@ -448,7 +448,7 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
             startGamePacket.worldName = this.getServer().getNetwork().getName();
             startGamePacket.generator = 1; // 0 old, 1 infinite, 2 flat
             startGamePacket.gameRules = getSupportedRules();
-            startGamePacket.movementType = StartGamePacket11730.MOVEMENT_SERVER_AUTHORITATIVE;
+            startGamePacket.movementType = serverAuthoritativeMovement ? StartGamePacket11730.MOVEMENT_SERVER_AUTHORITATIVE : StartGamePacket11730.MOVEMENT_CLIENT_AUTHORITATIVE;
             startGamePacket.isBlockBreakingServerAuthoritative = this.serverAuthoritativeBlockBreaking;
             startGamePacket.currentTick = this.server.getTick();
             startGamePacket.enchantmentSeed = ThreadLocalRandom.current().nextInt();
@@ -481,7 +481,7 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
             startGamePacket.worldName = this.getServer().getNetwork().getName();
             startGamePacket.generator = 1; // 0 old, 1 infinite, 2 flat
             startGamePacket.gameRules = getSupportedRules();
-            startGamePacket.movementType = StartGamePacket117.MOVEMENT_SERVER_AUTHORITATIVE;
+            startGamePacket.movementType = serverAuthoritativeMovement ? StartGamePacket117.MOVEMENT_SERVER_AUTHORITATIVE : StartGamePacket117.MOVEMENT_CLIENT_AUTHORITATIVE;
             startGamePacket.isBlockBreakingServerAuthoritative = this.serverAuthoritativeBlockBreaking;
             startGamePacket.currentTick = this.server.getTick();
             startGamePacket.enchantmentSeed = ThreadLocalRandom.current().nextInt();
@@ -514,7 +514,7 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
             startGamePacket.worldName = this.getServer().getNetwork().getName();
             startGamePacket.generator = 1; // 0 old, 1 infinite, 2 flat
             startGamePacket.gameRules = getSupportedRules();
-            startGamePacket.movementType = StartGamePacket116200.MOVEMENT_SERVER_AUTHORITATIVE;
+            startGamePacket.movementType = serverAuthoritativeMovement ? StartGamePacket116200.MOVEMENT_SERVER_AUTHORITATIVE : StartGamePacket116200.MOVEMENT_CLIENT_AUTHORITATIVE;
             // 启用后破坏方块时的物品栏事务就不会塞在PlayerAuthInputPacket了
             startGamePacket.isBlockBreakingServerAuthoritative = this.serverAuthoritativeBlockBreaking &&
                     //(!this.isNetEaseClient() && this.protocol > AbstractProtocol.PROTOCOL_116_200.getProtocolStart());
@@ -722,6 +722,10 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
                 }
                 break;
             case ProtocolInfo.MOVE_PLAYER_PACKET:
+                if (this.serverAuthoritativeMovement) {
+                    break;
+                }
+
                 if (this.teleportPosition != null) {
                     break;
                 }
@@ -751,7 +755,6 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
                 if (this.forceMovement != null && (newPos.distanceSquared(this.forceMovement) > 0.1 || revert)) {
                     this.sendPosition(this.forceMovement, this.yaw, this.pitch, MovePlayerPacket116100NE.MODE_TELEPORT);
                 } else {
-
                     movePlayerPacket.yaw %= 360;
                     movePlayerPacket.pitch %= 360;
 
