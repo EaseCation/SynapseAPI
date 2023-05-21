@@ -104,6 +104,8 @@ public class SynapsePlayer extends Player {
     int incomingPacketBatchBudget = INCOMING_PACKET_BATCH_MAX_BUDGET;
     long lastPacketBudgetUpdateTimeNs;
 
+    int violationIncomingThread;
+
     long lastAuthInputPacketTick = -1;
     float lastAuthInputY;
 
