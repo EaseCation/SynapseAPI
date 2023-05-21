@@ -694,23 +694,12 @@ public class SynapsePlayer116 extends SynapsePlayer113 {
 					this.close("", "Invalid movement");
 					return;
 				}
-				PlayerInputPacket ipk = (PlayerInputPacket) packet;
-				if (!validateVehicleInput(ipk.motionX) || !validateVehicleInput(ipk.motionY)) {
-					// this.getServer().getLogger().warning("Invalid vehicle input received: " + this.getName());
-					// 将ipk.motionX修正到-1~1之间
-					if (ipk.motionX > 1) {
-						ipk.motionX = 1;
-					} else if (ipk.motionX < -1) {
-						ipk.motionX = -1;
-					}
-					// 将ipk.motionY修正到-1~1之间
-					if (ipk.motionY > 1) {
-						ipk.motionY = 1;
-					} else if (ipk.motionY < -1) {
-						ipk.motionY = -1;
-					}
-					// this.close("", "Invalid vehicle input");
-					// return;
+				float moveVecX = playerAuthInputPacket.getMoveVecX();
+				float moveVecY = playerAuthInputPacket.getMoveVecZ();
+				if (!validateVehicleInput(moveVecX) || !validateVehicleInput(moveVecY)) {
+					this.getServer().getLogger().warning("Invalid vehicle input received: " + this.getName());
+					this.close("", "Invalid vehicle input");
+					return;
 				}
 
 				long inputFlags = playerAuthInputPacket.getInputFlags();
@@ -1253,14 +1242,17 @@ public class SynapsePlayer116 extends SynapsePlayer113 {
 					this.forceMovement = null;
 				}
 
-				if (this.riding != null) {
-					if (this.riding instanceof EntityMinecartAbstract) {
-						((EntityMinecartAbstract) this.riding).setCurrentSpeed(playerAuthInputPacket.getMoveVecZ());
-					} else if (this.riding instanceof EntityRideable && !(this.riding instanceof EntityBoat)) {
-						((EntityRideable) riding).onPlayerInput(this, playerAuthInputPacket.getMoveVecX(), playerAuthInputPacket.getMoveVecZ());
+				if (this.riding != null && (moveVecX != 0 || moveVecY != 0)) {
+					moveVecX = Mth.clamp(moveVecX, -1, 1);
+					moveVecY = Mth.clamp(moveVecY, -1, 1);
+
+					if (this.riding instanceof EntityRideable && !(this.riding instanceof EntityBoat)) {
+						((EntityRideable) riding).onPlayerInput(this, moveVecX, moveVecY);
 						Vector3f offset = riding.getMountedOffset(this);
 						((EntityRideable) riding).onPlayerRiding(this.temporalVector.setComponents(playerAuthInputPacket.getX() - offset.x, playerAuthInputPacket.getY() - offset.y, playerAuthInputPacket.getZ() - offset.z), (playerAuthInputPacket.getHeadYaw() + 90) % 360, 0);
 					}
+
+					new PlayerVehicleInputEvent(this, moveVecX, moveVecY).call();
 				}
 
 				if (this.getLoginChainData().getCurrentInputMode() != playerAuthInputPacket.getInputMode()) {
