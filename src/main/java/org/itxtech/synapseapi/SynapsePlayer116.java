@@ -694,10 +694,23 @@ public class SynapsePlayer116 extends SynapsePlayer113 {
 					this.close("", "Invalid movement");
 					return;
 				}
-				if (!validateVehicleInput(playerAuthInputPacket.getMoveVecX()) || !validateVehicleInput(playerAuthInputPacket.getMoveVecZ())) {
-					this.getServer().getLogger().warning("Invalid vehicle input received: " + this.getName());
-					this.close("", "Invalid vehicle input");
-					return;
+				PlayerInputPacket ipk = (PlayerInputPacket) packet;
+				if (!validateVehicleInput(ipk.motionX) || !validateVehicleInput(ipk.motionY)) {
+					// this.getServer().getLogger().warning("Invalid vehicle input received: " + this.getName());
+					// 将ipk.motionX修正到-1~1之间
+					if (ipk.motionX > 1) {
+						ipk.motionX = 1;
+					} else if (ipk.motionX < -1) {
+						ipk.motionX = -1;
+					}
+					// 将ipk.motionY修正到-1~1之间
+					if (ipk.motionY > 1) {
+						ipk.motionY = 1;
+					} else if (ipk.motionY < -1) {
+						ipk.motionY = -1;
+					}
+					// this.close("", "Invalid vehicle input");
+					// return;
 				}
 
 				long inputFlags = playerAuthInputPacket.getInputFlags();
