@@ -2598,8 +2598,9 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
         boolean isOp = player.isOp();
         packet.playerPermission = isOp && !player.isSpectator() ? Player.PERMISSION_OPERATOR : Player.PERMISSION_MEMBER;
         packet.commandPermission = isOp ? CommandPermission.GAME_DIRECTORS : CommandPermission.ALL;
-        packet.abilityLayers = new AbilityLayer[]{
+        packet.abilityLayers = !isSpectator() ? new AbilityLayer[]{
                 new AbilityLayer(UpdateAbilitiesPacket11910.LAYER_BASE, baseAbilities, 0.05f, 0.1f),
+        } : new AbilityLayer[]{
                 new AbilityLayer(UpdateAbilitiesPacket11910.LAYER_SPECTATOR, baseAbilities, 0.05f, 0.1f),
         };
         dataPacket(packet);
