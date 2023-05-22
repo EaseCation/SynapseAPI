@@ -1,5 +1,6 @@
 package org.itxtech.synapseapi;
 
+import cn.nukkit.AdventureSettings.Type;
 import cn.nukkit.Player;
 import cn.nukkit.block.Block;
 import cn.nukkit.block.BlockDoor;
@@ -41,6 +42,7 @@ import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import lombok.extern.log4j.Log4j2;
 import org.itxtech.synapseapi.event.player.SynapsePlayerInputModeChangeEvent;
 import org.itxtech.synapseapi.multiprotocol.AbstractProtocol;
+import org.itxtech.synapseapi.multiprotocol.common.PlayerAuthInputFlags;
 import org.itxtech.synapseapi.multiprotocol.protocol113.protocol.IPlayerAuthInputPacket;
 import org.itxtech.synapseapi.multiprotocol.protocol113.protocol.IPlayerAuthInputPacket.PlayerBlockAction;
 import org.itxtech.synapseapi.multiprotocol.protocol116.protocol.*;
@@ -778,6 +780,12 @@ public class SynapsePlayer116 extends SynapsePlayer113 {
 						this.sendData(this);
 					} else {
 						this.setGliding(false);
+					}
+				}
+
+				if ((inputFlags & (1L << PlayerAuthInputFlags.CHANGE_HEIGHT)) != 0) {
+					if (!adventureSettings.get(Type.ALLOW_FLIGHT)) {
+						this.violation += 10;
 					}
 				}
 
