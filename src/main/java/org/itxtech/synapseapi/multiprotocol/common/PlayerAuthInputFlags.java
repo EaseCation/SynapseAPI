@@ -6,7 +6,7 @@ public interface PlayerAuthInputFlags {
      */
     int ASCEND = 0;
     /**
-     * Pressing the "fly down" key when using touch.
+     * Pressing the "fly down" key when using touch. (including while swimming)
      */
     int DESCEND = 1;
     /**
@@ -22,7 +22,7 @@ public interface PlayerAuthInputFlags {
      */
     int SPRINT_DOWN = 4;
     /**
-     * Pressing (and optionally holding) the fly button ONCE when in flight mode when using touch. This has no obvious use.
+     * Pressing (and optionally holding) the fly/swim button ONCE when in flight/swim mode when using touch. This has no obvious use.
      */
     int CHANGE_HEIGHT = 5;
     /**

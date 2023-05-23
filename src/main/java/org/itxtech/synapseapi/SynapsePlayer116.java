@@ -792,7 +792,7 @@ public class SynapsePlayer116 extends SynapsePlayer113 {
 					}
 				}
 
-				if ((inputFlags & (1L << PlayerAuthInputFlags.ASCEND | 1L << PlayerAuthInputFlags.DESCEND | 1L << PlayerAuthInputFlags.CHANGE_HEIGHT)) != 0) {
+				if ((inputFlags & (1L << PlayerAuthInputFlags.ASCEND)) != 0) {
 					if (!adventureSettings.get(Type.ALLOW_FLIGHT)) {
 						this.violation += 10;
 					}
