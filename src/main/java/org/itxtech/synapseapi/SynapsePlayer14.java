@@ -9,6 +9,7 @@ import cn.nukkit.entity.data.ShortEntityData;
 import cn.nukkit.entity.data.StringEntityData;
 import cn.nukkit.entity.item.EntityBoat;
 import cn.nukkit.event.player.*;
+import cn.nukkit.item.Item;
 import cn.nukkit.lang.TranslationContainer;
 import cn.nukkit.level.GameRules;
 import cn.nukkit.level.Position;
@@ -385,6 +386,9 @@ public class SynapsePlayer14 extends SynapsePlayer {
 						break; //TODO
 					case PlayerActionPacket14.ACTION_START_GLIDE:
 						PlayerToggleGlideEvent playerToggleGlideEvent = new PlayerToggleGlideEvent(this, true);
+						if (getInventory().getChestplate().getId() != Item.ELYTRA) {
+							playerToggleGlideEvent.setCancelled();
+						}
 						this.server.getPluginManager().callEvent(playerToggleGlideEvent);
 						if (playerToggleGlideEvent.isCancelled()) {
 							this.sendData(this);

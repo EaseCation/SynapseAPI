@@ -1059,6 +1059,9 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
                             break; //TODO
                         case PlayerActionPacket119.ACTION_START_GLIDE:
                             PlayerToggleGlideEvent playerToggleGlideEvent = new PlayerToggleGlideEvent(this, true);
+                            if (getInventory().getChestplate().getId() != Item.ELYTRA) {
+                                playerToggleGlideEvent.setCancelled();
+                            }
                             this.server.getPluginManager().callEvent(playerToggleGlideEvent);
                             if (playerToggleGlideEvent.isCancelled()) {
                                 this.sendData(this);

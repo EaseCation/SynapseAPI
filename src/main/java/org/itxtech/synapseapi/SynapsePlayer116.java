@@ -540,6 +540,12 @@ public class SynapsePlayer116 extends SynapsePlayer113 {
 									return;
 								}
 
+								// 命中边缘时有极小概率没有看着实体 (InteractPacket::InteractUpdate-4)
+								if (this.lookAtEntity != target) {
+									this.violation += 6;
+									break;
+								}
+
 								ItemAttackDamageEvent event = new ItemAttackDamageEvent(item);
 								this.server.getPluginManager().callEvent(event);
 								float itemDamage = event.getAttackDamage();
@@ -766,6 +772,9 @@ public class SynapsePlayer116 extends SynapsePlayer113 {
 				}
 				if ((inputFlags & (1L << PlayerAuthInputPacket116.FLAG_START_GLIDING)) != 0 && !this.isGliding()) {
 					PlayerToggleGlideEvent playerToggleGlideEvent = new PlayerToggleGlideEvent(this, true);
+					if (getInventory().getChestplate().getId() != Item.ELYTRA) {
+						playerToggleGlideEvent.setCancelled();
+					}
 					this.server.getPluginManager().callEvent(playerToggleGlideEvent);
 					if (playerToggleGlideEvent.isCancelled()) {
 						this.sendData(this);
