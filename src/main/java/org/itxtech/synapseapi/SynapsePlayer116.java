@@ -792,11 +792,13 @@ public class SynapsePlayer116 extends SynapsePlayer113 {
 					}
 				}
 
-				if ((inputFlags & (1L << PlayerAuthInputFlags.ASCEND)) != 0) {
-					if (!adventureSettings.get(Type.ALLOW_FLIGHT)) {
-						this.violation += 10;
+				//旧版触控有bug, 在水中疾跑并同时按住方向键和升降键会触发. 只按升降键不会触发. 新版触控不会触发.
+				/*if ((inputFlags & (1L << PlayerAuthInputFlags.ASCEND)) != 0) {
+					log.fatal("ASCEND {}", packet);
+					if (!adventureSettings.get(Type.ALLOW_FLIGHT) && !isInsideOfWater()) {
+						this.violation += 1;
 					}
-				}
+				}*/
 
 				PlayerBlockAction[] blockActions = playerAuthInputPacket.getBlockActions();
 				if (blockActions != null && blockActions.length != 0) {

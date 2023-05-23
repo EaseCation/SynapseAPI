@@ -2,7 +2,7 @@ package org.itxtech.synapseapi.multiprotocol.common;
 
 public interface PlayerAuthInputFlags {
     /**
-     * Pressing the "fly up" key when using touch.
+     * Pressing the "fly up" key when using touch. (including while swimming)
      */
     int ASCEND = 0;
     /**
