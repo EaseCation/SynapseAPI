@@ -1550,14 +1550,14 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
         return super.generateResourcePackInfoPacket();
     }
 
-    @Override
-    protected void initClientBlobCache() {
-        if (!this.isNetEaseClient()
-                /*&& this.protocol < AbstractProtocol.PROTOCOL_118.getProtocolStart()*/
-        ) {
-            super.initClientBlobCache();
-        }
-    }
+//    @Override
+//    protected void initClientBlobCache() {
+//        if (!this.isNetEaseClient()
+//                /*&& this.protocol < AbstractProtocol.PROTOCOL_118.getProtocolStart()*/
+//        ) {
+//            super.initClientBlobCache();
+//        }
+//    }
 
     @Override
     public void playAnimation(String animation, long entityRuntimeId) {
