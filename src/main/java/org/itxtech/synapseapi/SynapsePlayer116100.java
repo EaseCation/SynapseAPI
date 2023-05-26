@@ -2109,6 +2109,21 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
             return false;
         }
 
+        int chunkX = getChunkX();
+        int chunkZ = getChunkZ();
+        int chunkRadius = getViewDistance();
+        final int threshold = 2;
+        if (subChunkX > chunkX + chunkRadius + threshold || subChunkX < chunkX - chunkRadius - threshold || subChunkZ > chunkZ + chunkRadius + threshold || subChunkZ < chunkZ - chunkRadius - threshold) {
+            SubChunkPacket pk = this.createSubChunkPacket();
+            pk.dimension = dimension;
+            pk.subChunkX = subChunkX;
+            pk.subChunkY = subChunkY;
+            pk.subChunkZ = subChunkZ;
+            pk.requestResult = SubChunkPacket.REQUEST_RESULT_PLAYER_NOT_FOUND;
+            this.dataPacket(pk);
+            return false;
+        }
+
         long index = Level.chunkHash(subChunkX, subChunkZ);
         IntSet queue = this.subChunkSendQueue.get(index);
         if (queue != null) {
