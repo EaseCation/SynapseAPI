@@ -541,10 +541,12 @@ public class SynapsePlayer116 extends SynapsePlayer113 {
 								}
 
 								// 命中边缘时有极小概率没有看着实体 (InteractPacket::InteractUpdate-4)
+/*
 								if (this.lookAtEntity != target) {
 									this.violation += 6;
 									break;
 								}
+*/
 
 								ItemAttackDamageEvent event = new ItemAttackDamageEvent(item);
 								this.server.getPluginManager().callEvent(event);
