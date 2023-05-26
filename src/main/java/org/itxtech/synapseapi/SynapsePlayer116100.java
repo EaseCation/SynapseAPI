@@ -2006,11 +2006,13 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
         return this.protocol >= AbstractProtocol.PROTOCOL_118.getProtocolStart() || super.canSendQueuedChunk();
     }
 
+/*
     @Override
     public boolean isBlobCacheDisabled() {
         // client performance is very bad in 1.18.0, Microjang messed up everything :(
-        return this.protocol >= AbstractProtocol.PROTOCOL_118.getProtocolStart();
+        return this.protocol >= AbstractProtocol.PROTOCOL_118.getProtocolStart() && !this.isNetEaseClient();
     }
+*/
 
     public boolean isSubChunkBlobCacheEnabled() {
         return true;

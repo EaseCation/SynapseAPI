@@ -6,7 +6,6 @@ import cn.nukkit.blockentity.BlockEntitySpawnable;
 import cn.nukkit.entity.Entity;
 import cn.nukkit.level.Level;
 import cn.nukkit.level.Position;
-import cn.nukkit.level.format.anvil.Anvil;
 import cn.nukkit.level.format.generic.ChunkBlobCache;
 import cn.nukkit.network.SourceInterface;
 import cn.nukkit.network.protocol.DataPacket;
@@ -114,8 +113,9 @@ public class SynapsePlayer112 extends SynapsePlayer19 {
 
 	@Override
 	public void sendChunk(int x, int z, int subChunkCount, ChunkBlobCache blobCache, DataPacket packet) {
-		if (!this.isBlobCacheAvailable() || blobCache == null || this.isBlobCacheDisabled()) super.sendChunk(x, z, subChunkCount, blobCache, packet);
-		else {
+		if (!this.isBlobCacheAvailable() || blobCache == null || this.isBlobCacheDisabled()) {
+			super.sendChunk(x, z, subChunkCount, blobCache, packet);
+		} else {
 			if (!this.connected) {
 				return;
 			}
@@ -392,6 +392,7 @@ public class SynapsePlayer112 extends SynapsePlayer19 {
 		}
 	}
 
+/*
 	@Override
 	public boolean onUpdate(int currentTick) {
 		int tickDiff = currentTick - this.lastUpdate;
@@ -410,6 +411,7 @@ public class SynapsePlayer112 extends SynapsePlayer19 {
 		}
 		return super.onUpdate(currentTick);
 	}
+*/
 
 	@Override
 	protected boolean canDoFirstSpawn() {
