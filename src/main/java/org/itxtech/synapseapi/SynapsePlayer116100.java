@@ -2019,7 +2019,7 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
     }
 
     public boolean isSubModeLevelChunkBlobCacheEnabled() {
-        return false; //FIXME: crash 1.18.0
+        return true; //FIXME: crash 1.18.0
     }
 
     protected boolean handleSubChunkRequest(int dimension, int subChunkX, int subChunkY, int subChunkZ) {
