@@ -1550,14 +1550,14 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
         return super.generateResourcePackInfoPacket();
     }
 
-    @Override
-    protected void initClientBlobCache() {
-        if (!this.isNetEaseClient()
-                /*&& this.protocol < AbstractProtocol.PROTOCOL_118.getProtocolStart()*/
-        ) {
-            super.initClientBlobCache();
-        }
-    }
+//    @Override
+//    protected void initClientBlobCache() {
+//        if (!this.isNetEaseClient()
+//                /*&& this.protocol < AbstractProtocol.PROTOCOL_118.getProtocolStart()*/
+//        ) {
+//            super.initClientBlobCache();
+//        }
+//    }
 
     @Override
     public void playAnimation(String animation, long entityRuntimeId) {
@@ -1581,7 +1581,7 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
 
     @Override
     public boolean isSubChunkRequestAvailable() {
-        return USE_SUB_CHUNK_REQUEST && this.protocol >= AbstractProtocol.PROTOCOL_118.getProtocolStart() && !this.isNetEaseClient();
+        return USE_SUB_CHUNK_REQUEST && this.protocol >= AbstractProtocol.PROTOCOL_118.getProtocolStart() /*&& !this.isNetEaseClient()*/;
     }
 
     @Override
@@ -2006,11 +2006,13 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
         return this.protocol >= AbstractProtocol.PROTOCOL_118.getProtocolStart() || super.canSendQueuedChunk();
     }
 
+/*
     @Override
     public boolean isBlobCacheDisabled() {
         // client performance is very bad in 1.18.0, Microjang messed up everything :(
-        return this.protocol >= AbstractProtocol.PROTOCOL_118.getProtocolStart() /*&& !this.isNetEaseClient()*/;
+        return this.protocol >= AbstractProtocol.PROTOCOL_118.getProtocolStart() && !this.isNetEaseClient();
     }
+*/
 
     public boolean isSubChunkBlobCacheEnabled() {
         return true;
