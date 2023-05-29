@@ -1597,7 +1597,7 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
         long chunkHash = Level.chunkHash(x, z);
         this.usedChunks.put(chunkHash, true);
         this.chunkLoadCount++;
-        boolean centerChunk = CENTER_CHUNK_WITHOUT_CACHE && this.getChunkX() == x && this.getChunkZ() == z;
+        boolean centerChunk = false;  // CENTER_CHUNK_WITHOUT_CACHE && this.getChunkX() == x && this.getChunkZ() == z;
 
         if (this.isBlobCacheAvailable() && this.isSubModeLevelChunkBlobCacheEnabled() && !centerChunk) {
             long[] ids;
@@ -1659,7 +1659,7 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
         long chunkHash = Level.chunkHash(x, z);
         this.usedChunks.put(chunkHash, true);
         this.chunkLoadCount++;
-        boolean centerChunk = CENTER_CHUNK_WITHOUT_CACHE && this.getChunkX() == x && this.getChunkZ() == z;
+        boolean centerChunk = false;  // CENTER_CHUNK_WITHOUT_CACHE && this.getChunkX() == x && this.getChunkZ() == z;
 
         LevelChunkPacket pk = new LevelChunkPacket();
         pk.chunkX = x;
@@ -1728,7 +1728,7 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
             }
         }
 
-        boolean centerChunk = CENTER_CHUNK_WITHOUT_CACHE && this.getChunkX() == x && this.getChunkZ() == z;
+        boolean centerChunk = false; //CENTER_CHUNK_WITHOUT_CACHE && this.getChunkX() == x && this.getChunkZ() == z;
         if (subChunkCount != 0) {
             subChunkCount += PADDING_SUB_CHUNK_COUNT;
         }
@@ -1741,7 +1741,7 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
 
             SubChunkPacket pk = this.createSubChunkPacket();
 //            pk.dimension = dimension;
-            pk.dimension = Level.DIMENSION_OVERWORLD;
+            pk.dimension = this.dummyDimension;  // Level.DIMENSION_OVERWORLD;
             pk.subChunkX = x;
             pk.subChunkY = y;
             pk.subChunkZ = z;
@@ -1820,7 +1820,7 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
             }
         }
 
-        boolean centerChunk = CENTER_CHUNK_WITHOUT_CACHE && this.getChunkX() == x && this.getChunkZ() == z;
+        boolean centerChunk = false;  //CENTER_CHUNK_WITHOUT_CACHE && this.getChunkX() == x && this.getChunkZ() == z;
         if (subChunkCount != 0) {
             subChunkCount += PADDING_SUB_CHUNK_COUNT;
         }
@@ -1834,7 +1834,7 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
             if (subChunkCount == 0) {
                 SubChunkPacket pk = this.createSubChunkPacket();
 //                pk.dimension = dimension;
-                pk.dimension = Level.DIMENSION_OVERWORLD;
+                pk.dimension = this.dummyDimension;  // Level.DIMENSION_OVERWORLD;
                 pk.subChunkX = x;
                 pk.subChunkY = y;
                 pk.subChunkZ = z;
@@ -1854,7 +1854,7 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
             } else if (index >= subChunkCount) {
                 SubChunkPacket pk = this.createSubChunkPacket();
 //                pk.dimension = dimension;
-                pk.dimension = Level.DIMENSION_OVERWORLD;
+                pk.dimension = this.dummyDimension;  // Level.DIMENSION_OVERWORLD;
                 pk.subChunkX = x;
                 pk.subChunkY = y;
                 pk.subChunkZ = z;
@@ -1871,7 +1871,7 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
             if (ENABLE_EMPTY_SUB_CHUNK_NETWORK_OPTIMIZATION && this.protocol >= AbstractProtocol.PROTOCOL_118_10.getProtocolStart() && (y < 0 || blobCache != null && (y >= blobCache.getEmptySection().length || blobCache.getEmptySection()[y]))) {
                 SubChunkPacket pk = this.createSubChunkPacket();
 //                pk.dimension = dimension;
-                pk.dimension = Level.DIMENSION_OVERWORLD;
+                pk.dimension = this.dummyDimension;  // Level.DIMENSION_OVERWORLD;
                 pk.subChunkX = x;
                 pk.subChunkY = y;
                 pk.subChunkZ = z;
@@ -1894,7 +1894,7 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
 
                 SubChunkPacket pk = this.createSubChunkPacket();
 //                pk.dimension = dimension;
-                pk.dimension = Level.DIMENSION_OVERWORLD;
+                pk.dimension = this.dummyDimension;  // Level.DIMENSION_OVERWORLD;
                 pk.subChunkX = x;
                 pk.subChunkY = y;
                 pk.subChunkZ = z;
@@ -1932,7 +1932,7 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
                 int chunkY = yIter.nextInt();
 
                 SubChunkPacket pk = this.createSubChunkPacket();
-                pk.dimension = Level.DIMENSION_OVERWORLD;
+                pk.dimension = this.dummyDimension;  // Level.DIMENSION_OVERWORLD;
                 pk.subChunkX = chunkX;
                 pk.subChunkY = chunkY;
                 pk.subChunkZ = chunkZ;
@@ -1986,7 +1986,7 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
                     int chunkY = yIter.nextInt();
 
                     SubChunkPacket pk = this.createSubChunkPacket();
-                    pk.dimension = Level.DIMENSION_OVERWORLD;
+                    pk.dimension = this.dummyDimension;  // Level.DIMENSION_OVERWORLD;
                     pk.subChunkX = chunkX;
                     pk.subChunkY = chunkY;
                     pk.subChunkZ = chunkZ;
@@ -2059,7 +2059,7 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
                 } else {
                     pk.heightMapType = SubChunkPacket.HEIGHT_MAP_TYPE_ALL_TOO_LOW;
                 }
-                boolean centerChunk = this.getChunkX() == subChunkX && this.getChunkZ() == subChunkZ;
+                boolean centerChunk = false; //this.getChunkX() == subChunkX && this.getChunkZ() == subChunkZ;
                 if (false && this.isBlobCacheAvailable() && !centerChunk) {
                     this.clientCacheTrack.put(PADDING_SUB_CHUNK_HASH, new BlobTrack(PADDING_SUB_CHUNK_HASH, PADDING_SUB_CHUNK_BLOB));
                     pk.cacheEnabled = true;
@@ -2071,7 +2071,8 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
             }
             return false;
         }
-        if (dimension != Level.DIMENSION_OVERWORLD) {
+        // dummyDimension HACK!
+        if (dimension != Level.DIMENSION_OVERWORLD && dimension != this.dummyDimension) {
             SubChunkPacket pk = this.createSubChunkPacket();
             pk.dimension = dimension;
             pk.subChunkX = subChunkX;
@@ -2150,6 +2151,9 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
 
     @Override
     protected boolean onLevelSwitch() {
+        if (this.isNeedLevelChangeLoadScreen()) {
+            return super.onLevelSwitch();
+        }
         if (this.isDimensionChangingSystemEnabled() && !this.dimensionChanging) {
             this.dimensionChanging = true;
 //            this.dimensionBack = false;
@@ -2177,7 +2181,7 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
                         continue; // round
                     }
                     ++count;
-                    boolean centerChunk = centerChunkX == chunkX && centerChunkZ == chunkZ;
+                    boolean centerChunk = false; //centerChunkX == chunkX && centerChunkZ == chunkZ;
 
                     LevelChunkPacket packet = new LevelChunkPacket();
                     packet.chunkX = chunkX;
@@ -2281,7 +2285,7 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
                 if (chunkPos2d.distance(chunkX, chunkZ) > chunkRadius) {
                     continue; // round
                 }
-                boolean centerChunk = centerChunkX == chunkX && centerChunkZ == chunkZ;
+                boolean centerChunk = false;  //centerChunkX == chunkX && centerChunkZ == chunkZ;
                 if (centerChunk) {
                     continue;
                 }
@@ -2407,7 +2411,7 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
                         if (chunkPos2d.distance(chunkX, chunkZ) > chunkRadius) {
                             continue; // round
                         }
-                        boolean centerChunk = centerChunkX == chunkX && centerChunkZ == chunkZ;
+                        boolean centerChunk = false; //centerChunkX == chunkX && centerChunkZ == chunkZ;
                         if (centerChunk) {
                             continue;
                         }

@@ -5,7 +5,6 @@ import cn.nukkit.Server;
 import cn.nukkit.level.GameRules;
 import cn.nukkit.level.Level;
 import cn.nukkit.level.Position;
-import cn.nukkit.math.Mth;
 import cn.nukkit.math.Vector3;
 import cn.nukkit.math.Vector3f;
 import cn.nukkit.network.SourceInterface;
@@ -22,13 +21,13 @@ import org.itxtech.synapseapi.multiprotocol.utils.LevelSoundEventEnum;
 import java.net.InetSocketAddress;
 import java.util.concurrent.ThreadLocalRandom;
 
-import static cn.nukkit.SharedConstants.*;
+import static cn.nukkit.SharedConstants.RESOURCE_PACK_CHUNK_SIZE;
 
 public class SynapsePlayer18 extends SynapsePlayer17 {
 
 	public SynapsePlayer18(SourceInterface interfaz, SynapseEntry synapseEntry, Long clientID, InetSocketAddress socketAddress) {
 		super(interfaz, synapseEntry, clientID, socketAddress);
-		this.levelChangeLoadScreen = true;
+		// this.levelChangeLoadScreen = true;
 	}
 
 	@Override

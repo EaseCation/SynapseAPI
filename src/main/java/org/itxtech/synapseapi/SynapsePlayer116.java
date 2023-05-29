@@ -69,7 +69,11 @@ public class SynapsePlayer116 extends SynapsePlayer113 {
 
 	public SynapsePlayer116(SourceInterface interfaz, SynapseEntry synapseEntry, Long clientID, InetSocketAddress socketAddress) {
 		super(interfaz, synapseEntry, clientID, socketAddress);
-		// this.levelChangeLoadScreen = false;
+	}
+
+	@Override
+	public boolean isNeedLevelChangeLoadScreen() {
+		return this.isNetEaseClient();
 	}
 
 	@Override

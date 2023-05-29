@@ -81,17 +81,16 @@ public class SynapsePlayer extends Player {
 
     private static final Int2ObjectMap<Timing> handlePlayerDataPacketTimings = new Int2ObjectOpenHashMap<>();
 
-    public boolean isSynapseLogin = false;
+    public boolean isSynapseLogin;
     protected SynapseEntry synapseEntry;
     protected boolean isFirstTimeLogin = false;
-    protected long synapseSlowLoginUntil = 0;
-    protected boolean levelChangeLoadScreen = true;
     private boolean cleanTextColor = false;
 
     protected String originName;
     protected LoginChainData loginChainData;
     protected JsonObject cachedExtra = new JsonObject();
     protected final JsonObject transferExtra = new JsonObject();
+    protected int dummyDimension = 0;
 
     /**
      * At most this many more packets can be received.
@@ -124,6 +123,10 @@ public class SynapsePlayer extends Player {
         return isFirstTimeLogin;
     }
 
+    public boolean isNeedLevelChangeLoadScreen() {
+        return false;
+    }
+
     /**
      * Returns a client-friendly gamemode of the specified real gamemode
      * This function takes care of handling gamemodes known to MCPE (as of 1.1.0.3, that includes Survival, Creative and Adventure)
@@ -149,6 +152,10 @@ public class SynapsePlayer extends Player {
         }
         this.isFirstTimeLogin = packet.isFirstTime;
         this.cachedExtra = packet.extra;
+        // 从上一个服务器传递过来的dummyDimension，用于发送子区块的时候使用
+        if (this.cachedExtra != null && this.cachedExtra.has("dummyDimension")) {
+            this.dummyDimension = this.cachedExtra.get("dummyDimension").getAsInt();
+        }
         SynapsePlayerConnectEvent ev;
         this.server.getPluginManager().callEvent(ev = new SynapsePlayerConnectEvent(this, this.isFirstTimeLogin));
         if (!ev.isCancelled()) {
@@ -415,44 +422,8 @@ public class SynapsePlayer extends Player {
             pk.gamemode = getClientFriendlyGamemode(gamemode);
             this.dataPacket(pk);
 
-            if (this.levelChangeLoadScreen) {
-                ChangeDimensionPacket changeDimensionPacket = new ChangeDimensionPacket();
-                changeDimensionPacket.dimension = 0;
-                changeDimensionPacket.x = (float) this.getX();
-                changeDimensionPacket.y = (float) this.getY() + this.getEyeHeight();
-                changeDimensionPacket.z = (float) this.getZ();
-                dataPacket(changeDimensionPacket);
-
-                if (getProtocol() >= AbstractProtocol.PROTOCOL_119_50.getProtocolStart()) {
-                    PlayerActionPacket119 ackPacket = new PlayerActionPacket119();
-                    ackPacket.action = PlayerActionPacket.ACTION_DIMENSION_CHANGE_ACK;
-                    ackPacket.entityId = getId();
-                    ackPacket.x = getFloorX();
-                    ackPacket.y = getFloorY();
-                    ackPacket.z = getFloorZ();
-                    ackPacket.resultX = ackPacket.x;
-                    ackPacket.resultY = ackPacket.y;
-                    ackPacket.resultZ = ackPacket.z;
-                    dataPacket(ackPacket);
-                }
-
-                StopSoundPacket stopSoundPacket = new StopSoundPacket();
-                stopSoundPacket.name = "portal.travel";
-                stopSoundPacket.stopAll = false;
-                dataPacket(stopSoundPacket);
-
-                PlaySoundPacket playSoundPacket = new PlaySoundPacket();
-                playSoundPacket.name = "camera.take_picture";
-                playSoundPacket.x = this.getFloorX();
-                playSoundPacket.y = this.getFloorY();
-                playSoundPacket.z = this.getFloorZ();
-                playSoundPacket.pitch = 1;
-                playSoundPacket.volume = 1;
-                dataPacket(playSoundPacket);
-            } else {
-                long flags = 1 << Entity.DATA_FLAG_IMMOBILE;
-                this.sendData(this, new EntityMetadata().putLong(Entity.DATA_FLAGS, flags));
-            }
+            long flags = 1 << Entity.DATA_FLAG_IMMOBILE;
+            this.sendData(this, new EntityMetadata().putLong(Entity.DATA_FLAGS, flags));
         }
 
         this.loggedIn = true;
@@ -603,7 +574,8 @@ public class SynapsePlayer extends Player {
             this.teleportPosition = null;
             this.isLevelChange = true;
 
-            if (levelChangeLoadScreen) {
+            // TODO 这边等本地切换多世界搞定后再来处理
+            if (this.isNeedLevelChangeLoadScreen()) {
                 Task task = new Task() {
                     private SynapsePlayer player;
                     Task putPlayer(SynapsePlayer player) {
@@ -722,8 +694,8 @@ public class SynapsePlayer extends Player {
                 this.teleportChunkLoaded = false;
             }
 
-            for (int X = -1; X <= 1; ++X) {
-                for (int Z = -1; Z <= 1; ++Z) {
+            for (int X = -2; X <= 2; ++X) {
+                for (int Z = -2; Z <= 2; ++Z) {
                     long index = Level.chunkHash(chunkX + X, chunkZ + Z);
                     if (!this.usedChunks.get(index)) {
                         return false;
@@ -738,7 +710,7 @@ public class SynapsePlayer extends Player {
 
             this.getServer().getScheduler().scheduleDelayedTask(SynapseAPI.getInstance(), () -> this.getLevel().sendTime(this), 10);
 
-            if (this.isLevelChange) { //TODO: remove this
+            if (this.isLevelChange) {
                 PlayStatusPacket statusPacket0 = new PlayStatusPacket();
                 statusPacket0.status = PlayStatusPacket.PLAYER_SPAWN;
                 this.dataPacket(statusPacket0);
@@ -783,18 +755,17 @@ public class SynapsePlayer extends Player {
             }
             this.isLevelChange = true;
         }
-        if (super.teleport(location, cause) && this.levelChangeLoadScreen) {
+        if (super.teleport(location, cause) && this.isNeedLevelChangeLoadScreen()) {
             if (from.getLevel().getId() != location.level.getId() && this.spawned) {
-                //this.isLevelChange = true;
-                //this.nextAllowSendTop = System.currentTimeMillis() + 2000;  //2秒后才运行发送Top
-                this.allowOrderChunks = false;
+                this.dummyDimension = this.dummyDimension == 0 ? 5 : 0;
+                this.isLevelChange = true;
 
-                ChangeDimensionPacket changeDimensionPacket1 = new ChangeDimensionPacket();
-                changeDimensionPacket1.dimension = 2;
-                changeDimensionPacket1.x = (float) this.getX();
-                changeDimensionPacket1.y = (float) this.getY() + this.getEyeHeight();
-                changeDimensionPacket1.z = (float) this.getZ();
-                this.dataPacket(changeDimensionPacket1);
+                ChangeDimensionPacket changeDimensionPacket = new ChangeDimensionPacket();
+                changeDimensionPacket.dimension = this.dummyDimension;
+                changeDimensionPacket.x = (float) this.getX();
+                changeDimensionPacket.y = (float) this.getY();
+                changeDimensionPacket.z = (float) this.getZ();
+                this.dataPacket(changeDimensionPacket);
 
                 if (getProtocol() >= AbstractProtocol.PROTOCOL_119_50.getProtocolStart()) {
                     PlayerActionPacket119 ackPacket = new PlayerActionPacket119();
@@ -813,57 +784,6 @@ public class SynapsePlayer extends Player {
                 stopSoundPacket.name = "portal.travel";
                 stopSoundPacket.stopAll = false;
                 this.dataPacket(stopSoundPacket);
-
-                PlaySoundPacket playSoundPacket0 = new PlaySoundPacket();
-                playSoundPacket0.name = "random.screenshot";
-                playSoundPacket0.x = this.getFloorX();
-                playSoundPacket0.y = this.getFloorY();
-                playSoundPacket0.z = this.getFloorZ();
-                playSoundPacket0.pitch = 1;
-                playSoundPacket0.volume = 1;
-                dataPacket(playSoundPacket0);
-
-                this.forceSendEmptyChunks();
-                this.getServer().getScheduler().scheduleDelayedTask(() -> {
-                    PlayStatusPacket statusPacket0 = new PlayStatusPacket();
-                    statusPacket0.status = PlayStatusPacket.PLAYER_SPAWN;
-                    dataPacket(statusPacket0);
-                }, 10);
-
-                this.getServer().getScheduler().scheduleDelayedTask(() -> {
-                    ChangeDimensionPacket changeDimensionPacket = new ChangeDimensionPacket();
-                    changeDimensionPacket.dimension = 0;
-                    changeDimensionPacket.x = (float) this.getX();
-                    changeDimensionPacket.y = (float) this.getY() + this.getEyeHeight();
-                    changeDimensionPacket.z = (float) this.getZ();
-                    dataPacket(changeDimensionPacket);
-
-                    if (getProtocol() >= AbstractProtocol.PROTOCOL_119_50.getProtocolStart()) {
-                        PlayerActionPacket119 ackPacket = new PlayerActionPacket119();
-                        ackPacket.action = PlayerActionPacket.ACTION_DIMENSION_CHANGE_ACK;
-                        ackPacket.entityId = getId();
-                        ackPacket.x = getFloorX();
-                        ackPacket.y = getFloorY();
-                        ackPacket.z = getFloorZ();
-                        ackPacket.resultX = ackPacket.x;
-                        ackPacket.resultY = ackPacket.y;
-                        ackPacket.resultZ = ackPacket.z;
-                        dataPacket(ackPacket);
-                    }
-
-                    dataPacket(stopSoundPacket);
-
-                    PlaySoundPacket playSoundPacket = new PlaySoundPacket();
-                    playSoundPacket.name = "camera.take_picture";
-                    playSoundPacket.x = this.getFloorX();
-                    playSoundPacket.y = this.getFloorY();
-                    playSoundPacket.z = this.getFloorZ();
-                    playSoundPacket.pitch = 1;
-                    playSoundPacket.volume = 1;
-                    dataPacket(playSoundPacket);
-
-                    this.allowOrderChunks = true;
-                }, 20);
             }
             return true;
         }
