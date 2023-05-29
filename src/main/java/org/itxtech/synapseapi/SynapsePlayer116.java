@@ -1,6 +1,5 @@
 package org.itxtech.synapseapi;
 
-import cn.nukkit.AdventureSettings.Type;
 import cn.nukkit.Player;
 import cn.nukkit.block.Block;
 import cn.nukkit.block.BlockDoor;
@@ -12,7 +11,6 @@ import cn.nukkit.blockentity.BlockEntitySpawnable;
 import cn.nukkit.entity.Entity;
 import cn.nukkit.entity.EntityRideable;
 import cn.nukkit.entity.item.EntityBoat;
-import cn.nukkit.entity.item.EntityMinecartAbstract;
 import cn.nukkit.event.entity.EntityDamageByEntityEvent;
 import cn.nukkit.event.entity.EntityDamageEvent;
 import cn.nukkit.event.inventory.InventoryCloseEvent;
@@ -42,7 +40,6 @@ import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import lombok.extern.log4j.Log4j2;
 import org.itxtech.synapseapi.event.player.SynapsePlayerInputModeChangeEvent;
 import org.itxtech.synapseapi.multiprotocol.AbstractProtocol;
-import org.itxtech.synapseapi.multiprotocol.common.PlayerAuthInputFlags;
 import org.itxtech.synapseapi.multiprotocol.protocol113.protocol.IPlayerAuthInputPacket;
 import org.itxtech.synapseapi.multiprotocol.protocol113.protocol.IPlayerAuthInputPacket.PlayerBlockAction;
 import org.itxtech.synapseapi.multiprotocol.protocol116.protocol.*;
@@ -52,7 +49,8 @@ import java.net.InetSocketAddress;
 import java.util.*;
 import java.util.concurrent.ThreadLocalRandom;
 
-import static org.itxtech.synapseapi.SynapseSharedConstants.*;
+import static org.itxtech.synapseapi.SynapseSharedConstants.SERVER_AUTHORITATIVE_BLOCK_BREAKING;
+import static org.itxtech.synapseapi.SynapseSharedConstants.SERVER_AUTHORITATIVE_MOVEMENT;
 
 @Log4j2
 public class SynapsePlayer116 extends SynapsePlayer113 {
@@ -71,7 +69,7 @@ public class SynapsePlayer116 extends SynapsePlayer113 {
 
 	public SynapsePlayer116(SourceInterface interfaz, SynapseEntry synapseEntry, Long clientID, InetSocketAddress socketAddress) {
 		super(interfaz, synapseEntry, clientID, socketAddress);
-		this.levelChangeLoadScreen = false;
+		// this.levelChangeLoadScreen = false;
 	}
 
 	@Override
