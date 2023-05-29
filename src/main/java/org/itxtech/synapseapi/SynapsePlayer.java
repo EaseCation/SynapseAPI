@@ -127,6 +127,11 @@ public class SynapsePlayer extends Player {
         return false;
     }
 
+    public int nextDummyDimension() {
+        this.dummyDimension = this.dummyDimension == 0 ? 5 : 0;
+        return this.dummyDimension;
+    }
+
     /**
      * Returns a client-friendly gamemode of the specified real gamemode
      * This function takes care of handling gamemodes known to MCPE (as of 1.1.0.3, that includes Survival, Creative and Adventure)
@@ -574,90 +579,52 @@ public class SynapsePlayer extends Player {
             this.teleportPosition = null;
             this.isLevelChange = true;
 
-            // TODO 这边等本地切换多世界搞定后再来处理
             if (this.isNeedLevelChangeLoadScreen()) {
-                Task task = new Task() {
-                    private SynapsePlayer player;
-                    Task putPlayer(SynapsePlayer player) {
-                        this.player = player;
-                        return this;
-                    }
-                    @Override
-                    public void onRun(int currentTick) {
-                        ChangeDimensionPacket changeDimensionPacket1 = new ChangeDimensionPacket();
-                        changeDimensionPacket1.dimension = 2;
-                        changeDimensionPacket1.x = (float) getX();
-                        changeDimensionPacket1.y = (float) getY() + getEyeHeight();
-                        changeDimensionPacket1.z = (float) getZ();
-                        dataPacket(changeDimensionPacket1);
+                ChangeDimensionPacket changeDimensionPacket1 = new ChangeDimensionPacket();
+                changeDimensionPacket1.dimension = this.nextDummyDimension();
+                changeDimensionPacket1.x = (float) getX();
+                changeDimensionPacket1.y = (float) getY() + getEyeHeight();
+                changeDimensionPacket1.z = (float) getZ();
+                dataPacket(changeDimensionPacket1);
+                // 传递给下一个服务器玩家的虚拟维度信息
+                this.transferExtra.addProperty("dummyDimension", this.dummyDimension);
 
-                        if (getProtocol() >= AbstractProtocol.PROTOCOL_119_50.getProtocolStart()) {
-                            PlayerActionPacket119 ackPacket = new PlayerActionPacket119();
-                            ackPacket.action = PlayerActionPacket.ACTION_DIMENSION_CHANGE_ACK;
-                            ackPacket.entityId = getId();
-                            ackPacket.x = getFloorX();
-                            ackPacket.y = getFloorY();
-                            ackPacket.z = getFloorZ();
-                            ackPacket.resultX = ackPacket.x;
-                            ackPacket.resultY = ackPacket.y;
-                            ackPacket.resultZ = ackPacket.z;
-                            dataPacket(ackPacket);
-                        }
-
-                        StopSoundPacket stopSoundPacket = new StopSoundPacket();
-                        stopSoundPacket.name = "portal.travel";
-                        stopSoundPacket.stopAll = false;
-                        dataPacket(stopSoundPacket);
-
-                        PlaySoundPacket playSoundPacket0 = new PlaySoundPacket();
-                        playSoundPacket0.name = "random.screenshot";
-                        playSoundPacket0.x = getFloorX();
-                        playSoundPacket0.y = getFloorY();
-                        playSoundPacket0.z = getFloorZ();
-                        playSoundPacket0.pitch = 1;
-                        playSoundPacket0.volume = 1;
-                        dataPacket(playSoundPacket0);
-
-                        forceSendEmptyChunks(3);
-                        SynapseAPI.getInstance().getTransferDimensionTaskThread().queue(player, hash, transferExtra);
-                        SynapsePlayer.this.sendMessage(TextFormat.GRAY + "(dimension) -> " + clientData.getDescription());
-                    }
-                }.putPlayer(this);
-
-                if (!this.spawned && !this.isFirstTimeLogin) {  //如果需要跨服，并且还未出生（这时玩家处于ChangeDimension为主世界的加载界面状态）
-                    PlayStatusPacket statusPacket0 = new PlayStatusPacket();
-                    statusPacket0.status = PlayStatusPacket.PLAYER_SPAWN;
-                    dataPacket(statusPacket0);
-                    this.spawned = true;
-
-                    Server.getInstance().getScheduler().scheduleDelayedTask(task, 5);
-                } else {
-                    task.onRun(0);
+                if (getProtocol() >= AbstractProtocol.PROTOCOL_119_50.getProtocolStart()) {
+                    PlayerActionPacket119 ackPacket = new PlayerActionPacket119();
+                    ackPacket.action = PlayerActionPacket.ACTION_DIMENSION_CHANGE_ACK;
+                    ackPacket.entityId = getId();
+                    ackPacket.x = getFloorX();
+                    ackPacket.y = getFloorY();
+                    ackPacket.z = getFloorZ();
+                    ackPacket.resultX = ackPacket.x;
+                    ackPacket.resultY = ackPacket.y;
+                    ackPacket.resultZ = ackPacket.z;
+                    dataPacket(ackPacket);
                 }
-            } else {
-                Server.getInstance().getScheduler().scheduleDelayedTask(new Task() {
-                    @Override
-                    public void onRun(int currentTick) {
-                        org.itxtech.synapseapi.network.protocol.spp.TransferPacket pk = new org.itxtech.synapseapi.network.protocol.spp.TransferPacket();
-                        pk.uuid = getUniqueId();
-                        pk.clientHash = hash;
-                        pk.extra = transferExtra;
-                        pk.extra.addProperty("username", originName);
-                        pk.extra.addProperty("xuid", getLoginChainData().getXUID());
-                        pk.extra.addProperty("netease", isNetEaseClient);
-                        pk.extra.addProperty("blob_cache", getClientCacheTrack() != null);
-                        //跨服时，传输到目标服务器当前玩家安装上的材质
-                        JsonArray resPacks = new JsonArray();
-                        getResourcePacks().keySet().forEach(resPacks::add);
-                        pk.extra.add("res_packs", resPacks);
-                        JsonArray behPacks = new JsonArray();
-                        getResourcePacks().keySet().forEach(behPacks::add);
-                        pk.extra.add("beh_packs", behPacks);
-                        getSynapseEntry().sendDataPacket(pk);
-                    }
-                }, 1);
-                this.sendMessage(TextFormat.GRAY + "(synapse) -> " + clientData.getDescription());
             }
+
+            Server.getInstance().getScheduler().scheduleDelayedTask(new Task() {
+                @Override
+                public void onRun(int currentTick) {
+                    org.itxtech.synapseapi.network.protocol.spp.TransferPacket pk = new org.itxtech.synapseapi.network.protocol.spp.TransferPacket();
+                    pk.uuid = getUniqueId();
+                    pk.clientHash = hash;
+                    pk.extra = transferExtra;
+                    pk.extra.addProperty("username", originName);
+                    pk.extra.addProperty("xuid", getLoginChainData().getXUID());
+                    pk.extra.addProperty("netease", isNetEaseClient);
+                    pk.extra.addProperty("blob_cache", getClientCacheTrack() != null);
+                    //跨服时，传输到目标服务器当前玩家安装上的材质
+                    JsonArray resPacks = new JsonArray();
+                    getResourcePacks().keySet().forEach(resPacks::add);
+                    pk.extra.add("res_packs", resPacks);
+                    JsonArray behPacks = new JsonArray();
+                    getResourcePacks().keySet().forEach(behPacks::add);
+                    pk.extra.add("beh_packs", behPacks);
+                    getSynapseEntry().sendDataPacket(pk);
+                }
+            }, 1);
+            this.sendMessage(TextFormat.GRAY + "(synapse) -> " + clientData.getDescription());
 
             return true;
         }
@@ -757,7 +724,7 @@ public class SynapsePlayer extends Player {
         }
         if (super.teleport(location, cause) && this.isNeedLevelChangeLoadScreen()) {
             if (from.getLevel().getId() != location.level.getId() && this.spawned) {
-                this.dummyDimension = this.dummyDimension == 0 ? 5 : 0;
+                this.nextDummyDimension();
                 this.isLevelChange = true;
 
                 ChangeDimensionPacket changeDimensionPacket = new ChangeDimensionPacket();
