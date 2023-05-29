@@ -582,9 +582,9 @@ public class SynapsePlayer extends Player {
             if (this.isNeedLevelChangeLoadScreen()) {
                 ChangeDimensionPacket changeDimensionPacket1 = new ChangeDimensionPacket();
                 changeDimensionPacket1.dimension = this.nextDummyDimension();
-                changeDimensionPacket1.x = (float) getX();
-                changeDimensionPacket1.y = (float) getY() + getEyeHeight();
-                changeDimensionPacket1.z = (float) getZ();
+                changeDimensionPacket1.x = 0;
+                changeDimensionPacket1.y = 32767;
+                changeDimensionPacket1.z = 0;
                 dataPacket(changeDimensionPacket1);
                 // 传递给下一个服务器玩家的虚拟维度信息
                 this.transferExtra.addProperty("dummyDimension", this.dummyDimension);
@@ -661,8 +661,8 @@ public class SynapsePlayer extends Player {
                 this.teleportChunkLoaded = false;
             }
 
-            for (int X = -2; X <= 2; ++X) {
-                for (int Z = -2; Z <= 2; ++Z) {
+            for (int X = -1; X <= 1; ++X) {
+                for (int Z = -1; Z <= 1; ++Z) {
                     long index = Level.chunkHash(chunkX + X, chunkZ + Z);
                     if (!this.usedChunks.get(index)) {
                         return false;
