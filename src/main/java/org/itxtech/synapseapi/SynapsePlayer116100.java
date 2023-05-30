@@ -1581,7 +1581,7 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
 
     @Override
     public boolean isSubChunkRequestAvailable() {
-        return USE_SUB_CHUNK_REQUEST && this.protocol >= AbstractProtocol.PROTOCOL_118.getProtocolStart()/* && !this.isNetEaseClient()*/;
+        return USE_SUB_CHUNK_REQUEST && this.protocol >= AbstractProtocol.PROTOCOL_118.getProtocolStart() && this.isBlobCacheAvailable()/* && !this.isNetEaseClient()*/;
     }
 
     @Override

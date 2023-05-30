@@ -14,7 +14,7 @@ public final class SynapseSharedConstants {
     /**
      * 强制识别连接来自中国版客户端, 用于 ProxyPass 抓包调试.
      */
-    public static final boolean FORCE_NETEASE_PLAYER = true;
+    public static final boolean FORCE_NETEASE_PLAYER = false;
 
     /**
      * Enables Movement Anti-Cheat?
@@ -47,7 +47,7 @@ public final class SynapseSharedConstants {
     /**
      * Enables new change dimension loading screen system?
      */
-    public static final boolean USE_CHANGE_DIMENSION_PACKET = false; // WIP
+    public static final boolean USE_CHANGE_DIMENSION_PACKET = false; // WIP 目前在SynapsePlayer这一层实现了中国版的ChangeDimension（只切换一次维度）
 
     /**
      * 玩家所处的中心区块直接发送不使用 blob cache 以加快加载速度.
