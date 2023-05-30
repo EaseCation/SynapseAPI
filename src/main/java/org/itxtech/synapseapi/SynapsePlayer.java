@@ -50,6 +50,7 @@ import org.itxtech.synapseapi.multiprotocol.protocol12.protocol.LoginPacket;
 import org.itxtech.synapseapi.multiprotocol.protocol12.utils.ClientChainData12;
 import org.itxtech.synapseapi.multiprotocol.protocol12.utils.ClientChainData12NetEase;
 import org.itxtech.synapseapi.multiprotocol.protocol12.utils.ClientChainData12Urgency;
+import org.itxtech.synapseapi.multiprotocol.protocol14.protocol.PlayerActionPacket14;
 import org.itxtech.synapseapi.multiprotocol.protocol14.protocol.TextPacket14;
 import org.itxtech.synapseapi.multiprotocol.protocol17.protocol.TextPacket17;
 import org.itxtech.synapseapi.multiprotocol.utils.CraftingPacketManager;
@@ -606,6 +607,14 @@ public class SynapsePlayer extends Player {
                     ackPacket.resultY = ackPacket.y;
                     ackPacket.resultZ = ackPacket.z;
                     dataPacket(ackPacket);
+                } else if (getProtocol() >= AbstractProtocol.PROTOCOL_118.getProtocolStart()) {
+                    PlayerActionPacket14 ackPacket = new PlayerActionPacket14();
+                    ackPacket.action = PlayerActionPacket14.ACTION_DIMENSION_CHANGE_ACK;
+                    ackPacket.entityId = getId();
+                    ackPacket.x = getFloorX();
+                    ackPacket.y = getFloorY();
+                    ackPacket.z = getFloorZ();
+                    dataPacket(ackPacket);
                 }
             }
 
@@ -750,6 +759,14 @@ public class SynapsePlayer extends Player {
                     ackPacket.resultX = ackPacket.x;
                     ackPacket.resultY = ackPacket.y;
                     ackPacket.resultZ = ackPacket.z;
+                    dataPacket(ackPacket);
+                } else if (getProtocol() >= AbstractProtocol.PROTOCOL_118.getProtocolStart()) {
+                    PlayerActionPacket14 ackPacket = new PlayerActionPacket14();
+                    ackPacket.action = PlayerActionPacket14.ACTION_DIMENSION_CHANGE_ACK;
+                    ackPacket.entityId = getId();
+                    ackPacket.x = getFloorX();
+                    ackPacket.y = getFloorY();
+                    ackPacket.z = getFloorZ();
                     dataPacket(ackPacket);
                 }
 

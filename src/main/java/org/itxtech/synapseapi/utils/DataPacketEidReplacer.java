@@ -12,6 +12,7 @@ import org.itxtech.synapseapi.multiprotocol.protocol11730.protocol.AnimateEntity
 import org.itxtech.synapseapi.multiprotocol.protocol11830.protocol.SpawnParticleEffectPacket11830;
 import org.itxtech.synapseapi.multiprotocol.protocol119.protocol.PlayerActionPacket119;
 import org.itxtech.synapseapi.multiprotocol.protocol11910.protocol.UpdateAbilitiesPacket11910;
+import org.itxtech.synapseapi.multiprotocol.protocol14.protocol.PlayerActionPacket14;
 import org.itxtech.synapseapi.multiprotocol.protocol15.protocol.MoveEntityDeltaPacket;
 import org.itxtech.synapseapi.multiprotocol.protocol18.protocol.SpawnParticleEffectPacket18;
 
@@ -172,6 +173,10 @@ public class DataPacketEidReplacer {
                 if (packet instanceof PlayerActionPacket119) {
                     if (((PlayerActionPacket119) packet).entityId == from) {
                         ((PlayerActionPacket119) packet).entityId = to;
+                    }
+                } else if (packet instanceof PlayerActionPacket14) {
+                    if (((PlayerActionPacket14) packet).entityId == from) {
+                        ((PlayerActionPacket14) packet).entityId = to;
                     }
                 } else if (packet instanceof PlayerActionPacket) {
                     if (((PlayerActionPacket) packet).entityId == from) {
