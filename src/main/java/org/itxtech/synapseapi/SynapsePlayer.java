@@ -128,7 +128,12 @@ public class SynapsePlayer extends Player {
     }
 
     public int nextDummyDimension() {
-        this.dummyDimension = this.dummyDimension == 0 ? 5 : 0;
+        this.dummyDimension++;
+        if (this.dummyDimension < 4) {
+            this.dummyDimension = 4;
+        } else if (this.dummyDimension > 20) {
+            this.dummyDimension = 4;
+        }
         return this.dummyDimension;
     }
 
@@ -160,6 +165,7 @@ public class SynapsePlayer extends Player {
         // 从上一个服务器传递过来的dummyDimension，用于发送子区块的时候使用
         if (this.cachedExtra != null && this.cachedExtra.has("dummyDimension")) {
             this.dummyDimension = this.cachedExtra.get("dummyDimension").getAsInt();
+            this.getServer().getLogger().debug("[DummyDimension] 从上一服务端收到玩家 " + this.getName() + " 的dummyDimension: " + this.dummyDimension);
         }
         SynapsePlayerConnectEvent ev;
         this.server.getPluginManager().callEvent(ev = new SynapsePlayerConnectEvent(this, this.isFirstTimeLogin));

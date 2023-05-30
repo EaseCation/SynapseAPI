@@ -16,10 +16,7 @@ import cn.nukkit.network.protocol.*;
 import cn.nukkit.resourcepacks.ResourcePack;
 import cn.nukkit.utils.MainLogger;
 import cn.nukkit.utils.TextFormat;
-import com.google.gson.Gson;
-import com.google.gson.JsonArray;
-import com.google.gson.JsonObject;
-import com.google.gson.JsonPrimitive;
+import com.google.gson.*;
 import org.itxtech.synapseapi.event.player.SynapsePlayerBroadcastLevelSoundEvent;
 import org.itxtech.synapseapi.event.player.SynapsePlayerConnectEvent;
 import org.itxtech.synapseapi.event.player.netease.NetEasePlayerModEventC2SEvent;
@@ -64,6 +61,11 @@ public class SynapsePlayer16 extends SynapsePlayer14 {
 		}
 		this.isFirstTimeLogin = packet.isFirstTime;
 		this.cachedExtra = packet.extra;
+		// 从上一个服务器传递过来的dummyDimension，用于发送子区块的时候使用
+		if (this.cachedExtra != null && this.cachedExtra.has("dummyDimension")) {
+			this.dummyDimension = this.cachedExtra.get("dummyDimension").getAsInt();
+			this.getServer().getLogger().debug("[DummyDimension] 从上一服务端收到玩家 " + Optional.ofNullable(packet.extra).map(extra -> extra.get("username")).map(JsonElement::getAsString).orElse("null") + " 的dummyDimension: " + this.dummyDimension);
+		}
 		SynapsePlayerConnectEvent ev;
 		this.server.getPluginManager().callEvent(ev = new SynapsePlayerConnectEvent(this, this.isFirstTimeLogin));
 		if (!ev.isCancelled()) {
