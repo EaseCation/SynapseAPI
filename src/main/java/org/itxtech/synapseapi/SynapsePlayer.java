@@ -130,10 +130,10 @@ public class SynapsePlayer extends Player {
 
     public int nextDummyDimension() {
         this.dummyDimension++;
-        if (this.dummyDimension < 4) {
-            this.dummyDimension = 4;
+        if (this.dummyDimension < 3) {
+            this.dummyDimension = 3;
         } else if (this.dummyDimension > 20) {
-            this.dummyDimension = 4;
+            this.dummyDimension = 3;
         }
         return this.dummyDimension;
     }
@@ -421,6 +421,8 @@ public class SynapsePlayer extends Player {
 
         Position spawnPosition = this.getSpawn();
         if (this.isFirstTimeLogin) {
+            sendDimensionData();
+
             DataPacket startGamePacket = generateStartGamePacket(spawnPosition);
             this.dataPacket(startGamePacket);
 
@@ -607,7 +609,7 @@ public class SynapsePlayer extends Player {
                     ackPacket.resultY = ackPacket.y;
                     ackPacket.resultZ = ackPacket.z;
                     dataPacket(ackPacket);
-                } else if (getProtocol() >= AbstractProtocol.PROTOCOL_118.getProtocolStart()) {
+                } else if (isNetEaseClient() && getProtocol() >= AbstractProtocol.PROTOCOL_118.getProtocolStart()) {
                     PlayerActionPacket14 ackPacket = new PlayerActionPacket14();
                     ackPacket.action = PlayerActionPacket14.ACTION_DIMENSION_CHANGE_ACK;
                     ackPacket.entityId = getId();
@@ -760,7 +762,7 @@ public class SynapsePlayer extends Player {
                     ackPacket.resultY = ackPacket.y;
                     ackPacket.resultZ = ackPacket.z;
                     dataPacket(ackPacket);
-                } else if (getProtocol() >= AbstractProtocol.PROTOCOL_118.getProtocolStart()) {
+                } else if (isNetEaseClient() && getProtocol() >= AbstractProtocol.PROTOCOL_118.getProtocolStart()) {
                     PlayerActionPacket14 ackPacket = new PlayerActionPacket14();
                     ackPacket.action = PlayerActionPacket14.ACTION_DIMENSION_CHANGE_ACK;
                     ackPacket.entityId = getId();
@@ -1320,5 +1322,8 @@ public class SynapsePlayer extends Player {
 
     public boolean isServerAuthoritativeMovementEnabled() {
         return false;
+    }
+
+    protected void sendDimensionData() {
     }
 }

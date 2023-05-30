@@ -72,11 +72,6 @@ public class SynapsePlayer116 extends SynapsePlayer113 {
 	}
 
 	@Override
-	public boolean isNeedLevelChangeLoadScreen() {
-		return this.isNetEaseClient() && this.isSubChunkRequestAvailable() && this.isBlobCacheAvailable();
-	}
-
-	@Override
 	protected DataPacket generateStartGamePacket(Position spawnPosition) {
 		StartGamePacket116 startGamePacket = new StartGamePacket116();
 		startGamePacket.protocol = AbstractProtocol.fromRealProtocol(this.protocol);

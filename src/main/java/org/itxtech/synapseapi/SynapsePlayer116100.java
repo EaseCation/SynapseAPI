@@ -28,6 +28,7 @@ import cn.nukkit.level.Level;
 import cn.nukkit.level.Position;
 import cn.nukkit.level.format.generic.ChunkBlobCache;
 import cn.nukkit.level.format.generic.ChunkPacketCache;
+import cn.nukkit.level.generator.Generator;
 import cn.nukkit.level.particle.PunchBlockParticle;
 import cn.nukkit.math.*;
 import cn.nukkit.network.SourceInterface;
@@ -66,6 +67,8 @@ import org.itxtech.synapseapi.multiprotocol.protocol118.protocol.StartGamePacket
 import org.itxtech.synapseapi.multiprotocol.protocol118.protocol.SubChunkRequestPacket118;
 import org.itxtech.synapseapi.multiprotocol.protocol11810.protocol.PlayerStartItemCooldownPacket11810;
 import org.itxtech.synapseapi.multiprotocol.protocol11810.protocol.SubChunkRequestPacket11810;
+import org.itxtech.synapseapi.multiprotocol.protocol11830.protocol.DimensionDataPacket11830;
+import org.itxtech.synapseapi.multiprotocol.protocol11830.protocol.DimensionDataPacket11830.DimensionDefinition;
 import org.itxtech.synapseapi.multiprotocol.protocol11830.protocol.SpawnParticleEffectPacket11830;
 import org.itxtech.synapseapi.multiprotocol.protocol11830.protocol.StartGamePacket11830;
 import org.itxtech.synapseapi.multiprotocol.protocol11830ne.protocol.NetworkChunkPublisherUpdatePacket11830NE;
@@ -1581,7 +1584,7 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
 
     @Override
     public boolean isSubChunkRequestAvailable() {
-        return USE_SUB_CHUNK_REQUEST && this.protocol >= AbstractProtocol.PROTOCOL_118.getProtocolStart() && this.isBlobCacheAvailable()/* && !this.isNetEaseClient()*/;
+        return USE_SUB_CHUNK_REQUEST && this.protocol >= AbstractProtocol.PROTOCOL_118.getProtocolStart() /*&& (this.isBlobCacheAvailable() || !this.isNetEaseClient())*/;
     }
 
     @Override
@@ -1824,7 +1827,9 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
         if (subChunkCount != 0) {
             subChunkCount += PADDING_SUB_CHUNK_COUNT;
         }
-        BatchPacket[] packets = packetCache.getSubPackets(StaticVersion.fromProtocol(this.protocol, this.isNetEaseClient()));
+        StaticVersion paletteVersion = StaticVersion.fromProtocol(this.protocol, this.isNetEaseClient());
+        BatchPacket[] packets = packetCache.getSubPackets(paletteVersion);
+        SubChunkPacket[] packetsUncompressed = packetCache.getSubPacketsUncompressed(paletteVersion);
 
         IntIterator iter = requests.iterator();
         while (iter.hasNext()) {
@@ -1903,6 +1908,19 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
                 pk.cacheEnabled = true;
                 pk.heightMapType = heightMapType[index];
                 pk.heightMap = heightMap[index];
+                this.dataPacket(pk);
+            } else if (isNeedLevelChangeLoadScreen()) {
+                SubChunkPacket uncompressed = packetsUncompressed[index];
+
+                SubChunkPacket pk = this.createSubChunkPacket();
+                pk.dimension = this.dummyDimension;
+                pk.subChunkX = uncompressed.subChunkX;
+                pk.subChunkY = uncompressed.subChunkY;
+                pk.subChunkZ = uncompressed.subChunkZ;
+                pk.data = uncompressed.data;
+                pk.requestResult = uncompressed.requestResult;
+                pk.heightMapType = uncompressed.heightMapType;
+                pk.heightMap = uncompressed.heightMap;
                 this.dataPacket(pk);
             } else {
                 this.dataPacket(packets[index]);
@@ -2661,6 +2679,15 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
         super.setDimension(dimension);
 
         if (getProtocol() < AbstractProtocol.PROTOCOL_119_50.getProtocolStart()) {
+            if (isNetEaseClient()) {
+                PlayerActionPacket14 packet = new PlayerActionPacket14();
+                packet.action = PlayerActionPacket.ACTION_DIMENSION_CHANGE_ACK;
+                packet.entityId = getId();
+                packet.x = getFloorX();
+                packet.y = getFloorY();
+                packet.z = getFloorZ();
+                dataPacket(packet);
+            }
             return;
         }
 
@@ -2687,6 +2714,38 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
         packet.y = pos.y;
         packet.z = pos.z;
         packet.front = front;
+        dataPacket(packet);
+    }
+
+    @Override
+    public boolean isNeedLevelChangeLoadScreen() {
+        return this.isNetEaseClient() && this.isSubChunkRequestAvailable() /*&& this.isBlobCacheAvailable()*/;
+    }
+
+    @Override
+    public void sendDimensionData() {
+        if (getProtocol() < AbstractProtocol.PROTOCOL_118_30.getProtocolStart()) {
+            return;
+        }
+
+        if (isNetEaseClient()) {
+            return;
+        }
+
+        if (true) {
+            return;
+        }
+        // test data-driven dimensions
+
+        DimensionDataPacket11830 packet = new DimensionDataPacket11830();
+        packet.definitions = new DimensionDefinition[]{
+//                DimensionDataPacket11830.VANILLA_OVERWORLD,
+                //new DimensionDefinition(DimensionDataPacket11830.VANILLA_OVERWORLD.identifier, 255, 0, Generator.TYPE_VOID),
+//                DimensionDataPacket11830.VANILLA_NETHER,
+//                DimensionDataPacket11830.VANILLA_THE_END,
+                new DimensionDefinition("ease:dim3", 255, 0, Generator.TYPE_VOID),
+                new DimensionDefinition("ease:dim4", 255, 0, Generator.TYPE_VOID),
+        };
         dataPacket(packet);
     }
 
