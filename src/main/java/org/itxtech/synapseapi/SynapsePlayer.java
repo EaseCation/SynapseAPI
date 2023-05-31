@@ -583,14 +583,20 @@ public class SynapsePlayer extends Player {
                 this.sentSkins.clear();
             }
 
+            // 用于连续跨服的情况下，防止卡在loading screen
+            boolean isLevelChanging = this.isLevelChange || !this.spawned;
+
             this.getDummyBossBars().values().forEach(DummyBossBar::destroy);
             this.getDummyBossBars().clear();
             this.teleportPosition = null;
             this.isLevelChange = true;
 
             if (this.isNeedLevelChangeLoadScreen()) {
+                if (!isLevelChanging) {
+                    this.nextDummyDimension();
+                }
                 ChangeDimensionPacket changeDimensionPacket1 = new ChangeDimensionPacket();
-                changeDimensionPacket1.dimension = this.nextDummyDimension();
+                changeDimensionPacket1.dimension = this.dummyDimension;
                 changeDimensionPacket1.x = 0;
                 changeDimensionPacket1.y = 32767;
                 changeDimensionPacket1.z = 0;
@@ -730,6 +736,7 @@ public class SynapsePlayer extends Player {
 
         Location from = this.getLocation();
 
+        boolean isLevelChanging = this.isLevelChange;
         if (location.level != null && from.getLevel().getId() != location.level.getId()) {
             this.getDummyBossBars().values().forEach(DummyBossBar::destroy);  //游戏崩溃问题
             for (Entity entity : this.getLevel().getEntities()) {
@@ -741,7 +748,10 @@ public class SynapsePlayer extends Player {
         }
         if (super.teleport(location, cause) && this.isNeedLevelChangeLoadScreen()) {
             if (from.getLevel().getId() != location.level.getId() && this.spawned) {
-                this.nextDummyDimension();
+                // 用于连续切换世界的情况下，防止卡在loading screen
+                if (!isLevelChanging) {
+                    this.nextDummyDimension();
+                }
                 this.isLevelChange = true;
 
                 ChangeDimensionPacket changeDimensionPacket = new ChangeDimensionPacket();
