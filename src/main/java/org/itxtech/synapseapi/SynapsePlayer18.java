@@ -18,6 +18,7 @@ import org.itxtech.synapseapi.multiprotocol.protocol18.protocol.*;
 import org.itxtech.synapseapi.multiprotocol.utils.AvailableEntityIdentifiersPalette;
 import org.itxtech.synapseapi.multiprotocol.utils.LevelSoundEventEnum;
 
+import javax.annotation.Nullable;
 import java.net.InetSocketAddress;
 import java.util.concurrent.ThreadLocalRandom;
 
@@ -228,21 +229,16 @@ public class SynapsePlayer18 extends SynapsePlayer17 {
 
 	@Override
 	public final void spawnParticleEffect(Vector3f position, String identifier, long entityUniqueId) {
-		spawnParticleEffect(position, identifier, entityUniqueId, Level.DIMENSION_OVERWORLD);
+		spawnParticleEffect(position, identifier, entityUniqueId, null);
 	}
 
 	@Override
-	public final void spawnParticleEffect(Vector3f position, String identifier, long entityUniqueId, int dimension) {
-		spawnParticleEffect(position, identifier, entityUniqueId, dimension, null);
-	}
-
-	@Override
-	public void spawnParticleEffect(Vector3f position, String identifier, long entityUniqueId, int dimension, String molangVariables) {
+	public void spawnParticleEffect(Vector3f position, String identifier, long entityUniqueId, @Nullable String molangVariables) {
 		SpawnParticleEffectPacket packet = new SpawnParticleEffectPacket();
 		packet.position = position;
 		packet.identifier = identifier;
 		packet.uniqueEntityId = entityUniqueId;
-		packet.dimensionId = dimension;
+		packet.dimensionId = dummyDimension/*Level.DIMENSION_OVERWORLD*/;
 		dataPacket(packet);
 	}
 }

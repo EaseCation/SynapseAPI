@@ -97,6 +97,7 @@ import org.itxtech.synapseapi.multiprotocol.protocol16.protocol.ResourcePackClie
 import org.itxtech.synapseapi.multiprotocol.utils.ItemComponentDefinitions;
 import org.itxtech.synapseapi.utils.BlobTrack;
 
+import javax.annotation.Nullable;
 import java.net.InetSocketAddress;
 import java.util.Arrays;
 import java.util.Comparator;
@@ -2474,9 +2475,9 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
     }
 
     @Override
-    public void spawnParticleEffect(Vector3f position, String identifier, long entityUniqueId, int dimension, String molangVariables) {
+    public void spawnParticleEffect(Vector3f position, String identifier, long entityUniqueId, @Nullable String molangVariables) {
         if (this.getProtocol() < AbstractProtocol.PROTOCOL_118_30.getProtocolStart()) {
-            super.spawnParticleEffect(position, identifier, entityUniqueId, dimension, null);
+            super.spawnParticleEffect(position, identifier, entityUniqueId, null);
             return;
         }
 
@@ -2484,7 +2485,7 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
         packet.position = position;
         packet.identifier = identifier;
         packet.uniqueEntityId = entityUniqueId;
-        packet.dimension = dimension;
+        packet.dimension = dummyDimension/*Level.DIMENSION_OVERWORLD*/;
         packet.molangVariables = molangVariables;
         dataPacket(packet);
     }
@@ -2679,7 +2680,7 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
         super.setDimension(dimension);
 
         if (getProtocol() < AbstractProtocol.PROTOCOL_119_50.getProtocolStart()) {
-            if (isNetEaseClient()) {
+            if (isNetEaseClient() && getProtocol() >= AbstractProtocol.PROTOCOL_118.getProtocolStart()) {
                 PlayerActionPacket14 packet = new PlayerActionPacket14();
                 packet.action = PlayerActionPacket.ACTION_DIMENSION_CHANGE_ACK;
                 packet.entityId = getId();
