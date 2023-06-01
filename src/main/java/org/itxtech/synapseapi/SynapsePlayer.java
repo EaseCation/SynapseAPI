@@ -1336,4 +1336,8 @@ public class SynapsePlayer extends Player {
 
     protected void sendDimensionData() {
     }
+
+    public int getDummyDimension() {
+        return dummyDimension;
+    }
 }
