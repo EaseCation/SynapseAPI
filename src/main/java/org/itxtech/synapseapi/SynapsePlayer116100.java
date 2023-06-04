@@ -2000,6 +2000,8 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
 
                 ++count;
             } else {
+                boolean playerNotFound = this.getLoaderId() <= 0;
+
                 IntIterator yIter = newRequests.iterator();
                 while (yIter.hasNext()) {
                     int chunkY = yIter.nextInt();
@@ -2009,7 +2011,11 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
                     pk.subChunkX = chunkX;
                     pk.subChunkY = chunkY;
                     pk.subChunkZ = chunkZ;
-                    pk.requestResult = SubChunkPacket.REQUEST_RESULT_PLAYER_NOT_FOUND;
+                    if (playerNotFound) {
+                        pk.requestResult = SubChunkPacket.REQUEST_RESULT_PLAYER_NOT_FOUND;
+                    } else {
+                        pk.requestResult = SubChunkPacket.REQUEST_RESULT_NO_SUCH_CHUNK;
+                    }
                     this.dataPacket(pk);
 
                     yIter.remove();
@@ -2139,7 +2145,7 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
             pk.subChunkX = subChunkX;
             pk.subChunkY = subChunkY;
             pk.subChunkZ = subChunkZ;
-            pk.requestResult = SubChunkPacket.REQUEST_RESULT_PLAYER_NOT_FOUND;
+            pk.requestResult = SubChunkPacket.REQUEST_RESULT_NO_SUCH_CHUNK;
             this.dataPacket(pk);
             return false;
         }
