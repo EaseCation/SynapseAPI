@@ -162,8 +162,10 @@ public class SynapseAPI extends PluginBase implements Listener {
             }
         });
 
-        this.transferDimensionTaskThread = new TransferDimensionTaskThread();
-        this.transferDimensionTaskThread.start();
+        if (!Boolean.getBoolean("nukkit.worker")) {
+            this.transferDimensionTaskThread = new TransferDimensionTaskThread();
+            this.transferDimensionTaskThread.start();
+        }
 
         /*
         Map<String, int[]> data = new LinkedHashMap<>();

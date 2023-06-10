@@ -10,6 +10,10 @@ public class MapInfoRequestPacket11830NE extends Packet11830NE {
 
     public static final int NETWORK_ID = ProtocolInfo.MAP_INFO_REQUEST_PACKET;
 
+    public static final int MAX_MAP_WIDTH = 128;
+    public static final int MAX_MAP_HEIGHT = 128;
+    public static final int MAX_MAP_PIXELS = MAX_MAP_WIDTH * MAX_MAP_HEIGHT;
+
     public long mapId;
     public PixelEntry[] clientPixels;
 
@@ -26,7 +30,11 @@ public class MapInfoRequestPacket11830NE extends Packet11830NE {
             return;
         }
 
-        clientPixels = getArrayLInt(PixelEntry.class, stream -> new PixelEntry(stream.getLInt(), stream.getLShort()));
+        int count = getLInt();
+        if (count > MAX_MAP_PIXELS) {
+            throw new IndexOutOfBoundsException("Too many pixels");
+        }
+        clientPixels = getArray(count, PixelEntry.class, stream -> new PixelEntry(stream.getLInt(), stream.getLShort()));
     }
 
     @Override

@@ -3,7 +3,6 @@ package org.itxtech.synapseapi.multiprotocol.protocol16.protocol;
 import cn.nukkit.entity.data.EntityMetadata;
 import cn.nukkit.network.protocol.DataPacket;
 import cn.nukkit.network.protocol.ProtocolInfo;
-import cn.nukkit.utils.Binary;
 import lombok.ToString;
 import org.itxtech.synapseapi.multiprotocol.AbstractProtocol;
 import org.itxtech.synapseapi.multiprotocol.utils.EntityMetadataGenerator;
@@ -34,7 +33,7 @@ public class SetEntityDataPacket16 extends Packet16 {
     public void encode() {
         this.reset();
         this.putEntityRuntimeId(this.eid);
-        this.put(Binary.writeMetadata(this.metadata));
+        this.putEntityMetadata(this.metadata);
     }
 
     @Override

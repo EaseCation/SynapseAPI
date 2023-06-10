@@ -92,6 +92,8 @@ import org.itxtech.synapseapi.multiprotocol.protocol11963.protocol.PlayerSkinPac
 import org.itxtech.synapseapi.multiprotocol.protocol11980.protocol.OpenSignPacket11980;
 import org.itxtech.synapseapi.multiprotocol.protocol11980.protocol.RequestChunkRadiusPacket11980;
 import org.itxtech.synapseapi.multiprotocol.protocol11980.protocol.StartGamePacket11980;
+import org.itxtech.synapseapi.multiprotocol.protocol120.protocol.EmotePacket120;
+import org.itxtech.synapseapi.multiprotocol.protocol120.protocol.StartGamePacket120;
 import org.itxtech.synapseapi.multiprotocol.protocol14.protocol.PlayerActionPacket14;
 import org.itxtech.synapseapi.multiprotocol.protocol16.protocol.ResourcePackClientResponsePacket16;
 import org.itxtech.synapseapi.multiprotocol.utils.ItemComponentDefinitions;
@@ -160,7 +162,41 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
 
     @Override
     protected DataPacket generateStartGamePacket(Position spawnPosition) {
-        if (this.getProtocol() >= AbstractProtocol.PROTOCOL_119_80.getProtocolStart()) {
+        if (this.getProtocol() >= AbstractProtocol.PROTOCOL_120.getProtocolStart()) {
+            StartGamePacket120 startGamePacket = new StartGamePacket120();
+            startGamePacket.protocol = AbstractProtocol.fromRealProtocol(this.protocol);
+            startGamePacket.netease = this.isNetEaseClient();
+            startGamePacket.entityUniqueId = SYNAPSE_PLAYER_ENTITY_ID;
+            startGamePacket.entityRuntimeId = SYNAPSE_PLAYER_ENTITY_ID;
+            startGamePacket.playerGamemode = getClientFriendlyGamemode(this.gamemode);
+            startGamePacket.x = (float) this.x;
+            startGamePacket.y = (float) this.y;
+            startGamePacket.z = (float) this.z;
+            startGamePacket.yaw = (float) this.yaw;
+            startGamePacket.pitch = (float) this.pitch;
+            startGamePacket.seed = -1;
+            startGamePacket.dimension = (byte) (this.level.getDimension().ordinal() & 0xff);
+            startGamePacket.worldGamemode = getClientFriendlyGamemode(this.gamemode);
+            startGamePacket.difficulty = this.server.getDifficulty();
+            startGamePacket.spawnX = (int) spawnPosition.x;
+            startGamePacket.spawnY = (int) spawnPosition.y;
+            startGamePacket.spawnZ = (int) spawnPosition.z;
+            startGamePacket.hasAchievementsDisabled = true;
+            startGamePacket.dayCycleStopTime = -1;
+            startGamePacket.rainLevel = 0;
+            startGamePacket.lightningLevel = 0;
+            startGamePacket.commandsEnabled = this.isEnableClientCommand();
+            startGamePacket.levelId = "";
+            startGamePacket.worldName = this.getServer().getNetwork().getName();
+            startGamePacket.generator = 1; // 0 old, 1 infinite, 2 flat
+            startGamePacket.gameRules = getSupportedRules();
+            startGamePacket.movementType = serverAuthoritativeMovement ? StartGamePacket11960.MOVEMENT_SERVER_AUTHORITATIVE : StartGamePacket11960.MOVEMENT_CLIENT_AUTHORITATIVE;
+            startGamePacket.isBlockBreakingServerAuthoritative = this.serverAuthoritativeBlockBreaking;
+            startGamePacket.currentTick = this.server.getTick();
+            startGamePacket.enchantmentSeed = ThreadLocalRandom.current().nextInt();
+            startGamePacket.isSoundServerAuthoritative = true;
+            return startGamePacket;
+        } else if (this.getProtocol() >= AbstractProtocol.PROTOCOL_119_80.getProtocolStart()) {
             StartGamePacket11980 startGamePacket = new StartGamePacket11980();
             startGamePacket.protocol = AbstractProtocol.fromRealProtocol(this.protocol);
             startGamePacket.netease = this.isNetEaseClient();
@@ -1511,6 +1547,33 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
                 chunkRadiusUpdatePacket.radius = this.chunkRadius;
                 this.dataPacket(chunkRadiusUpdatePacket);
                 break;
+            case ProtocolInfo.EMOTE_PACKET:
+                if (getProtocol() < AbstractProtocol.PROTOCOL_120.getProtocolStart()) {
+                    super.handleDataPacket(packet);
+                    break;
+                }
+
+                if (!callPacketReceiveEvent(packet)) break;
+                if (!this.spawned) {
+                    break;
+                }
+                EmotePacket120 emotePacket = (EmotePacket120) packet;
+                if (emotePacket.runtimeId != this.getLocalEntityId()) {
+                    server.getLogger().warning(this.username + " sent EmotePacket with invalid entity id: " + emotePacket.runtimeId + " != " + this.getLocalEntityId());
+                    break;
+                }
+                if (emotePacket.emoteID.length() != 32 + 4) { // 00000000-0000-0000-0000-000000000000
+                    break;
+                }
+                if ((emotePacket.flags & EmotePacket120.FLAG_SERVER) != 0) {
+                    break;
+                }
+
+                int flags = emotePacket.flags | EmotePacket120.FLAG_SERVER;
+                for (Player viewer : this.getViewers().values()) {
+                    viewer.playEmote(emotePacket.emoteID, this.getId(), flags);
+                }
+                break;
             default:
                 super.handleDataPacket(packet);
                 break;
@@ -2753,6 +2816,20 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
                 new DimensionDefinition("ease:dim3", 255, 0, Generator.TYPE_VOID),
                 new DimensionDefinition("ease:dim4", 255, 0, Generator.TYPE_VOID),
         };
+        dataPacket(packet);
+    }
+
+    @Override
+    public void playEmote(String emoteId, long entityRuntimeId, int flags) {
+        if (getProtocol() < AbstractProtocol.PROTOCOL_120.getProtocolStart()) {
+            super.playEmote(emoteId, entityRuntimeId, flags);
+            return;
+        }
+
+        EmotePacket120 packet = new EmotePacket120();
+        packet.emoteID = emoteId;
+        packet.runtimeId = entityRuntimeId;
+        packet.flags = flags;
         dataPacket(packet);
     }
 

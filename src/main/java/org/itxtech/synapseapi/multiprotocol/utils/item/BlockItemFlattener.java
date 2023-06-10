@@ -22,7 +22,7 @@ public final class BlockItemFlattener {
     static {
         DOWNGRADERS.put(AbstractProtocol.PROTOCOL_119_70, BlockItemFlattener::downgrader11970);
         DOWNGRADERS.put(AbstractProtocol.PROTOCOL_119_80, BlockItemFlattener::downgrader11980);
-//        DOWNGRADERS.put(AbstractProtocol.PROTOCOL_120, BlockItemFlattener::downgrader120);
+        DOWNGRADERS.put(AbstractProtocol.PROTOCOL_120, BlockItemFlattener::downgrader120);
     }
 
     private static int downgrader11970(int id) {
@@ -53,6 +53,16 @@ public final class BlockItemFlattener {
             return ItemBlockID.CARPET;
         }
         return downgrader11980(id);
+    }
+
+    private static int downgrader12010(int id) {
+        if (id <= ItemBlockID.ORANGE_SHULKER_BOX && id >= ItemBlockID.BLACK_SHULKER_BOX) {
+            return ItemBlockID.SHULKER_BOX;
+        }
+        if (id <= ItemBlockID.ORANGE_CONCRETE && id >= ItemBlockID.BLACK_CONCRETE) {
+            return ItemBlockID.CONCRETE;
+        }
+        return downgrader120(id);
     }
 
     private BlockItemFlattener() {

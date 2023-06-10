@@ -14,7 +14,7 @@ public class LatencyCommand extends Command implements PluginIdentifiableCommand
     private final Plugin plugin;
 
     public LatencyCommand(Plugin plugin) {
-        super("latency", "latency telemetry", "/latency");
+        super("latency", "RTT telemetry", "/latency");
         setPermission("synapseapi.command.latency");
         commandParameters.clear();
         this.plugin = plugin;
@@ -27,14 +27,14 @@ public class LatencyCommand extends Command implements PluginIdentifiableCommand
         }
 
         if (!(sender instanceof SynapsePlayer)) {
-            sender.sendMessage(new TranslationContainer("commands.generic.ingame"));
+            sender.sendMessage(new TranslationContainer("nukkit.command.generic.ingame"));
             return false;
         }
 
         SynapsePlayer player = (SynapsePlayer) sender;
         float latencyMs = player.getLatency() / 1_000_000f;
         int latencyTicks = Math.round(latencyMs / 50);
-        player.sendMessage("ping: " + latencyTicks + " ticks (" + latencyMs + " ms)\ntps: " + sender.getServer().getTicksPerSecondRaw());
+        player.sendMessage("RTT: " + latencyTicks + " ticks (" + latencyMs + " ms)\nTPS: " + sender.getServer().getTicksPerSecondRaw());
         return true;
     }
 

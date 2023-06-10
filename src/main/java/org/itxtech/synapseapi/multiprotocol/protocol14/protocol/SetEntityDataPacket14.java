@@ -7,7 +7,6 @@ import org.itxtech.synapseapi.utils.ClassUtils;
 import cn.nukkit.entity.data.EntityMetadata;
 import cn.nukkit.network.protocol.DataPacket;
 import cn.nukkit.network.protocol.ProtocolInfo;
-import cn.nukkit.utils.Binary;
 
 /**
  * author: MagicDroidX
@@ -34,7 +33,7 @@ public class SetEntityDataPacket14 extends Packet14 {
     public void encode() {
         this.reset();
         this.putEntityRuntimeId(this.eid);
-        this.put(Binary.writeMetadata(this.metadata));
+        this.putEntityMetadata(this.metadata);
     }
 
     @Override

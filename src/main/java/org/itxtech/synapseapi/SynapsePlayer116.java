@@ -43,6 +43,7 @@ import org.itxtech.synapseapi.multiprotocol.AbstractProtocol;
 import org.itxtech.synapseapi.multiprotocol.protocol113.protocol.IPlayerAuthInputPacket;
 import org.itxtech.synapseapi.multiprotocol.protocol113.protocol.IPlayerAuthInputPacket.PlayerBlockAction;
 import org.itxtech.synapseapi.multiprotocol.protocol116.protocol.*;
+import org.itxtech.synapseapi.multiprotocol.protocol120.protocol.EmotePacket120;
 import org.itxtech.synapseapi.multiprotocol.protocol14.protocol.PlayerActionPacket14;
 
 import java.net.InetSocketAddress;
@@ -676,12 +677,9 @@ public class SynapsePlayer116 extends SynapsePlayer113 {
 					break;
 				}
 
-				EmotePacket116 emoteBroadcast = new EmotePacket116();
-				emoteBroadcast.runtimeId = this.getId();
-				emoteBroadcast.emoteID = emotePacket.emoteID;
-				emoteBroadcast.flags = emotePacket.flags | EmotePacket116.FLAG_SERVER;
-				for (Player viewer : this.getViewers().values().stream().filter(p -> p.getProtocol() >= AbstractProtocol.PROTOCOL_116.getProtocolStart()).toArray(Player[]::new)) {
-					viewer.dataPacket(emoteBroadcast);
+				int flags = emotePacket.flags | EmotePacket120.FLAG_SERVER;
+				for (Player viewer : this.getViewers().values()) {
+					viewer.playEmote(emotePacket.emoteID, this.getId(), flags);
 				}
 				break;
 			case ProtocolInfo.PLAYER_AUTH_INPUT_PACKET:
@@ -1385,5 +1383,14 @@ public class SynapsePlayer116 extends SynapsePlayer113 {
 			this.updateSynapsePlayerTiming.stopTiming();
 		}
 		return super.onUpdate(currentTick);
+	}
+
+	@Override
+	public void playEmote(String emoteId, long entityRuntimeId, int flags) {
+		EmotePacket116 packet = new EmotePacket116();
+		packet.emoteID = emoteId;
+		packet.runtimeId = entityRuntimeId;
+		packet.flags = flags;
+		dataPacket(packet);
 	}
 }

@@ -4,7 +4,6 @@ import cn.nukkit.entity.data.EntityMetadata;
 import cn.nukkit.network.protocol.DataPacket;
 import cn.nukkit.network.protocol.ProtocolInfo;
 import cn.nukkit.network.protocol.SetEntityDataPacket;
-import cn.nukkit.utils.Binary;
 import lombok.ToString;
 import org.itxtech.synapseapi.multiprotocol.AbstractProtocol;
 import org.itxtech.synapseapi.multiprotocol.utils.EntityMetadataGenerator;
@@ -33,7 +32,7 @@ public class SetEntityDataPacket116100NE extends Packet116100NE {
     public void encode() {
         this.reset();
         this.putEntityRuntimeId(this.eid);
-        this.put(Binary.writeMetadata(this.metadata));
+        this.putEntityMetadata(this.metadata);
         this.putUnsignedVarLong(this.frame);
     }
 

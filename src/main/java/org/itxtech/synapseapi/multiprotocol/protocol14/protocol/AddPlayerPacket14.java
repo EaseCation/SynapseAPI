@@ -1,17 +1,15 @@
 package org.itxtech.synapseapi.multiprotocol.protocol14.protocol;
 
-import java.util.UUID;
-
+import cn.nukkit.entity.data.EntityMetadata;
+import cn.nukkit.item.Item;
+import cn.nukkit.network.protocol.DataPacket;
+import cn.nukkit.network.protocol.ProtocolInfo;
 import cn.nukkit.network.protocol.types.EntityLink;
 import lombok.ToString;
 import org.itxtech.synapseapi.multiprotocol.utils.EntityMetadataGenerator;
 import org.itxtech.synapseapi.utils.ClassUtils;
 
-import cn.nukkit.entity.data.EntityMetadata;
-import cn.nukkit.item.Item;
-import cn.nukkit.network.protocol.DataPacket;
-import cn.nukkit.network.protocol.ProtocolInfo;
-import cn.nukkit.utils.Binary;
+import java.util.UUID;
 
 @ToString
 public class AddPlayerPacket14 extends Packet14 {
@@ -71,7 +69,7 @@ public class AddPlayerPacket14 extends Packet14 {
 		this.putLFloat(this.headYaw);
 		this.putSlot(this.item);
 
-		this.put(Binary.writeMetadata(this.metadata));
+		this.putEntityMetadata(this.metadata);
 
 		this.putUnsignedVarInt(flags);
 		this.putUnsignedVarInt(userCommandPermissions);

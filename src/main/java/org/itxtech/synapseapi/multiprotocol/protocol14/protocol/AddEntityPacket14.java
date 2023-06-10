@@ -5,7 +5,6 @@ import cn.nukkit.entity.data.EntityMetadata;
 import cn.nukkit.network.protocol.DataPacket;
 import cn.nukkit.network.protocol.ProtocolInfo;
 import cn.nukkit.network.protocol.types.EntityLink;
-import cn.nukkit.utils.Binary;
 import lombok.ToString;
 import org.itxtech.synapseapi.multiprotocol.utils.EntityMetadataGenerator;
 import org.itxtech.synapseapi.utils.ClassUtils;
@@ -55,7 +54,7 @@ public class AddEntityPacket14 extends Packet14 {
         this.putLFloat(this.pitch);
         this.putLFloat(this.yaw);
         this.putAttributeList(this.attributes);
-        this.put(Binary.writeMetadata(this.metadata));
+        this.putEntityMetadata(this.metadata);
         this.putUnsignedVarInt(this.links.length);
         for (EntityLink link : this.links) {
             this.putEntityLink(link);

@@ -4,7 +4,6 @@ import cn.nukkit.entity.data.EntityMetadata;
 import cn.nukkit.item.Item;
 import cn.nukkit.network.protocol.DataPacket;
 import cn.nukkit.network.protocol.ProtocolInfo;
-import cn.nukkit.utils.Binary;
 import lombok.ToString;
 import org.itxtech.synapseapi.multiprotocol.utils.EntityMetadataGenerator;
 import org.itxtech.synapseapi.utils.ClassUtils;
@@ -47,7 +46,7 @@ public class AddItemEntityPacket14 extends Packet14 {
         this.putSlot(this.item);
         this.putVector3f(this.x, this.y, this.z);
         this.putVector3f(this.speedX, this.speedY, this.speedZ);
-        this.put(Binary.writeMetadata(metadata));
+        this.putEntityMetadata(this.metadata);
         this.putBoolean(this.isFromFishing);
     }
 

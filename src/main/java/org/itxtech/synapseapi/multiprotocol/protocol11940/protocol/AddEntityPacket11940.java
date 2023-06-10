@@ -12,7 +12,6 @@ import cn.nukkit.network.protocol.AddEntityPacket;
 import cn.nukkit.network.protocol.DataPacket;
 import cn.nukkit.network.protocol.ProtocolInfo;
 import cn.nukkit.network.protocol.types.EntityLink;
-import cn.nukkit.utils.Binary;
 import com.google.common.collect.ImmutableMap;
 import lombok.ToString;
 import org.itxtech.synapseapi.multiprotocol.AbstractProtocol;
@@ -173,7 +172,7 @@ public class AddEntityPacket11940 extends Packet11940 {
         this.putLFloat(this.headYaw);
         this.putLFloat(this.bodyYaw == Float.MIN_VALUE ? this.yaw : this.bodyYaw);
         this.putAttributeList(this.attributes);
-        this.put(Binary.writeMetadata(this.metadata));
+        this.putEntityMetadata(this.metadata);
         this.putUnsignedVarInt(0); // entity int properties
         this.putUnsignedVarInt(0); // entity float properties
         this.putUnsignedVarInt(this.links.length);

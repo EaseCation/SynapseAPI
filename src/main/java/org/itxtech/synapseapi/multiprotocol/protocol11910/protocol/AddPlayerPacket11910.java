@@ -6,7 +6,6 @@ import cn.nukkit.network.protocol.AddPlayerPacket;
 import cn.nukkit.network.protocol.DataPacket;
 import cn.nukkit.network.protocol.ProtocolInfo;
 import cn.nukkit.network.protocol.types.EntityLink;
-import cn.nukkit.utils.Binary;
 import lombok.ToString;
 import org.itxtech.synapseapi.multiprotocol.AbstractProtocol;
 import org.itxtech.synapseapi.multiprotocol.utils.EntityMetadataGenerator;
@@ -71,7 +70,7 @@ public class AddPlayerPacket11910 extends Packet11910 {
         this.putLFloat(this.headYaw);
         this.putSlot(this.item);
         this.putVarInt(this.gameMode);
-        this.put(Binary.writeMetadata(this.metadata));
+        this.putEntityMetadata(this.metadata);
 
         // UpdateAbilitiesPacket
         this.putLLong(entityUniqueId);

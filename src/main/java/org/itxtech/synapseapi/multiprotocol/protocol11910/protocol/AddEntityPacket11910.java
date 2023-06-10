@@ -11,7 +11,6 @@ import cn.nukkit.entity.weather.EntityLightning;
 import cn.nukkit.network.protocol.DataPacket;
 import cn.nukkit.network.protocol.ProtocolInfo;
 import cn.nukkit.network.protocol.types.EntityLink;
-import cn.nukkit.utils.Binary;
 import com.google.common.collect.ImmutableMap;
 import lombok.ToString;
 import org.itxtech.synapseapi.multiprotocol.AbstractProtocol;
@@ -178,7 +177,7 @@ public class AddEntityPacket11910 extends Packet11910 {
         this.putLFloat(this.headYaw);
         this.putLFloat(this.bodyYaw == Float.MIN_VALUE ? this.yaw : this.bodyYaw);
         this.putAttributeList(this.attributes);
-        this.put(Binary.writeMetadata(this.metadata));
+        this.putEntityMetadata(this.metadata);
         this.putUnsignedVarInt(this.links.length);
         for (EntityLink link : this.links) {
             this.putEntityLink(link);

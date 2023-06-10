@@ -86,6 +86,9 @@ import org.itxtech.synapseapi.multiprotocol.protocol11980.protocol.CraftingDataP
 import org.itxtech.synapseapi.multiprotocol.protocol11980.protocol.OpenSignPacket11980;
 import org.itxtech.synapseapi.multiprotocol.protocol11980.protocol.RequestChunkRadiusPacket11980;
 import org.itxtech.synapseapi.multiprotocol.protocol11980.protocol.StartGamePacket11980;
+import org.itxtech.synapseapi.multiprotocol.protocol120.protocol.EmotePacket120;
+import org.itxtech.synapseapi.multiprotocol.protocol120.protocol.StartGamePacket120;
+import org.itxtech.synapseapi.multiprotocol.protocol120.protocol.UnlockedRecipesPacket120;
 import org.itxtech.synapseapi.multiprotocol.protocol15.protocol.AddEntityPacket15;
 import org.itxtech.synapseapi.multiprotocol.protocol15.protocol.ClientboundMapItemDataPacket15;
 import org.itxtech.synapseapi.multiprotocol.protocol15.protocol.MoveEntityAbsolutePacket15;
@@ -346,6 +349,10 @@ public class PacketRegister {
         registerPacket(AbstractProtocol.PROTOCOL_119_80, ProtocolInfo.REQUEST_CHUNK_RADIUS_PACKET, RequestChunkRadiusPacket11980.class);
         registerPacket(AbstractProtocol.PROTOCOL_119_80, ProtocolInfo.OPEN_SIGN_PACKET, OpenSignPacket11980.class);
         registerPacket(AbstractProtocol.PROTOCOL_119_80, ProtocolInfo.COMPRESSED_BIOME_DEFINITION_LIST_PACKET, CompressedBiomeDefinitionListPacket11980.class);
+
+        registerPacket(AbstractProtocol.PROTOCOL_120, ProtocolInfo.START_GAME_PACKET, StartGamePacket120.class);
+        registerPacket(AbstractProtocol.PROTOCOL_120, ProtocolInfo.EMOTE_PACKET, EmotePacket120.class);
+        registerPacket(AbstractProtocol.PROTOCOL_120, ProtocolInfo.UNLOCKED_RECIPES_PACKET, UnlockedRecipesPacket120.class);
 
         checkNeteaseSpecialExtend();
     }
