@@ -420,9 +420,7 @@ public class SynapsePlayer14 extends SynapsePlayer {
 						break;
 				}
 
-				this.startAction = -1;
-				this.startActionTimestamp = -1;
-				this.setDataFlag(Player.DATA_FLAGS, Player.DATA_FLAG_ACTION, false);
+				this.setUsingItem(false);
 				break;
             case ProtocolInfo.TEXT_PACKET:
 				if (!this.callPacketReceiveEvent(((TextPacket14) packet).toDefault())) break;
@@ -600,7 +598,7 @@ public class SynapsePlayer14 extends SynapsePlayer {
 
             nextChunkOrderRun = 0;
 
-            sendPosition(getPosition(), yaw, pitch, MovePlayerPacket.MODE_RESET);
+            sendPosition(getPosition(), yaw, pitch, MovePlayerPacket.MODE_RESPAWN);
 
 			if (getProtocol() >= AbstractProtocol.PROTOCOL_119_50.getProtocolStart()) {
 				PlayerActionPacket119 ackPacket = new PlayerActionPacket119();

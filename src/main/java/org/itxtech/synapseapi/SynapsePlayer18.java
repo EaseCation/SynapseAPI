@@ -155,21 +155,19 @@ public class SynapsePlayer18 extends SynapsePlayer17 {
 	}
 
 	@Override
-	protected void completeLoginSequence() {
-		super.completeLoginSequence();
-		if (this.loggedIn) {
-			AvailableEntityIdentifiersPacket18 pk = new AvailableEntityIdentifiersPacket18();
-			SynapsePlayerRequestAvailableEntityIdentifiersPaletteEvent event = new SynapsePlayerRequestAvailableEntityIdentifiersPaletteEvent(this, AvailableEntityIdentifiersPalette.getData(AbstractProtocol.fromRealProtocol(this.getProtocol())));
-			this.getServer().getPluginManager().callEvent(event);
-			pk.tag = event.getData();
-			if (pk.tag != null) {
-				this.dataPacket(pk);
-			} else {
-				Server.getInstance().getLogger().warning("Null AvailableEntityIdentifiersPacket data to player " + this.getName() + "!");
-			}
+	protected void sendAvailableEntityIdentifiers() {
+		AvailableEntityIdentifiersPacket18 pk = new AvailableEntityIdentifiersPacket18();
+		SynapsePlayerRequestAvailableEntityIdentifiersPaletteEvent event = new SynapsePlayerRequestAvailableEntityIdentifiersPaletteEvent(this, AvailableEntityIdentifiersPalette.getData(AbstractProtocol.fromRealProtocol(this.getProtocol())));
+		this.getServer().getPluginManager().callEvent(event);
+		pk.tag = event.getData();
+		if (pk.tag != null) {
+			this.dataPacket(pk);
+		} else {
+			Server.getInstance().getLogger().warning("Null AvailableEntityIdentifiersPacket data to player " + this.getName() + "!");
 		}
 	}
 
+	@Override
 	protected GameRules getSupportedRules() {
 		return this.level.gameRules;
 	}

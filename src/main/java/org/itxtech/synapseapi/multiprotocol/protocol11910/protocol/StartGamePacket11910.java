@@ -113,7 +113,7 @@ public class StartGamePacket11910 extends Packet11910 {
     public byte[] itemDataPalette;
 
     public String multiplayerCorrelationId = "";
-    public CompoundTag playerPropertyData = new CompoundTag();
+    public byte[] playerPropertyData = CompoundTag.EMPTY;
     public UUID worldTemplateId = new UUID(0, 0);
 
     @Override
@@ -189,11 +189,7 @@ public class StartGamePacket11910 extends Packet11910 {
         this.putString(this.multiplayerCorrelationId);
         this.putBoolean(this.isInventoryServerAuthoritative);
         this.putString(this.helper.getGameVersion());//this.putString(this.serverEngine);
-        try {
-            this.put(NBTIO.writeNetwork(playerPropertyData));
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
+        this.put(this.playerPropertyData);
         this.putLLong(this.blockRegistryChecksum);
         this.putUUID(this.worldTemplateId);
     }

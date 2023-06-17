@@ -31,7 +31,7 @@ public final class PacketLogger {
     }
 
     static {
-//        CLIENTBOUND_FILTER[ProtocolInfo.FULL_CHUNK_DATA_PACKET] = true;
+        CLIENTBOUND_FILTER[ProtocolInfo.LEVEL_CHUNK_PACKET] = true;
         CLIENTBOUND_FILTER[ProtocolInfo.SUB_CHUNK_PACKET] = true;
         CLIENTBOUND_FILTER[ProtocolInfo.CLIENT_CACHE_MISS_RESPONSE_PACKET] = true;
         CLIENTBOUND_FILTER[ProtocolInfo.NETWORK_CHUNK_PUBLISHER_UPDATE_PACKET] = true;

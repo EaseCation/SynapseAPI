@@ -18,7 +18,7 @@ public class ClientboundMapItemDataPacket11920 extends Packet11920 {
 
     public static final int TEXTURE_UPDATE = 0x2;
     public static final int DECORATIONS_UPDATE = 0x4;
-    public static final int ENTITIES_UPDATE = 0x8;
+    public static final int CREATION = 0x8;
 
     public long mapId;
     public int type;
@@ -57,7 +57,7 @@ public class ClientboundMapItemDataPacket11920 extends Packet11920 {
 
         int update = 0;
         if (parentMapIds.length > 0) {
-            update |= ENTITIES_UPDATE;
+            update |= CREATION;
         }
         if (decorators.length > 0) {
             update |= DECORATIONS_UPDATE;
@@ -72,13 +72,13 @@ public class ClientboundMapItemDataPacket11920 extends Packet11920 {
         this.putBoolean(this.isLocked);
         this.putSignedBlockPosition(this.originX, this.originY, this.originZ);
 
-        if ((update & ENTITIES_UPDATE) != 0) {
+        if ((update & CREATION) != 0) {
             this.putUnsignedVarInt(parentMapIds.length);
-            for (long eid : parentMapIds) {
-                this.putEntityUniqueId(eid);
+            for (long parentMapId : parentMapIds) {
+                this.putEntityUniqueId(parentMapId);
             }
         }
-        if ((update & (ENTITIES_UPDATE | TEXTURE_UPDATE | DECORATIONS_UPDATE)) != 0) {
+        if ((update & (CREATION | TEXTURE_UPDATE | DECORATIONS_UPDATE)) != 0) {
             this.putByte(this.scale);
         }
 
@@ -139,7 +139,7 @@ public class ClientboundMapItemDataPacket11920 extends Packet11920 {
         this.type = packet.update;
         this.dimensionId = packet.dimensionId;
 
-        this.parentMapIds = packet.eids;
+        this.parentMapIds = packet.parentMapIds;
         this.scale = packet.scale;
 
         this.trackedEntities = packet.trackedEntities;

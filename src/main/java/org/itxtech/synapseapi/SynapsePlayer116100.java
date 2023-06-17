@@ -59,6 +59,7 @@ import org.itxtech.synapseapi.multiprotocol.protocol116200.protocol.ResourcePack
 import org.itxtech.synapseapi.multiprotocol.protocol116200.protocol.StartGamePacket116200;
 import org.itxtech.synapseapi.multiprotocol.protocol116210.protocol.CameraShakePacket116210;
 import org.itxtech.synapseapi.multiprotocol.protocol117.protocol.StartGamePacket117;
+import org.itxtech.synapseapi.multiprotocol.protocol117.protocol.SyncEntityPropertyPacket117;
 import org.itxtech.synapseapi.multiprotocol.protocol11710.protocol.NPCRequestPacket11710;
 import org.itxtech.synapseapi.multiprotocol.protocol11710.protocol.ResourcePacksInfoPacket11710;
 import org.itxtech.synapseapi.multiprotocol.protocol11730.protocol.AnimateEntityPacket11730;
@@ -94,8 +95,10 @@ import org.itxtech.synapseapi.multiprotocol.protocol11980.protocol.RequestChunkR
 import org.itxtech.synapseapi.multiprotocol.protocol11980.protocol.StartGamePacket11980;
 import org.itxtech.synapseapi.multiprotocol.protocol120.protocol.EmotePacket120;
 import org.itxtech.synapseapi.multiprotocol.protocol120.protocol.StartGamePacket120;
+import org.itxtech.synapseapi.multiprotocol.protocol120.protocol.TrimDataPacket120;
 import org.itxtech.synapseapi.multiprotocol.protocol14.protocol.PlayerActionPacket14;
 import org.itxtech.synapseapi.multiprotocol.protocol16.protocol.ResourcePackClientResponsePacket16;
+import org.itxtech.synapseapi.multiprotocol.utils.EntityProperties;
 import org.itxtech.synapseapi.multiprotocol.utils.ItemComponentDefinitions;
 import org.itxtech.synapseapi.utils.BlobTrack;
 
@@ -655,6 +658,10 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
 
         packetswitch:
         switch (packet.pid()) {
+            case ProtocolInfo.LEVEL_SOUND_EVENT_PACKET:
+            case ProtocolInfo.LEVEL_SOUND_EVENT_PACKET_V2:
+                // DEPRECATED
+                break;
             case ProtocolInfo.RESOURCE_PACK_CLIENT_RESPONSE_PACKET:
                 if (!callPacketReceiveEvent(packet)) break;
                 ResourcePackClientResponsePacket16 responsePacket = (ResourcePackClientResponsePacket16) packet;
@@ -903,9 +910,7 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
                             inventory.sendHeldItem(getViewers().values());
                         }
 
-                        this.startAction = -1;
-                        this.startActionTimestamp = -1;
-                        this.setDataFlag(Player.DATA_FLAGS, Player.DATA_FLAG_ACTION, false);
+                        this.setUsingItem(false);
                         break;
                     }
 
@@ -1203,9 +1208,7 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
                             break;
                     }
 
-                    this.startAction = -1;
-                    this.startActionTimestamp = -1;
-                    this.setDataFlag(Player.DATA_FLAGS, Player.DATA_FLAG_ACTION, false);
+                    this.setUsingItem(false);
                     break;
                 }
 
@@ -1280,9 +1283,7 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
                         this.lastBreak = currentBreak;
                         this.lastBreakPosition = currentBreakPosition;
 
-                        this.startAction = -1;
-                        this.startActionTimestamp = -1;
-                        this.setDataFlag(Player.DATA_FLAGS, Player.DATA_FLAG_ACTION, false);
+                        this.setUsingItem(false);
                         break;
                     default:
                         super.handleDataPacket(packet);
@@ -2321,7 +2322,7 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
             pk.health = 20;
             this.dataPacket(pk);*/
 
-            this.sendPosition(this, this.yaw, this.pitch, MovePlayerPacket.MODE_RESET);
+            this.sendPosition(this, this.yaw, this.pitch, MovePlayerPacket.MODE_RESPAWN);
 
             if (getProtocol() >= AbstractProtocol.PROTOCOL_119_50.getProtocolStart()) {
                 PlayerActionPacket119 ackPacket = new PlayerActionPacket119();
@@ -2427,7 +2428,7 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
         pk.health = 20;
         this.dataPacket(pk);*/
 
-        this.sendPosition(this, this.yaw, this.pitch, MovePlayerPacket.MODE_RESET);
+        this.sendPosition(this, this.yaw, this.pitch, MovePlayerPacket.MODE_RESPAWN);
 
         if (getProtocol() >= AbstractProtocol.PROTOCOL_119_50.getProtocolStart()) {
             PlayerActionPacket119 ackPacket = new PlayerActionPacket119();
@@ -2533,7 +2534,7 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
                     this.dataPacket(packet);
                 });
 
-                this.sendPosition(this, this.yaw, this.pitch, MovePlayerPacket.MODE_RESET);
+                this.sendPosition(this, this.yaw, this.pitch, MovePlayerPacket.MODE_RESPAWN);
 
                 this.removeAllChunks();
                 this.usedChunks = new Long2BooleanOpenHashMap();
@@ -2833,9 +2834,36 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
         dataPacket(packet);
     }
 
-    //FIXME: 以下断言错误需要处理
-    // 跨服时触发
-    // Assertion failed: Biome already has initialized Entity!
-    //  Condition is false: !mEntity.hasValue()
-    //  Function: Biome::initEntity in .\src\common\world\level\biome\Biome.cpp @ 107
+    @Override
+    public void sendFogStack(String... fogStack) {
+        PlayerFogPacket116100 fog = new PlayerFogPacket116100();
+        fog.fogStack = fogStack;
+        this.dataPacket(fog);
+    }
+
+    @Override
+    public void syncEntityProperties() {
+        if (getProtocol() < AbstractProtocol.PROTOCOL_117.getProtocolStart()) {
+            return;
+        }
+
+        if (true) {
+            return;
+        }
+
+        SyncEntityPropertyPacket117 packet = new SyncEntityPropertyPacket117();
+        packet.nbt = EntityProperties.BEE;
+        this.dataPacket(packet);
+    }
+
+    @Override
+    protected void sendTrimRecipes() {
+        if (getProtocol() < AbstractProtocol.PROTOCOL_120.getProtocolStart()) {
+            return;
+        }
+
+        TrimDataPacket120 packet = new TrimDataPacket120();
+        //TODO: trim
+        this.dataPacket(packet);
+    }
 }

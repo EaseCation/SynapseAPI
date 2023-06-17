@@ -5,6 +5,9 @@ import cn.nukkit.network.protocol.ProtocolInfo;
 public class BiomeDefinitionListPacket18 extends Packet18 {
     public static final byte NETWORK_ID = ProtocolInfo.BIOME_DEFINITION_LIST_PACKET;
 
+    /**
+     * CompoundTag.
+     */
     public byte[] tag;
 
     @Override

@@ -361,6 +361,7 @@ public class SynapsePlayer16 extends SynapsePlayer14 {
 		this.noDamageTicks = 60;
 
 		this.sendRecipeList();
+		this.sendTrimRecipes();
 
 		this.sendCreativeContents();
 
@@ -450,5 +451,9 @@ public class SynapsePlayer16 extends SynapsePlayer14 {
 	@Override
 	public long getLatency() {
 		return latencyNs;
+	}
+
+	protected void sendTrimRecipes() {
+		// 1.20+
 	}
 }

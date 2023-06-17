@@ -85,11 +85,11 @@ public class AvailableCommandsPacket17 extends Packet17 {
             CommandData cmdData = data.versions.get(0);
 
             if (cmdData.aliases != null) {
-                enums.add(new CommandEnum(cmdData.aliases.getName(), cmdData.aliases.getValues()));
+                enums.add(new CommandEnum(cmdData.aliases.getName(), cmdData.aliases.getValues().keySet()));
 
-                enumValues.addAll(cmdData.aliases.getValues());
+                enumValues.addAll(cmdData.aliases.getValues().keySet());
 
-                commandNames.addAll(cmdData.aliases.getValues());
+                commandNames.addAll(cmdData.aliases.getValues().keySet());
             }
 
             for (CommandOverload overload : cmdData.overloads.values()) {
@@ -98,9 +98,9 @@ public class AvailableCommandsPacket17 extends Packet17 {
                         if (parameter.enumData.isSoft()) {
                             softEnumsSet.add(parameter.enumData);
                         } else {
-                            enums.add(new CommandEnum(parameter.enumData.getName(), parameter.enumData.getValues()));
+                            enums.add(new CommandEnum(parameter.enumData.getName(), parameter.enumData.getValues().keySet()));
 
-                            enumValues.addAll(parameter.enumData.getValues());
+                            enumValues.addAll(parameter.enumData.getValues().keySet());
                         }
                     }
 
@@ -133,7 +133,7 @@ public class AvailableCommandsPacket17 extends Packet17 {
         enums.forEach((cmdEnum) -> {
             putString(cmdEnum.getName());
 
-            Set<String> values = cmdEnum.getValues();
+            Set<String> values = cmdEnum.getValues().keySet();
             putUnsignedVarInt(values.size());
 
             for (String val : values) {
@@ -205,7 +205,7 @@ public class AvailableCommandsPacket17 extends Packet17 {
         softEnums.forEach(cmdEnum -> {
             this.putString(cmdEnum.getName());
 
-            Set<String> values = cmdEnum.getValues();
+            Set<String> values = cmdEnum.getValues().keySet();
             this.putUnsignedVarInt(values.size());
             values.forEach(this::putString);
         });

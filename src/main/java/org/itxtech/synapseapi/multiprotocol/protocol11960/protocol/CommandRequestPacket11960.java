@@ -13,6 +13,7 @@ public class CommandRequestPacket11960 extends Packet11960 {
 
     public String command;
     public CommandOriginData data;
+    public boolean internal;
     public int version;
 
     @Override
@@ -24,20 +25,16 @@ public class CommandRequestPacket11960 extends Packet11960 {
     public void decode() {
         this.command = this.getString();
 
-        Origin type = Origin.values0()[this.getVarInt()];
-        UUID uuid = null;
-        try {
-            uuid = this.getUUID();
-        } catch (Exception e) {
-            this.setOffset(this.getOffset() - 16);
-        }
+        Origin type = Origin.values0()[(int) this.getUnsignedVarInt()];
+        UUID uuid = this.getUUID();
         String requestId = this.getString();
-        Long varLong = null;
+        long playerEntityUniqueId = 0;
         if (type == Origin.DEV_CONSOLE || type == Origin.TEST) {
-            varLong = this.getVarLong();
+            playerEntityUniqueId = this.getEntityUniqueId();
         }
-        this.data = new CommandOriginData(type, uuid, requestId, varLong);
+        this.data = new CommandOriginData(type, uuid, requestId, playerEntityUniqueId);
 
+        this.internal = this.getBoolean();
         this.version = this.getVarInt();
     }
 

@@ -120,7 +120,7 @@ public class StartGamePacket120 extends Packet120 {
     public String multiplayerCorrelationId = "";
     public boolean isInventoryServerAuthoritative;
     public String serverEngine = "1.20.0";
-    public CompoundTag playerPropertyData = new CompoundTag();
+    public byte[] playerPropertyData = CompoundTag.EMPTY;
     /**
      * A XXHash64 of all block states by their compound tag.
      * A value of 0 will not be validated by the client.
@@ -218,11 +218,7 @@ public class StartGamePacket120 extends Packet120 {
         this.putString(this.multiplayerCorrelationId);
         this.putBoolean(this.isInventoryServerAuthoritative);
         this.putString(this.helper.getGameVersion());//this.putString(this.serverEngine);
-        try {
-            this.put(NBTIO.writeNetwork(this.playerPropertyData));
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
+        this.put(this.playerPropertyData);
         this.putLLong(this.blockRegistryChecksum);
         this.putUUID(this.worldTemplateId);
         this.putBoolean(this.clientSideGenerationEnabled);

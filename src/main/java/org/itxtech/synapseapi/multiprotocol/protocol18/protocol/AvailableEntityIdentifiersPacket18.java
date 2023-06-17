@@ -5,6 +5,9 @@ import cn.nukkit.network.protocol.ProtocolInfo;
 public class AvailableEntityIdentifiersPacket18 extends Packet18 {
     public static final byte NETWORK_ID = ProtocolInfo.AVAILABLE_ACTOR_IDENTIFIERS_PACKET;
 
+    /**
+     * CompoundTag.
+     */
     public byte[] tag;
 
     @Override

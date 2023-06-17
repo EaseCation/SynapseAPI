@@ -26,6 +26,7 @@ import cn.nukkit.inventory.transaction.data.ReleaseItemData;
 import cn.nukkit.inventory.transaction.data.UseItemData;
 import cn.nukkit.inventory.transaction.data.UseItemOnEntityData;
 import cn.nukkit.item.Item;
+import cn.nukkit.item.ItemReleasable;
 import cn.nukkit.item.Items;
 import cn.nukkit.item.enchantment.Enchantment;
 import cn.nukkit.level.Position;
@@ -325,14 +326,15 @@ public class SynapsePlayer116 extends SynapsePlayer113 {
 							case InventoryTransactionPacket116.USE_ITEM_ACTION_CLICK_BLOCK:
 								// Remove if client bug is ever fixed
 								boolean spamBug = lastRightClickData != null && System.currentTimeMillis() - lastRightClickTime < 100.0 &&
-										lastRightClickData.playerPos.distanceSquared(useItemData.playerPos) < 0.00001 &&
+										lastRightClickData.face == face &&
+										lastRightClickData.playerPos.distanceSquared(useItemData.playerPos) < Mth.EPSILON &&
 										lastRightClickData.blockPos.equalsVec(blockVector) &&
-										lastRightClickData.clickPos.distanceSquared(clickPos) < 0.00001; // signature spam bug has 0 distance, but allow some error
-								lastRightClickData = useItemData;
-								lastRightClickTime = System.currentTimeMillis();
+										lastRightClickData.clickPos.distanceSquared(clickPos) < Mth.EPSILON; // signature spam bug has 0 distance, but allow some error
 								if (spamBug /*&& !(useItemData.itemInHand instanceof ItemBlock)*/) {
 									return;
 								}
+								lastRightClickData = useItemData;
+								lastRightClickTime = System.currentTimeMillis();
 
 								this.setDataFlag(DATA_FLAGS, DATA_FLAG_ACTION, false);
 
@@ -467,7 +469,7 @@ public class SynapsePlayer116 extends SynapsePlayer113 {
 									}
 
 									if (!this.isUsingItem()) {
-										this.setUsingItem(true);
+										this.setUsingItem(item instanceof ItemReleasable);
 										break packetswitch;
 									}
 
@@ -479,6 +481,10 @@ public class SynapsePlayer116 extends SynapsePlayer113 {
 
 									if (!item.onUse(this, ticksUsed)) {
 										this.inventory.sendContents(this);
+									}
+
+									if (item instanceof ItemReleasable) {
+										this.setUsingItem(true);
 									}
 								}
 
@@ -622,8 +628,6 @@ public class SynapsePlayer116 extends SynapsePlayer113 {
 										if (!item.onRelease(this, ticksUsed)) {
 											this.inventory.sendContents(this);
 										}
-
-										this.setUsingItem(false);
 									} else {
 										this.inventory.sendContents(this);
 									}
@@ -684,12 +688,6 @@ public class SynapsePlayer116 extends SynapsePlayer113 {
 				break;
 			case ProtocolInfo.PLAYER_AUTH_INPUT_PACKET:
 				if (!callPacketReceiveEvent(packet)) break;
-				if (this.teleportPosition != null) {
-					break;
-				}
-
-				Vector3 newPos;
-				boolean revert;
 
 				IPlayerAuthInputPacket playerAuthInputPacket = (IPlayerAuthInputPacket) packet;
 				if (!validateCoordinate(playerAuthInputPacket.getX()) || !validateCoordinate(playerAuthInputPacket.getY()) || !validateCoordinate(playerAuthInputPacket.getZ())
@@ -705,6 +703,14 @@ public class SynapsePlayer116 extends SynapsePlayer113 {
 					this.getServer().getLogger().warning("Invalid vehicle input received: " + this.getName());
 					this.close("", "Invalid vehicle input");
 					return;
+				}
+
+				this.onClientTickUpdated(playerAuthInputPacket.getTick());
+
+				if (this.getLoginChainData().getCurrentInputMode() != playerAuthInputPacket.getInputMode()) {
+					int from = this.getLoginChainData().getCurrentInputMode();
+					this.getLoginChainData().setCurrentInputMode(playerAuthInputPacket.getInputMode());
+					this.getServer().getPluginManager().callEvent(new SynapsePlayerInputModeChangeEvent(this, from, playerAuthInputPacket.getInputMode()));
 				}
 
 				long inputFlags = playerAuthInputPacket.getInputFlags();
@@ -796,6 +802,41 @@ public class SynapsePlayer116 extends SynapsePlayer113 {
 						this.violation += 1;
 					}
 				}*/
+
+				Vector3 newPos = new Vector3(playerAuthInputPacket.getX(), playerAuthInputPacket.getY() - this.getEyeHeight(), playerAuthInputPacket.getZ());
+				double dis = newPos.distanceSquared(this);
+
+				if (this.teleportPosition == null && (dis != 0 || playerAuthInputPacket.getYaw() % 360 != this.yaw || playerAuthInputPacket.getPitch() % 360 != this.pitch)) {
+//				    if (dis > 100) {
+//				    	this.sendPosition(this, playerAuthInputPacket.getYaw(), playerAuthInputPacket.getPitch(), MovePlayerPacket.MODE_RESET);
+//				    	break;
+//				    }
+
+					boolean revert = false;
+					if (!this.isAlive() || !this.spawned) {
+						revert = true;
+						this.forceMovement = new Vector3(this.x, this.y, this.z);
+					}
+
+					if (riding != null) {
+						forceMovement = null;
+					}
+
+					if (this.forceMovement != null && (newPos.distanceSquared(this.forceMovement) > 0.1 || revert)) {
+						this.sendPosition(this.forceMovement, this.yaw, this.pitch, MovePlayerPacket.MODE_TELEPORT);
+					} else {
+						playerAuthInputPacket.setYaw(playerAuthInputPacket.getYaw() % 360);
+						playerAuthInputPacket.setPitch(playerAuthInputPacket.getPitch() % 360);
+
+						if (playerAuthInputPacket.getYaw() < 0) {
+							playerAuthInputPacket.setYaw(playerAuthInputPacket.getYaw() + 360);
+						}
+
+						this.setRotation(playerAuthInputPacket.getYaw(), playerAuthInputPacket.getPitch());
+						this.newPosition = newPos;
+						this.forceMovement = null;
+					}
+				}
 
 				PlayerBlockAction[] blockActions = playerAuthInputPacket.getBlockActions();
 				if (blockActions != null && blockActions.length != 0) {
@@ -928,9 +969,7 @@ public class SynapsePlayer116 extends SynapsePlayer113 {
 						}
 					}
 
-					this.startAction = -1;
-					this.startActionTimestamp = -1;
-					this.setDataFlag(DATA_FLAGS, DATA_FLAG_ACTION, false);
+					this.setUsingItem(false);
 				}
 
 				NetworkInventoryAction[] inventoryActions = playerAuthInputPacket.getInventoryActions();
@@ -1203,7 +1242,7 @@ public class SynapsePlayer116 extends SynapsePlayer113 {
 									}
 
 									if (!this.isUsingItem()) {
-										this.setUsingItem(true);
+										this.setUsingItem(item instanceof ItemReleasable);
 										break;
 									}
 
@@ -1223,41 +1262,6 @@ public class SynapsePlayer116 extends SynapsePlayer113 {
 					}
 				}
 
-				newPos = new Vector3(playerAuthInputPacket.getX(), playerAuthInputPacket.getY() - this.getEyeHeight(), playerAuthInputPacket.getZ());
-				double dis = newPos.distanceSquared(this);
-
-				if (dis == 0 && playerAuthInputPacket.getYaw() % 360 == this.yaw && playerAuthInputPacket.getPitch() % 360 == this.pitch) {
-					break;
-				}
-
-//				if (dis > 100) {
-//					this.sendPosition(this, playerAuthInputPacket.getYaw(), playerAuthInputPacket.getPitch(), MovePlayerPacket.MODE_RESET);
-//					break;
-//				}
-
-				revert = false;
-				if (!this.isAlive() || !this.spawned) {
-					revert = true;
-					this.forceMovement = new Vector3(this.x, this.y, this.z);
-				}
-
-				if (riding != null) forceMovement = null;
-
-				if (this.forceMovement != null && (newPos.distanceSquared(this.forceMovement) > 0.1 || revert)) {
-					this.sendPosition(this.forceMovement, this.yaw, this.pitch, MovePlayerPacket.MODE_TELEPORT);
-				} else {
-					playerAuthInputPacket.setYaw(playerAuthInputPacket.getYaw() % 360);
-					playerAuthInputPacket.setPitch(playerAuthInputPacket.getPitch() % 360);
-
-					if (playerAuthInputPacket.getYaw() < 0) {
-						playerAuthInputPacket.setYaw(playerAuthInputPacket.getYaw() + 360);
-					}
-
-					this.setRotation(playerAuthInputPacket.getYaw(), playerAuthInputPacket.getPitch());
-					this.newPosition = newPos;
-					this.forceMovement = null;
-				}
-
 				if (this.riding != null && (moveVecX != 0 || moveVecY != 0)) {
 					moveVecX = Mth.clamp(moveVecX, -1, 1);
 					moveVecY = Mth.clamp(moveVecY, -1, 1);
@@ -1269,12 +1273,6 @@ public class SynapsePlayer116 extends SynapsePlayer113 {
 					}
 
 					new PlayerVehicleInputEvent(this, moveVecX, moveVecY).call();
-				}
-
-				if (this.getLoginChainData().getCurrentInputMode() != playerAuthInputPacket.getInputMode()) {
-					int from = this.getLoginChainData().getCurrentInputMode();
-					this.getLoginChainData().setCurrentInputMode(playerAuthInputPacket.getInputMode());
-					this.getServer().getPluginManager().callEvent(new SynapsePlayerInputModeChangeEvent(this, from, playerAuthInputPacket.getInputMode()));
 				}
 
 				break;

@@ -96,7 +96,7 @@ public class CraftingDataPacket11960 extends Packet11960 {
                 case FURNACE_DATA:
                     FurnaceRecipe furnace = (FurnaceRecipe) recipe;
                     Item input = furnace.getInput();
-                    this.putVarInt(input.getId());
+                    this.putVarInt(this.helper.getItemNetworkId(this, input));
                     if (recipe.getType() == RecipeType.FURNACE_DATA) {
                         this.putVarInt(input.getDamage());
                     }

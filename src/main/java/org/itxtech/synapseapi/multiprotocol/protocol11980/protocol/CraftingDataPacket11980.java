@@ -17,11 +17,13 @@ import cn.nukkit.network.protocol.DataPacket;
 import cn.nukkit.network.protocol.ProtocolInfo;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import lombok.ToString;
+import lombok.extern.log4j.Log4j2;
 import org.itxtech.synapseapi.utils.ClassUtils;
 
 import java.util.List;
 import java.util.stream.Collectors;
 
+@Log4j2
 @ToString
 public class CraftingDataPacket11980 extends Packet11980 {
     public static final byte NETWORK_ID = ProtocolInfo.CRAFTING_DATA_PACKET;
@@ -97,7 +99,16 @@ public class CraftingDataPacket11980 extends Packet11980 {
                 case FURNACE_DATA:
                     FurnaceRecipe furnace = (FurnaceRecipe) recipe;
                     Item input = furnace.getInput();
-                    this.putVarInt(input.getId());
+                    int id = this.helper.getItemNetworkId(this, input);
+                    switch (id) {
+                        case -1137:
+                        case -1139:
+                        case -1141:
+                        case -1143:
+                            //FIXME: item flatten (log, log2) -- 06/17/2023
+                            log.debug("§cAssertion failed: Item-error:Failed to get a valid item from item data[{}]. §r{}", id, furnace);
+                    }
+                    this.putVarInt(id);
                     if (recipe.getType() == RecipeType.FURNACE_DATA) {
                         this.putVarInt(input.getDamage());
                     }

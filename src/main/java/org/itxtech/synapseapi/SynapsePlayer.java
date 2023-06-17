@@ -426,7 +426,10 @@ public class SynapsePlayer extends Player {
             DataPacket startGamePacket = generateStartGamePacket(spawnPosition);
             this.dataPacket(startGamePacket);
 
+            this.syncEntityProperties();
             this.sendItemComponents();
+            this.sendBiomeDefinitionList();
+            this.sendAvailableEntityIdentifiers();
         } else {
             GameRulesChangedPacket packet = new GameRulesChangedPacket();
             packet.gameRules = this.level.getGameRules();
@@ -439,6 +442,7 @@ public class SynapsePlayer extends Player {
             long flags = 1 << Entity.DATA_FLAG_IMMOBILE;
             this.sendData(this, new EntityMetadata().putLong(Entity.DATA_FLAGS, flags));
         }
+        this.sendFogStack();
 
         this.loggedIn = true;
 
@@ -1280,7 +1284,7 @@ public class SynapsePlayer extends Player {
     }
 
     public void sendNetworkSettings() {
-
+        // 1.13+
     }
 
     public void sendPyRpcData(Value data) {
@@ -1304,6 +1308,7 @@ public class SynapsePlayer extends Player {
     }
 
     public void sendItemComponents() {
+        // 1.16.100+
     }
 
     @Override
@@ -1330,14 +1335,38 @@ public class SynapsePlayer extends Player {
         return -1;
     }
 
+    /**
+     * Unreliable remote tick (Server Authoritative Movement is required).
+     * @param tick client tick count
+     */
+    protected void onClientTickUpdated(long tick) {
+    }
+
     public boolean isServerAuthoritativeMovementEnabled() {
         return false;
     }
 
     protected void sendDimensionData() {
+        // 1.18.30+
     }
 
     public int getDummyDimension() {
         return dummyDimension;
+    }
+
+    protected void sendBiomeDefinitionList() {
+        // 1.8+
+    }
+
+    protected void sendAvailableEntityIdentifiers() {
+        // 1.12+
+    }
+
+    protected void sendFogStack(String... fogStack) {
+        // 1.16.100+
+    }
+
+    protected void syncEntityProperties() {
+        // 1.17+
     }
 }

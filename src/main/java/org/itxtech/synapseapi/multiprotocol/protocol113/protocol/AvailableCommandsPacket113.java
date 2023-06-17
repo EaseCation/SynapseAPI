@@ -4,6 +4,8 @@ import cn.nukkit.command.data.*;
 import cn.nukkit.network.protocol.DataPacket;
 import cn.nukkit.network.protocol.ProtocolInfo;
 import cn.nukkit.utils.BinaryStream;
+import cn.nukkit.utils.SequencedHashSet;
+import it.unimi.dsi.fastutil.longs.LongObjectPair;
 import lombok.ToString;
 import org.itxtech.synapseapi.utils.ClassUtils;
 
@@ -56,7 +58,6 @@ public class AvailableCommandsPacket113 extends Packet113 {
     public static final int ARG_TYPE_COMMAND = 70;
 
     public Map<String, CommandDataVersions> commands;
-    public List<CommandEnumConstraint> enumConstraints = new ArrayList<>();
 
     @Override
     public int pid() {
@@ -72,10 +73,11 @@ public class AvailableCommandsPacket113 extends Packet113 {
     public void encode() {
         this.reset();
 
-        LinkedHashSet<String> enumValuesSet = new LinkedHashSet<>();
-        LinkedHashSet<String> postFixesSet = new LinkedHashSet<>();
-        LinkedHashSet<CommandEnum> enumsSet = new LinkedHashSet<>();
-        LinkedHashSet<CommandEnum> softEnumsSet = new LinkedHashSet<>();
+        List<String> enumValues = new SequencedHashSet<>();
+        List<String> postFixes = new SequencedHashSet<>();
+        List<CommandEnum> enums = new SequencedHashSet<>();
+        List<CommandEnum> softEnums = new SequencedHashSet<>();
+        List<LongObjectPair<Set<CommandEnumConstraint>>> enumConstraints = new SequencedHashSet<>();
 
         // List of enums which aren't directly referenced by any vanilla command.
         // This is used for the "CommandName" enum, which is a magic enum used by the "command" argument type.
@@ -87,39 +89,41 @@ public class AvailableCommandsPacket113 extends Packet113 {
             CommandData cmdData = data.versions.get(0);
 
             if (cmdData.aliases != null) {
-                enumsSet.add(cmdData.aliases);
+                enums.add(cmdData.aliases);
 
-                enumValuesSet.addAll(cmdData.aliases.getValues());
+                enumValues.addAll(cmdData.aliases.getValues().keySet());
 
-                commandNames.addAll(cmdData.aliases.getValues());
+                commandNames.addAll(cmdData.aliases.getValues().keySet());
             }
 
             for (CommandOverload overload : cmdData.overloads.values()) {
                 for (CommandParameter parameter : overload.input.parameters) {
                     if (parameter.enumData != null) {
                         if (parameter.enumData.isSoft()) {
-                            softEnumsSet.add(parameter.enumData);
+                            softEnums.add(parameter.enumData);
                         } else {
-                            enumsSet.add(parameter.enumData);
+                            enums.add(parameter.enumData);
 
-                            enumValuesSet.addAll(parameter.enumData.getValues());
+                            int enumIndex = enums.indexOf(parameter.enumData);
+                            parameter.enumData.getValues().forEach((enumValue, constraints) -> {
+                                enumValues.add(enumValue);
+
+                                if (!constraints.isEmpty()) {
+                                    enumConstraints.add(LongObjectPair.of(((long) enumValues.indexOf(enumValue) << 32) | (enumIndex & 0xffffffffL), constraints));
+                                }
+                            });
                         }
                     }
 
                     if (parameter.postFix != null) {
-                        postFixesSet.add(parameter.postFix);
+                        postFixes.add(parameter.postFix);
                     }
                 }
             }
         });
 
-        enumsSet.add(new CommandEnum("CommandName", commandNames));
-        enumValuesSet.addAll(commandNames);
-
-        List<String> enumValues = new ArrayList<>(enumValuesSet);
-        List<String> postFixes = new ArrayList<>(postFixesSet);
-        List<CommandEnum> enums = new ArrayList<>(enumsSet);
-        List<CommandEnum> softEnums = new ArrayList<>(softEnumsSet);
+        enums.add(new CommandEnum("CommandName", commandNames));
+        enumValues.addAll(commandNames);
 
         this.putUnsignedVarInt(enumValues.size());
         enumValues.forEach(this::putString);
@@ -140,9 +144,8 @@ public class AvailableCommandsPacket113 extends Packet113 {
         enums.forEach((cmdEnum) -> {
             putString(cmdEnum.getName());
 
-            Set<String> values = cmdEnum.getValues();
-            putUnsignedVarInt(values.size());
-
+            Set<String> values = cmdEnum.getValues().keySet();
+            this.putUnsignedVarInt(values.size());
             for (String val : values) {
                 int i = enumValues.indexOf(val);
 
@@ -160,19 +163,19 @@ public class AvailableCommandsPacket113 extends Packet113 {
         softEnums.forEach(cmdEnum -> {
             this.putString(cmdEnum.getName());
 
-            Set<String> values = cmdEnum.getValues();
+            Set<String> values = cmdEnum.getValues().keySet();
             this.putUnsignedVarInt(values.size());
             values.forEach(this::putString);
         });
 
         this.putUnsignedVarInt(enumConstraints.size());
-        for (CommandEnumConstraint constraint : enumConstraints) {
-            this.putLInt(enumValues.indexOf(constraint.option));
-            this.putLInt(enums.indexOf(constraint.enumData));
+        for (LongObjectPair<Set<CommandEnumConstraint>> pair : enumConstraints) {
+            this.putLInt((int) (pair.leftLong() >> 32)); // enum value index
+            this.putLInt((int) pair.leftLong()); // enum index
 
-            this.putUnsignedVarInt(constraint.constraints.size());
-            for (CommandEnumConstraintType type : constraint.constraints) {
-                this.putByte((byte) type.ordinal());
+            this.putUnsignedVarInt(pair.right().size());
+            for (CommandEnumConstraint constraint : pair.right()) {
+                this.putByte((byte) constraint.ordinal());
             }
         }
     }

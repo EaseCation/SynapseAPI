@@ -15,7 +15,7 @@ import java.awt.image.BufferedImage;
 @ToString
 public class ClientboundMapItemDataPacket111 extends Packet111 {
 
-    public long[] eids = new long[0];
+    public long[] parentMapIds = new long[0];
 
     public long mapId;
     public int update;
@@ -38,7 +38,7 @@ public class ClientboundMapItemDataPacket111 extends Packet111 {
     //update
     public static final int TEXTURE_UPDATE = 2;
     public static final int DECORATIONS_UPDATE = 4;
-    public static final int ENTITIES_UPDATE = 8;
+    public static final int CREATION = 8;
 
     @Override
     public int pid() {
@@ -55,8 +55,8 @@ public class ClientboundMapItemDataPacket111 extends Packet111 {
         this.putEntityUniqueId(mapId);
 
         int update = 0;
-        if (eids.length > 0) {
-            update |= 0x08;
+        if (parentMapIds.length > 0) {
+            update |= CREATION;
         }
         if (decorators.length > 0) {
             update |= DECORATIONS_UPDATE;
@@ -70,10 +70,10 @@ public class ClientboundMapItemDataPacket111 extends Packet111 {
         this.putByte(this.dimensionId);
         this.putBoolean(this.isLocked);
 
-        if ((update & 0x08) != 0) { //TODO: find out what these are for
-            this.putUnsignedVarInt(eids.length);
-            for (long eid : eids) {
-                this.putEntityUniqueId(eid);
+        if ((update & CREATION) != 0) {
+            this.putUnsignedVarInt(parentMapIds.length);
+            for (long parentMapId : parentMapIds) {
+                this.putEntityUniqueId(parentMapId);
             }
         }
         if ((update & (TEXTURE_UPDATE | DECORATIONS_UPDATE)) != 0) {
@@ -130,7 +130,7 @@ public class ClientboundMapItemDataPacket111 extends Packet111 {
         this.offsetX = packet.offsetX;
         this.offsetZ = packet.offsetZ;
         this.dimensionId = packet.dimensionId;
-        this.eids = packet.eids;
+        this.parentMapIds = packet.parentMapIds;
         this.decorators = packet.decorators;
         this.trackedEntities = packet.trackedEntities;
         this.colors = packet.colors;

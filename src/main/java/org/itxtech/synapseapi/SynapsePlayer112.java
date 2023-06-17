@@ -1,6 +1,7 @@
 package org.itxtech.synapseapi;
 
 import cn.nukkit.Player;
+import cn.nukkit.Server;
 import cn.nukkit.blockentity.BlockEntity;
 import cn.nukkit.blockentity.BlockEntitySpawnable;
 import cn.nukkit.entity.Entity;
@@ -85,14 +86,12 @@ public class SynapsePlayer112 extends SynapsePlayer19 {
 	}
 
 	@Override
-	protected void completeLoginSequence() {
-		super.completeLoginSequence();
-		if (this.loggedIn) {
-			BiomeDefinitionListPacket18 pk = new BiomeDefinitionListPacket18();
-			if ((pk.tag = BiomeDefinitions.getData(AbstractProtocol.fromRealProtocol(this.getProtocol()))) != null) {
-				this.dataPacket(pk);
-			}
-			//this.initClientBlobCache();
+	protected void sendBiomeDefinitionList() {
+		BiomeDefinitionListPacket18 pk = new BiomeDefinitionListPacket18();
+		if ((pk.tag = BiomeDefinitions.getData(AbstractProtocol.fromRealProtocol(this.getProtocol()))) != null) {
+			this.dataPacket(pk);
+		} else {
+			Server.getInstance().getLogger().warning("null BiomeDefinitionListPacket data to player " + this.getName());
 		}
 	}
 

@@ -9,7 +9,6 @@ import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import lombok.extern.log4j.Log4j2;
 import org.itxtech.synapseapi.multiprotocol.protocol110.protocol.AvailableCommandsPacket110;
 import org.itxtech.synapseapi.multiprotocol.protocol110.protocol.LecternUpdatePacket110;
-import org.itxtech.synapseapi.multiprotocol.protocol110.protocol.VideoStreamConnectPacket110;
 import org.itxtech.synapseapi.multiprotocol.protocol111.protocol.*;
 import org.itxtech.synapseapi.multiprotocol.protocol112.protocol.*;
 import org.itxtech.synapseapi.multiprotocol.protocol113.protocol.*;
@@ -46,6 +45,7 @@ import org.itxtech.synapseapi.multiprotocol.protocol118.protocol.StartGamePacket
 import org.itxtech.synapseapi.multiprotocol.protocol118.protocol.SubChunkRequestPacket118;
 import org.itxtech.synapseapi.multiprotocol.protocol118.protocol.UpdateSubChunkBlocksPacket118;
 import org.itxtech.synapseapi.multiprotocol.protocol11810.protocol.PlayerStartItemCooldownPacket11810;
+import org.itxtech.synapseapi.multiprotocol.protocol11810.protocol.ScriptMessagePacket11810;
 import org.itxtech.synapseapi.multiprotocol.protocol11810.protocol.SubChunkRequestPacket11810;
 import org.itxtech.synapseapi.multiprotocol.protocol11830.protocol.AddPlayerPacket11830;
 import org.itxtech.synapseapi.multiprotocol.protocol11830.protocol.DimensionDataPacket11830;
@@ -71,6 +71,7 @@ import org.itxtech.synapseapi.multiprotocol.protocol11920.protocol.NetworkChunkP
 import org.itxtech.synapseapi.multiprotocol.protocol11920.protocol.StartGamePacket11920;
 import org.itxtech.synapseapi.multiprotocol.protocol11920.protocol.UpdateAttributesPacket11920;
 import org.itxtech.synapseapi.multiprotocol.protocol119.protocol.ToastRequestPacket119;
+import org.itxtech.synapseapi.multiprotocol.protocol11930.protocol.RequestNetworkSettingsPacket11930;
 import org.itxtech.synapseapi.multiprotocol.protocol11940.protocol.AddEntityPacket11940;
 import org.itxtech.synapseapi.multiprotocol.protocol11940.protocol.AddPlayerPacket11940;
 import org.itxtech.synapseapi.multiprotocol.protocol11940.protocol.SetEntityDataPacket11940;
@@ -196,7 +197,6 @@ public class PacketRegister {
 
         registerPacket(AbstractProtocol.PROTOCOL_110, ProtocolInfo.AVAILABLE_COMMANDS_PACKET, AvailableCommandsPacket110.class);
         registerPacket(AbstractProtocol.PROTOCOL_110, ProtocolInfo.LECTERN_UPDATE_PACKET, LecternUpdatePacket110.class);
-        registerPacket(AbstractProtocol.PROTOCOL_110, ProtocolInfo.VIDEO_STREAM_CONNECT_PACKET, VideoStreamConnectPacket110.class);
 
         registerPacket(AbstractProtocol.PROTOCOL_111, ProtocolInfo.AVAILABLE_COMMANDS_PACKET, AvailableCommandsPacket111.class);
         registerPacket(AbstractProtocol.PROTOCOL_111, ProtocolInfo.CLIENTBOUND_MAP_ITEM_DATA_PACKET, ClientboundMapItemDataPacket111.class);
@@ -228,6 +228,7 @@ public class PacketRegister {
         registerPacket(AbstractProtocol.PROTOCOL_113, ProtocolInfo.TICK_SYNC_PACKET, TickSyncPacket113.class);
         registerPacket(AbstractProtocol.PROTOCOL_113, ProtocolInfo.SETTINGS_COMMAND_PACKET, SettingsCommandPacket113.class);
         registerPacket(AbstractProtocol.PROTOCOL_113, ProtocolInfo.MOVE_ACTOR_DELTA_PACKET, MoveEntityDeltaPacket113.class);
+        registerPacket(AbstractProtocol.PROTOCOL_113, ProtocolInfo.ANVIL_DAMAGE_PACKET, AnvilDamagePacket113.class);
         registerPacket(AbstractProtocol.PROTOCOL_113, ProtocolInfo.PACKET_CONFIRM_SKIN, ConfirmSkinPacket113.class);
 
         registerPacket(AbstractProtocol.PROTOCOL_114_60, ProtocolInfo.PLAYER_LIST_PACKET, PlayerListPacket11460.class);
@@ -245,6 +246,7 @@ public class PacketRegister {
         registerPacket(AbstractProtocol.PROTOCOL_116, ProtocolInfo.EMOTE_LIST_PACKET, EmoteListPacket116.class);
         registerPacket(AbstractProtocol.PROTOCOL_116, ProtocolInfo.PLAYER_AUTH_INPUT_PACKET, PlayerAuthInputPacket116.class);
         registerPacket(AbstractProtocol.PROTOCOL_116, ProtocolInfo.UPDATE_PLAYER_GAME_TYPE_PACKET, UpdatePlayerGameTypePacket116.class);
+        registerPacket(AbstractProtocol.PROTOCOL_116, ProtocolInfo.POSITION_TRACKING_DB_CLIENT_REQUEST_PACKET, PositionTrackingDBClientRequestPacket116.class);
 
         registerPacket(AbstractProtocol.PROTOCOL_116_20, ProtocolInfo.START_GAME_PACKET, StartGamePacket11620.class);
 
@@ -298,6 +300,7 @@ public class PacketRegister {
 
         registerPacket(AbstractProtocol.PROTOCOL_118_10, ProtocolInfo.SUB_CHUNK_REQUEST_PACKET, SubChunkRequestPacket11810.class);
         registerPacket(AbstractProtocol.PROTOCOL_118_10, ProtocolInfo.PLAYER_START_ITEM_COOLDOWN_PACKET, PlayerStartItemCooldownPacket11810.class);
+        registerPacket(AbstractProtocol.PROTOCOL_118_10, ProtocolInfo.SCRIPT_MESSAGE_PACKET, ScriptMessagePacket11810.class);
 
         registerPacket(AbstractProtocol.PROTOCOL_118_30, ProtocolInfo.START_GAME_PACKET, StartGamePacket11830.class);
         registerPacket(AbstractProtocol.PROTOCOL_118_30, ProtocolInfo.ADD_PLAYER_PACKET, AddPlayerPacket11830.class);
@@ -328,6 +331,8 @@ public class PacketRegister {
         registerPacket(AbstractProtocol.PROTOCOL_119_20, ProtocolInfo.CLIENTBOUND_MAP_ITEM_DATA_PACKET, ClientboundMapItemDataPacket11920.class);
         registerPacket(AbstractProtocol.PROTOCOL_119_20, ProtocolInfo.MODAL_FORM_RESPONSE_PACKET, ModalFormResponsePacket11920.class);
         registerPacket(AbstractProtocol.PROTOCOL_119_20, ProtocolInfo.FEATURE_REGISTRY_PACKET, FeatureRegistryPacket11920.class);
+
+        registerPacket(AbstractProtocol.PROTOCOL_119_30, ProtocolInfo.REQUEST_NETWORK_SETTINGS_PACKET, RequestNetworkSettingsPacket11930.class);
 
         registerPacket(AbstractProtocol.PROTOCOL_119_40, ProtocolInfo.ADD_ACTOR_PACKET, AddEntityPacket11940.class);
         registerPacket(AbstractProtocol.PROTOCOL_119_40, ProtocolInfo.ADD_PLAYER_PACKET, AddPlayerPacket11940.class);

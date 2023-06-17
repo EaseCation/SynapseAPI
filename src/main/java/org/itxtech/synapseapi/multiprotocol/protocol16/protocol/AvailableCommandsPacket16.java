@@ -76,7 +76,7 @@ public class AvailableCommandsPacket16 extends Packet16 {
         this.putString(e.getName());
 
         this.putUnsignedVarInt(e.getValues().size());
-        for (String value : e.getValues()) {
+        for (String value : e.getValues().keySet()) {
             if (this.enumValues.contains(value)) {
                 int index = this.enumValues.indexOf(value);
                 if (index < 0) {
@@ -93,7 +93,7 @@ public class AvailableCommandsPacket16 extends Packet16 {
         this.putString(e.getName());
 
         this.putUnsignedVarInt(e.getValues().size());
-        for (String softEnum : e.getValues()) {
+        for (String softEnum : e.getValues().keySet()) {
             this.putString(softEnum);
         }
     }
@@ -165,14 +165,14 @@ public class AvailableCommandsPacket16 extends Packet16 {
             for (CommandData commandData : data.versions) {
                 if (commandData.aliases != null) {
                     enumMap.put(commandData.aliases.getName(), commandData.aliases);
-                    enumValues.addAll(commandData.aliases.getValues());
-                    commandNames.addAll(commandData.aliases.getValues());
+                    enumValues.addAll(commandData.aliases.getValues().keySet());
+                    commandNames.addAll(commandData.aliases.getValues().keySet());
                 }
                 commandData.overloads.forEach((n, overload) -> {
                     for (CommandParameter parameter : overload.input.parameters) {
                         if (parameter.enumData != null) {
                             enumMap.put(parameter.enumData.getName(), parameter.enumData);
-                            enumValues.addAll(parameter.enumData.getValues());
+                            enumValues.addAll(parameter.enumData.getValues().keySet());
                         }
                         if (parameter.postFix != null) {
                             postfixes.add(parameter.postFix);
@@ -184,7 +184,7 @@ public class AvailableCommandsPacket16 extends Packet16 {
 
         CommandEnum commandNameEnum = new CommandEnum("CommandName", commandNames);
         enumMap.put("CommandName", commandNameEnum);
-        enumValues.addAll(commandNameEnum.getValues());
+        enumValues.addAll(commandNameEnum.getValues().keySet());
 
         this.enumValues = enumValues;
         this.putUnsignedVarInt(this.enumValuesCount = this.enumValues.size());

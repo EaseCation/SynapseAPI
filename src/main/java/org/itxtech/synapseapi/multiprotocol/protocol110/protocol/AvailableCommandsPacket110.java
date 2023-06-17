@@ -81,9 +81,9 @@ public class AvailableCommandsPacket110 extends Packet110 {
             if (cmdData.aliases != null) {
                 enumsSet.add(cmdData.aliases);
 
-                enumValuesSet.addAll(cmdData.aliases.getValues());
+                enumValuesSet.addAll(cmdData.aliases.getValues().keySet());
 
-                commandNames.addAll(cmdData.aliases.getValues());
+                commandNames.addAll(cmdData.aliases.getValues().keySet());
             }
 
             for (CommandOverload overload : cmdData.overloads.values()) {
@@ -94,7 +94,7 @@ public class AvailableCommandsPacket110 extends Packet110 {
                         } else {
                             enumsSet.add(parameter.enumData);
 
-                            enumValuesSet.addAll(parameter.enumData.getValues());
+                            enumValuesSet.addAll(parameter.enumData.getValues().keySet());
                         }
                     }
 
@@ -132,7 +132,7 @@ public class AvailableCommandsPacket110 extends Packet110 {
         enums.forEach((cmdEnum) -> {
             putString(cmdEnum.getName());
 
-            Set<String> values = cmdEnum.getValues();
+            Set<String> values = cmdEnum.getValues().keySet();
             putUnsignedVarInt(values.size());
 
             for (String val : values) {
@@ -204,7 +204,7 @@ public class AvailableCommandsPacket110 extends Packet110 {
         softEnums.forEach(cmdEnum -> {
             this.putString(cmdEnum.getName());
 
-            Set<String> values = cmdEnum.getValues();
+            Set<String> values = cmdEnum.getValues().keySet();
             this.putUnsignedVarInt(values.size());
             values.forEach(this::putString);
         });

@@ -29,9 +29,7 @@ public class UpdateSubChunkBlocksPacket118 extends Packet118 {
     @Override
     public void encode() {
         this.reset();
-        this.putVarInt(this.subChunkX);
-        this.putVarInt(this.subChunkY);
-        this.putVarInt(this.subChunkZ);
+        this.putBlockVector3(this.subChunkX, this.subChunkY, this.subChunkZ);
         this.putUnsignedVarInt(this.layer0.length);
         for (Entry update : this.layer0) {
             update.write(this);
@@ -72,7 +70,7 @@ public class UpdateSubChunkBlocksPacket118 extends Packet118 {
         }
 
         private void write(BinaryStream stream) {
-            stream.putSignedBlockPosition(this.x, this.y, this.z);
+            stream.putBlockVector3(this.x, this.y, this.z);
             stream.putUnsignedVarInt(this.blockRuntimeId);
             stream.putUnsignedVarInt(this.flags);
             stream.putUnsignedVarLong(this.syncedUpdateEntityUniqueId);

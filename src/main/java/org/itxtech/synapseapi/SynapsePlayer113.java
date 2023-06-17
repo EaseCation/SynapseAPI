@@ -21,12 +21,14 @@ import cn.nukkit.inventory.transaction.data.ReleaseItemData;
 import cn.nukkit.inventory.transaction.data.UseItemData;
 import cn.nukkit.inventory.transaction.data.UseItemOnEntityData;
 import cn.nukkit.item.Item;
+import cn.nukkit.item.ItemReleasable;
 import cn.nukkit.item.Items;
 import cn.nukkit.item.enchantment.Enchantment;
 import cn.nukkit.level.GameRule;
 import cn.nukkit.level.Position;
 import cn.nukkit.math.BlockFace;
 import cn.nukkit.math.BlockVector3;
+import cn.nukkit.math.Mth;
 import cn.nukkit.math.Vector3;
 import cn.nukkit.math.Vector3f;
 import cn.nukkit.network.SourceInterface;
@@ -234,9 +236,7 @@ public class SynapsePlayer113 extends SynapsePlayer112 {
 						this.spawnToAll();
 						this.scheduleUpdate();
 
-						this.startAction = -1;
-						this.startActionTimestamp = -1;
-						this.setDataFlag(Player.DATA_FLAGS, Player.DATA_FLAG_ACTION, false);
+						this.setUsingItem(false);
 						break;
 					default:
 						super.handleDataPacket(packet);
@@ -365,14 +365,15 @@ public class SynapsePlayer113 extends SynapsePlayer112 {
 							case InventoryTransactionPacket.USE_ITEM_ACTION_CLICK_BLOCK:
 								// Remove if client bug is ever fixed
 								boolean spamBug = lastRightClickData != null && System.currentTimeMillis() - lastRightClickTime < 100.0 &&
-										lastRightClickData.playerPos.distanceSquared(useItemData.playerPos) < 0.00001 &&
+										lastRightClickData.face == face &&
+										lastRightClickData.playerPos.distanceSquared(useItemData.playerPos) < Mth.EPSILON &&
 										lastRightClickData.blockPos.equalsVec(blockVector) &&
-										lastRightClickData.clickPos.distanceSquared(clickPos) < 0.00001; // signature spam bug has 0 distance, but allow some error
-								lastRightClickData = useItemData;
-								lastRightClickTime = System.currentTimeMillis();
+										lastRightClickData.clickPos.distanceSquared(clickPos) < Mth.EPSILON; // signature spam bug has 0 distance, but allow some error
 								if (spamBug /*&& !(useItemData.itemInHand instanceof ItemBlock)*/) {
 									return;
 								}
+								lastRightClickData = useItemData;
+								lastRightClickTime = System.currentTimeMillis();
 
 								this.setDataFlag(DATA_FLAGS, DATA_FLAG_ACTION, false);
 
@@ -487,7 +488,7 @@ public class SynapsePlayer113 extends SynapsePlayer112 {
 									}
 
 									if (!this.isUsingItem()) {
-										this.setUsingItem(true);
+										this.setUsingItem(item instanceof ItemReleasable);
 										break packetswitch;
 									}
 
@@ -499,6 +500,10 @@ public class SynapsePlayer113 extends SynapsePlayer112 {
 
 									if (!item.onUse(this, ticksUsed)) {
 										this.inventory.sendContents(this);
+									}
+
+									if (item instanceof ItemReleasable) {
+										this.setUsingItem(true);
 									}
 								}
 
@@ -633,8 +638,6 @@ public class SynapsePlayer113 extends SynapsePlayer112 {
 										if (!item.onRelease(this, ticksUsed)) {
 											this.inventory.sendContents(this);
 										}
-
-										this.setUsingItem(false);
 									} else {
 										this.inventory.sendContents(this);
 									}
