@@ -31,6 +31,7 @@ import cn.nukkit.level.format.generic.ChunkPacketCache;
 import cn.nukkit.level.generator.Generator;
 import cn.nukkit.level.particle.PunchBlockParticle;
 import cn.nukkit.math.*;
+import cn.nukkit.network.PacketViolationReason;
 import cn.nukkit.network.SourceInterface;
 import cn.nukkit.network.protocol.*;
 import cn.nukkit.network.protocol.types.ContainerIds;
@@ -197,7 +198,7 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
             startGamePacket.isBlockBreakingServerAuthoritative = this.serverAuthoritativeBlockBreaking;
             startGamePacket.currentTick = this.server.getTick();
             startGamePacket.enchantmentSeed = ThreadLocalRandom.current().nextInt();
-            startGamePacket.isSoundServerAuthoritative = true;
+            startGamePacket.isSoundServerAuthoritative = isServerAuthoritativeSoundEnabled();
             return startGamePacket;
         } else if (this.getProtocol() >= AbstractProtocol.PROTOCOL_119_80.getProtocolStart()) {
             StartGamePacket11980 startGamePacket = new StartGamePacket11980();
@@ -660,7 +661,18 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
         switch (packet.pid()) {
             case ProtocolInfo.LEVEL_SOUND_EVENT_PACKET:
             case ProtocolInfo.LEVEL_SOUND_EVENT_PACKET_V2:
+                if (isServerAuthoritativeSoundEnabled()) {
+                    onPacketViolation(PacketViolationReason.IMPOSSIBLE_BEHAVIOR, "sound12");
+                    break;
+                }
                 // DEPRECATED
+                break;
+            case ProtocolInfo.LEVEL_SOUND_EVENT_PACKET_V3:
+                if (isServerAuthoritativeSoundEnabled()) {
+                    onPacketViolation(PacketViolationReason.IMPOSSIBLE_BEHAVIOR, "sound3");
+                    break;
+                }
+                super.handleDataPacket(packet);
                 break;
             case ProtocolInfo.RESOURCE_PACK_CLIENT_RESPONSE_PACKET:
                 if (!callPacketReceiveEvent(packet)) break;
@@ -980,23 +992,32 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
                             this.scheduleUpdate();
                             break;
                         case PlayerActionPacket119.ACTION_START_BREAK:
+                            if (isServerAuthoritativeBlockBreakingEnabled()) {
+                                onPacketViolation(PacketViolationReason.IMPOSSIBLE_BEHAVIOR, "action0");
+                                return;
+                            }
+
                             if (this.isSpectator()) {
                                 break;
                             }
+
                             long currentBreak = System.currentTimeMillis();
                             BlockVector3 currentBreakPosition = new BlockVector3(playerActionPacket.x, playerActionPacket.y, playerActionPacket.z);
                             // HACK: Client spams multiple left clicks so we need to skip them.
                             if ((lastBreakPosition.equalsVec(currentBreakPosition) && (currentBreak - this.lastBreak) < 10) || pos.distanceSquared(this) > 100) {
                                 break;
                             }
+
                             Block target = this.level.getBlock(pos, false);
                             BlockFace face = BlockFace.fromIndex(playerActionPacket.data);
+
                             PlayerInteractEvent playerInteractEvent = new PlayerInteractEvent(this, this.inventory.getItemInHand(), target, face, target.getId() == BlockID.AIR ? PlayerInteractEvent.Action.LEFT_CLICK_AIR : PlayerInteractEvent.Action.LEFT_CLICK_BLOCK);
                             this.getServer().getPluginManager().callEvent(playerInteractEvent);
                             if (playerInteractEvent.isCancelled()) {
                                 this.inventory.sendHeldItem(this);
                                 break;
                             }
+
                             switch (target.getId()) {
                                 case Block.NOTEBLOCK:
                                     ((BlockNoteblock) target).emitSound();
@@ -1013,12 +1034,14 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
                                         break actionswitch;
                                     }
                             }
+
                             Block block = target.getSide(face);
                             if (block.isFire()) {
                                 this.level.setBlock(block, Block.get(BlockID.AIR), true);
                                 this.level.addLevelSoundEvent(block, LevelSoundEventPacket.SOUND_EXTINGUISH_FIRE);
                                 break;
                             }
+
                             if (!this.isCreative()) {
                                 //improved this to take stuff like swimming, ladders, enchanted tools into account, fix wrong tool break time calculations for bad tools (pmmp/PocketMine-MP#211)
                                 //Done by lmlstarqaq
@@ -1038,8 +1061,13 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
                             this.lastBreak = currentBreak;
                             this.lastBreakPosition = currentBreakPosition;
                             break;
-                        case PlayerActionPacket119.ACTION_ABORT_BREAK:
                         case PlayerActionPacket119.ACTION_STOP_BREAK:
+                        case PlayerActionPacket119.ACTION_ABORT_BREAK:
+                            if (isServerAuthoritativeBlockBreakingEnabled()) {
+                                onPacketViolation(PacketViolationReason.IMPOSSIBLE_BEHAVIOR, "action2");
+                                return;
+                            }
+
                             if (pos.distanceSquared(this) < 100) { // same as with ACTION_START_BREAK
                                 LevelEventPacket pk = new LevelEventPacket();
                                 pk.evid = LevelEventPacket.EVENT_BLOCK_STOP_BREAK;
@@ -1059,10 +1087,20 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
                             this.stopSleep();
                             break;
                         case PlayerActionPacket119.ACTION_JUMP:
+                            if (isServerAuthoritativeMovementEnabled()) {
+                                onPacketViolation(PacketViolationReason.IMPOSSIBLE_BEHAVIOR, "action8");
+                                return;
+                            }
+
                             PlayerJumpEvent playerJumpEvent = new PlayerJumpEvent(this);
                             this.server.getPluginManager().callEvent(playerJumpEvent);
                             break packetswitch;
                         case PlayerActionPacket119.ACTION_START_SPRINT:
+                            if (isServerAuthoritativeMovementEnabled()) {
+                                onPacketViolation(PacketViolationReason.IMPOSSIBLE_BEHAVIOR, "action9");
+                                return;
+                            }
+
                             PlayerToggleSprintEvent playerToggleSprintEvent = new PlayerToggleSprintEvent(this, true);
                             this.server.getPluginManager().callEvent(playerToggleSprintEvent);
                             if (playerToggleSprintEvent.isCancelled()) {
@@ -1073,6 +1111,11 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
                             this.formWindows.clear();
                             break packetswitch;
                         case PlayerActionPacket119.ACTION_STOP_SPRINT:
+                            if (isServerAuthoritativeMovementEnabled()) {
+                                onPacketViolation(PacketViolationReason.IMPOSSIBLE_BEHAVIOR, "action10");
+                                return;
+                            }
+
                             playerToggleSprintEvent = new PlayerToggleSprintEvent(this, false);
                             this.server.getPluginManager().callEvent(playerToggleSprintEvent);
                             if (playerToggleSprintEvent.isCancelled()) {
@@ -1082,6 +1125,11 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
                             }
                             break packetswitch;
                         case PlayerActionPacket119.ACTION_START_SNEAK:
+                            if (isServerAuthoritativeMovementEnabled()) {
+                                onPacketViolation(PacketViolationReason.IMPOSSIBLE_BEHAVIOR, "action11");
+                                return;
+                            }
+
                             PlayerToggleSneakEvent playerToggleSneakEvent = new PlayerToggleSneakEvent(this, true);
                             this.server.getPluginManager().callEvent(playerToggleSneakEvent);
                             if (playerToggleSneakEvent.isCancelled()) {
@@ -1091,6 +1139,11 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
                             }
                             break packetswitch;
                         case PlayerActionPacket119.ACTION_STOP_SNEAK:
+                            if (isServerAuthoritativeMovementEnabled()) {
+                                onPacketViolation(PacketViolationReason.IMPOSSIBLE_BEHAVIOR, "action12");
+                                return;
+                            }
+
                             playerToggleSneakEvent = new PlayerToggleSneakEvent(this, false);
                             this.server.getPluginManager().callEvent(playerToggleSneakEvent);
                             if (playerToggleSneakEvent.isCancelled()) {
@@ -1101,8 +1154,13 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
                             break packetswitch;
                         case PlayerActionPacket119.ACTION_DIMENSION_CHANGE_ACK:
                             this.onDimensionChangeSuccess();
-                            break; //TODO
+                            break;
                         case PlayerActionPacket119.ACTION_START_GLIDE:
+                            if (isServerAuthoritativeMovementEnabled()) {
+                                onPacketViolation(PacketViolationReason.IMPOSSIBLE_BEHAVIOR, "action15");
+                                return;
+                            }
+
                             PlayerToggleGlideEvent playerToggleGlideEvent = new PlayerToggleGlideEvent(this, true);
                             if (getInventory().getChestplate().getId() != Item.ELYTRA) {
                                 playerToggleGlideEvent.setCancelled();
@@ -1115,6 +1173,11 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
                             }
                             break packetswitch;
                         case PlayerActionPacket119.ACTION_STOP_GLIDE:
+                            if (isServerAuthoritativeMovementEnabled()) {
+                                onPacketViolation(PacketViolationReason.IMPOSSIBLE_BEHAVIOR, "action16");
+                                return;
+                            }
+
                             playerToggleGlideEvent = new PlayerToggleGlideEvent(this, false);
                             this.server.getPluginManager().callEvent(playerToggleGlideEvent);
                             if (playerToggleGlideEvent.isCancelled()) {
@@ -1124,6 +1187,11 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
                             }
                             break packetswitch;
                         case PlayerActionPacket119.ACTION_CONTINUE_BREAK:
+                            if (isServerAuthoritativeBlockBreakingEnabled()) {
+                                onPacketViolation(PacketViolationReason.IMPOSSIBLE_BEHAVIOR, "action18");
+                                return;
+                            }
+
                             if (this.isBreakingBlock()) {
                                 block = this.level.getBlock(pos, false);
                                 face = BlockFace.fromIndex(playerActionPacket.data);
@@ -1131,9 +1199,19 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
                             }
                             break;
                         case PlayerActionPacket119.ACTION_START_SWIMMING:
+                            if (isServerAuthoritativeMovementEnabled()) {
+                                onPacketViolation(PacketViolationReason.IMPOSSIBLE_BEHAVIOR, "action21");
+                                return;
+                            }
+
                             this.setSwimming(true);
                             break;
                         case PlayerActionPacket119.ACTION_STOP_SWIMMING:
+                            if (isServerAuthoritativeMovementEnabled()) {
+                                onPacketViolation(PacketViolationReason.IMPOSSIBLE_BEHAVIOR, "action22");
+                                return;
+                            }
+
                             this.setSwimming(false);
                             break;
                         case PlayerActionPacket119.ACTION_CREATIVE_PLAYER_DESTROY_BLOCK:
@@ -1225,23 +1303,32 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
                 actionswitch:
                 switch (playerActionPacket.action) {
                     case PlayerActionPacket14.ACTION_START_BREAK:
+                        if (isServerAuthoritativeBlockBreakingEnabled()) {
+                            onPacketViolation(PacketViolationReason.IMPOSSIBLE_BEHAVIOR, "action0");
+                            break;
+                        }
+
                         if (this.isSpectator()) {
                             break;
                         }
+
                         long currentBreak = System.currentTimeMillis();
                         BlockVector3 currentBreakPosition = new BlockVector3(playerActionPacket.x, playerActionPacket.y, playerActionPacket.z);
                         // HACK: Client spams multiple left clicks so we need to skip them.
                         if ((lastBreakPosition.equalsVec(currentBreakPosition) && (currentBreak - this.lastBreak) < 10) || pos.distanceSquared(this) > 100) {
                             break;
                         }
+
                         Block target = this.level.getBlock(pos, false);
                         BlockFace face = BlockFace.fromIndex(playerActionPacket.data);
+
                         PlayerInteractEvent playerInteractEvent = new PlayerInteractEvent(this, this.inventory.getItemInHand(), target, face, target.getId() == BlockID.AIR ? PlayerInteractEvent.Action.LEFT_CLICK_AIR : PlayerInteractEvent.Action.LEFT_CLICK_BLOCK);
                         this.getServer().getPluginManager().callEvent(playerInteractEvent);
                         if (playerInteractEvent.isCancelled()) {
                             this.inventory.sendHeldItem(this);
                             break;
                         }
+
                         switch (target.getId()) {
                             case Block.NOTEBLOCK:
                                 ((BlockNoteblock) target).emitSound();
@@ -1258,12 +1345,14 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
                                     break actionswitch;
                                 }
                         }
+
                         Block block = target.getSide(face);
                         if (block.isFire()) {
                             this.level.setBlock(block, Block.get(BlockID.AIR), true);
                             this.level.addLevelSoundEvent(block, LevelSoundEventPacket.SOUND_EXTINGUISH_FIRE);
                             break;
                         }
+
                         if (!this.isCreative()) {
                             //improved this to take stuff like swimming, ladders, enchanted tools into account, fix wrong tool break time calculations for bad tools (pmmp/PocketMine-MP#211)
                             //Done by lmlstarqaq
@@ -2865,5 +2954,10 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
         TrimDataPacket120 packet = new TrimDataPacket120();
         //TODO: trim
         this.dataPacket(packet);
+    }
+
+    @Override
+    public boolean isServerAuthoritativeSoundEnabled() {
+        return getProtocol() >= AbstractProtocol.PROTOCOL_120.getProtocolStart();
     }
 }

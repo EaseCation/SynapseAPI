@@ -41,6 +41,7 @@ import org.itxtech.synapseapi.dialogue.NPCDialoguePlayerHandler;
 import org.itxtech.synapseapi.event.player.SynapsePlayerBroadcastLevelSoundEvent;
 import org.itxtech.synapseapi.event.player.SynapsePlayerConnectEvent;
 import org.itxtech.synapseapi.event.player.SynapsePlayerTransferEvent;
+import org.itxtech.synapseapi.event.player.SynapsePlayerUnexpectedBehaviorEvent;
 import org.itxtech.synapseapi.multiprotocol.AbstractProtocol;
 import org.itxtech.synapseapi.multiprotocol.PacketRegister;
 import org.itxtech.synapseapi.multiprotocol.protocol116100.protocol.TextPacket116100;
@@ -1344,6 +1345,19 @@ public class SynapsePlayer extends Player {
 
     public boolean isServerAuthoritativeMovementEnabled() {
         return false;
+    }
+
+    public boolean isServerAuthoritativeBlockBreakingEnabled() {
+        return false;
+    }
+
+    public boolean isServerAuthoritativeSoundEnabled() {
+        return false;
+    }
+
+    public void onUnexpectedBehavior(String tag) {
+        new SynapsePlayerUnexpectedBehaviorEvent(this, tag).call();
+//        onPacketViolation(PacketViolationReason.IMPOSSIBLE_BEHAVIOR);
     }
 
     protected void sendDimensionData() {

@@ -219,33 +219,44 @@ public class SynapsePlayer14 extends SynapsePlayer {
 
 				switch (playerActionPacket.action) {
 					case PlayerActionPacket14.ACTION_START_BREAK:
+						if (isServerAuthoritativeBlockBreakingEnabled()) {
+							onPacketViolation(PacketViolationReason.IMPOSSIBLE_BEHAVIOR, "action0");
+							return;
+						}
+
 						if (this.isSpectator()) {
 							break;
 						}
+
 						long currentBreak = System.currentTimeMillis();
 						BlockVector3 currentBreakPosition = new BlockVector3(playerActionPacket.x, playerActionPacket.y, playerActionPacket.z);
 						// HACK: Client spams multiple left clicks so we need to skip them.
 						if ((lastBreakPosition.equalsVec(currentBreakPosition) && (currentBreak - this.lastBreak) < 10) || pos.distanceSquared(this) > 100) {
 							break;
 						}
+
 						Block target = this.level.getBlock(pos, false);
 						BlockFace face = BlockFace.fromIndex(playerActionPacket.data);
+
 						PlayerInteractEvent playerInteractEvent = new PlayerInteractEvent(this, this.inventory.getItemInHand(), target, face, target.getId() == BlockID.AIR ? PlayerInteractEvent.Action.LEFT_CLICK_AIR : PlayerInteractEvent.Action.LEFT_CLICK_BLOCK);
 						this.getServer().getPluginManager().callEvent(playerInteractEvent);
 						if (playerInteractEvent.isCancelled()) {
 							this.inventory.sendHeldItem(this);
 							break;
 						}
+
 						if (target.getId() == Block.NOTEBLOCK) {
 							((BlockNoteblock) target).emitSound();
 							break;
 						}
+
 						Block block = target.getSide(face);
 						if (block.isFire()) {
 							this.level.setBlock(block, Block.get(Block.AIR), true);
 							this.level.addLevelSoundEvent(block, LevelSoundEventPacket.SOUND_EXTINGUISH_FIRE);
 							break;
 						}
+
 						if (!this.isCreative()) {
 							//improved this to take stuff like swimming, ladders, enchanted tools into account, fix wrong tool break time calculations for bad tools (pmmp/PocketMine-MP#211)
 							//Done by lmlstarqaq
@@ -265,8 +276,13 @@ public class SynapsePlayer14 extends SynapsePlayer {
 						this.lastBreak = currentBreak;
 						this.lastBreakPosition = currentBreakPosition;
 						break;
-					case PlayerActionPacket14.ACTION_ABORT_BREAK:
 					case PlayerActionPacket14.ACTION_STOP_BREAK:
+					case PlayerActionPacket14.ACTION_ABORT_BREAK:
+						if (isServerAuthoritativeBlockBreakingEnabled()) {
+							onPacketViolation(PacketViolationReason.IMPOSSIBLE_BEHAVIOR, "action2");
+							return;
+						}
+
 						if (pos.distanceSquared(this) < 100) { // same as with ACTION_START_BREAK
 							LevelEventPacket pk = new LevelEventPacket();
 							pk.evid = LevelEventPacket.EVENT_BLOCK_STOP_BREAK;
@@ -341,10 +357,20 @@ public class SynapsePlayer14 extends SynapsePlayer {
 						this.scheduleUpdate();
 						break;
 					case PlayerActionPacket14.ACTION_JUMP:
+						if (isServerAuthoritativeMovementEnabled()) {
+							onPacketViolation(PacketViolationReason.IMPOSSIBLE_BEHAVIOR, "action8");
+							return;
+						}
+
 						PlayerJumpEvent playerJumpEvent = new PlayerJumpEvent(this);
 						this.server.getPluginManager().callEvent(playerJumpEvent);
 						break packetswitch;
 					case PlayerActionPacket14.ACTION_START_SPRINT:
+						if (isServerAuthoritativeMovementEnabled()) {
+							onPacketViolation(PacketViolationReason.IMPOSSIBLE_BEHAVIOR, "action9");
+							return;
+						}
+
 						PlayerToggleSprintEvent playerToggleSprintEvent = new PlayerToggleSprintEvent(this, true);
 						this.server.getPluginManager().callEvent(playerToggleSprintEvent);
 						if (playerToggleSprintEvent.isCancelled()) {
@@ -355,6 +381,11 @@ public class SynapsePlayer14 extends SynapsePlayer {
 						this.formWindows.clear();
 						break packetswitch;
 					case PlayerActionPacket14.ACTION_STOP_SPRINT:
+						if (isServerAuthoritativeMovementEnabled()) {
+							onPacketViolation(PacketViolationReason.IMPOSSIBLE_BEHAVIOR, "action10");
+							return;
+						}
+
 						playerToggleSprintEvent = new PlayerToggleSprintEvent(this, false);
 						this.server.getPluginManager().callEvent(playerToggleSprintEvent);
 						if (playerToggleSprintEvent.isCancelled()) {
@@ -364,6 +395,11 @@ public class SynapsePlayer14 extends SynapsePlayer {
 						}
 						break packetswitch;
 					case PlayerActionPacket14.ACTION_START_SNEAK:
+						if (isServerAuthoritativeMovementEnabled()) {
+							onPacketViolation(PacketViolationReason.IMPOSSIBLE_BEHAVIOR, "action11");
+							return;
+						}
+
 						PlayerToggleSneakEvent playerToggleSneakEvent = new PlayerToggleSneakEvent(this, true);
 						this.server.getPluginManager().callEvent(playerToggleSneakEvent);
 						if (playerToggleSneakEvent.isCancelled()) {
@@ -373,6 +409,11 @@ public class SynapsePlayer14 extends SynapsePlayer {
 						}
 						break packetswitch;
 					case PlayerActionPacket14.ACTION_STOP_SNEAK:
+						if (isServerAuthoritativeMovementEnabled()) {
+							onPacketViolation(PacketViolationReason.IMPOSSIBLE_BEHAVIOR, "action12");
+							return;
+						}
+
 						playerToggleSneakEvent = new PlayerToggleSneakEvent(this, false);
 						this.server.getPluginManager().callEvent(playerToggleSneakEvent);
 						if (playerToggleSneakEvent.isCancelled()) {
@@ -383,8 +424,13 @@ public class SynapsePlayer14 extends SynapsePlayer {
 						break packetswitch;
 					case PlayerActionPacket14.ACTION_DIMENSION_CHANGE_ACK:
 						this.onDimensionChangeSuccess();
-						break; //TODO
+						break;
 					case PlayerActionPacket14.ACTION_START_GLIDE:
+						if (isServerAuthoritativeMovementEnabled()) {
+							onPacketViolation(PacketViolationReason.IMPOSSIBLE_BEHAVIOR, "action15");
+							return;
+						}
+
 						PlayerToggleGlideEvent playerToggleGlideEvent = new PlayerToggleGlideEvent(this, true);
 						if (getInventory().getChestplate().getId() != Item.ELYTRA) {
 							playerToggleGlideEvent.setCancelled();
@@ -397,6 +443,11 @@ public class SynapsePlayer14 extends SynapsePlayer {
 						}
 						break packetswitch;
 					case PlayerActionPacket14.ACTION_STOP_GLIDE:
+						if (isServerAuthoritativeMovementEnabled()) {
+							onPacketViolation(PacketViolationReason.IMPOSSIBLE_BEHAVIOR, "action16");
+							return;
+						}
+
 						playerToggleGlideEvent = new PlayerToggleGlideEvent(this, false);
 						this.server.getPluginManager().callEvent(playerToggleGlideEvent);
 						if (playerToggleGlideEvent.isCancelled()) {
@@ -406,6 +457,11 @@ public class SynapsePlayer14 extends SynapsePlayer {
 						}
 						break packetswitch;
 					case PlayerActionPacket14.ACTION_CONTINUE_BREAK:
+						if (isServerAuthoritativeBlockBreakingEnabled()) {
+							onPacketViolation(PacketViolationReason.IMPOSSIBLE_BEHAVIOR, "action18");
+							return;
+						}
+
 						if (this.isBreakingBlock()) {
 							block = this.level.getBlock(pos, false);
 							face = BlockFace.fromIndex(playerActionPacket.data);
@@ -413,9 +469,19 @@ public class SynapsePlayer14 extends SynapsePlayer {
 						}
 						break;
 					case PlayerActionPacket14.ACTION_START_SWIMMING:
+						if (isServerAuthoritativeMovementEnabled()) {
+							onPacketViolation(PacketViolationReason.IMPOSSIBLE_BEHAVIOR, "action21");
+							return;
+						}
+
 						this.setSwimming(true);
 						break;
 					case PlayerActionPacket14.ACTION_STOP_SWIMMING:
+						if (isServerAuthoritativeMovementEnabled()) {
+							onPacketViolation(PacketViolationReason.IMPOSSIBLE_BEHAVIOR, "action22");
+							return;
+						}
+
 						this.setSwimming(false);
 						break;
 				}

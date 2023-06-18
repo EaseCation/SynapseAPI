@@ -351,7 +351,7 @@ public class SynapseEntry {
                 }
                 counter[0]++;
                 if (redirectPacketEntry.player.isOnline() && counter[0] > 10000) {
-                    redirectPacketEntry.player.onPacketViolation(PacketViolationReason.RECEIVING_PACKETS_TOO_FAST);
+                    redirectPacketEntry.player.onPacketViolation(PacketViolationReason.RECEIVING_PACKETS_TOO_FAST, "sync");
                     continue;
                 }
                 if (SERVERBOUND_PACKET_LOGGING && log.isTraceEnabled()) {
@@ -518,7 +518,7 @@ public class SynapseEntry {
                                     player.violated = true;
                                     synapse.getServer().getScheduler().scheduleTask(synapse, () -> {
                                         new SynapsePlayerTooManyBatchPacketsEvent(player, SynapsePlayer.INCOMING_PACKET_BATCH_MAX_BUDGET + 1).call();
-                                        player.onPacketViolation(PacketViolationReason.RECEIVING_BATCHES_TOO_FAST);
+                                        player.onPacketViolation(PacketViolationReason.RECEIVING_BATCHES_TOO_FAST, "async");
                                     });
                                     break;
                                 }
@@ -529,7 +529,7 @@ public class SynapseEntry {
                             if (packets == null) {
                                 player.violated = true;
                                 synapse.getServer().getScheduler().scheduleTask(synapse, () -> {
-                                    player.onPacketViolation(PacketViolationReason.MALFORMED_PACKET);
+                                    player.onPacketViolation(PacketViolationReason.MALFORMED_PACKET, "batch");
                                 });
                                 break;
                             }
@@ -542,7 +542,7 @@ public class SynapseEntry {
                                 if (packetId >= ProtocolInfo.COUNT - 512) {
                                     player.violated = true;
                                     synapse.getServer().getScheduler().scheduleTask(synapse, () -> {
-                                        player.onPacketViolation(PacketViolationReason.MALFORMED_PACKET);
+                                        player.onPacketViolation(PacketViolationReason.MALFORMED_PACKET, "pid");
                                     });
                                     break HANDLER;
                                 }
@@ -621,7 +621,7 @@ public class SynapseEntry {
                                             if (player.lastAuthInputPacketTick > tick) {
                                                 player.violated = true;
                                                 synapse.getServer().getScheduler().scheduleTask(synapse, () -> {
-                                                    player.onPacketViolation(PacketViolationReason.IMPOSSIBLE_BEHAVIOR);
+                                                    player.onPacketViolation(PacketViolationReason.IMPOSSIBLE_BEHAVIOR, "input_tick");
                                                 });
                                                 break HANDLER;
                                             }
@@ -671,7 +671,7 @@ public class SynapseEntry {
                                 if ((player.violationIncomingThread += 60) > 100) {
                                     player.violated = true;
                                     synapse.getServer().getScheduler().scheduleTask(synapse, () -> {
-                                        player.onPacketViolation(PacketViolationReason.TOO_MANY_PACKETS_IN_BATCH);
+                                        player.onPacketViolation(PacketViolationReason.TOO_MANY_PACKETS_IN_BATCH, "async");
                                     });
                                     break HANDLER;
                                 }

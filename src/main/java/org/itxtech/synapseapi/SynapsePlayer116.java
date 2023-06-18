@@ -1367,6 +1367,11 @@ public class SynapsePlayer116 extends SynapsePlayer113 {
 	}
 
 	@Override
+	public boolean isServerAuthoritativeBlockBreakingEnabled() {
+		return serverAuthoritativeBlockBreaking;
+	}
+
+	@Override
 	public boolean onUpdate(int currentTick) {
 		int tickDiff = currentTick - this.lastUpdate;
 		if (tickDiff > 0) {
