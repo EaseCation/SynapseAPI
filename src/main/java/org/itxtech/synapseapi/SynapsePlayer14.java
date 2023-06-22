@@ -432,7 +432,8 @@ public class SynapsePlayer14 extends SynapsePlayer {
 						}
 
 						PlayerToggleGlideEvent playerToggleGlideEvent = new PlayerToggleGlideEvent(this, true);
-						if (getInventory().getChestplate().getId() != Item.ELYTRA) {
+						Item chestplate = getInventory().getChestplate();
+						if (chestplate.getId() != Item.ELYTRA || chestplate.getDamage() >= chestplate.getMaxDurability() - 1) {
 							playerToggleGlideEvent.setCancelled();
 						}
 						this.server.getPluginManager().callEvent(playerToggleGlideEvent);

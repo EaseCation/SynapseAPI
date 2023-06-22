@@ -576,7 +576,7 @@ public class SynapsePlayer116 extends SynapsePlayer113 {
 								} else if (target instanceof Player) {
 									if ((((Player) target).getGamemode() & 0x01) > 0) {
 										break;
-									} else if (!this.server.getPropertyBoolean("pvp") || this.server.getDifficulty() == 0) {
+									} else if (!this.server.getConfiguration().isPvp() || this.server.getDifficulty() == 0) {
 										break;
 									}
 								}
@@ -775,7 +775,8 @@ public class SynapsePlayer116 extends SynapsePlayer113 {
 				}
 				if ((inputFlags & (1L << PlayerAuthInputPacket116.FLAG_START_GLIDING)) != 0 && !this.isGliding()) {
 					PlayerToggleGlideEvent playerToggleGlideEvent = new PlayerToggleGlideEvent(this, true);
-					if (getInventory().getChestplate().getId() != Item.ELYTRA) {
+					Item chestplate = getInventory().getChestplate();
+					if (chestplate.getId() != Item.ELYTRA || chestplate.getDamage() >= chestplate.getMaxDurability() - 1) {
 						playerToggleGlideEvent.setCancelled();
 					}
 					this.server.getPluginManager().callEvent(playerToggleGlideEvent);

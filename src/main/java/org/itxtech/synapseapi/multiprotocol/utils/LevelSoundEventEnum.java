@@ -322,6 +322,7 @@ public enum LevelSoundEventEnum {
         switch (this) {
             case SOUND_PLACE:
             case SOUND_ITEM_USE_ON:
+            case SOUND_HIT:
             case SOUND_LAND:
             case SOUND_POWER_ON:
             case SOUND_POWER_OFF:
@@ -335,6 +336,7 @@ public enum LevelSoundEventEnum {
         switch (this) {
             case SOUND_PLACE:
             case SOUND_ITEM_USE_ON:
+            case SOUND_HIT:
             case SOUND_LAND:
             case SOUND_POWER_ON:
             case SOUND_POWER_OFF:
@@ -348,6 +350,7 @@ public enum LevelSoundEventEnum {
         switch (this) {
             case SOUND_PLACE:
             case SOUND_ITEM_USE_ON:
+            case SOUND_HIT:
             case SOUND_LAND:
             case SOUND_POWER_ON:
             case SOUND_POWER_OFF:
@@ -362,6 +365,7 @@ public enum LevelSoundEventEnum {
     public int translateExtraDataFromClient(int extraData, AbstractProtocol protocol, boolean netease) {
         switch (this) {
             case SOUND_ITEM_USE_ON:
+            case SOUND_HIT:
             case SOUND_PLACE:
             case SOUND_LAND:
             case SOUND_POWER_ON:

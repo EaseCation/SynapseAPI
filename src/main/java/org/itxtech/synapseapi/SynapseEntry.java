@@ -61,7 +61,8 @@ public class SynapseEntry {
     public static final int MAX_SIZE = 12 * 1024 * 1024; // 12MB
 
     public static final int[] PACKET_COUNT_LIMIT = new int[ProtocolInfo.COUNT];
-    public static int[] globalPacketCountThisTick = new int[ProtocolInfo.COUNT];
+    private static final int PACKET_TYPE_COUNT = ProtocolInfo.COUNT - 512; // 目前没有ID大于0x1ff的包, 节省一半内存. 未来不够用了再改
+    public static final int[] globalPacketCountThisTick = new int[PACKET_TYPE_COUNT];
 
     static {
         Arrays.fill(PACKET_COUNT_LIMIT, 10);
@@ -315,9 +316,13 @@ public class SynapseEntry {
                 lastLogin = System.currentTimeMillis();
             }
 
+            Arrays.fill(globalPacketCountThisTick, 0);
+
             PlayerLoginPacket playerLoginPacket;
             Random random = ThreadLocalRandom.current();
             while ((playerLoginPacket = playerLoginQueue.poll()) != null) {
+                globalPacketCountThisTick[ProtocolInfo.LOGIN_PACKET]++;
+
                 int protocol = playerLoginPacket.protocol;
                 InetSocketAddress socketAddress = InetSocketAddress.createUnresolved(playerLoginPacket.address, playerLoginPacket.port);
 
@@ -339,7 +344,6 @@ public class SynapseEntry {
             }
 
             RedirectPacketEntry redirectPacketEntry;
-            Arrays.fill(globalPacketCountThisTick, 0);
             Int2ObjectMap<int[]> playerPacketCountThisTick = new Int2ObjectOpenHashMap<>();
             while ((redirectPacketEntry = redirectPacketQueue.poll()) != null) {
                 //Server.getInstance().getLogger().warning("C => S  " + redirectPacketEntry.dataPacket.getClass().getSimpleName());
@@ -535,11 +539,11 @@ public class SynapseEntry {
                             }
                             // Server.getInstance().getLogger().info("tick: " + Server.getInstance().getTick() + " to server " + packets.size() + " packets");
 
-                            short[] packetCount = new short[ProtocolInfo.COUNT - 512]; // 目前没有ID大于0x1ff的包, 节省一半内存. 未来不够用了再改
+                            short[] packetCount = new short[PACKET_TYPE_COUNT];
                             boolean tooManyPackets = false;
                             for (DataPacket subPacket : packets) {
                                 int packetId = subPacket.pid();
-                                if (packetId >= ProtocolInfo.COUNT - 512) {
+                                if (packetId >= PACKET_TYPE_COUNT) {
                                     player.violated = true;
                                     synapse.getServer().getScheduler().scheduleTask(synapse, () -> {
                                         player.onPacketViolation(PacketViolationReason.MALFORMED_PACKET, "pid");
@@ -741,7 +745,7 @@ public class SynapseEntry {
                 AbstractProtocol.PacketHeadData head = apl.tryDecodePacketHead(buf, false);
                 if (head != null) {
                     int pid = head.getPid();
-                    if (pid <= 0 || pid >= ProtocolInfo.COUNT || pid == ProtocolInfo.BATCH_PACKET) {
+                    if (pid <= 0 || pid >= PACKET_TYPE_COUNT || pid == ProtocolInfo.BATCH_PACKET) {
                         // invalid packet
                         return null;
                     }
