@@ -64,7 +64,9 @@ public class SynapsePlayer19 extends SynapsePlayer18 {
 					event.setCancelled();
 				}
 				this.getServer().getPluginManager().callEvent(event);
-				if (!event.isCancelled()) {
+				// 接入服务端权威音效后不再转发旧版本的C2S包.
+				// 如有音效缺失, 查看客户端代码在相关位置补上即可
+				if (false && !event.isCancelled()) {
 					this.sendLevelSoundEvent(
 							event.getLevelSound(),
 							event.getPos(),
