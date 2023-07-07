@@ -182,7 +182,6 @@ public class GlobalBlockPaletteNBT implements AdvancedGlobalBlockPaletteInterfac
         compiledTable = null;
         itemDataPalette = null;
     }
-
     @Override
     public int getOrCreateRuntimeId(int id, int meta) {
         if (id < 0) {
@@ -198,53 +197,41 @@ public class GlobalBlockPaletteNBT implements AdvancedGlobalBlockPaletteInterfac
 
             int legacyIdNoMeta = id << BLOCK_META_BITS;
             int legacyId = legacyIdNoMeta | meta;
-            try {
-                readLock.lock();
 
-                int runtimeId = unknownToRuntimeId.get(legacyId);
+            // First, try to get the runtimeId with only a read lock.
+            int runtimeId;
+            readLock.lock();
+            try {
+                runtimeId = unknownToRuntimeId.get(legacyId);
                 if (runtimeId == -1) {
                     runtimeId = unknownToRuntimeId.get(legacyIdNoMeta);
-                    if (runtimeId == -1) {
-                        log.warn("Creating new runtime ID for unknown block: id {} meta {}", id, meta, new Throwable("debug trace"));
-                        try {
-                            writeLock.lock();
-
-                            runtimeId = runtimeIdAllocator.getAndIncrement();
-                            unknownToRuntimeId.put(legacyIdNoMeta, runtimeId);
-                            runtimeIdToUnknown.add(legacyIdNoMeta);
-                        } finally {
-                            writeLock.unlock();
-                        }
-                    }
                 }
-                return runtimeId;
             } finally {
                 readLock.unlock();
             }
-        }
 
-        /*
-        int runtimeId = legacyToRuntimeId[legacyId];
-        if (runtimeId == -1) {
-            runtimeId = legacyToRuntimeId[legacyIdNoMeta];
+            // If runtimeId is still -1, then we need to do write, so acquire the write lock.
             if (runtimeId == -1) {
-                if (!this.allowUnknownBlock) {
-                    throw new NoSuchElementException("Unmapped block registered id:" + id + " meta:" + meta);
-                }
-                log.warn("Creating new runtime ID for unknown block {}", id, new Throwable("debug trace"));
+                writeLock.lock();
                 try {
-                    writeLock.lock();
-
-                    runtimeId = runtimeIdAllocator.getAndIncrement();
-                    legacyToRuntimeId[legacyIdNoMeta] = runtimeId;
-                    runtimeIdToLegacy[runtimeId] = legacyIdNoMeta;
+                    // Re-check the condition, as it might have been changed by another thread.
+                    runtimeId = unknownToRuntimeId.get(legacyId);
+                    if (runtimeId == -1) {
+                        runtimeId = unknownToRuntimeId.get(legacyIdNoMeta);
+                        if (runtimeId == -1) {
+                            log.warn("Creating new runtime ID for unknown block: id {} meta {}", id, meta, new Throwable("debug trace"));
+                            runtimeId = runtimeIdAllocator.getAndIncrement();
+                            unknownToRuntimeId.put(legacyIdNoMeta, runtimeId);
+                            runtimeIdToUnknown.add(legacyIdNoMeta);
+                        }
+                    }
                 } finally {
                     writeLock.unlock();
                 }
             }
+
+            return runtimeId;
         }
-        return runtimeId;
-        */
 
         if (meta >= metaToRuntimeId.length) {
             return metaToRuntimeId[0];
