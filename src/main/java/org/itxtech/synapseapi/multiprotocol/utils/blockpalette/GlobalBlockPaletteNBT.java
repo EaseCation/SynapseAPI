@@ -162,6 +162,11 @@ public class GlobalBlockPaletteNBT implements AdvancedGlobalBlockPaletteInterfac
         for (int id = 0; id < Block.BLOCK_ID_COUNT; id++) {
             IntList metaToRuntimeId = idMetaToRuntimeId[id];
             if (metaToRuntimeId == null) {
+                if (id == Block.LAVA_CAULDRON) {
+                    final int toId = Block.BLOCK_CAULDRON;
+                    log.debug("REMOVE ME IN THE FUTURE! (1.20.0) Manual mapping block ID: {} => {} ({})", id, toId, protocol);
+                    this.idMetaToRuntimeId[id] = idMetaToRuntimeId[toId].toIntArray();
+                }
                 continue;
             }
             int firstRuntimeId = metaToRuntimeId.getInt(0);
@@ -182,6 +187,7 @@ public class GlobalBlockPaletteNBT implements AdvancedGlobalBlockPaletteInterfac
         compiledTable = null;
         itemDataPalette = null;
     }
+
     @Override
     public int getOrCreateRuntimeId(int id, int meta) {
         if (id < 0) {
@@ -194,6 +200,7 @@ public class GlobalBlockPaletteNBT implements AdvancedGlobalBlockPaletteInterfac
             if (!this.allowUnknownBlock) {
                 throw new NoSuchElementException("Unmapped block registered id:" + id + " meta:" + meta);
             }
+            //TODO: 1.20.0 测试疑似不再生效, 无效方块在客户端变为空气而不是未知方块 -- 07/07/2023
 
             int legacyIdNoMeta = id << BLOCK_META_BITS;
             int legacyId = legacyIdNoMeta | meta;
