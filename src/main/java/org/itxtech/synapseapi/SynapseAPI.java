@@ -40,7 +40,6 @@ import org.itxtech.synapseapi.multiprotocol.utils.EntityProperties;
 import org.itxtech.synapseapi.multiprotocol.utils.ItemComponentDefinitions;
 import org.itxtech.synapseapi.multiprotocol.utils.item.CraftingManagerLegacy;
 import org.itxtech.synapseapi.multiprotocol.utils.item.CraftingManagerNew;
-import org.itxtech.synapseapi.runnable.TransferDimensionTaskThread;
 import org.itxtech.synapseapi.utils.ClientData;
 import org.itxtech.synapseapi.utils.NetTest;
 
@@ -65,8 +64,6 @@ public class SynapseAPI extends PluginBase implements Listener {
     private final Map<String, SynapseEntry> synapseEntries = new Object2ObjectOpenHashMap<>();
     private Messenger messenger;
     private boolean networkBroadcastPlayerMove;
-
-    private TransferDimensionTaskThread transferDimensionTaskThread;
 
     public static SynapseAPI getInstance() {
         return instance;
@@ -162,11 +159,6 @@ public class SynapseAPI extends PluginBase implements Listener {
                 return AdvancedRuntimeItemPalette.hasData(AbstractProtocol.values0()[AbstractProtocol.values0().length - 1], false, id);
             }
         });
-
-        if (!Boolean.getBoolean("nukkit.worker")) {
-            this.transferDimensionTaskThread = new TransferDimensionTaskThread();
-            this.transferDimensionTaskThread.start();
-        }
 
         /*
         Map<String, int[]> data = new LinkedHashMap<>();
@@ -271,10 +263,6 @@ public class SynapseAPI extends PluginBase implements Listener {
         if (NETWORK_STACK_LATENCY_TELEMETRY) {
             this.getServer().getCommandMap().register("synapse", new LatencyCommand(this));
         }
-    }
-
-    public TransferDimensionTaskThread getTransferDimensionTaskThread() {
-        return transferDimensionTaskThread;
     }
 
     public boolean isUseLoadingScreen() {
@@ -433,7 +421,7 @@ public class SynapseAPI extends PluginBase implements Listener {
     public List<SynapseEntry> getUnusualEntries() {
         return this.getSynapseEntries().values().stream().filter(e -> !e.isVerified() || e.getClientData() == null || e.getClientData().clientList == null).collect(Collectors.toList());
     }
-
+/*
     @EventHandler
     public void onNEPlayerModEventS2S(NetEasePlayerModEventC2SEvent event) {
         // 实现中国版Emote适配
@@ -441,6 +429,16 @@ public class SynapseAPI extends PluginBase implements Listener {
             if (event.getSystemName().equals("emote") && event.getCustomEventName().equals("PlayEmoteEvent")) {
                 JsonObject args = event.getArgs();
                 String emote = args.get("animName").getAsString();
+
+                if (emote.length() > 100) {
+                    event.getPlayer().violation += 60;
+                    return;
+                }
+                if (!event.getPlayer().emoteRequest()) {
+                    event.getPlayer().violation += 10;
+                    return;
+                }
+
                 event.getPlayer().getViewers().values().forEach(v -> {
                     v.playAnimation(emote, event.getPlayer().getId());
                 });
@@ -448,4 +446,5 @@ public class SynapseAPI extends PluginBase implements Listener {
             }
         }
     }
+*/
 }

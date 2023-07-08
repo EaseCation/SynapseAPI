@@ -174,7 +174,6 @@ public class PacketRegister {
         registerPacket(AbstractProtocol.PROTOCOL_17, ProtocolInfo.ADD_PLAYER_PACKET, AddPlayerPacket17.class);
         registerPacket(AbstractProtocol.PROTOCOL_17, ProtocolInfo.AVAILABLE_COMMANDS_PACKET, AvailableCommandsPacket17.class);
         registerPacket(AbstractProtocol.PROTOCOL_17, ProtocolInfo.PLAYER_LIST_PACKET, PlayerListPacket17.class);
-        registerPacket(AbstractProtocol.PROTOCOL_17, ProtocolInfo.SCRIPT_CUSTOM_EVENT_PACKET, ScriptCustomEventPacket17.class);
         registerPacket(AbstractProtocol.PROTOCOL_17, ProtocolInfo.SET_ACTOR_DATA_PACKET, SetEntityDataPacket17.class);
         registerPacket(AbstractProtocol.PROTOCOL_17, ProtocolInfo.START_GAME_PACKET, StartGamePacket17.class);
         registerPacket(AbstractProtocol.PROTOCOL_17, ProtocolInfo.TEXT_PACKET, TextPacket17.class);

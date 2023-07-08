@@ -211,7 +211,7 @@ public class SynapsePlayer113 extends SynapsePlayer112 {
 						this.setSprinting(false);
 						this.setSneaking(false);
 
-						this.setDataProperty(new ShortEntityData(Player.DATA_AIR, 400), false);
+						this.setDataProperty(new ShortEntityData(Player.DATA_AIR, 300), false);
 						this.deadTicks = 0;
 						this.noDamageTicks = 60;
 
@@ -232,6 +232,7 @@ public class SynapsePlayer113 extends SynapsePlayer112 {
 						this.getAdventureSettings().update();
 						this.inventory.sendContents(this);
 						this.inventory.sendArmorContents(this);
+						this.offhandInventory.sendContents(this);
 
 						this.spawnToAll();
 						this.scheduleUpdate();
@@ -375,7 +376,7 @@ public class SynapsePlayer113 extends SynapsePlayer112 {
 								lastRightClickData = useItemData;
 								lastRightClickTime = System.currentTimeMillis();
 
-								this.setDataFlag(DATA_FLAGS, DATA_FLAG_ACTION, false);
+								this.setDataFlag(DATA_FLAG_ACTION, false);
 
 								if (this.canInteract(blockVector.add(0.5, 0.5, 0.5), this.isCreative() ? 13 : 7)) {
 									if (this.isCreative()) {

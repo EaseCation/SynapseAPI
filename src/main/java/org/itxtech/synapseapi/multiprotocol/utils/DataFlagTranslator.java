@@ -1,6 +1,7 @@
 package org.itxtech.synapseapi.multiprotocol.utils;
 
 import cn.nukkit.entity.Entity;
+import it.unimi.dsi.fastutil.ints.Int2IntFunction;
 
 import java.util.Arrays;
 
@@ -486,18 +487,32 @@ public class DataFlagTranslator {
 		return v12ToV17Book[v12Id];
 	}
 
-	public static long translate17(long data) {
+	public static long[] translate17(long data, long data2) {
+		return translate2Flags(data, data2, DataFlagTranslator::translateTo17Id);
+	}
+
+	private static long[] translate2Flags(long data, long data2, Int2IntFunction idTranslator) {
 		long flags = 0;
+		long flags2 = 0;
 		for (int i = 0; i < 64; i++) {
-			if ((data & (1L << i)) > 0) {
-				int bit = DataFlagTranslator.translateTo17Id(i);
-				if (bit == -1) { // unknown version 17 translation.
-					continue;
+			if ((data & (1L << i)) != 0) {
+				int newId = idTranslator.applyAsInt(i);
+				if (newId >= 64) {
+					flags2 |= (1L << newId);
+				} else if (newId != -1) {
+					flags |= (1L << newId);
 				}
-				flags |= (1L << bit);
+			}
+			if ((data2 & (1L << i)) != 0) {
+				int newId = idTranslator.applyAsInt((1 << 6) | i);
+				if (newId >= 64) {
+					flags2 |= (1L << newId);
+				} else if (newId != -1) {
+					flags |= (1L << newId);
+				}
 			}
 		}
-		return flags;
+		return new long[]{flags, flags2};
 	}
 
 	public static int translateTo11950Id(int v12Id) {
@@ -507,17 +522,7 @@ public class DataFlagTranslator {
 		return v12ToV11950Book[v12Id];
 	}
 
-	public static long translate11950(long data) {
-		long flags = 0;
-		for (int i = 0; i < 64; i++) {
-			if ((data & (1L << i)) > 0) {
-				int bit = DataFlagTranslator.translateTo11950Id(i);
-				if (bit == -1) {
-					continue;
-				}
-				flags |= (1L << bit);
-			}
-		}
-		return flags;
+	public static long[] translate11950(long data, long data2) {
+		return translate2Flags(data, data2, DataFlagTranslator::translateTo11950Id);
 	}
 }

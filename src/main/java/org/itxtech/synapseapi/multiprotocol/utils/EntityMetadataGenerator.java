@@ -4,9 +4,6 @@ import cn.nukkit.block.Block;
 import cn.nukkit.entity.Entity;
 import cn.nukkit.entity.data.*;
 import cn.nukkit.item.Item;
-import cn.nukkit.math.BlockVector3;
-import cn.nukkit.math.Vector3f;
-import cn.nukkit.utils.MainLogger;
 import org.itxtech.synapseapi.multiprotocol.AbstractProtocol;
 
 public class EntityMetadataGenerator {
@@ -25,15 +22,15 @@ public class EntityMetadataGenerator {
 				continue;
 			}
         	if (entityData instanceof ByteEntityData) {
-        		Integer data = ((ByteEntityData)entityData).getData();
+        		int data = entityData.getDataAsByte();
         		ByteEntityData byteEntityData = new ByteEntityData(v14Id, data);
         		entityMetadata.put(byteEntityData);
         	} else if(entityData instanceof FloatEntityData) {
-        		Float data = ((FloatEntityData)entityData).getData();
+        		float data = entityData.getDataAsFloat();
         		FloatEntityData floatEntityData = new FloatEntityData(v14Id, data);
         		entityMetadata.put(floatEntityData);
         	} else if(entityData instanceof IntEntityData) {
-        		Integer data = ((IntEntityData)entityData).getData();
+        		int data = entityData.getDataAsInt();
         		if (v14Id == EntityDataItemIDTranslator.VARIANT
 						&& (v12Metadata.getLong(Entity.DATA_NUKKIT_FLAGS) & Entity.NUKKIT_FLAG_VARIANT_BLOCK) != 0) {
 					int id = data >> Block.BLOCK_META_BITS;
@@ -43,17 +40,18 @@ public class EntityMetadataGenerator {
         		IntEntityData intEntityData = new IntEntityData(v14Id, data);
         		entityMetadata.put(intEntityData);
         	} else if(entityData instanceof IntPositionEntityData) {
-        		BlockVector3 data = ((IntPositionEntityData)entityData).getData();
-        		IntPositionEntityData intPositionEntityData = new IntPositionEntityData(v14Id, data.getX(), data.getY(), data.getZ());
+        		IntPositionEntityData intPositionEntityData = new IntPositionEntityData(v14Id, (IntPositionEntityData) entityData);
         		entityMetadata.put(intPositionEntityData);
         	} else if(entityData instanceof LongEntityData) {
-        		Long data = ((LongEntityData)entityData).getData();
+        		long data = entityData.getDataAsLong();
 				//DATA_FLAGS转换
-				if (v14Id == EntityDataItemIDTranslator.FLAGS) data = DataFlagTranslator.translate14(data);
+				if (v14Id == EntityDataItemIDTranslator.FLAGS) {
+					data = DataFlagTranslator.translate14(data);
+				}
 				LongEntityData longEntityData = new LongEntityData(v14Id, data);
         		entityMetadata.put(longEntityData);
         	} else if(entityData instanceof ShortEntityData) {
-        		Integer data = ((ShortEntityData)entityData).getData();
+        		int data = entityData.getDataAsShort();
         		ShortEntityData shortEntityData = new ShortEntityData(v14Id, data);
         		entityMetadata.put(shortEntityData);
         	} else if(entityData instanceof SlotEntityData) {
@@ -65,8 +63,7 @@ public class EntityMetadataGenerator {
         		StringEntityData stringEntityData = new StringEntityData(v14Id, data);
         		entityMetadata.put(stringEntityData);
         	} else if(entityData instanceof Vector3fEntityData) {
-        		Vector3f data = ((Vector3fEntityData)entityData).getData();
-        		Vector3fEntityData vector3fEntityData = new Vector3fEntityData(v14Id, data);
+        		Vector3fEntityData vector3fEntityData = new Vector3fEntityData(v14Id, (Vector3fEntityData) entityData);
         		entityMetadata.put(vector3fEntityData);
         	}
         }
@@ -75,43 +72,28 @@ public class EntityMetadataGenerator {
 
 	public static EntityMetadata generateFrom(EntityMetadata v12Metadata, AbstractProtocol protocol, boolean netease) {
 		EntityMetadata entityMetadata = new EntityMetadata();
+		boolean flagsTranslated = false;
 		for(@SuppressWarnings("rawtypes") EntityData entityData : v12Metadata.getMap().values()) {
 			int v12Id = entityData.getId();
 			if (v12Id == Entity.DATA_NUKKIT_FLAGS) continue;
-			int newId;
-			if (protocol.ordinal() >= AbstractProtocol.PROTOCOL_117.ordinal()) {
-				newId = EntityDataItemIDTranslator.translateTo117Id(v12Id);
-			} else if (protocol.ordinal() >= AbstractProtocol.PROTOCOL_116_210.ordinal()) {
-				newId = EntityDataItemIDTranslator.translateTo116210Id(v12Id);
-			} else if (protocol.ordinal() >= AbstractProtocol.PROTOCOL_112.ordinal()) {
-				newId = EntityDataItemIDTranslator.translateTo112Id(v12Id);
-			} else if (protocol.ordinal() >= AbstractProtocol.PROTOCOL_111.ordinal()) {
-				newId = EntityDataItemIDTranslator.translateTo111Id(v12Id);
-			} else {
-				newId = EntityDataItemIDTranslator.translateTo14Id(v12Id);
-			}
-//			if (newId == null) {
-//				MainLogger.getLogger().warning("Unable to translate to version " + protocol.name() + " with id " + v12Id);
-				//entityMetadata.put(entityData);
-//				continue;
-//			}
+			int newId = translateId(v12Id, protocol);
 			if (newId == -1) {
 				// discard
 				continue;
 			}
 			if(entityData instanceof ByteEntityData) {
-				Integer data = ((ByteEntityData)entityData).getData();
+				int data = entityData.getDataAsByte();
 				ByteEntityData byteEntityData = new ByteEntityData(newId, data);
 				entityMetadata.put(byteEntityData);
 			} else if(entityData instanceof FloatEntityData) {
-				Float data = ((FloatEntityData)entityData).getData();
+				float data = entityData.getDataAsFloat();
 				if (entityData.getId() == Entity.DATA_RIDER_MIN_ROTATION && data == 1 && protocol.ordinal() < AbstractProtocol.PROTOCOL_116_210.ordinal()) { // boat
 					data = -90f;
 				}
 				FloatEntityData floatEntityData = new FloatEntityData(newId, data);
 				entityMetadata.put(floatEntityData);
 			} else if(entityData instanceof IntEntityData) {
-				Integer data = ((IntEntityData)entityData).getData();
+				int data = entityData.getDataAsInt();
 				if (newId == EntityDataItemIDTranslator.VARIANT
 						&& (v12Metadata.getLong(Entity.DATA_NUKKIT_FLAGS) & Entity.NUKKIT_FLAG_VARIANT_BLOCK) != 0) {
 					int id = data >> Block.BLOCK_META_BITS;
@@ -125,25 +107,58 @@ public class EntityMetadataGenerator {
 				IntEntityData intEntityData = new IntEntityData(newId, data);
 				entityMetadata.put(intEntityData);
 			} else if(entityData instanceof IntPositionEntityData) {
-				BlockVector3 data = ((IntPositionEntityData)entityData).getData();
-				IntPositionEntityData intPositionEntityData = new IntPositionEntityData(newId, data.getX(), data.getY(), data.getZ());
+				IntPositionEntityData intPositionEntityData = new IntPositionEntityData(newId, (IntPositionEntityData) entityData);
 				entityMetadata.put(intPositionEntityData);
 			} else if(entityData instanceof LongEntityData) {
-				Long data = ((LongEntityData)entityData).getData();
+				long data = entityData.getDataAsLong();
 				//DATA_FLAGS转换
-				if (newId == EntityDataItemIDTranslator.FLAGS) {
-					if (protocol.ordinal() >= AbstractProtocol.PROTOCOL_119_50.ordinal()) {
-						data = DataFlagTranslator.translate11950(data);
-					} else if (protocol.ordinal() >= AbstractProtocol.PROTOCOL_17.ordinal()) {
-						data = DataFlagTranslator.translate17(data);
-					} else {
-						data = DataFlagTranslator.translate14(data);
+				boolean isFlags = false;
+				int flags1Id = -1;
+				int flags2Id = -1;
+				long flags1 = -1;
+				long flags2 = -1;
+				if (v12Id == Entity.DATA_FLAGS) {
+					if (flagsTranslated) {
+						continue;
 					}
+					isFlags = true;
+					flags1Id = newId;
+					flags2Id = translateId(Entity.DATA_FLAGS_EXTENDED, protocol);
+					flags1 = data;
+					flags2 = v12Metadata.getLong(Entity.DATA_FLAGS_EXTENDED);
+				} else if (v12Id == Entity.DATA_FLAGS_EXTENDED) {
+					if (flagsTranslated) {
+						continue;
+					}
+					isFlags = true;
+					flags1Id = translateId(Entity.DATA_FLAGS, protocol);
+					flags2Id = newId;
+					flags1 = v12Metadata.getLong(Entity.DATA_FLAGS);
+					flags2 = data;
 				}
-				LongEntityData longEntityData = new LongEntityData(newId, data);
-				entityMetadata.put(longEntityData);
+				if (isFlags) {
+					long[] flags;
+					if (protocol.ordinal() >= AbstractProtocol.PROTOCOL_119_50.ordinal()) {
+						flags = DataFlagTranslator.translate11950(flags1, flags2);
+					} else if (protocol.ordinal() >= AbstractProtocol.PROTOCOL_17.ordinal()) {
+						flags = DataFlagTranslator.translate17(flags1, flags2);
+					} else {
+						data = DataFlagTranslator.translate14(flags1);
+						flagsTranslated = true;
+						entityMetadata.put(new LongEntityData(flags1Id, data));
+						continue;
+					}
+					flagsTranslated = true;
+					entityMetadata.put(new LongEntityData(flags1Id, flags[0]));
+					if (flags2Id != -1) {
+						entityMetadata.put(new LongEntityData(flags2Id, flags[1]));
+					}
+				} else {
+					LongEntityData longEntityData = new LongEntityData(newId, data);
+					entityMetadata.put(longEntityData);
+				}
 			} else if(entityData instanceof ShortEntityData) {
-				Integer data = ((ShortEntityData)entityData).getData();
+				int data = entityData.getDataAsShort();
 				ShortEntityData shortEntityData = new ShortEntityData(newId, data);
 				entityMetadata.put(shortEntityData);
 			} else if(entityData instanceof SlotEntityData) {
@@ -161,12 +176,23 @@ public class EntityMetadataGenerator {
 				StringEntityData stringEntityData = new StringEntityData(newId, data);
 				entityMetadata.put(stringEntityData);
 			} else if(entityData instanceof Vector3fEntityData) {
-				Vector3f data = ((Vector3fEntityData)entityData).getData();
-				Vector3fEntityData vector3fEntityData = new Vector3fEntityData(newId, data);
+				Vector3fEntityData vector3fEntityData = new Vector3fEntityData(newId, (Vector3fEntityData) entityData);
 				entityMetadata.put(vector3fEntityData);
 			}
 		}
 		return entityMetadata;
 	}
 
+	private static int translateId(int v12Id, AbstractProtocol protocol) {
+		if (protocol.ordinal() >= AbstractProtocol.PROTOCOL_117.ordinal()) {
+			return EntityDataItemIDTranslator.translateTo117Id(v12Id);
+		} else if (protocol.ordinal() >= AbstractProtocol.PROTOCOL_116_210.ordinal()) {
+			return EntityDataItemIDTranslator.translateTo116210Id(v12Id);
+		} else if (protocol.ordinal() >= AbstractProtocol.PROTOCOL_112.ordinal()) {
+			return EntityDataItemIDTranslator.translateTo112Id(v12Id);
+		} else if (protocol.ordinal() >= AbstractProtocol.PROTOCOL_111.ordinal()) {
+			return EntityDataItemIDTranslator.translateTo111Id(v12Id);
+		}
+		return EntityDataItemIDTranslator.translateTo14Id(v12Id);
+	}
 }

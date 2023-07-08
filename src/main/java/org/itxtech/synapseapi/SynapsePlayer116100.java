@@ -966,7 +966,7 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
                             this.setSprinting(false);
                             this.setSneaking(false);
 
-                            this.setDataProperty(new ShortEntityData(Player.DATA_AIR, 400), false);
+                            this.setDataProperty(new ShortEntityData(Player.DATA_AIR, 300), false);
                             this.deadTicks = 0;
                             this.noDamageTicks = 60;
 
@@ -987,6 +987,7 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
                             this.getAdventureSettings().update();
                             this.inventory.sendContents(this);
                             this.inventory.sendArmorContents(this);
+                            this.offhandInventory.sendContents(this);
 
                             this.spawnToAll();
                             this.scheduleUpdate();
@@ -1654,9 +1655,14 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
                     break;
                 }
                 if (emotePacket.emoteID.length() != 32 + 4) { // 00000000-0000-0000-0000-000000000000
+                    onPacketViolation(PacketViolationReason.IMPOSSIBLE_BEHAVIOR, "emote");
                     break;
                 }
                 if ((emotePacket.flags & EmotePacket120.FLAG_SERVER) != 0) {
+                    break;
+                }
+                if (!emoteRequest()) {
+                    violation += 8;
                     break;
                 }
 

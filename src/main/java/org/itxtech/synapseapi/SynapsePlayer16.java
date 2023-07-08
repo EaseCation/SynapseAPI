@@ -2,7 +2,6 @@ package org.itxtech.synapseapi;
 
 import cn.nukkit.Player;
 import cn.nukkit.PlayerFood;
-import cn.nukkit.Server;
 import cn.nukkit.entity.Entity;
 import cn.nukkit.event.player.PlayerJoinEvent;
 import cn.nukkit.event.player.PlayerRespawnEvent;
@@ -19,14 +18,14 @@ import cn.nukkit.utils.TextFormat;
 import com.google.gson.*;
 import org.itxtech.synapseapi.event.player.SynapsePlayerBroadcastLevelSoundEvent;
 import org.itxtech.synapseapi.event.player.SynapsePlayerConnectEvent;
-import org.itxtech.synapseapi.event.player.netease.NetEasePlayerModEventC2SEvent;
-import org.itxtech.synapseapi.event.player.netease.NetEasePlayerPyRpcReceiveEvent;
-import org.itxtech.synapseapi.event.player.netease.SynapsePlayerNetEaseStoreBuySuccEvent;
 import org.itxtech.synapseapi.multiprotocol.AbstractProtocol;
 import org.itxtech.synapseapi.multiprotocol.PacketRegister;
 import org.itxtech.synapseapi.multiprotocol.protocol14.protocol.LoginPacket14;
 import org.itxtech.synapseapi.multiprotocol.protocol16.protocol.*;
 import org.itxtech.synapseapi.multiprotocol.utils.LevelSoundEventEnum;
+import org.itxtech.synapseapi.network.protocol.mod.EncryptedPacket;
+import org.itxtech.synapseapi.network.protocol.mod.ServerSubPacketHandler;
+import org.itxtech.synapseapi.network.protocol.mod.SubPacket;
 import org.itxtech.synapseapi.network.protocol.spp.PlayerLoginPacket;
 import org.msgpack.value.ArrayValue;
 import org.msgpack.value.MapValue;
@@ -37,17 +36,19 @@ import java.net.InetSocketAddress;
 import java.nio.charset.StandardCharsets;
 import java.util.Optional;
 import java.util.concurrent.ThreadLocalRandom;
+import java.util.function.Function;
 
 import static cn.nukkit.SharedConstants.RESOURCE_PACK_CHUNK_SIZE;
 import static org.itxtech.synapseapi.SynapseSharedConstants.NETWORK_STACK_LATENCY_TELEMETRY;
 
 public class SynapsePlayer16 extends SynapsePlayer14 {
-	private static final Gson GSON = new Gson();
 
 	protected boolean spawnStatusSent;
 
 	protected long pingNs;
 	protected long latencyNs;
+
+	private ServerSubPacketHandler subPacketHandler;
 
 	public SynapsePlayer16(SourceInterface interfaz, SynapseEntry synapseEntry, Long clientID, InetSocketAddress socketAddress) {
 		super(interfaz, synapseEntry, clientID, socketAddress);
@@ -85,6 +86,10 @@ public class SynapsePlayer16 extends SynapsePlayer14 {
 				MainLogger.getLogger().logException(e);
 				this.close();
 			}
+		}
+
+		if (isNetEaseClient() && subPacketHandler == null) {
+			subPacketHandler = new BaseSubPacketHandler(this);
 		}
 	}
 
@@ -172,6 +177,17 @@ public class SynapsePlayer16 extends SynapsePlayer14 {
 			case ProtocolInfo.PACKET_PY_RPC:
 				if (!callPacketReceiveEvent(packet)) break;
 				NEPyRpcPacket16 pyRpcPacket = (NEPyRpcPacket16) packet;
+				if (subPacketHandler == null) {
+					break;
+				}
+				for (SubPacket subPacket : pyRpcPacket.subPackets) {
+					try {
+						subPacket.handle(subPacketHandler);
+					} catch (Exception e) {
+						getServer().getLogger().error("Unable to handle netease rpc sub packet: " + getName(), e);
+					}
+				}
+				/*
 				NetEasePlayerPyRpcReceiveEvent pyRpcReceiveEvent = new NetEasePlayerPyRpcReceiveEvent(this, pyRpcPacket.data);
 				Server.getInstance().getPluginManager().callEvent(pyRpcReceiveEvent);
 				//Try decode ModEventC2S
@@ -231,7 +247,7 @@ public class SynapsePlayer16 extends SynapsePlayer14 {
 					}
 				} catch (Exception e) {
 					//ignore
-				}
+				}*/
 				break;
 			case ProtocolInfo.SET_LOCAL_PLAYER_AS_INITIALIZED_PACKET:
 				if (!callPacketReceiveEvent(packet)) {
@@ -439,6 +455,14 @@ public class SynapsePlayer16 extends SynapsePlayer14 {
 	}
 
 	@Override
+	public void modNotifyToClientEncrypted(String modName, String systemName, String eventName, String data, Function<String, String> encMethod) {
+		NEPyRpcPacket16 pk = new NEPyRpcPacket16();
+		pk.subPackets = new SubPacket[]{new EncryptedPacket(modName, systemName, eventName, data, encMethod)};
+		pk.encrypt = true;
+		this.dataPacket(pk);
+	}
+
+	@Override
 	public void ping() {
 		long time = System.nanoTime();
 		pingNs = time;
@@ -455,5 +479,10 @@ public class SynapsePlayer16 extends SynapsePlayer14 {
 
 	protected void sendTrimRecipes() {
 		// 1.20+
+	}
+
+	@Override
+	public void setSubPacketHandler(ServerSubPacketHandler handler) {
+		subPacketHandler = handler;
 	}
 }

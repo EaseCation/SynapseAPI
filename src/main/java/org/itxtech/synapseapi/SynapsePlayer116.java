@@ -32,6 +32,7 @@ import cn.nukkit.item.enchantment.Enchantment;
 import cn.nukkit.level.Position;
 import cn.nukkit.level.particle.PunchBlockParticle;
 import cn.nukkit.math.*;
+import cn.nukkit.network.PacketViolationReason;
 import cn.nukkit.network.SourceInterface;
 import cn.nukkit.network.protocol.*;
 import cn.nukkit.network.protocol.types.ContainerIds;
@@ -68,6 +69,8 @@ public class SynapsePlayer116 extends SynapsePlayer113 {
 	protected BlockFace breakingBlockFace;
 
 	private int currentTickAttackPacketCount = 0;
+
+	private boolean emotedCurrentTick;
 
 	public SynapsePlayer116(SourceInterface interfaz, SynapseEntry synapseEntry, Long clientID, InetSocketAddress socketAddress) {
 		super(interfaz, synapseEntry, clientID, socketAddress);
@@ -336,7 +339,7 @@ public class SynapsePlayer116 extends SynapsePlayer113 {
 								lastRightClickData = useItemData;
 								lastRightClickTime = System.currentTimeMillis();
 
-								this.setDataFlag(DATA_FLAGS, DATA_FLAG_ACTION, false);
+								this.setDataFlag(DATA_FLAG_ACTION, false);
 
 								// 从useItemData中设置玩家坐标，用于最精准的碰撞箱判断
 								this.newPosition = useItemData.playerPos.subtract(0, this.getEyeHeight(), 0);
@@ -675,9 +678,14 @@ public class SynapsePlayer116 extends SynapsePlayer113 {
 					break;
 				}
 				if (emotePacket.emoteID.length() != 32 + 4) { // 00000000-0000-0000-0000-000000000000
+					onPacketViolation(PacketViolationReason.IMPOSSIBLE_BEHAVIOR, "emote");
 					break;
 				}
 				if ((emotePacket.flags & EmotePacket116.FLAG_SERVER) != 0) {
+					break;
+				}
+				if (!emoteRequest()) {
+					violation += 8;
 					break;
 				}
 
@@ -1382,6 +1390,7 @@ public class SynapsePlayer116 extends SynapsePlayer113 {
 				this.level.addParticle(new PunchBlockParticle(this.breakingBlock, this.breakingBlock, this.breakingBlockFace));
 			}
 
+			this.emotedCurrentTick = false;
 			this.currentTickAttackPacketCount = 0;
 
 			this.updateSynapsePlayerTiming.stopTiming();
@@ -1396,5 +1405,14 @@ public class SynapsePlayer116 extends SynapsePlayer113 {
 		packet.runtimeId = entityRuntimeId;
 		packet.flags = flags;
 		dataPacket(packet);
+	}
+
+	@Override
+	public boolean emoteRequest() {
+		if (emotedCurrentTick) {
+			return false;
+		}
+		emotedCurrentTick = true;
+		return true;
 	}
 }

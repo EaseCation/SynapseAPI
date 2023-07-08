@@ -13,7 +13,6 @@ import cn.nukkit.network.protocol.DataPacket;
 import cn.nukkit.network.protocol.MovePlayerPacket;
 import cn.nukkit.network.protocol.ProtocolInfo;
 import cn.nukkit.plugin.Plugin;
-import cn.nukkit.scheduler.Task;
 import cn.nukkit.utils.BinaryStream;
 import cn.nukkit.utils.JsonUtil;
 import cn.nukkit.utils.MainLogger;
@@ -100,7 +99,6 @@ public class SynapseEntry {
     private SynLibInterface synLibInterface;
     private ClientData clientData;
     private String serverDescription;
-    private Thread asyncTicker;
 
     public SynapseEntry(SynapseAPI synapse, String serverIp, int port, boolean isMainServer, String password, String serverDescription) {
         this.synapse = synapse;
@@ -123,9 +121,9 @@ public class SynapseEntry {
         this.lastRecvInfo = System.currentTimeMillis();
         this.getSynapse().getServer().getScheduler().scheduleRepeatingTask(SynapseAPI.getInstance(), new Ticker(this), 1);
 
-        this.asyncTicker = new Thread(new AsyncTicker(), "SynapseAPI Async Ticker");
-        this.asyncTicker.start();
-
+        Thread asyncTicker = new Thread(new AsyncTicker(), "SynapseAPI Async Ticker");
+        asyncTicker.start();
+/*
         this.getSynapse().getServer().getScheduler().scheduleRepeatingTask(SynapseAPI.getInstance(), new Task() {
             @Override
             public void onRun(int currentTick) {
@@ -136,6 +134,7 @@ public class SynapseEntry {
                 }
             }
         }, 10);
+*/
     }
 
     public static String getRandomString(int length) { //length表示生成字符串的长度
@@ -277,7 +276,11 @@ public class SynapseEntry {
         public void run() {
             long startTime = System.currentTimeMillis();
             while (Server.getInstance().isRunning()) {
-                threadTick();
+                try {
+                    threadTick();
+                } catch (Exception e) {
+                    Server.getInstance().getLogger().error("SynapseEntry async tick exception", e);
+                }
                 tickUseTime = System.currentTimeMillis() - startTime;
                 if (tickUseTime < 10) {
                     try{

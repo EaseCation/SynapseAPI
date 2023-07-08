@@ -330,8 +330,7 @@ public class SynapsePlayer14 extends SynapsePlayer {
 						this.setSprinting(false);
 						this.setSneaking(false);
 
-						this.extinguish();
-						this.setDataProperty(new ShortEntityData(Player.DATA_AIR, 400), false);
+						this.setDataProperty(new ShortEntityData(Player.DATA_AIR, 300), false);
 						this.deadTicks = 0;
 						this.noDamageTicks = 60;
 
@@ -352,6 +351,7 @@ public class SynapsePlayer14 extends SynapsePlayer {
 						this.getAdventureSettings().update();
 						this.inventory.sendContents(this);
 						this.inventory.sendArmorContents(this);
+						this.offhandInventory.sendContents(this);
 
 						this.spawnToAll();
 						this.scheduleUpdate();

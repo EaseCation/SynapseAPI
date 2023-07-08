@@ -57,6 +57,7 @@ import org.itxtech.synapseapi.multiprotocol.protocol17.protocol.TextPacket17;
 import org.itxtech.synapseapi.multiprotocol.utils.CraftingPacketManager;
 import org.itxtech.synapseapi.multiprotocol.utils.CreativeItemsPalette;
 import org.itxtech.synapseapi.multiprotocol.utils.LevelSoundEventEnum;
+import org.itxtech.synapseapi.network.protocol.mod.ServerSubPacketHandler;
 import org.itxtech.synapseapi.network.protocol.spp.FastPlayerListPacket;
 import org.itxtech.synapseapi.network.protocol.spp.PlayerLoginPacket;
 import org.itxtech.synapseapi.utils.BlobTrack;
@@ -68,6 +69,7 @@ import org.msgpack.value.Value;
 
 import java.net.InetSocketAddress;
 import java.util.*;
+import java.util.function.Function;
 
 import static org.itxtech.synapseapi.SynapseSharedConstants.*;
 
@@ -468,17 +470,17 @@ public class SynapsePlayer extends Player {
         this.setMovementSpeed(DEFAULT_SPEED, false);
         this.sendAttributes();
         //this.setNameTagVisible(true);
-        this.setDataFlag(DATA_FLAGS, DATA_FLAG_CAN_SHOW_NAMETAG, true, false);
+        this.setDataFlag(DATA_FLAG_CAN_SHOW_NAMETAG, true, false);
         //this.setNameTagAlwaysVisible(true);
-        this.setDataFlag(DATA_FLAGS, DATA_FLAG_ALWAYS_SHOW_NAMETAG, true, false);
+        this.setDataFlag(DATA_FLAG_ALWAYS_SHOW_NAMETAG, true, false);
         //this.setCanClimb(true);
-        this.setDataFlag(DATA_FLAGS, DATA_FLAG_CAN_CLIMB, true, false);
+        this.setDataFlag(DATA_FLAG_CAN_CLIMB, true, false);
         if (this.isSpectator()) {
-            this.setDataFlag(DATA_FLAGS, DATA_FLAG_SILENT, true, false);
-            this.setDataFlag(DATA_FLAGS, DATA_FLAG_HAS_COLLISION, false, false);
+            this.setDataFlag(DATA_FLAG_SILENT, true, false);
+            this.setDataFlag(DATA_FLAG_HAS_COLLISION, false, false);
         } else {
-            this.setDataFlag(DATA_FLAGS, DATA_FLAG_SILENT, false, false);
-            this.setDataFlag(DATA_FLAGS, DATA_FLAG_HAS_COLLISION, true, false);
+            this.setDataFlag(DATA_FLAG_SILENT, false, false);
+            this.setDataFlag(DATA_FLAG_HAS_COLLISION, true, false);
         }
 
         this.server.getLogger().info(this.getServer().getLanguage().translate("nukkit.player.logIn",
@@ -1296,6 +1298,9 @@ public class SynapsePlayer extends Player {
         //SynapsePlayer16
     }
 
+    public void modNotifyToClientEncrypted(String modName, String systemName, String eventName, String data, Function<String, String> encMethod) {
+    }
+
     protected void clearSubChunkQueues() {
         // 1.18+
     }
@@ -1382,5 +1387,14 @@ public class SynapsePlayer extends Player {
 
     protected void syncEntityProperties() {
         // 1.17+
+    }
+
+    public boolean emoteRequest() {
+        // 1.16+
+        return true;
+    }
+
+    public void setSubPacketHandler(ServerSubPacketHandler handler) {
+        // NE 1.6+
     }
 }
