@@ -37,7 +37,6 @@ import cn.nukkit.network.protocol.types.ContainerIds;
 import cn.nukkit.network.protocol.types.NetworkInventoryAction;
 import cn.nukkit.resourcepacks.ResourcePack;
 import cn.nukkit.utils.TextFormat;
-import co.aikar.timings.Timings;
 import org.itxtech.synapseapi.multiprotocol.AbstractProtocol;
 import org.itxtech.synapseapi.multiprotocol.protocol113.protocol.ResourcePackStackPacket113;
 import org.itxtech.synapseapi.multiprotocol.protocol113.protocol.RespawnPacket113;
@@ -703,9 +702,7 @@ public class SynapsePlayer113 extends SynapsePlayer112 {
 					break;
 				}
 
-				Timings.playerCommandTimer.startTiming();
 				this.server.dispatchCommand(playerCommandPreprocessEvent.getPlayer(), playerCommandPreprocessEvent.getMessage().substring(1));
-				Timings.playerCommandTimer.stopTiming();
 				break;
 			default:
 				super.handleDataPacket(packet);

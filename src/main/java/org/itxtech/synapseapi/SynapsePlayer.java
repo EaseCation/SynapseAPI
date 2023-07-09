@@ -28,14 +28,10 @@ import cn.nukkit.resourcepacks.ResourcePack;
 import cn.nukkit.scheduler.AsyncTask;
 import cn.nukkit.scheduler.Task;
 import cn.nukkit.utils.*;
-import co.aikar.timings.Timing;
-import co.aikar.timings.TimingsManager;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonPrimitive;
-import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
-import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.longs.Long2ObjectMap;
 import org.itxtech.synapseapi.dialogue.NPCDialoguePlayerHandler;
 import org.itxtech.synapseapi.event.player.SynapsePlayerBroadcastLevelSoundEvent;
@@ -82,8 +78,6 @@ public class SynapsePlayer extends Player {
 
     static final int INCOMING_PACKET_BATCH_PER_TICK = 2; // usually max 1 per tick, but transactions may arrive separately
     static final int INCOMING_PACKET_BATCH_MAX_BUDGET = 100 * INCOMING_PACKET_BATCH_PER_TICK; // enough to account for a 5-second lag spike
-
-    private static final Int2ObjectMap<Timing> handlePlayerDataPacketTimings = new Int2ObjectOpenHashMap<>();
 
     public boolean isSynapseLogin;
     protected SynapseEntry synapseEntry;
@@ -896,8 +890,6 @@ public class SynapsePlayer extends Player {
             super.handleDataPacket(packet);
             return;
         }
-        Timing dataPacketTiming = handlePlayerDataPacketTimings.computeIfAbsent(packet.pid(), key -> TimingsManager.getTiming("SynapseEntry - HandlePlayerDataPacket - " + packet.getClass().getSimpleName()));
-        dataPacketTiming.startTiming();
 
         switch (packet.pid()) {
             case ProtocolInfo.LOGIN_PACKET:
@@ -1099,8 +1091,6 @@ public class SynapsePlayer extends Player {
                 //Server.getInstance().getLogger().notice("Received Data Packet: " + packet.getClass().getSimpleName());
                 super.handleDataPacket(packet);
         }
-
-        dataPacketTiming.stopTiming();
     }
 
     protected void setLoginChainData(LoginChainData loginChainData) {
@@ -1112,14 +1102,11 @@ public class SynapsePlayer extends Player {
     }
 
     public long nextForceSpawn = System.currentTimeMillis();
-    protected final Timing updateSynapsePlayerTiming = TimingsManager.getTiming("updateSynapsePlayerTiming");
 
     @Override
     public boolean onUpdate(int currentTick) {
-        this.updateSynapsePlayerTiming.startTiming();
         if (!this.isSynapseLogin) {
             boolean update = super.onUpdate(currentTick);
-            this.updateSynapsePlayerTiming.stopTiming();
             return update;
         }
 
@@ -1127,7 +1114,6 @@ public class SynapsePlayer extends Player {
             this.processLogin();
         }*/
         boolean update = super.onUpdate(currentTick);
-        this.updateSynapsePlayerTiming.stopTiming();
         return update;
     }
 

@@ -40,7 +40,6 @@ import cn.nukkit.resourcepacks.ResourcePack;
 import cn.nukkit.scheduler.AsyncTask;
 import cn.nukkit.utils.LoginChainData;
 import cn.nukkit.utils.TextFormat;
-import co.aikar.timings.Timings;
 import it.unimi.dsi.fastutil.ints.IntIterator;
 import it.unimi.dsi.fastutil.ints.IntOpenHashSet;
 import it.unimi.dsi.fastutil.ints.IntSet;
@@ -1576,9 +1575,7 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
                     break;
                 }
 
-                Timings.playerCommandTimer.startTiming();
                 this.server.dispatchCommand(playerCommandPreprocessEvent.getPlayer(), playerCommandPreprocessEvent.getMessage().substring(1));
-                Timings.playerCommandTimer.stopTiming();
                 break;
             case ProtocolInfo.PLAYER_SKIN_PACKET:
                 if (getProtocol() >= AbstractProtocol.PROTOCOL_119_63.getProtocolStart()) {
@@ -2134,7 +2131,6 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
         if (!this.connected) {
             return;
         }
-        Timings.playerChunkSendTimer.startTiming();
         int count = 0;
 
         ObjectIterator<Long2ObjectMap.Entry<IntSet>> iter = this.subChunkRequestQueue.long2ObjectEntrySet().iterator();
@@ -2183,7 +2179,6 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
             }
             iter.remove();
         }
-        Timings.playerChunkSendTimer.stopTiming();
     }
 
     @Override
@@ -2565,7 +2560,6 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
     public boolean onUpdate(int currentTick) {
         int tickDiff = currentTick - this.lastUpdate;
         if (tickDiff > 0) {
-            this.updateSynapsePlayerTiming.startTiming();
             if (this.changeDimensionPosition != null && currentTick % 10 == 0) {
 //                this.sendPosition(this.changeDimensionPosition, this.yaw, this.pitch, MovePlayerPacket.MODE_TELEPORT);
             }
@@ -2635,7 +2629,6 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
                 this.removeAllChunks();
                 this.usedChunks = new Long2BooleanOpenHashMap();
             }
-            this.updateSynapsePlayerTiming.stopTiming();
         }
         return super.onUpdate(currentTick);
     }

@@ -396,7 +396,6 @@ public class SynapsePlayer112 extends SynapsePlayer19 {
 	public boolean onUpdate(int currentTick) {
 		int tickDiff = currentTick - this.lastUpdate;
 		if (tickDiff > 0) {
-			this.updateSynapsePlayerTiming.startTiming();
 			if (this.isBlobCacheAvailable() && !this.isBlobCacheDisabled()) {
 				if (this.teleportChunkLoaded) {
 					if (this.isImmobile() && !this.lastImmobile) {
@@ -406,7 +405,6 @@ public class SynapsePlayer112 extends SynapsePlayer19 {
 					//this.setImmobile();
 				}
 			}
-			this.updateSynapsePlayerTiming.stopTiming();
 		}
 		return super.onUpdate(currentTick);
 	}

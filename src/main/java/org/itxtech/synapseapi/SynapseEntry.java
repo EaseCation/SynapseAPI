@@ -80,9 +80,6 @@ public class SynapseEntry {
         PACKET_COUNT_LIMIT[ProtocolInfo.SETTINGS_COMMAND_PACKET] = 5;
     }
 
-    // private final Timing handleDataPacketTiming = TimingsManager.getTiming("SynapseEntry - HandleDataPacket");
-    // private final Timing handleRedirectPacketTiming = TimingsManager.getTiming("SynapseEntry - HandleRedirectPacket");
-
     private final SynapseAPI synapse;
     private boolean enable;
     private String serverIp;
@@ -441,7 +438,6 @@ public class SynapseEntry {
     private final Queue<RedirectPacketEntry> redirectPacketQueue = new LinkedBlockingQueue<>();
 
     public void handleDataPacket(SynapseDataPacket pk) {
-        // this.handleDataPacketTiming.startTiming();
         //this.getSynapse().getLogger().warning("Received packet " + pk.pid() + "(" + pk.getClass().getSimpleName() + ") from " + this.serverIp + ":" + this.port);
         HANDLER:
         switch (pk.pid()) {
@@ -505,7 +501,6 @@ public class SynapseEntry {
                     DataPacket pk0 = PacketRegister.getFullPacket(redirectPacket.mcpeBuffer, redirectPacket.protocol);
                     //Server.getInstance().getLogger().info("to server : " + pk0.getClass().getName());
                     if (pk0 != null) {
-                        // this.handleRedirectPacketTiming.startTiming();
                         //pk0.decode();
                         if (pk0.pid() == ProtocolInfo.BATCH_PACKET) {
                             if (player.incomingPacketBatchBudget <= 0) {
@@ -693,7 +688,6 @@ public class SynapseEntry {
                                 player.getViewers().values().forEach(viewer -> viewer.dataPacket(pk0));
                             }
                         }
-                        // this.handleRedirectPacketTiming.stopTiming();
                     }
                 }
                 break;
@@ -706,7 +700,6 @@ public class SynapseEntry {
                 this.synapse.getMessenger().dispatchIncomingMessage(this, messagePacket.channel, messagePacket.data);
                 break;
         }
-        //this.handleDataPacketTiming.stopTiming();
     }
 
     private static class RedirectPacketEntry {
