@@ -565,7 +565,7 @@ public class SynapsePlayer extends Player {
         Entry clientData = clients.clientList.get(hash);
 
         if (clientData != null) {
-            this.sendMessage(TextFormat.GRAY + " -> " + clientData.getDescription());
+            // this.sendMessage(TextFormat.GRAY + " -> " + clientData.getDescription());
             if (extra != null) {
                 for (Map.Entry<String, JsonElement> entry : extra.entrySet()) {
                     this.transferExtra.add(entry.getKey(), entry.getValue());
@@ -654,7 +654,7 @@ public class SynapsePlayer extends Player {
                     getSynapseEntry().sendDataPacket(pk);
                 }
             }, 1);
-            this.sendMessage(TextFormat.GRAY + "(synapse) -> " + clientData.getDescription());
+            // this.sendMessage(TextFormat.GRAY + "(synapse) -> " + clientData.getDescription());
 
             return true;
         }
