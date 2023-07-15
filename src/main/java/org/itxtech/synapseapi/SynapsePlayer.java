@@ -832,6 +832,7 @@ public class SynapsePlayer extends Player {
         Server.broadcastPacket(this.getViewers().values(), pk);
 
         this.inventory.sendArmorContents(this.getViewers().values());
+        this.offhandInventory.sendContents(this.getViewers().values());
 
         if (this.riding != null) {
             Server.getInstance().getScheduler().scheduleTask(SynapseAPI.getInstance(), () -> {
@@ -871,6 +872,7 @@ public class SynapsePlayer extends Player {
         player.dataPacket(pk);
 
         this.inventory.sendArmorContents(player);
+        this.offhandInventory.sendContents(player);
 
         if (this.riding != null) {
             Server.getInstance().getScheduler().scheduleTask(SynapseAPI.getInstance(), () -> {
@@ -1346,10 +1348,6 @@ public class SynapsePlayer extends Player {
      * @param tick client tick count
      */
     protected void onClientTickUpdated(long tick) {
-    }
-
-    public boolean isServerAuthoritativeMovementEnabled() {
-        return false;
     }
 
     public boolean isServerAuthoritativeBlockBreakingEnabled() {

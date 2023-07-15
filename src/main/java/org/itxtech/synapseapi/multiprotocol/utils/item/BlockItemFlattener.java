@@ -23,6 +23,7 @@ public final class BlockItemFlattener {
         DOWNGRADERS.put(AbstractProtocol.PROTOCOL_119_70, BlockItemFlattener::downgrader11970);
         DOWNGRADERS.put(AbstractProtocol.PROTOCOL_119_80, BlockItemFlattener::downgrader11980);
         DOWNGRADERS.put(AbstractProtocol.PROTOCOL_120, BlockItemFlattener::downgrader120);
+        DOWNGRADERS.put(AbstractProtocol.PROTOCOL_120_10, BlockItemFlattener::downgrader12010);
     }
 
     private static int downgrader11970(int id) {
@@ -65,7 +66,61 @@ public final class BlockItemFlattener {
         return downgrader120(id);
     }
 
+    private static int downgrader12020(int id) {
+        if (id <= ItemBlockID.ORANGE_STAINED_GLASS && id >= ItemBlockID.BLACK_STAINED_GLASS) {
+            return ItemBlockID.STAINED_GLASS;
+        }
+        if (id <= ItemBlockID.ORANGE_STAINED_GLASS_PANE && id >= ItemBlockID.BLACK_STAINED_GLASS_PANE) {
+            return ItemBlockID.STAINED_GLASS_PANE;
+        }
+        return downgrader12010(id);
+    }
+
     private BlockItemFlattener() {
         throw new IllegalStateException();
     }
 }
+
+//stone
+//dirt
+//planks
+//sapling
+//sand
+//leaves
+//sandstone
+//tallgrass
+//red_flower
+//double_stone_slab
+//stone_slab
+//tnt
+//monster_egg
+//stonebrick
+//cobblestone_wall
+//quartz_block
+//double_wooden_slab
+//wooden_slab
+//stained_hardened_clay
+//leaves2
+//prismarine
+//double_plant
+//red_sandstone
+//double_stone_slab2
+//stone_slab2
+//hard_stained_glass_pane
+//purpur_block
+//colored_torch_rg
+//colored_torch_bp
+//concrete_powder
+//chemistry_table
+//hard_stained_glass
+//coral_block
+//coral_fan
+//coral_fan_dead
+//coral_fan_hang
+//coral_fan_hang2
+//coral_fan_hang3
+//stone_slab3
+//stone_slab4
+//double_stone_slab3
+//double_stone_slab4
+//wood

@@ -1019,21 +1019,23 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
                                 break;
                             }
 
-                            switch (target.getId()) {
-                                case Block.NOTEBLOCK:
-                                    ((BlockNoteblock) target).emitSound();
-                                    break actionswitch;
-                                case Block.DRAGON_EGG:
-                                    if (!this.isCreative()) {
-                                        ((BlockDragonEgg) target).teleport();
+                            if (!isAdventure()) {
+                                switch (target.getId()) {
+                                    case Block.NOTEBLOCK:
+                                        ((BlockNoteblock) target).emitSound();
                                         break actionswitch;
-                                    }
-                                case Block.BLOCK_FRAME:
-                                case Block.BLOCK_GLOW_FRAME:
-                                    BlockEntity itemFrame = this.level.getBlockEntityIfLoaded(pos);
-                                    if (itemFrame instanceof BlockEntityItemFrame && ((BlockEntityItemFrame) itemFrame).dropItem(this)) {
-                                        break actionswitch;
-                                    }
+                                    case Block.DRAGON_EGG:
+                                        if (!this.isCreative()) {
+                                            ((BlockDragonEgg) target).teleport();
+                                            break actionswitch;
+                                        }
+                                    case Block.BLOCK_FRAME:
+                                    case Block.BLOCK_GLOW_FRAME:
+                                        BlockEntity itemFrame = this.level.getBlockEntityIfLoaded(pos);
+                                        if (itemFrame instanceof BlockEntityItemFrame && ((BlockEntityItemFrame) itemFrame).dropItem(this)) {
+                                            break actionswitch;
+                                        }
+                                }
                             }
 
                             Block block = target.getSide(face);
@@ -1286,6 +1288,11 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
                             }
 
                             break;
+                        case PlayerActionPacket.ACTION_MISSED_SWING:
+                            if (isServerAuthoritativeSoundEnabled()) {
+                                level.addLevelSoundEvent(this, LevelSoundEventPacket.SOUND_ATTACK_NODAMAGE, "minecraft:player");
+                            }
+                            break;
                     }
 
                     this.setUsingItem(false);
@@ -1331,21 +1338,23 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
                             break;
                         }
 
-                        switch (target.getId()) {
-                            case Block.NOTEBLOCK:
-                                ((BlockNoteblock) target).emitSound();
-                                break actionswitch;
-                            case Block.DRAGON_EGG:
-                                if (!this.isCreative()) {
-                                    ((BlockDragonEgg) target).teleport();
+                        if (!isAdventure()) {
+                            switch (target.getId()) {
+                                case Block.NOTEBLOCK:
+                                    ((BlockNoteblock) target).emitSound();
                                     break actionswitch;
-                                }
-                            case Block.BLOCK_FRAME:
-                            case Block.BLOCK_GLOW_FRAME:
-                                BlockEntity itemFrame = this.level.getBlockEntityIfLoaded(pos);
-                                if (itemFrame instanceof BlockEntityItemFrame && ((BlockEntityItemFrame) itemFrame).dropItem(this)) {
-                                    break actionswitch;
-                                }
+                                case Block.DRAGON_EGG:
+                                    if (!this.isCreative()) {
+                                        ((BlockDragonEgg) target).teleport();
+                                        break actionswitch;
+                                    }
+                                case Block.BLOCK_FRAME:
+                                case Block.BLOCK_GLOW_FRAME:
+                                    BlockEntity itemFrame = this.level.getBlockEntityIfLoaded(pos);
+                                    if (itemFrame instanceof BlockEntityItemFrame && ((BlockEntityItemFrame) itemFrame).dropItem(this)) {
+                                        break actionswitch;
+                                    }
+                            }
                         }
 
                         Block block = target.getSide(face);

@@ -13,6 +13,7 @@ import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 
+import javax.annotation.Nullable;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -131,20 +132,53 @@ public class BlockUpgradeSchema {
                 List<BlockRemap> data = new ObjectArrayList<>(array.size());
                 for (JsonElement element : entry.getValue().getAsJsonArray()) {
                     JsonObject obj = element.getAsJsonObject();
+
                     CompoundTag oldStates = new CompoundTag();
-                    for (Entry<String, JsonElement> state : obj.get("oldState").getAsJsonObject().entrySet()) {
-                        String stateName = state.getKey();
-                        oldStates.put(stateName, stateFromJson(state.getValue().getAsJsonObject()).setName(stateName));
+                    JsonElement oldState = obj.get("oldState");
+                    if (oldState.isJsonObject()) {
+                        for (Entry<String, JsonElement> state : oldState.getAsJsonObject().entrySet()) {
+                            String stateName = state.getKey();
+                            oldStates.put(stateName, stateFromJson(state.getValue().getAsJsonObject()).setName(stateName));
+                        }
                     }
 
-                    String newName = obj.get("newName").getAsString();
-                    CompoundTag newStates = new CompoundTag();
-                    for (Entry<String, JsonElement> state : obj.get("newState").getAsJsonObject().entrySet()) {
-                        String stateName = state.getKey();
-                        newStates.put(stateName, stateFromJson(state.getValue().getAsJsonObject()).setName(stateName));
+                    String newName;
+                    BlockFlatten flatten;
+                    JsonElement newFlattenedName = obj.get("newFlattenedName");
+                    if (newFlattenedName != null) {
+                        newName = null;
+                        JsonObject flattening = newFlattenedName.getAsJsonObject();
+                        flatten = new BlockFlatten(flattening.get("prefix").getAsString(), flattening.get("flattenedProperty").getAsString(), flattening.get("suffix").getAsString());
+                    } else {
+                        newName = obj.get("newName").getAsString();
+                        flatten = null;
                     }
 
-                    data.add(new BlockRemap(oldStates, newName, newStates));
+                    CompoundTag newStates;
+                    JsonElement newState = obj.get("newState");
+                    if (newState.isJsonObject()) {
+                        newStates = new CompoundTag();
+                        for (Entry<String, JsonElement> state : newState.getAsJsonObject().entrySet()) {
+                            String stateName = state.getKey();
+                            newStates.put(stateName, stateFromJson(state.getValue().getAsJsonObject()).setName(stateName));
+                        }
+                    } else {
+                        newStates = null;
+                    }
+
+                    String[] copiedStates;
+                    JsonElement copiedState = obj.get("copiedState");
+                    if (copiedState != null) {
+                        List<String> copy = new ObjectArrayList<>();
+                        for (JsonElement stateName : copiedState.getAsJsonArray()) {
+                            copy.add(stateName.getAsString());
+                        }
+                        copiedStates = copy.toArray(new String[0]);
+                    } else {
+                        copiedStates = null;
+                    }
+
+                    data.add(new BlockRemap(oldStates, newName, flatten, newStates, copiedStates));
                 }
                 this.remappedStates.put(entry.getKey(), data.toArray(new BlockRemap[0]));
             }
@@ -180,7 +214,34 @@ public class BlockUpgradeSchema {
     public static class BlockRemap {
         private final CompoundTag oldStates;
 
+        /**
+         * Either this or newFlattenedName must be present.
+         */
         private final String newName;
+        /**
+         * Either this or newName must be present.
+         */
+        private final BlockFlatten newFlattenedName;
+
+        @Nullable
         private final CompoundTag newStates;
+        @Nullable
+        private final String[] copiedStates;
+
+        public static BlockRemap rename(CompoundTag oldStates, String newName, CompoundTag newStates, String[] copiedStates) {
+            return new BlockRemap(oldStates, newName, null, newStates, copiedStates);
+        }
+
+        public static BlockRemap flatten(CompoundTag oldStates, BlockFlatten newFlattenedName, CompoundTag newStates, String[] copiedStates) {
+            return new BlockRemap(oldStates, null, newFlattenedName, newStates, copiedStates);
+        }
+    }
+
+    @AllArgsConstructor
+    @Data
+    public static class BlockFlatten {
+        private final String prefix;
+        private final String flattenedProperty;
+        private final String suffix;
     }
 }

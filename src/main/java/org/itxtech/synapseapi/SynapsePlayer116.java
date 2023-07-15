@@ -42,6 +42,7 @@ import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import lombok.extern.log4j.Log4j2;
 import org.itxtech.synapseapi.event.player.SynapsePlayerInputModeChangeEvent;
 import org.itxtech.synapseapi.multiprotocol.AbstractProtocol;
+import org.itxtech.synapseapi.multiprotocol.common.PlayerAuthInputFlags;
 import org.itxtech.synapseapi.multiprotocol.protocol113.protocol.IPlayerAuthInputPacket;
 import org.itxtech.synapseapi.multiprotocol.protocol113.protocol.IPlayerAuthInputPacket.PlayerBlockAction;
 import org.itxtech.synapseapi.multiprotocol.protocol116.protocol.*;
@@ -812,6 +813,10 @@ public class SynapsePlayer116 extends SynapsePlayer113 {
 					}
 				}*/
 
+				if ((inputFlags & (1L << PlayerAuthInputFlags.MISSED_SWING)) != 0 && isServerAuthoritativeSoundEnabled()) {
+					level.addLevelSoundEvent(this, LevelSoundEventPacket.SOUND_ATTACK_NODAMAGE, "minecraft:player");
+				}
+
 				Vector3 newPos = new Vector3(playerAuthInputPacket.getX(), playerAuthInputPacket.getY() - this.getEyeHeight(), playerAuthInputPacket.getZ());
 				double dis = newPos.distanceSquared(this);
 
@@ -880,21 +885,23 @@ public class SynapsePlayer116 extends SynapsePlayer113 {
 									this.inventory.sendHeldItem(this);
 									break;
 								}
-								switch (target.getId()) {
-									case Block.NOTEBLOCK:
-										((BlockNoteblock) target).emitSound();
-										break actionswitch;
-									case Block.DRAGON_EGG:
-										if (!this.isCreative()) {
-											((BlockDragonEgg) target).teleport();
+								if (!isAdventure()) {
+									switch (target.getId()) {
+										case Block.NOTEBLOCK:
+											((BlockNoteblock) target).emitSound();
 											break actionswitch;
-										}
-									case Block.BLOCK_FRAME:
-									case Block.BLOCK_GLOW_FRAME:
-										BlockEntity itemFrame = this.level.getBlockEntityIfLoaded(pos);
-										if (itemFrame instanceof BlockEntityItemFrame && ((BlockEntityItemFrame) itemFrame).dropItem(this)) {
-											break actionswitch;
-										}
+										case Block.DRAGON_EGG:
+											if (!this.isCreative()) {
+												((BlockDragonEgg) target).teleport();
+												break actionswitch;
+											}
+										case Block.BLOCK_FRAME:
+										case Block.BLOCK_GLOW_FRAME:
+											BlockEntity itemFrame = this.level.getBlockEntityIfLoaded(pos);
+											if (itemFrame instanceof BlockEntityItemFrame && ((BlockEntityItemFrame) itemFrame).dropItem(this)) {
+												break actionswitch;
+											}
+									}
 								}
 								block = target.getSide(face);
 								if (block.isFire()) {

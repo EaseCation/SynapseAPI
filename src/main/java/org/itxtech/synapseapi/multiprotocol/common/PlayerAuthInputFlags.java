@@ -124,4 +124,16 @@ public interface PlayerAuthInputFlags {
      * @since 1.19.70
      */
     int EMOTING = 38;
+    /**
+     * @since 1.20.10
+     */
+    int MISSED_SWING = 39;
+    /**
+     * @since 1.20.10
+     */
+    int START_CRAWLING = 40;
+    /**
+     * @since 1.20.10
+     */
+    int STOP_CRAWLING = 41;
 }

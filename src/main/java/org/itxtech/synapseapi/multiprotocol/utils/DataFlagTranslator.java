@@ -217,6 +217,8 @@ public class DataFlagTranslator {
 	public static final int FLAG_11970_HAPPY = 112;
 	public static final int FLAG_11970_SEARCHING = 113;
 
+	public static final int FLAG_12010_CRAWLING = 114;
+
 	static {
 		Arrays.fill(v12ToV14Book, -1);
 		v12ToV14Book[Entity.DATA_FLAG_ONFIRE] = ONFIRE;
@@ -457,6 +459,8 @@ public class DataFlagTranslator {
 		v12ToV11950Book[Entity.DATA_FLAG_RISING] = FLAG_11970_RISING;
 		v12ToV11950Book[Entity.DATA_FLAG_HAPPY] = FLAG_11970_HAPPY;
 		v12ToV11950Book[Entity.DATA_FLAG_SEARCHING] = FLAG_11970_SEARCHING;
+
+		v12ToV11950Book[Entity.DATA_FLAG_CRAWLING] = FLAG_12010_CRAWLING;
 	}
 
 	public static int translateTo14Id(int v12Id) {

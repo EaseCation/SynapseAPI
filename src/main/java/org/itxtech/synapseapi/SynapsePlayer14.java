@@ -245,7 +245,7 @@ public class SynapsePlayer14 extends SynapsePlayer {
 							break;
 						}
 
-						if (target.getId() == Block.NOTEBLOCK) {
+						if (!isAdventure() && target.getId() == Block.NOTEBLOCK) {
 							((BlockNoteblock) target).emitSound();
 							break;
 						}

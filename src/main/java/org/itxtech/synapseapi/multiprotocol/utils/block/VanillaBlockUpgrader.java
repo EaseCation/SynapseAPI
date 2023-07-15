@@ -5,6 +5,7 @@ import cn.nukkit.block.BlockUpgrader;
 import cn.nukkit.block.BlockUpgrader.BedrockBlockUpgrader;
 import cn.nukkit.nbt.stream.NBTInputStream;
 import cn.nukkit.nbt.tag.CompoundTag;
+import cn.nukkit.nbt.tag.StringTag;
 import cn.nukkit.nbt.tag.Tag;
 import cn.nukkit.utils.Binary;
 import cn.nukkit.utils.VarInt;
@@ -17,10 +18,12 @@ import lombok.AllArgsConstructor;
 import lombok.ToString;
 import lombok.extern.log4j.Log4j2;
 import org.itxtech.synapseapi.SynapseAPI;
+import org.itxtech.synapseapi.multiprotocol.utils.block.BlockUpgradeSchema.BlockFlatten;
 import org.itxtech.synapseapi.multiprotocol.utils.block.BlockUpgradeSchema.BlockRemap;
 import org.itxtech.synapseapi.multiprotocol.utils.block.BlockUpgradeSchema.ValueRemap;
 
 import java.io.ByteArrayInputStream;
+import java.io.EOFException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.nio.ByteOrder;
@@ -115,13 +118,58 @@ public final class VanillaBlockUpgrader {
 
             BlockRemap[] remappedStates = schema.getRemappedStates().get(name);
             if (remappedStates != null) {
+                REMAP:
                 for (BlockRemap remap : remappedStates) {
-                    if (!states.equalsTags(remap.getOldStates())) {
+                    CompoundTag oldStates = remap.getOldStates();
+
+                    if (oldStates.size() > states.size()) {
+                        // match criteria has more requirements than we have state properties
                         continue;
                     }
 
-                    tag.putString("name", remap.getNewName());
-                    tag.putCompound("states", remap.getNewStates().clone());
+                    for (Entry<String, Tag> entry : oldStates.getTagsUnsafe().entrySet()) {
+                        if (!entry.getValue().equals(states.get(entry.getKey()))) {
+                            continue REMAP;
+                        }
+                    }
+
+                    String newName = remap.getNewName();
+
+                    if (newName == null) {
+                        BlockFlatten flatten = remap.getNewFlattenedName();
+                        String stateName = flatten.getFlattenedProperty();
+
+                        Tag flattened = states.get(stateName);
+                        if (!(flattened instanceof StringTag)) {
+                            // flattened property is not a TAG_String, so this transformation is not applicable
+                            continue;
+                        }
+
+                        newName = flatten.getPrefix() + ((StringTag) flattened).data + flatten.getSuffix();
+
+                        states.remove(stateName);
+                    }
+
+                    tag.putString("name", newName);
+
+                    CompoundTag newStates = remap.getNewStates();
+                    if (newStates != null) {
+                        newStates = newStates.clone();
+                    } else {
+                        newStates = new CompoundTag();
+                    }
+
+                    String[] copiedStates = remap.getCopiedStates();
+                    if (copiedStates != null) {
+                        for (String stateName : copiedStates) {
+                            Tag state = states.get(stateName);
+                            if (state != null) {
+                                newStates.put(stateName, state.copy());
+                            }
+                        }
+                    }
+
+                    tag.putCompound("states", newStates);
                     continue SCHEMAS;
                 }
             }
@@ -237,13 +285,21 @@ public final class VanillaBlockUpgrader {
 
         Map<String, List<CompoundTag>> legacyToCurrent = new Object2ObjectOpenHashMap<>();
         try (InputStream stream = new ByteArrayInputStream(ByteStreams.toByteArray(SynapseAPI.class.getClassLoader().getResourceAsStream("legacy_block_to_states.bin")))) {
+            //legacy_block_to_states_112_to_118.bin
             byte[] buffer = new byte[2];
             while (stream.available() > 0) {
-                byte[] arr = new byte[(int) VarInt.readUnsignedVarInt(stream)];
-                stream.read(arr);
+                int len = (int) VarInt.readUnsignedVarInt(stream);
+                byte[] arr = new byte[len];
+                if (stream.read(arr) != len) {
+                    throw new EOFException("name");
+                }
                 String name = new String(arr, StandardCharsets.UTF_8);
-                stream.read(buffer);
+
+                if (stream.read(buffer) != 2) {
+                    throw new EOFException("val");
+                }
                 int meta = Binary.readLShort(buffer);
+
                 CompoundTag states = (CompoundTag) Tag.readNamedTag(new NBTInputStream(stream, ByteOrder.LITTLE_ENDIAN, true));
 
                 List<CompoundTag> list = legacyToCurrent.get(name);
@@ -259,6 +315,39 @@ public final class VanillaBlockUpgrader {
         } catch (Exception e) {
             throw new AssertionError("Unable to load legacy_block_to_states.bin", e);
         }
+/*
+        Map<String, List<CompoundTag>> legacyToCurrent = new Object2ObjectOpenHashMap<>();
+        try (InputStream stream = new ByteArrayInputStream(ByteStreams.toByteArray(SynapseAPI.class.getClassLoader().getResourceAsStream("legacy_block_to_states_112_to_11810.bin")))) {
+            while (stream.available() > 0) {
+                int len = (int) VarInt.readUnsignedVarInt(stream);
+                byte[] arr = new byte[len];
+                if (stream.read(arr) != len) {
+                    throw new EOFException("name");
+                }
+                String name = new String(arr, StandardCharsets.UTF_8);
+
+                int count = (int) VarInt.readUnsignedVarInt(stream);
+
+                List<CompoundTag> list = legacyToCurrent.get(name);
+                if (list == null) {
+                    list = new ObjectArrayList<>(count);
+                    legacyToCurrent.put(name, list);
+                }
+
+                for (int i = 0; i < count; i++) {
+                    int meta = (int) VarInt.readUnsignedVarInt(stream);
+                    CompoundTag states = (CompoundTag) NBTIO.readOnly(stream, ByteOrder.LITTLE_ENDIAN);
+
+                    while (list.size() <= meta) {
+                        list.add(meta, null);
+                    }
+                    list.set(meta, states);
+                }
+            }
+        } catch (Exception e) {
+            throw new AssertionError("Unable to load legacy_block_to_states_112_to_11810.bin", e);
+        }
+*/
         legacyToCurrent.forEach((name, metaMapping) -> LEGACY_TO_CURRENT.put(name, metaMapping.stream()
                 .map(block -> new BlockData(block.getString("name"), block.getCompound("states"), block.getInt("version")))
                 .toArray(BlockData[]::new)));
@@ -283,6 +372,7 @@ public final class VanillaBlockUpgrader {
         addSchema("0171_1.19.60_to_1.19.70.26_beta.json", V1_19_70);
         addSchema("0181_1.19.70_to_1.19.80.24_beta.json", V1_19_80);
         addSchema("0191_1.19.80.24_beta_to_1.20.0.23_beta.json", V1_20_0);
+        addSchema("0201_1.20.0.23_beta_to_1.20.10.24_beta.json", V1_20_10);
 
         BlockUpgrader.setUpgrader(new BedrockBlockUpgrader() {
             @Override

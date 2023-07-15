@@ -90,6 +90,7 @@ import org.itxtech.synapseapi.multiprotocol.protocol11980.protocol.StartGamePack
 import org.itxtech.synapseapi.multiprotocol.protocol120.protocol.EmotePacket120;
 import org.itxtech.synapseapi.multiprotocol.protocol120.protocol.StartGamePacket120;
 import org.itxtech.synapseapi.multiprotocol.protocol120.protocol.UnlockedRecipesPacket120;
+import org.itxtech.synapseapi.multiprotocol.protocol12010.protocol.AvailableCommandsPacket12010;
 import org.itxtech.synapseapi.multiprotocol.protocol15.protocol.AddEntityPacket15;
 import org.itxtech.synapseapi.multiprotocol.protocol15.protocol.ClientboundMapItemDataPacket15;
 import org.itxtech.synapseapi.multiprotocol.protocol15.protocol.MoveEntityAbsolutePacket15;
@@ -357,6 +358,8 @@ public class PacketRegister {
         registerPacket(AbstractProtocol.PROTOCOL_120, ProtocolInfo.START_GAME_PACKET, StartGamePacket120.class);
         registerPacket(AbstractProtocol.PROTOCOL_120, ProtocolInfo.EMOTE_PACKET, EmotePacket120.class);
         registerPacket(AbstractProtocol.PROTOCOL_120, ProtocolInfo.UNLOCKED_RECIPES_PACKET, UnlockedRecipesPacket120.class);
+
+        registerPacket(AbstractProtocol.PROTOCOL_120_10, ProtocolInfo.AVAILABLE_COMMANDS_PACKET, AvailableCommandsPacket12010.class);
 
         checkNeteaseSpecialExtend();
     }
