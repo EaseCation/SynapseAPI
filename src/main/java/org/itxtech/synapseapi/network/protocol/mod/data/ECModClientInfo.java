@@ -21,7 +21,7 @@ public class ECModClientInfo {
     public final JsonObject android;
     public final Integer game_type;
     @Nullable
-    public final String[] library_list;
+    public final List<String> library_list;
 
     private transient Hack hack;
     private transient boolean validModVersion;
@@ -32,13 +32,13 @@ public class ECModClientInfo {
     private transient boolean neteaseChannel;
     private transient int libraryBlacklistIndex = -1;
 
-    public ECModClientInfo(Integer time, String modVersion, JsonObject systemInfo, JsonObject mcp, JsonObject android, Integer gameType, String[] libraryList) {
+    public ECModClientInfo(Integer time, String modVersion, JsonObject systemInfo, JsonObject mcp, JsonObject android, Integer gameType, @Nullable List<String> libraryList) {
         this.time = time;
         this.mod_version = modVersion;
         this.system_info = systemInfo;
         this.mcp = mcp;
         this.android = android;
-        game_type = gameType;
+        this.game_type = gameType;
         this.library_list = libraryList;
     }
 
