@@ -22,11 +22,11 @@ import cn.nukkit.inventory.transaction.EnchantTransaction;
 import cn.nukkit.inventory.transaction.InventoryTransaction;
 import cn.nukkit.inventory.transaction.RepairItemTransaction;
 import cn.nukkit.inventory.transaction.action.InventoryAction;
+import cn.nukkit.inventory.transaction.action.TakeResultAction;
 import cn.nukkit.inventory.transaction.data.ReleaseItemData;
 import cn.nukkit.inventory.transaction.data.UseItemData;
 import cn.nukkit.inventory.transaction.data.UseItemOnEntityData;
 import cn.nukkit.item.Item;
-import cn.nukkit.item.ItemReleasable;
 import cn.nukkit.item.Items;
 import cn.nukkit.item.enchantment.Enchantment;
 import cn.nukkit.level.Position;
@@ -289,11 +289,24 @@ public class SynapsePlayer116 extends SynapsePlayer113 {
 							this.repairItemTransaction.addAction(action);
 						}
 						return;
-					} else {
+					}/* else {
 						this.server.getLogger().debug("Got unexpected normal inventory action with incomplete repair item transaction from " + this.getName() + ", refusing to execute repair item " + transactionPacket.toString());
 						this.removeAllWindows(false);
 						this.sendAllInventories();
 						this.repairItemTransaction = null;
+					}*/
+					// smithing
+					for (int i = 0; i < actions.size(); i++) {
+						InventoryAction action = actions.get(i);
+						if (!(action instanceof TakeResultAction)) {
+							continue;
+						}
+						List<InventoryAction> sequence = new ObjectArrayList<>(actions.size());
+						sequence.add(action);
+						actions.remove(i);
+						sequence.addAll(actions);
+						actions = sequence;
+						break;
 					}
 				}
 
@@ -473,7 +486,7 @@ public class SynapsePlayer116 extends SynapsePlayer113 {
 									}
 
 									if (!this.isUsingItem()) {
-										this.setUsingItem(item instanceof ItemReleasable);
+										this.setUsingItem(item.canRelease());
 										break packetswitch;
 									}
 
@@ -487,7 +500,7 @@ public class SynapsePlayer116 extends SynapsePlayer113 {
 										this.inventory.sendContents(this);
 									}
 
-									if (item instanceof ItemReleasable) {
+									if (item.canRelease()) {
 										this.setUsingItem(true);
 									}
 								}
@@ -595,7 +608,7 @@ public class SynapsePlayer116 extends SynapsePlayer113 {
 								}
 
 								for (Enchantment enchantment : item.getEnchantments()) {
-									enchantment.doPostAttack(this, target);
+									enchantment.doPostAttack(this, target, null);
 								}
 
 								if (item.isTool() && this.isSurvival()) {
@@ -1258,7 +1271,7 @@ public class SynapsePlayer116 extends SynapsePlayer113 {
 									}
 
 									if (!this.isUsingItem()) {
-										this.setUsingItem(item instanceof ItemReleasable);
+										this.setUsingItem(item.canRelease());
 										break;
 									}
 

@@ -56,6 +56,14 @@ public final class CraftingPacketManager {
             pk.addMaterialReducerRecipe(recipe);
         }
 
+        for (SmithingTransformRecipe recipe : Server.getInstance().getCraftingManager().getSmithingRecipes().values()) {
+            pk.addSmithingTransformRecipe(recipe);
+        }
+
+        for (SmithingTrimRecipe recipe : Server.getInstance().getCraftingManager().getSmithingTrimRecipes().values()) {
+            pk.addSmithingTrimRecipe(recipe);
+        }
+
         pk.tryEncode();
         originPacket = pk.compress(Deflater.BEST_COMPRESSION);
 

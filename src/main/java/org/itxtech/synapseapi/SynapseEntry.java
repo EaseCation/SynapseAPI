@@ -68,7 +68,7 @@ public class SynapseEntry {
         PACKET_COUNT_LIMIT[ProtocolInfo.INVENTORY_TRANSACTION_PACKET] = 64 * 9 + 64 * 9 + 64; // extreme case (shift-click crafting): 64x9 (inputs) + 64x9 (output on crafting grid) + 64 (outputs to main slot)
         PACKET_COUNT_LIMIT[ProtocolInfo.CRAFTING_EVENT_PACKET] = 64;
         PACKET_COUNT_LIMIT[ProtocolInfo.PACKET_PY_RPC] = 50;
-        PACKET_COUNT_LIMIT[ProtocolInfo.SUB_CHUNK_REQUEST_PACKET] = 100;
+        PACKET_COUNT_LIMIT[ProtocolInfo.SUB_CHUNK_REQUEST_PACKET] = 144;
         PACKET_COUNT_LIMIT[ProtocolInfo.PLAYER_ACTION_PACKET] = 15;
         PACKET_COUNT_LIMIT[ProtocolInfo.ANIMATE_PACKET] = 15;
         PACKET_COUNT_LIMIT[ProtocolInfo.INTERACT_PACKET] = 32;
@@ -372,7 +372,7 @@ public class SynapseEntry {
                 UUID uuid1 = playerLogoutPacket.uuid;
                 Player player = players.get(uuid1);
                 if (player != null) {
-                    player.close(playerLogoutPacket.reason, playerLogoutPacket.reason, true);
+                    player.close("", playerLogoutPacket.reason, true);
                     removePlayer(uuid1);
                 }
             }

@@ -78,8 +78,9 @@ public class CraftingDataPacket116220 extends Packet116220 {
         int recipeNetworkId = 1;
 
         for (Recipe recipe : entries) {
-            this.putVarInt(recipe.getType().ordinal());
-            switch (recipe.getType()) {
+            RecipeType type = recipe.getType();
+            this.putVarInt(type == RecipeType.SMITHING_TRANSFORM ? RecipeType.SHAPELESS.ordinal() : type.ordinal());
+            switch (type) {
                 case SHAPELESS:
                 case SHULKER_BOX:
                 case SHAPELESS_CHEMISTRY:
@@ -136,6 +137,19 @@ public class CraftingDataPacket116220 extends Packet116220 {
                     this.putUUID(((MultiRecipe) recipe).getId());
                     this.putUnsignedVarInt(recipeNetworkId++);
                     break;
+                case SMITHING_TRANSFORM: // actually shapeless recipe
+                    SmithingTransformRecipe smithing = (SmithingTransformRecipe) recipe;
+                    this.putString(smithing.getRecipeId());
+                    this.putUnsignedVarInt(2); // ingredients
+                    this.putCraftingRecipeIngredient(smithing.getInput());
+                    this.putCraftingRecipeIngredient(smithing.getAddition());
+                    this.putUnsignedVarInt(1); // results
+                    this.putItemInstance(smithing.getResult());
+                    this.putUUID(smithing.getInternalId());
+                    this.putString(smithing.getTag().toString());
+                    this.putVarInt(2); // priority
+                    this.putUnsignedVarInt(recipeNetworkId++);
+                    break;
             }
         }
 
@@ -170,7 +184,10 @@ public class CraftingDataPacket116220 extends Packet116220 {
 
         CraftingDataPacket packet = (CraftingDataPacket) pk;
 
-        this.entries = packet.entries.stream().map(e -> (Recipe) e).collect(Collectors.toList());
+        this.entries = packet.entries.stream()
+                .filter(recipe -> !(recipe instanceof SmithingTrimRecipe) && !(recipe instanceof SmithingTransformRecipe))
+                .map(e -> (Recipe) e)
+                .collect(Collectors.toList());
         this.brewingEntries = packet.brewingEntries;
         this.containerEntries = packet.containerEntries;
         this.cleanRecipes = packet.cleanRecipes;

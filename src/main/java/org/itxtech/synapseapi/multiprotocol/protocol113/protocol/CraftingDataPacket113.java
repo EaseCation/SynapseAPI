@@ -160,7 +160,10 @@ public class CraftingDataPacket113 extends Packet113 {
 
         cn.nukkit.network.protocol.CraftingDataPacket packet = (cn.nukkit.network.protocol.CraftingDataPacket) pk;
 
-        this.entries = packet.entries.stream().map(e -> (Recipe) e).collect(Collectors.toList());
+        this.entries = packet.entries.stream()
+                .filter(recipe -> !(recipe instanceof SmithingTransformRecipe) && !(recipe instanceof SmithingTrimRecipe))
+                .map(e -> (Recipe) e)
+                .collect(Collectors.toList());
         this.brewingEntries = packet.brewingEntries;
         this.containerEntries = packet.containerEntries;
         this.cleanRecipes = packet.cleanRecipes;

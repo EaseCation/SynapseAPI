@@ -10,6 +10,7 @@ import cn.nukkit.inventory.RecipeType;
 import cn.nukkit.inventory.ShapedRecipe;
 import cn.nukkit.inventory.ShapelessRecipe;
 import cn.nukkit.inventory.SmithingTransformRecipe;
+import cn.nukkit.inventory.SmithingTrimRecipe;
 import cn.nukkit.item.Item;
 import cn.nukkit.network.protocol.CraftingDataPacket;
 import cn.nukkit.network.protocol.DataPacket;
@@ -162,7 +163,10 @@ public class CraftingDataPacket11960 extends Packet11960 {
 
         CraftingDataPacket packet = (CraftingDataPacket) pk;
 
-        this.entries = packet.entries.stream().map(e -> (Recipe) e).collect(Collectors.toList());
+        this.entries = packet.entries.stream()
+                .filter(recipe -> !(recipe instanceof SmithingTrimRecipe))
+                .map(e -> (Recipe) e)
+                .collect(Collectors.toList());
         this.brewingEntries = packet.brewingEntries;
         this.containerEntries = packet.containerEntries;
         this.materialReducerEntries = packet.materialReducerEntries;

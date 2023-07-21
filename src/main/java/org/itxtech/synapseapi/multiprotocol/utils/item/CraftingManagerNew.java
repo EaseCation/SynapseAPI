@@ -3,6 +3,7 @@ package org.itxtech.synapseapi.multiprotocol.utils.item;
 import cn.nukkit.data.ItemIdMap;
 import cn.nukkit.inventory.*;
 import cn.nukkit.item.Item;
+import cn.nukkit.item.Items;
 import com.google.common.io.ByteStreams;
 import com.google.gson.Gson;
 import com.google.gson.JsonArray;
@@ -82,6 +83,7 @@ public class CraftingManagerNew extends CraftingManagerLegacy {
         }
     }
 
+    @Override
     protected void loadSmithing(JsonElement element) {
         JsonObject entry = element.getAsJsonObject();
 
@@ -94,22 +96,13 @@ public class CraftingManagerNew extends CraftingManagerLegacy {
             registerRecipe(new SmithingTransformRecipe(
                     String.valueOf(++RECIPE_COUNT),
                     deserializeItem(entry.getAsJsonObject("output")),
-                    deserializeItem(entry.getAsJsonObject("template")), //TODO: 1.19.80+
+                    Items.air(), //deserializeItem(entry.getAsJsonObject("template")), //TODO: 1.20.0+
                     deserializeItem(entry.getAsJsonObject("input")),
                     deserializeItem(entry.getAsJsonObject("addition")),
                     tag));
         } catch (UnsupportedOperationException e) {
             log.trace("Skip an unsupported smithing recipe: {}", entry);
         }
-    }
-
-    protected RecipeTag getSmithingRecipeTag(String block) {
-        RecipeTag tag = RecipeTag.byName(block);
-        if (tag != RecipeTag.SMITHING_TABLE) {
-            log.trace("Unexpected smithing recipe block: {}", block);
-            return null;
-        }
-        return tag;
     }
 
     @Override

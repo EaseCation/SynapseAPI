@@ -55,8 +55,8 @@ public class SetScorePacket17 extends Packet17 {
 
     public List<ScorePacketInfo> getScorePacketInfos() {
         List<ScorePacketInfo> info = new ArrayList<>();
-        long length = this.getUnsignedVarInt();
-        for(int i = 0; i <= (int) length; i++) {
+        int length = (int) this.getUnsignedVarInt();
+        for(int i = 0; i < length; i++) {
             ScorePacketInfo entry = new ScorePacketInfo();
             entry.scoreboardId = this.getVarLong();
             entry.objectiveName = this.getString();

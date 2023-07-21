@@ -3,6 +3,8 @@ package org.itxtech.synapseapi.multiprotocol.protocol111.protocol;
 import cn.nukkit.inventory.FurnaceRecipe;
 import cn.nukkit.inventory.ShapedRecipe;
 import cn.nukkit.inventory.ShapelessRecipe;
+import cn.nukkit.inventory.SmithingTransformRecipe;
+import cn.nukkit.inventory.SmithingTrimRecipe;
 import cn.nukkit.item.Item;
 import cn.nukkit.item.enchantment.Enchantment;
 import cn.nukkit.item.enchantment.EnchantmentEntry;
@@ -16,6 +18,7 @@ import org.itxtech.synapseapi.utils.ClassUtils;
 
 import java.util.Collections;
 import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * @author Nukkit Project Team
@@ -182,7 +185,9 @@ public class CraftingDataPacket111 extends Packet111 {
 
         cn.nukkit.network.protocol.CraftingDataPacket packet = (cn.nukkit.network.protocol.CraftingDataPacket) pk;
 
-        this.entries = packet.entries;
+        this.entries = packet.entries.stream()
+                .filter(recipe -> !(recipe instanceof SmithingTransformRecipe) && !(recipe instanceof SmithingTrimRecipe))
+                .collect(Collectors.toList());
         this.cleanRecipes = packet.cleanRecipes;
 
         return this;

@@ -21,7 +21,6 @@ import cn.nukkit.inventory.transaction.data.ReleaseItemData;
 import cn.nukkit.inventory.transaction.data.UseItemData;
 import cn.nukkit.inventory.transaction.data.UseItemOnEntityData;
 import cn.nukkit.item.Item;
-import cn.nukkit.item.ItemReleasable;
 import cn.nukkit.item.Items;
 import cn.nukkit.item.enchantment.Enchantment;
 import cn.nukkit.level.GameRule;
@@ -489,7 +488,7 @@ public class SynapsePlayer113 extends SynapsePlayer112 {
 									}
 
 									if (!this.isUsingItem()) {
-										this.setUsingItem(item instanceof ItemReleasable);
+										this.setUsingItem(item.canRelease());
 										break packetswitch;
 									}
 
@@ -503,7 +502,7 @@ public class SynapsePlayer113 extends SynapsePlayer112 {
 										this.inventory.sendContents(this);
 									}
 
-									if (item instanceof ItemReleasable) {
+									if (item.canRelease()) {
 										this.setUsingItem(true);
 									}
 								}
@@ -599,7 +598,7 @@ public class SynapsePlayer113 extends SynapsePlayer112 {
 								}
 
 								for (Enchantment enchantment : item.getEnchantments()) {
-									enchantment.doPostAttack(this, target);
+									enchantment.doPostAttack(this, target, null);
 								}
 
 								if (item.isTool() && this.isSurvivalLike()) {

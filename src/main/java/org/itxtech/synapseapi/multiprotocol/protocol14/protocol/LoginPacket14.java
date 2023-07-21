@@ -38,6 +38,8 @@ public class LoginPacket14 extends Packet14 {
     public long clientId;
     public String deviceId;
     public String xuid;
+    public String titleId;
+    public String sandboxId;// = "RETAIL"
 
     public Skin skin;
 
@@ -97,6 +99,14 @@ public class LoginPacket14 extends Packet14 {
                     JsonNode xuidNode = extra.get("XUID");
                     if (xuidNode != null) {
                         this.xuid = xuidNode.asText();
+                    }
+                    JsonNode titleIdNode = extra.get("titleId");
+                    if (titleIdNode != null) {
+                        this.titleId = titleIdNode.asText();
+                    }
+                    JsonNode sandboxId = extra.get("sandboxId");
+                    if (sandboxId != null) {
+                        this.sandboxId = sandboxId.asText();
                     }
                 }
             }

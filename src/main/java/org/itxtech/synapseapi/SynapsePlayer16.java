@@ -79,6 +79,8 @@ public class SynapsePlayer16 extends SynapsePlayer14 {
 					((LoginPacket14) pk).username = packet.extra.get("username").getAsString();
 					((LoginPacket14) pk).clientUUID = packet.uuid;
 					((LoginPacket14) pk).xuid = packet.extra.get("xuid").getAsString();
+					if (packet.extra.has("titleId")) ((LoginPacket14) pk).titleId = packet.extra.get("titleId").getAsString();
+					if (packet.extra.has("sandboxId")) ((LoginPacket14) pk).sandboxId = packet.extra.get("sandboxId").getAsString();
 					this.isNetEaseClient = Optional.ofNullable(packet.extra.get("netease")).orElseGet(() -> new JsonPrimitive(false)).getAsBoolean();
 				}
 				this.handleDataPacket(pk);

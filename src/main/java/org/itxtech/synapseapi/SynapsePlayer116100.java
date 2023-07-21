@@ -22,6 +22,7 @@ import cn.nukkit.form.window.FormWindowCustom;
 import cn.nukkit.inventory.Inventory;
 import cn.nukkit.item.Item;
 import cn.nukkit.item.ItemMap;
+import cn.nukkit.lang.TextContainer;
 import cn.nukkit.lang.TranslationContainer;
 import cn.nukkit.level.GlobalBlockPaletteInterface.StaticVersion;
 import cn.nukkit.level.Level;
@@ -79,6 +80,7 @@ import org.itxtech.synapseapi.multiprotocol.protocol119.protocol.PlayerActionPac
 import org.itxtech.synapseapi.multiprotocol.protocol119.protocol.RequestAbilityPacket119;
 import org.itxtech.synapseapi.multiprotocol.protocol119.protocol.StartGamePacket119;
 import org.itxtech.synapseapi.multiprotocol.protocol119.protocol.ToastRequestPacket119;
+import org.itxtech.synapseapi.multiprotocol.protocol11910.protocol.DeathInfoPacket11910;
 import org.itxtech.synapseapi.multiprotocol.protocol11910.protocol.StartGamePacket11910;
 import org.itxtech.synapseapi.multiprotocol.protocol11910.protocol.UpdateAbilitiesPacket11910;
 import org.itxtech.synapseapi.multiprotocol.protocol11910.protocol.UpdateAbilitiesPacket11910.AbilityLayer;
@@ -2975,5 +2977,31 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
     @Override
     public boolean isServerAuthoritativeSoundEnabled() {
         return getProtocol() >= AbstractProtocol.PROTOCOL_120.getProtocolStart();
+    }
+
+    @Override
+    protected void sendDeathInfo(TextContainer message) {
+        if (getProtocol() < AbstractProtocol.PROTOCOL_119_10.getProtocolStart()) {
+            return;
+        }
+
+        DeathInfoPacket11910 packet = new DeathInfoPacket11910();
+        String text = message.getText();
+        if (message instanceof TranslationContainer translation) {
+            Object[] parameters = translation.getParameters();
+            if (server.isLanguageForced()) {
+                packet.messageTranslationKey = server.getLanguage().translate(text, parameters);
+            } else {
+                packet.messageTranslationKey = server.getLanguage().translateOnly("nukkit.", text, parameters);
+                String[] params = new String[parameters.length];
+                for (int i = 0; i < parameters.length; i++) {
+                    params[i] = this.server.getLanguage().translateOnly("nukkit.", String.valueOf(parameters[i]), parameters);
+                }
+                packet.messageParameters = params;
+            }
+        } else {
+            packet.messageTranslationKey = text;
+        }
+        dataPacket(packet);
     }
 }

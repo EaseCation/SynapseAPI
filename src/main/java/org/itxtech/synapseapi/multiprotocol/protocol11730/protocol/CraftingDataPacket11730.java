@@ -7,6 +7,7 @@ import cn.nukkit.network.protocol.DataPacket;
 import cn.nukkit.network.protocol.ProtocolInfo;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import lombok.ToString;
+import org.itxtech.synapseapi.multiprotocol.AbstractProtocol;
 import org.itxtech.synapseapi.utils.ClassUtils;
 
 import java.util.Collections;
@@ -83,8 +84,9 @@ public class CraftingDataPacket11730 extends Packet11730 {
         int recipeNetworkId = 1;
 
         for (Recipe recipe : entries) {
-            this.putVarInt(recipe.getType().ordinal());
-            switch (recipe.getType()) {
+            RecipeType type = recipe.getType();
+            this.putVarInt(type == RecipeType.SMITHING_TRANSFORM ? RecipeType.SHAPELESS.ordinal() : type.ordinal());
+            switch (type) {
                 case SHAPELESS:
                 case SHULKER_BOX:
                 case SHAPELESS_CHEMISTRY:
@@ -141,6 +143,19 @@ public class CraftingDataPacket11730 extends Packet11730 {
                     this.putUUID(((MultiRecipe) recipe).getId());
                     this.putUnsignedVarInt(recipeNetworkId++);
                     break;
+                case SMITHING_TRANSFORM: // actually shapeless recipe
+                    SmithingTransformRecipe smithing = (SmithingTransformRecipe) recipe;
+                    this.putString(smithing.getRecipeId());
+                    this.putUnsignedVarInt(2); // ingredients
+                    this.putCraftingRecipeIngredient(smithing.getInput());
+                    this.putCraftingRecipeIngredient(smithing.getAddition());
+                    this.putUnsignedVarInt(1); // results
+                    this.putItemInstance(smithing.getResult());
+                    this.putUUID(smithing.getInternalId());
+                    this.putString(smithing.getTag().toString());
+                    this.putVarInt(2); // priority
+                    this.putUnsignedVarInt(recipeNetworkId++);
+                    break;
             }
         }
 
@@ -182,12 +197,17 @@ public class CraftingDataPacket11730 extends Packet11730 {
     }
 
     @Override
-    public DataPacket fromDefault(DataPacket pk) {
+    public DataPacket fromDefault(DataPacket pk, AbstractProtocol protocol, boolean netease) {
         ClassUtils.requireInstance(pk, CraftingDataPacket.class);
 
         CraftingDataPacket packet = (CraftingDataPacket) pk;
 
-        this.entries = packet.entries.stream().map(e -> (Recipe) e).collect(Collectors.toList());
+        boolean dataDrivenSmithingTransform = protocol.getProtocolStart() >= AbstractProtocol.PROTOCOL_118_10.getProtocolStart();
+
+        this.entries = packet.entries.stream()
+                .filter(recipe -> !(recipe instanceof SmithingTrimRecipe) && (!(recipe instanceof SmithingTransformRecipe) || dataDrivenSmithingTransform))
+                .map(e -> (Recipe) e)
+                .collect(Collectors.toList());
         this.brewingEntries = packet.brewingEntries;
         this.containerEntries = packet.containerEntries;
         this.materialReducerEntries = packet.materialReducerEntries;

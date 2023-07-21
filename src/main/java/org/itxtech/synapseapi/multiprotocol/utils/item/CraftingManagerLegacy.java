@@ -2,6 +2,7 @@ package org.itxtech.synapseapi.multiprotocol.utils.item;
 
 import cn.nukkit.inventory.*;
 import cn.nukkit.item.Item;
+import cn.nukkit.item.Items;
 import com.google.common.io.ByteStreams;
 import com.google.gson.Gson;
 import com.google.gson.JsonArray;
@@ -59,6 +60,8 @@ public class CraftingManagerLegacy extends CraftingManager {
         root.getAsJsonArray("potion_type").forEach(this::loadPotionType);
 
         root.getAsJsonArray("potion_container_change").forEach(this::loadPotionContainer);
+
+        root.getAsJsonArray("smithing").forEach(this::loadSmithing);
 
         log.info("Loaded " + this.recipes.size() + " recipes.");
     }
@@ -184,6 +187,27 @@ public class CraftingManagerLegacy extends CraftingManager {
         }
     }
 
+    protected void loadSmithing(JsonElement element) {
+        JsonObject entry = element.getAsJsonObject();
+
+        RecipeTag tag = getSmithingRecipeTag(entry.get("block").getAsString());
+        if (tag == null) {
+            return;
+        }
+
+        try {
+            registerRecipe(new SmithingTransformRecipe(
+                    String.valueOf(++RECIPE_COUNT),
+                    deserializeItem(entry.getAsJsonObject("output")),
+                    Items.air(), //deserializeItem(entry.getAsJsonObject("template")), //TODO: 1.20.0+
+                    deserializeItem(entry.getAsJsonObject("input")),
+                    deserializeItem(entry.getAsJsonObject("addition")),
+                    tag));
+        } catch (UnsupportedOperationException e) {
+            log.trace("Skip an unsupported smithing recipe: {}", entry);
+        }
+    }
+
     protected RecipeTag getShapelessRecipeTag(String block, RecipeType type) {
         RecipeTag tag = RecipeTag.byName(block);
         if (tag != RecipeTag.CRAFTING_TABLE && (type != RecipeType.SHAPELESS || tag != RecipeTag.CARTOGRAPHY_TABLE && tag != RecipeTag.STONECUTTER && tag != RecipeTag.SMITHING_TABLE)) {
@@ -206,6 +230,15 @@ public class CraftingManagerLegacy extends CraftingManager {
         RecipeTag tag = RecipeTag.byName(block);
         if (tag != RecipeTag.FURNACE && tag != RecipeTag.BLAST_FURNACE && tag != RecipeTag.SMOKER && tag != RecipeTag.CAMPFIRE && tag != RecipeTag.SOUL_CAMPFIRE) {
             log.trace("Unexpected smelting recipe block: {}", block);
+            return null;
+        }
+        return tag;
+    }
+
+    protected RecipeTag getSmithingRecipeTag(String block) {
+        RecipeTag tag = RecipeTag.byName(block);
+        if (tag != RecipeTag.SMITHING_TABLE) {
+            log.trace("Unexpected smithing recipe block: {}", block);
             return null;
         }
         return tag;
