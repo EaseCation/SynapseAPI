@@ -69,7 +69,7 @@ public class BinaryStreamHelper116100 extends BinaryStreamHelper116100NE {
                     if (tag.contains("__DamageConflict__")) {
                         tag.put("Damage", tag.removeAndGet("__DamageConflict__"));
                     }
-                    if (tag.getAllTags().size() > 0) {
+                    if (!tag.isEmpty()) {
                         nbt = NBTIO.write(tag, ByteOrder.LITTLE_ENDIAN, false);
                     }
                 } catch (IOException e) {

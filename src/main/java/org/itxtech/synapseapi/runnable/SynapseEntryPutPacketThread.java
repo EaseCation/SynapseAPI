@@ -265,7 +265,7 @@ public class SynapseEntryPutPacketThread extends Thread {
             while ((entry1 = broadcastQueue.poll()) != null) {
                 try {
                     //筛选出需要进行batch包装的协议，避免不需要的多余的包装浪费性能
-                    List<SynapsePlayer> players = Arrays.stream(entry1.player).filter(Objects::nonNull).collect(Collectors.toList());
+                    List<SynapsePlayer> players = Arrays.stream(entry1.player).filter(Objects::nonNull).toList();
                     boolean haveNetEasePlayer = players.stream().anyMatch(SynapsePlayer::isNetEaseClient);
                     boolean[] haveNetEasePacket = new boolean[]{false};
                     Map<AbstractProtocol, List<BatchPacketEntry>> needPackets =

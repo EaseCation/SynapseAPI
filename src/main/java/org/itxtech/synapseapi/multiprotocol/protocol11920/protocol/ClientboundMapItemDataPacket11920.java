@@ -122,7 +122,7 @@ public class ClientboundMapItemDataPacket11920 extends Packet11920 {
                 }
 
                 image.flush();
-            } else if (colors.length > 0) {
+            } else {
                 for (int color : colors) {
                     this.putUnsignedVarInt(color);
                 }

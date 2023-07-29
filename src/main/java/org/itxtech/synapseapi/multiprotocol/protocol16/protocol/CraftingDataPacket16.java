@@ -110,19 +110,19 @@ public class CraftingDataPacket16 extends Packet16 {
     }
 
     public void addShapelessRecipe(ShapelessRecipe... recipe) {
-        Collections.addAll(entries, (ShapelessRecipe[]) recipe);
+        Collections.addAll(entries, recipe);
     }
 
     public void addShapedRecipe(ShapedRecipe... recipe) {
-        Collections.addAll(entries, (ShapedRecipe[]) recipe);
+        Collections.addAll(entries, recipe);
     }
 
     public void addFurnaceRecipe(FurnaceRecipe... recipe) {
-        Collections.addAll(entries, (FurnaceRecipe[]) recipe);
+        Collections.addAll(entries, recipe);
     }
 
     public void addEnchantList(EnchantmentList... list) {
-        Collections.addAll(entries, (EnchantmentList[]) list);
+        Collections.addAll(entries, list);
     }
 
     @Override

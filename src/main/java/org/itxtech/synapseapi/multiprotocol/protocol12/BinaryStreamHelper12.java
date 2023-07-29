@@ -10,7 +10,6 @@ import org.itxtech.synapseapi.multiprotocol.utils.AdvancedBinaryStreamHelper;
 
 import java.util.List;
 import java.util.Map.Entry;
-import java.util.stream.Collectors;
 
 public class BinaryStreamHelper12 extends BinaryStreamHelper implements AdvancedBinaryStreamHelper {
 
@@ -41,7 +40,7 @@ public class BinaryStreamHelper12 extends BinaryStreamHelper implements Advanced
 
         List<Entry<GameRule, Value>> rules = gameRules.getGameRules().entrySet().stream()
                 .filter(entry -> entry.getKey().getProtocol() <= this.protocol.getProtocolStart())
-                .collect(Collectors.toList());
+                .toList();
         stream.putUnsignedVarInt(rules.size());
         rules.forEach(entry -> {
             stream.putString(entry.getKey().getName().toLowerCase());

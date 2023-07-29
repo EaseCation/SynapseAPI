@@ -372,7 +372,7 @@ public class SynapsePlayer16 extends SynapsePlayer14 {
 
 		this.server.getPluginManager().callEvent(playerJoinEvent);
 
-		if (playerJoinEvent.getJoinMessage().toString().trim().length() > 0) {
+		if (!playerJoinEvent.getJoinMessage().toString().trim().isEmpty()) {
 			this.server.broadcastMessage(playerJoinEvent.getJoinMessage());
 		}
 

@@ -93,7 +93,7 @@ public class NEPyRpcPacket16 extends Packet16 {
         } else if (data.isArrayValue()) {
             String json = data.toJson();
             JsonArray array = GSON.fromJson(json, JsonArray.class);
-            if (array.size() >= 1 && array.get(0).isJsonPrimitive()) {
+            if (!array.isEmpty() && array.get(0).isJsonPrimitive()) {
                 String type = array.get(0).getAsString();
                 if ("ModEventC2S".equals(type) && array.size() >= 2 && array.get(1).isJsonArray()) {
                     JsonArray value0 = array.get(1).getAsJsonArray();

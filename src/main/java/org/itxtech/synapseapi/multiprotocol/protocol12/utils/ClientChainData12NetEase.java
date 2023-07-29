@@ -180,7 +180,7 @@ public final class ClientChainData12NetEase implements LoginChainData {
 
     private String capeData;
 
-    private BinaryStream bs = new BinaryStream();
+    private final transient BinaryStream bs = new BinaryStream();
 
     private ClientChainData12NetEase(byte[] buffer) {
         bs.setBuffer(buffer, 0);
@@ -248,7 +248,6 @@ public final class ClientChainData12NetEase implements LoginChainData {
             // TODO: handle exception,认证失败
             //Server.getInstance().getLogger().logException(e);
             this.clientUUID = null;//若认证失败，则clientUUID为null。
-            return;
         }
     }
 
@@ -272,7 +271,7 @@ public final class ClientChainData12NetEase implements LoginChainData {
     private JsonObject decodeToken(String token) {
         String[] base = token.split("\\.", 4);
         if (base.length < 2) return null;
-        byte[] decode = null;
+        byte[] decode;
     	try {
         	decode = Base64.getUrlDecoder().decode(base[1]);
         } catch(IllegalArgumentException e) {

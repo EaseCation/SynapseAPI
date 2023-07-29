@@ -46,7 +46,6 @@ import org.itxtech.synapseapi.multiprotocol.common.PlayerAuthInputFlags;
 import org.itxtech.synapseapi.multiprotocol.protocol113.protocol.IPlayerAuthInputPacket;
 import org.itxtech.synapseapi.multiprotocol.protocol113.protocol.IPlayerAuthInputPacket.PlayerBlockAction;
 import org.itxtech.synapseapi.multiprotocol.protocol116.protocol.*;
-import org.itxtech.synapseapi.multiprotocol.protocol120.protocol.EmotePacket120;
 import org.itxtech.synapseapi.multiprotocol.protocol14.protocol.PlayerActionPacket14;
 
 import java.net.InetSocketAddress;
@@ -278,7 +277,7 @@ public class SynapsePlayer116 extends SynapsePlayer113 {
 						}
 						return;
 					} else {
-						this.server.getLogger().debug("Got unexpected normal inventory action with incomplete enchanting transaction from " + this.getName() + ", refusing to execute enchant " + transactionPacket.toString());
+						this.server.getLogger().debug("Got unexpected normal inventory action with incomplete enchanting transaction from " + this.getName() + ", refusing to execute enchant " + transactionPacket);
 						this.removeAllWindows(false);
 						this.sendAllInventories();
 						this.enchantTransaction = null;
@@ -401,7 +400,7 @@ public class SynapsePlayer116 extends SynapsePlayer113 {
 
 								// 如果与玩家较近，则延迟发送
 								if (entityInBlock && blockVector.add(0.5, 0.5, 0.5).distanceSquared(this) < 4) {
-									this.server.getScheduler().scheduleDelayedTask(blockSend, 20);
+									this.server.getScheduler().scheduleDelayedTask(SynapseAPI.getInstance(), blockSend, 20);
 								} else {
 									blockSend.run();
 								}
@@ -703,7 +702,7 @@ public class SynapsePlayer116 extends SynapsePlayer113 {
 					break;
 				}
 
-				int flags = emotePacket.flags | EmotePacket120.FLAG_SERVER;
+				int flags = emotePacket.flags | EmotePacket116.FLAG_SERVER;
 				for (Player viewer : this.getViewers().values()) {
 					viewer.playEmote(emotePacket.emoteID, this.getId(), flags);
 				}

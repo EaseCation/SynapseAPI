@@ -70,8 +70,8 @@ public class NetTest implements PluginMessageListener {
                     for (DataEntry entry : this.dataEntries) {
                         fw.write(
                                 entry.id + ",\"" +
-                                        new Timestamp(entry.sendTime).toString() + "\"," +
-                                        (entry.recvTime == -1 ? "\"\"" : ("\"" + new Timestamp(entry.recvTime).toString() + "\",")) +
+                                        new Timestamp(entry.sendTime) + "\"," +
+                                        (entry.recvTime == -1 ? "\"\"" : ("\"" + new Timestamp(entry.recvTime) + "\",")) +
                                         entry.getTimeFull() + "," +
                                         entry.getTimeSend() + "," +
                                         entry.getTimeRecv() +

@@ -29,7 +29,7 @@ public class BinaryStreamHelper117 extends BinaryStreamHelper116220 {
 
         List<Map.Entry<GameRule, GameRules.Value>> rules = gameRules.getGameRules().entrySet().stream()
                 .filter(entry -> entry.getKey().getProtocol() <= this.protocol.getProtocolStart())
-                .collect(Collectors.toList());
+                .toList();
         stream.putUnsignedVarInt(rules.size());
         rules.forEach(entry -> {
             stream.putString(entry.getKey().getName().toLowerCase());

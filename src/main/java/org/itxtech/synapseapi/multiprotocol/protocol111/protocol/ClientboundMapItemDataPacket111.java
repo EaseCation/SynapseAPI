@@ -109,7 +109,7 @@ public class ClientboundMapItemDataPacket111 extends Packet111 {
                 }
 
                 image.flush();
-            } else if (colors.length > 0) {
+            } else {
                 for (int color : colors) {
                     putUnsignedVarInt(color);
                 }

@@ -12,9 +12,9 @@ import java.net.InetSocketAddress;
 public class SynapsePlayerCreationEvent extends SynapseEvent {
 
     private static final HandlerList handlers = new HandlerList();
-    private SourceInterface interfaz;
-    private Long clientId;
-    private InetSocketAddress socketAddress;
+    private final SourceInterface interfaz;
+    private final Long clientId;
+    private final InetSocketAddress socketAddress;
     private Class<? extends SynapsePlayer> baseClass;
     private Class<? extends SynapsePlayer> playerClass;
 

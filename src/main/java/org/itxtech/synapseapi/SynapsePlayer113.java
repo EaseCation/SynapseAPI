@@ -327,7 +327,7 @@ public class SynapsePlayer113 extends SynapsePlayer112 {
 						}
 						return;
 					} else {
-						this.server.getLogger().debug("Got unexpected normal inventory action with incomplete repair item transaction from " + this.getName() + ", refusing to execute repair item " + transactionPacket.toString());
+						this.server.getLogger().debug("Got unexpected normal inventory action with incomplete repair item transaction from " + this.getName() + ", refusing to execute repair item " + transactionPacket);
 						this.repairItemTransaction = null;
 					}
 				}

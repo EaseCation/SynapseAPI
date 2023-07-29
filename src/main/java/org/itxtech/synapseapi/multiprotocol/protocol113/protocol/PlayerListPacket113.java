@@ -94,7 +94,7 @@ public class PlayerListPacket113 extends Packet113 {
             Entry e = new Entry(entry.uuid, entry.entityId, entry.name, entry.skin, entry.xboxUserId);
             entries.add(e);
         }
-        this.entries = entries.stream().toArray(Entry[]::new);
+        this.entries = entries.toArray(Entry[]::new);
         return this;
     }
 

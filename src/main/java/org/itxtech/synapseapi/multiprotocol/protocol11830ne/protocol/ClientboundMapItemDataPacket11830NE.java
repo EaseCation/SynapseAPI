@@ -125,7 +125,7 @@ public class ClientboundMapItemDataPacket11830NE extends Packet11830NE {
                 }
 
                 image.flush();
-            } else if (colors.length > 0) {
+            } else {
                 for (int color : colors) {
                     this.putUnsignedVarInt(color);
                 }

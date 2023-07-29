@@ -202,7 +202,7 @@ public class SynapsePlayer14 extends SynapsePlayer {
 					}
 				};
 
-				this.server.getScheduler().scheduleAsyncTask(this.preLoginEventTask);
+				this.server.getScheduler().scheduleAsyncTask(SynapseAPI.getInstance(), this.preLoginEventTask);
 
 				this.processLogin();
 				break;
@@ -651,13 +651,13 @@ public class SynapsePlayer14 extends SynapsePlayer {
 			dataPacket(ackPacket);
 		}
 
-        this.getServer().getScheduler().scheduleDelayedTask(() -> {
+        this.getServer().getScheduler().scheduleDelayedTask(SynapseAPI.getInstance(), () -> {
             PlayStatusPacket statusPacket0 = new PlayStatusPacket();
             statusPacket0.status = PlayStatusPacket.PLAYER_SPAWN;
             dataPacket(statusPacket0);
         }, 10);
 
-        this.getServer().getScheduler().scheduleDelayedTask(() -> {
+        this.getServer().getScheduler().scheduleDelayedTask(SynapseAPI.getInstance(), () -> {
             ChangeDimensionPacket changeDimensionPacket = new ChangeDimensionPacket();
             changeDimensionPacket.dimension = 0;
             changeDimensionPacket.x = (float) this.getX();

@@ -92,7 +92,7 @@ public class BinaryStreamHelper11970 extends BinaryStreamHelper11963 {
                 compoundTag = NBTIO.read(in, ByteOrder.LITTLE_ENDIAN);
             }
 
-            if (compoundTag != null && compoundTag.getAllTags().size() > 0) {
+            if (compoundTag != null && !compoundTag.isEmpty()) {
                 if (compoundTag.contains("Damage")) {
                     damage = compoundTag.getInt("Damage");
                     compoundTag.remove("Damage");

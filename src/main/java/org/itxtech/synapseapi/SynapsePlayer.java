@@ -1014,7 +1014,7 @@ public class SynapsePlayer extends Player {
                     }
                 };
 
-                this.server.getScheduler().scheduleAsyncTask(this.preLoginEventTask);
+                this.server.getScheduler().scheduleAsyncTask(SynapseAPI.getInstance(), this.preLoginEventTask);
 
                 this.processLogin();
                 break;
@@ -1215,7 +1215,7 @@ public class SynapsePlayer extends Player {
             entries.add(new FastPlayerListPacket.Entry(p.getUniqueId(), p.getId(), p.getDisplayName()));
         }
 
-        pk.entries = entries.stream().toArray(FastPlayerListPacket.Entry[]::new);
+        pk.entries = entries.toArray(FastPlayerListPacket.Entry[]::new);
 
         this.getSynapseEntry().sendDataPacket(pk);
     }
