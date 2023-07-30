@@ -8,6 +8,7 @@ import lombok.ToString;
 import org.itxtech.synapseapi.network.protocol.mod.AnimationEmotePacket;
 import org.itxtech.synapseapi.network.protocol.mod.StoreBuySuccessPacket;
 import org.itxtech.synapseapi.network.protocol.mod.SubPacket;
+import org.itxtech.synapseapi.network.protocol.mod.SubPacketHandler;
 import org.msgpack.core.MessageBufferPacker;
 import org.msgpack.core.MessagePack;
 import org.msgpack.core.MessageUnpacker;
@@ -31,7 +32,7 @@ public class NEPyRpcPacket16 extends Packet16 {
 
     public Value data;
 
-    public SubPacket[] subPackets = new SubPacket[0];
+    public SubPacket<SubPacketHandler>[] subPackets = new SubPacket[0];
     public boolean encrypt;
 
     private static SubPacketDeserializer DESERIALIZER = (modName, systemName, eventName, eventData) -> null;
@@ -76,7 +77,7 @@ public class NEPyRpcPacket16 extends Packet16 {
                         String systemName = value1.get(1).getAsString();
                         String eventName = value1.get(2).getAsString();
                         JsonObject eventData = value1.get(3).getAsJsonObject();
-                        SubPacket subPacket = decodeSubPacket(modName, systemName, eventName, eventData);
+                        SubPacket<? extends SubPacketHandler> subPacket = decodeSubPacket(modName, systemName, eventName, eventData);
                         if (subPacket == null) {
                             subPacket = DESERIALIZER.deserialize(modName, systemName, eventName, eventData);
                             if (subPacket == null) {
@@ -101,7 +102,7 @@ public class NEPyRpcPacket16 extends Packet16 {
                     String systemName = value0.get(1).getAsString();
                     String eventName = value0.get(2).getAsString();
                     JsonObject eventData = value0.get(3).getAsJsonObject();
-                    SubPacket subPacket = decodeSubPacket(modName, systemName, eventName, eventData);
+                    SubPacket<? extends SubPacketHandler> subPacket = decodeSubPacket(modName, systemName, eventName, eventData);
                     if (subPacket == null) {
                         subPacket = DESERIALIZER.deserialize(modName, systemName, eventName, eventData);
                         if (subPacket == null) {
@@ -118,7 +119,7 @@ public class NEPyRpcPacket16 extends Packet16 {
     }
 
     @Nullable
-    private static SubPacket decodeSubPacket(String modName, String systemName, String eventName, JsonObject eventData) {
+    private static SubPacket<? extends SubPacketHandler> decodeSubPacket(String modName, String systemName, String eventName, JsonObject eventData) {
         switch (modName) {
             case "Minecraft": {
                 switch (systemName) {
@@ -158,6 +159,6 @@ public class NEPyRpcPacket16 extends Packet16 {
     @FunctionalInterface
     public interface SubPacketDeserializer {
         @Nullable
-        SubPacket deserialize(String modName, String systemName, String eventName, JsonObject eventData);
+        SubPacket<? extends SubPacketHandler> deserialize(String modName, String systemName, String eventName, JsonObject eventData);
     }
 }

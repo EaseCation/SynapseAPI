@@ -6,9 +6,9 @@ import org.msgpack.value.ValueFactory;
 import java.nio.charset.StandardCharsets;
 import java.util.function.Function;
 
-public record EncryptedPacket(String modName, String systemName, String eventName, String data, Function<String, String> encMethod) implements ClientboundSubPacket {
+public record EncryptedPacket(String modName, String systemName, String eventName, String data, Function<String, String> encMethod) implements ClientboundSubPacket<ClientSubPacketHandler> {
     @Override
-    public void handle(SubPacketHandler handler) {
+    public void handle(ClientSubPacketHandler handler) {
         handler.handle(this);
     }
 

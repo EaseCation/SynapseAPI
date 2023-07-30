@@ -26,6 +26,7 @@ import org.itxtech.synapseapi.multiprotocol.utils.LevelSoundEventEnum;
 import org.itxtech.synapseapi.network.protocol.mod.EncryptedPacket;
 import org.itxtech.synapseapi.network.protocol.mod.ServerSubPacketHandler;
 import org.itxtech.synapseapi.network.protocol.mod.SubPacket;
+import org.itxtech.synapseapi.network.protocol.mod.SubPacketHandler;
 import org.itxtech.synapseapi.network.protocol.spp.PlayerLoginPacket;
 import org.msgpack.value.ArrayValue;
 import org.msgpack.value.MapValue;
@@ -182,7 +183,7 @@ public class SynapsePlayer16 extends SynapsePlayer14 {
 				if (subPacketHandler == null) {
 					break;
 				}
-				for (SubPacket subPacket : pyRpcPacket.subPackets) {
+				for (SubPacket<SubPacketHandler> subPacket : pyRpcPacket.subPackets) {
 					try {
 						subPacket.handle(subPacketHandler);
 					} catch (Exception e) {
