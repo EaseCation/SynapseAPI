@@ -6,6 +6,7 @@ import cn.nukkit.entity.data.EntityMetadata;
 import cn.nukkit.network.protocol.*;
 import org.itxtech.synapseapi.multiprotocol.protocol113.protocol.MoveEntityDeltaPacket113;
 import org.itxtech.synapseapi.multiprotocol.protocol116100.protocol.AnimateEntityPacket116100;
+import org.itxtech.synapseapi.multiprotocol.protocol116100.protocol.MotionPredictionHintsPacket116100;
 import org.itxtech.synapseapi.multiprotocol.protocol116100.protocol.MoveEntityDeltaPacket116100;
 import org.itxtech.synapseapi.multiprotocol.protocol116100ne.protocol.MovePlayerPacket116100NE;
 import org.itxtech.synapseapi.multiprotocol.protocol11730.protocol.AnimateEntityPacket11730;
@@ -182,6 +183,11 @@ public class DataPacketEidReplacer {
                     if (((PlayerActionPacket) packet).entityId == from) {
                         ((PlayerActionPacket) packet).entityId = to;
                     }
+                }
+                break;
+            case ProtocolInfo.MOTION_PREDICTION_HINTS_PACKET:
+                if (((MotionPredictionHintsPacket116100) packet).entityRuntimeId == from) {
+                    ((MotionPredictionHintsPacket116100) packet).entityRuntimeId = to;
                 }
                 break;
             default:

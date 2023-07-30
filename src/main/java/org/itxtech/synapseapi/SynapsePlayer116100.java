@@ -3004,4 +3004,15 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
         }
         dataPacket(packet);
     }
+
+    @Override
+    public void sendMotionPredictionHints(long entityRuntimeId, Vector3f motion, boolean onGround) {
+        MotionPredictionHintsPacket116100 packet = new MotionPredictionHintsPacket116100();
+        packet.entityRuntimeId = entityRuntimeId;
+        packet.x = motion.x;
+        packet.y = motion.y;
+        packet.z = motion.z;
+        packet.onGround = onGround;
+        dataPacket(packet);
+    }
 }
