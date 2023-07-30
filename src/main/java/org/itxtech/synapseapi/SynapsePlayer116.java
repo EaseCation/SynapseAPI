@@ -556,7 +556,7 @@ public class SynapsePlayer116 extends SynapsePlayer113 {
 								break;
 							case InventoryTransactionPacket116.USE_ITEM_ON_ENTITY_ACTION_ATTACK:
 								if (++currentTickAttackPacketCount >= 10) {
-									violation += 25;
+//									violation += 25; // 近期TPS不稳定容易误判, 先禁用
 									return;
 								}
 
