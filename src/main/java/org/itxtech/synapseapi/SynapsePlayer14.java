@@ -38,7 +38,6 @@ import org.itxtech.synapseapi.multiprotocol.protocol12.utils.ClientChainData12Ne
 import org.itxtech.synapseapi.multiprotocol.protocol12.utils.ClientChainData12Urgency;
 import org.itxtech.synapseapi.multiprotocol.protocol14.protocol.*;
 import org.itxtech.synapseapi.multiprotocol.protocol15.protocol.MoveEntityAbsolutePacket15;
-import org.itxtech.synapseapi.multiprotocol.utils.LevelSoundEventEnum;
 import org.itxtech.synapseapi.network.protocol.spp.PlayerLoginPacket;
 
 import java.net.InetSocketAddress;
@@ -503,7 +502,7 @@ public class SynapsePlayer14 extends SynapsePlayer {
                     this.chat(textPacket.message);
                 }
                 break;
-			case ProtocolInfo.LEVEL_SOUND_EVENT_PACKET:
+			/*case ProtocolInfo.LEVEL_SOUND_EVENT_PACKET:
 				if (!callPacketReceiveEvent(packet)) break;
 				LevelSoundEventPacket levelSoundEventPacket = (LevelSoundEventPacket) packet;
 				LevelSoundEventEnum sound = LevelSoundEventEnum.fromV14(levelSoundEventPacket.sound);
@@ -532,7 +531,7 @@ public class SynapsePlayer14 extends SynapsePlayer {
 									event.isGlobal()
 							));
 				}
-				break;
+				break;*/
 			case ProtocolInfo.MOVE_ACTOR_ABSOLUTE_PACKET:
 				if (this.getProtocol() >= AbstractProtocol.PROTOCOL_15.getProtocolStart()) {
 					MoveEntityAbsolutePacket15 moveEntityAbsolutePacket = (MoveEntityAbsolutePacket15) packet;
@@ -684,7 +683,7 @@ public class SynapsePlayer14 extends SynapsePlayer {
         }, 20);
     }
 
-    @Override
+    /*@Override
 	public void sendLevelSoundEvent(LevelSoundEventEnum levelSound, Vector3 pos, int extraData, int pitch, String entityIdentifier, boolean isBabyMob, boolean isGlobal) {
 		if (levelSound == null || levelSound.getV14() == -1) return;
 		LevelSoundEventPacket pk = new LevelSoundEventPacket();
@@ -697,7 +696,7 @@ public class SynapsePlayer14 extends SynapsePlayer {
 		pk.isBabyMob = isBabyMob;
 		pk.isGlobal = isGlobal;
 		this.dataPacket(pk);
-	}
+	}*/
 
 	@Override
 	public void sendJukeboxPopup(TranslationContainer message) {

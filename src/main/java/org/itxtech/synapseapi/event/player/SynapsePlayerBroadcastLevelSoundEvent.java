@@ -4,7 +4,6 @@ import cn.nukkit.event.Cancellable;
 import cn.nukkit.event.HandlerList;
 import cn.nukkit.math.Vector3;
 import org.itxtech.synapseapi.SynapsePlayer;
-import org.itxtech.synapseapi.multiprotocol.utils.LevelSoundEventEnum;
 
 /**
  * Created by boybook on 16/6/25.
@@ -12,7 +11,7 @@ import org.itxtech.synapseapi.multiprotocol.utils.LevelSoundEventEnum;
 public class SynapsePlayerBroadcastLevelSoundEvent extends SynapsePlayerEvent implements Cancellable {
 
     private static final HandlerList handlers = new HandlerList();
-    private LevelSoundEventEnum levelSound;
+    private int levelSound;
     private Vector3 pos;
     private int extraData;
     private int pitch;
@@ -20,7 +19,7 @@ public class SynapsePlayerBroadcastLevelSoundEvent extends SynapsePlayerEvent im
     private boolean isBabyMob;
     private boolean isGlobal;
 
-    public SynapsePlayerBroadcastLevelSoundEvent(SynapsePlayer player, LevelSoundEventEnum levelSound, Vector3 pos, int extraData, int pitch, String entityIdentifier, boolean isBabyMob, boolean isGlobal) {
+    public SynapsePlayerBroadcastLevelSoundEvent(SynapsePlayer player, int levelSound, Vector3 pos, int extraData, int pitch, String entityIdentifier, boolean isBabyMob, boolean isGlobal) {
         super(player);
         this.levelSound = levelSound;
         this.pos = pos;
@@ -35,7 +34,7 @@ public class SynapsePlayerBroadcastLevelSoundEvent extends SynapsePlayerEvent im
         return handlers;
     }
 
-    public LevelSoundEventEnum getLevelSound() {
+    public int getLevelSound() {
         return levelSound;
     }
 
@@ -63,7 +62,7 @@ public class SynapsePlayerBroadcastLevelSoundEvent extends SynapsePlayerEvent im
         return isGlobal;
     }
 
-    public void setLevelSound(LevelSoundEventEnum levelSound) {
+    public void setLevelSound(int levelSound) {
         this.levelSound = levelSound;
     }
 

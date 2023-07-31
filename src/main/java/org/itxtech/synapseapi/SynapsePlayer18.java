@@ -16,7 +16,6 @@ import org.itxtech.synapseapi.multiprotocol.AbstractProtocol;
 import org.itxtech.synapseapi.multiprotocol.protocol16.protocol.ResourcePackClientResponsePacket16;
 import org.itxtech.synapseapi.multiprotocol.protocol18.protocol.*;
 import org.itxtech.synapseapi.multiprotocol.utils.AvailableEntityIdentifiersPalette;
-import org.itxtech.synapseapi.multiprotocol.utils.LevelSoundEventEnum;
 
 import javax.annotation.Nullable;
 import java.net.InetSocketAddress;
@@ -84,7 +83,7 @@ public class SynapsePlayer18 extends SynapsePlayer17 {
 						break;
 				}
 				break;
-			case ProtocolInfo.LEVEL_SOUND_EVENT_PACKET_V2:
+			/*case ProtocolInfo.LEVEL_SOUND_EVENT_PACKET_V2:
 				if (!callPacketReceiveEvent(packet)) break;
 				LevelSoundEventPacketV218 levelSoundEventPacket = (LevelSoundEventPacketV218) packet;
 				LevelSoundEventEnum sound = LevelSoundEventEnum.fromV18(levelSoundEventPacket.sound);
@@ -113,7 +112,7 @@ public class SynapsePlayer18 extends SynapsePlayer17 {
 									event.isGlobal()
 							));
 				}
-				break;
+				break;*/
 			default:
 				super.handleDataPacket(packet);
 				break;
@@ -198,7 +197,7 @@ public class SynapsePlayer18 extends SynapsePlayer17 {
 		return gamemode;
 	}
 
-	@Override
+	/*@Override
 	public void sendLevelSoundEvent(LevelSoundEventEnum levelSound, Vector3 pos, int extraData, int pitch, String entityIdentifier, boolean isBabyMob, boolean isGlobal) {
 		if (levelSound == null || levelSound.getV18() == -1) return;
 		LevelSoundEventPacketV218 pk = new LevelSoundEventPacketV218();
@@ -211,7 +210,7 @@ public class SynapsePlayer18 extends SynapsePlayer17 {
 		pk.isBabyMob = isBabyMob;
 		pk.isGlobal = isGlobal;
 		this.dataPacket(pk);
-	}
+	}*/
 
 	protected void noticeChunkPublisherUpdate() {
 		NetworkChunkPublisherUpdatePacket18 packet = new NetworkChunkPublisherUpdatePacket18();

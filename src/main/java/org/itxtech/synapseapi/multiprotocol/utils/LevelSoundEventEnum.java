@@ -3,6 +3,7 @@ package org.itxtech.synapseapi.multiprotocol.utils;
 import cn.nukkit.block.Block;
 import org.itxtech.synapseapi.multiprotocol.AbstractProtocol;
 
+@Deprecated
 public enum LevelSoundEventEnum {
 
     SOUND_ITEM_USE_ON(0, 0, 0),

@@ -6,10 +6,8 @@ import cn.nukkit.network.protocol.LevelSoundEventPacket;
 import cn.nukkit.network.protocol.ProtocolInfo;
 import lombok.ToString;
 import org.itxtech.synapseapi.multiprotocol.AbstractProtocol;
-import org.itxtech.synapseapi.multiprotocol.utils.LevelSoundEventEnum;
+import org.itxtech.synapseapi.multiprotocol.utils.LevelSoundEventUtil;
 import org.itxtech.synapseapi.utils.ClassUtils;
-
-import java.util.Optional;
 
 @ToString
 public class LevelSoundEventPacketV319 extends Packet19 {
@@ -57,7 +55,7 @@ public class LevelSoundEventPacketV319 extends Packet19 {
     public DataPacket fromDefault(DataPacket pk, AbstractProtocol protocol, boolean netease) {
         ClassUtils.requireInstance(pk, cn.nukkit.network.protocol.LevelSoundEventPacket.class);
         LevelSoundEventPacket packet = (cn.nukkit.network.protocol.LevelSoundEventPacket) pk;
-        if (packet.sound > 254) { // V3 int id
+        /*if (packet.sound > 254) { // V3 int id
             if (packet.sound > 1000) { // insert
                 this.sound = packet.sound - 1000;
             } else {
@@ -71,7 +69,9 @@ public class LevelSoundEventPacketV319 extends Packet19 {
         } else {
             this.sound = packet.sound;
             this.extraData = packet.extraData;
-        }
+        }*/
+        this.sound = packet.sound;
+        this.extraData = LevelSoundEventUtil.translateTo18ExtraData(packet.sound, packet.extraData, packet.pitch, protocol, netease);
         this.x = packet.x;
         this.y = packet.y;
         this.z = packet.z;

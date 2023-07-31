@@ -56,7 +56,6 @@ import org.itxtech.synapseapi.multiprotocol.protocol14.protocol.TextPacket14;
 import org.itxtech.synapseapi.multiprotocol.protocol17.protocol.TextPacket17;
 import org.itxtech.synapseapi.multiprotocol.utils.CraftingPacketManager;
 import org.itxtech.synapseapi.multiprotocol.utils.CreativeItemsPalette;
-import org.itxtech.synapseapi.multiprotocol.utils.LevelSoundEventEnum;
 import org.itxtech.synapseapi.network.protocol.mod.ServerSubPacketHandler;
 import org.itxtech.synapseapi.network.protocol.spp.FastPlayerListPacket;
 import org.itxtech.synapseapi.network.protocol.spp.PlayerLoginPacket;
@@ -1067,7 +1066,7 @@ public class SynapsePlayer extends Player {
                 }
 
                 break;
-            case ProtocolInfo.LEVEL_SOUND_EVENT_PACKET:
+            /*case ProtocolInfo.LEVEL_SOUND_EVENT_PACKET:
                 if (!callPacketReceiveEvent(packet)) break;
                 LevelSoundEventPacket levelSoundEventPacket = (LevelSoundEventPacket) packet;
                 LevelSoundEventEnum sound = LevelSoundEventEnum.fromV12(levelSoundEventPacket.sound);
@@ -1096,7 +1095,7 @@ public class SynapsePlayer extends Player {
                                     event.isGlobal()
                             ));
                 }
-                break;
+                break;*/
             default:
                 //Server.getInstance().getLogger().notice("Received Data Packet: " + packet.getClass().getSimpleName());
                 super.handleDataPacket(packet);
@@ -1220,10 +1219,10 @@ public class SynapsePlayer extends Player {
         this.getSynapseEntry().sendDataPacket(pk);
     }
 
-    public void sendLevelSoundEvent(LevelSoundEventEnum levelSound, Vector3 pos, int extraData, int pitch, String entityIdentifier, boolean isBabyMob, boolean isGlobal) {
-        if (levelSound == null || levelSound.getV12() == -1) return;
+    public void sendLevelSoundEvent(int levelSound, Vector3 pos, int extraData, int pitch, String entityIdentifier, boolean isBabyMob, boolean isGlobal) {
+//        if (levelSound == null || levelSound.getV12() == -1) return;
         LevelSoundEventPacket pk = new LevelSoundEventPacket();
-        pk.sound = levelSound.getV12();
+        pk.sound = levelSound;
         pk.x = (float) pos.x;
         pk.y = (float) pos.y;
         pk.z = (float) pos.z;

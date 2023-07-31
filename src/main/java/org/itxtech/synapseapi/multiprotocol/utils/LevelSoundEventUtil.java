@@ -1,11 +1,67 @@
 package org.itxtech.synapseapi.multiprotocol.utils;
 
+import cn.nukkit.block.Block;
 import cn.nukkit.network.protocol.LevelSoundEventPacket;
+import org.itxtech.synapseapi.multiprotocol.AbstractProtocol;
 
 import java.util.Arrays;
 
+import static cn.nukkit.network.protocol.LevelSoundEventPacket.*;
+
+/**
+ * LevelSoundEventPacket V3 utils
+ */
 public final class LevelSoundEventUtil {
     private static final boolean[] C2S_SOUNDS = new boolean[2048];
+
+    public static int translateTo18ExtraData(int sound, int extraData, int pitch, AbstractProtocol protocol, boolean netease) {
+        switch (sound) {
+            case SOUND_PLACE:
+            case SOUND_ITEM_USE_ON:
+            case SOUND_HIT:
+            case SOUND_LAND:
+            case SOUND_POWER_ON:
+            case SOUND_POWER_OFF:
+                return AdvancedGlobalBlockPalette.getOrCreateRuntimeId(protocol, netease, extraData >> Block.BLOCK_META_BITS, extraData & Block.BLOCK_META_MASK);
+            case SOUND_NOTE:
+                return (extraData << 8) | (pitch & 0b11111111);
+        }
+        return extraData;
+    }
+
+    public static int translateExtraDataFromClient(int sound, int extraData, AbstractProtocol protocol, boolean netease) {
+        switch (sound) {
+            case SOUND_ITEM_USE_ON:
+            case SOUND_HIT:
+            case SOUND_PLACE:
+            case SOUND_LAND:
+            case SOUND_POWER_ON:
+            case SOUND_POWER_OFF:
+                if (protocol.getProtocolStart() >= AbstractProtocol.PROTOCOL_114.getProtocolStart()) {
+                    int legacyId = AdvancedGlobalBlockPalette.getLegacyId(protocol, netease, extraData);
+                    if (legacyId == -1) {
+                        return 0;
+                    }
+                    return legacyId;
+                }
+                if (protocol.getProtocolStart() >= AbstractProtocol.PROTOCOL_16.getProtocolStart()) {
+                    int legacyId = AdvancedGlobalBlockPalette.getLegacyId(protocol, netease, extraData);
+                    if (legacyId == -1) {
+                        return 0;
+                    }
+                    return ((legacyId >> 6) << Block.BLOCK_META_BITS) | (legacyId & 0x3f);
+                }
+                if (protocol.getProtocolStart() >= AbstractProtocol.PROTOCOL_14.getProtocolStart()) {
+                    int legacyId = GlobalBlockPalette.getLegacyId(extraData);
+                    if (legacyId == -1) {
+                        return 0;
+                    }
+                    return ((legacyId >> 4) << Block.BLOCK_META_BITS) | (legacyId & 0xf);
+                }
+                return ((extraData >> 4) << Block.BLOCK_META_BITS) | (extraData & 0xf);
+        }
+        return extraData;
+    }
 
     public static boolean isC2SSound(int sound) {
         if (sound < 0 || sound >= C2S_SOUNDS.length) {

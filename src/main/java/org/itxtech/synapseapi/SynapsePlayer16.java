@@ -22,7 +22,6 @@ import org.itxtech.synapseapi.multiprotocol.AbstractProtocol;
 import org.itxtech.synapseapi.multiprotocol.PacketRegister;
 import org.itxtech.synapseapi.multiprotocol.protocol14.protocol.LoginPacket14;
 import org.itxtech.synapseapi.multiprotocol.protocol16.protocol.*;
-import org.itxtech.synapseapi.multiprotocol.utils.LevelSoundEventEnum;
 import org.itxtech.synapseapi.network.protocol.mod.EncryptedPacket;
 import org.itxtech.synapseapi.network.protocol.mod.ServerSubPacketHandler;
 import org.itxtech.synapseapi.network.protocol.mod.SubPacket;
@@ -147,7 +146,7 @@ public class SynapsePlayer16 extends SynapsePlayer14 {
 						break;
 				}
 				break;
-			case ProtocolInfo.LEVEL_SOUND_EVENT_PACKET:
+			/*case ProtocolInfo.LEVEL_SOUND_EVENT_PACKET:
 				if (!callPacketReceiveEvent(packet)) break;
 				LevelSoundEventPacket16 levelSoundEventPacket = (LevelSoundEventPacket16) packet;
 				LevelSoundEventEnum sound = LevelSoundEventEnum.fromV14(levelSoundEventPacket.sound);
@@ -176,7 +175,7 @@ public class SynapsePlayer16 extends SynapsePlayer14 {
 									event.isGlobal()
 							));
 				}
-				break;
+				break;*/
 			case ProtocolInfo.PACKET_PY_RPC:
 				if (!callPacketReceiveEvent(packet)) break;
 				NEPyRpcPacket16 pyRpcPacket = (NEPyRpcPacket16) packet;
@@ -420,7 +419,7 @@ public class SynapsePlayer16 extends SynapsePlayer14 {
 		}
 	}
 
-	@Override
+	/*@Override
 	public void sendLevelSoundEvent(LevelSoundEventEnum levelSound, Vector3 pos, int extraData, int pitch, String entityIdentifier, boolean isBabyMob, boolean isGlobal) {
 		if (levelSound == null || levelSound.getV14() == -1) return;
 		LevelSoundEventPacket pk = new LevelSoundEventPacket();
@@ -433,7 +432,7 @@ public class SynapsePlayer16 extends SynapsePlayer14 {
 		pk.isBabyMob = isBabyMob;
 		pk.isGlobal = isGlobal;
 		this.dataPacket(pk);
-	}
+	}*/
 
 	@Override
 	public void sendPyRpcData(Value data) {

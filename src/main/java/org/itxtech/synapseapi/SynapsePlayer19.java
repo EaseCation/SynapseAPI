@@ -22,7 +22,7 @@ import org.itxtech.synapseapi.multiprotocol.protocol19.protocol.NetworkStackLate
 import org.itxtech.synapseapi.multiprotocol.protocol19.protocol.ResourcePacksInfoPacket19;
 import org.itxtech.synapseapi.multiprotocol.protocol19.protocol.StartGamePacket19;
 import org.itxtech.synapseapi.multiprotocol.utils.AdvancedGlobalBlockPalette;
-import org.itxtech.synapseapi.multiprotocol.utils.LevelSoundEventEnum;
+import org.itxtech.synapseapi.multiprotocol.utils.LevelSoundEventUtil;
 
 import java.net.InetSocketAddress;
 import java.util.concurrent.ThreadLocalRandom;
@@ -47,19 +47,15 @@ public class SynapsePlayer19 extends SynapsePlayer18 {
 			case ProtocolInfo.LEVEL_SOUND_EVENT_PACKET_V3:
 				if (!callPacketReceiveEvent(packet)) break;
 				LevelSoundEventPacketV319 levelSoundEventPacket = (LevelSoundEventPacketV319) packet;
-				//TODO: 256+ IDs -- 04/05/2023
-				LevelSoundEventEnum sound = LevelSoundEventEnum.fromV18(levelSoundEventPacket.sound);
+				int sound = levelSoundEventPacket.sound;
 				SynapsePlayerBroadcastLevelSoundEvent event = new SynapsePlayerBroadcastLevelSoundEvent(this,
 						sound,
 						new Vector3(levelSoundEventPacket.x, levelSoundEventPacket.y, levelSoundEventPacket.z),
-						sound.translateExtraDataFromClient(levelSoundEventPacket.extraData, AbstractProtocol.fromRealProtocol(getProtocol()), isNetEaseClient()),
+						LevelSoundEventUtil.translateExtraDataFromClient(sound, levelSoundEventPacket.extraData, AbstractProtocol.fromRealProtocol(getProtocol()), isNetEaseClient()),
 						0,
 						levelSoundEventPacket.entityIdentifier,
 						levelSoundEventPacket.isBabyMob,
 						levelSoundEventPacket.isGlobal);
-				if (sound == LevelSoundEventEnum.SOUND_UNDEFINED) {
-					event.setCancelled();
-				}
 				if (this.isSpectator()) {
 					event.setCancelled();
 				}
@@ -252,14 +248,14 @@ public class SynapsePlayer19 extends SynapsePlayer18 {
 	}
 
 	@Override
-	public void sendLevelSoundEvent(LevelSoundEventEnum levelSound, Vector3 pos, int extraData, int pitch, String entityIdentifier, boolean isBabyMob, boolean isGlobal) {
-		if (levelSound == null || levelSound.getV18() == -1) return;
+	public void sendLevelSoundEvent(int levelSound, Vector3 pos, int extraData, int pitch, String entityIdentifier, boolean isBabyMob, boolean isGlobal) {
+//		if (levelSound == null || levelSound.getV18() == -1) return;
 		LevelSoundEventPacketV319 pk = new LevelSoundEventPacketV319();
-		pk.sound = levelSound.getV18();
+		pk.sound = levelSound;
 		pk.x = (float) pos.x;
 		pk.y = (float) pos.y;
 		pk.z = (float) pos.z;
-		pk.extraData = levelSound.translateTo18ExtraData(extraData, pitch, AbstractProtocol.fromRealProtocol(this.protocol), this.isNetEaseClient);
+		pk.extraData = LevelSoundEventUtil.translateTo18ExtraData(levelSound, extraData, pitch, AbstractProtocol.fromRealProtocol(this.protocol), this.isNetEaseClient);
 		pk.entityIdentifier = entityIdentifier;
 		pk.isBabyMob = isBabyMob;
 		pk.isGlobal = isGlobal;
