@@ -246,10 +246,9 @@ public final class VanillaBlockUpgrader {
     }
 
     private static void unknownBlock(CompoundTag tag) {
-        tag.putString("name", "minecraft:info_update");
-        tag.putCompound("states", new CompoundTag());
-        tag.putInt("version", CURRENT_VERSION);
         tag.remove("val");
+
+        BlockUtil.unknownBlock(tag);
     }
 
     private static BlockUpgradeSchema addSchema(String file, GameVersion baseGameVersion) {

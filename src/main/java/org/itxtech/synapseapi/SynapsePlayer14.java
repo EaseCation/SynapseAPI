@@ -39,6 +39,7 @@ import org.itxtech.synapseapi.multiprotocol.protocol12.utils.ClientChainData12Ur
 import org.itxtech.synapseapi.multiprotocol.protocol14.protocol.*;
 import org.itxtech.synapseapi.multiprotocol.protocol15.protocol.MoveEntityAbsolutePacket15;
 import org.itxtech.synapseapi.network.protocol.spp.PlayerLoginPacket;
+import org.itxtech.synapseapi.utils.ClientChainDataXbox;
 
 import java.net.InetSocketAddress;
 import java.util.Arrays;
@@ -47,6 +48,7 @@ import java.util.Optional;
 import java.util.concurrent.ThreadLocalRandom;
 
 public class SynapsePlayer14 extends SynapsePlayer {
+	private static final boolean DEBUG_ENVIRONMENT = Boolean.getBoolean("easecation.debugging");
 
 	public SynapsePlayer14(SourceInterface interfaz, SynapseEntry synapseEntry, Long clientID, InetSocketAddress socketAddress) {
 		super(interfaz, synapseEntry, clientID, socketAddress);
@@ -128,13 +130,16 @@ public class SynapsePlayer14 extends SynapsePlayer {
 				if (this.loginChainData.getClientUUID() != null) { // 网易认证通过！
 					this.isNetEaseClient = true;
 					this.getServer().getLogger().notice(this.username + TextFormat.RED + " 中国版验证通过！");
+				} else if (DEBUG_ENVIRONMENT && !ClientChainDataXbox.of(loginPacket.getBuffer()).isXboxAuthed() && !username.startsWith("Player")) { // 国际版验证失败, 特定前缀玩家名解析为中国版 (仅限调试环境)
+					this.isNetEaseClient = true;
+					this.getServer().getLogger().notice(this.username + TextFormat.RED + " Xbox验证未通过！");
 				} else { // 国际版普通认证
 					try {
 						this.getServer().getLogger().notice(this.username + TextFormat.YELLOW + " 正在解析为国际版！");
 						setLoginChainData(ClientChainData12.of(loginPacket.getBuffer()));
 					} catch (Exception e) {
 						this.getServer().getLogger()
-								.notice(this.username + TextFormat.RED + " 解析时出现问题，采用紧急解析方案！" + e.getMessage());
+								.notice(this.username + TextFormat.RED + " 解析时出现问题，采用紧急解析方案！", e);
 						setLoginChainData(ClientChainData12Urgency.of(loginPacket.getBuffer()));
 					}
 				}
@@ -246,7 +251,7 @@ public class SynapsePlayer14 extends SynapsePlayer {
 							break;
 						}
 
-						if (!isAdventure() && target.getId() == Block.NOTEBLOCK) {
+						if (/*!isAdventure() &&*/ target.getId() == Block.NOTEBLOCK) {
 							((BlockNoteblock) target).emitSound();
 							break;
 						}

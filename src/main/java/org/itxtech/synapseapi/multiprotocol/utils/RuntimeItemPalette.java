@@ -11,7 +11,9 @@ import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
 import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.objects.Object2IntMap;
 import it.unimi.dsi.fastutil.objects.Object2IntOpenHashMap;
+import lombok.extern.log4j.Log4j2;
 import org.itxtech.synapseapi.SynapseAPI;
+import org.itxtech.synapseapi.multiprotocol.utils.item.LegacyItemSerializer;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -20,10 +22,13 @@ import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.List;
 
+@Log4j2
 public class RuntimeItemPalette implements AdvancedRuntimeItemPaletteInterface {
 
     private static final Gson GSON = new Gson();
     private static final Type ENTRY_TYPE = new TypeToken<ArrayList<Entry>>(){}.getType();
+
+    private final String fileName;
 
     private final List<Entry> entries = new ArrayList<>();
     private final Int2IntMap legacyNetworkMap = new Int2IntOpenHashMap();
@@ -34,6 +39,8 @@ public class RuntimeItemPalette implements AdvancedRuntimeItemPaletteInterface {
     private byte[] itemDataPalette;
 
     public RuntimeItemPalette(String runtimeItemIdJsonFile) {
+        this.fileName = runtimeItemIdJsonFile;
+
         List<Entry> entries;
         try (InputStream stream = SynapseAPI.class.getClassLoader().getResourceAsStream(runtimeItemIdJsonFile);
              InputStreamReader reader = new InputStreamReader(stream)) {
@@ -54,15 +61,33 @@ public class RuntimeItemPalette implements AdvancedRuntimeItemPaletteInterface {
     }
 
     public void registerItem(Entry entry) {
-        entries.add(entry);
-        if (entry.oldId != null) {
-            boolean hasData = entry.oldData != null;
-            int fullId = getFullId(entry.oldId, hasData ? entry.oldData : 0);
-            legacyNetworkMap.put(fullId, (entry.id << 1) | (hasData ? 1 : 0));
-            legacyStringMap.put(fullId, entry.name);
-            nameToLegacy.put(entry.name, fullId | (hasData ? 1 : 0));
-            networkLegacyMap.put(entry.id, fullId | (hasData ? 1 : 0));
+        int oldId;
+        if (entry.oldId == null) {
+            int fullId = LegacyItemSerializer.getInternalMapping().getInt(entry.name);
+            if ((fullId & 0xffff) == 0xffff) {
+                oldId = -1;
+            } else {
+                oldId = fullId >> 16;
+            }
+
+            if (oldId == -1) {
+                entries.add(entry);
+                log.trace("Unmapped runtime item: id {} name {} ({})", entry.id, entry.name, fileName);
+                return;
+            }
+
+            entry = new Entry(entry.name, entry.id, oldId, entry.oldData);
+        } else {
+            oldId = entry.oldId;
         }
+        entries.add(entry);
+
+        boolean hasData = entry.oldData != null;
+        int fullId = getFullId(oldId, hasData ? entry.oldData : 0);
+        legacyNetworkMap.put(fullId, (entry.id << 1) | (hasData ? 1 : 0));
+        legacyStringMap.put(fullId, entry.name);
+        nameToLegacy.put(entry.name, fullId | (hasData ? 1 : 0));
+        networkLegacyMap.put(entry.id, fullId | (hasData ? 1 : 0));
     }
 
     public void buildPaletteBuffer() {

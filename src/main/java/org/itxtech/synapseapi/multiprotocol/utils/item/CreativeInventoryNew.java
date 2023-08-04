@@ -16,10 +16,12 @@ import java.util.List;
 import static org.itxtech.synapseapi.SynapseSharedConstants.*;
 
 @Log4j2
-public final class CreativeInventory {
+public final class CreativeInventoryNew {
     private static final List<Item> ITEMS = new ObjectArrayList<>();
 
     static {
+        log.info("Loading Creative Items from creative_items.json (new) 1.19.0");
+
         ITEMS.clear();
 
         JsonArray items;
@@ -56,6 +58,6 @@ public final class CreativeInventory {
     public static void init() {
     }
 
-    private CreativeInventory() {
+    private CreativeInventoryNew() {
     }
 }

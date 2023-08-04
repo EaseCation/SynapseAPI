@@ -1020,7 +1020,7 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
                                 break;
                             }
 
-                            if (!isAdventure()) {
+                            if (/*!isAdventure()*/true) {
                                 switch (target.getId()) {
                                     case Block.NOTEBLOCK:
                                         ((BlockNoteblock) target).emitSound();
@@ -1033,7 +1033,7 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
                                     case Block.BLOCK_FRAME:
                                     case Block.BLOCK_GLOW_FRAME:
                                         BlockEntity itemFrame = this.level.getBlockEntityIfLoaded(pos);
-                                        if (itemFrame instanceof BlockEntityItemFrame && ((BlockEntityItemFrame) itemFrame).dropItem(this)) {
+                                        if (itemFrame instanceof BlockEntityItemFrame && (((BlockEntityItemFrame) itemFrame).dropItem(this) || isCreative())) {
                                             break actionswitch;
                                         }
                                 }
@@ -1339,7 +1339,7 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
                             break;
                         }
 
-                        if (!isAdventure()) {
+                        if (/*!isAdventure()*/true) {
                             switch (target.getId()) {
                                 case Block.NOTEBLOCK:
                                     ((BlockNoteblock) target).emitSound();
@@ -1352,7 +1352,7 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
                                 case Block.BLOCK_FRAME:
                                 case Block.BLOCK_GLOW_FRAME:
                                     BlockEntity itemFrame = this.level.getBlockEntityIfLoaded(pos);
-                                    if (itemFrame instanceof BlockEntityItemFrame && ((BlockEntityItemFrame) itemFrame).dropItem(this)) {
+                                    if (itemFrame instanceof BlockEntityItemFrame && (((BlockEntityItemFrame) itemFrame).dropItem(this) || isCreative())) {
                                         break actionswitch;
                                     }
                             }

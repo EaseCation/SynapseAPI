@@ -934,7 +934,7 @@ public class SynapsePlayer extends Player {
                         this.getServer().getLogger().notice(this.username + TextFormat.YELLOW + " 正在解析为国际版！");
                         setLoginChainData(ClientChainData12.read(loginPacket));
                     } catch (Exception e) {
-                        this.getServer().getLogger().notice(this.username + TextFormat.RED + " 解析时出现问题，采用紧急解析方案！" + e.getMessage());
+                        this.getServer().getLogger().notice(this.username + TextFormat.RED + " 解析时出现问题，采用紧急解析方案！", e);
                         setLoginChainData(ClientChainData12Urgency.read(loginPacket));
                     }
                 }

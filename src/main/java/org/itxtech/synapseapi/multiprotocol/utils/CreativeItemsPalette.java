@@ -8,7 +8,8 @@ import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import lombok.extern.log4j.Log4j2;
 import org.itxtech.synapseapi.SynapseAPI;
 import org.itxtech.synapseapi.multiprotocol.AbstractProtocol;
-import org.itxtech.synapseapi.multiprotocol.utils.item.CreativeInventory;
+import org.itxtech.synapseapi.multiprotocol.utils.item.CreativeInventoryLegacy;
+import org.itxtech.synapseapi.multiprotocol.utils.item.CreativeInventoryNew;
 
 import java.util.*;
 
@@ -41,39 +42,47 @@ public class CreativeItemsPalette {
         register(AbstractProtocol.PROTOCOL_117_10, load("creativeitems_116100.json", true), null);
         register(AbstractProtocol.PROTOCOL_117_30, load("creativeitems_116100.json", true), null);
         register(AbstractProtocol.PROTOCOL_117_40, load("creativeitems_116100.json", true), null);
-        register(AbstractProtocol.PROTOCOL_118, load("creativeitems_116100.json", true), null);
-        register(AbstractProtocol.PROTOCOL_118_10, load("creativeitems_116100.json", true), null);
-        register(AbstractProtocol.PROTOCOL_118_30, load("creativeitems_116100.json", true), null);
-        register(AbstractProtocol.PROTOCOL_118_30_NE, load("creativeitems_116100.json", true), null);
+
+        if (!V1_18_0.isAvailable()) {
+            register(AbstractProtocol.PROTOCOL_118, load("creativeitems_116100.json", true), null);
+            register(AbstractProtocol.PROTOCOL_118_10, load("creativeitems_116100.json", true), null);
+            register(AbstractProtocol.PROTOCOL_118_30, load("creativeitems_116100.json", true), null);
+            register(AbstractProtocol.PROTOCOL_118_30_NE, load("creativeitems_116100.json", true), null);
+        } else {
+            register(AbstractProtocol.PROTOCOL_118, CreativeInventoryLegacy.getItems(), null);
+            register(AbstractProtocol.PROTOCOL_118_10, CreativeInventoryLegacy.getItems(), null);
+            register(AbstractProtocol.PROTOCOL_118_30, CreativeInventoryLegacy.getItems(), null);
+            register(AbstractProtocol.PROTOCOL_118_30_NE, CreativeInventoryLegacy.getItems(), null);
+        }
 
         if (!V1_19_0.isAvailable()) {
-            register(AbstractProtocol.PROTOCOL_119, load("creativeitems_116100.json", true), null);
-            register(AbstractProtocol.PROTOCOL_119_10, load("creativeitems_116100.json", true), null);
-            register(AbstractProtocol.PROTOCOL_119_20, load("creativeitems_116100.json", true), null);
-            register(AbstractProtocol.PROTOCOL_119_21, load("creativeitems_116100.json", true), null);
-            register(AbstractProtocol.PROTOCOL_119_30, load("creativeitems_116100.json", true), null);
-            register(AbstractProtocol.PROTOCOL_119_40, load("creativeitems_116100.json", true), null);
-            register(AbstractProtocol.PROTOCOL_119_50, load("creativeitems_116100.json", true), null);
-            register(AbstractProtocol.PROTOCOL_119_60, load("creativeitems_116100.json", true), null);
-            register(AbstractProtocol.PROTOCOL_119_63, load("creativeitems_116100.json", true), null);
-            register(AbstractProtocol.PROTOCOL_119_70, load("creativeitems_116100.json", true), null);
-            register(AbstractProtocol.PROTOCOL_119_80, load("creativeitems_116100.json", true), null);
-            register(AbstractProtocol.PROTOCOL_120, load("creativeitems_116100.json", true), null);
-            register(AbstractProtocol.PROTOCOL_120_10, load("creativeitems_116100.json", true), null);
+            register(AbstractProtocol.PROTOCOL_119, CreativeInventoryLegacy.getItems(), null);
+            register(AbstractProtocol.PROTOCOL_119_10, CreativeInventoryLegacy.getItems(), null);
+            register(AbstractProtocol.PROTOCOL_119_20, CreativeInventoryLegacy.getItems(), null);
+            register(AbstractProtocol.PROTOCOL_119_21, CreativeInventoryLegacy.getItems(), null);
+            register(AbstractProtocol.PROTOCOL_119_30, CreativeInventoryLegacy.getItems(), null);
+            register(AbstractProtocol.PROTOCOL_119_40, CreativeInventoryLegacy.getItems(), null);
+            register(AbstractProtocol.PROTOCOL_119_50, CreativeInventoryLegacy.getItems(), null);
+            register(AbstractProtocol.PROTOCOL_119_60, CreativeInventoryLegacy.getItems(), null);
+            register(AbstractProtocol.PROTOCOL_119_63, CreativeInventoryLegacy.getItems(), null);
+            register(AbstractProtocol.PROTOCOL_119_70, CreativeInventoryLegacy.getItems(), null);
+            register(AbstractProtocol.PROTOCOL_119_80, CreativeInventoryLegacy.getItems(), null);
+            register(AbstractProtocol.PROTOCOL_120, CreativeInventoryLegacy.getItems(), null);
+            register(AbstractProtocol.PROTOCOL_120_10, CreativeInventoryLegacy.getItems(), null);
         } else {
-            register(AbstractProtocol.PROTOCOL_119, CreativeInventory.getItems(), null);
-            register(AbstractProtocol.PROTOCOL_119_10, CreativeInventory.getItems(), null);
-            register(AbstractProtocol.PROTOCOL_119_20, CreativeInventory.getItems(), null);
-            register(AbstractProtocol.PROTOCOL_119_21, CreativeInventory.getItems(), null);
-            register(AbstractProtocol.PROTOCOL_119_30, CreativeInventory.getItems(), null);
-            register(AbstractProtocol.PROTOCOL_119_40, CreativeInventory.getItems(), null);
-            register(AbstractProtocol.PROTOCOL_119_50, CreativeInventory.getItems(), null);
-            register(AbstractProtocol.PROTOCOL_119_60, CreativeInventory.getItems(), null);
-            register(AbstractProtocol.PROTOCOL_119_63, CreativeInventory.getItems(), null);
-            register(AbstractProtocol.PROTOCOL_119_70, CreativeInventory.getItems(), null);
-            register(AbstractProtocol.PROTOCOL_119_80, CreativeInventory.getItems(), null);
-            register(AbstractProtocol.PROTOCOL_120, CreativeInventory.getItems(), null);
-            register(AbstractProtocol.PROTOCOL_120_10, CreativeInventory.getItems(), null);
+            register(AbstractProtocol.PROTOCOL_119, CreativeInventoryNew.getItems(), null);
+            register(AbstractProtocol.PROTOCOL_119_10, CreativeInventoryNew.getItems(), null);
+            register(AbstractProtocol.PROTOCOL_119_20, CreativeInventoryNew.getItems(), null);
+            register(AbstractProtocol.PROTOCOL_119_21, CreativeInventoryNew.getItems(), null);
+            register(AbstractProtocol.PROTOCOL_119_30, CreativeInventoryNew.getItems(), null);
+            register(AbstractProtocol.PROTOCOL_119_40, CreativeInventoryNew.getItems(), null);
+            register(AbstractProtocol.PROTOCOL_119_50, CreativeInventoryNew.getItems(), null);
+            register(AbstractProtocol.PROTOCOL_119_60, CreativeInventoryNew.getItems(), null);
+            register(AbstractProtocol.PROTOCOL_119_63, CreativeInventoryNew.getItems(), null);
+            register(AbstractProtocol.PROTOCOL_119_70, CreativeInventoryNew.getItems(), null);
+            register(AbstractProtocol.PROTOCOL_119_80, CreativeInventoryNew.getItems(), null);
+            register(AbstractProtocol.PROTOCOL_120, CreativeInventoryNew.getItems(), null);
+            register(AbstractProtocol.PROTOCOL_120_10, CreativeInventoryNew.getItems(), null);
         }
 
         for (AbstractProtocol protocol : AbstractProtocol.values0()) {
