@@ -32,6 +32,7 @@
         }
     },
     "renamedIds": {
+        "minecraft:lava_cauldron": "minecraft:cauldron",
         "minecraft:record_relic": "minecraft:music_disc_relic"
     }
 }

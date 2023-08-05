@@ -1,6 +1,7 @@
 package org.itxtech.synapseapi.multiprotocol.utils.item;
 
 import cn.nukkit.GameVersion;
+import cn.nukkit.block.Block;
 import cn.nukkit.block.BlockID;
 import cn.nukkit.block.BlockUpgrader;
 import cn.nukkit.item.ItemID;
@@ -14,8 +15,10 @@ import com.google.gson.Gson;
 import com.google.gson.JsonObject;
 import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
+import it.unimi.dsi.fastutil.objects.ObjectIntPair;
 import lombok.extern.log4j.Log4j2;
 import org.itxtech.synapseapi.SynapseAPI;
+import org.itxtech.synapseapi.multiprotocol.utils.block.BlockUtil;
 
 import java.io.ByteArrayInputStream;
 import java.io.InputStreamReader;
@@ -32,6 +35,7 @@ public final class VanillaItemUpgrader {
 
     public static void upgrade(CompoundTag tag) {
         String rawNameId;
+        boolean wasNumId = false;
 
         Tag nameTag = tag.get("Name");
         if (nameTag instanceof StringTag) {
@@ -84,6 +88,13 @@ public final class VanillaItemUpgrader {
                         return;
                     }
                 }
+
+                ObjectIntPair<String> legacy = ItemUtil.FLATTENED_TO_LEGACY.get(rawNameId);
+                if (legacy != null) {
+                    rawNameId = legacy.left();
+                }
+
+                wasNumId = true;
             } else if (idTag instanceof StringTag) {
                 // JE - best we can do here is hope the string IDs match
                 rawNameId = ((StringTag) idTag).data;
@@ -95,21 +106,6 @@ public final class VanillaItemUpgrader {
         }
 
         int meta = tag.getShort("Damage");
-
-        CompoundTag blockTag = tag.getCompound("Block", null);
-        String blockName;
-        if (blockTag != null) {
-            BlockUpgrader.upgrade(blockTag);
-        } else if ((blockName = ItemUtil.ITEM_TO_BLOCK.get(rawNameId)) != null) {
-            // this is a legacy block item represented by ID + meta
-            blockTag = new CompoundTag()
-                    .putString("name", blockName)
-                    .putShort("val", meta);
-
-            BlockUpgrader.upgrade(blockTag);
-
-            tag.putCompound("Block", blockTag);
-        }
 
         String newName = rawNameId;
         int newMeta = meta;
@@ -128,6 +124,38 @@ public final class VanillaItemUpgrader {
             if (renamedId != null) {
                 newName = renamedId;
             }
+        }
+
+        CompoundTag blockTag = tag.getCompound("Block", null);
+        String blockName;
+        if (blockTag != null) {
+            BlockUpgrader.upgrade(blockTag);
+        } else if ((blockName = ItemUtil.ITEM_TO_BLOCK.get(newName)) != null) {
+            ObjectIntPair<String> legacy = ItemUtil.FLATTENED_TO_LEGACY.get(blockName);
+            if (legacy != null) {
+                blockName = legacy.left();
+            }
+
+            // this is a legacy block item represented by ID + meta
+            blockTag = new CompoundTag()
+                    .putString("name", blockName)
+                    .putShort("val", meta);
+
+            BlockUpgrader.upgrade(blockTag);
+
+            if (wasNumId && "minecraft:info_update".equals(blockTag.getString("name")) && !"minecraft:info_update".equals(rawNameId)) {
+                int id = ItemUtil.ITEM_NAME_TO_ID.getInt(newName);
+                if (id != ItemID.AIR) {
+                    // NK 1.13-1.18
+                    blockTag = BlockUtil.LEGACY_ITEM_BLOCK_LOOKUP.get(Block.getFullId(Block.itemIdToBlockId(id), meta)).clone();
+
+                    BlockUpgrader.upgrade(blockTag);
+                } else {
+                    log.debug("unknown item block: " + rawNameId);
+                }
+            }
+
+            tag.putCompound("Block", blockTag);
         }
 
         tag.putString("Name", newName);
@@ -168,14 +196,14 @@ public final class VanillaItemUpgrader {
 
         addSchema("0001_1.6_beta_to_1.6.0.json", V1_6_0);
         addSchema("0011_1.11.4_to_1.12.0.json", V1_12_0);
-//        addSchema("0015_1.16.0.57_beta_to_1.16.0.59_beta.json", V1_16_100); // beta only
-//        addSchema("0016_1.16.0.59_beta_to_1.16.0.68_beta.json", V1_16_100); // beta only
+        addSchema("0015_1.16.0.57_beta_to_1.16.0.59_beta.json", V1_16_100); // beta only
+        addSchema("0016_1.16.0.59_beta_to_1.16.0.68_beta.json", V1_16_100); // beta only
         addSchema("0021_1.16.0_to_1.16.100.json", V1_16_100);
         addSchema("0031_1.16.100_to_1.16.200.json", V1_16_200);
         addSchema("0041_1.16.200_to_1.17.30.json", V1_17_30);
         addSchema("0051_1.17.40_to_1.18.0.json", V1_18_0);
         addSchema("0061_1.18.0_to_1.18.10.json", V1_18_10);
-//        addSchema("0065_1.18.10_to_1.18.20.27_beta.json", V1_18_30); // experiment only
+        addSchema("0065_1.18.10_to_1.18.20.27_beta.json", V1_18_30); // experiment only
         addSchema("0071_1.18.20_to_1.18.30.json", V1_18_30);
         addSchema("0081_1.18.30_to_1.19.0.json", V1_19_0);
         addSchema("0091_1.19.60_to_1.19.70.26_beta.json", V1_19_70);

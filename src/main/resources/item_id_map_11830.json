@@ -496,7 +496,7 @@
     "minecraft:tallgrass": 31,
     "minecraft:deadbush": 32,
     "minecraft:piston": 33,
-    "minecraft:pistonarmcollision": 34,
+    "minecraft:piston_arm_collision": 34,
     "minecraft:wool": 35,
     "minecraft:element_0": 36,
     "minecraft:yellow_flower": 37,

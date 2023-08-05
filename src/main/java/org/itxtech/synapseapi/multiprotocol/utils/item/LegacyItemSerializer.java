@@ -91,6 +91,8 @@ public final class LegacyItemSerializer {
 
         if (fullBlockId != -1) {
             tag.putCompound("Block", BlockSerializer.serializeRuntime(fullBlockId));
+
+            damage = 0;
         }
 
         CompoundTag nbt = item.getNamedTag();

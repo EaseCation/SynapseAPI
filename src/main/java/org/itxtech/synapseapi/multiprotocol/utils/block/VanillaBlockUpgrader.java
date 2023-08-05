@@ -86,7 +86,7 @@ public final class VanillaBlockUpgrader {
 
             BlockData[] metaMapping = LEGACY_TO_CURRENT.get(name);
             if (metaMapping == null) {
-                log.debug("Unmapped block name: {}", name);
+                log.trace("Unmapped (1.12) block name: {}", name);
                 unknownBlock(tag);
                 return;
             }

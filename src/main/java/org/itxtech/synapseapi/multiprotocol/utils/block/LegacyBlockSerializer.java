@@ -24,7 +24,7 @@ public final class LegacyBlockSerializer {
     }
 
     public static CompoundTag serialize(int fullId) {
-        return FORWARD_SERIALIZER.get(fullId);
+        return FORWARD_SERIALIZER.get(fullId).clone();
     }
 
     public static int deserialize(CompoundTag tag) {
