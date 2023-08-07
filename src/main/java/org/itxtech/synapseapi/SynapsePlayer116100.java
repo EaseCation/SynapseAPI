@@ -1716,7 +1716,8 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
 		if (this.spawned && inventory.open(this)) {
 			return cnt;
 		} else if (!alwaysOpen) {
-			this.removeWindow(inventory, true);
+            if (!this.permanentWindows.contains(this.getWindowId(inventory)))
+                this.windows.remove(inventory);
 
 			return -1;
 		} else {
