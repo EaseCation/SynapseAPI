@@ -1695,6 +1695,37 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
         return npcDialoguePlayerHandler;
     }
 
+	@Override
+	public int addWindow(Inventory inventory, Integer forceId, boolean isPermanent, boolean alwaysOpen) {
+		Integer index = this.windows.get(inventory);
+		if (index != null) {
+			return index;
+		}
+		int cnt;
+		if (forceId == null) {
+			this.windowCnt = cnt = Math.max(FIRST_AVAILABLE_WINDOW_ID, ++this.windowCnt % 99);
+		} else {
+			cnt = forceId;
+		}
+		this.windows.forcePut(inventory, cnt);
+
+		if (isPermanent) {
+			this.permanentWindows.add(cnt);
+		}
+
+		if (this.spawned && inventory.open(this)) {
+			return cnt;
+		} else if (!alwaysOpen) {
+			this.removeWindow(inventory, true);
+
+			return -1;
+		} else {
+			inventory.getViewers().add(this);
+		}
+
+		return cnt;
+	}
+
     @Override
     public void removeWindow(Inventory inventory) {
         this.removeWindow(inventory, false);
