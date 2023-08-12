@@ -103,6 +103,7 @@ import org.itxtech.synapseapi.multiprotocol.protocol14.protocol.PlayerActionPack
 import org.itxtech.synapseapi.multiprotocol.protocol16.protocol.ResourcePackClientResponsePacket16;
 import org.itxtech.synapseapi.multiprotocol.utils.EntityProperties;
 import org.itxtech.synapseapi.multiprotocol.utils.ItemComponentDefinitions;
+import org.itxtech.synapseapi.network.protocol.spp.PlayerLoginPacket;
 import org.itxtech.synapseapi.utils.BlobTrack;
 
 import javax.annotation.Nullable;
@@ -164,6 +165,15 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
 
     public SynapsePlayer116100(SourceInterface interfaz, SynapseEntry synapseEntry, Long clientID, InetSocketAddress socketAddress) {
         super(interfaz, synapseEntry, clientID, socketAddress);
+    }
+
+    @Override
+    public void handleLoginPacket(PlayerLoginPacket packet) {
+        super.handleLoginPacket(packet);
+
+        blockVersion = StaticVersion.fromProtocol(protocol, isNetEaseClient());
+
+        level.onPlayerAdd(this);
     }
 
     @Override
@@ -1939,7 +1949,7 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
         if (subChunkCount != 0) {
             subChunkCount += PADDING_SUB_CHUNK_COUNT;
         }
-        byte[][] payloads = payload.get(StaticVersion.fromProtocol(this.protocol, this.isNetEaseClient()));
+        byte[][] payloads = payload.get(blockVersion);
 
         IntIterator iter = requests.iterator();
         while (iter.hasNext()) {
@@ -2031,9 +2041,8 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
         if (subChunkCount != 0) {
             subChunkCount += PADDING_SUB_CHUNK_COUNT;
         }
-        StaticVersion paletteVersion = StaticVersion.fromProtocol(this.protocol, this.isNetEaseClient());
-        BatchPacket[] packets = packetCache.getSubPackets(paletteVersion);
-        SubChunkPacket[] packetsUncompressed = packetCache.getSubPacketsUncompressed(paletteVersion);
+        BatchPacket[] packets = packetCache.getSubPackets(blockVersion);
+        SubChunkPacket[] packetsUncompressed = packetCache.getSubPacketsUncompressed(blockVersion);
 
         IntIterator iter = requests.iterator();
         while (iter.hasNext()) {

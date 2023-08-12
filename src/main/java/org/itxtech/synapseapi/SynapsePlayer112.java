@@ -44,13 +44,13 @@ public class SynapsePlayer112 extends SynapsePlayer19 {
 		// this.levelChangeLoadScreen = false;
 	}
 
-	@Override
+	/*@Override
 	public void handleLoginPacket(PlayerLoginPacket packet) {
 		super.handleLoginPacket(packet);
 		//客户端已经发了ClientCacheStatusPacket，等以后出bug的时候用
 		//if (packet.extra.has("blob_cache") && packet.extra.get("blob_cache").getAsBoolean())
 		//	initClientBlobCache();
-	}
+	}*/
 
 	@Override
 	protected DataPacket generateStartGamePacket(Position spawnPosition) {
