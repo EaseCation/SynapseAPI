@@ -32,7 +32,7 @@ public class BinaryStreamHelper117 extends BinaryStreamHelper116220 {
                 .toList();
         stream.putUnsignedVarInt(rules.size());
         rules.forEach(entry -> {
-            stream.putString(entry.getKey().getName().toLowerCase());
+            stream.putString(entry.getKey().getBedrockName());
             stream.putBoolean(false); // isEditable
             entry.getValue().write(stream);
         });

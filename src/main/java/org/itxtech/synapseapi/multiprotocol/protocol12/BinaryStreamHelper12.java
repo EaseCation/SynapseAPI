@@ -43,7 +43,7 @@ public class BinaryStreamHelper12 extends BinaryStreamHelper implements Advanced
                 .toList();
         stream.putUnsignedVarInt(rules.size());
         rules.forEach(entry -> {
-            stream.putString(entry.getKey().getName().toLowerCase());
+            stream.putString(entry.getKey().getBedrockName());
             entry.getValue().write(stream);
         });
     }
