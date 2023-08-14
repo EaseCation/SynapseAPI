@@ -13,6 +13,8 @@ import cn.nukkit.item.RuntimeItemPaletteInterface;
 import cn.nukkit.item.RuntimeItems;
 import cn.nukkit.level.GlobalBlockPalette;
 import cn.nukkit.level.GlobalBlockPaletteInterface;
+import cn.nukkit.level.GlobalBlockPaletteInterface.StaticVersion;
+import cn.nukkit.level.format.generic.ChunkRequestTask;
 import cn.nukkit.network.RakNetInterface;
 import cn.nukkit.network.SourceInterface;
 import cn.nukkit.network.protocol.BatchPacket;
@@ -223,6 +225,8 @@ public class SynapseAPI extends PluginBase implements Listener {
 
         getServer().setCraftingManager(V1_19_0.isAvailable() ? new CraftingManagerNew() : new CraftingManagerLegacy());
         CraftingPacketManager.rebuildPacket();
+
+        ChunkRequestTask.addPreloadVersion(StaticVersion.V1_18_30_NETEASE);
 
         //仅用于开发测试
         this.getServer().getCommandMap().register("dcpk", new Command("dcpk") {
