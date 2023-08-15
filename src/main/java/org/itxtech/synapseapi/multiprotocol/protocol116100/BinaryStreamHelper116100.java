@@ -1,6 +1,7 @@
 package org.itxtech.synapseapi.multiprotocol.protocol116100;
 
 import cn.nukkit.entity.data.Skin;
+import cn.nukkit.inventory.RecipeType;
 import cn.nukkit.item.Item;
 import cn.nukkit.item.ItemDurable;
 import cn.nukkit.item.ItemID;
@@ -248,6 +249,37 @@ public class BinaryStreamHelper116100 extends BinaryStreamHelper116100NE {
         stream.putVarInt(networkId);
         stream.putVarInt(damage);
         stream.putVarInt(ingredient.getCount());
+    }
+
+    @Override
+    public void putFurnaceRecipeIngredient(BinaryStream stream, Item ingredient, RecipeType type) {
+        int networkFullId = AdvancedRuntimeItemPalette.getNetworkFullId(this.protocol, stream.neteaseMode, ingredient);
+        int networkId = AdvancedRuntimeItemPalette.getNetworkId(this.protocol, stream.neteaseMode, networkFullId);
+
+        stream.putVarInt(networkId);
+
+        if (type == RecipeType.FURNACE_DATA) {
+            int damage = ingredient.hasMeta() ? ingredient.getDamage() : 0x7fff;
+            if (AdvancedRuntimeItemPalette.hasData(this.protocol, stream.neteaseMode, networkFullId)) {
+                damage = 0;
+            }
+
+            stream.putVarInt(damage);
+        }
+    }
+
+    @Override
+    public void putBrewingRecipeItem(BinaryStream stream, Item item) {
+        int networkFullId = AdvancedRuntimeItemPalette.getNetworkFullId(this.protocol, stream.neteaseMode, item);
+        int networkId = AdvancedRuntimeItemPalette.getNetworkId(this.protocol, stream.neteaseMode, networkFullId);
+
+        int damage = item.getDamage();
+        if (AdvancedRuntimeItemPalette.hasData(this.protocol, stream.neteaseMode, networkFullId)) {
+            damage = 0;
+        }
+
+        stream.putVarInt(networkId);
+        stream.putVarInt(damage);
     }
 
     @Override

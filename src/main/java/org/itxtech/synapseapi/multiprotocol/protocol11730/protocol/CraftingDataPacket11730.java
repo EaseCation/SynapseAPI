@@ -131,11 +131,7 @@ public class CraftingDataPacket11730 extends Packet11730 {
                 case FURNACE:
                 case FURNACE_DATA:
                     FurnaceRecipe furnace = (FurnaceRecipe) recipe;
-                    Item input = furnace.getInput();
-                    this.putVarInt(this.helper.getItemNetworkId(this, input));
-                    if (recipe.getType() == RecipeType.FURNACE_DATA) {
-                        this.putVarInt(input.getDamage());
-                    }
+                    this.helper.putFurnaceRecipeIngredient(this, furnace.getInput(), recipe.getType());
                     this.putItemInstance(furnace.getResult());
                     this.putString(furnace.getTag().toString());
                     break;
@@ -161,12 +157,9 @@ public class CraftingDataPacket11730 extends Packet11730 {
 
         this.putUnsignedVarInt(this.brewingEntries.size());
         for (BrewingRecipe recipe : brewingEntries) {
-            this.putVarInt(this.helper.getItemNetworkId(this, recipe.getInput()));
-            this.putVarInt(recipe.getInput().getDamage());
-            this.putVarInt(this.helper.getItemNetworkId(this, recipe.getIngredient()));
-            this.putVarInt(recipe.getIngredient().getDamage());
-            this.putVarInt(this.helper.getItemNetworkId(this, recipe.getResult()));
-            this.putVarInt(recipe.getResult().getDamage());
+            this.helper.putBrewingRecipeItem(this, recipe.getInput());
+            this.helper.putBrewingRecipeItem(this, recipe.getIngredient());
+            this.helper.putBrewingRecipeItem(this, recipe.getResult());
         }
 
         this.putUnsignedVarInt(this.containerEntries.size());

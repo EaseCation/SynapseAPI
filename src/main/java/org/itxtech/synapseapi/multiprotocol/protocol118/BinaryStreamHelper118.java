@@ -13,5 +13,9 @@ public class BinaryStreamHelper118 extends BinaryStreamHelper11740 {
         return "1.18.0";
     }
 
+    @Override
+    public boolean isNetEase() {
+        return true;
+    }
 
 }

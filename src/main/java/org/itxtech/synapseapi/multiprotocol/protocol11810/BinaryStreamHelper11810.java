@@ -17,6 +17,11 @@ public class BinaryStreamHelper11810 extends BinaryStreamHelper118 {
     }
 
     @Override
+    public boolean isNetEase() {
+        return false;
+    }
+
+    @Override
     protected Object getItemStackRequestAction(BinaryStream stream) {
         int type = stream.getByte();
         switch (type) {
