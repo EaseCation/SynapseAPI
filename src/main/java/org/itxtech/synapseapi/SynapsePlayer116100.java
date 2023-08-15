@@ -170,6 +170,9 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
     @Override
     public void handleLoginPacket(PlayerLoginPacket packet) {
         super.handleLoginPacket(packet);
+        if (!this.isSynapseLogin) {
+            return;
+        }
 
         blockVersion = StaticVersion.fromProtocol(protocol, isNetEaseClient());
 
