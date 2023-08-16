@@ -68,7 +68,7 @@ public class SynapseEntry {
         PACKET_COUNT_LIMIT[ProtocolInfo.INVENTORY_TRANSACTION_PACKET] = 64 * 9 + 64 * 9 + 64; // extreme case (shift-click crafting): 64x9 (inputs) + 64x9 (output on crafting grid) + 64 (outputs to main slot)
         PACKET_COUNT_LIMIT[ProtocolInfo.CRAFTING_EVENT_PACKET] = 64;
         PACKET_COUNT_LIMIT[ProtocolInfo.PACKET_PY_RPC] = 50;
-        PACKET_COUNT_LIMIT[ProtocolInfo.SUB_CHUNK_REQUEST_PACKET] = 144;
+        PACKET_COUNT_LIMIT[ProtocolInfo.SUB_CHUNK_REQUEST_PACKET] = 15000; // 1.18.0 facepalm
         PACKET_COUNT_LIMIT[ProtocolInfo.PLAYER_ACTION_PACKET] = 50;
         PACKET_COUNT_LIMIT[ProtocolInfo.ANIMATE_PACKET] = 50;
         PACKET_COUNT_LIMIT[ProtocolInfo.INTERACT_PACKET] = 50;
@@ -666,6 +666,7 @@ public class SynapseEntry {
                                 //Server.getInstance().getLogger().info("C => S  " + subPacket.getClass().getSimpleName());
                             }
                             if (tooManyPackets) {
+//                                log.warn("SubChunkRequestPacket: {}", packetCount[ProtocolInfo.SUB_CHUNK_REQUEST_PACKET]);
                                 Server.getInstance().getPluginManager().callEvent(new SynapsePlayerTooManyPacketsInBatchEvent(player, packetCount));
                                 synapse.getServer().getScheduler().scheduleTask(synapse, () -> player.violation += 60);
 
@@ -726,15 +727,18 @@ public class SynapseEntry {
         int len = data.length;
         BinaryStream stream = new BinaryStream(data);
         AbstractProtocol apl = AbstractProtocol.fromRealProtocol(protocol);
+        boolean v1180 = apl == AbstractProtocol.PROTOCOL_118;
         int count = 0;
         List<DataPacket> packets = new ObjectArrayList<>();
         try {
+//            boolean tooManyPackets = false;
             while (stream.offset < len) {
                 count++;
                 if (count >= 1300) {
                     // too many packets in batch
 //                    throw new ProtocolException("Illegal batch with " + count + " packets");
                     return null;
+//                    tooManyPackets = true;
                 }
 
                 byte[] buf = stream.getByteArray();
@@ -744,6 +748,11 @@ public class SynapseEntry {
                     if (pid <= 0 || pid >= PACKET_TYPE_COUNT || pid == ProtocolInfo.BATCH_PACKET) {
                         // invalid packet
                         return null;
+                    }
+
+                    if (v1180 && pid == ProtocolInfo.SUB_CHUNK_REQUEST_PACKET) {
+                        // 1.18.0的子区块请求包不参与计数 (1.18.0每tick可能会发送上万个子区块请求包, 1.18.10修复)
+                        count--;
                     }
 
                     try {
@@ -762,6 +771,9 @@ public class SynapseEntry {
                     }
                 }
             }
+//            if (tooManyPackets) {
+//                log.warn("too many packets in batch: {}", count);
+//            }
             return packets;
         } catch (Exception e) {
             if (Nukkit.DEBUG > 0) {
