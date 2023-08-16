@@ -4837,7 +4837,8 @@
         "blockNetId": 5209
     },
     {
-        "name": "minecraft:acacia_button"
+        "name": "minecraft:acacia_button",
+        "blockNetId": 0
     },
     {
         "name": "minecraft:dark_oak_button",

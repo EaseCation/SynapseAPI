@@ -1,5 +1,6 @@
 package org.itxtech.synapseapi.multiprotocol.utils.item;
 
+import cn.nukkit.block.Block;
 import cn.nukkit.inventory.*;
 import cn.nukkit.item.Item;
 import cn.nukkit.item.Items;
@@ -11,6 +12,8 @@ import it.unimi.dsi.fastutil.ints.IntIntPair;
 import it.unimi.dsi.fastutil.objects.ObjectIntPair;
 import lombok.extern.log4j.Log4j2;
 import org.itxtech.synapseapi.SynapseAPI;
+import org.itxtech.synapseapi.multiprotocol.AbstractProtocol;
+import org.itxtech.synapseapi.multiprotocol.utils.AdvancedGlobalBlockPalette;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
@@ -149,10 +152,30 @@ public class CraftingManagerMedieval extends CraftingManagerLegacy {
     @Override
     protected Item deserializeItem(JsonObject itemEntry) throws UnsupportedOperationException {
         IntIntPair item = nameToItem(itemEntry.get("name").getAsString());
+        int id = item.leftInt();
         int meta = item.rightInt();
+        if (itemEntry.has("blockNetId")) {
+            int blockRuntimeId = itemEntry.get("blockNetId").getAsInt();
+            int legacyId = AdvancedGlobalBlockPalette.getLegacyId(AbstractProtocol.PROTOCOL_118, false, blockRuntimeId);
+
+            if (legacyId == -1) {
+                log.debug("Invalid block runtime ID: " + blockRuntimeId);
+                throw UNSUPPORTED_ITEM_EXCEPTION;
+            }
+
+            meta = legacyId & 0x3fff;
+
+            assert id == Block.getItemId(legacyId >> 14);
+        } else if (meta == Integer.MIN_VALUE) {
+            if (itemEntry.has("meta")) {
+                meta = itemEntry.get("meta").getAsInt();
+            } else {
+                meta = 0;
+            }
+        }
         return Item.getCraftingItem(
-                item.leftInt(),
-                meta != Integer.MIN_VALUE ? meta : itemEntry.has("meta") ? itemEntry.get("meta").getAsInt() : 0,
+                id,
+                meta,
                 itemEntry.has("count") ? itemEntry.get("count").getAsInt() : 1,
                 itemEntry.has("nbt") ? Base64.getDecoder().decode(itemEntry.get("nbt").getAsString()) : new byte[0]);
     }
