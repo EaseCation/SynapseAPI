@@ -16,3 +16,6 @@ permissions:
   synapseapi.command.latency:
     description: /latency
     default: true
+  synapseapi.command.chunknetv:
+    description: /chunknetv
+    default: op

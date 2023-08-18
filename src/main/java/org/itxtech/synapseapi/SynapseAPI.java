@@ -24,6 +24,7 @@ import cn.nukkit.utils.Binary;
 import cn.nukkit.utils.Utils;
 import com.google.gson.JsonObject;
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
+import org.itxtech.synapseapi.command.ChunkNetVerCommand;
 import org.itxtech.synapseapi.command.LatencyCommand;
 import org.itxtech.synapseapi.event.player.netease.NetEasePlayerModEventC2SEvent;
 import org.itxtech.synapseapi.multiprotocol.AbstractProtocol;
@@ -267,6 +268,7 @@ public class SynapseAPI extends PluginBase implements Listener {
         if (NETWORK_STACK_LATENCY_TELEMETRY) {
             this.getServer().getCommandMap().register("synapse", new LatencyCommand(this));
         }
+        this.getServer().getCommandMap().register("synapse", new ChunkNetVerCommand(this));
     }
 
     public boolean isUseLoadingScreen() {
