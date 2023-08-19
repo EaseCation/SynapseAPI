@@ -125,11 +125,7 @@ public class CraftingDataPacket116220 extends Packet116220 {
                 case FURNACE:
                 case FURNACE_DATA:
                     FurnaceRecipe furnace = (FurnaceRecipe) recipe;
-                    Item input = furnace.getInput();
-                    this.putVarInt(this.helper.getItemNetworkId(this, input));
-                    if (recipe.getType() == RecipeType.FURNACE_DATA) {
-                        this.putVarInt(input.getDamage());
-                    }
+                    this.helper.putFurnaceRecipeIngredient(this, furnace.getInput(), recipe.getType());
                     this.putItemInstance(furnace.getResult());
                     this.putString(furnace.getTag().toString());
                     break;
@@ -137,7 +133,7 @@ public class CraftingDataPacket116220 extends Packet116220 {
                     this.putUUID(((MultiRecipe) recipe).getId());
                     this.putUnsignedVarInt(recipeNetworkId++);
                     break;
-                case SMITHING_TRANSFORM: // actually shapeless recipe
+                /*case SMITHING_TRANSFORM: // actually shapeless recipe
                     SmithingTransformRecipe smithing = (SmithingTransformRecipe) recipe;
                     this.putString(smithing.getRecipeId());
                     this.putUnsignedVarInt(2); // ingredients
@@ -149,18 +145,15 @@ public class CraftingDataPacket116220 extends Packet116220 {
                     this.putString(smithing.getTag().toString());
                     this.putVarInt(2); // priority
                     this.putUnsignedVarInt(recipeNetworkId++);
-                    break;
+                    break;*/
             }
         }
 
         this.putUnsignedVarInt(this.brewingEntries.size());
         for (BrewingRecipe recipe : brewingEntries) {
-            this.putVarInt(this.helper.getItemNetworkId(this, recipe.getInput()));
-            this.putVarInt(recipe.getInput().getDamage());
-            this.putVarInt(this.helper.getItemNetworkId(this, recipe.getIngredient()));
-            this.putVarInt(recipe.getIngredient().getDamage());
-            this.putVarInt(this.helper.getItemNetworkId(this, recipe.getResult()));
-            this.putVarInt(recipe.getResult().getDamage());
+            this.helper.putBrewingRecipeItem(this, recipe.getInput());
+            this.helper.putBrewingRecipeItem(this, recipe.getIngredient());
+            this.helper.putBrewingRecipeItem(this, recipe.getResult());
         }
 
         this.putUnsignedVarInt(this.containerEntries.size());

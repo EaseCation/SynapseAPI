@@ -15,12 +15,12 @@ public class MoveEntityAbsolutePacket15 extends Packet15 {
     public static final int NETWORK_ID = ProtocolInfo.MOVE_ACTOR_ABSOLUTE_PACKET;
 
     public long eid;
-    public double x;
-    public double y;
-    public double z;
-    public double yaw;
-    public double headYaw;
-    public double pitch;
+    public float x;
+    public float y;
+    public float z;
+    public float yaw;
+    public float headYaw;
+    public float pitch;
     public boolean onGround;
     public boolean teleport;
     /**
@@ -44,9 +44,9 @@ public class MoveEntityAbsolutePacket15 extends Packet15 {
         this.x = v.x;
         this.y = v.y;
         this.z = v.z;
-        this.pitch = this.getByte() * (360d / 256d);
-        this.yaw = this.getByte() * (360d / 256d);
-        this.headYaw = this.getByte() * (360d / 256d);
+        this.pitch = this.getByte() * (360f / 256f);
+        this.yaw = this.getByte() * (360f / 256f);
+        this.headYaw = this.getByte() * (360f / 256f);
     }
 
     @Override
@@ -64,10 +64,10 @@ public class MoveEntityAbsolutePacket15 extends Packet15 {
             flags |= 0x04;
         }
         this.putByte(flags);
-        this.putVector3f((float) this.x, (float) this.y, (float) this.z);
-        this.putByte((byte) (this.pitch / (360d / 256d)));
-        this.putByte((byte) (this.yaw / (360d / 256d)));
-        this.putByte((byte) (this.headYaw / (360d / 256d)));
+        this.putVector3f(this.x, this.y, this.z);
+        this.putByte((byte) (this.pitch / (360f / 256f)));
+        this.putByte((byte) (this.yaw / (360f / 256f)));
+        this.putByte((byte) (this.headYaw / (360f / 256f)));
     }
 
     @Override

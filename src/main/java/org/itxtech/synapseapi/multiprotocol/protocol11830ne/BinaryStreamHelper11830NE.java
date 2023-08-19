@@ -13,4 +13,14 @@ public class BinaryStreamHelper11830NE extends BinaryStreamHelper11830 {
         return "1.18.30";
     }
 
+    @Override
+    public boolean isMicrosoft() {
+        return false;
+    }
+
+    @Override
+    public boolean isNetEase() {
+        return true;
+    }
+
 }

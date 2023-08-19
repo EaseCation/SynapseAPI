@@ -19,9 +19,9 @@ public class MoveEntityDeltaPacket extends Packet15 {
     public int xDelta = 0;
     public int yDelta = 0;
     public int zDelta = 0;
-    public double pitchDelta = 0;
-    public double yawDelta = 0;
-    public double headYawDelta = 0;
+    public float pitchDelta = 0;
+    public float yawDelta = 0;
+    public float headYawDelta = 0;
 
     @Override
     public int pid() {
@@ -52,11 +52,11 @@ public class MoveEntityDeltaPacket extends Packet15 {
         return 0;
     }
 
-    private double getRotation(int flag) {
+    private float getRotation(int flag) {
         if ((flags & flag) != 0) {
-            return this.getByte() * (360d / 256d);
+            return this.getByte() * (360f / 256f);
         }
-        return 0d;
+        return 0;
     }
 
     private void putCoordinate(int flag, int value) {
@@ -65,9 +65,9 @@ public class MoveEntityDeltaPacket extends Packet15 {
         }
     }
 
-    private void putRotation(int flag, double value) {
+    private void putRotation(int flag, float value) {
         if ((flags & flag) != 0) {
-            this.putByte((byte) (value / (360d / 256d)));
+            this.putByte((byte) (value / (360f / 256f)));
         }
     }
 }

@@ -18,6 +18,16 @@ public class BinaryStreamHelper119 extends BinaryStreamHelper11830NE {
     }
 
     @Override
+    public boolean isMicrosoft() {
+        return true;
+    }
+
+    @Override
+    public boolean isNetEase() {
+        return false;
+    }
+
+    @Override
     protected void registerCommandParameterTypes() {
         int ARG_TYPE_INT = 1;
         int ARG_TYPE_FLOAT = 3;

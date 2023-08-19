@@ -6,7 +6,6 @@ import cn.nukkit.inventory.FurnaceRecipe;
 import cn.nukkit.inventory.MaterialReducerRecipe;
 import cn.nukkit.inventory.MultiRecipe;
 import cn.nukkit.inventory.Recipe;
-import cn.nukkit.inventory.RecipeType;
 import cn.nukkit.inventory.ShapedRecipe;
 import cn.nukkit.inventory.ShapelessRecipe;
 import cn.nukkit.inventory.SmithingTransformRecipe;
@@ -98,20 +97,7 @@ public class CraftingDataPacket11980 extends Packet11980 {
                 case FURNACE:
                 case FURNACE_DATA:
                     FurnaceRecipe furnace = (FurnaceRecipe) recipe;
-                    Item input = furnace.getInput();
-                    int id = this.helper.getItemNetworkId(this, input);
-                    switch (id) {
-                        case -1137:
-                        case -1139:
-                        case -1141:
-                        case -1143:
-                            //FIXME: item flatten (log, log2) -- 06/17/2023
-                            log.debug("§cAssertion failed: Item-error:Failed to get a valid item from item data[{}]. §r{}", id, furnace);
-                    }
-                    this.putVarInt(id);
-                    if (recipe.getType() == RecipeType.FURNACE_DATA) {
-                        this.putVarInt(input.getDamage());
-                    }
+                    this.helper.putFurnaceRecipeIngredient(this, furnace.getInput(), recipe.getType());
                     this.putItemInstance(furnace.getResult());
                     this.putString(furnace.getTag().toString());
                     break;
@@ -143,12 +129,9 @@ public class CraftingDataPacket11980 extends Packet11980 {
 
         this.putUnsignedVarInt(this.brewingEntries.size());
         for (BrewingRecipe recipe : brewingEntries) {
-            this.putVarInt(this.helper.getItemNetworkId(this, recipe.getInput()));
-            this.putVarInt(recipe.getInput().getDamage());
-            this.putVarInt(this.helper.getItemNetworkId(this, recipe.getIngredient()));
-            this.putVarInt(recipe.getIngredient().getDamage());
-            this.putVarInt(this.helper.getItemNetworkId(this, recipe.getResult()));
-            this.putVarInt(recipe.getResult().getDamage());
+            this.helper.putBrewingRecipeItem(this, recipe.getInput());
+            this.helper.putBrewingRecipeItem(this, recipe.getIngredient());
+            this.helper.putBrewingRecipeItem(this, recipe.getResult());
         }
 
         this.putUnsignedVarInt(this.containerEntries.size());
