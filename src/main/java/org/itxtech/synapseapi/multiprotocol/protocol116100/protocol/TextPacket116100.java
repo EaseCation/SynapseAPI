@@ -90,7 +90,15 @@ public class TextPacket116100 extends Packet116100 {
             case TYPE_OBJECT:
             case TYPE_OBJECT_WHISPER:
             case TYPE_OBJECT_ANNOUNCEMENT:
-                this.putString(this.message);
+                String message = this.message;
+                if (neteaseMode) {
+                    // 中国版客户端bug的临时解决方案, 防止触发PacketViolationWarningPacket断开连接
+                    int nameLength = primaryName.length();
+                    if (nameLength + message.length() >= 512) {
+                        message = message.substring(0, 511 - nameLength);
+                    }
+                }
+                this.putString(message);
                 break;
             case TYPE_TRANSLATION:
             case TYPE_POPUP:
