@@ -1,7 +1,7 @@
 package org.itxtech.synapseapi.network.synlib;
 
 import cn.nukkit.Server;
-import cn.nukkit.utils.ThreadedLogger;
+import cn.nukkit.utils.Logger;
 import com.nukkitx.network.util.Bootstraps;
 import com.nukkitx.network.util.EventLoops;
 import io.netty.bootstrap.Bootstrap;
@@ -24,7 +24,7 @@ public class SynapseClient extends Thread {
     public boolean needReconnect = false;
     protected ConcurrentLinkedQueue<SynapseDataPacket> externalQueue;
     protected ConcurrentLinkedQueue<SynapseDataPacket> internalQueue;
-    private final ThreadedLogger logger;
+    private final Logger logger;
     private final String interfaz;
     private final int port;
     private final AtomicBoolean shutdown;
@@ -33,11 +33,11 @@ public class SynapseClient extends Thread {
     private boolean connected = false;
     private final Session session;
 
-    public SynapseClient(ThreadedLogger logger, int port) {
+    public SynapseClient(Logger logger, int port) {
         this(logger, port, "127.0.0.1");
     }
 
-    public SynapseClient(ThreadedLogger logger, int port, String interfaz) {
+    public SynapseClient(Logger logger, int port, String interfaz) {
         this.logger = logger;
         this.interfaz = interfaz;
         this.port = port;
@@ -105,7 +105,7 @@ public class SynapseClient extends Thread {
         return interfaz;
     }
 
-    public ThreadedLogger getLogger() {
+    public Logger getLogger() {
         return logger;
     }
 

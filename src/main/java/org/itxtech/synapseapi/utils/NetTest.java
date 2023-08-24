@@ -84,8 +84,7 @@ public class NetTest implements PluginMessageListener {
             plugin.getLogger().info("[网络测试] 测试完成，已导出结果数据至文件：" + fileName);
             this.isTesting = false;
         } catch (Exception e) {
-            plugin.getLogger().warning("文件导出失败");
-            Server.getInstance().getLogger().logException(e);
+            plugin.getLogger().warning("文件导出失败", e);
         }
     }
 

@@ -109,9 +109,9 @@ public class SynapseEntryPutPacketThread extends Thread {
         isRunning = running;
     }
 
-    private static final List<AbstractProtocol> fullProtocols = new ArrayList<AbstractProtocol>(Arrays.asList(AbstractProtocol.values())){{
-        remove(AbstractProtocol.PROTOCOL_11);
-    }};
+    private static final List<AbstractProtocol> fullProtocols = Arrays.stream(AbstractProtocol.values())
+            .filter(protocol -> protocol != AbstractProtocol.PROTOCOL_11)
+            .toList();
 
     private static class BatchPacketEntry {
         private final DataPacket normal;
@@ -361,8 +361,7 @@ public class SynapseEntryPutPacketThread extends Thread {
                         }
                     }
                 } catch (Exception e) {
-                    Server.getInstance().getLogger().alert("Catch exception when Synapse Entry Put Packet: " + e.getMessage());
-                    Server.getInstance().getLogger().logException(e);
+                    Server.getInstance().getLogger().alert("Catch exception when Synapse Entry Put Packet: ", e);
                 }
             }
 
