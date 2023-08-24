@@ -275,6 +275,7 @@ public class SynapsePlayer extends Player {
                 .set(Type.OPERATOR, isOp())
                 .set(Type.TELEPORT, hasPermission("nukkit.command.teleport"));
 
+        Level oldLevel = this.level;
         Level level;
         if ((level = this.server.getLevelByName(nbt.getString("Level"))) == null || !alive) {
             this.setLevel(this.server.getDefaultLevel());
@@ -285,6 +286,10 @@ public class SynapsePlayer extends Player {
                     .add(new DoubleTag("", this.level.getSpawnLocation().z));
         } else {
             this.setLevel(level);
+        }
+        if (oldLevel != this.level) {
+            oldLevel.onPlayerRemove(this);
+            this.level.onPlayerAdd(this);
         }
 
         /*for (Tag achievement : nbt.getCompound("Achievements").getAllTags()) {
