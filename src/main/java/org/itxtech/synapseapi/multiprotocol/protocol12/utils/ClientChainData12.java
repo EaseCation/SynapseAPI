@@ -201,7 +201,7 @@ public final class ClientChainData12 implements LoginChainData {
                 if (extra.has("identity")) this.clientUUID = UUID.fromString(extra.get("identity").getAsString());
                 if (extra.has("XUID")) this.xuid = extra.get("XUID").getAsString();
                 if (extra.has("uid")) this.neteaseUid = extra.get("uid").getAsString();
-                if (extra.has("netease_sid")) this.neteaseSid = extra.get("sid").getAsString();
+                if (extra.has("netease_sid")) this.neteaseSid = extra.get("netease_sid").getAsString();
                 if (extra.has("platform")) this.neteasePlatform = extra.get("platform").getAsString();
             }
             if (chainMap.has("identityPublicKey"))

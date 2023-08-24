@@ -5,15 +5,14 @@ import cn.nukkit.item.ItemDurable;
 import cn.nukkit.item.ItemID;
 import cn.nukkit.nbt.NBTIO;
 import cn.nukkit.nbt.tag.CompoundTag;
-import cn.nukkit.nbt.tag.ListTag;
-import cn.nukkit.nbt.tag.StringTag;
 import cn.nukkit.utils.BinaryStream;
 import it.unimi.dsi.fastutil.io.FastByteArrayInputStream;
+import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet;
 import org.itxtech.synapseapi.multiprotocol.protocol18.BinaryStreamHelper18;
 
 import java.io.IOException;
 import java.nio.ByteOrder;
-import java.util.List;
+import java.util.Set;
 
 public class BinaryStreamHelper19 extends BinaryStreamHelper18 {
 
@@ -73,30 +72,29 @@ public class BinaryStreamHelper19 extends BinaryStreamHelper18 {
             throw new RuntimeException("Invalid item meta received: " + data);
         }
 
-        ListTag<StringTag> canPlace;
-        ListTag<StringTag> canBreak;
-
+        Set<String> canPlace;
         int canPlaceCount = stream.getVarInt();
         if (canPlaceCount > 0) {
             if (canPlaceCount > 4096) {
                 throw new IndexOutOfBoundsException("Too many CanPlaceOn blocks");
             }
-            canPlace = new ListTag<>("CanPlaceOn");
+            canPlace = new ObjectOpenHashSet<>();
             for (int i = 0; i < canPlaceCount; i++) {
-                canPlace.add(new StringTag("", stream.getString()));
+                canPlace.add(stream.getString());
             }
         } else {
             canPlace = null;
         }
 
+        Set<String> canBreak;
         int canBreakCount = stream.getVarInt();
         if (canBreakCount > 0) {
             if (canBreakCount > 4096) {
                 throw new IndexOutOfBoundsException("Too many CanDestroy blocks");
             }
-            canBreak = new ListTag<>("CanDestroy");
+            canBreak = new ObjectOpenHashSet<>();
             for (int i = 0; i < canBreakCount; i++) {
-                canBreak.add(new StringTag("", stream.getString()));
+                canBreak.add(stream.getString());
             }
         } else {
             canBreak = null;
@@ -106,20 +104,12 @@ public class BinaryStreamHelper19 extends BinaryStreamHelper18 {
                 id, data, cnt, nbt
         );
 
-        if (canPlace != null || canBreak != null) {
-            CompoundTag namedTag = item.getNamedTag();
-            if (namedTag == null) {
-                namedTag = new CompoundTag();
-            }
+        if (canPlace != null && !canPlace.isEmpty()) {
+            item.setCanPlaceOnBlocks(canPlace);
+        }
 
-            if (canPlace != null) {
-                namedTag.putList(canPlace);
-            }
-            if (canBreak != null) {
-                namedTag.putList(canBreak);
-            }
-
-            item.setNamedTag(namedTag);
+        if (canBreak != null && !canBreak.isEmpty()) {
+            item.setCanDestroyBlocks(canBreak);
         }
 
         return item;
@@ -168,15 +158,25 @@ public class BinaryStreamHelper19 extends BinaryStreamHelper18 {
         } else {
             stream.putLShort(0);
         }
-        List<String> canPlaceOn = extractStringList(stream, item, "CanPlaceOn");
-        List<String> canDestroy = extractStringList(stream, item, "CanDestroy");
-        stream.putVarInt(canPlaceOn.size());
-        for (String block : canPlaceOn) {
-            stream.putString(block);
+
+        Set<String> canPlaceOn = item.getCanPlaceOnBlocks();
+        if (canPlaceOn != null) {
+            stream.putVarInt(canPlaceOn.size());
+            for (String block : canPlaceOn) {
+                stream.putString(block);
+            }
+        } else {
+            stream.putVarInt(0);
         }
-        stream.putVarInt(canDestroy.size());
-        for (String block : canDestroy) {
-            stream.putString(block);
+
+        Set<String> canDestroy = item.getCanDestroyBlocks();
+        if (canDestroy != null) {
+            stream.putVarInt(canDestroy.size());
+            for (String block : canDestroy) {
+                stream.putString(block);
+            }
+        } else {
+            stream.putVarInt(0);
         }
     }
 }

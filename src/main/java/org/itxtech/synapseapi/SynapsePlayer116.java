@@ -1,6 +1,7 @@
 package org.itxtech.synapseapi;
 
 import cn.nukkit.Player;
+import cn.nukkit.Server;
 import cn.nukkit.block.Block;
 import cn.nukkit.block.BlockDoor;
 import cn.nukkit.block.BlockDragonEgg;
@@ -35,9 +36,11 @@ import cn.nukkit.math.*;
 import cn.nukkit.network.PacketViolationReason;
 import cn.nukkit.network.SourceInterface;
 import cn.nukkit.network.protocol.*;
+import cn.nukkit.network.protocol.AnimatePacket.Action;
 import cn.nukkit.network.protocol.types.ContainerIds;
 import cn.nukkit.network.protocol.types.NetworkInventoryAction;
 import cn.nukkit.utils.Binary;
+import cn.nukkit.utils.ClientChainData;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import lombok.extern.log4j.Log4j2;
 import org.itxtech.synapseapi.event.player.SynapsePlayerInputModeChangeEvent;
@@ -830,6 +833,19 @@ public class SynapsePlayer116 extends SynapsePlayer113 {
 
 				if ((inputFlags & (1L << PlayerAuthInputFlags.MISSED_SWING)) != 0 && isServerAuthoritativeSoundEnabled()) {
 					level.addLevelSoundEvent(this, LevelSoundEventPacket.SOUND_ATTACK_NODAMAGE, "minecraft:player");
+
+					// touch bug: https://bugs.mojang.com/browse/MCPE-107865
+					if (getLoginChainData().getCurrentInputMode() == ClientChainData.INPUT_TOUCH) {
+						AnimatePacket pk = new AnimatePacket();
+						pk.eid = getId();
+						pk.action = Action.SWING_ARM;
+						dataPacket(pk);
+
+						AnimatePacket pkBroadcast = new AnimatePacket();
+						pkBroadcast.eid = getId();
+						pkBroadcast.action = Action.SWING_ARM;
+						Server.broadcastPacket(getViewers().values(), pkBroadcast);
+					}
 				}
 
 				Vector3 newPos = new Vector3(playerAuthInputPacket.getX(), playerAuthInputPacket.getY() - this.getEyeHeight(), playerAuthInputPacket.getZ());
@@ -900,7 +916,7 @@ public class SynapsePlayer116 extends SynapsePlayer113 {
 									this.inventory.sendHeldItem(this);
 									break;
 								}
-								if (!isAdventure()) {
+								if (/*!isAdventure()*/true) {
 									switch (target.getId()) {
 										case Block.NOTEBLOCK:
 											((BlockNoteblock) target).emitSound();
@@ -913,7 +929,7 @@ public class SynapsePlayer116 extends SynapsePlayer113 {
 										case Block.BLOCK_FRAME:
 										case Block.BLOCK_GLOW_FRAME:
 											BlockEntity itemFrame = this.level.getBlockEntityIfLoaded(pos);
-											if (itemFrame instanceof BlockEntityItemFrame && ((BlockEntityItemFrame) itemFrame).dropItem(this)) {
+											if (itemFrame instanceof BlockEntityItemFrame && (((BlockEntityItemFrame) itemFrame).dropItem(this) || isCreative())) {
 												break actionswitch;
 											}
 									}

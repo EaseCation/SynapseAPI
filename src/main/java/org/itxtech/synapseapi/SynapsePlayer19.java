@@ -128,7 +128,7 @@ public class SynapsePlayer19 extends SynapsePlayer18 {
 					BlockEntityLectern lectern = (BlockEntityLectern) blockEntity;
 
 					if (lecternUpdatePacket.droppingBook) {
-						if (lectern.dropBook()) {
+						if (lectern.dropBook(this)) {
 							lectern.spawnToAll();
 						} else {
 							lectern.spawnTo(this);
@@ -166,7 +166,7 @@ public class SynapsePlayer19 extends SynapsePlayer18 {
 					BlockEntityLectern lectern = (BlockEntityLectern) blockEntity;
 
 					if (lecternUpdatePacket.droppingBook) {
-						if (lectern.dropBook()) {
+						if (lectern.dropBook(this)) {
 							lectern.spawnToAll();
 						} else {
 							lectern.spawnTo(this);

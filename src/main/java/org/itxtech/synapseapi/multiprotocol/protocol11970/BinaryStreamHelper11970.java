@@ -7,14 +7,13 @@ import cn.nukkit.item.ItemDurable;
 import cn.nukkit.item.ItemID;
 import cn.nukkit.nbt.NBTIO;
 import cn.nukkit.nbt.tag.CompoundTag;
-import cn.nukkit.nbt.tag.ListTag;
-import cn.nukkit.nbt.tag.StringTag;
 import cn.nukkit.network.LittleEndianByteBufInputStream;
 import cn.nukkit.network.LittleEndianByteBufOutputStream;
 import cn.nukkit.network.protocol.types.ItemDescriptorType;
 import cn.nukkit.utils.BinaryStream;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.ByteBufAllocator;
+import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet;
 import lombok.extern.log4j.Log4j2;
 import org.itxtech.synapseapi.SynapseSharedConstants;
 import org.itxtech.synapseapi.multiprotocol.protocol11963.BinaryStreamHelper11963;
@@ -24,7 +23,7 @@ import org.itxtech.synapseapi.multiprotocol.utils.item.BlockItemFlattener;
 
 import java.io.IOException;
 import java.nio.ByteOrder;
-import java.util.List;
+import java.util.Set;
 
 @Log4j2
 public class BinaryStreamHelper11970 extends BinaryStreamHelper11963 {
@@ -78,8 +77,8 @@ public class BinaryStreamHelper11970 extends BinaryStreamHelper11963 {
         buf.writeBytes(bytes);
 
         byte[] nbt = new byte[0];
-        ListTag<StringTag> canPlace;
-        ListTag<StringTag> canBreak;
+        Set<String> canPlace;
+        Set<String> canBreak;
 
         try (LittleEndianByteBufInputStream in = new LittleEndianByteBufInputStream(buf)) {
             int nbtSize = in.readShort();
@@ -111,9 +110,9 @@ public class BinaryStreamHelper11970 extends BinaryStreamHelper11963 {
                 if (canPlaceCount > 4096) {
                     throw new IndexOutOfBoundsException("Too many CanPlaceOn blocks");
                 }
-                canPlace = new ListTag<>("CanPlaceOn");
+                canPlace = new ObjectOpenHashSet<>();
                 for (int i = 0; i < canPlaceCount; i++) {
-                    canPlace.add(new StringTag("", in.readUTF()));
+                    canPlace.add(in.readUTF());
                 }
             } else {
                 canPlace = null;
@@ -124,9 +123,9 @@ public class BinaryStreamHelper11970 extends BinaryStreamHelper11963 {
                 if (canBreakCount > 4096) {
                     throw new IndexOutOfBoundsException("Too many CanDestroy blocks");
                 }
-                canBreak = new ListTag<>("CanDestroy");
+                canBreak = new ObjectOpenHashSet<>();
                 for (int i = 0; i < canBreakCount; i++) {
-                    canBreak.add(new StringTag("", in.readUTF()));
+                    canBreak.add(in.readUTF());
                 }
             } else {
                 canBreak = null;
@@ -147,20 +146,12 @@ public class BinaryStreamHelper11970 extends BinaryStreamHelper11963 {
 
         Item item = Item.get(id, damage, count, nbt);
 
-        if (canPlace != null || canBreak != null) {
-            CompoundTag namedTag = item.getNamedTag();
-            if (namedTag == null) {
-                namedTag = new CompoundTag();
-            }
+        if (canPlace != null && !canPlace.isEmpty()) {
+            item.setCanPlaceOnBlocks(canPlace);
+        }
 
-            if (canPlace != null) {
-                namedTag.putList(canPlace);
-            }
-            if (canBreak != null) {
-                namedTag.putList(canBreak);
-            }
-
-            item.setNamedTag(namedTag);
+        if (canBreak != null && !canBreak.isEmpty()) {
+            item.setCanDestroyBlocks(canBreak);
         }
 
         return item;
@@ -234,16 +225,24 @@ public class BinaryStreamHelper11970 extends BinaryStreamHelper11963 {
                 userDataBuf.writeShortLE(0);
             }
 
-            List<String> canPlaceOn = extractStringList(stream, item, "CanPlaceOn");
-            out.writeInt(canPlaceOn.size());
-            for (String string : canPlaceOn) {
-                out.writeUTF(string);
+            Set<String> canPlaceOn = item.getCanPlaceOnBlocks();
+            if (canPlaceOn != null) {
+                out.writeInt(canPlaceOn.size());
+                for (String string : canPlaceOn) {
+                    out.writeUTF(string);
+                }
+            } else {
+                out.writeInt(0);
             }
 
-            List<String> canDestroy = extractStringList(stream, item, "CanDestroy");
-            out.writeInt(canDestroy.size());
-            for (String string : canDestroy) {
-                out.writeUTF(string);
+            Set<String> canDestroy = item.getCanDestroyBlocks();
+            if (canDestroy != null) {
+                out.writeInt(canDestroy.size());
+                for (String string : canDestroy) {
+                    out.writeUTF(string);
+                }
+            } else {
+                out.writeInt(0);
             }
 
             if (id == ItemID.SHIELD) {

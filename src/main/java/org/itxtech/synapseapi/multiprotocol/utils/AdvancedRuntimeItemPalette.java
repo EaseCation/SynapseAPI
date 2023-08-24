@@ -1,11 +1,10 @@
 package org.itxtech.synapseapi.multiprotocol.utils;
 
 import cn.nukkit.item.Item;
-import cn.nukkit.item.ItemFactory;
-import cn.nukkit.item.Items;
 import cn.nukkit.item.RuntimeItemPaletteInterface;
 import lombok.extern.log4j.Log4j2;
 import org.itxtech.synapseapi.multiprotocol.AbstractProtocol;
+import org.itxtech.synapseapi.multiprotocol.utils.item.LegacyItemSerializer;
 
 import java.util.EnumMap;
 import java.util.Map;
@@ -24,6 +23,8 @@ public final class AdvancedRuntimeItemPalette {
 
     static {
         log.debug("Loading advanced runtime item palette...");
+
+        LegacyItemSerializer.initialize();
 
         RuntimeItemPalette palette116100 = new RuntimeItemPalette("runtime_item_ids_116100.json");
         RuntimeItemPalette palette116200NE = new RuntimeItemPalette("runtime_item_ids_116200NE.json");
@@ -82,21 +83,19 @@ public final class AdvancedRuntimeItemPalette {
         palettes.put(protocol, data);
     }
 
-    public static void registerCustomItem(String fullName, int id, Class<? extends Item> clazz, ItemFactory factory) {
-        registerCustomItem(fullName, id, id, null, clazz, factory);
+    public static void registerCustomItem(String fullName, int id) {
+        registerCustomItem(fullName, id, null, null);
     }
 
-    public static void registerCustomItem(String fullName, int id, Integer oldId, Integer oldData, Class<? extends Item> clazz, ItemFactory factory) {
+    public static void registerCustomItem(String fullName, int id, Integer oldId, Integer oldData) {
         for (AdvancedRuntimeItemPaletteInterface[] interfaces : palettes.values()) {
             for (AdvancedRuntimeItemPaletteInterface palette : interfaces) {
                 if (palette instanceof RuntimeItemPalette) {
                     RuntimeItemPaletteInterface.Entry entry = new RuntimeItemPaletteInterface.Entry(fullName, id, oldId, oldData);
                     ((RuntimeItemPalette) palette).registerItem(entry);
-                    ((RuntimeItemPalette) palette).buildPaletteBuffer();
                 }
             }
         }
-        Items.registerItem(id, clazz, factory);
     }
 
     private static AdvancedRuntimeItemPaletteInterface getPalette(AbstractProtocol protocol, boolean netease) {

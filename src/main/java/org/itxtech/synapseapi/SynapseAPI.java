@@ -42,6 +42,7 @@ import org.itxtech.synapseapi.multiprotocol.utils.CreativeItemsPalette;
 import org.itxtech.synapseapi.multiprotocol.utils.EntityProperties;
 import org.itxtech.synapseapi.multiprotocol.utils.ItemComponentDefinitions;
 import org.itxtech.synapseapi.multiprotocol.utils.item.CraftingManagerLegacy;
+import org.itxtech.synapseapi.multiprotocol.utils.item.CraftingManagerMedieval;
 import org.itxtech.synapseapi.multiprotocol.utils.item.CraftingManagerNew;
 import org.itxtech.synapseapi.utils.ClientData;
 import org.itxtech.synapseapi.utils.NetTest;
@@ -224,7 +225,9 @@ public class SynapseAPI extends PluginBase implements Listener {
         ItemComponentDefinitions.init();
         EntityProperties.init();
 
-        getServer().setCraftingManager(V1_19_0.isAvailable() ? new CraftingManagerNew() : new CraftingManagerLegacy());
+        getServer().setCraftingManager(V1_19_0.isAvailable() ? new CraftingManagerNew()
+                : V1_18_0.isAvailable() ? new CraftingManagerMedieval()
+                : new CraftingManagerLegacy());
         CraftingPacketManager.rebuildPacket();
 
         ChunkRequestTask.addPreloadVersion(StaticVersion.V1_18_30_NETEASE);

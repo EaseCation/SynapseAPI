@@ -3,6 +3,7 @@ package org.itxtech.synapseapi.multiprotocol.utils.block;
 import cn.nukkit.GameVersion;
 import cn.nukkit.block.Block;
 import cn.nukkit.nbt.tag.CompoundTag;
+import it.unimi.dsi.fastutil.ints.Int2ObjectFunction;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import lombok.extern.log4j.Log4j2;
 import org.itxtech.synapseapi.multiprotocol.AbstractProtocol;
@@ -80,7 +81,9 @@ public final class RuntimeBlockMapper {
                 CompletableFuture.runAsync(() -> map(V1_20_10, basePalette, palette12010, ver -> ver.ordinal() >= baseVersion.ordinal() && ver.ordinal() <= V1_20_10.ordinal()))
         ).join();
 
-        setupRuntimeBlockSerializer(basePalette);
+        LegacyBlockSerializer.setSerializer(createRuntimeBlockSerializer(basePalette));
+
+        BlockUtil.initialize();
     }
 
     private static void map(GameVersion version, BlockPalette base, BlockPalette target, Predicate<GameVersion> upgradeFilter) {
@@ -122,7 +125,7 @@ public final class RuntimeBlockMapper {
         return null;
     }
 
-    private static void setupRuntimeBlockSerializer(BlockPalette basePalette) {
+    public static Int2ObjectFunction<CompoundTag> createRuntimeBlockSerializer(BlockPalette basePalette) {
         List<CompoundTag>[] mapping = new List[Block.UNDEFINED];
         for (BlockData block : basePalette.palette) {
             int id = block.id;
@@ -178,7 +181,7 @@ public final class RuntimeBlockMapper {
 
         CompoundTag infoUpdateBlock = idMetaToTag[Block.INFO_UPDATE][0];
 
-        LegacyBlockSerializer.setSerializer(fullId -> {
+       return fullId -> {
             int id = fullId >> Block.BLOCK_META_BITS;
             if (id < 0 || id >= Block.UNDEFINED) {
                 log.warn("Invalid block id: {}", id);
@@ -201,7 +204,7 @@ public final class RuntimeBlockMapper {
                 return tags[0];
             }
             return tags[meta];
-        });
+       };
     }
 
     private RuntimeBlockMapper() {
