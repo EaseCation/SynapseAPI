@@ -3,6 +3,7 @@ package org.itxtech.synapseapi.command;
 import cn.nukkit.command.Command;
 import cn.nukkit.command.CommandSender;
 import cn.nukkit.command.PluginIdentifiableCommand;
+import cn.nukkit.command.data.CommandFlag;
 import cn.nukkit.lang.TranslationContainer;
 import cn.nukkit.plugin.Plugin;
 import org.itxtech.synapseapi.SynapsePlayer;
@@ -16,6 +17,9 @@ public class LatencyCommand extends Command implements PluginIdentifiableCommand
     public LatencyCommand(Plugin plugin) {
         super("latency", "RTT telemetry", "/latency");
         setPermission("synapseapi.command.latency");
+        commandData.flags.add(CommandFlag.TEST);
+        commandData.flags.add(CommandFlag.HIDDEN_FROM_COMMAND_BLOCK_ORIGIN);
+        commandData.flags.add(CommandFlag.NOT_CHEAT);
         commandParameters.clear();
         this.plugin = plugin;
     }

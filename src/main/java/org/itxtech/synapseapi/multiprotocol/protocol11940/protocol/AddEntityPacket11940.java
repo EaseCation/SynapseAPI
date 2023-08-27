@@ -1,6 +1,6 @@
 package org.itxtech.synapseapi.multiprotocol.protocol11940.protocol;
 
-import cn.nukkit.entity.Attribute;
+import cn.nukkit.entity.attribute.Attribute;
 import cn.nukkit.entity.Entities;
 import cn.nukkit.entity.data.EntityMetadata;
 import cn.nukkit.entity.item.*;

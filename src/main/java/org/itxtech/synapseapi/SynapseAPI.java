@@ -233,8 +233,14 @@ public class SynapseAPI extends PluginBase implements Listener {
         ChunkRequestTask.addPreloadVersion(StaticVersion.V1_18_30_NETEASE);
 
         //仅用于开发测试
+/*
         this.getServer().getCommandMap().register("dcpk", new Command("dcpk") {
             {
+                this.commandData.flags.add(CommandFlag.TEST);
+                this.commandData.flags.add(CommandFlag.HIDDEN_FROM_COMMAND_BLOCK_ORIGIN);
+                this.commandData.flags.add(CommandFlag.HIDDEN_FROM_PLAYER_ORIGIN);
+                this.commandData.flags.add(CommandFlag.DISALLOWED);
+                this.commandData.flags.add(CommandFlag.NOT_CHEAT);
                 this.setPermission("console.command.dcpk");
             }
 
@@ -268,6 +274,7 @@ public class SynapseAPI extends PluginBase implements Listener {
                 return false;
             }
         });
+*/
         if (NETWORK_STACK_LATENCY_TELEMETRY) {
             this.getServer().getCommandMap().register("synapse", new LatencyCommand(this));
         }

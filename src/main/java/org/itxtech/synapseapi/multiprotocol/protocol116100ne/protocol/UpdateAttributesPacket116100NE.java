@@ -1,6 +1,6 @@
 package org.itxtech.synapseapi.multiprotocol.protocol116100ne.protocol;
 
-import cn.nukkit.entity.Attribute;
+import cn.nukkit.entity.attribute.Attribute;
 import cn.nukkit.network.protocol.DataPacket;
 import cn.nukkit.network.protocol.ProtocolInfo;
 import cn.nukkit.network.protocol.UpdateAttributesPacket;

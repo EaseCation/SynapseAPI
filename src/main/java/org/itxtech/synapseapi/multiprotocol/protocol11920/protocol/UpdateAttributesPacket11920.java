@@ -1,11 +1,15 @@
 package org.itxtech.synapseapi.multiprotocol.protocol11920.protocol;
 
-import cn.nukkit.entity.Attribute;
+import cn.nukkit.entity.attribute.Attribute;
+import cn.nukkit.entity.attribute.AttributeModifier;
+import cn.nukkit.entity.attribute.AttributeModifier.Operation;
 import cn.nukkit.network.protocol.DataPacket;
 import cn.nukkit.network.protocol.ProtocolInfo;
 import cn.nukkit.network.protocol.UpdateAttributesPacket;
 import lombok.ToString;
 import org.itxtech.synapseapi.utils.ClassUtils;
+
+import java.util.Set;
 
 @ToString
 public class UpdateAttributesPacket11920 extends Packet11920 {
@@ -41,11 +45,31 @@ public class UpdateAttributesPacket11920 extends Packet11920 {
                 this.putLFloat(entry.getValue());
                 this.putLFloat(entry.getDefaultValue());
                 this.putString(entry.getName());
-                this.putUnsignedVarInt(0); // modifiers
+
+                Set<AttributeModifier> addModifiers = entry.getModifiers(Operation.ADDITION);
+                Set<AttributeModifier> mulBaseModifiers = entry.getModifiers(Operation.MULTIPLY_BASE);
+                Set<AttributeModifier> mulTotalModifiers = entry.getModifiers(Operation.MULTIPLY_TOTAL);
+                Set<AttributeModifier> capModifiers = entry.getModifiers(Operation.CAP);
+                this.putUnsignedVarInt(addModifiers.size() + mulBaseModifiers.size() + mulTotalModifiers.size() + capModifiers.size());
+                this.writeAttributeModifiers(addModifiers);
+                this.writeAttributeModifiers(mulBaseModifiers);
+                this.writeAttributeModifiers(mulTotalModifiers);
+                this.writeAttributeModifiers(capModifiers);
             }
         }
 
         this.putUnsignedVarLong(this.frame);
+    }
+
+    private void writeAttributeModifiers(Set<AttributeModifier> modifiers) {
+        for (AttributeModifier modifier : modifiers) {
+            this.putString(modifier.getId().toString());
+            this.putString(modifier.getName());
+            this.putLFloat(modifier.getAmount());
+            this.putLInt(modifier.getOperation().ordinal());
+            this.putLInt(modifier.getOperand().ordinal());
+            this.putBoolean(modifier.isSerializable());
+        }
     }
 
     @Override
