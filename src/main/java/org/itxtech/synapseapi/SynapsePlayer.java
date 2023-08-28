@@ -743,7 +743,7 @@ public class SynapsePlayer extends Player {
         Location from = this.getLocation();
 
         boolean isLevelChanging = this.isLevelChange;
-        if (location.level != null && from.getLevel().getId() != location.level.getId()) {
+        if (location.level != null && from.getLevel() != location.level) {
             this.getDummyBossBars().values().forEach(DummyBossBar::destroy);  //游戏崩溃问题
             for (Entity entity : this.getLevel().getEntities()) {
                 if (entity.getViewers().containsKey(this.getLoaderId())) {
@@ -753,7 +753,7 @@ public class SynapsePlayer extends Player {
             this.isLevelChange = true;
         }
         if (super.teleport(location, cause) && this.isNeedLevelChangeLoadScreen()) {
-            if (from.getLevel().getId() != location.level.getId() && this.spawned) {
+            if (location.level != null && from.getLevel() != location.level && this.spawned) {
                 // 用于连续切换世界的情况下，防止卡在loading screen
                 if (!isLevelChanging) {
                     this.nextDummyDimension();

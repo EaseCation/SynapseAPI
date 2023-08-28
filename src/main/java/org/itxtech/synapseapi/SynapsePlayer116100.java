@@ -104,6 +104,7 @@ import org.itxtech.synapseapi.multiprotocol.utils.EntityProperties;
 import org.itxtech.synapseapi.multiprotocol.utils.ItemComponentDefinitions;
 import org.itxtech.synapseapi.network.protocol.spp.PlayerLoginPacket;
 import org.itxtech.synapseapi.utils.BlobTrack;
+import org.itxtech.synapseapi.utils.PacketUtil;
 
 import javax.annotation.Nullable;
 import java.net.InetSocketAddress;
@@ -666,6 +667,10 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
 
     @Override
     public void handleDataPacket(DataPacket packet) {
+        if (!isInitialized() && !PacketUtil.canBeSentBeforeLogin(packet.pid())) {
+            return;
+        }
+
         if (!this.isSynapseLogin) {
             super.handleDataPacket(packet);
             return;
@@ -2138,6 +2143,42 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
             } else {
                 this.dataPacket(packets[index]);
             }
+
+            iter.remove();
+        }
+    }
+
+    @Override
+    public void onSubChunkRequestFail(int dimension, int x, int z) {
+        if (!this.connected) {
+            return;
+        }
+
+        long chunkHash = Level.chunkHash(x, z);
+        IntSet requests = this.subChunkSendQueue.remove(chunkHash);
+        if (requests == null) {
+            requests = this.subChunkRequestQueue.remove(chunkHash);
+            if (requests == null) {
+                return;
+            }
+        } else {
+            IntSet newRequests = this.subChunkRequestQueue.remove(chunkHash);
+            if (newRequests != null) {
+                requests.addAll(newRequests);
+            }
+        }
+
+        IntIterator iter = requests.iterator();
+        while (iter.hasNext()) {
+            int y = iter.nextInt();
+
+            SubChunkPacket pk = this.createSubChunkPacket();
+            pk.dimension = dimension;
+            pk.subChunkX = x;
+            pk.subChunkY = y;
+            pk.subChunkZ = z;
+            pk.requestResult = SubChunkPacket.REQUEST_RESULT_NO_SUCH_CHUNK;
+            this.dataPacket(pk);
 
             iter.remove();
         }
