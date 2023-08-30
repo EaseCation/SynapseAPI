@@ -207,7 +207,18 @@ public class SynapsePlayer113 extends SynapsePlayer112 {
 						this.teleport(respawnPos, null);
 
 						this.setSprinting(false);
-						this.setSneaking(false);
+						if (isSneaking()) {
+							this.setSneaking(false);
+						}
+						if (isGliding()) {
+							this.setGliding(false);
+						}
+						if (isSwimming()) {
+							this.setSwimming(false);
+						}
+						if (isCrawling()) {
+							this.setCrawling(false);
+						}
 
 						this.setDataProperty(new ShortEntityData(Player.DATA_AIR, 300), false);
 						this.deadTicks = 0;
@@ -714,7 +725,7 @@ public class SynapsePlayer113 extends SynapsePlayer112 {
 	protected void firstRespawn(Position pos) {
 		RespawnPacket respawnPacket0 = new RespawnPacket();
 		respawnPacket0.x = (float) pos.x;
-		respawnPacket0.y = (float) pos.y + this.getEyeHeight();
+		respawnPacket0.y = (float) pos.y + this.getBaseOffset();
 		respawnPacket0.z = (float) pos.z;
 		respawnPacket0.respawnState = RespawnPacket.STATE_SEARCHING_FOR_SPAWN;
 

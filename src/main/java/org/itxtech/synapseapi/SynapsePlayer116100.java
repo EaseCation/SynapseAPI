@@ -799,7 +799,7 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
                     return;
                 }
 
-                Vector3 newPos = new Vector3(movePlayerPacket.x, movePlayerPacket.y - this.getEyeHeight(), movePlayerPacket.z);
+                Vector3 newPos = new Vector3(movePlayerPacket.x, movePlayerPacket.y - this.getBaseOffset(), movePlayerPacket.z);
 
                 if (newPos.distanceSquared(this) == 0 && movePlayerPacket.yaw % 360 == this.yaw && movePlayerPacket.pitch % 360 == this.pitch) {
                     break;
@@ -983,7 +983,18 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
                             this.teleport(respawnPos, null);
 
                             this.setSprinting(false);
-                            this.setSneaking(false);
+                            if (isSneaking()) {
+                                this.setSneaking(false);
+                            }
+                            if (isGliding()) {
+                                this.setGliding(false);
+                            }
+                            if (isSwimming()) {
+                                this.setSwimming(false);
+                            }
+                            if (isCrawling()) {
+                                this.setCrawling(false);
+                            }
 
                             this.setDataProperty(new ShortEntityData(Player.DATA_AIR, 300), false);
                             this.deadTicks = 0;
@@ -1123,6 +1134,10 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
                                 return;
                             }
 
+                            if (isSprinting()) {
+                                break packetswitch;
+                            }
+
                             PlayerToggleSprintEvent playerToggleSprintEvent = new PlayerToggleSprintEvent(this, true);
                             this.server.getPluginManager().callEvent(playerToggleSprintEvent);
                             if (playerToggleSprintEvent.isCancelled()) {
@@ -1136,6 +1151,10 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
                             if (isServerAuthoritativeMovementEnabled()) {
                                 onPacketViolation(PacketViolationReason.IMPOSSIBLE_BEHAVIOR, "action10");
                                 return;
+                            }
+
+                            if (!isSprinting()) {
+                                break packetswitch;
                             }
 
                             playerToggleSprintEvent = new PlayerToggleSprintEvent(this, false);
@@ -1152,6 +1171,10 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
                                 return;
                             }
 
+                            if (isSneaking()) {
+                                break packetswitch;
+                            }
+
                             PlayerToggleSneakEvent playerToggleSneakEvent = new PlayerToggleSneakEvent(this, true);
                             this.server.getPluginManager().callEvent(playerToggleSneakEvent);
                             if (playerToggleSneakEvent.isCancelled()) {
@@ -1164,6 +1187,10 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
                             if (isServerAuthoritativeMovementEnabled()) {
                                 onPacketViolation(PacketViolationReason.IMPOSSIBLE_BEHAVIOR, "action12");
                                 return;
+                            }
+
+                            if (!isSneaking()) {
+                                break packetswitch;
                             }
 
                             playerToggleSneakEvent = new PlayerToggleSneakEvent(this, false);
@@ -1183,6 +1210,10 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
                                 return;
                             }
 
+                            if (isGliding()) {
+                                break packetswitch;
+                            }
+
                             PlayerToggleGlideEvent playerToggleGlideEvent = new PlayerToggleGlideEvent(this, true);
                             Item chestplate = getInventory().getChestplate();
                             if (chestplate.getId() != Item.ELYTRA || chestplate.getDamage() >= chestplate.getMaxDurability() - 1) {
@@ -1199,6 +1230,10 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
                             if (isServerAuthoritativeMovementEnabled()) {
                                 onPacketViolation(PacketViolationReason.IMPOSSIBLE_BEHAVIOR, "action16");
                                 return;
+                            }
+
+                            if (!isGliding()) {
+                                break packetswitch;
                             }
 
                             playerToggleGlideEvent = new PlayerToggleGlideEvent(this, false);
@@ -1227,7 +1262,17 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
                                 return;
                             }
 
-                            this.setSwimming(true);
+                            if (isSwimming()) {
+                                break;
+                            }
+
+                            PlayerToggleSwimEvent playerToggleSwimEvent = new PlayerToggleSwimEvent(this, true);
+                            this.server.getPluginManager().callEvent(playerToggleSwimEvent);
+                            if (playerToggleSwimEvent.isCancelled()) {
+                                this.sendData(this);
+                            } else {
+                                this.setSwimming(true);
+                            }
                             break;
                         case PlayerActionPacket119.ACTION_STOP_SWIMMING:
                             if (isServerAuthoritativeMovementEnabled()) {
@@ -1235,7 +1280,17 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
                                 return;
                             }
 
-                            this.setSwimming(false);
+                            if (!isSwimming()) {
+                                break;
+                            }
+
+                            playerToggleSwimEvent = new PlayerToggleSwimEvent(this, false);
+                            this.server.getPluginManager().callEvent(playerToggleSwimEvent);
+                            if (playerToggleSwimEvent.isCancelled()) {
+                                this.sendData(this);
+                            } else {
+                                this.setSwimming(false);
+                            }
                             break;
                         case PlayerActionPacket119.ACTION_CREATIVE_PLAYER_DESTROY_BLOCK:
                             if (true) {
@@ -1312,6 +1367,42 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
                                 level.addLevelSoundEvent(this, LevelSoundEventPacket.SOUND_ATTACK_NODAMAGE, "minecraft:player");
                             }
                             break;
+                        case PlayerActionPacket.ACTION_START_CRAWLING:
+                            if (isServerAuthoritativeMovementEnabled()) {
+                                onPacketViolation(PacketViolationReason.IMPOSSIBLE_BEHAVIOR, "action32");
+                                return;
+                            }
+
+                            if (isCrawling()) {
+                                break packetswitch;
+                            }
+
+                            PlayerToggleCrawlEvent playerToggleCrawlEvent = new PlayerToggleCrawlEvent(this, true);
+                            this.server.getPluginManager().callEvent(playerToggleCrawlEvent);
+                            if (playerToggleCrawlEvent.isCancelled()) {
+                                this.sendData(this);
+                            } else {
+                                this.setCrawling(true);
+                            }
+                            break packetswitch;
+                        case PlayerActionPacket.ACTION_STOP_CRAWLING:
+                            if (isServerAuthoritativeMovementEnabled()) {
+                                onPacketViolation(PacketViolationReason.IMPOSSIBLE_BEHAVIOR, "action33");
+                                return;
+                            }
+
+                            if (!isCrawling()) {
+                                break packetswitch;
+                            }
+
+                            playerToggleCrawlEvent = new PlayerToggleCrawlEvent(this, false);
+                            this.server.getPluginManager().callEvent(playerToggleCrawlEvent);
+                            if (playerToggleCrawlEvent.isCancelled()) {
+                                this.sendData(this);
+                            } else {
+                                this.setCrawling(false);
+                            }
+                            break packetswitch;
                     }
 
                     this.setUsingItem(false);
@@ -2439,7 +2530,7 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
             ChangeDimensionPacket pk0 = new ChangeDimensionPacket();
             pk0.dimension = Level.DIMENSION_NETHER;
             pk0.x = (float) this.x;
-            pk0.y = (float) this.y + this.getEyeHeight();
+            pk0.y = (float) this.y + this.getBaseOffset();
             pk0.z = (float) this.z;
 //            pk0.respawn = true;
             this.dataPacket(pk0);
@@ -2545,7 +2636,7 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
         ChangeDimensionPacket pk1 = new ChangeDimensionPacket();
         pk1.dimension = Level.DIMENSION_OVERWORLD;
         pk1.x = (float) this.x;
-        pk1.y = (float) this.y + this.getEyeHeight();
+        pk1.y = (float) this.y + this.getBaseOffset();
         pk1.z = (float) this.z;
 //        pk1.respawn = true;
         this.dataPacket(pk1);
@@ -2656,6 +2747,12 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
     public boolean onUpdate(int currentTick) {
         int tickDiff = currentTick - this.lastUpdate;
         if (tickDiff > 0) {
+            if (getProtocol() >= AbstractProtocol.PROTOCOL_120_10.getProtocolStart()) {
+                if (onGround && isGliding()) {
+                    setGliding(false);
+                }
+            }
+
             if (this.changeDimensionPosition != null && currentTick % 10 == 0) {
 //                this.sendPosition(this.changeDimensionPosition, this.yaw, this.pitch, MovePlayerPacket.MODE_TELEPORT);
             }

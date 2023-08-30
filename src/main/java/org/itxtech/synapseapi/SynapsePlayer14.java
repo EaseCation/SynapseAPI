@@ -334,7 +334,18 @@ public class SynapsePlayer14 extends SynapsePlayer {
 						this.dataPacket(respawnPacket);
 
 						this.setSprinting(false);
-						this.setSneaking(false);
+						if (isSneaking()) {
+							this.setSneaking(false);
+						}
+						if (isGliding()) {
+							this.setGliding(false);
+						}
+						if (isSwimming()) {
+							this.setSwimming(false);
+						}
+						if (isCrawling()) {
+							this.setCrawling(false);
+						}
 
 						this.setDataProperty(new ShortEntityData(Player.DATA_AIR, 300), false);
 						this.deadTicks = 0;
@@ -377,6 +388,10 @@ public class SynapsePlayer14 extends SynapsePlayer {
 							return;
 						}
 
+						if (isSprinting()) {
+							break packetswitch;
+						}
+
 						PlayerToggleSprintEvent playerToggleSprintEvent = new PlayerToggleSprintEvent(this, true);
 						this.server.getPluginManager().callEvent(playerToggleSprintEvent);
 						if (playerToggleSprintEvent.isCancelled()) {
@@ -390,6 +405,10 @@ public class SynapsePlayer14 extends SynapsePlayer {
 						if (isServerAuthoritativeMovementEnabled()) {
 							onPacketViolation(PacketViolationReason.IMPOSSIBLE_BEHAVIOR, "action10");
 							return;
+						}
+
+						if (!isSprinting()) {
+							break packetswitch;
 						}
 
 						playerToggleSprintEvent = new PlayerToggleSprintEvent(this, false);
@@ -406,6 +425,10 @@ public class SynapsePlayer14 extends SynapsePlayer {
 							return;
 						}
 
+						if (isSneaking()) {
+							break packetswitch;
+						}
+
 						PlayerToggleSneakEvent playerToggleSneakEvent = new PlayerToggleSneakEvent(this, true);
 						this.server.getPluginManager().callEvent(playerToggleSneakEvent);
 						if (playerToggleSneakEvent.isCancelled()) {
@@ -418,6 +441,10 @@ public class SynapsePlayer14 extends SynapsePlayer {
 						if (isServerAuthoritativeMovementEnabled()) {
 							onPacketViolation(PacketViolationReason.IMPOSSIBLE_BEHAVIOR, "action12");
 							return;
+						}
+
+						if (!isSneaking()) {
+							break packetswitch;
 						}
 
 						playerToggleSneakEvent = new PlayerToggleSneakEvent(this, false);
@@ -437,6 +464,10 @@ public class SynapsePlayer14 extends SynapsePlayer {
 							return;
 						}
 
+						if (isGliding()) {
+							break packetswitch;
+						}
+
 						PlayerToggleGlideEvent playerToggleGlideEvent = new PlayerToggleGlideEvent(this, true);
 						Item chestplate = getInventory().getChestplate();
 						if (chestplate.getId() != Item.ELYTRA || chestplate.getDamage() >= chestplate.getMaxDurability() - 1) {
@@ -453,6 +484,10 @@ public class SynapsePlayer14 extends SynapsePlayer {
 						if (isServerAuthoritativeMovementEnabled()) {
 							onPacketViolation(PacketViolationReason.IMPOSSIBLE_BEHAVIOR, "action16");
 							return;
+						}
+
+						if (!isGliding()) {
+							break packetswitch;
 						}
 
 						playerToggleGlideEvent = new PlayerToggleGlideEvent(this, false);
@@ -481,7 +516,17 @@ public class SynapsePlayer14 extends SynapsePlayer {
 							return;
 						}
 
-						this.setSwimming(true);
+						if (isSwimming()) {
+							break;
+						}
+
+						PlayerToggleSwimEvent playerToggleSwimEvent = new PlayerToggleSwimEvent(this, true);
+						this.server.getPluginManager().callEvent(playerToggleSwimEvent);
+						if (playerToggleSwimEvent.isCancelled()) {
+							this.sendData(this);
+						} else {
+							this.setSwimming(true);
+						}
 						break;
 					case PlayerActionPacket14.ACTION_STOP_SWIMMING:
 						if (isServerAuthoritativeMovementEnabled()) {
@@ -489,7 +534,17 @@ public class SynapsePlayer14 extends SynapsePlayer {
 							return;
 						}
 
-						this.setSwimming(false);
+						if (!isSwimming()) {
+							break;
+						}
+
+						playerToggleSwimEvent = new PlayerToggleSwimEvent(this, false);
+						this.server.getPluginManager().callEvent(playerToggleSwimEvent);
+						if (playerToggleSwimEvent.isCancelled()) {
+							this.sendData(this);
+						} else {
+							this.setSwimming(false);
+						}
 						break;
 				}
 
@@ -636,7 +691,7 @@ public class SynapsePlayer14 extends SynapsePlayer {
         ChangeDimensionPacket changeDimensionPacket1 = new ChangeDimensionPacket();
         changeDimensionPacket1.dimension = 2;
         changeDimensionPacket1.x = (float) this.getX();
-        changeDimensionPacket1.y = (float) this.getY() + this.getEyeHeight();
+        changeDimensionPacket1.y = (float) this.getY() + this.getBaseOffset();
         changeDimensionPacket1.z = (float) this.getZ();
         this.dataPacket(changeDimensionPacket1);
 
@@ -665,7 +720,7 @@ public class SynapsePlayer14 extends SynapsePlayer {
             ChangeDimensionPacket changeDimensionPacket = new ChangeDimensionPacket();
             changeDimensionPacket.dimension = 0;
             changeDimensionPacket.x = (float) this.getX();
-            changeDimensionPacket.y = (float) this.getY() + this.getEyeHeight();
+            changeDimensionPacket.y = (float) this.getY() + this.getBaseOffset();
             changeDimensionPacket.z = (float) this.getZ();
             dataPacket(changeDimensionPacket);
 

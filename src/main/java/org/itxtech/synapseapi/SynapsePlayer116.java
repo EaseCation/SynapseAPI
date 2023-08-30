@@ -358,7 +358,7 @@ public class SynapsePlayer116 extends SynapsePlayer113 {
 								this.setDataFlag(DATA_FLAG_ACTION, false);
 
 								// 从useItemData中设置玩家坐标，用于最精准的碰撞箱判断
-								this.newPosition = useItemData.playerPos.subtract(0, this.getEyeHeight(), 0);
+								this.newPosition = useItemData.playerPos.subtract(0, this.getBaseOffset(), 0);
 								boolean entityInBlock = false;
 
 								if (this.canInteract(blockVector.add(0.5, 0.5, 0.5), this.isCreative() ? 13 : 7)) {
@@ -716,6 +716,11 @@ public class SynapsePlayer116 extends SynapsePlayer113 {
 			case ProtocolInfo.PLAYER_AUTH_INPUT_PACKET:
 				if (!callPacketReceiveEvent(packet)) break;
 
+				if (!isServerAuthoritativeMovementEnabled()) {
+					onPacketViolation(PacketViolationReason.IMPOSSIBLE_BEHAVIOR, "auth_input");
+					return;
+				}
+
 				IPlayerAuthInputPacket playerAuthInputPacket = (IPlayerAuthInputPacket) packet;
 				if (!validateCoordinate(playerAuthInputPacket.getX()) || !validateCoordinate(playerAuthInputPacket.getY()) || !validateCoordinate(playerAuthInputPacket.getZ())
 						|| !validateFloat(playerAuthInputPacket.getPitch()) || !validateFloat(playerAuthInputPacket.getYaw()) || !validateFloat(playerAuthInputPacket.getHeadYaw())
@@ -780,7 +785,6 @@ public class SynapsePlayer116 extends SynapsePlayer113 {
 				if ((inputFlags & (1L << PlayerAuthInputPacket116.FLAG_START_SWIMMING)) != 0 && !this.isSwimming()) {
 					PlayerToggleSwimEvent playerToggleSwimEvent = new PlayerToggleSwimEvent(this, true);
 					this.server.getPluginManager().callEvent(playerToggleSwimEvent);
-
 					if (playerToggleSwimEvent.isCancelled()) {
 						this.sendData(this);
 					} else {
@@ -790,7 +794,6 @@ public class SynapsePlayer116 extends SynapsePlayer113 {
 				if ((inputFlags & (1L << PlayerAuthInputPacket116.FLAG_STOP_SWIMMING)) != 0 && this.isSwimming()) {
 					PlayerToggleSwimEvent playerToggleSwimEvent = new PlayerToggleSwimEvent(this, false);
 					this.server.getPluginManager().callEvent(playerToggleSwimEvent);
-
 					if (playerToggleSwimEvent.isCancelled()) {
 						this.sendData(this);
 					} else {
@@ -822,6 +825,24 @@ public class SynapsePlayer116 extends SynapsePlayer113 {
 						this.setGliding(false);
 					}
 				}
+				if ((inputFlags & (1L << PlayerAuthInputFlags.START_CRAWLING)) != 0 && !this.isCrawling()) {
+					PlayerToggleCrawlEvent playerToggleCrawlEvent = new PlayerToggleCrawlEvent(this, true);
+					this.server.getPluginManager().callEvent(playerToggleCrawlEvent);
+					if (playerToggleCrawlEvent.isCancelled()) {
+						this.sendData(this);
+					} else {
+						this.setCrawling(true);
+					}
+				}
+				if ((inputFlags & (1L << PlayerAuthInputFlags.STOP_CRAWLING)) != 0 && this.isCrawling()) {
+					PlayerToggleCrawlEvent playerToggleCrawlEvent = new PlayerToggleCrawlEvent(this, false);
+					this.server.getPluginManager().callEvent(playerToggleCrawlEvent);
+					if (playerToggleCrawlEvent.isCancelled()) {
+						this.sendData(this);
+					} else {
+						this.setCrawling(false);
+					}
+				}
 
 				//旧版触控有bug, 在水中疾跑并同时按住方向键和升降键会触发. 只按升降键不会触发. 新版触控不会触发.
 				/*if ((inputFlags & (1L << PlayerAuthInputFlags.ASCEND)) != 0) {
@@ -830,6 +851,10 @@ public class SynapsePlayer116 extends SynapsePlayer113 {
 						this.violation += 1;
 					}
 				}*/
+
+				if ((inputFlags & (1L << PlayerAuthInputFlags.HANDLED_TELEPORT)) != 0) {
+					//TODO
+				}
 
 				if ((inputFlags & (1L << PlayerAuthInputFlags.MISSED_SWING)) != 0 && isServerAuthoritativeSoundEnabled()) {
 					level.addLevelSoundEvent(this, LevelSoundEventPacket.SOUND_ATTACK_NODAMAGE, "minecraft:player");
@@ -848,7 +873,7 @@ public class SynapsePlayer116 extends SynapsePlayer113 {
 					}
 				}
 
-				Vector3 newPos = new Vector3(playerAuthInputPacket.getX(), playerAuthInputPacket.getY() - this.getEyeHeight(), playerAuthInputPacket.getZ());
+				Vector3 newPos = new Vector3(playerAuthInputPacket.getX(), playerAuthInputPacket.getY() - this.getBaseOffset(), playerAuthInputPacket.getZ());
 				double dis = newPos.distanceSquared(this);
 
 				if (this.teleportPosition == null && (dis != 0 || playerAuthInputPacket.getYaw() % 360 != this.yaw || playerAuthInputPacket.getPitch() % 360 != this.pitch)) {
