@@ -142,6 +142,8 @@ public enum AbstractProtocol {
     PROTOCOL_120_10(594, Packet12010.class, SynapsePlayer116100.class, BinaryStreamHelper12010.create(), true),
     ;
 
+    public static final AbstractProtocol FIRST_AVAILABLE_PROTOCOL = AbstractProtocol.PROTOCOL_117_40;
+
     private final int protocolStart;
     private final Class<? extends DataPacket> packetClass;
     private final Class<? extends SynapsePlayer> playerClass;

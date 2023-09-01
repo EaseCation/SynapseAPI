@@ -19,7 +19,7 @@ import java.util.zip.Deflater;
 @Log4j2
 public final class CraftingPacketManager {
 
-    private static BatchPacket originPacket;
+    private static final BatchPacket[] originPacket = new BatchPacket[2];
     private static final Map<AbstractProtocol, BatchPacket[]> packets = new EnumMap<>(AbstractProtocol.class);
 
     public static void rebuildPacket() {
@@ -65,10 +65,12 @@ public final class CraftingPacketManager {
         }
 
         pk.tryEncode();
-        originPacket = pk.compress(Deflater.BEST_COMPRESSION);
+        BatchPacket origin = pk.compress(Deflater.BEST_COMPRESSION);
+        originPacket[0] = origin;
+        originPacket[1] = origin;
 
         for (AbstractProtocol protocol : AbstractProtocol.values()) {
-            if (protocol.ordinal() < AbstractProtocol.PROTOCOL_117_40.ordinal()) {
+            if (protocol.ordinal() < AbstractProtocol.FIRST_AVAILABLE_PROTOCOL.ordinal()) {
                 // drop support for unavailable versions
                 continue;
             }
@@ -114,7 +116,7 @@ public final class CraftingPacketManager {
     }
 
     public static BatchPacket getCachedCraftingPacket(AbstractProtocol protocol, boolean netease) {
-        return packets.getOrDefault(protocol, new BatchPacket[]{originPacket, originPacket})[netease ? 1 : 0];
+        return packets.getOrDefault(protocol, originPacket)[netease ? 1 : 0];
     }
 
 }

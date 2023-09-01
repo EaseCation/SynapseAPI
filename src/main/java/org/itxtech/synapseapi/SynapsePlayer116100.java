@@ -609,7 +609,7 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
             startGamePacket.worldName = this.getServer().getNetwork().getName();
             startGamePacket.generator = 1; // 0 old, 1 infinite, 2 flat
             startGamePacket.gameRules = getSupportedRules();
-            startGamePacket.isMovementServerAuthoritative = this.isNetEaseClient;
+            startGamePacket.isMovementServerAuthoritative = this.isNetEaseClient();
             startGamePacket.currentTick = this.server.getTick();
             startGamePacket.enchantmentSeed = ThreadLocalRandom.current().nextInt();
             return startGamePacket;
@@ -641,7 +641,7 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
         startGamePacket.worldName = this.getServer().getNetwork().getName();
         startGamePacket.generator = 1; // 0 old, 1 infinite, 2 flat
         startGamePacket.gameRules = getSupportedRules();
-        startGamePacket.movementType = this.isNetEaseClient ? StartGamePacket116100.MOVEMENT_SERVER_AUTHORITATIVE : StartGamePacket116100.MOVEMENT_CLIENT_AUTHORITATIVE;
+        startGamePacket.movementType = this.isNetEaseClient() ? StartGamePacket116100.MOVEMENT_SERVER_AUTHORITATIVE : StartGamePacket116100.MOVEMENT_CLIENT_AUTHORITATIVE;
         startGamePacket.currentTick = this.server.getTick();
         startGamePacket.enchantmentSeed = ThreadLocalRandom.current().nextInt();
         return startGamePacket;
@@ -869,7 +869,7 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
                 break;
             case ProtocolInfo.PLAYER_ACTION_PACKET:
                 if (this.getProtocol() < AbstractProtocol.PROTOCOL_116_210.getProtocolStart()
-                        && (!this.isNetEaseClient || this.getProtocol() < AbstractProtocol.PROTOCOL_116_200.getProtocolStart())) {
+                        && (!this.isNetEaseClient() || this.getProtocol() < AbstractProtocol.PROTOCOL_116_200.getProtocolStart())) {
                     PlayerActionPacket14 playerActionPacket = (PlayerActionPacket14) packet;
 
                     if (playerActionPacket.action == PlayerActionPacket14.ACTION_CREATIVE_PLAYER_DESTROY_BLOCK) {

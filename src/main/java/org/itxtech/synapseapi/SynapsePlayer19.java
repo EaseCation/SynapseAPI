@@ -255,7 +255,7 @@ public class SynapsePlayer19 extends SynapsePlayer18 {
 		pk.x = (float) pos.x;
 		pk.y = (float) pos.y;
 		pk.z = (float) pos.z;
-		pk.extraData = LevelSoundEventUtil.translateTo18ExtraData(levelSound, extraData, pitch, AbstractProtocol.fromRealProtocol(this.protocol), this.isNetEaseClient);
+		pk.extraData = LevelSoundEventUtil.translateTo18ExtraData(levelSound, extraData, pitch, AbstractProtocol.fromRealProtocol(this.protocol), this.isNetEaseClient());
 		pk.entityIdentifier = entityIdentifier;
 		pk.isBabyMob = isBabyMob;
 		pk.isGlobal = isGlobal;

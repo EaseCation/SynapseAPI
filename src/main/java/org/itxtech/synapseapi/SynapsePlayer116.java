@@ -50,6 +50,7 @@ import org.itxtech.synapseapi.multiprotocol.protocol113.protocol.IPlayerAuthInpu
 import org.itxtech.synapseapi.multiprotocol.protocol113.protocol.IPlayerAuthInputPacket.PlayerBlockAction;
 import org.itxtech.synapseapi.multiprotocol.protocol116.protocol.*;
 import org.itxtech.synapseapi.multiprotocol.protocol14.protocol.PlayerActionPacket14;
+import org.itxtech.synapseapi.multiprotocol.utils.CreativeItemsPalette;
 
 import java.net.InetSocketAddress;
 import java.util.*;
@@ -108,7 +109,7 @@ public class SynapsePlayer116 extends SynapsePlayer113 {
 		startGamePacket.worldName = this.getServer().getNetwork().getName();
 		startGamePacket.generator = 1; // 0 old, 1 infinite, 2 flat
 		startGamePacket.gameRules = getSupportedRules();
-		startGamePacket.isMovementServerAuthoritative = this.isNetEaseClient;
+		startGamePacket.isMovementServerAuthoritative = this.isNetEaseClient();
 		startGamePacket.currentTick = this.server.getTick();
 		startGamePacket.enchantmentSeed = ThreadLocalRandom.current().nextInt();
 		return startGamePacket;
@@ -1406,12 +1407,19 @@ public class SynapsePlayer116 extends SynapsePlayer113 {
 
 	@Override
 	public void sendCreativeContents() {
-		CreativeContentPacket116 pk = new CreativeContentPacket116();
-		pk.setHelper(AbstractProtocol.fromRealProtocol(this.protocol).getHelper());
-		pk.neteaseMode = this.isNetEaseClient;
-		if (!this.isSpectator()) { //fill it for all gamemodes except spectator
-			pk.entries = this.getCreativeItems().toArray(new Item[0]);
+		if (this.isSpectator()) {
+			this.dataPacket(new CreativeContentPacket116());
+			return;
 		}
+
+		DataPacket packet = CreativeItemsPalette.getCachedCreativeContentPacket(getAbstractProtocol(), isNetEaseClient());
+		if (packet != null) {
+			this.dataPacket(packet);
+			return;
+		}
+
+		CreativeContentPacket116 pk = new CreativeContentPacket116();
+		pk.entries = this.getCreativeItems().toArray(new Item[0]);
 		this.dataPacket(pk);
 	}
 

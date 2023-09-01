@@ -121,6 +121,10 @@ public class SynapsePlayer extends Player {
         return isFirstTimeLogin;
     }
 
+    public AbstractProtocol getAbstractProtocol() {
+        return AbstractProtocol.fromRealProtocol(getProtocol());
+    }
+
     public boolean isNeedLevelChangeLoadScreen() {
         return false;
     }
@@ -538,7 +542,7 @@ public class SynapsePlayer extends Player {
 
     @Override
     protected void sendRecipeList() {
-        this.dataPacket(CraftingPacketManager.getCachedCraftingPacket(AbstractProtocol.fromRealProtocol(this.protocol), this.isNetEaseClient));
+        this.dataPacket(CraftingPacketManager.getCachedCraftingPacket(AbstractProtocol.fromRealProtocol(this.protocol), this.isNetEaseClient()));
     }
 
     @Override
@@ -1237,7 +1241,7 @@ public class SynapsePlayer extends Player {
 
     @Override
     public List<Item> getCreativeItems() {
-        return CreativeItemsPalette.getCreativeItems(AbstractProtocol.fromRealProtocol(this.protocol), this.isNetEaseClient);
+        return CreativeItemsPalette.getCreativeItems(AbstractProtocol.fromRealProtocol(this.protocol), this.isNetEaseClient());
     }
 
     public JsonObject getCachedExtra() {

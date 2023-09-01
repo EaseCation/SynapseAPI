@@ -35,6 +35,8 @@ public class RuntimeItemPalette implements AdvancedRuntimeItemPaletteInterface {
     private final Int2ObjectMap<String> legacyStringMap = new Int2ObjectOpenHashMap<>();
     private final Object2IntMap<String> nameToLegacy = new Object2IntOpenHashMap<>();
     private final Int2IntMap networkLegacyMap = new Int2IntOpenHashMap();
+    private final Int2IntMap blockLegacyToFlatten = new Int2IntOpenHashMap();
+//    private final Int2IntMap blockFlattenToLegacy = new Int2IntOpenHashMap();
 
     private byte[] itemDataPalette;
 
@@ -52,6 +54,8 @@ public class RuntimeItemPalette implements AdvancedRuntimeItemPaletteInterface {
         legacyNetworkMap.defaultReturnValue(-1);
         nameToLegacy.defaultReturnValue(-1);
         networkLegacyMap.defaultReturnValue(-1);
+        blockLegacyToFlatten.defaultReturnValue(-1);
+//        blockFlattenToLegacy.defaultReturnValue(-1);
 
         for (Entry entry : entries) {
             registerItem(entry);
@@ -88,6 +92,13 @@ public class RuntimeItemPalette implements AdvancedRuntimeItemPaletteInterface {
         legacyStringMap.put(fullId, entry.name);
         nameToLegacy.put(entry.name, fullId | (hasData ? 1 : 0));
         networkLegacyMap.put(entry.id, fullId | (hasData ? 1 : 0));
+        if (oldId < 0 && oldId != entry.id) {
+            Integer meta = entry.oldData;
+            int legacyId = (oldId << 16) | (meta != null ? meta : 0);
+            int newId = entry.id;
+            blockLegacyToFlatten.put(legacyId, newId);
+//            blockFlattenToLegacy.put(newId, legacyId);
+        }
     }
 
     public void buildPaletteBuffer() {
@@ -104,10 +115,12 @@ public class RuntimeItemPalette implements AdvancedRuntimeItemPaletteInterface {
     @Override
     public int getNetworkFullId(Item item) {
         int id = item.getId();
-        if (id < 0) {
-            return id;
-        }
         int meta = item.getDamage();
+
+        if (id < 0) {
+            return blockLegacyToFlatten.getOrDefault((id << 16) | meta, id);
+        }
+
         int fullId = getFullId(id, item.hasMeta() ? meta : -1);
         int networkId = legacyNetworkMap.get(fullId);
         if (networkId == -1) {
@@ -116,7 +129,6 @@ public class RuntimeItemPalette implements AdvancedRuntimeItemPaletteInterface {
         if (networkId == -1) {
             throw new IllegalArgumentException("Unknown item mapping " + id + ":" + meta);
         }
-
         return networkId;
     }
 
@@ -138,8 +150,10 @@ public class RuntimeItemPalette implements AdvancedRuntimeItemPaletteInterface {
     @Override
     public int getLegacyFullId(int networkId) {
         if (networkId < 0) {
+//            return blockFlattenToLegacy.getOrDefault(networkId, networkId); //TODO
             return networkId;
         }
+
         int fullId = networkLegacyMap.get(networkId);
         if (fullId == -1) {
             throw new IllegalArgumentException("Unknown network mapping: " + networkId);

@@ -2,16 +2,21 @@ package org.itxtech.synapseapi.multiprotocol.utils;
 
 import cn.nukkit.Server;
 import cn.nukkit.item.Item;
+import cn.nukkit.network.protocol.BatchPacket;
+import cn.nukkit.network.protocol.BatchPacket.Track;
 import cn.nukkit.utils.Config;
 import cn.nukkit.utils.MainLogger;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import lombok.extern.log4j.Log4j2;
 import org.itxtech.synapseapi.SynapseAPI;
 import org.itxtech.synapseapi.multiprotocol.AbstractProtocol;
+import org.itxtech.synapseapi.multiprotocol.protocol116.protocol.CreativeContentPacket116;
 import org.itxtech.synapseapi.multiprotocol.utils.item.CreativeInventoryLegacy;
 import org.itxtech.synapseapi.multiprotocol.utils.item.CreativeInventoryNew;
 
+import javax.annotation.Nullable;
 import java.util.*;
+import java.util.zip.Deflater;
 
 import static cn.nukkit.GameVersion.*;
 import static org.itxtech.synapseapi.SynapseSharedConstants.*;
@@ -20,6 +25,9 @@ import static org.itxtech.synapseapi.SynapseSharedConstants.*;
 public class CreativeItemsPalette {
 
     private static final Map<AbstractProtocol, List<Item>[]> palettes = new EnumMap<>(AbstractProtocol.class);
+
+    private static final Map<AbstractProtocol, BatchPacket[]> PACKETS = new EnumMap<>(AbstractProtocol.class);
+    private static final BatchPacket[] NULL_PACKET = new BatchPacket[2];
 
     public static void init() {
         log.debug("Loading creative items...");
@@ -93,6 +101,8 @@ public class CreativeItemsPalette {
                 throw new AssertionError("Missing creative_items.json: " + protocol);
             }
         }
+
+        cachePackets();
     }
 
     private static void register(AbstractProtocol protocol, List<Item> list, List<Item> listNetEase) {
@@ -139,4 +149,41 @@ public class CreativeItemsPalette {
         }
     }
 
+    private static void cachePackets() {
+        log.debug("cache creative content...");
+
+        for (AbstractProtocol protocol : AbstractProtocol.values()) {
+            if (protocol.ordinal() < AbstractProtocol.PROTOCOL_116.ordinal()) {
+                continue;
+            }
+            if (protocol.ordinal() < AbstractProtocol.FIRST_AVAILABLE_PROTOCOL.ordinal()) {
+                // drop support for unavailable versions
+                continue;
+            }
+
+            CreativeContentPacket116 packet = new CreativeContentPacket116();
+            packet.entries = getCreativeItems(protocol, false).toArray(new Item[0]);
+            packet.setHelper(protocol.getHelper());
+            packet.tryEncode();
+
+            BatchPacket batch = packet.compress(Deflater.BEST_COMPRESSION, true);
+            batch.tracks = new Track[]{new Track(packet.pid(), packet.getCount())};
+
+            CreativeContentPacket116 packetNe = new CreativeContentPacket116();
+            packetNe.entries = getCreativeItems(protocol, true).toArray(new Item[0]);
+            packetNe.setHelper(protocol.getHelper());
+            packetNe.neteaseMode = true;
+            packetNe.tryEncode();
+
+            BatchPacket batchNe = packetNe.compress(Deflater.BEST_COMPRESSION, true);
+            batchNe.tracks = new Track[]{new Track(packetNe.pid(), packetNe.getCount())};
+
+            PACKETS.put(protocol, new BatchPacket[]{batch, batchNe});
+        }
+    }
+
+    @Nullable
+    public static BatchPacket getCachedCreativeContentPacket(AbstractProtocol protocol, boolean netease) {
+        return PACKETS.getOrDefault(protocol, NULL_PACKET)[netease ? 1 : 0];
+    }
 }
