@@ -467,7 +467,7 @@ public class SynapseEntry {
                         break;
                     case InformationPacket.TYPE_CLIENT_DATA:
                         try {
-                            this.clientData = JsonUtil.COMMON_JSON_MAPPER.readValue(informationPacket.message, ClientData.class);
+                            this.clientData = JsonUtil.TRUSTED_JSON_MAPPER.readValue(informationPacket.message, ClientData.class);
                         } catch (JsonProcessingException e) {
                             synapse.getServer().getLogger().logException(e);
                         }
@@ -476,7 +476,7 @@ public class SynapseEntry {
                         break;
                     case InformationPacket.TYPE_PLAYER_NETWORK_LATENCY:
                         try {
-                            Map<UUID, Integer> pings = JsonUtil.COMMON_JSON_MAPPER.readValue(informationPacket.message, NETWORK_LATENCY_TYPE_REFERENCE);
+                            Map<UUID, Integer> pings = JsonUtil.TRUSTED_JSON_MAPPER.readValue(informationPacket.message, NETWORK_LATENCY_TYPE_REFERENCE);
                             pings.forEach((uuid, ping) -> {
                                 if (this.players.containsKey(uuid)) {
                                     this.networkLatency.put(uuid, ping);
