@@ -32,6 +32,7 @@ import org.itxtech.synapseapi.event.player.SynapsePlayerBroadcastLevelSoundEvent
 import org.itxtech.synapseapi.event.player.SynapsePlayerConnectEvent;
 import org.itxtech.synapseapi.multiprotocol.AbstractProtocol;
 import org.itxtech.synapseapi.multiprotocol.PacketRegister;
+import org.itxtech.synapseapi.multiprotocol.common.BuildPlatform;
 import org.itxtech.synapseapi.multiprotocol.protocol119.protocol.PlayerActionPacket119;
 import org.itxtech.synapseapi.multiprotocol.protocol12.utils.ClientChainData12;
 import org.itxtech.synapseapi.multiprotocol.protocol12.utils.ClientChainData12NetEase;
@@ -143,6 +144,40 @@ public class SynapsePlayer14 extends SynapsePlayer {
 						setLoginChainData(ClientChainData12Urgency.of(loginPacket.getBuffer()));
 					}
 				}
+
+				if (isNetEaseClient()) {
+					int buildPlatform = loginChainData.getDeviceOS();
+					switch (buildPlatform) {
+						case BuildPlatform.GOOGLE:
+						case BuildPlatform.IOS:
+							break;
+						case BuildPlatform.WIN32:
+							// ModPC
+							break;
+						default:
+							onPacketViolation(PacketViolationReason.IMPOSSIBLE_BEHAVIOR, "ce_os" + buildPlatform);
+							break;
+					}
+
+					if ("Nintendo Switch".equals(loginChainData.getDeviceModel())) {
+						onPacketViolation(PacketViolationReason.IMPOSSIBLE_BEHAVIOR, "ce_dm_nx");
+						break;
+					}
+				} else {
+					int buildPlatform = loginChainData.getDeviceOS();
+					switch (buildPlatform) {
+						case BuildPlatform.DEDICATED:
+						case BuildPlatform.OSX:
+							onPacketViolation(PacketViolationReason.IMPOSSIBLE_BEHAVIOR, "me_os" + buildPlatform);
+							break;
+						default:
+							if (buildPlatform <= 0) {
+								onPacketViolation(PacketViolationReason.IMPOSSIBLE_BEHAVIOR, "me_os" + buildPlatform);
+								break;
+							}
+					}
+				}
+
 				if (this.server.getOnlinePlayers().size() >= this.server.getMaxPlayers()
 						&& this.kick(PlayerKickEvent.Reason.SERVER_FULL, "disconnectionScreen.serverFull", false)) {
 					break;
