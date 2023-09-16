@@ -10,6 +10,7 @@ import cn.nukkit.network.PacketViolationReason;
 import cn.nukkit.network.SourceInterface;
 import cn.nukkit.network.protocol.BatchPacket;
 import cn.nukkit.network.protocol.DataPacket;
+import cn.nukkit.network.protocol.InteractPacket;
 import cn.nukkit.network.protocol.MovePlayerPacket;
 import cn.nukkit.network.protocol.ProtocolInfo;
 import cn.nukkit.plugin.Plugin;
@@ -549,7 +550,9 @@ public class SynapseEntry {
                                     break HANDLER;
                                 }
                                 try {
-                                    if (packetCount[packetId]++ > PACKET_COUNT_LIMIT[packetId]) {
+                                    if (subPacket instanceof InteractPacket interactPacket && interactPacket.action == InteractPacket.ACTION_MOUSEOVER) {
+                                        // 看向实体的交互包不稳定因此不参与计数
+                                    } else if (packetCount[packetId]++ > PACKET_COUNT_LIMIT[packetId]) {
                                         tooManyPackets = true;
                                         continue;
                                     }
