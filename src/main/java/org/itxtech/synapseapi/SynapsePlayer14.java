@@ -156,12 +156,12 @@ public class SynapsePlayer14 extends SynapsePlayer {
 							break;
 						default:
 							onPacketViolation(PacketViolationReason.IMPOSSIBLE_BEHAVIOR, "ce_os" + buildPlatform);
-							break;
+							return;
 					}
 
 					if ("Nintendo Switch".equals(loginChainData.getDeviceModel())) {
 						onPacketViolation(PacketViolationReason.IMPOSSIBLE_BEHAVIOR, "ce_dm_nx");
-						break;
+						return;
 					}
 				} else {
 					int buildPlatform = loginChainData.getDeviceOS();
@@ -169,11 +169,11 @@ public class SynapsePlayer14 extends SynapsePlayer {
 						case BuildPlatform.DEDICATED:
 						case BuildPlatform.OSX:
 							onPacketViolation(PacketViolationReason.IMPOSSIBLE_BEHAVIOR, "me_os" + buildPlatform);
-							break;
+							return;
 						default:
 							if (buildPlatform <= 0) {
 								onPacketViolation(PacketViolationReason.IMPOSSIBLE_BEHAVIOR, "me_os" + buildPlatform);
-								break;
+								return;
 							}
 					}
 				}
