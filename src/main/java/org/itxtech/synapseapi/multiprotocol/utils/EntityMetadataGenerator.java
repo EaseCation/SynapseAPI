@@ -10,7 +10,10 @@ public class EntityMetadataGenerator {
 
 	public static EntityMetadata generate14From(EntityMetadata v12Metadata) {
         EntityMetadata entityMetadata = new EntityMetadata();
-        for(@SuppressWarnings("rawtypes") EntityData entityData : v12Metadata.getMap().values()) {
+        for (@SuppressWarnings("rawtypes") EntityData entityData : v12Metadata.getMap().values()) {
+			if (entityData == null) {
+				continue;
+			}
         	int v12Id = entityData.getId();
 			if (v12Id == Entity.DATA_NUKKIT_FLAGS) continue;
         	int v14Id = EntityDataItemIDTranslator.translateTo14Id(v12Id);
@@ -73,7 +76,10 @@ public class EntityMetadataGenerator {
 	public static EntityMetadata generateFrom(EntityMetadata v12Metadata, AbstractProtocol protocol, boolean netease) {
 		EntityMetadata entityMetadata = new EntityMetadata();
 		boolean flagsTranslated = false;
-		for(@SuppressWarnings("rawtypes") EntityData entityData : v12Metadata.getMap().values()) {
+		for (@SuppressWarnings("rawtypes") EntityData entityData : v12Metadata.getMap().values()) {
+			if (entityData == null) {
+				continue;
+			}
 			int v12Id = entityData.getId();
 			if (v12Id == Entity.DATA_NUKKIT_FLAGS) continue;
 			int newId = translateId(v12Id, protocol);
