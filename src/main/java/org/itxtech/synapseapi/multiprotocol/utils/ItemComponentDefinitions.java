@@ -1,5 +1,6 @@
 package org.itxtech.synapseapi.multiprotocol.utils;
 
+import cn.nukkit.Server;
 import cn.nukkit.nbt.NBTIO;
 import cn.nukkit.nbt.tag.CompoundTag;
 import cn.nukkit.nbt.tag.Tag;
@@ -69,15 +70,16 @@ public final class ItemComponentDefinitions {
         CompoundTag nbt = NBTIO.read(ByteStreams.toByteArray(SynapseAPI.getInstance().getResource(file)));
         for (Map.Entry<String, Tag> entry : nbt.getTags().entrySet()) {
             map.put(entry.getKey(), NBTIO.writeNetwork(entry.getValue()));
+            Server.getInstance().getLogger().debug(entry.getValue().toString());
         }
         return map;
     }
 
     public static Map<String, byte[]> get(AbstractProtocol protocol, boolean netease) {
-        if (netease) {
-            //TODO: dump netease data
-            return Collections.emptyMap();
-        }
+//        if (netease) {
+//            //TODO: dump netease data
+//            return Collections.emptyMap();
+//        }
 
         Map<String, byte[]> data = DEFINITIONS.get(protocol);
         return data != null ? data : Collections.emptyMap();
@@ -87,6 +89,24 @@ public final class ItemComponentDefinitions {
 //        if (!SynapseSharedConstants.CHECK_RESOURCE_DATA) {
 //            return;
 //        }
+    }
+
+    public static void registerCustomItemComponent(String name, int id, CompoundTag compoundTag) {
+        DEFINITIONS.forEach((protocol, map) -> {
+            if (protocol.getProtocolStart() < AbstractProtocol.PROTOCOL_118_10.getProtocolStart()) {
+                return;
+            }
+            try {
+                CompoundTag fullTag = new CompoundTag()
+                    .putInt("id", id)
+                    .putString("name", name)
+                    .putCompound("components", compoundTag);
+                map.put(name, NBTIO.writeNetwork(fullTag));
+                Server.getInstance().getLogger().debug(fullTag.toString());
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
+        });
     }
 
     private ItemComponentDefinitions() {

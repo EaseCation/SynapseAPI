@@ -80,7 +80,7 @@ public class RuntimeItemPalette implements AdvancedRuntimeItemPaletteInterface {
                 return;
             }
 
-            entry = new Entry(entry.name, entry.id, oldId, entry.oldData);
+            entry = new Entry(entry.name, entry.id, oldId, entry.oldData, entry.component);
         } else {
             oldId = entry.oldId;
         }
@@ -107,7 +107,7 @@ public class RuntimeItemPalette implements AdvancedRuntimeItemPaletteInterface {
         for (Entry entry : entries) {
             paletteBuffer.putString(entry.name);
             paletteBuffer.putLShort(entry.id);
-            paletteBuffer.putBoolean(false); // Component item
+            paletteBuffer.putBoolean(entry.component); // Component item
         }
         itemDataPalette = paletteBuffer.getBuffer();
     }

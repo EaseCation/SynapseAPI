@@ -88,10 +88,14 @@ public final class AdvancedRuntimeItemPalette {
     }
 
     public static void registerCustomItem(String fullName, int id, Integer oldId, Integer oldData) {
+        registerCustomItem(fullName, id, oldId, oldData, false);
+    }
+
+    public static void registerCustomItem(String fullName, int id, Integer oldId, Integer oldData, boolean component) {
         for (AdvancedRuntimeItemPaletteInterface[] interfaces : palettes.values()) {
             for (AdvancedRuntimeItemPaletteInterface palette : interfaces) {
                 if (palette instanceof RuntimeItemPalette) {
-                    RuntimeItemPaletteInterface.Entry entry = new RuntimeItemPaletteInterface.Entry(fullName, id, oldId, oldData);
+                    RuntimeItemPaletteInterface.Entry entry = new RuntimeItemPaletteInterface.Entry(fullName, id, oldId, oldData, component);
                     ((RuntimeItemPalette) palette).registerItem(entry);
                 }
             }

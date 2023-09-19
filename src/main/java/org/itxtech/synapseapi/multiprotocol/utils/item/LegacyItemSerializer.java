@@ -20,6 +20,7 @@ import it.unimi.dsi.fastutil.objects.ObjectIntPair;
 import lombok.extern.log4j.Log4j2;
 import org.itxtech.synapseapi.multiprotocol.utils.AdvancedRuntimeItemPalette;
 import org.itxtech.synapseapi.multiprotocol.utils.AdvancedRuntimeItemPaletteInterface;
+import org.itxtech.synapseapi.multiprotocol.utils.ItemComponentDefinitions;
 import org.itxtech.synapseapi.multiprotocol.utils.RuntimeItemPalette;
 
 import java.util.Objects;
@@ -284,9 +285,12 @@ public final class LegacyItemSerializer {
             }
 
             @Override
-            public void registerCustomItem(String identifier, int id) {
+            public void registerCustomItem(String identifier, int id, CompoundTag component) {
                 registerItem(identifier, id);
-                AdvancedRuntimeItemPalette.registerCustomItem(identifier, id);
+                AdvancedRuntimeItemPalette.registerCustomItem(identifier, id, null, null, component != null);
+                if (component != null) {
+                    ItemComponentDefinitions.registerCustomItemComponent(identifier, id, component);
+                }
             }
 
             @Override
