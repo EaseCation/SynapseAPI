@@ -1,6 +1,5 @@
 package org.itxtech.synapseapi.multiprotocol.utils;
 
-import cn.nukkit.Server;
 import cn.nukkit.nbt.NBTIO;
 import cn.nukkit.nbt.tag.CompoundTag;
 import cn.nukkit.nbt.tag.Tag;
@@ -18,6 +17,7 @@ import java.util.Map;
 @Log4j2
 public final class ItemComponentDefinitions {
     private static final Map<AbstractProtocol, Map<String, byte[]>> DEFINITIONS = new EnumMap<>(AbstractProtocol.class);
+    private static final Map<AbstractProtocol, Map<String, byte[]>> DEFINITIONS_NETEASE = new EnumMap<>(AbstractProtocol.class);
 
     static {
         log.debug("Loading item component definitions...");
@@ -51,6 +51,13 @@ public final class ItemComponentDefinitions {
             DEFINITIONS.put(AbstractProtocol.PROTOCOL_119_80, definition11980);
             DEFINITIONS.put(AbstractProtocol.PROTOCOL_120, definition120);
             DEFINITIONS.put(AbstractProtocol.PROTOCOL_120_10, definition12010);
+
+            Map<String, byte[]> definitionNetEase11830 = loadAndMappingToNetEase(AbstractProtocol.PROTOCOL_118_30, "item_components11830.nbt");
+            Map<String, byte[]> definitionNetEase11830NE = loadAndMappingToNetEase(AbstractProtocol.PROTOCOL_118_30_NE, "item_components11830.nbt");
+
+            DEFINITIONS_NETEASE.put(AbstractProtocol.PROTOCOL_118_30, definitionNetEase11830);
+            DEFINITIONS_NETEASE.put(AbstractProtocol.PROTOCOL_118_30_NE, definitionNetEase11830NE);
+
         } catch (NullPointerException | IOException e) {
             throw new AssertionError("Unable to load item_components.nbt");
         }
@@ -70,16 +77,34 @@ public final class ItemComponentDefinitions {
         CompoundTag nbt = NBTIO.read(ByteStreams.toByteArray(SynapseAPI.getInstance().getResource(file)));
         for (Map.Entry<String, Tag> entry : nbt.getTags().entrySet()) {
             map.put(entry.getKey(), NBTIO.writeNetwork(entry.getValue()));
-            Server.getInstance().getLogger().debug(entry.getValue().toString());
+        }
+        return map;
+    }
+
+    private static Map<String, byte[]> loadAndMappingToNetEase(AbstractProtocol protocol, String file) throws IOException {
+        Map<String, byte[]> map = new Object2ObjectOpenHashMap<>();
+        CompoundTag nbt = NBTIO.read(ByteStreams.toByteArray(SynapseAPI.getInstance().getResource(file)));
+        for (Map.Entry<String, Tag> entry : nbt.getTags().entrySet()) {
+            String identifier = entry.getKey();
+            int networkId = AdvancedRuntimeItemPalette.getNetworkIdByName(protocol, true, identifier);
+            if (networkId < 0) {
+                continue;
+            }
+            if (entry.getValue() instanceof CompoundTag e && e.contains("id")) {
+                e.putInt("id", networkId);
+            }
+            map.put(entry.getKey(), NBTIO.writeNetwork(entry.getValue()));
         }
         return map;
     }
 
     public static Map<String, byte[]> get(AbstractProtocol protocol, boolean netease) {
-//        if (netease) {
-//            //TODO: dump netease data
-//            return Collections.emptyMap();
-//        }
+        if (netease) {
+            Map<String, byte[]> data = DEFINITIONS_NETEASE.get(protocol);
+            if (data != null) {
+                return data;
+            }
+        }
 
         Map<String, byte[]> data = DEFINITIONS.get(protocol);
         return data != null ? data : Collections.emptyMap();
@@ -92,17 +117,26 @@ public final class ItemComponentDefinitions {
     }
 
     public static void registerCustomItemComponent(String name, int id, CompoundTag compoundTag) {
+        CompoundTag fullTag = new CompoundTag()
+            .putInt("id", id)
+            .putString("name", name)
+            .putCompound("components", compoundTag);
         DEFINITIONS.forEach((protocol, map) -> {
             if (protocol.getProtocolStart() < AbstractProtocol.PROTOCOL_118_10.getProtocolStart()) {
                 return;
             }
             try {
-                CompoundTag fullTag = new CompoundTag()
-                    .putInt("id", id)
-                    .putString("name", name)
-                    .putCompound("components", compoundTag);
                 map.put(name, NBTIO.writeNetwork(fullTag));
-                Server.getInstance().getLogger().debug(fullTag.toString());
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
+        });
+        DEFINITIONS_NETEASE.forEach((protocol, map) -> {
+            if (protocol.getProtocolStart() < AbstractProtocol.PROTOCOL_118_10.getProtocolStart()) {
+                return;
+            }
+            try {
+                map.put(name, NBTIO.writeNetwork(fullTag));
             } catch (IOException e) {
                 throw new RuntimeException(e);
             }

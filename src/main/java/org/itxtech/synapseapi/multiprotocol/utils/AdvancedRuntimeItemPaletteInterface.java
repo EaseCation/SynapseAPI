@@ -18,6 +18,8 @@ public interface AdvancedRuntimeItemPaletteInterface {
 
     int getLegacyFullIdByName(String name);
 
+    int getNetworkIdByName(String name);
+
     boolean hasData(int id);
 
     byte[] getCompiledData();
