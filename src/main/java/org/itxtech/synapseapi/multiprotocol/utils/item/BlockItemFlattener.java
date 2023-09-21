@@ -24,6 +24,7 @@ public final class BlockItemFlattener {
         DOWNGRADERS.put(AbstractProtocol.PROTOCOL_119_80, BlockItemFlattener::downgrader11980);
         DOWNGRADERS.put(AbstractProtocol.PROTOCOL_120, BlockItemFlattener::downgrader120);
         DOWNGRADERS.put(AbstractProtocol.PROTOCOL_120_10, BlockItemFlattener::downgrader12010);
+        DOWNGRADERS.put(AbstractProtocol.PROTOCOL_120_30, BlockItemFlattener::downgrader12030);
     }
 
     private static int downgrader11970(int id) {
@@ -76,6 +77,16 @@ public final class BlockItemFlattener {
         return downgrader12010(id);
     }
 
+    private static int downgrader12030(int id) {
+        if (id <= ItemBlockID.ORANGE_CONCRETE_POWDER && id >= ItemBlockID.BLACK_CONCRETE_POWDER) {
+            return ItemBlockID.CONCRETE_POWDER;
+        }
+        if (id <= ItemBlockID.ORANGE_TERRACOTTA && id >= ItemBlockID.BLACK_TERRACOTTA) {
+            return ItemBlockID.STAINED_HARDENED_CLAY;
+        }
+        return downgrader12020(id);
+    }
+
     private BlockItemFlattener() {
         throw new IllegalStateException();
     }
@@ -99,7 +110,6 @@ public final class BlockItemFlattener {
 //quartz_block
 //double_wooden_slab
 //wooden_slab
-//stained_hardened_clay
 //leaves2
 //prismarine
 //double_plant
@@ -110,7 +120,6 @@ public final class BlockItemFlattener {
 //purpur_block
 //colored_torch_rg
 //colored_torch_bp
-//concrete_powder
 //chemistry_table
 //hard_stained_glass
 //coral_block

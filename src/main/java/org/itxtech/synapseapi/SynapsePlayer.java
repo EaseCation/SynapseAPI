@@ -436,6 +436,8 @@ public class SynapsePlayer extends Player {
             this.sendItemComponents();
             this.sendBiomeDefinitionList();
             this.sendAvailableEntityIdentifiers();
+            this.syncFeatureRegistry();
+            this.sendCameraPresets();
         } else {
             GameRulesChangedPacket packet = new GameRulesChangedPacket();
             packet.gameRules = this.level.getGameRules();
@@ -1389,5 +1391,13 @@ public class SynapsePlayer extends Player {
 
     public void setSubPacketHandler(ServerSubPacketHandler handler) {
         // NE 1.6+
+    }
+
+    protected void syncFeatureRegistry() {
+        // 1.19.20+
+    }
+
+    protected void sendCameraPresets() {
+        // 1.19.70+
     }
 }

@@ -50,6 +50,7 @@ import it.unimi.dsi.fastutil.objects.ObjectIterator;
 import lombok.extern.log4j.Log4j2;
 import org.itxtech.synapseapi.dialogue.NPCDialoguePlayerHandler;
 import org.itxtech.synapseapi.multiprotocol.AbstractProtocol;
+import org.itxtech.synapseapi.multiprotocol.common.camera.CameraPreset;
 import org.itxtech.synapseapi.multiprotocol.protocol113.protocol.ResourcePackStackPacket113;
 import org.itxtech.synapseapi.multiprotocol.protocol116100.protocol.*;
 import org.itxtech.synapseapi.multiprotocol.protocol116100ne.protocol.MovePlayerPacket116100NE;
@@ -84,6 +85,7 @@ import org.itxtech.synapseapi.multiprotocol.protocol11910.protocol.StartGamePack
 import org.itxtech.synapseapi.multiprotocol.protocol11910.protocol.UpdateAbilitiesPacket11910;
 import org.itxtech.synapseapi.multiprotocol.protocol11910.protocol.UpdateAbilitiesPacket11910.AbilityLayer;
 import org.itxtech.synapseapi.multiprotocol.protocol11910.protocol.UpdateAdventureSettingsPacket11910;
+import org.itxtech.synapseapi.multiprotocol.protocol11920.protocol.FeatureRegistryPacket11920;
 import org.itxtech.synapseapi.multiprotocol.protocol11920.protocol.MapInfoRequestPacket11920;
 import org.itxtech.synapseapi.multiprotocol.protocol11920.protocol.ModalFormResponsePacket11920;
 import org.itxtech.synapseapi.multiprotocol.protocol11920.protocol.NetworkChunkPublisherUpdatePacket11920;
@@ -98,6 +100,9 @@ import org.itxtech.synapseapi.multiprotocol.protocol11980.protocol.StartGamePack
 import org.itxtech.synapseapi.multiprotocol.protocol120.protocol.EmotePacket120;
 import org.itxtech.synapseapi.multiprotocol.protocol120.protocol.StartGamePacket120;
 import org.itxtech.synapseapi.multiprotocol.protocol120.protocol.TrimDataPacket120;
+import org.itxtech.synapseapi.multiprotocol.protocol12030.protocol.CameraPresetsPacket12030;
+import org.itxtech.synapseapi.multiprotocol.protocol12030.protocol.ResourcePacksInfoPacket12030;
+import org.itxtech.synapseapi.multiprotocol.protocol12030.protocol.StartGamePacket12030;
 import org.itxtech.synapseapi.multiprotocol.protocol14.protocol.PlayerActionPacket14;
 import org.itxtech.synapseapi.multiprotocol.protocol16.protocol.ResourcePackClientResponsePacket16;
 import org.itxtech.synapseapi.multiprotocol.utils.EntityProperties;
@@ -181,7 +186,41 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
 
     @Override
     protected DataPacket generateStartGamePacket(Position spawnPosition) {
-        if (this.getProtocol() >= AbstractProtocol.PROTOCOL_120.getProtocolStart()) {
+        if (this.getProtocol() >= AbstractProtocol.PROTOCOL_120_30.getProtocolStart()) {
+            StartGamePacket12030 startGamePacket = new StartGamePacket12030();
+            startGamePacket.protocol = AbstractProtocol.fromRealProtocol(this.protocol);
+            startGamePacket.netease = this.isNetEaseClient();
+            startGamePacket.entityUniqueId = SYNAPSE_PLAYER_ENTITY_ID;
+            startGamePacket.entityRuntimeId = SYNAPSE_PLAYER_ENTITY_ID;
+            startGamePacket.playerGamemode = getClientFriendlyGamemode(this.gamemode);
+            startGamePacket.x = (float) this.x;
+            startGamePacket.y = (float) this.y;
+            startGamePacket.z = (float) this.z;
+            startGamePacket.yaw = (float) this.yaw;
+            startGamePacket.pitch = (float) this.pitch;
+            startGamePacket.seed = -1;
+            startGamePacket.dimension = (byte) (this.level.getDimension().ordinal() & 0xff);
+            startGamePacket.worldGamemode = getClientFriendlyGamemode(this.gamemode);
+            startGamePacket.difficulty = this.server.getDifficulty();
+            startGamePacket.spawnX = (int) spawnPosition.x;
+            startGamePacket.spawnY = (int) spawnPosition.y;
+            startGamePacket.spawnZ = (int) spawnPosition.z;
+            startGamePacket.hasAchievementsDisabled = true;
+            startGamePacket.dayCycleStopTime = -1;
+            startGamePacket.rainLevel = 0;
+            startGamePacket.lightningLevel = 0;
+            startGamePacket.commandsEnabled = this.isEnableClientCommand();
+            startGamePacket.levelId = "";
+            startGamePacket.worldName = this.getServer().getNetwork().getName();
+            startGamePacket.generator = 1; // 0 old, 1 infinite, 2 flat
+            startGamePacket.gameRules = getSupportedRules();
+            startGamePacket.movementType = serverAuthoritativeMovement ? StartGamePacket12030.MOVEMENT_SERVER_AUTHORITATIVE : StartGamePacket12030.MOVEMENT_CLIENT_AUTHORITATIVE;
+            startGamePacket.isBlockBreakingServerAuthoritative = this.serverAuthoritativeBlockBreaking;
+            startGamePacket.currentTick = this.server.getTick();
+            startGamePacket.enchantmentSeed = ThreadLocalRandom.current().nextInt();
+            startGamePacket.isSoundServerAuthoritative = isServerAuthoritativeSoundEnabled();
+            return startGamePacket;
+        } else if (this.getProtocol() >= AbstractProtocol.PROTOCOL_120.getProtocolStart()) {
             StartGamePacket120 startGamePacket = new StartGamePacket120();
             startGamePacket.protocol = AbstractProtocol.fromRealProtocol(this.protocol);
             startGamePacket.netease = this.isNetEaseClient();
@@ -209,7 +248,7 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
             startGamePacket.worldName = this.getServer().getNetwork().getName();
             startGamePacket.generator = 1; // 0 old, 1 infinite, 2 flat
             startGamePacket.gameRules = getSupportedRules();
-            startGamePacket.movementType = serverAuthoritativeMovement ? StartGamePacket11960.MOVEMENT_SERVER_AUTHORITATIVE : StartGamePacket11960.MOVEMENT_CLIENT_AUTHORITATIVE;
+            startGamePacket.movementType = serverAuthoritativeMovement ? StartGamePacket120.MOVEMENT_SERVER_AUTHORITATIVE : StartGamePacket120.MOVEMENT_CLIENT_AUTHORITATIVE;
             startGamePacket.isBlockBreakingServerAuthoritative = this.serverAuthoritativeBlockBreaking;
             startGamePacket.currentTick = this.server.getTick();
             startGamePacket.enchantmentSeed = ThreadLocalRandom.current().nextInt();
@@ -243,7 +282,7 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
             startGamePacket.worldName = this.getServer().getNetwork().getName();
             startGamePacket.generator = 1; // 0 old, 1 infinite, 2 flat
             startGamePacket.gameRules = getSupportedRules();
-            startGamePacket.movementType = serverAuthoritativeMovement ? StartGamePacket11960.MOVEMENT_SERVER_AUTHORITATIVE : StartGamePacket11960.MOVEMENT_CLIENT_AUTHORITATIVE;
+            startGamePacket.movementType = serverAuthoritativeMovement ? StartGamePacket11980.MOVEMENT_SERVER_AUTHORITATIVE : StartGamePacket11980.MOVEMENT_CLIENT_AUTHORITATIVE;
             startGamePacket.isBlockBreakingServerAuthoritative = this.serverAuthoritativeBlockBreaking;
             startGamePacket.currentTick = this.server.getTick();
             startGamePacket.enchantmentSeed = ThreadLocalRandom.current().nextInt();
@@ -1403,6 +1442,53 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
                                 this.setCrawling(false);
                             }
                             break packetswitch;
+                        case PlayerActionPacket.ACTION_START_FLYING:
+                            if (isServerAuthoritativeMovementEnabled()) {
+                                onPacketViolation(PacketViolationReason.IMPOSSIBLE_BEHAVIOR, "action34");
+                                return;
+                            }
+
+                            if (!server.getAllowFlight() && !getAdventureSettings().get(Type.ALLOW_FLIGHT)) {
+                                kick(PlayerKickEvent.Reason.FLYING_DISABLED, "Flying is not enabled on this server");
+                                return;
+                            }
+
+                            if (getAdventureSettings().get(Type.FLYING)) {
+                                break packetswitch;
+                            }
+
+                            PlayerToggleFlightEvent playerToggleFlightEvent = new PlayerToggleFlightEvent(this, true);
+                            if (isSpectator()) {
+                                playerToggleFlightEvent.setCancelled();
+                            }
+                            this.server.getPluginManager().callEvent(playerToggleFlightEvent);
+                            if (playerToggleFlightEvent.isCancelled()) {
+                                this.sendAbilities(this, this.getAdventureSettings());
+                            } else {
+                                this.getAdventureSettings().set(Type.FLYING, playerToggleFlightEvent.isFlying());
+                            }
+                            break packetswitch;
+                        case PlayerActionPacket.ACTION_STOP_FLYING:
+                            if (isServerAuthoritativeMovementEnabled()) {
+                                onPacketViolation(PacketViolationReason.IMPOSSIBLE_BEHAVIOR, "action35");
+                                return;
+                            }
+
+                            if (!getAdventureSettings().get(Type.FLYING)) {
+                                break packetswitch;
+                            }
+
+                            playerToggleFlightEvent = new PlayerToggleFlightEvent(this, false);
+                            if (isSpectator()) {
+                                playerToggleFlightEvent.setCancelled();
+                            }
+                            this.server.getPluginManager().callEvent(playerToggleFlightEvent);
+                            if (playerToggleFlightEvent.isCancelled()) {
+                                this.sendAbilities(this, this.getAdventureSettings());
+                            } else {
+                                this.getAdventureSettings().set(Type.FLYING, playerToggleFlightEvent.isFlying());
+                            }
+                            break packetswitch;
                     }
 
                     this.setUsingItem(false);
@@ -1632,6 +1718,10 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
                         break;
                     }
 
+                    if (this.getAdventureSettings().get(Type.FLYING) == requestAbilityPacket.boolValue) {
+                        break;
+                    }
+
                     PlayerToggleFlightEvent playerToggleFlightEvent = new PlayerToggleFlightEvent(this, requestAbilityPacket.boolValue);
                     if (this.isSpectator()) {
                         playerToggleFlightEvent.setCancelled();
@@ -1846,7 +1936,14 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
 
     @Override
     protected DataPacket generateResourcePackInfoPacket() {
-        if (this.protocol >= AbstractProtocol.PROTOCOL_117_10.getProtocolStart()) {
+        if (this.protocol >= AbstractProtocol.PROTOCOL_120_30.getProtocolStart()) {
+            ResourcePacksInfoPacket12030 resourcePacket = new ResourcePacksInfoPacket12030();
+            resourcePacket.resourcePackEntries = this.resourcePacks.values().toArray(new ResourcePack[0]);
+            resourcePacket.behaviourPackEntries = this.behaviourPacks.values().toArray(new ResourcePack[0]);
+            resourcePacket.mustAccept = this.forceResources;
+//            resourcePacket.forceServerPacks = this.forceResources;
+            return resourcePacket;
+        } else if (this.protocol >= AbstractProtocol.PROTOCOL_117_10.getProtocolStart()) {
             ResourcePacksInfoPacket11710 resourcePacket = new ResourcePacksInfoPacket11710();
             resourcePacket.resourcePackEntries = this.resourcePacks.values().toArray(new ResourcePack[0]);
             resourcePacket.behaviourPackEntries = this.behaviourPacks.values().toArray(new ResourcePack[0]);
@@ -3189,5 +3286,26 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
         packet.z = motion.z;
         packet.onGround = onGround;
         dataPacket(packet);
+    }
+
+    @Override
+    protected void syncFeatureRegistry() {
+        if (getProtocol() < AbstractProtocol.PROTOCOL_119_20.getProtocolStart()) {
+            return;
+        }
+
+        FeatureRegistryPacket11920 packet = new FeatureRegistryPacket11920();
+        this.dataPacket(packet);
+    }
+
+    @Override
+    protected void sendCameraPresets() {
+        if (getProtocol() < AbstractProtocol.PROTOCOL_120_30.getProtocolStart()) {
+            return;
+        }
+
+        CameraPresetsPacket12030 packet = new CameraPresetsPacket12030();
+        packet.presets = CameraPreset.DEFAULT_PRESETS;
+        this.dataPacket(packet);
     }
 }

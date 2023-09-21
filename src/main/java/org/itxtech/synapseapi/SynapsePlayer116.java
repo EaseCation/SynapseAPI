@@ -1,5 +1,6 @@
 package org.itxtech.synapseapi;
 
+import cn.nukkit.AdventureSettings.Type;
 import cn.nukkit.Player;
 import cn.nukkit.Server;
 import cn.nukkit.block.Block;
@@ -844,14 +845,35 @@ public class SynapsePlayer116 extends SynapsePlayer113 {
 						this.setCrawling(false);
 					}
 				}
-
-				//旧版触控有bug, 在水中疾跑并同时按住方向键和升降键会触发. 只按升降键不会触发. 新版触控不会触发.
-				/*if ((inputFlags & (1L << PlayerAuthInputFlags.ASCEND)) != 0) {
-					log.fatal("ASCEND {}", packet);
-					if (!adventureSettings.get(Type.ALLOW_FLIGHT) && !isInsideOfWater()) {
-						this.violation += 1;
+				if ((inputFlags & (1L << PlayerAuthInputFlags.START_FLYING)) != 0 && !getAdventureSettings().get(Type.FLYING)) {
+					if (!server.getAllowFlight() && !getAdventureSettings().get(Type.ALLOW_FLIGHT)) {
+						kick(PlayerKickEvent.Reason.FLYING_DISABLED, "Flying is not enabled on this server");
+						break;
 					}
-				}*/
+
+					PlayerToggleFlightEvent playerToggleFlightEvent = new PlayerToggleFlightEvent(this, true);
+					if (isSpectator()) {
+						playerToggleFlightEvent.setCancelled();
+					}
+					this.server.getPluginManager().callEvent(playerToggleFlightEvent);
+					if (playerToggleFlightEvent.isCancelled()) {
+						this.sendAbilities(this, this.getAdventureSettings());
+					} else {
+						this.getAdventureSettings().set(Type.FLYING, playerToggleFlightEvent.isFlying());
+					}
+				}
+				if ((inputFlags & (1L << PlayerAuthInputFlags.STOP_FLYING)) != 0 && getAdventureSettings().get(Type.FLYING)) {
+					PlayerToggleFlightEvent playerToggleFlightEvent = new PlayerToggleFlightEvent(this, false);
+					if (isSpectator()) {
+						playerToggleFlightEvent.setCancelled();
+					}
+					this.server.getPluginManager().callEvent(playerToggleFlightEvent);
+					if (playerToggleFlightEvent.isCancelled()) {
+						this.sendAbilities(this, this.getAdventureSettings());
+					} else {
+						this.getAdventureSettings().set(Type.FLYING, playerToggleFlightEvent.isFlying());
+					}
+				}
 
 				if ((inputFlags & (1L << PlayerAuthInputFlags.HANDLED_TELEPORT)) != 0) {
 					//TODO

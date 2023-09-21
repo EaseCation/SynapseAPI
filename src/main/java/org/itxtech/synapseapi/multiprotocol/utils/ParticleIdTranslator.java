@@ -304,6 +304,10 @@ public final class ParticleIdTranslator {
 
     public static final int V119_SONIC_EXPLOSION = 84;
 
+    public static final int V11970_BRUSH_DUST = 85;
+
+    public static final int V12030_CHERRY_LEAVES = 86;
+
     static {
         v12ToV112Book[Particle.BUBBLE] = TYPE_BUBBLE;
         v12ToV112Book[Particle.BUBBLE_MANUAL] = TYPE_BUBBLE_MANUAL;
@@ -597,6 +601,10 @@ public final class ParticleIdTranslator {
         v12ToV11710Book[Particle.SCULK_SOUL] = V11740_SCULK_SOUL;
 
         v12ToV11710Book[Particle.SONIC_EXPLOSION] = V119_SONIC_EXPLOSION;
+
+        v12ToV11710Book[Particle.BRUSH_DUST] = V11970_BRUSH_DUST;
+
+        v12ToV11710Book[Particle.CHERRY_LEAVES] = V12030_CHERRY_LEAVES;
 
     }
 

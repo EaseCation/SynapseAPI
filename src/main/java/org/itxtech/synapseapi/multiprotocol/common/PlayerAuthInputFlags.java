@@ -136,4 +136,12 @@ public interface PlayerAuthInputFlags {
      * @since 1.20.10
      */
     int STOP_CRAWLING = 41;
+    /**
+     * @since 1.20.30
+     */
+    int START_FLYING = 42;
+    /**
+     * @since 1.20.30
+     */
+    int STOP_FLYING = 43;
 }
