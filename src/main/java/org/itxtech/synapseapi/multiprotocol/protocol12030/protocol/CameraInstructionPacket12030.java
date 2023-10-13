@@ -33,6 +33,7 @@ public class CameraInstructionPacket12030 extends Packet12030 {
         reset();
 
         putOptional(set, (stream, set) -> {
+            stream.putLInt(set.preset.runtimeId);
             stream.putOptional(set.ease, (bs, ease) -> {
                 bs.putByte(ease.type);
                 bs.putLFloat(ease.duration);
@@ -40,6 +41,7 @@ public class CameraInstructionPacket12030 extends Packet12030 {
             stream.putOptional(set.pos, BinaryStream::putVector3f);
             stream.putOptional(set.rot, BinaryStream::putVector2f);
             stream.putOptional(set.facing, BinaryStream::putVector3f);
+            stream.putOptional(set.defaultPreset, BinaryStream::putBoolean);
         });
 
         putOptional(clear, BinaryStream::putBoolean);

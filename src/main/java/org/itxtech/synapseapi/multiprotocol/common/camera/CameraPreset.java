@@ -1,10 +1,7 @@
 package org.itxtech.synapseapi.multiprotocol.common.camera;
 
-import lombok.AllArgsConstructor;
-import lombok.Builder;
+import lombok.*;
 import lombok.Builder.Default;
-import lombok.NoArgsConstructor;
-import lombok.ToString;
 
 import javax.annotation.Nullable;
 
@@ -34,6 +31,12 @@ public class CameraPreset {
     };
     public static final CameraPreset[] EMPTY_PRESETS = new CameraPreset[0];
 
+    static {
+        for (int i = 0; i < DEFAULT_PRESETS.length; i++) {
+            DEFAULT_PRESETS[i].runtimeId = i;
+        }
+    }
+
     public static final byte AUDIO_LISTENER_CAMERA = 0;
     public static final byte AUDIO_LISTENER_PLAYER = 1;
 
@@ -46,6 +49,7 @@ public class CameraPreset {
         this.parent = parent;
     }
 
+    public int runtimeId;
     public String name;
     @Default
     public String parent = "";

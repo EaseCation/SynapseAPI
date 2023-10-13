@@ -14,6 +14,8 @@ import javax.annotation.Nullable;
 @AllArgsConstructor
 @ToString
 public class CameraSetInstruction {
+
+    public CameraPreset preset;
     @Nullable
     public Ease ease;
 
@@ -23,6 +25,8 @@ public class CameraSetInstruction {
     public Vector2f rot;
     @Nullable
     public Vector3f facing;
+    @Nullable
+    public Boolean defaultPreset;
 
     @Builder
     @NoArgsConstructor

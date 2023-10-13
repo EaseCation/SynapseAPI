@@ -50,7 +50,9 @@ import it.unimi.dsi.fastutil.objects.ObjectIterator;
 import lombok.extern.log4j.Log4j2;
 import org.itxtech.synapseapi.dialogue.NPCDialoguePlayerHandler;
 import org.itxtech.synapseapi.multiprotocol.AbstractProtocol;
+import org.itxtech.synapseapi.multiprotocol.common.camera.CameraFadeInstruction;
 import org.itxtech.synapseapi.multiprotocol.common.camera.CameraPreset;
+import org.itxtech.synapseapi.multiprotocol.common.camera.CameraSetInstruction;
 import org.itxtech.synapseapi.multiprotocol.protocol113.protocol.ResourcePackStackPacket113;
 import org.itxtech.synapseapi.multiprotocol.protocol116100.protocol.*;
 import org.itxtech.synapseapi.multiprotocol.protocol116100ne.protocol.MovePlayerPacket116100NE;
@@ -100,6 +102,7 @@ import org.itxtech.synapseapi.multiprotocol.protocol11980.protocol.StartGamePack
 import org.itxtech.synapseapi.multiprotocol.protocol120.protocol.EmotePacket120;
 import org.itxtech.synapseapi.multiprotocol.protocol120.protocol.StartGamePacket120;
 import org.itxtech.synapseapi.multiprotocol.protocol120.protocol.TrimDataPacket120;
+import org.itxtech.synapseapi.multiprotocol.protocol12030.protocol.CameraInstructionPacket12030;
 import org.itxtech.synapseapi.multiprotocol.protocol12030.protocol.CameraPresetsPacket12030;
 import org.itxtech.synapseapi.multiprotocol.protocol12030.protocol.ResourcePacksInfoPacket12030;
 import org.itxtech.synapseapi.multiprotocol.protocol12030.protocol.StartGamePacket12030;
@@ -3307,5 +3310,45 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
         CameraPresetsPacket12030 packet = new CameraPresetsPacket12030();
         packet.presets = CameraPreset.DEFAULT_PRESETS;
         this.dataPacket(packet);
+    }
+
+    /**
+     * @since 1.20.30
+     */
+    public void startCameraInstruction(CameraSetInstruction set, CameraFadeInstruction fade) {
+        if (getProtocol() < AbstractProtocol.PROTOCOL_120_30.getProtocolStart()) {
+            return;
+        }
+        CameraInstructionPacket12030 pk = new CameraInstructionPacket12030();
+        pk.set = set;
+        pk.fade = fade;
+        this.dataPacket(pk);
+    }
+
+    /**
+     * @since 1.20.30
+     */
+    public void startCameraInstruction(CameraSetInstruction set) {
+        this.startCameraInstruction(set, null);
+    }
+
+    /**
+     * @since 1.20.30
+     */
+    public void startCameraInstruction(CameraFadeInstruction fade) {
+        this.startCameraInstruction(null, fade);
+    }
+
+    /**
+     * @since 1.20.30
+     */
+    public void clearCameraInstruction() {
+        if (getProtocol() < AbstractProtocol.PROTOCOL_120_30.getProtocolStart()) {
+            return;
+        }
+        CameraInstructionPacket12030 pk = new CameraInstructionPacket12030();
+        pk.clear = true;
+        this.getServer().getLogger().debug("[Camera.stop]");
+        this.dataPacket(pk);
     }
 }
