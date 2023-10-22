@@ -42,13 +42,14 @@ public class CameraInstructionPacket11970 extends Packet11970 {
         CompoundTag root = new CompoundTag(3);
 
         if (set != null) {
-            CompoundTag tag = new CompoundTag(3);
+            CompoundTag tag = new CompoundTag(6)
+                    .putInt("preset", set.preset.runtimeId);
 
             Ease ease = set.ease;
             if (ease != null) {
                 tag.putCompound("ease", new CompoundTag(2)
                         .putString("type", lookupEaseName(ease.type))
-                        .putFloat("hold", ease.duration));
+                        .putFloat("time", ease.duration));
             }
 
             Vector3f pos = set.pos;
@@ -61,6 +62,16 @@ public class CameraInstructionPacket11970 extends Packet11970 {
                 tag.putCompound("rot", new CompoundTag(2)
                         .putFloat("x", rot.x)
                         .putFloat("y", rot.y));
+            }
+
+            Vector3f facing = set.facing;
+            if (facing != null) {
+                tag.putList("facing", facing.toNbt()); //TODO: check
+            }
+
+            Boolean defaultPreset = set.defaultPreset;
+            if (defaultPreset != null) {
+                tag.putBoolean("default", defaultPreset);
             }
 
             root.putCompound("set", tag);
