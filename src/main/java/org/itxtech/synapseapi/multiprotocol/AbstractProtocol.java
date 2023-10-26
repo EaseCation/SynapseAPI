@@ -76,6 +76,8 @@ import org.itxtech.synapseapi.multiprotocol.protocol12010.BinaryStreamHelper1201
 import org.itxtech.synapseapi.multiprotocol.protocol12010.protocol.Packet12010;
 import org.itxtech.synapseapi.multiprotocol.protocol12030.BinaryStreamHelper12030;
 import org.itxtech.synapseapi.multiprotocol.protocol12030.protocol.Packet12030;
+import org.itxtech.synapseapi.multiprotocol.protocol12040.BinaryStreamHelper12040;
+import org.itxtech.synapseapi.multiprotocol.protocol12040.protocol.Packet12040;
 import org.itxtech.synapseapi.multiprotocol.protocol14.BinaryStreamHelper14;
 import org.itxtech.synapseapi.multiprotocol.protocol14.protocol.Packet14;
 import org.itxtech.synapseapi.multiprotocol.protocol15.BinaryStreamHelper15;
@@ -99,7 +101,6 @@ import org.itxtech.synapseapi.multiprotocol.utils.AdvancedBinaryStreamHelper;
  * ===============
  */
 public enum AbstractProtocol {
-
     PROTOCOL_11(0, null, null, BinaryStreamHelper.getInstance()),
     PROTOCOL_12(114, DataPacket.class, SynapsePlayer.class, BinaryStreamHelper12.create()),
     PROTOCOL_14(261, Packet14.class, SynapsePlayer14.class, BinaryStreamHelper14.create()),
@@ -143,6 +144,7 @@ public enum AbstractProtocol {
     PROTOCOL_120(589, Packet120.class, SynapsePlayer116100.class, BinaryStreamHelper120.create(), true),
     PROTOCOL_120_10(594, Packet12010.class, SynapsePlayer116100.class, BinaryStreamHelper12010.create(), true),
     PROTOCOL_120_30(618, Packet12030.class, SynapsePlayer116100.class, BinaryStreamHelper12030.create(), true),
+    PROTOCOL_120_40(622, Packet12040.class, SynapsePlayer116100.class, BinaryStreamHelper12040.create(), true),
     ;
 
     public static final AbstractProtocol FIRST_AVAILABLE_PROTOCOL = AbstractProtocol.PROTOCOL_117_40;
@@ -170,8 +172,8 @@ public enum AbstractProtocol {
     }
 
     public static AbstractProtocol fromRealProtocol(int protocol) {
-        for (int i = values0().length - 1; i >= 0; i--) {
-            if (protocol >= values0()[i].protocolStart) return values0()[i];
+        for (int i = getValues().length - 1; i >= 0; i--) {
+            if (protocol >= getValues()[i].protocolStart) return getValues()[i];
         }
         return PROTOCOL_12; //Might never happen
 	}
@@ -195,12 +197,12 @@ public enum AbstractProtocol {
      */
     public AbstractProtocol previous() {
         int previous = this.ordinal() - 1;
-        return previous > 1 ? values0()[previous] : null;
+        return previous > 1 ? getValues()[previous] : null;
     }
 
     public AbstractProtocol next() {
         int next = this.ordinal() + 1;
-        return next < values0().length ? values0()[next] : null;
+        return next < getValues().length ? getValues()[next] : null;
     }
 
     public Class<? extends DataPacket> getPacketClass() {
@@ -261,9 +263,9 @@ public enum AbstractProtocol {
         return playerClass;
     }
 
-    private static final AbstractProtocol[] $VALUES0 = values();
+    private static final AbstractProtocol[] VALUES = values();
 
-    public static AbstractProtocol[] values0() {
-        return $VALUES0;
+    public static AbstractProtocol[] getValues() {
+        return VALUES;
     }
 }

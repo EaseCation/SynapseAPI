@@ -2149,7 +2149,7 @@ public final class LegacyBlockSerializer {
     }
 
     private static int deserializeHangCoralFan(CompoundTag states) {
-        int meta = (states.getInt(CORAL_FAN_DIRECTION) & 0b11) << 2;
+        int meta = (states.getInt(CORAL_DIRECTION) & 0b11) << 2;
         if (states.getBoolean(CORAL_HANG_TYPE_BIT)) {
             meta |= 0b1;
         }

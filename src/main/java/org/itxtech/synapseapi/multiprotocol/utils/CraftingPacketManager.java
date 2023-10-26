@@ -69,7 +69,7 @@ public final class CraftingPacketManager {
         originPacket[0] = origin;
         originPacket[1] = origin;
 
-        for (AbstractProtocol protocol : AbstractProtocol.values()) {
+        for (AbstractProtocol protocol : AbstractProtocol.getValues()) {
             if (protocol.ordinal() < AbstractProtocol.FIRST_AVAILABLE_PROTOCOL.ordinal()) {
                 // drop support for unavailable versions
                 continue;

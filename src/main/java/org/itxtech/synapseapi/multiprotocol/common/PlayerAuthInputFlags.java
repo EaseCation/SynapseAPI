@@ -144,4 +144,8 @@ public interface PlayerAuthInputFlags {
      * @since 1.20.30
      */
     int STOP_FLYING = 43;
+    /**
+     * @since 1.20.40
+     */
+    int ACK_ENTITY_DATA = 44;
 }

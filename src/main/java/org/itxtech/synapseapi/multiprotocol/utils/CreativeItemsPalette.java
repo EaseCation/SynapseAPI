@@ -78,6 +78,7 @@ public class CreativeItemsPalette {
             register(AbstractProtocol.PROTOCOL_120, CreativeInventoryLegacy.getItems(), null);
             register(AbstractProtocol.PROTOCOL_120_10, CreativeInventoryLegacy.getItems(), null);
             register(AbstractProtocol.PROTOCOL_120_30, CreativeInventoryLegacy.getItems(), null);
+            register(AbstractProtocol.PROTOCOL_120_40, CreativeInventoryLegacy.getItems(), null);
         } else {
             register(AbstractProtocol.PROTOCOL_119, CreativeInventoryNew.getItems(), null);
             register(AbstractProtocol.PROTOCOL_119_10, CreativeInventoryNew.getItems(), null);
@@ -93,9 +94,10 @@ public class CreativeItemsPalette {
             register(AbstractProtocol.PROTOCOL_120, CreativeInventoryNew.getItems(), null);
             register(AbstractProtocol.PROTOCOL_120_10, CreativeInventoryNew.getItems(), null);
             register(AbstractProtocol.PROTOCOL_120_30, CreativeInventoryNew.getItems(), null);
+            register(AbstractProtocol.PROTOCOL_120_40, CreativeInventoryNew.getItems(), null);
         }
 
-        for (AbstractProtocol protocol : AbstractProtocol.values0()) {
+        for (AbstractProtocol protocol : AbstractProtocol.getValues()) {
             if (protocol.getProtocolStart() < AbstractProtocol.PROTOCOL_19.getProtocolStart()) {
                 continue;
             }
@@ -154,7 +156,7 @@ public class CreativeItemsPalette {
     private static void cachePackets() {
         log.debug("cache creative content...");
 
-        for (AbstractProtocol protocol : AbstractProtocol.values()) {
+        for (AbstractProtocol protocol : AbstractProtocol.getValues()) {
             if (protocol.ordinal() < AbstractProtocol.PROTOCOL_116.ordinal()) {
                 continue;
             }

@@ -53,6 +53,7 @@ public final class ItemComponentDefinitions {
             DEFINITIONS.put(AbstractProtocol.PROTOCOL_120, definition120);
             DEFINITIONS.put(AbstractProtocol.PROTOCOL_120_10, definition12010);
             DEFINITIONS.put(AbstractProtocol.PROTOCOL_120_30, definition12030);
+            DEFINITIONS.put(AbstractProtocol.PROTOCOL_120_40, definition12030);
 
             Map<String, byte[]> definitionNetEase11830 = loadAndMappingToNetEase(AbstractProtocol.PROTOCOL_118_30, "item_components11830.nbt");
             Map<String, byte[]> definitionNetEase11830NE = loadAndMappingToNetEase(AbstractProtocol.PROTOCOL_118_30_NE, "item_components11830.nbt");
@@ -64,7 +65,7 @@ public final class ItemComponentDefinitions {
             throw new AssertionError("Unable to load item_components.nbt");
         }
 
-        for (AbstractProtocol protocol : AbstractProtocol.values0()) {
+        for (AbstractProtocol protocol : AbstractProtocol.getValues()) {
             if (protocol.getProtocolStart() < AbstractProtocol.PROTOCOL_118_10.getProtocolStart()) {
                 continue;
             }

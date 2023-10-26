@@ -109,7 +109,7 @@ public class SynapseEntryPutPacketThread extends Thread {
         isRunning = running;
     }
 
-    private static final List<AbstractProtocol> fullProtocols = Arrays.stream(AbstractProtocol.values())
+    private static final List<AbstractProtocol> fullProtocols = Arrays.stream(AbstractProtocol.getValues())
             .filter(protocol -> protocol != AbstractProtocol.PROTOCOL_11)
             .toList();
 

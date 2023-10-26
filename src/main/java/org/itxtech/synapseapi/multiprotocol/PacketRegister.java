@@ -93,6 +93,7 @@ import org.itxtech.synapseapi.multiprotocol.protocol120.protocol.UnlockedRecipes
 import org.itxtech.synapseapi.multiprotocol.protocol12010.protocol.AvailableCommandsPacket12010;
 import org.itxtech.synapseapi.multiprotocol.protocol12030.protocol.ResourcePacksInfoPacket12030;
 import org.itxtech.synapseapi.multiprotocol.protocol12030.protocol.StartGamePacket12030;
+import org.itxtech.synapseapi.multiprotocol.protocol12040.protocol.DisconnectPacket12040;
 import org.itxtech.synapseapi.multiprotocol.protocol15.protocol.AddEntityPacket15;
 import org.itxtech.synapseapi.multiprotocol.protocol15.protocol.ClientboundMapItemDataPacket15;
 import org.itxtech.synapseapi.multiprotocol.protocol15.protocol.MoveEntityAbsolutePacket15;
@@ -365,6 +366,8 @@ public class PacketRegister {
 
         registerPacket(AbstractProtocol.PROTOCOL_120_30, ProtocolInfo.RESOURCE_PACKS_INFO_PACKET, ResourcePacksInfoPacket12030.class);
         registerPacket(AbstractProtocol.PROTOCOL_120_30, ProtocolInfo.START_GAME_PACKET, StartGamePacket12030.class);
+
+        registerPacket(AbstractProtocol.PROTOCOL_120_40, ProtocolInfo.DISCONNECT_PACKET, DisconnectPacket12040.class);
 
         checkNeteaseSpecialExtend();
     }

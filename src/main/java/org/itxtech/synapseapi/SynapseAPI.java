@@ -2,9 +2,6 @@ package org.itxtech.synapseapi;
 
 import cn.nukkit.Player;
 import cn.nukkit.Server;
-import cn.nukkit.command.Command;
-import cn.nukkit.command.CommandSender;
-import cn.nukkit.command.ConsoleCommandSender;
 import cn.nukkit.event.EventHandler;
 import cn.nukkit.event.Listener;
 import cn.nukkit.event.server.BatchPacketsEvent;
@@ -17,16 +14,10 @@ import cn.nukkit.level.GlobalBlockPaletteInterface.StaticVersion;
 import cn.nukkit.level.format.generic.ChunkRequestTask;
 import cn.nukkit.network.RakNetInterface;
 import cn.nukkit.network.SourceInterface;
-import cn.nukkit.network.protocol.BatchPacket;
 import cn.nukkit.network.protocol.DataPacket;
-import cn.nukkit.network.protocol.ProtocolInfo;
-import cn.nukkit.utils.Binary;
-import cn.nukkit.utils.Utils;
-import com.google.gson.JsonObject;
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
 import org.itxtech.synapseapi.command.ChunkNetVerCommand;
 import org.itxtech.synapseapi.command.LatencyCommand;
-import org.itxtech.synapseapi.event.player.netease.NetEasePlayerModEventC2SEvent;
 import org.itxtech.synapseapi.multiprotocol.AbstractProtocol;
 import org.itxtech.synapseapi.multiprotocol.PacketRegister;
 import cn.nukkit.plugin.PluginBase;
@@ -103,12 +94,12 @@ public class SynapseAPI extends PluginBase implements Listener {
         GlobalBlockPalette.setInstance(new GlobalBlockPaletteInterface(){
             @Override
             public int getOrCreateRuntimeId0(int id, int meta) {
-                return AdvancedGlobalBlockPalette.getOrCreateRuntimeId(AbstractProtocol.values0()[AbstractProtocol.values0().length - 1], false, id, meta);
+                return AdvancedGlobalBlockPalette.getOrCreateRuntimeId(AbstractProtocol.getValues()[AbstractProtocol.getValues().length - 1], false, id, meta);
             }
 
             @Override
             public int getOrCreateRuntimeId0(int legacyId) throws NoSuchElementException {
-                return AdvancedGlobalBlockPalette.getOrCreateRuntimeId(AbstractProtocol.values0()[AbstractProtocol.values0().length - 1], false, legacyId);
+                return AdvancedGlobalBlockPalette.getOrCreateRuntimeId(AbstractProtocol.getValues()[AbstractProtocol.getValues().length - 1], false, legacyId);
             }
 
             @Override
@@ -123,7 +114,7 @@ public class SynapseAPI extends PluginBase implements Listener {
 
             @Override
             public int getLegacyId0(int runtimeId) {
-                return AdvancedGlobalBlockPalette.getLegacyId(AbstractProtocol.values0()[AbstractProtocol.values0().length - 1], false, runtimeId);
+                return AdvancedGlobalBlockPalette.getLegacyId(AbstractProtocol.getValues()[AbstractProtocol.getValues().length - 1], false, runtimeId);
             }
 
             @Override
@@ -135,32 +126,32 @@ public class SynapseAPI extends PluginBase implements Listener {
         RuntimeItems.setInstance(new RuntimeItemPaletteInterface(){
             @Override
             public int getNetworkFullId0(Item item) {
-                return AdvancedRuntimeItemPalette.getNetworkFullId(AbstractProtocol.values0()[AbstractProtocol.values0().length - 1], false, item);
+                return AdvancedRuntimeItemPalette.getNetworkFullId(AbstractProtocol.getValues()[AbstractProtocol.getValues().length - 1], false, item);
             }
 
             @Override
             public int getLegacyFullId0(int networkId) {
-                return AdvancedRuntimeItemPalette.getLegacyFullId(AbstractProtocol.values0()[AbstractProtocol.values0().length - 1], false, networkId);
+                return AdvancedRuntimeItemPalette.getLegacyFullId(AbstractProtocol.getValues()[AbstractProtocol.getValues().length - 1], false, networkId);
             }
 
             @Override
             public int getId0(int fullId) {
-                return AdvancedRuntimeItemPalette.getId(AbstractProtocol.values0()[AbstractProtocol.values0().length - 1], false, fullId);
+                return AdvancedRuntimeItemPalette.getId(AbstractProtocol.getValues()[AbstractProtocol.getValues().length - 1], false, fullId);
             }
 
             @Override
             public int getData0(int fullId) {
-                return AdvancedRuntimeItemPalette.getData(AbstractProtocol.values0()[AbstractProtocol.values0().length - 1], false, fullId);
+                return AdvancedRuntimeItemPalette.getData(AbstractProtocol.getValues()[AbstractProtocol.getValues().length - 1], false, fullId);
             }
 
             @Override
             public int getNetworkId0(int networkFullId) {
-                return AdvancedRuntimeItemPalette.getNetworkId(AbstractProtocol.values0()[AbstractProtocol.values0().length - 1], false, networkFullId);
+                return AdvancedRuntimeItemPalette.getNetworkId(AbstractProtocol.getValues()[AbstractProtocol.getValues().length - 1], false, networkFullId);
             }
 
             @Override
             public boolean hasData0(int id) {
-                return AdvancedRuntimeItemPalette.hasData(AbstractProtocol.values0()[AbstractProtocol.values0().length - 1], false, id);
+                return AdvancedRuntimeItemPalette.hasData(AbstractProtocol.getValues()[AbstractProtocol.getValues().length - 1], false, id);
             }
         });
 

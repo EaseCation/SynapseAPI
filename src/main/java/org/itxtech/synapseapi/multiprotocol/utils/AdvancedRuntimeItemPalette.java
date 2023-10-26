@@ -74,6 +74,7 @@ public final class AdvancedRuntimeItemPalette {
         register(AbstractProtocol.PROTOCOL_120, palette120, null);
         register(AbstractProtocol.PROTOCOL_120_10, palette12010, null);
         register(AbstractProtocol.PROTOCOL_120_30, palette12030, null);
+        register(AbstractProtocol.PROTOCOL_120_40, palette12030, null);
     }
 
     private static void register(AbstractProtocol protocol, RuntimeItemPalette palette, RuntimeItemPalette paletteNetEase) {

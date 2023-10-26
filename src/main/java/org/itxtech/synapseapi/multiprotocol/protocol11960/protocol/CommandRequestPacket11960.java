@@ -25,7 +25,7 @@ public class CommandRequestPacket11960 extends Packet11960 {
     public void decode() {
         this.command = this.getString();
 
-        Origin type = Origin.values0()[(int) this.getUnsignedVarInt()];
+        Origin type = Origin.getValues()[(int) this.getUnsignedVarInt()];
         UUID uuid = this.getUUID();
         String requestId = this.getString();
         long playerEntityUniqueId = 0;

@@ -397,9 +397,9 @@ public enum LevelSoundEventEnum {
         return extraData;
     }
 
-    private static final LevelSoundEventEnum[] $VALUES0 = values();
+    private static final LevelSoundEventEnum[] VALUES = values();
 
-    public static LevelSoundEventEnum[] values0() {
-        return $VALUES0;
+    public static LevelSoundEventEnum[] getValues() {
+        return VALUES;
     }
 }

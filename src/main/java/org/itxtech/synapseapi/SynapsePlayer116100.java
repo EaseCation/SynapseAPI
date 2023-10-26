@@ -106,6 +106,7 @@ import org.itxtech.synapseapi.multiprotocol.protocol12030.protocol.CameraInstruc
 import org.itxtech.synapseapi.multiprotocol.protocol12030.protocol.CameraPresetsPacket12030;
 import org.itxtech.synapseapi.multiprotocol.protocol12030.protocol.ResourcePacksInfoPacket12030;
 import org.itxtech.synapseapi.multiprotocol.protocol12030.protocol.StartGamePacket12030;
+import org.itxtech.synapseapi.multiprotocol.protocol12040.protocol.DisconnectPacket12040;
 import org.itxtech.synapseapi.multiprotocol.protocol14.protocol.PlayerActionPacket14;
 import org.itxtech.synapseapi.multiprotocol.protocol16.protocol.ResourcePackClientResponsePacket16;
 import org.itxtech.synapseapi.multiprotocol.utils.EntityProperties;
@@ -3350,5 +3351,22 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
         pk.clear = true;
         this.getServer().getLogger().debug("[Camera.stop]");
         this.dataPacket(pk);
+    }
+
+    @Override
+    public void sendDisconnectScreen(int reason, @Nullable String message) {
+        if (getProtocol() < AbstractProtocol.PROTOCOL_120_40.getProtocolStart()) {
+            super.sendDisconnectScreen(reason, message);
+            return;
+        }
+
+        DisconnectPacket12040 packet = new DisconnectPacket12040();
+        packet.reason = reason;
+        if (message != null) {
+            packet.message = message;
+        } else {
+            packet.hideDisconnectionScreen = true;
+        }
+        dataPacket(packet);
     }
 }

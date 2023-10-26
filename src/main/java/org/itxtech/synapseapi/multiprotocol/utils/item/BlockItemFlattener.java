@@ -25,6 +25,7 @@ public final class BlockItemFlattener {
         DOWNGRADERS.put(AbstractProtocol.PROTOCOL_120, BlockItemFlattener::downgrader120);
         DOWNGRADERS.put(AbstractProtocol.PROTOCOL_120_10, BlockItemFlattener::downgrader12010);
         DOWNGRADERS.put(AbstractProtocol.PROTOCOL_120_30, BlockItemFlattener::downgrader12030);
+        DOWNGRADERS.put(AbstractProtocol.PROTOCOL_120_40, BlockItemFlattener::downgrader12030);
     }
 
     private static int downgrader11970(int id) {
@@ -87,14 +88,22 @@ public final class BlockItemFlattener {
         return downgrader12020(id);
     }
 
+    private static int downgrader12050(int id) {
+        if (id <= ItemBlockID.GRANITE && id >= ItemBlockID.POLISHED_ANDESITE) {
+            return ItemBlockID.STONE;
+        }
+        if (id <= ItemBlockID.SPRUCE_PLANKS && id >= ItemBlockID.DARK_OAK_PLANKS) {
+            return ItemBlockID.PLANKS;
+        }
+        return downgrader12030(id);
+    }
+
     private BlockItemFlattener() {
         throw new IllegalStateException();
     }
 }
 
-//stone
 //dirt
-//planks
 //sapling
 //sand
 //leaves
