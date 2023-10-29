@@ -273,19 +273,19 @@ public final class LegacyBlockSerializer {
             switch (type) {
                 default:
                 case STONE_TYPE_STONE:
-                    return BlockStone.NORMAL;
+                    return BlockStone.TYPE_NORMAL;
                 case STONE_TYPE_GRANITE:
-                    return BlockStone.GRANITE;
+                    return BlockStone.TYPE_GRANITE;
                 case STONE_TYPE_GRANITE_SMOOTH:
-                    return BlockStone.POLISHED_GRANITE;
+                    return BlockStone.TYPE_POLISHED_GRANITE;
                 case STONE_TYPE_DIORITE:
-                    return BlockStone.DIORITE;
+                    return BlockStone.TYPE_DIORITE;
                 case STONE_TYPE_DIORITE_SMOOTH:
-                    return BlockStone.POLISHED_DIORITE;
+                    return BlockStone.TYPE_POLISHED_DIORITE;
                 case STONE_TYPE_ANDESITE:
-                    return BlockStone.ANDESITE;
+                    return BlockStone.TYPE_ANDESITE;
                 case STONE_TYPE_ANDESITE_SMOOTH:
-                    return BlockStone.POLISHED_ANDESITE;
+                    return BlockStone.TYPE_POLISHED_ANDESITE;
 //                default:
 //                    throw badValueException(STONE_TYPE, type);
             }

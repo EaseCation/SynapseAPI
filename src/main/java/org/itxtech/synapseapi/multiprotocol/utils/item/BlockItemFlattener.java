@@ -29,7 +29,7 @@ public final class BlockItemFlattener {
     }
 
     private static int downgrader11970(int id) {
-        if (id <= ItemBlockID.BLACK_WOOL && id >= ItemBlockID.PINK_WOOL) {
+        if (id <= ItemBlockID.LIGHT_GRAY_WOOL && id >= ItemBlockID.PINK_WOOL) {
             return ItemBlockID.WOOL;
         }
         return id;
