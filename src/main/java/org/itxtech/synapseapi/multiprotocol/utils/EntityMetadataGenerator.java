@@ -93,9 +93,9 @@ public class EntityMetadataGenerator {
 				entityMetadata.put(byteEntityData);
 			} else if(entityData instanceof FloatEntityData) {
 				float data = entityData.getDataAsFloat();
-				if (entityData.getId() == Entity.DATA_RIDER_MIN_ROTATION && data == 1 && protocol.ordinal() < AbstractProtocol.PROTOCOL_116_210.ordinal()) { // boat
-					data = -90f;
-				}
+//				if (entityData.getId() == Entity.DATA_SEAT_ROTATION_OFFSET_DEGREES && data == 1 && protocol.ordinal() < AbstractProtocol.PROTOCOL_116_210.ordinal()) { // boat
+//					data = -90f;
+//				}
 				FloatEntityData floatEntityData = new FloatEntityData(newId, data);
 				entityMetadata.put(floatEntityData);
 			} else if(entityData instanceof IntEntityData) {
