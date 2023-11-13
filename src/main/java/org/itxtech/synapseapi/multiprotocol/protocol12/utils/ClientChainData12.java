@@ -70,6 +70,31 @@ public final class ClientChainData12 implements LoginChainData {
     }
 
     @Override
+    public String getNetEaseClientOsName() {
+        return neteaseClientOsName;
+    }
+
+    @Override
+    public String getNetEaseEnv() {
+        return neteaseEnv;
+    }
+
+    @Override
+    public String getNetEaseClientEngineVersion() {
+        return neteaseClientEngineVersion;
+    }
+
+    @Override
+    public String getNetEaseClientPatchVersion() {
+        return neteaseClientPatchVersion;
+    }
+
+    @Override
+    public String getNetEaseClientBit() {
+        return neteaseClientBit;
+    }
+
+    @Override
     public String getServerAddress() {
         return serverAddress;
     }
@@ -162,6 +187,11 @@ public final class ClientChainData12 implements LoginChainData {
     private String neteaseUid;
     private String neteaseSid;
     private String neteasePlatform;
+    private String neteaseClientOsName;
+    private String neteaseEnv;
+    private String neteaseClientEngineVersion;
+    private String neteaseClientPatchVersion;
+    private String neteaseClientBit;
 
     private long clientId;
     private String serverAddress;
@@ -203,6 +233,11 @@ public final class ClientChainData12 implements LoginChainData {
                 if (extra.has("uid")) this.neteaseUid = extra.get("uid").getAsString();
                 if (extra.has("netease_sid")) this.neteaseSid = extra.get("netease_sid").getAsString();
                 if (extra.has("platform")) this.neteasePlatform = extra.get("platform").getAsString();
+                if (extra.has("os_name")) this.neteaseClientOsName = extra.get("os_name").getAsString();
+                if (extra.has("env")) this.neteaseEnv = extra.get("env").getAsString();
+                if (extra.has("engineVersion")) this.neteaseClientEngineVersion = extra.get("engineVersion").getAsString();
+                if (extra.has("patchVersion")) this.neteaseClientPatchVersion = extra.get("patchVersion").getAsString();
+                if (extra.has("bit")) this.neteaseClientBit = extra.get("bit").getAsString();
             }
             if (chainMap.has("identityPublicKey"))
                 this.identityPublicKey = chainMap.get("identityPublicKey").getAsString();

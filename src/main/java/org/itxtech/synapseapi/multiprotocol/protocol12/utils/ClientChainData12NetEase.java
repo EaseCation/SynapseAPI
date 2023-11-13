@@ -67,8 +67,33 @@ public final class ClientChainData12NetEase implements LoginChainData {
     }
 
     @Override
-    public String  getNetEasePlatform() {
+    public String getNetEasePlatform() {
         return neteasePlatform;
+    }
+
+    @Override
+    public String getNetEaseClientOsName() {
+        return neteaseClientOsName;
+    }
+
+    @Override
+    public String getNetEaseEnv() {
+        return neteaseEnv;
+    }
+
+    @Override
+    public String getNetEaseClientEngineVersion() {
+        return neteaseClientEngineVersion;
+    }
+
+    @Override
+    public String getNetEaseClientPatchVersion() {
+        return neteaseClientPatchVersion;
+    }
+
+    @Override
+    public String getNetEaseClientBit() {
+        return neteaseClientBit;
     }
 
     @Override
@@ -164,6 +189,11 @@ public final class ClientChainData12NetEase implements LoginChainData {
     private String neteaseUid;
     private String neteaseSid;
     private String neteasePlatform;
+    private String neteaseClientOsName;
+    private String neteaseEnv;
+    private String neteaseClientEngineVersion;
+    private String neteaseClientPatchVersion;
+    private String neteaseClientBit;
 
     private long clientId;
     private String serverAddress;
@@ -205,6 +235,11 @@ public final class ClientChainData12NetEase implements LoginChainData {
                 if (extra.has("XUID")) this.xuid = extra.get("XUID").getAsString();
                 if (extra.has("uid")) this.neteaseUid = extra.get("uid").getAsString();
                 if (extra.has("netease_sid")) this.neteaseSid = extra.get("netease_sid").getAsString();
+                if (extra.has("os_name")) this.neteaseClientOsName = extra.get("os_name").getAsString();
+                if (extra.has("env")) this.neteaseEnv = extra.get("env").getAsString();
+                if (extra.has("engineVersion")) this.neteaseClientEngineVersion = extra.get("engineVersion").getAsString();
+                if (extra.has("patchVersion")) this.neteaseClientPatchVersion = extra.get("patchVersion").getAsString();
+                if (extra.has("bit")) this.neteaseClientBit = extra.get("bit").getAsString();
             }
             if (chainMap.has("identityPublicKey"))
                 this.identityPublicKey = chainMap.get("identityPublicKey").getAsString();
@@ -244,6 +279,11 @@ public final class ClientChainData12NetEase implements LoginChainData {
             if (profile.has("uid")) this.neteaseUid = profile.get("uid").getAsString();
             if (profile.has("netease_sid")) this.neteaseSid = profile.get("netease_sid").getAsString();
             if (profile.has("platform")) this.neteasePlatform = profile.get("platform").getAsString();
+            if (profile.has("os_name")) this.neteaseClientOsName = profile.get("os_name").getAsString();
+            if (profile.has("env")) this.neteaseEnv = profile.get("env").getAsString();
+            if (profile.has("engineVersion")) this.neteaseClientEngineVersion = profile.get("engineVersion").getAsString();
+            if (profile.has("patchVersion")) this.neteaseClientPatchVersion = profile.get("patchVersion").getAsString();
+            if (profile.has("bit")) this.neteaseClientBit = profile.get("bit").getAsString();
         } catch (Exception e) {
             // TODO: handle exception,认证失败
             //Server.getInstance().getLogger().logException(e);
