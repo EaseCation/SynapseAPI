@@ -315,7 +315,8 @@ public class SynapsePlayer112 extends SynapsePlayer19 {
 					return oldValue;
 				}
 			};
-			this.chunksPerTick = SynapseAPI.getInstance().getConfig().getInt("blob-cache-chunk-send-pre-tick", this.chunksPerTick * 2);
+			int blobCacheChunkSendPreTick = SynapseAPI.getInstance().getBlobCacheChunkSendPreTick();
+			this.chunksPerTick = blobCacheChunkSendPreTick > 0 ? blobCacheChunkSendPreTick : this.chunksPerTick * 2;
 			getServer().getLogger().info(this.getName() + "已启用客户端区块缓存, 每tick发送区块被设为" + this.chunksPerTick);
 		}
 	}

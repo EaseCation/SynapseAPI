@@ -59,6 +59,7 @@ public class SynapseAPI extends PluginBase implements Listener {
     private final Map<String, SynapseEntry> synapseEntries = new Object2ObjectOpenHashMap<>();
     private Messenger messenger;
     private boolean networkBroadcastPlayerMove;
+    private int blobCacheChunkSendPreTick;
 
     public static SynapseAPI getInstance() {
         return instance;
@@ -70,6 +71,10 @@ public class SynapseAPI extends PluginBase implements Listener {
 
     public boolean isNetworkBroadcastPlayerMove() {
         return networkBroadcastPlayerMove;
+    }
+
+    public int getBlobCacheChunkSendPreTick() {
+        return blobCacheChunkSendPreTick;
     }
 
     @Override
@@ -85,6 +90,7 @@ public class SynapseAPI extends PluginBase implements Listener {
         this.getServer().getPluginManager().registerEvents(this, this);
 
         this.networkBroadcastPlayerMove = this.getConfig().getBoolean("network-broadcast-player-move", false);
+        this.blobCacheChunkSendPreTick = this.getConfig().getInt("blob-cache-chunk-send-pre-tick", 0);
         this.recordPacketStack = this.getConfig().getBoolean("record-packet-stack", false);
 
         saveResource("recipes11.json", true);
