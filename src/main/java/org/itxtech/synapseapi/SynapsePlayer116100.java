@@ -3189,18 +3189,30 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
         if (true) {
             return;
         }
+
+        DimensionDataPacket11830 packet = new DimensionDataPacket11830();
+        packet.definitions = new DimensionDefinition[]{
+                //TODO: 无需填充负数子区块, 子区块从0开始共16个. (需加载一个1.18.0+的行为包)
+                new DimensionDefinition(DimensionDataPacket11830.VANILLA_OVERWORLD.identifier, 256, 0, Generator.TYPE_VOID),
+                new DimensionDefinition(DimensionDataPacket11830.VANILLA_NETHER.identifier, 0, 0, Generator.TYPE_VOID),
+                new DimensionDefinition(DimensionDataPacket11830.VANILLA_THE_END.identifier, 0, 0, Generator.TYPE_VOID),
+        };
+        dataPacket(packet);
+
+/*
         // test data-driven dimensions
 
         DimensionDataPacket11830 packet = new DimensionDataPacket11830();
         packet.definitions = new DimensionDefinition[]{
 //                DimensionDataPacket11830.VANILLA_OVERWORLD,
-                //new DimensionDefinition(DimensionDataPacket11830.VANILLA_OVERWORLD.identifier, 255, 0, Generator.TYPE_VOID),
+                //new DimensionDefinition(DimensionDataPacket11830.VANILLA_OVERWORLD.identifier, 256, 0, Generator.TYPE_VOID),
 //                DimensionDataPacket11830.VANILLA_NETHER,
 //                DimensionDataPacket11830.VANILLA_THE_END,
-                new DimensionDefinition("ease:dim3", 255, 0, Generator.TYPE_VOID),
-                new DimensionDefinition("ease:dim4", 255, 0, Generator.TYPE_VOID),
+                new DimensionDefinition("ease:dim3", 256, 0, Generator.TYPE_VOID),
+                new DimensionDefinition("ease:dim4", 256, 0, Generator.TYPE_VOID),
         };
         dataPacket(packet);
+*/
     }
 
     @Override
