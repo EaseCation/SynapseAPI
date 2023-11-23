@@ -39,15 +39,15 @@ public class CameraInstructionPacket11970 extends Packet11970 {
     public void encode() {
         reset();
 
-        CompoundTag root = new CompoundTag(3);
+        CompoundTag root = new CompoundTag();
 
         if (set != null) {
-            CompoundTag tag = new CompoundTag(6)
+            CompoundTag tag = new CompoundTag()
                     .putInt("preset", set.preset.runtimeId);
 
             Ease ease = set.ease;
             if (ease != null) {
-                tag.putCompound("ease", new CompoundTag(2)
+                tag.putCompound("ease", new CompoundTag()
                         .putString("type", lookupEaseName(ease.type))
                         .putFloat("time", ease.duration));
             }
@@ -59,7 +59,7 @@ public class CameraInstructionPacket11970 extends Packet11970 {
 
             Vector2f rot = set.rot;
             if (rot != null) {
-                tag.putCompound("rot", new CompoundTag(2)
+                tag.putCompound("rot", new CompoundTag()
                         .putFloat("x", rot.x)
                         .putFloat("y", rot.y));
             }
@@ -82,11 +82,11 @@ public class CameraInstructionPacket11970 extends Packet11970 {
         }
 
         if (fade != null) {
-            CompoundTag tag = new CompoundTag(2);
+            CompoundTag tag = new CompoundTag();
 
             TimeData time = fade.time;
             if (time != null) {
-                tag.putCompound("time", new CompoundTag(3)
+                tag.putCompound("time", new CompoundTag()
                         .putFloat("fadeIn", time.fadeInTime)
                         .putFloat("hold", time.stayTime)
                         .putFloat("fadeOut", time.fadeOutTime));
@@ -94,7 +94,7 @@ public class CameraInstructionPacket11970 extends Packet11970 {
 
             BlockColor color = fade.color;
             if (color != null) {
-                tag.putCompound("color", new CompoundTag(3)
+                tag.putCompound("color", new CompoundTag()
                         .putFloat("r", color.getRed() / 255f)
                         .putFloat("g", color.getBlue() / 255f) // Microjang is sending blue as green and green as blue :(
                         .putFloat("b", color.getGreen() / 255f));

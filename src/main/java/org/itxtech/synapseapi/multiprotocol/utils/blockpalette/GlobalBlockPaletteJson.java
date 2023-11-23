@@ -133,6 +133,11 @@ public class GlobalBlockPaletteJson implements AdvancedGlobalBlockPaletteInterfa
     }
 
     @Override
+    public byte[] getCompiledBlockProperties() {
+        return new byte[0];
+    }
+
+    @Override
     public byte[] getItemDataPalette() {
         return itemDataPalette;
     }

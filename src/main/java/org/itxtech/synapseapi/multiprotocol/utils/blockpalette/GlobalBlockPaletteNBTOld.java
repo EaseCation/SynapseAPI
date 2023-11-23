@@ -77,6 +77,11 @@ public class GlobalBlockPaletteNBTOld implements AdvancedGlobalBlockPaletteInter
     }
 
     @Override
+    public byte[] getCompiledBlockProperties() {
+        return new byte[0];
+    }
+
+    @Override
     public byte[] getItemDataPalette() {
         return itemDataPalette;
     }

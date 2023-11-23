@@ -1,10 +1,8 @@
 package org.itxtech.synapseapi.multiprotocol.utils.block;
 
 import cn.nukkit.GameVersion;
-import cn.nukkit.block.Block;
 import cn.nukkit.nbt.tag.CompoundTag;
-import it.unimi.dsi.fastutil.ints.Int2ObjectFunction;
-import it.unimi.dsi.fastutil.objects.ObjectArrayList;
+import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet;
 import lombok.extern.log4j.Log4j2;
 import org.itxtech.synapseapi.multiprotocol.AbstractProtocol;
 import org.itxtech.synapseapi.multiprotocol.utils.block.BlockPalette.BlockData;
@@ -14,6 +12,7 @@ import java.util.EnumMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Predicate;
 
@@ -22,6 +21,8 @@ import static cn.nukkit.GameVersion.*;
 @Log4j2
 public final class RuntimeBlockMapper {
     public static final Map<AbstractProtocol, BlockPalette[]> PALETTES = new EnumMap<>(AbstractProtocol.class);
+
+    private static RuntimeBlockSerializer RUNTIME_BLOCK_SERIALIZER;
 
     public static void initialize() {
         log.debug("Loading runtime block mapper...");
@@ -87,7 +88,8 @@ public final class RuntimeBlockMapper {
                 CompletableFuture.runAsync(() -> map(V1_20_40, basePalette, palette12040, ver -> ver.ordinal() >= baseVersion.ordinal() && ver.ordinal() <= V1_20_40.ordinal()))
         ).join();
 
-        LegacyBlockSerializer.setSerializer(createRuntimeBlockSerializer(basePalette));
+        RUNTIME_BLOCK_SERIALIZER = new RuntimeBlockSerializer(basePalette);
+        LegacyBlockSerializer.setSerializer(RUNTIME_BLOCK_SERIALIZER::serialize);
 
         BlockUtil.initialize();
     }
@@ -131,86 +133,26 @@ public final class RuntimeBlockMapper {
         return null;
     }
 
-    public static Int2ObjectFunction<CompoundTag> createRuntimeBlockSerializer(BlockPalette basePalette) {
-        List<CompoundTag>[] mapping = new List[Block.UNDEFINED];
-        for (BlockData block : basePalette.palette) {
-            int id = block.id;
-            if (block.id == -1) {
-                continue;
-            }
-            if (id >= Block.UNDEFINED) {
-                log.debug("Skip unsupported block: {}", id);
-                continue;
-            }
-            int meta = block.val;
+    static void registerCustomBlock(String name, int id, CompoundTag definition) {
+        RUNTIME_BLOCK_SERIALIZER.idMetaToTag[id] = new CompoundTag[]{
+                new CompoundTag()
+                        .putString("name", name)
+                        .putCompound("states", new CompoundTag("states"))
+                        .putInt("version", VanillaBlockUpgrader.getCurrentVersion())
+        };
 
-            List<CompoundTag> tags = mapping[id];
-            if (tags == null) {
-                tags = new ObjectArrayList<>();
-                mapping[id] = tags;
-            }
-
-            while (tags.size() <= meta) {
-                tags.add(null);
-            }
-            tags.set(meta, new CompoundTag()
-                    .putString("name", block.name)
-                    .putCompound("states", block.states)
-                    .putInt("version", VanillaBlockUpgrader.getCurrentVersion()));
-        }
-
-        CompoundTag[][] idMetaToTag = new CompoundTag[Block.UNDEFINED][];
-        for (int id = 0; id < Block.UNDEFINED; id++) {
-            List<CompoundTag> tags = mapping[id];
-            if (tags == null) {
-                log.trace("Skip unmapped block id: {}", id);
-                continue;
-            }
-            if (tags.isEmpty()) {
-                log.trace("Skip empty block states. id {}", id);
-                continue;
-            }
-            CompoundTag first = tags.get(0);
-            if (first == null) {
-                log.debug("First block state undefined. id {}", id);
-            }
-            for (int meta = 0; meta < tags.size(); meta++) {
-                CompoundTag tag = tags.get(meta);
-                if (tag != null) {
+        Set<BlockPalette> finished = new ObjectOpenHashSet<>();
+        for (BlockPalette[] pair : PALETTES.values()) {
+            for (int i = 0; i < 2; i++) {
+                BlockPalette palette = pair[i];
+                if (!finished.add(palette)) {
                     continue;
                 }
-//                log.trace("Mapping undefined block meta to first state. id {} meta {}", id, meta);
-                tags.set(meta, first);
+
+                palette.palette.add(new BlockData(name, id));
+                palette.properties.add(new BlockProperty(name, definition));
             }
-            idMetaToTag[id] = tags.toArray(new CompoundTag[0]);
         }
-
-        CompoundTag infoUpdateBlock = idMetaToTag[Block.INFO_UPDATE][0];
-
-       return fullId -> {
-            int id = fullId >> Block.BLOCK_META_BITS;
-            if (id < 0 || id >= Block.UNDEFINED) {
-                log.warn("Invalid block id: {}", id);
-                return infoUpdateBlock;
-            }
-
-            CompoundTag[] tags = idMetaToTag[id];
-            if (tags == null) {
-                log.warn("Unmapped block id: {}", id);
-                return infoUpdateBlock;
-            }
-
-            int meta = fullId & Block.BLOCK_META_MASK;
-            int count = tags.length;
-            if (meta < 0 || meta >= count) {
-                log.warn("Invalid block meta: id {} val {}", id, meta);
-                if (count == 0) {
-                    return infoUpdateBlock;
-                }
-                return tags[0];
-            }
-            return tags[meta];
-       };
     }
 
     private RuntimeBlockMapper() {

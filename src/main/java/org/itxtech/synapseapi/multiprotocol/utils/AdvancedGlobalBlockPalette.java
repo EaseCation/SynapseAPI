@@ -8,6 +8,7 @@ import it.unimi.dsi.fastutil.ints.IntList;
 import lombok.extern.log4j.Log4j2;
 import org.itxtech.synapseapi.SynapseSharedConstants;
 import org.itxtech.synapseapi.multiprotocol.AbstractProtocol;
+import org.itxtech.synapseapi.multiprotocol.utils.block.BlockPalette;
 import org.itxtech.synapseapi.multiprotocol.utils.block.LegacyBlockSerializer;
 import org.itxtech.synapseapi.multiprotocol.utils.block.RuntimeBlockMapper;
 import org.itxtech.synapseapi.multiprotocol.utils.blockpalette.*;
@@ -15,6 +16,7 @@ import org.itxtech.synapseapi.multiprotocol.utils.blockpalette.data.PaletteBlock
 
 import java.util.EnumMap;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Stream;
 
@@ -260,6 +262,10 @@ public final class AdvancedGlobalBlockPalette {
             });
         }
 
+        registerStaticPalettes();
+    }
+
+    private static void registerStaticPalettes() {
         staticPalettes.put(StaticVersion.V1_16_100, new GlobalBlockPaletteStatic(palettes.get(AbstractProtocol.PROTOCOL_116_100)[0]));
         staticPalettes.put(StaticVersion.V1_16_200_NETEASE, new GlobalBlockPaletteStatic(palettes.get(AbstractProtocol.PROTOCOL_116_200)[1]));
         staticPalettes.put(StaticVersion.V1_16_210, new GlobalBlockPaletteStatic(palettes.get(AbstractProtocol.PROTOCOL_116_210)[0]));
@@ -283,6 +289,33 @@ public final class AdvancedGlobalBlockPalette {
         staticPalettes.put(StaticVersion.V1_20_10, new GlobalBlockPaletteStatic(palettes.get(AbstractProtocol.PROTOCOL_120_10)[0]));
         staticPalettes.put(StaticVersion.V1_20_30, new GlobalBlockPaletteStatic(palettes.get(AbstractProtocol.PROTOCOL_120_30)[0]));
         staticPalettes.put(StaticVersion.V1_20_40, new GlobalBlockPaletteStatic(palettes.get(AbstractProtocol.PROTOCOL_120_40)[0]));
+    }
+
+    public static void rebuildStaticPalettes() {
+        for (Entry<AbstractProtocol, AdvancedGlobalBlockPaletteInterface[]> entry : palettes.entrySet()) {
+            AbstractProtocol protocol = entry.getKey();
+            if (protocol.getProtocolStart() < AbstractProtocol.PROTOCOL_116_100.getProtocolStart()) {
+                continue;
+            }
+            BlockPalette[] palettes = RuntimeBlockMapper.PALETTES.get(protocol);
+            if (palettes == null) {
+                continue;
+            }
+            boolean hashSort = protocol.getProtocolStart() >= AbstractProtocol.PROTOCOL_118_30.getProtocolStart();
+
+            AdvancedGlobalBlockPaletteInterface[] pair = entry.getValue();
+            for (int i = 0; i < pair.length; i++) {
+                BlockPalette palette = palettes[i];
+                if (hashSort) {
+                    palette.sortHash();
+                } else {
+                    palette.sortLegacy();
+                }
+                pair[i] = new GlobalBlockPaletteNBT(protocol, palette.palette, palette.properties);
+            }
+        }
+
+        registerStaticPalettes();
     }
 
     public static int getOrCreateRuntimeId(AbstractProtocol protocol, boolean netease, int legacyId) {
@@ -328,6 +361,18 @@ public final class AdvancedGlobalBlockPalette {
                 return netease ? versions[1].getCompiledTable() : versions[0].getCompiledTable();
             }
             return versions[0].getCompiledTable();
+        } else {
+            throw new RuntimeException("Advanced global block palette protocol " + protocol.name() + " not found");
+        }
+    }
+
+    public static byte[] getCompiledBlockProperties(AbstractProtocol protocol, boolean netease) {
+        AdvancedGlobalBlockPaletteInterface[] versions = palettes.get(protocol);
+        if (versions != null) {
+            if (versions.length > 1) {
+                return netease ? versions[1].getCompiledBlockProperties() : versions[0].getCompiledBlockProperties();
+            }
+            return versions[0].getCompiledBlockProperties();
         } else {
             throw new RuntimeException("Advanced global block palette protocol " + protocol.name() + " not found");
         }

@@ -914,26 +914,26 @@ public class SynapsePlayer extends Player {
 
                 LoginPacket loginPacket = (LoginPacket) packet;
 
-                String message;
-                if (loginPacket.getProtocol() < ProtocolInfo.CURRENT_PROTOCOL) {
-                    if (loginPacket.getProtocol() < ProtocolInfo.CURRENT_PROTOCOL) {
-                        message = "disconnectionScreen.outdatedClient";
+                this.protocol = loginPacket.protocol;
 
-                        this.sendPlayStatus(PlayStatusPacket.LOGIN_FAILED_CLIENT);
-                    } else {
-                        message = "disconnectionScreen.outdatedServer";
+                if (loginPacket.username != null) {
+                    this.username = TextFormat.clean(loginPacket.username);
+                    this.originName = this.username;
+                    this.displayName = this.username;
+                    this.iusername = this.username.toLowerCase();
+                }
 
-                        this.sendPlayStatus(PlayStatusPacket.LOGIN_FAILED_SERVER);
-                    }
-                    this.close("", message, false);
+                if (loginPacket.getProtocol() < AbstractProtocol.FIRST_ALLOW_LOGIN_PROTOCOL.getProtocolStart()) {
+                    this.sendPlayStatus(PlayStatusPacket.LOGIN_FAILED_CLIENT);
+                    this.close("", "disconnectionScreen.outdatedClient");
+                    break;
+                }
+                if (loginPacket.getProtocol() > AbstractProtocol.LAST_ALLOW_LOGIN_PROTOCOL.getProtocolStart()) {
+                    this.sendPlayStatus(PlayStatusPacket.LOGIN_FAILED_SERVER);
+                    this.close("", "disconnectionScreen.outdatedServer");
                     break;
                 }
 
-                this.protocol = loginPacket.protocol;
-                this.username = TextFormat.clean(loginPacket.username);
-                this.originName = this.username;
-                this.displayName = this.username;
-                this.iusername = this.username.toLowerCase();
                 this.setDataProperty(new StringEntityData(DATA_NAMETAG, this.username), false);
 
                 setLoginChainData(ClientChainData12NetEase.read(loginPacket));

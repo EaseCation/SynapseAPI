@@ -38,7 +38,7 @@ public final class ItemUtil {
 
     static final Object2IntMap<String> ITEM_NAME_TO_ID;
     static final String[] ITEM_ID_TO_NAME = new String[Short.MAX_VALUE];
-    static final String[] BLOCK_ID_TO_NAME = new String[BlockID.UNDEFINED];
+    static final String[] BLOCK_ID_TO_NAME = new String[Block.BLOCK_ID_COUNT];
 
     static final Map<String, String> ITEM_TO_BLOCK;
 
@@ -124,7 +124,7 @@ public final class ItemUtil {
         tag.putString("Name", "minecraft:info_update");
         tag.putShort("Damage", 0);
 
-        CompoundTag block = new CompoundTag(3);
+        CompoundTag block = new CompoundTag();
         BlockUtil.unknownBlock(block);
         tag.putCompound("Block", block);
 
@@ -154,7 +154,7 @@ public final class ItemUtil {
         }
 
         if (blockStates != null) {
-            CompoundTag blockTag = new CompoundTag(3)
+            CompoundTag blockTag = new CompoundTag()
                     .putString("name", ITEM_TO_BLOCK.getOrDefault(name, name))
                     .putInt("version", BlockUpgrader.getCurrentVersion());
             try {

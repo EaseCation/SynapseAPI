@@ -105,33 +105,33 @@ public class SynapsePlayer14 extends SynapsePlayer {
 
 				LoginPacket14 loginPacket = (LoginPacket14) packet;
 
-				String message;
-				if (loginPacket.getProtocol() < ProtocolInfo.CURRENT_PROTOCOL) {
-					if (loginPacket.getProtocol() < ProtocolInfo.CURRENT_PROTOCOL) {
-						message = "disconnectionScreen.outdatedClient";
+				this.protocol = loginPacket.protocol;
 
-						this.sendPlayStatus(PlayStatusPacket.LOGIN_FAILED_CLIENT);
-					} else {
-						message = "disconnectionScreen.outdatedServer";
+				if (loginPacket.username != null) {
+					this.username = TextFormat.clean(loginPacket.username);
+					this.originName = this.username;
+					this.displayName = this.username;
+					this.iusername = this.username.toLowerCase();
+				}
 
-						this.sendPlayStatus(PlayStatusPacket.LOGIN_FAILED_SERVER);
-					}
-					this.close("", message, false);
+				if (loginPacket.getProtocol() < AbstractProtocol.FIRST_ALLOW_LOGIN_PROTOCOL.getProtocolStart()) {
+					this.sendPlayStatus(PlayStatusPacket.LOGIN_FAILED_CLIENT);
+					this.close("", "disconnectionScreen.outdatedClient");
+					break;
+				}
+				if (loginPacket.getProtocol() > AbstractProtocol.LAST_ALLOW_LOGIN_PROTOCOL.getProtocolStart()) {
+					this.sendPlayStatus(PlayStatusPacket.LOGIN_FAILED_SERVER);
+					this.close("", "disconnectionScreen.outdatedServer");
 					break;
 				}
 
-				this.protocol = loginPacket.protocol;
-				this.username = TextFormat.clean(loginPacket.username);
-				this.originName = this.username;
-				this.displayName = this.username;
-				this.iusername = this.username.toLowerCase();
 				this.setDataProperty(new StringEntityData(DATA_NAMETAG, this.username), false);
 
 				setLoginChainData(ClientChainData12NetEase.of(loginPacket.getBuffer()));
 				if (this.loginChainData.getClientUUID() != null) { // 网易认证通过！
 					this.isNetEaseClient = true;
 					this.getServer().getLogger().notice(this.username + TextFormat.RED + " 中国版验证通过！");
-				} else if (DEBUG_ENVIRONMENT && !ClientChainDataXbox.of(loginPacket.getBuffer()).isXboxAuthed() && !username.startsWith("Player")) { // 国际版验证失败, 特定前缀玩家名解析为中国版 (仅限调试环境)
+				} else if (DEBUG_ENVIRONMENT && !ClientChainDataXbox.of(loginPacket.getBuffer()).isXboxAuthed() && username.startsWith("netease")) { // 国际版验证失败, 特定前缀玩家名解析为中国版 (仅限调试环境)
 					this.isNetEaseClient = true;
 					this.getServer().getLogger().notice(this.username + TextFormat.RED + " Xbox验证未通过！");
 				} else { // 国际版普通认证

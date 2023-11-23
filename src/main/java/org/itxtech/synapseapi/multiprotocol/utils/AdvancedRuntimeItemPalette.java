@@ -2,15 +2,19 @@ package org.itxtech.synapseapi.multiprotocol.utils;
 
 import cn.nukkit.item.Item;
 import cn.nukkit.item.RuntimeItemPaletteInterface;
+import cn.nukkit.nbt.tag.CompoundTag;
+import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet;
 import lombok.extern.log4j.Log4j2;
 import org.itxtech.synapseapi.multiprotocol.AbstractProtocol;
 import org.itxtech.synapseapi.multiprotocol.utils.item.LegacyItemSerializer;
 
+import javax.annotation.Nullable;
 import java.util.EnumMap;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Set;
 
-/**
+/*
  * 由于hardcode了物品调色板（目前应该只有中国版写死了2021.06.17）
  * 以及slot相关编码使用NetworkId
  * 所以需要分版本对数据包进行处理
@@ -90,17 +94,42 @@ public final class AdvancedRuntimeItemPalette {
         registerCustomItem(fullName, id, null, null);
     }
 
-    public static void registerCustomItem(String fullName, int id, Integer oldId, Integer oldData) {
-        registerCustomItem(fullName, id, oldId, oldData, false);
+    public static void registerCustomItem(String fullName, int id, @Nullable Integer oldId) {
+        registerCustomItem(fullName, id, oldId, null);
     }
 
-    public static void registerCustomItem(String fullName, int id, Integer oldId, Integer oldData, boolean component) {
+    public static void registerCustomItem(String fullName, int id, @Nullable CompoundTag components) {
+        registerCustomItem(fullName, id, null, components);
+    }
+
+    public static void registerCustomItem(String fullName, int id, @Nullable Integer oldId, @Nullable CompoundTag components) {
+        boolean componentBased = components != null;
+
+        Set<AdvancedRuntimeItemPaletteInterface> finished = new ObjectOpenHashSet<>();
         for (AdvancedRuntimeItemPaletteInterface[] interfaces : palettes.values()) {
             for (AdvancedRuntimeItemPaletteInterface palette : interfaces) {
-                if (palette instanceof RuntimeItemPalette) {
-                    RuntimeItemPaletteInterface.Entry entry = new RuntimeItemPaletteInterface.Entry(fullName, id, oldId, oldData, component);
-                    ((RuntimeItemPalette) palette).registerItem(entry);
+                if (!finished.add(palette)) {
+                    continue;
                 }
+
+                palette.registerItem(new RuntimeItemPaletteInterface.Entry(fullName, id, oldId, null, componentBased));
+            }
+        }
+
+        if (componentBased) {
+            ItemComponentDefinitions.registerCustomItemComponent(fullName, id, components);
+        }
+    }
+
+    public static void rebuildNetworkCache() {
+        Set<AdvancedRuntimeItemPaletteInterface> finished = new ObjectOpenHashSet<>();
+        for (AdvancedRuntimeItemPaletteInterface[] interfaces : AdvancedRuntimeItemPalette.palettes.values()) {
+            for (AdvancedRuntimeItemPaletteInterface palette : interfaces) {
+                if (!finished.add(palette)) {
+                    continue;
+                }
+
+                palette.buildNetworkCache();
             }
         }
     }

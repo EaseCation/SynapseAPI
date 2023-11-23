@@ -4,6 +4,7 @@ import cn.nukkit.level.GameRules;
 import cn.nukkit.network.protocol.ProtocolInfo;
 import lombok.ToString;
 import org.itxtech.synapseapi.multiprotocol.AbstractProtocol;
+import org.itxtech.synapseapi.multiprotocol.utils.AdvancedGlobalBlockPalette;
 import org.itxtech.synapseapi.multiprotocol.utils.AdvancedRuntimeItemPalette;
 
 @ToString(exclude = "itemDataPalette")
@@ -97,6 +98,7 @@ public class StartGamePacket117 extends Packet117 {
 
     public int enchantmentSeed;
 
+    public byte[] blockProperties;
     public byte[] itemDataPalette = null;
 
     public String multiplayerCorrelationId = "";
@@ -167,7 +169,7 @@ public class StartGamePacket117 extends Packet117 {
         this.putBoolean(this.isBlockBreakingServerAuthoritative);
         this.putLLong(this.currentTick);
         this.putVarInt(this.enchantmentSeed);
-        this.putUnsignedVarInt(0); // Custom blocks
+        this.put(this.blockProperties == null ? AdvancedGlobalBlockPalette.getCompiledBlockProperties(this.protocol, netease) : this.blockProperties);
         this.put(this.itemDataPalette == null ? AdvancedRuntimeItemPalette.getCompiledData(this.protocol, netease) : this.itemDataPalette);
         this.putString(this.multiplayerCorrelationId);
         this.putBoolean(this.isInventoryServerAuthoritative);

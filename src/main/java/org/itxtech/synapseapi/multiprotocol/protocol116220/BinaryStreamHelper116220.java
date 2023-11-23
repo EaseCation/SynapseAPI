@@ -6,6 +6,7 @@ import cn.nukkit.item.ItemDurable;
 import cn.nukkit.item.ItemID;
 import cn.nukkit.nbt.NBTIO;
 import cn.nukkit.nbt.tag.CompoundTag;
+import cn.nukkit.nbt.tag.Tag;
 import cn.nukkit.network.LittleEndianByteBufInputStream;
 import cn.nukkit.network.LittleEndianByteBufOutputStream;
 import cn.nukkit.utils.BinaryStream;
@@ -102,8 +103,9 @@ public class BinaryStreamHelper116220 extends BinaryStreamHelper116210 {
                     damage = compoundTag.getInt("Damage");
                     compoundTag.remove("Damage");
                 }
-                if (compoundTag.contains("__DamageConflict__")) {
-                    compoundTag.put("Damage", compoundTag.removeAndGet("__DamageConflict__"));
+                Tag nkDamageTag = compoundTag.removeAndGet("__DamageConflict__");
+                if (nkDamageTag != null) {
+                    compoundTag.put("Damage", nkDamageTag);
                 }
                 if (!compoundTag.isEmpty()) {
                     nbt = NBTIO.write(compoundTag, ByteOrder.LITTLE_ENDIAN);
@@ -220,8 +222,9 @@ public class BinaryStreamHelper116220 extends BinaryStreamHelper116210 {
                 } else {
                     tag = NBTIO.read(nbt, ByteOrder.LITTLE_ENDIAN);
                 }
-                if (tag.contains("Damage")) {
-                    tag.put("__DamageConflict__", tag.removeAndGet("Damage"));
+                Tag damageTag = tag.removeAndGet("Damage");
+                if (damageTag != null) {
+                    tag.put("__DamageConflict__", damageTag);
                 }
                 tag.putInt("Damage", meta);
                 out.writeShort(-1);

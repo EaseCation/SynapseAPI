@@ -1,6 +1,7 @@
 package org.itxtech.synapseapi.multiprotocol.utils;
 
 import cn.nukkit.item.Item;
+import cn.nukkit.item.RuntimeItemPaletteInterface.Entry;
 
 public class RuntimeItemPaletteLegacy implements AdvancedRuntimeItemPaletteInterface {
 
@@ -56,7 +57,15 @@ public class RuntimeItemPaletteLegacy implements AdvancedRuntimeItemPaletteInter
     }
 
     @Override
-    public byte[] getCompiledData() throws UnsupportedOperationException {
-        throw new UnsupportedOperationException();
+    public byte[] getCompiledData() {
+        return new byte[0];
+    }
+
+    @Override
+    public void buildNetworkCache() {
+    }
+
+    @Override
+    public void registerItem(Entry entry) {
     }
 }

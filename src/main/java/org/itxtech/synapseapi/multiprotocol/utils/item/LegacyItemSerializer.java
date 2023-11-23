@@ -19,10 +19,8 @@ import it.unimi.dsi.fastutil.objects.Object2IntOpenHashMap;
 import it.unimi.dsi.fastutil.objects.ObjectIntPair;
 import lombok.extern.log4j.Log4j2;
 import org.itxtech.synapseapi.multiprotocol.utils.AdvancedRuntimeItemPalette;
-import org.itxtech.synapseapi.multiprotocol.utils.AdvancedRuntimeItemPaletteInterface;
-import org.itxtech.synapseapi.multiprotocol.utils.ItemComponentDefinitions;
-import org.itxtech.synapseapi.multiprotocol.utils.RuntimeItemPalette;
 
+import javax.annotation.Nullable;
 import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -40,7 +38,7 @@ public final class LegacyItemSerializer {
     }
 
     public static CompoundTag serializeItem(Item item) {
-        CompoundTag tag = new CompoundTag(8);
+        CompoundTag tag = new CompoundTag();
 
         int id = item.getId();
         if (id == ItemID.AIR) {
@@ -63,7 +61,7 @@ public final class LegacyItemSerializer {
             }
         } else {
             int blockId = 0xff - id;
-            if (blockId >= BlockID.UNDEFINED) {
+            if (blockId >= Block.BLOCK_ID_COUNT) {
                 log.debug("Invalid item block id: " + blockId);
                 ItemUtil.unknownBlockItem(tag);
                 return tag;
@@ -100,7 +98,7 @@ public final class LegacyItemSerializer {
 
         if (damage != 0 && item instanceof ItemDurable) { // Nukkit backwards compatibility HACK
             if (nbt == null) {
-                nbt = new CompoundTag(1);
+                nbt = new CompoundTag();
             }
 
             nbt.putInt("Damage", damage);
@@ -232,7 +230,7 @@ public final class LegacyItemSerializer {
     private static void registerItem(String identifier, int id, int internalId) {
         Objects.requireNonNull(identifier, "identifier");
         if (id < 0) {
-            throw new IllegalArgumentException("unsupported custom block: " + identifier);
+            throw new IllegalArgumentException("Invalid non-block item ID: " + id);
         }
 
         if (ItemUtil.ITEM_ID_TO_NAME[id] != null) {
@@ -246,6 +244,25 @@ public final class LegacyItemSerializer {
         ItemUtil.ITEM_NAME_TO_ID.put(identifier, id);
 
         INTERNAL_MAPPING.putIfAbsent(identifier, internalId);
+    }
+
+    private static void registerCustomBlockItem(String fullName, int itemId) {
+        Objects.requireNonNull(fullName, "fullName");
+        if (itemId >= 0) {
+            throw new IllegalArgumentException("Invalid custom block item ID: " + itemId);
+        }
+        int blockId = Block.itemIdToBlockId(itemId);
+
+        if (ItemUtil.BLOCK_ID_TO_NAME[blockId] != null) {
+            throw new IllegalArgumentException("Attempted to register '" + fullName + "', but ID '" + itemId + "' already exists: " + ItemUtil.BLOCK_ID_TO_NAME[blockId]);
+        }
+        if (ItemUtil.ITEM_NAME_TO_ID.containsKey(fullName)) {
+            throw new IllegalArgumentException(fullName + "' already exists: " + ItemUtil.ITEM_NAME_TO_ID.getInt(fullName));
+        }
+
+        ItemUtil.BLOCK_ID_TO_NAME[blockId] = fullName;
+        ItemUtil.ITEM_NAME_TO_ID.put(fullName, itemId);
+        ItemUtil.ITEM_TO_BLOCK.put(fullName, fullName);
     }
 
     public static void initialize() {
@@ -285,23 +302,22 @@ public final class LegacyItemSerializer {
             }
 
             @Override
-            public void registerCustomItem(String identifier, int id, CompoundTag component) {
-                registerItem(identifier, id);
-                AdvancedRuntimeItemPalette.registerCustomItem(identifier, id, null, null, component != null);
-                if (component != null) {
-                    ItemComponentDefinitions.registerCustomItemComponent(identifier, id, component);
-                }
+            public void registerCustomItem(String fullName, int id, @Nullable CompoundTag components) {
+                registerItem(fullName, id);
+
+                AdvancedRuntimeItemPalette.registerCustomItem(fullName, id, components);
+            }
+
+            @Override
+            public void registerCustomBlockItem(String fullName, int itemId) {
+                LegacyItemSerializer.registerCustomBlockItem(fullName, itemId);
+
+                AdvancedRuntimeItemPalette.registerCustomItem(fullName, itemId, itemId);
             }
 
             @Override
             public void rebuildRuntimeMapping() {
-                for (AdvancedRuntimeItemPaletteInterface[] interfaces : AdvancedRuntimeItemPalette.palettes.values()) {
-                    for (AdvancedRuntimeItemPaletteInterface palette : interfaces) {
-                        if (palette instanceof RuntimeItemPalette) {
-                            ((RuntimeItemPalette) palette).buildPaletteBuffer();
-                        }
-                    }
-                }
+                AdvancedRuntimeItemPalette.rebuildNetworkCache();
             }
         });
 

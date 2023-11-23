@@ -147,7 +147,10 @@ public enum AbstractProtocol {
     PROTOCOL_120_40(622, Packet12040.class, SynapsePlayer116100.class, BinaryStreamHelper12040.create(), true),
     ;
 
+    private static final AbstractProtocol[] VALUES = values();
     public static final AbstractProtocol FIRST_AVAILABLE_PROTOCOL = AbstractProtocol.PROTOCOL_117_40;
+    public static final AbstractProtocol FIRST_ALLOW_LOGIN_PROTOCOL = AbstractProtocol.PROTOCOL_118_30;
+    public static final AbstractProtocol LAST_ALLOW_LOGIN_PROTOCOL = VALUES[VALUES.length - 1];
 
     private final int protocolStart;
     private final Class<? extends DataPacket> packetClass;
@@ -262,8 +265,6 @@ public enum AbstractProtocol {
     public Class<? extends SynapsePlayer> getPlayerClass() {
         return playerClass;
     }
-
-    private static final AbstractProtocol[] VALUES = values();
 
     public static AbstractProtocol[] getValues() {
         return VALUES;

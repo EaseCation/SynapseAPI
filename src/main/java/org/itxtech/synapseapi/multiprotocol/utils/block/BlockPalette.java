@@ -3,10 +3,12 @@ package org.itxtech.synapseapi.multiprotocol.utils.block;
 import cn.nukkit.nbt.NBTIO;
 import cn.nukkit.nbt.tag.CompoundTag;
 import cn.nukkit.nbt.tag.ListTag;
+import cn.nukkit.utils.Hash;
 import com.google.common.io.ByteStreams;
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
+import it.unimi.dsi.fastutil.objects.Object2ObjectRBTreeMap;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import lombok.AllArgsConstructor;
 import lombok.ToString;
@@ -24,11 +26,18 @@ import java.nio.ByteOrder;
 import java.nio.charset.StandardCharsets;
 import java.util.Collection;
 import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
 
 @Log4j2
 @ToString
 public class BlockPalette {
     public final List<BlockData> palette = new ObjectArrayList<>();
+
+    /**
+     * Custom block definitions.
+     */
+    public final List<BlockProperty> properties = new ObjectArrayList<>();
 
     public static BlockPalette fromNBT(String file) {
         BlockPalette instance = new BlockPalette();
@@ -89,6 +98,45 @@ public class BlockPalette {
         }
     }
 
+    public void sortLegacy() {
+        //TODO: 太旧的版本不需要做了
+    }
+
+    /**
+     * @since 1.18.30
+     */
+    public void sortHash() {
+        sort(new Object2ObjectRBTreeMap<>((o1, o2) -> Long.compareUnsigned(Hash.hashIdentifier(o1), Hash.hashIdentifier(o2))));
+    }
+
+    private void sort(Map<String, List<BlockData>> runtimePalette) {
+        String lastName = null;
+        List<BlockData> group = new ObjectArrayList<>();
+        for (BlockData entry : palette) {
+            String name = entry.name;
+
+            if (lastName != null && !name.equals(lastName)) {
+                runtimePalette.put(lastName, group);
+                group = new ObjectArrayList<>();
+            }
+
+            group.add(entry);
+
+            lastName = name;
+        }
+        if (lastName != null) {
+            runtimePalette.put(lastName, group);
+        }
+
+        palette.clear();
+        int runtimeId = 0;
+        for (Entry<String, List<BlockData>> entry : runtimePalette.entrySet()) {
+            for (BlockData data : entry.getValue()) {
+                palette.add(new BlockData(data, runtimeId++));
+            }
+        }
+    }
+
     @ToString
     @AllArgsConstructor
     public static class BlockData {
@@ -101,6 +149,14 @@ public class BlockPalette {
 
         public BlockData(String name, CompoundTag states, int runtimeId) {
             this(name, states, runtimeId, -1, -1);
+        }
+
+        BlockData(String name, int id) {
+            this(name, new CompoundTag("states"), -1, id, 0);
+        }
+
+        private BlockData(BlockData other, int newRuntimeId) {
+            this(other.name, other.states, newRuntimeId, other.id, other.val);
         }
     }
 }

@@ -7,6 +7,7 @@ import cn.nukkit.item.ItemDurable;
 import cn.nukkit.item.ItemID;
 import cn.nukkit.nbt.NBTIO;
 import cn.nukkit.nbt.tag.CompoundTag;
+import cn.nukkit.nbt.tag.Tag;
 import cn.nukkit.utils.*;
 import it.unimi.dsi.fastutil.io.FastByteArrayInputStream;
 import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet;
@@ -67,8 +68,9 @@ public class BinaryStreamHelper116100 extends BinaryStreamHelper116100NE {
                         data = tag.getInt("Damage");
                         tag.remove("Damage");
                     }
-                    if (tag.contains("__DamageConflict__")) {
-                        tag.put("Damage", tag.removeAndGet("__DamageConflict__"));
+                    Tag nkDamageTag = tag.removeAndGet("__DamageConflict__");
+                    if (nkDamageTag != null) {
+                        tag.put("Damage", nkDamageTag);
                     }
                     if (!tag.isEmpty()) {
                         nbt = NBTIO.write(tag, ByteOrder.LITTLE_ENDIAN, false);
@@ -161,8 +163,9 @@ public class BinaryStreamHelper116100 extends BinaryStreamHelper116100NE {
                 } else {
                     tag = NBTIO.read(nbt, ByteOrder.LITTLE_ENDIAN, false);
                 }
-                if (tag.contains("Damage")) {
-                    tag.put("__DamageConflict__", tag.removeAndGet("Damage"));
+                Tag damageTag = tag.removeAndGet("Damage");
+                if (damageTag != null) {
+                    tag.put("__DamageConflict__", damageTag);
                 }
                 if (isDurable) {
                     tag.putInt("Damage", item.getDamage());

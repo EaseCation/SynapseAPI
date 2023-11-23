@@ -75,7 +75,7 @@ public final class VanillaItemUpgrader {
                     }
                 } else {
                     int blockId = 0xff - id;
-                    if (blockId >= BlockID.UNDEFINED) {
+                    if (blockId >= Block.BLOCK_ID_COUNT) {
                         log.debug("Unknown item block id: " + blockId);
                         ItemUtil.unknownBlockItem(tag);
                         return;
@@ -147,7 +147,7 @@ public final class VanillaItemUpgrader {
                 int id = ItemUtil.ITEM_NAME_TO_ID.getInt(newName);
                 if (id != ItemID.AIR) {
                     // NK 1.13-1.18
-                    blockTag = BlockUtil.LEGACY_ITEM_BLOCK_LOOKUP.get(Block.getFullId(Block.itemIdToBlockId(id), meta)).clone();
+                    blockTag = BlockUtil.LEGACY_ITEM_BLOCK_LOOKUP.serialize(Block.getFullId(Block.itemIdToBlockId(id), meta)).clone();
 
                     BlockUpgrader.upgrade(blockTag);
                 } else {

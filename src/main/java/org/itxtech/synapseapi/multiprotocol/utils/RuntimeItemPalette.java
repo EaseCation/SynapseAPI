@@ -63,9 +63,10 @@ public class RuntimeItemPalette implements AdvancedRuntimeItemPaletteInterface {
             registerItem(entry);
         }
 
-        this.buildPaletteBuffer();
+        this.buildNetworkCache();
     }
 
+    @Override
     public void registerItem(Entry entry) {
         int oldId;
         if (entry.oldId == null) {
@@ -104,15 +105,16 @@ public class RuntimeItemPalette implements AdvancedRuntimeItemPaletteInterface {
         }
     }
 
-    public void buildPaletteBuffer() {
-        BinaryStream paletteBuffer = new BinaryStream();
-        paletteBuffer.putUnsignedVarInt(entries.size());
+    @Override
+    public void buildNetworkCache() {
+        BinaryStream stream = new BinaryStream();
+        stream.putUnsignedVarInt(entries.size());
         for (Entry entry : entries) {
-            paletteBuffer.putString(entry.name);
-            paletteBuffer.putLShort(entry.id);
-            paletteBuffer.putBoolean(entry.component); // Component item
+            stream.putString(entry.name);
+            stream.putLShort(entry.id);
+            stream.putBoolean(entry.component);
         }
-        itemDataPalette = paletteBuffer.getBuffer();
+        itemDataPalette = stream.getBuffer();
     }
 
     @Override

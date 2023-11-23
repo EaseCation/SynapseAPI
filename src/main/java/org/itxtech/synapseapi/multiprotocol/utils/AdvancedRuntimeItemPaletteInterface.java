@@ -1,6 +1,7 @@
 package org.itxtech.synapseapi.multiprotocol.utils;
 
 import cn.nukkit.item.Item;
+import cn.nukkit.item.RuntimeItemPaletteInterface.Entry;
 
 public interface AdvancedRuntimeItemPaletteInterface {
 
@@ -23,4 +24,8 @@ public interface AdvancedRuntimeItemPaletteInterface {
     boolean hasData(int id);
 
     byte[] getCompiledData();
+
+    void buildNetworkCache();
+
+    void registerItem(Entry entry);
 }

@@ -37,6 +37,8 @@ public interface AdvancedGlobalBlockPaletteInterface {
 
     byte[] getCompiledTable();
 
+    byte[] getCompiledBlockProperties();
+
     byte[] getItemDataPalette();
 
     default byte[] loadItemDataPalette(String jsonFile) {

@@ -3,6 +3,7 @@ package org.itxtech.synapseapi.multiprotocol.utils.blockpalette;
 import cn.nukkit.block.Block;
 import cn.nukkit.nbt.NBTIO;
 import cn.nukkit.nbt.tag.CompoundTag;
+import cn.nukkit.utils.BinaryStream;
 import it.unimi.dsi.fastutil.ints.Int2IntMap;
 import it.unimi.dsi.fastutil.ints.Int2IntOpenHashMap;
 import it.unimi.dsi.fastutil.ints.IntArrayList;
@@ -11,12 +12,14 @@ import lombok.extern.log4j.Log4j2;
 import org.itxtech.synapseapi.multiprotocol.AbstractProtocol;
 import org.itxtech.synapseapi.multiprotocol.utils.AdvancedGlobalBlockPaletteInterface;
 import org.itxtech.synapseapi.multiprotocol.utils.block.BlockPalette.BlockData;
+import org.itxtech.synapseapi.multiprotocol.utils.block.BlockProperty;
 import org.itxtech.synapseapi.multiprotocol.utils.blockpalette.data.PaletteBlockData;
 import org.itxtech.synapseapi.multiprotocol.utils.blockpalette.data.PaletteBlockTable;
 
 import java.io.IOException;
 import java.nio.ByteOrder;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -35,6 +38,7 @@ public class GlobalBlockPaletteNBT implements AdvancedGlobalBlockPaletteInterfac
     final int totalRuntimeIds;
     final boolean allowUnknownBlock; // Show 'Update Game!' block
     final byte[] compiledTable;
+    final byte[] blockProperties;
     final byte[] itemDataPalette;
 
     private final ReentrantReadWriteLock readWriteLock = new ReentrantReadWriteLock();
@@ -114,10 +118,16 @@ public class GlobalBlockPaletteNBT implements AdvancedGlobalBlockPaletteInterfac
             this.idMetaToRuntimeId[id] = metaToRuntimeId.toIntArray();
         }
 
+        blockProperties = new byte[1]; // BinaryStream::putUnsignedVarInt(0);
+
         itemDataPalette = loadItemDataPalette(itemDataPaletteJsonFile);
     }
 
     public GlobalBlockPaletteNBT(AbstractProtocol protocol, List<BlockData> palette) {
+        this(protocol, palette, Collections.emptyList());
+    }
+
+    public GlobalBlockPaletteNBT(AbstractProtocol protocol, List<BlockData> palette, List<BlockProperty> properties) {
         this.allowUnknownBlock = true;
         totalRuntimeIds = palette.size();
         log.info("Loading Advanced Global Block Palette from runtime mapping for {}. total {}", protocol, totalRuntimeIds);
@@ -185,6 +195,21 @@ public class GlobalBlockPaletteNBT implements AdvancedGlobalBlockPaletteInterfac
         }
 
         compiledTable = null;
+
+        BinaryStream stream = new BinaryStream();
+        stream.putUnsignedVarInt(properties.size());
+        for (BlockProperty property : properties) {
+            stream.putString(property.name());
+            byte[] bytes;
+            try {
+                bytes = NBTIO.writeNetwork(property.definition());
+            } catch (IOException e) {
+                throw new AssertionError("Unable to write block property definition", e);
+            }
+            stream.put(bytes);
+        }
+        blockProperties = stream.getBuffer();
+
         itemDataPalette = null;
     }
 
@@ -284,6 +309,11 @@ public class GlobalBlockPaletteNBT implements AdvancedGlobalBlockPaletteInterfac
     @Override
     public byte[] getCompiledTable() {
         return compiledTable;
+    }
+
+    @Override
+    public byte[] getCompiledBlockProperties() {
+        return blockProperties;
     }
 
     @Override

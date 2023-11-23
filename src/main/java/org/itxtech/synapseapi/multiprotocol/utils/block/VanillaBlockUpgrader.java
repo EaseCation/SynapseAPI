@@ -105,6 +105,12 @@ public final class VanillaBlockUpgrader {
             return;
         }
 
+        if (!tag.getString("name").startsWith("minecraft:")) {
+            // custom block
+            tag.putInt("version", CURRENT_VERSION);
+            return;
+        }
+
         SCHEMAS:
         for (BlockUpgradeSchema schema : schemas) {
             if (version > schema.getVersion()) {

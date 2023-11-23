@@ -1,14 +1,13 @@
 package org.itxtech.synapseapi.multiprotocol.protocol120.protocol;
 
 import cn.nukkit.level.GameRules;
-import cn.nukkit.nbt.NBTIO;
 import cn.nukkit.nbt.tag.CompoundTag;
 import cn.nukkit.network.protocol.ProtocolInfo;
 import lombok.ToString;
 import org.itxtech.synapseapi.multiprotocol.AbstractProtocol;
+import org.itxtech.synapseapi.multiprotocol.utils.AdvancedGlobalBlockPalette;
 import org.itxtech.synapseapi.multiprotocol.utils.AdvancedRuntimeItemPalette;
 
-import java.io.IOException;
 import java.util.UUID;
 
 @ToString(exclude = "itemDataPalette")
@@ -116,6 +115,7 @@ public class StartGamePacket120 extends Packet120 {
     public boolean isBlockBreakingServerAuthoritative;
     public long currentTick;
     public int enchantmentSeed;
+    public byte[] blockProperties;
     public byte[] itemDataPalette;
     public String multiplayerCorrelationId = "";
     public boolean isInventoryServerAuthoritative;
@@ -213,7 +213,7 @@ public class StartGamePacket120 extends Packet120 {
         this.putBoolean(this.isBlockBreakingServerAuthoritative);
         this.putLLong(this.currentTick);
         this.putVarInt(this.enchantmentSeed);
-        this.putUnsignedVarInt(0); // custom blocks
+        this.put(this.blockProperties == null ? AdvancedGlobalBlockPalette.getCompiledBlockProperties(this.protocol, netease) : this.blockProperties);
         this.put(this.itemDataPalette == null ? AdvancedRuntimeItemPalette.getCompiledData(this.protocol, netease) : this.itemDataPalette);
         this.putString(this.multiplayerCorrelationId);
         this.putBoolean(this.isInventoryServerAuthoritative);

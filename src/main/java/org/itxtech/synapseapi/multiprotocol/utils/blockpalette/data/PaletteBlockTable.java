@@ -2,6 +2,7 @@ package org.itxtech.synapseapi.multiprotocol.utils.blockpalette.data;
 
 import cn.nukkit.block.BlockCoral;
 import cn.nukkit.block.BlockID;
+import cn.nukkit.block.Blocks;
 import cn.nukkit.level.GlobalBlockPalette;
 import cn.nukkit.nbt.NBTIO;
 import cn.nukkit.nbt.tag.ByteTag;
@@ -88,7 +89,7 @@ public class PaletteBlockTable extends ObjectArrayList<PaletteBlockData> {
                 String name = blockTag.getString("name");
                 int id;
                 try {
-                    id = newName ? GlobalBlockPalette.getBlockIdByNewName(name) : GlobalBlockPalette.getBlockIdByName(name);
+                    id = newName ? GlobalBlockPalette.getBlockIdByNewName(name) : Blocks.getIdByBlockName(name);
                 } catch (NoSuchElementException e) {
                     //table.add(air);
                     table.add(unknown);

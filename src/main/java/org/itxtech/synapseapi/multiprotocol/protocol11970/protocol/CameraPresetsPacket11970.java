@@ -30,7 +30,7 @@ public class CameraPresetsPacket11970 extends Packet11970 {
 
         ListTag<CompoundTag> list = new ListTag<>();
         for (CameraPreset preset : presets) {
-            CompoundTag entry = new CompoundTag(7)
+            CompoundTag entry = new CompoundTag()
                     .putString("identifier", preset.name)
                     .putString("inherit_from", preset.parent);
 
@@ -53,7 +53,7 @@ public class CameraPresetsPacket11970 extends Packet11970 {
             list.add(entry);
         }
 
-        CompoundTag root = new CompoundTag(1)
+        CompoundTag root = new CompoundTag()
                 .putList("presets", list);
         byte[] bytes;
         try {

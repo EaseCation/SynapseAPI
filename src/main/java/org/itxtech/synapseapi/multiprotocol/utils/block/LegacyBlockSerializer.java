@@ -3,10 +3,10 @@ package org.itxtech.synapseapi.multiprotocol.utils.block;
 import cn.nukkit.block.*;
 import cn.nukkit.block.BlockSerializer.RuntimeBlockSerializer;
 import cn.nukkit.block.edu.*;
-import cn.nukkit.level.GlobalBlockPalette;
 import cn.nukkit.nbt.tag.CompoundTag;
 import it.unimi.dsi.fastutil.ints.Int2ObjectFunction;
 import lombok.extern.log4j.Log4j2;
+import org.itxtech.synapseapi.multiprotocol.utils.AdvancedGlobalBlockPalette;
 
 import static cn.nukkit.block.BlockID.*;
 import static org.itxtech.synapseapi.multiprotocol.utils.block.BlockStateNames.*;
@@ -31,7 +31,7 @@ public final class LegacyBlockSerializer {
         String name = tag.getString("name");
         CompoundTag states = tag.getCompound("states");
 
-        int id = GlobalBlockPalette.getBlockIdByName(name); //TODO: 1.18.30 renamed block
+        int id = Blocks.getIdByBlockName(name); //TODO: 1.18.30 renamed block
         if (id == -1) {
             log.warn("Unmapped block name: {}", name);
             return Block.INFO_UPDATE << Block.BLOCK_META_BITS;
@@ -63,14 +63,6 @@ public final class LegacyBlockSerializer {
             throw new IllegalArgumentException("already registered: " + id);
         }
         DESERIALIZERS[id] = deserializer;
-    }
-
-    private static IllegalArgumentException badValueException(String stateName, String value) {
-        return new IllegalArgumentException("State '" + stateName + "' has unexpected value '" + value + "'");
-    }
-
-    private static IllegalArgumentException badValueException(String stateName, int value) {
-        return new IllegalArgumentException("State '" + stateName + "' has unexpected value '" + value + "'");
     }
 
     static {
@@ -286,8 +278,6 @@ public final class LegacyBlockSerializer {
                     return BlockStone.TYPE_ANDESITE;
                 case STONE_TYPE_ANDESITE_SMOOTH:
                     return BlockStone.TYPE_POLISHED_ANDESITE;
-//                default:
-//                    throw badValueException(STONE_TYPE, type);
             }
         });
 
@@ -299,8 +289,6 @@ public final class LegacyBlockSerializer {
                     return BlockDirt.NORMAL_DIRT;
                 case DIRT_TYPE_COARSE:
                     return BlockDirt.COARSE_DIRT;
-//                default:
-//                    throw badValueException(DIRT_TYPE, type);
             }
         });
 
@@ -329,8 +317,6 @@ public final class LegacyBlockSerializer {
                     return BlockSand.DEFAULT;
                 case SAND_TYPE_RED:
                     return BlockSand.RED;
-//                default:
-//                    throw badValueException(SAND_TYPE, type);
             }
         });
 
@@ -351,8 +337,6 @@ public final class LegacyBlockSerializer {
                 case OLD_LOG_TYPE_JUNGLE:
                     meta |= BlockWood.JUNGLE;
                     break;
-//                default:
-//                    throw badValueException(OLD_LOG_TYPE, type);
             }
             return meta;
         });
@@ -367,8 +351,6 @@ public final class LegacyBlockSerializer {
                 case NEW_LOG_TYPE_DARK_OAK:
                     meta |= BlockWood2.DARK_OAK;
                     break;
-//                default:
-//                    throw badValueException(NEW_LOG_TYPE, type);
             }
             return meta;
         });
@@ -401,8 +383,6 @@ public final class LegacyBlockSerializer {
                 case OLD_LEAF_TYPE_JUNGLE:
                     meta |= BlockLeaves.JUNGLE;
                     break;
-//                default:
-//                    throw badValueException(OLD_LEAF_TYPE, type);
             }
             return meta;
         });
@@ -417,8 +397,6 @@ public final class LegacyBlockSerializer {
                 case NEW_LEAF_TYPE_DARK_OAK:
                     meta |= BlockLeaves2.DARK_OAK;
                     break;
-//                default:
-//                    throw badValueException(NEW_LEAF_TYPE, type);
             }
             return meta;
         });
@@ -435,8 +413,6 @@ public final class LegacyBlockSerializer {
                     return BlockSponge.DRY;
                 case SPONGE_TYPE_WET:
                     return BlockSponge.WET;
-//                default:
-//                    throw badValueException(SPONGE_TYPE, type);
             }
         });
 
@@ -479,8 +455,6 @@ public final class LegacyBlockSerializer {
                     return 2;
                 case TALL_GRASS_TYPE_SNOW:
                     return 3;
-//                default:
-//                    throw badValueException(TALL_GRASS_TYPE, type);
             }
         });
 
@@ -521,8 +495,6 @@ public final class LegacyBlockSerializer {
                     return BlockFlower.TYPE_CORNFLOWER;
                 case FLOWER_TYPE_LILY_OF_THE_VALLEY:
                     return BlockFlower.TYPE_LILY_OF_THE_VALLEY;
-//                default:
-//                    throw badValueException(FLOWER_TYPE, type);
             }
         });
 
@@ -748,8 +720,6 @@ public final class LegacyBlockSerializer {
                 case LEVER_DIRECTION_DOWN_NORTH_SOUTH:
                     meta |= 7;
                     break;
-//                default:
-//                    throw badValueException(LEVER_DIRECTION, direction);
             }
             return meta;
         });
@@ -812,8 +782,6 @@ public final class LegacyBlockSerializer {
                     return BlockNetherPortal.AXIS_X;
                 case PORTAL_AXIS_Z:
                     return BlockNetherPortal.AXIS_Z;
-//                default:
-//                    throw badValueException(PORTAL_AXIS, axis);
             }
         });
 
@@ -851,8 +819,6 @@ public final class LegacyBlockSerializer {
                     return BlockMonsterEgg.CRACKED_BRICK;
                 case MONSTER_EGG_STONE_TYPE_CHISELED_STONE_BRICK:
                     return BlockMonsterEgg.CHISELED_BRICK;
-//                default:
-//                    throw badValueException(MONSTER_EGG_STONE_TYPE, type);
             }
         });
 
@@ -870,8 +836,6 @@ public final class LegacyBlockSerializer {
                     return BlockBricksStone.CHISELED;
                 case STONE_BRICK_TYPE_SMOOTH:
                     return BlockBricksStone.SMOOTH;
-//                default:
-//                    throw badValueException(STONE_BRICK_TYPE, type);
             }
         });
 
@@ -994,8 +958,6 @@ public final class LegacyBlockSerializer {
                 case WALL_BLOCK_TYPE_RED_NETHER_BRICK:
                     meta |= BlockWallCobblestone.RED_NETHER_BRICK_WALL;
                     break;
-//                default:
-//                    throw badValueException(WALL_BLOCK_TYPE, type);
             }
             return meta;
         });
@@ -1029,8 +991,6 @@ public final class LegacyBlockSerializer {
                 case DAMAGE_BROKEN:
                     meta |= 0b1100;
                     break;
-//                default:
-//                    throw badValueException(DAMAGE, damage);
             }
             return meta;
         });
@@ -1064,8 +1024,6 @@ public final class LegacyBlockSerializer {
                     return BlockPrismarine.DARK;
                 case PRISMARINE_BLOCK_TYPE_BRICKS:
                     return BlockPrismarine.BRICKS;
-//                default:
-//                    throw badValueException(PRISMARINE_BLOCK_TYPE, type);
             }
         });
 
@@ -1092,8 +1050,6 @@ public final class LegacyBlockSerializer {
                 case DOUBLE_PLANT_TYPE_PAEONIA:
                     meta |= BlockDoublePlant.PEONY;
                     break;
-//                default:
-//                    throw badValueException(DOUBLE_PLANT_TYPE, type);
             }
             return meta;
         });
@@ -1115,8 +1071,6 @@ public final class LegacyBlockSerializer {
                     return BlockStructureVoid.TYPE_VOID;
                 case STRUCTURE_VOID_TYPE_AIR:
                     return BlockStructureVoid.TYPE_AIR;
-//                default:
-//                    throw badValueException(STRUCTURE_VOID_TYPE, type);
             }
         });
 
@@ -1154,8 +1108,6 @@ public final class LegacyBlockSerializer {
                 case CHEMISTRY_TABLE_TYPE_LAB_TABLE:
                     meta |= BlockChemistryTable.LAB_TABLE;
                     break;
-//                default:
-//                    throw badValueException(CHEMISTRY_TABLE_TYPE, type);
             }
             return meta;
         });
@@ -1184,8 +1136,6 @@ public final class LegacyBlockSerializer {
                     return BlockStructure.TYPE_INVALID;
                 case STRUCTURE_BLOCK_TYPE_EXPORT:
                     return BlockStructure.TYPE_EXPORT;
-//                default:
-//                    throw badValueException(STRUCTURE_BLOCK_TYPE, type);
             }
         });
 
@@ -1206,8 +1156,6 @@ public final class LegacyBlockSerializer {
                     return BlockSeagrass.DOUBLE_SEAGRASS_TOP;
                 case SEA_GRASS_TYPE_DOUBLE_BOT:
                     return BlockSeagrass.DOUBLE_SEAGRASS_BOTTOM;
-//                default:
-//                    throw badValueException(SEA_GRASS_TYPE, type);
             }
         });
 
@@ -1250,8 +1198,6 @@ public final class LegacyBlockSerializer {
                 case TURTLE_EGG_COUNT_FOUR_EGG:
                     meta |= 3;
                     break;
-//                default:
-//                    throw badValueException(TURTLE_EGG_COUNT, count);
             }
             return meta;
         });
@@ -1268,8 +1214,6 @@ public final class LegacyBlockSerializer {
                 case BAMBOO_STALK_THICKNESS_THICK:
                     meta |= 0b1;
                     break;
-//                default:
-//                    throw badValueException(BAMBOO_STALK_THICKNESS, count);
             }
             String type = states.getString(BAMBOO_LEAF_SIZE);
             switch (type) {
@@ -1282,8 +1226,6 @@ public final class LegacyBlockSerializer {
                 case BAMBOO_LEAF_SIZE_LARGE_LEAVES:
                     meta |= 0b100;
                     break;
-//                default:
-//                    throw badValueException(BAMBOO_LEAF_SIZE, count);
             }
             return meta;
         });
@@ -1383,8 +1325,6 @@ public final class LegacyBlockSerializer {
                 case DRIPSTONE_THICKNESS_MERGE:
                     meta |= 0b100;
                     break;
-//                default:
-//                    throw badValueException(DRIPSTONE_THICKNESS, thickness);
             }
             return meta;
         });
@@ -1414,8 +1354,6 @@ public final class LegacyBlockSerializer {
                 case BIG_DRIPLEAF_TILT_FULL_TILT:
                     meta |= 0b11;
                     break;
-//                default:
-//                    throw badValueException(BIG_DRIPLEAF_TILT, tilt);
             }
             return meta;
         });
@@ -1661,6 +1599,18 @@ public final class LegacyBlockSerializer {
             public int deserialize(CompoundTag tag) {
                 return LegacyBlockSerializer.deserialize(tag);
             }
+
+            @Override
+            public void registerCustomBlock(String name, int id, CompoundTag definition) {
+                registerDeserializer(id, LegacyBlockSerializer::deserializeSimple);
+
+                RuntimeBlockMapper.registerCustomBlock(name, id, definition);
+            }
+
+            @Override
+            public void rebuildPalette() {
+                AdvancedGlobalBlockPalette.rebuildStaticPalettes();
+            }
         });
     }
 
@@ -1692,8 +1642,6 @@ public final class LegacyBlockSerializer {
                 return BlockSandstone.CUT;
             case SAND_STONE_TYPE_SMOOTH:
                 return BlockSandstone.SMOOTH;
-//            default:
-//                throw badValueException(SAND_STONE_TYPE, type);
         }
     }
 
@@ -1721,8 +1669,6 @@ public final class LegacyBlockSerializer {
                 return 4;
             case TORCH_FACING_DIRECTION_TOP:
                 return 5;
-//            default:
-//                throw badValueException(TORCH_FACING_DIRECTION, direction);
         }
     }
 
@@ -1771,8 +1717,6 @@ public final class LegacyBlockSerializer {
             case STONE_SLAB_TYPE_NETHER_BRICK:
                 meta |= BlockSlabStone.NETHER_BRICK;
                 break;
-//            default:
-//                throw badValueException(STONE_SLAB_TYPE, type);
         }
         return meta;
     }
@@ -1806,8 +1750,6 @@ public final class LegacyBlockSerializer {
             case STONE_SLAB_TYPE_2_RED_NETHER_BRICK:
                 meta |= BlockSlabRedSandstone.RED_NETHER_BRICK;
                 break;
-//            default:
-//                throw badValueException(STONE_SLAB_TYPE_2, type);
         }
         return meta;
     }
@@ -1841,8 +1783,6 @@ public final class LegacyBlockSerializer {
             case STONE_SLAB_TYPE_3_POLISHED_GRANITE:
                 meta |= BlockSlabStone3.POLISHED_GRANITE;
                 break;
-//            default:
-//                throw badValueException(STONE_SLAB_TYPE_3, type);
         }
         return meta;
     }
@@ -1867,8 +1807,6 @@ public final class LegacyBlockSerializer {
             case STONE_SLAB_TYPE_4_CUT_RED_SANDSTONE:
                 meta |= BlockSlabStone4.CUT_RED_SANDSTONE;
                 break;
-//            default:
-//                throw badValueException(STONE_SLAB_TYPE_4, type);
         }
         return meta;
     }
@@ -1973,8 +1911,6 @@ public final class LegacyBlockSerializer {
             case CAULDRON_LIQUID_POWDER_SNOW:
                 meta |= 0b10000;
                 break;
-//            default:
-//                throw badValueException(CAULDRON_LIQUID, type);
         }
         return meta;
     }
@@ -2038,8 +1974,6 @@ public final class LegacyBlockSerializer {
             case CHISEL_TYPE_SMOOTH:
                 meta |= 0b11;
                 break;
-//            default:
-//                throw badValueException(CHISEL_TYPE, type);
         }
         return meta;
     }
@@ -2071,8 +2005,6 @@ public final class LegacyBlockSerializer {
                 return 0b01;
             case PILLAR_AXIS_Z:
                 return 0b10;
-//            default:
-//                throw badValueException(PILLAR_AXIS, axis);
         }
     }
 
@@ -2112,8 +2044,6 @@ public final class LegacyBlockSerializer {
                 return 14;
             case COLOR_BLACK:
                 return 15;
-//            default:
-//                throw badValueException(COLOR, color);
         }
     }
 
@@ -2131,8 +2061,6 @@ public final class LegacyBlockSerializer {
                 return BlockCoral.RED;
             case CORAL_COLOR_YELLOW:
                 return BlockCoral.YELLOW;
-//            default:
-//                throw badValueException(CORAL_COLOR, color);
         }
     }
 
@@ -2175,8 +2103,6 @@ public final class LegacyBlockSerializer {
                 return BlockPlanks.ACACIA;
             case WOOD_TYPE_DARK_OAK:
                 return BlockPlanks.DARK_OAK;
-//            default:
-//                throw badValueException(WOOD_TYPE, type);
         }
     }
 
@@ -2204,8 +2130,6 @@ public final class LegacyBlockSerializer {
                 return BlockSapling.ACACIA;
             case SAPLING_TYPE_DARK_OAK:
                 return BlockSapling.DARK_OAK;
-//            default:
-//                throw badValueException(SAPLING_TYPE, type);
         }
     }
 
@@ -2221,8 +2145,6 @@ public final class LegacyBlockSerializer {
                 return 0b10;
             case ATTACHMENT_MULTIPLE:
                 return 0b11;
-//            default:
-//                throw badValueException(ATTACHMENT, type);
         }
     }
 
@@ -2245,8 +2167,6 @@ public final class LegacyBlockSerializer {
                 return 0b01;
             case WALL_CONNECTION_TYPE_NORTH_TALL:
                 return 0b10;
-//            default:
-//                throw badValueException(direction, type);
         }
     }
 
@@ -2280,8 +2200,6 @@ public final class LegacyBlockSerializer {
                 return 0b01;
             case CRACKED_STATE_MAX_CRACKED:
                 return 0b10;
-//            default:
-//                throw badValueException(CRACKED_STATE, state);
         }
     }
 
