@@ -26,6 +26,7 @@ public final class BlockItemFlattener {
         DOWNGRADERS.put(AbstractProtocol.PROTOCOL_120_10, BlockItemFlattener::downgrader12010);
         DOWNGRADERS.put(AbstractProtocol.PROTOCOL_120_30, BlockItemFlattener::downgrader12030);
         DOWNGRADERS.put(AbstractProtocol.PROTOCOL_120_40, BlockItemFlattener::downgrader12030);
+        DOWNGRADERS.put(AbstractProtocol.PROTOCOL_120_50, BlockItemFlattener::downgrader12050);
     }
 
     private static int downgrader11970(int id) {

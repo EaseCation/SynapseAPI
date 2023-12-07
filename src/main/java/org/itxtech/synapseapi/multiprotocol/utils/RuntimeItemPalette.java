@@ -1,6 +1,7 @@
 package org.itxtech.synapseapi.multiprotocol.utils;
 
 import cn.nukkit.item.Item;
+import cn.nukkit.item.ItemRuntimeID;
 import cn.nukkit.item.RuntimeItemPaletteInterface.Entry;
 import cn.nukkit.utils.BinaryStream;
 import com.google.gson.Gson;
@@ -13,22 +14,37 @@ import it.unimi.dsi.fastutil.objects.Object2IntMap;
 import it.unimi.dsi.fastutil.objects.Object2IntOpenHashMap;
 import lombok.extern.log4j.Log4j2;
 import org.itxtech.synapseapi.SynapseAPI;
+import org.itxtech.synapseapi.multiprotocol.AbstractProtocol;
+import org.itxtech.synapseapi.multiprotocol.protocol116100.BinaryStreamHelper116100;
 import org.itxtech.synapseapi.multiprotocol.utils.item.LegacyItemSerializer;
 
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.lang.reflect.Type;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 @Log4j2
 public class RuntimeItemPalette implements AdvancedRuntimeItemPaletteInterface {
 
     private static final Gson GSON = new Gson();
-    private static final Type ENTRY_TYPE = new TypeToken<ArrayList<Entry>>(){}.getType();
 
-    private final String fileName;
+    private static final Object2IntMap<String> LEGACY_ITEM_ID_MAP;
+
+    static {
+        try (InputStreamReader reader = new InputStreamReader(SynapseAPI.class.getClassLoader().getResourceAsStream("item_id_map_116.json"))) {
+            LEGACY_ITEM_ID_MAP = GSON.fromJson(reader, new TypeToken<Object2IntOpenHashMap<String>>(){}.getType());
+        } catch (NullPointerException | IOException e) {
+            throw new AssertionError("Unable to load item_id_map_116.json", e);
+        }
+        LEGACY_ITEM_ID_MAP.defaultReturnValue(-1);
+
+        LEGACY_ITEM_ID_MAP.put("minecraft:chest_boat", ItemRuntimeID.CHEST_BOAT); //HACK
+    }
+
+    private final AbstractProtocol protocol;
 
     private final List<Entry> entries = new ArrayList<>();
     private final Int2IntMap legacyNetworkMap = new Int2IntOpenHashMap();
@@ -41,13 +57,13 @@ public class RuntimeItemPalette implements AdvancedRuntimeItemPaletteInterface {
 
     private byte[] itemDataPalette;
 
-    public RuntimeItemPalette(String runtimeItemIdJsonFile) {
-        this.fileName = runtimeItemIdJsonFile;
+    public RuntimeItemPalette(AbstractProtocol protocol, String runtimeItemIdJsonFile) {
+        this.protocol = protocol;
 
         List<Entry> entries;
         try (InputStream stream = SynapseAPI.class.getClassLoader().getResourceAsStream(runtimeItemIdJsonFile);
              InputStreamReader reader = new InputStreamReader(stream)) {
-            entries = GSON.fromJson(reader, ENTRY_TYPE);
+            entries = GSON.fromJson(reader, new TypeToken<ArrayList<Entry>>(){}.getType());
         } catch (NullPointerException | IOException e) {
             throw new AssertionError("Unable to load runtime item palette", e);
         }
@@ -66,6 +82,79 @@ public class RuntimeItemPalette implements AdvancedRuntimeItemPaletteInterface {
         this.buildNetworkCache();
     }
 
+    public RuntimeItemPalette(AbstractProtocol protocol, String runtimeItemIdJsonFile, String legacyItemIdJsonFile, String itemFlattenJsonFile) {
+        this.protocol = protocol;
+
+        List<RuntimeEntry> runtimeIds;
+        try (InputStreamReader reader = new InputStreamReader(SynapseAPI.class.getClassLoader().getResourceAsStream(runtimeItemIdJsonFile))) {
+            runtimeIds = GSON.fromJson(reader, new TypeToken<ArrayList<RuntimeEntry>>(){}.getType());
+        } catch (NullPointerException | IOException e) {
+            throw new AssertionError("Unable to load runtime item map", e);
+        }
+
+        Object2IntMap<String> legacyIds;
+        try (InputStreamReader reader = new InputStreamReader(SynapseAPI.class.getClassLoader().getResourceAsStream(legacyItemIdJsonFile))) {
+            legacyIds = GSON.fromJson(reader, new TypeToken<Object2IntOpenHashMap<String>>(){}.getType());
+        } catch (NullPointerException | IOException e) {
+            throw new AssertionError("Unable to load legacy item id map", e);
+        }
+        legacyIds.defaultReturnValue(-1);
+
+        Map<String, Map<String, String>> itemFlattenMap;
+        try (InputStreamReader reader = new InputStreamReader(SynapseAPI.class.getClassLoader().getResourceAsStream(itemFlattenJsonFile))) {
+            itemFlattenMap = GSON.fromJson(reader, new TypeToken<HashMap<String, HashMap<String, String>>>(){}.getType());
+        } catch (NullPointerException | IOException e) {
+            throw new AssertionError("Unable to load item flatten map", e);
+        }
+        Object2IntMap<String> itemFlattens = new Object2IntOpenHashMap<>();
+        itemFlattens.defaultReturnValue(-1);
+        itemFlattenMap.forEach((legacyName, metaMap) -> metaMap.forEach((meta, newName) -> {
+            int legacyId = LEGACY_ITEM_ID_MAP.getInt(legacyName);
+            if (legacyId == -1) {
+                log.error("Unmapped runtime item: name '{}' legacy name '{}' ({})", newName, legacyName, itemFlattenJsonFile);
+                return;
+            }
+            itemFlattens.put(newName, Item.getFullId(legacyId, Integer.parseInt(meta)));
+        }));
+
+        legacyNetworkMap.defaultReturnValue(-1);
+        nameToLegacy.defaultReturnValue(-1);
+        networkLegacyMap.defaultReturnValue(-1);
+        blockLegacyToFlatten.defaultReturnValue(-1);
+        nameToNetworkMap.defaultReturnValue(-1);
+//        blockFlattenToLegacy.defaultReturnValue(-1);
+
+        for (RuntimeEntry entry : runtimeIds) {
+            Integer oldId;
+            Integer oldData;
+            String name = entry.name;
+            int runtimeId = entry.id;
+            if (runtimeId < 256) {
+                oldId = runtimeId;
+                oldData = 0;
+            } else {
+                int legacyId = legacyIds.getInt(name);
+                if (legacyId != -1) {
+                    oldId = legacyId;
+                    oldData = null;
+                } else {
+                    int itemFullId = itemFlattens.getInt(name);
+                    if (itemFullId != -1) {
+                        oldId = Item.getIdFromFullId(itemFullId);
+                        oldData = Item.getMetaFromFullId(itemFullId);
+                    } else {
+                        oldId = null;
+                        oldData = null;
+                        log.trace("Unmapped runtime item: name '{}' runtimeId '{}' ({})", runtimeId, name, protocol);
+                    }
+                }
+            }
+            registerItem(new Entry(name, runtimeId, oldId, oldData));
+        }
+
+        this.buildNetworkCache();
+    }
+
     @Override
     public void registerItem(Entry entry) {
         int oldId;
@@ -79,7 +168,7 @@ public class RuntimeItemPalette implements AdvancedRuntimeItemPaletteInterface {
 
             if (oldId == -1) {
                 entries.add(entry);
-                log.trace("Unmapped runtime item: id {} name {} ({})", entry.id, entry.name, fileName);
+                log.trace("Unmapped runtime item: id {} name {} ({})", entry.id, entry.name, protocol);
                 return;
             }
 
@@ -109,10 +198,18 @@ public class RuntimeItemPalette implements AdvancedRuntimeItemPaletteInterface {
     public void buildNetworkCache() {
         BinaryStream stream = new BinaryStream();
         stream.putUnsignedVarInt(entries.size());
-        for (Entry entry : entries) {
-            stream.putString(entry.name);
-            stream.putLShort(entry.id);
-            stream.putBoolean(entry.component);
+        if (protocol.getProtocolStart() >= AbstractProtocol.PROTOCOL_120_50.getProtocolStart()) {
+            for (Entry entry : entries) {
+                stream.putString(entry.name);
+                stream.putLShort(entry.id);
+                stream.putBoolean(entry.component);
+            }
+        } else {
+            for (Entry entry : entries) {
+                stream.putString(entry.name);
+                stream.putLShort(BinaryStreamHelper116100.convertCustomBlockItemServerIdToClientId(entry.id));
+                stream.putBoolean(entry.component);
+            }
         }
         itemDataPalette = stream.getBuffer();
     }
@@ -207,5 +304,8 @@ public class RuntimeItemPalette implements AdvancedRuntimeItemPaletteInterface {
     @Override
     public byte[] getCompiledData() {
         return this.itemDataPalette;
+    }
+
+    private record RuntimeEntry(String name, int id) {
     }
 }

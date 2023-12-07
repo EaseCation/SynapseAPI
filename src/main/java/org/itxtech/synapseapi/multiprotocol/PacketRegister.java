@@ -94,6 +94,8 @@ import org.itxtech.synapseapi.multiprotocol.protocol12010.protocol.AvailableComm
 import org.itxtech.synapseapi.multiprotocol.protocol12030.protocol.ResourcePacksInfoPacket12030;
 import org.itxtech.synapseapi.multiprotocol.protocol12030.protocol.StartGamePacket12030;
 import org.itxtech.synapseapi.multiprotocol.protocol12040.protocol.DisconnectPacket12040;
+import org.itxtech.synapseapi.multiprotocol.protocol12050.protocol.PlayerToggleCrafterSlotRequestPacket12050;
+import org.itxtech.synapseapi.multiprotocol.protocol12050.protocol.SetPlayerInventoryOptionsPacket12050;
 import org.itxtech.synapseapi.multiprotocol.protocol15.protocol.AddEntityPacket15;
 import org.itxtech.synapseapi.multiprotocol.protocol15.protocol.ClientboundMapItemDataPacket15;
 import org.itxtech.synapseapi.multiprotocol.protocol15.protocol.MoveEntityAbsolutePacket15;
@@ -368,6 +370,9 @@ public class PacketRegister {
         registerPacket(AbstractProtocol.PROTOCOL_120_30, ProtocolInfo.START_GAME_PACKET, StartGamePacket12030.class);
 
         registerPacket(AbstractProtocol.PROTOCOL_120_40, ProtocolInfo.DISCONNECT_PACKET, DisconnectPacket12040.class);
+
+        registerPacket(AbstractProtocol.PROTOCOL_120_50, ProtocolInfo.PLAYER_TOGGLE_CRAFTER_SLOT_REQUEST_PACKET, PlayerToggleCrafterSlotRequestPacket12050.class);
+        registerPacket(AbstractProtocol.PROTOCOL_120_50, ProtocolInfo.SET_PLAYER_INVENTORY_OPTIONS_PACKET, SetPlayerInventoryOptionsPacket12050.class);
 
         checkNeteaseSpecialExtend();
     }

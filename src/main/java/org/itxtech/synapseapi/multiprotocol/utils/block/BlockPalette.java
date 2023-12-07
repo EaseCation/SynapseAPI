@@ -16,6 +16,7 @@ import lombok.extern.log4j.Log4j2;
 import org.itxtech.synapseapi.SynapseAPI;
 import org.itxtech.synapseapi.multiprotocol.utils.blockpalette.data.PaletteBlockTable.DumpJsonTableEntry;
 
+import java.io.BufferedInputStream;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -28,6 +29,7 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.zip.GZIPInputStream;
 
 @Log4j2
 @ToString
@@ -55,6 +57,28 @@ public class BlockPalette {
         for (CompoundTag entry : root.getAllUnsafe()) {
             CompoundTag blockData = entry.getCompound("block");
             instance.palette.add(new BlockData(blockData.getString("name"), blockData.getCompound("states"), runtimeIdAllocator++));
+        }
+        return instance;
+    }
+
+    public static BlockPalette fromVanillaNBT(String file) {
+        return fromVanillaNBT(file, false);
+    }
+
+    public static BlockPalette fromVanillaNBT(String file, boolean gzip) {
+        BlockPalette instance = new BlockPalette();
+        CompoundTag root;
+        try (InputStream stream = SynapseAPI.class.getClassLoader().getResourceAsStream(file)) {
+            if (stream == null) {
+                throw new AssertionError("Unable to locate block_palette.nbt: " + file);
+            }
+            root = NBTIO.read(gzip ? new BufferedInputStream(new GZIPInputStream(stream)) : new ByteArrayInputStream(ByteStreams.toByteArray(stream)));
+        } catch (IOException e) {
+            throw new AssertionError("Unable to load block_palette.nbt: " + file, e);
+        }
+        int runtimeIdAllocator = 0;
+        for (CompoundTag block : root.getList("blocks", CompoundTag.class).getAllUnsafe()) {
+            instance.palette.add(new BlockData(block.getString("name"), block.getCompound("states"), runtimeIdAllocator++));
         }
         return instance;
     }

@@ -1,5 +1,6 @@
 package org.itxtech.synapseapi.multiprotocol.protocol116100;
 
+import cn.nukkit.block.Block;
 import cn.nukkit.entity.data.Skin;
 import cn.nukkit.inventory.RecipeType;
 import cn.nukkit.item.Item;
@@ -36,6 +37,8 @@ public class BinaryStreamHelper116100 extends BinaryStreamHelper116100NE {
         if (networkId < Short.MIN_VALUE || networkId >= Short.MAX_VALUE) {
             throw new RuntimeException("Invalid item networkID received: " + networkId);
         }
+
+        networkId = convertCustomBlockItemClientIdToServerId(networkId);
 
         int legacyFullId = AdvancedRuntimeItemPalette.getLegacyFullId(this.protocol, stream.neteaseMode, networkId);
         boolean hasData = AdvancedRuntimeItemPalette.hasData(this.protocol, stream.neteaseMode, legacyFullId);
@@ -143,6 +146,9 @@ public class BinaryStreamHelper116100 extends BinaryStreamHelper116100NE {
         int networkFullId = AdvancedRuntimeItemPalette.getNetworkFullId(this.protocol, stream.neteaseMode, item);
         boolean clearData = AdvancedRuntimeItemPalette.hasData(this.protocol, stream.neteaseMode, networkFullId);
         int networkId = AdvancedRuntimeItemPalette.getNetworkId(this.protocol, stream.neteaseMode, networkFullId);
+
+        networkId = convertCustomBlockItemServerIdToClientId(networkId);
+
         stream.putVarInt(networkId);
 
         int auxValue = item.getCount();
@@ -213,6 +219,8 @@ public class BinaryStreamHelper116100 extends BinaryStreamHelper116100NE {
             return Item.get(ItemID.AIR, 0, 0);
         }
 
+        networkId = convertCustomBlockItemClientIdToServerId(networkId);
+
         int legacyFullId = AdvancedRuntimeItemPalette.getLegacyFullId(this.protocol, stream.neteaseMode, networkId);
         int id = AdvancedRuntimeItemPalette.getId(this.protocol, stream.neteaseMode, legacyFullId);
         boolean hasData = AdvancedRuntimeItemPalette.hasData(this.protocol, stream.neteaseMode, legacyFullId);
@@ -250,6 +258,8 @@ public class BinaryStreamHelper116100 extends BinaryStreamHelper116100NE {
             damage = 0;
         }
 
+        networkId = convertCustomBlockItemServerIdToClientId(networkId);
+
         stream.putVarInt(networkId);
         stream.putVarInt(damage);
         stream.putVarInt(ingredient.getCount());
@@ -259,6 +269,8 @@ public class BinaryStreamHelper116100 extends BinaryStreamHelper116100NE {
     public void putFurnaceRecipeIngredient(BinaryStream stream, Item ingredient, RecipeType type) {
         int networkFullId = AdvancedRuntimeItemPalette.getNetworkFullId(this.protocol, stream.neteaseMode, ingredient);
         int networkId = AdvancedRuntimeItemPalette.getNetworkId(this.protocol, stream.neteaseMode, networkFullId);
+
+        networkId = convertCustomBlockItemServerIdToClientId(networkId);
 
         stream.putVarInt(networkId);
 
@@ -276,6 +288,8 @@ public class BinaryStreamHelper116100 extends BinaryStreamHelper116100NE {
     public void putBrewingRecipeItem(BinaryStream stream, Item item) {
         int networkFullId = AdvancedRuntimeItemPalette.getNetworkFullId(this.protocol, stream.neteaseMode, item);
         int networkId = AdvancedRuntimeItemPalette.getNetworkId(this.protocol, stream.neteaseMode, networkFullId);
+
+        networkId = convertCustomBlockItemServerIdToClientId(networkId);
 
         int damage = item.getDamage();
         if (AdvancedRuntimeItemPalette.hasData(this.protocol, stream.neteaseMode, networkFullId)) {
@@ -385,7 +399,20 @@ public class BinaryStreamHelper116100 extends BinaryStreamHelper116100NE {
 
     @Override
     public int getItemNetworkId(BinaryStream stream, Item item) {
-        return AdvancedRuntimeItemPalette.getNetworkId(this.protocol, stream.neteaseMode, AdvancedRuntimeItemPalette.getNetworkFullId(this.protocol, stream.neteaseMode, item));
+        return convertCustomBlockItemServerIdToClientId(AdvancedRuntimeItemPalette.getNetworkId(this.protocol, stream.neteaseMode, AdvancedRuntimeItemPalette.getNetworkFullId(this.protocol, stream.neteaseMode, item)));
     }
 
+    public static int convertCustomBlockItemServerIdToClientId(int nukkitId) {
+        if (nukkitId <= 0xff - Block.CUSTOM_BLOCK_FIRST_ID_NEW) {
+            nukkitId += Block.CUSTOM_BLOCK_FIRST_ID_NEW - Block.CUSTOM_BLOCK_FIRST_ID;
+        }
+        return nukkitId;
+    }
+
+    public static int convertCustomBlockItemClientIdToServerId(int vanillaId) {
+        if (vanillaId <= 0xff - Block.CUSTOM_BLOCK_FIRST_ID) {
+            vanillaId -= Block.CUSTOM_BLOCK_FIRST_ID_NEW - Block.CUSTOM_BLOCK_FIRST_ID;
+        }
+        return vanillaId;
+    }
 }

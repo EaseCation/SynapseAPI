@@ -185,6 +185,10 @@ public class PaletteBlockTable extends ObjectArrayList<PaletteBlockData> {
         return table;
     }
 
+    public static PaletteBlockTable fromNBTV4(String file) throws UnsupportedOperationException {
+        throw new UnsupportedOperationException();
+    }
+
     public static PaletteBlockTable fromNBT(String file) {
         PaletteBlockTable table = new PaletteBlockTable();
         ListTag<CompoundTag> tag;

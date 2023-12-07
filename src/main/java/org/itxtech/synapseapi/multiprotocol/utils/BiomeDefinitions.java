@@ -52,7 +52,7 @@ public final class BiomeDefinitions {
             data.put(AbstractProtocol.PROTOCOL_118, data118);
             data.put(AbstractProtocol.PROTOCOL_118_10, data11810);
             data.put(AbstractProtocol.PROTOCOL_118_30, data11810);
-            data.put(AbstractProtocol.PROTOCOL_118_30_NE, data11810);
+            data.put(AbstractProtocol.PROTOCOL_118_30_NE, data11920);
             data.put(AbstractProtocol.PROTOCOL_119, data119);
             data.put(AbstractProtocol.PROTOCOL_119_10, data119);
             data.put(AbstractProtocol.PROTOCOL_119_20, data11920);
@@ -68,6 +68,7 @@ public final class BiomeDefinitions {
             data.put(AbstractProtocol.PROTOCOL_120_10, data11980);
             data.put(AbstractProtocol.PROTOCOL_120_30, data11980);
             data.put(AbstractProtocol.PROTOCOL_120_40, data11980);
+            data.put(AbstractProtocol.PROTOCOL_120_50, data11980);
         } catch (NullPointerException | IOException e) {
             throw new AssertionError("Unable to load biome_definitions.dat");
         }

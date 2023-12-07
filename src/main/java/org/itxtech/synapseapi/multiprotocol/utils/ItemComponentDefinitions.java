@@ -35,6 +35,7 @@ public final class ItemComponentDefinitions {
             Map<String, byte[]> definition120 = load("item_components120.nbt");
             Map<String, byte[]> definition12010 = load("item_components12010.nbt");
             Map<String, byte[]> definition12030 = load("item_components12030.nbt");
+            Map<String, byte[]> definition12050 = load("item_components12050.nbt");
 
             DEFINITIONS.put(AbstractProtocol.PROTOCOL_118_10, definition11810);
             DEFINITIONS.put(AbstractProtocol.PROTOCOL_118_30, definition11830);
@@ -54,6 +55,7 @@ public final class ItemComponentDefinitions {
             DEFINITIONS.put(AbstractProtocol.PROTOCOL_120_10, definition12010);
             DEFINITIONS.put(AbstractProtocol.PROTOCOL_120_30, definition12030);
             DEFINITIONS.put(AbstractProtocol.PROTOCOL_120_40, definition12030);
+            DEFINITIONS.put(AbstractProtocol.PROTOCOL_120_50, definition12050);
 
             Map<String, byte[]> definitionNetEase11830 = loadAndMappingToNetEase(AbstractProtocol.PROTOCOL_118_30, "item_components11830.nbt");
             Map<String, byte[]> definitionNetEase11830NE = loadAndMappingToNetEase(AbstractProtocol.PROTOCOL_118_30_NE, "item_components11830.nbt");
@@ -62,7 +64,7 @@ public final class ItemComponentDefinitions {
             DEFINITIONS_NETEASE.put(AbstractProtocol.PROTOCOL_118_30_NE, definitionNetEase11830NE);
 
         } catch (NullPointerException | IOException e) {
-            throw new AssertionError("Unable to load item_components.nbt");
+            throw new AssertionError("Unable to load item_components.nbt", e);
         }
 
         for (AbstractProtocol protocol : AbstractProtocol.getValues()) {

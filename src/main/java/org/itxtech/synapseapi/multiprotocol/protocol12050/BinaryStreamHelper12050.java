@@ -1,6 +1,7 @@
-package org.itxtech.synapseapi.multiprotocol.protocol116220;
+package org.itxtech.synapseapi.multiprotocol.protocol12050;
 
 import cn.nukkit.block.Block;
+import cn.nukkit.inventory.RecipeType;
 import cn.nukkit.item.Item;
 import cn.nukkit.item.ItemDurable;
 import cn.nukkit.item.ItemID;
@@ -9,42 +10,34 @@ import cn.nukkit.nbt.tag.CompoundTag;
 import cn.nukkit.nbt.tag.Tag;
 import cn.nukkit.network.LittleEndianByteBufInputStream;
 import cn.nukkit.network.LittleEndianByteBufOutputStream;
+import cn.nukkit.network.protocol.types.ItemDescriptorType;
 import cn.nukkit.utils.BinaryStream;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.ByteBufAllocator;
 import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet;
 import lombok.extern.log4j.Log4j2;
 import org.itxtech.synapseapi.SynapseSharedConstants;
-import org.itxtech.synapseapi.multiprotocol.protocol116210.BinaryStreamHelper116210;
+import org.itxtech.synapseapi.multiprotocol.protocol12040.BinaryStreamHelper12040;
 import org.itxtech.synapseapi.multiprotocol.utils.AdvancedGlobalBlockPalette;
 import org.itxtech.synapseapi.multiprotocol.utils.AdvancedRuntimeItemPalette;
+import org.itxtech.synapseapi.multiprotocol.utils.item.BlockItemFlattener;
 
 import java.io.IOException;
 import java.nio.ByteOrder;
 import java.util.Set;
 
 @Log4j2
-public class BinaryStreamHelper116220 extends BinaryStreamHelper116210 {
-
-    public static BinaryStreamHelper116220 create() {
-        return new BinaryStreamHelper116220();
+public class BinaryStreamHelper12050 extends BinaryStreamHelper12040 {
+    public static BinaryStreamHelper12050 create() {
+        return new BinaryStreamHelper12050();
     }
 
     @Override
     public String getGameVersion() {
-        return "1.16.220";
+        return "1.20.50";
     }
 
     @Override
-    public final Item getSlot(BinaryStream stream) {
-        return this.getSlot(stream, false);
-    }
-
-    @Override
-    public final Item getItemInstance(BinaryStream stream) {
-        return this.getSlot(stream, true);
-    }
-
     protected Item getSlot(BinaryStream stream, boolean instanceItem) {
         int id = stream.getVarInt();
         if (id == 0) {
@@ -55,13 +48,13 @@ public class BinaryStreamHelper116220 extends BinaryStreamHelper116210 {
             throw new RuntimeException("Invalid item networkID received: " + id);
         }
 
-        id = convertCustomBlockItemClientIdToServerId(id);
-
         int count = stream.getLShort();
         int damage = (int) stream.getUnsignedVarInt();
 
         int fullId = AdvancedRuntimeItemPalette.getLegacyFullId(this.protocol, stream.neteaseMode, id);
         id = AdvancedRuntimeItemPalette.getId(this.protocol, stream.neteaseMode, fullId);
+
+        id = BlockItemFlattener.downgrade(this.protocol, id);
 
         boolean hasData = AdvancedRuntimeItemPalette.hasData(this.protocol, stream.neteaseMode, fullId);
         if (hasData) {
@@ -167,15 +160,6 @@ public class BinaryStreamHelper116220 extends BinaryStreamHelper116210 {
     }
 
     @Override
-    public final void putSlot(BinaryStream stream, Item item) {
-        this.putSlot(stream, item, false);
-    }
-
-    @Override
-    public final void putItemInstance(BinaryStream stream, Item item) {
-        this.putSlot(stream, item, true);
-    }
-
     protected void putSlot(BinaryStream stream, Item item, boolean instanceItem) {
         if (item == null || item.getId() == Item.AIR) {
             stream.putByte((byte) 0);
@@ -190,7 +174,9 @@ public class BinaryStreamHelper116220 extends BinaryStreamHelper116210 {
         int networkFullId = AdvancedRuntimeItemPalette.getNetworkFullId(this.protocol, stream.neteaseMode, item);
         int networkId = AdvancedRuntimeItemPalette.getNetworkId(this.protocol, stream.neteaseMode, networkFullId);
 
-        networkId = convertCustomBlockItemServerIdToClientId(networkId);
+        if (id > 0 && networkId < 0) { //TODO: flat upgrade mapping, e.g. "minecraft:wool"
+            networkId >>= 1;
+        }
 
         stream.putVarInt(networkId);
         stream.putLShort(item.getCount());
@@ -276,4 +262,177 @@ public class BinaryStreamHelper116220 extends BinaryStreamHelper116210 {
         }
     }
 
+    @Override
+    public Item getCraftingRecipeIngredient(BinaryStream stream) { //TODO: ItemDescriptor
+        int id;
+        int damage;
+
+        int descriptorType = stream.getByte();
+        switch (descriptorType) {
+            default:
+            case 0:
+                id = ItemID.AIR;
+                damage = 0;
+                break;
+            case 1:
+                int networkId = stream.getLShort();
+
+                int legacyFullId = AdvancedRuntimeItemPalette.getLegacyFullId(this.protocol, stream.neteaseMode, networkId);
+                id = AdvancedRuntimeItemPalette.getId(this.protocol, stream.neteaseMode, legacyFullId);
+                boolean hasData = AdvancedRuntimeItemPalette.hasData(this.protocol, stream.neteaseMode, legacyFullId);
+
+                id = BlockItemFlattener.downgrade(this.protocol, id);
+
+                damage = stream.getLShort();
+                if (hasData) {
+                    damage = AdvancedRuntimeItemPalette.getData(this.protocol, stream.neteaseMode, legacyFullId);
+                } else if (damage == 0x7fff) {
+                    damage = -1;
+                } else {
+                    damage = 0;
+                }
+                break;
+            case 2:
+                String molangExpression = stream.getString();
+                int molangVersion = stream.getByte();
+
+                //TODO: MolangDescriptor
+                id = ItemID.AIR;
+                damage = 0;
+                break;
+            case 3:
+                String tag = stream.getString();
+
+                //TODO: ItemTagDescriptor
+                id = ItemID.AIR;
+                damage = 0;
+                break;
+            case 4:
+                String name = stream.getString();
+
+                legacyFullId = AdvancedRuntimeItemPalette.getLegacyFullIdByName(this.protocol, stream.neteaseMode, name);
+                id = AdvancedRuntimeItemPalette.getId(this.protocol, stream.neteaseMode, legacyFullId);
+                hasData = AdvancedRuntimeItemPalette.hasData(this.protocol, stream.neteaseMode, legacyFullId);
+
+                damage = stream.getLShort();
+                if (hasData) {
+                    damage = AdvancedRuntimeItemPalette.getData(this.protocol, stream.neteaseMode, legacyFullId);
+                } else if (damage == 0x7fff) {
+                    damage = -1;
+                } else {
+                    damage = 0;
+                }
+                break;
+            case 5: // 1.19.70+
+                String alias = stream.getString();
+
+                //TODO: ComplexAliasDescriptor
+                id = ItemID.AIR;
+                damage = 0;
+                break;
+        }
+
+        int count = stream.getVarInt();
+        return Item.get(id, damage, count);
+    }
+
+    @Override
+    public void putCraftingRecipeIngredient(BinaryStream stream, Item ingredient) { //TODO: ItemDescriptor
+        if (ingredient == null || ingredient.getId() == Item.AIR) {
+            stream.putByte((byte) ItemDescriptorType.NONE.ordinal());
+            stream.putVarInt(0);
+            return;
+        }
+
+        int networkFullId = AdvancedRuntimeItemPalette.getNetworkFullId(this.protocol, stream.neteaseMode, ingredient);
+        int networkId = AdvancedRuntimeItemPalette.getNetworkId(this.protocol, stream.neteaseMode, networkFullId);
+        int damage = ingredient.hasMeta() ? ingredient.getDamage() : 0x7fff;
+        if (AdvancedRuntimeItemPalette.hasData(this.protocol, stream.neteaseMode, networkFullId)) {
+            damage = 0;
+        }
+
+        if (ingredient.getId() > 0 && networkId < 0) { //TODO: flat upgrade mapping, e.g. "minecraft:wool"
+            networkId >>= 1;
+        }
+
+        stream.putByte((byte) ItemDescriptorType.INTERNAL.ordinal());
+
+        stream.putLShort(networkId);
+        stream.putLShort(damage);
+
+        stream.putVarInt(ingredient.getCount());
+    }
+
+    @Override
+    public void putFurnaceRecipeIngredient(BinaryStream stream, Item ingredient, RecipeType type) {
+        int networkFullId = AdvancedRuntimeItemPalette.getNetworkFullId(this.protocol, stream.neteaseMode, ingredient);
+        int networkId = AdvancedRuntimeItemPalette.getNetworkId(this.protocol, stream.neteaseMode, networkFullId);
+
+        if (ingredient.getId() > 0 && networkId < 0) { //TODO: flat upgrade mapping, e.g. "minecraft:wool"
+            networkId >>= 1;
+        }
+
+        stream.putVarInt(networkId);
+
+        if (type == RecipeType.FURNACE_DATA) {
+            int damage = ingredient.hasMeta() ? ingredient.getDamage() : 0x7fff;
+            if (AdvancedRuntimeItemPalette.hasData(this.protocol, stream.neteaseMode, networkFullId)) {
+                damage = 0;
+            }
+
+            stream.putVarInt(damage);
+        }
+    }
+
+    @Override
+    public void putBrewingRecipeItem(BinaryStream stream, Item item) {
+        int networkFullId = AdvancedRuntimeItemPalette.getNetworkFullId(this.protocol, stream.neteaseMode, item);
+        int networkId = AdvancedRuntimeItemPalette.getNetworkId(this.protocol, stream.neteaseMode, networkFullId);
+
+        if (item.getId() > 0 && networkId < 0) { //TODO: flat upgrade mapping, e.g. "minecraft:wool"
+            networkId >>= 1;
+        }
+
+        int damage = item.getDamage();
+        if (AdvancedRuntimeItemPalette.hasData(this.protocol, stream.neteaseMode, networkFullId)) {
+            damage = 0;
+        }
+
+        stream.putVarInt(networkId);
+        stream.putVarInt(damage);
+    }
+
+    @Override
+    public void putMaterialReducerRecipeIngredient(BinaryStream stream, Item ingredient) {
+        if (ingredient == null || ingredient.getId() == ItemID.AIR) {
+            stream.putVarInt(ItemID.AIR);
+            return;
+        }
+
+        int networkFullId = AdvancedRuntimeItemPalette.getNetworkFullId(this.protocol, stream.neteaseMode, ingredient);
+        int networkId = AdvancedRuntimeItemPalette.getNetworkId(this.protocol, stream.neteaseMode, networkFullId);
+
+        if (ingredient.getId() > 0 && networkId < 0) { //TODO: flat upgrade mapping, e.g. "minecraft:wool"
+            networkId >>= 1;
+        }
+
+        int damage = ingredient.hasMeta() ? ingredient.getDamage() : 0x7fff;
+        if (AdvancedRuntimeItemPalette.hasData(this.protocol, stream.neteaseMode, networkFullId)) {
+            damage = 0;
+        }
+
+        stream.putVarInt((networkId << 16) | damage);
+    }
+
+    @Override
+    public int getItemNetworkId(BinaryStream stream, Item item) {
+        int networkFullId = AdvancedRuntimeItemPalette.getNetworkFullId(this.protocol, stream.neteaseMode, item);
+        int networkId = AdvancedRuntimeItemPalette.getNetworkId(this.protocol, stream.neteaseMode, networkFullId);
+
+        if (item.getId() > 0 && networkId < 0) { //TODO: flat upgrade mapping, e.g. "minecraft:wool"
+            networkId >>= 1;
+        }
+
+        return networkId;
+    }
 }

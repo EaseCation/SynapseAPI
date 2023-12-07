@@ -48,6 +48,8 @@ public class BinaryStreamHelper11970 extends BinaryStreamHelper11963 {
             throw new RuntimeException("Invalid item networkID received: " + id);
         }
 
+        id = convertCustomBlockItemClientIdToServerId(id);
+
         int count = stream.getLShort();
         int damage = (int) stream.getUnsignedVarInt();
 
@@ -176,6 +178,8 @@ public class BinaryStreamHelper11970 extends BinaryStreamHelper11963 {
 
         if (id > 0 && networkId < 0) { //TODO: flat upgrade mapping, e.g. "minecraft:wool"
             networkId >>= 1;
+        } else {
+            networkId = convertCustomBlockItemServerIdToClientId(networkId);
         }
 
         stream.putVarInt(networkId);
@@ -277,6 +281,8 @@ public class BinaryStreamHelper11970 extends BinaryStreamHelper11963 {
             case 1:
                 int networkId = stream.getLShort();
 
+                networkId = convertCustomBlockItemClientIdToServerId(networkId);
+
                 int legacyFullId = AdvancedRuntimeItemPalette.getLegacyFullId(this.protocol, stream.neteaseMode, networkId);
                 id = AdvancedRuntimeItemPalette.getId(this.protocol, stream.neteaseMode, legacyFullId);
                 boolean hasData = AdvancedRuntimeItemPalette.hasData(this.protocol, stream.neteaseMode, legacyFullId);
@@ -353,6 +359,8 @@ public class BinaryStreamHelper11970 extends BinaryStreamHelper11963 {
 
         if (ingredient.getId() > 0 && networkId < 0) { //TODO: flat upgrade mapping, e.g. "minecraft:wool"
             networkId >>= 1;
+        } else {
+            networkId = convertCustomBlockItemServerIdToClientId(networkId);
         }
 
         stream.putByte((byte) ItemDescriptorType.INTERNAL.ordinal());
@@ -370,6 +378,8 @@ public class BinaryStreamHelper11970 extends BinaryStreamHelper11963 {
 
         if (ingredient.getId() > 0 && networkId < 0) { //TODO: flat upgrade mapping, e.g. "minecraft:wool"
             networkId >>= 1;
+        } else {
+            networkId = convertCustomBlockItemServerIdToClientId(networkId);
         }
 
         stream.putVarInt(networkId);
@@ -391,6 +401,8 @@ public class BinaryStreamHelper11970 extends BinaryStreamHelper11963 {
 
         if (item.getId() > 0 && networkId < 0) { //TODO: flat upgrade mapping, e.g. "minecraft:wool"
             networkId >>= 1;
+        } else {
+            networkId = convertCustomBlockItemServerIdToClientId(networkId);
         }
 
         int damage = item.getDamage();
@@ -414,6 +426,8 @@ public class BinaryStreamHelper11970 extends BinaryStreamHelper11963 {
 
         if (ingredient.getId() > 0 && networkId < 0) { //TODO: flat upgrade mapping, e.g. "minecraft:wool"
             networkId >>= 1;
+        } else {
+            networkId = convertCustomBlockItemServerIdToClientId(networkId);
         }
 
         int damage = ingredient.hasMeta() ? ingredient.getDamage() : 0x7fff;
@@ -431,6 +445,8 @@ public class BinaryStreamHelper11970 extends BinaryStreamHelper11963 {
 
         if (item.getId() > 0 && networkId < 0) { //TODO: flat upgrade mapping, e.g. "minecraft:wool"
             networkId >>= 1;
+        } else {
+            networkId = convertCustomBlockItemServerIdToClientId(networkId);
         }
 
         return networkId;

@@ -144,6 +144,8 @@ public class BinaryStreamHelper11730 extends BinaryStreamHelper11710 {
             damage = 0;
         }
 
+        networkId = convertCustomBlockItemServerIdToClientId(networkId);
+
         stream.putVarInt((networkId << 16) | damage);
     }
 }

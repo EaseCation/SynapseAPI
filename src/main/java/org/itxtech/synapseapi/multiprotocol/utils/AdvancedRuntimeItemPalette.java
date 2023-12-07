@@ -30,27 +30,29 @@ public final class AdvancedRuntimeItemPalette {
 
         LegacyItemSerializer.initialize();
 
-        RuntimeItemPalette palette116100 = new RuntimeItemPalette("runtime_item_ids_116100.json");
-        RuntimeItemPalette palette116200NE = new RuntimeItemPalette("runtime_item_ids_116200NE.json");
-        RuntimeItemPalette palette117 = new RuntimeItemPalette("runtime_item_ids_117.json");
-        RuntimeItemPalette palette117NE = new RuntimeItemPalette("runtime_item_ids_117NE.json");
-        RuntimeItemPalette palette11710 = new RuntimeItemPalette("runtime_item_ids_11710.json");
-        RuntimeItemPalette palette11730 = new RuntimeItemPalette("runtime_item_ids_11730.json");
-        RuntimeItemPalette palette11740 = new RuntimeItemPalette("runtime_item_ids_11740.json");
-        RuntimeItemPalette palette118 = new RuntimeItemPalette("runtime_item_ids_118.json");
-        RuntimeItemPalette palette118NE = new RuntimeItemPalette("runtime_item_ids_118NE.json");
-        RuntimeItemPalette palette11810 = new RuntimeItemPalette("runtime_item_ids_11810.json");
-        RuntimeItemPalette palette11830 = new RuntimeItemPalette("runtime_item_ids_11830.json");
-        RuntimeItemPalette palette11830NE = new RuntimeItemPalette("runtime_item_ids_11830NE.json");
-        RuntimeItemPalette palette119 = new RuntimeItemPalette("runtime_item_ids_119.json");
-        RuntimeItemPalette palette11910 = new RuntimeItemPalette("runtime_item_ids_11910.json");
-        RuntimeItemPalette palette11950 = new RuntimeItemPalette("runtime_item_ids_11950.json");
-        RuntimeItemPalette palette11960 = new RuntimeItemPalette("runtime_item_ids_11960.json");
-        RuntimeItemPalette palette11970 = new RuntimeItemPalette("runtime_item_ids_11970.json");
-        RuntimeItemPalette palette11980 = new RuntimeItemPalette("runtime_item_ids_11980.json");
-        RuntimeItemPalette palette120 = new RuntimeItemPalette("runtime_item_ids_120.json");
-        RuntimeItemPalette palette12010 = new RuntimeItemPalette("runtime_item_ids_12010.json");
-        RuntimeItemPalette palette12030 = new RuntimeItemPalette("runtime_item_ids_12030.json");
+        RuntimeItemPalette palette116100 = new RuntimeItemPalette(AbstractProtocol.PROTOCOL_116_100, "runtime_item_ids_116100.json");
+        RuntimeItemPalette palette116200NE = new RuntimeItemPalette(AbstractProtocol.PROTOCOL_116_200, "runtime_item_ids_116200NE.json");
+        RuntimeItemPalette palette117 = new RuntimeItemPalette(AbstractProtocol.PROTOCOL_117, "runtime_item_ids_117.json");
+        RuntimeItemPalette palette117NE = new RuntimeItemPalette(AbstractProtocol.PROTOCOL_117, "runtime_item_ids_117NE.json");
+        RuntimeItemPalette palette11710 = new RuntimeItemPalette(AbstractProtocol.PROTOCOL_117_10, "runtime_item_ids_11710.json");
+        RuntimeItemPalette palette11730 = new RuntimeItemPalette(AbstractProtocol.PROTOCOL_117_30, "runtime_item_ids_11730.json");
+        RuntimeItemPalette palette11740 = new RuntimeItemPalette(AbstractProtocol.PROTOCOL_117_40, "runtime_item_ids_11740.json");
+        RuntimeItemPalette palette118 = new RuntimeItemPalette(AbstractProtocol.PROTOCOL_118, "runtime_item_ids_118.json");
+        RuntimeItemPalette palette118NE = new RuntimeItemPalette(AbstractProtocol.PROTOCOL_118, "runtime_item_ids_118NE.json");
+        RuntimeItemPalette palette11810 = new RuntimeItemPalette(AbstractProtocol.PROTOCOL_118_10, "runtime_item_ids_11810.json");
+        RuntimeItemPalette palette11830 = new RuntimeItemPalette(AbstractProtocol.PROTOCOL_118_30, "runtime_item_ids_11830.json");
+        RuntimeItemPalette palette11830NE = new RuntimeItemPalette(AbstractProtocol.PROTOCOL_118_30_NE, "runtime_item_ids_11830NE.json");
+        RuntimeItemPalette palette119 = new RuntimeItemPalette(AbstractProtocol.PROTOCOL_119, "runtime_item_ids_119.json");
+        RuntimeItemPalette palette11910 = new RuntimeItemPalette(AbstractProtocol.PROTOCOL_119_10, "runtime_item_ids_11910.json");
+        RuntimeItemPalette palette11950 = new RuntimeItemPalette(AbstractProtocol.PROTOCOL_119_50, "runtime_item_ids_11950.json");
+        RuntimeItemPalette palette11960 = new RuntimeItemPalette(AbstractProtocol.PROTOCOL_119_60, "runtime_item_ids_11960.json");
+        RuntimeItemPalette palette11970 = new RuntimeItemPalette(AbstractProtocol.PROTOCOL_119_70, "runtime_item_ids_11970.json");
+        RuntimeItemPalette palette11980 = new RuntimeItemPalette(AbstractProtocol.PROTOCOL_119_80, "runtime_item_ids_11980.json");
+        RuntimeItemPalette palette120 = new RuntimeItemPalette(AbstractProtocol.PROTOCOL_120, "runtime_item_ids_120.json");
+        RuntimeItemPalette palette12010 = new RuntimeItemPalette(AbstractProtocol.PROTOCOL_120_10, "runtime_item_ids_12010.json");
+        RuntimeItemPalette palette12030 = new RuntimeItemPalette(AbstractProtocol.PROTOCOL_120_30, "runtime_item_ids_12030.json");
+        RuntimeItemPalette palette12050 = new RuntimeItemPalette(AbstractProtocol.PROTOCOL_120_50, "runtime_item_ids_12050.json");
+//        RuntimeItemPalette palette12050 = new RuntimeItemPalette(AbstractProtocol.PROTOCOL_120_50, "runtime_item_ids_12050_raw.json", "item_id_map_12050.json", "item_flatten_map_12050.json");
 
         register(AbstractProtocol.PROTOCOL_116_100, palette116100, null);
         register(AbstractProtocol.PROTOCOL_116_200, palette116100, palette116200NE);
@@ -79,6 +81,7 @@ public final class AdvancedRuntimeItemPalette {
         register(AbstractProtocol.PROTOCOL_120_10, palette12010, null);
         register(AbstractProtocol.PROTOCOL_120_30, palette12030, null);
         register(AbstractProtocol.PROTOCOL_120_40, palette12030, null);
+        register(AbstractProtocol.PROTOCOL_120_50, palette12050, null);
     }
 
     private static void register(AbstractProtocol protocol, RuntimeItemPalette palette, RuntimeItemPalette paletteNetEase) {

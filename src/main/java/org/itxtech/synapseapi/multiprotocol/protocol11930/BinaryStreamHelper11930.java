@@ -33,6 +33,8 @@ public class BinaryStreamHelper11930 extends BinaryStreamHelper11921 {
             case 1:
                 int networkId = stream.getLShort();
 
+                networkId = convertCustomBlockItemClientIdToServerId(networkId);
+
                 int legacyFullId = AdvancedRuntimeItemPalette.getLegacyFullId(this.protocol, stream.neteaseMode, networkId);
                 id = AdvancedRuntimeItemPalette.getId(this.protocol, stream.neteaseMode, legacyFullId);
                 boolean hasData = AdvancedRuntimeItemPalette.hasData(this.protocol, stream.neteaseMode, legacyFullId);
@@ -97,6 +99,8 @@ public class BinaryStreamHelper11930 extends BinaryStreamHelper11921 {
         if (AdvancedRuntimeItemPalette.hasData(this.protocol, stream.neteaseMode, networkFullId)) {
             damage = 0;
         }
+
+        networkId = convertCustomBlockItemServerIdToClientId(networkId);
 
         stream.putByte((byte) ItemDescriptorType.INTERNAL.ordinal());
 
