@@ -2,6 +2,7 @@ package org.itxtech.synapseapi.dialogue;
 
 import cn.nukkit.Server;
 import cn.nukkit.entity.Entity;
+import org.itxtech.synapseapi.SynapseAPI;
 import org.itxtech.synapseapi.SynapsePlayer;
 
 public class NPCDialoguePlayerHandler {
@@ -10,6 +11,7 @@ public class NPCDialoguePlayerHandler {
     private NPCDialogueScene currentScene;
     private String currentSceneName;
     private Entity currentEntity;
+    private int lastDialogueTick;
 
     public NPCDialoguePlayerHandler(SynapsePlayer player) {
         this.player = player;
@@ -27,6 +29,9 @@ public class NPCDialoguePlayerHandler {
         if (this.currentEntity == null) {
             throw new IllegalStateException("首次发送，请先调用 sendDialogue(NPCDialogueScene scene, Entity entity)");
         }
+        if (this.currentSceneName != null && Server.getInstance().getTick() == this.lastDialogueTick) {
+            SynapseAPI.getInstance().getLogger().warning("玩家 " + player.getName() + " 已经打开了一个对话框(" + this.currentSceneName + ")，正在尝试打开另一个对话框(" + scene.getSceneName() + ")");
+        }
         this.currentSceneName = scene.getSceneName();
         this.currentScene = scene;
         scene.sendTo(player, currentEntity.getId(), currentEntity.getName());
@@ -41,6 +46,7 @@ public class NPCDialoguePlayerHandler {
         this.currentScene = scene;
         this.currentEntity = entity;
         scene.sendTo(player, entity.getId(), name);
+        this.lastDialogueTick = Server.getInstance().getTick();
     }
 
     public void onDialogueResponse(String sceneName, int buttonId) {
