@@ -606,7 +606,7 @@ public class SynapsePlayer14 extends SynapsePlayer {
 						new Vector3(levelSoundEventPacket.x, levelSoundEventPacket.y, levelSoundEventPacket.z),
 						sound.translateExtraDataFromClient(levelSoundEventPacket.extraData, AbstractProtocol.fromRealProtocol(getProtocol()), isNetEaseClient()),
 						levelSoundEventPacket.pitch,
-						"minecraft:player",
+						EntityFullNames.PLAYER,
 						levelSoundEventPacket.isBabyMob,
 						levelSoundEventPacket.isGlobal);
 				if (this.isSpectator()) {

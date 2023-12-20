@@ -286,9 +286,9 @@ public final class LegacyBlockSerializer {
             switch (type) {
                 default:
                 case DIRT_TYPE_NORMAL:
-                    return BlockDirt.NORMAL_DIRT;
+                    return BlockDirt.TYPE_NORMAL_DIRT;
                 case DIRT_TYPE_COARSE:
-                    return BlockDirt.COARSE_DIRT;
+                    return BlockDirt.TYPE_COARSE_DIRT;
             }
         });
 
@@ -917,46 +917,46 @@ public final class LegacyBlockSerializer {
             switch (type) {
                 default:
                 case WALL_BLOCK_TYPE_COBBLESTONE:
-                    meta |= BlockWallCobblestone.NORMAL_COBBLESTONE_WALL;
+                    meta |= BlockWallCobblestone.TYPE_COBBLESTONE;
                     break;
                 case WALL_BLOCK_TYPE_MOSSY_COBBLESTONE:
-                    meta |= BlockWallCobblestone.MOSSY_COBBLESTONE_WALL;
+                    meta |= BlockWallCobblestone.TYPE_MOSSY_COBBLESTONE;
                     break;
                 case WALL_BLOCK_TYPE_GRANITE:
-                    meta |= BlockWallCobblestone.GRANITE_WALL;
+                    meta |= BlockWallCobblestone.TYPE_GRANITE;
                     break;
                 case WALL_BLOCK_TYPE_DIORITE:
-                    meta |= BlockWallCobblestone.DIORITE_WALL;
+                    meta |= BlockWallCobblestone.TYPE_DIORITE;
                     break;
                 case WALL_BLOCK_TYPE_ANDESITE:
-                    meta |= BlockWallCobblestone.ANDESITE_WALL;
+                    meta |= BlockWallCobblestone.TYPE_ANDESITE;
                     break;
                 case WALL_BLOCK_TYPE_SANDSTONE:
-                    meta |= BlockWallCobblestone.SANDSTONE_WALL;
+                    meta |= BlockWallCobblestone.TYPE_SANDSTONE;
                     break;
                 case WALL_BLOCK_TYPE_BRICK:
-                    meta |= BlockWallCobblestone.BRICK_WALL;
+                    meta |= BlockWallCobblestone.TYPE_BRICK;
                     break;
                 case WALL_BLOCK_TYPE_STONE_BRICK:
-                    meta |= BlockWallCobblestone.STONE_BRICK_WALL;
+                    meta |= BlockWallCobblestone.TYPE_STONE_BRICK;
                     break;
                 case WALL_BLOCK_TYPE_MOSSY_STONE_BRICK:
-                    meta |= BlockWallCobblestone.MOSSY_STONE_BRICK_WALL;
+                    meta |= BlockWallCobblestone.TYPE_MOSSY_STONE_BRICK;
                     break;
                 case WALL_BLOCK_TYPE_NETHER_BRICK:
-                    meta |= BlockWallCobblestone.NETHER_BRICK_WALL;
+                    meta |= BlockWallCobblestone.TYPE_NETHER_BRICK;
                     break;
                 case WALL_BLOCK_TYPE_END_BRICK:
-                    meta |= BlockWallCobblestone.END_BRICK_WALL;
+                    meta |= BlockWallCobblestone.TYPE_END_BRICK;
                     break;
                 case WALL_BLOCK_TYPE_PRISMARINE:
-                    meta |= BlockWallCobblestone.PRISMARINE_WALL;
+                    meta |= BlockWallCobblestone.TYPE_PRISMARINE;
                     break;
                 case WALL_BLOCK_TYPE_RED_SANDSTONE:
-                    meta |= BlockWallCobblestone.RED_SANDSTONE_WALL;
+                    meta |= BlockWallCobblestone.TYPE_RED_SANDSTONE;
                     break;
                 case WALL_BLOCK_TYPE_RED_NETHER_BRICK:
-                    meta |= BlockWallCobblestone.RED_NETHER_BRICK_WALL;
+                    meta |= BlockWallCobblestone.TYPE_RED_NETHER_BRICK;
                     break;
             }
             return meta;
@@ -1033,22 +1033,22 @@ public final class LegacyBlockSerializer {
             switch (type) {
                 default:
                 case DOUBLE_PLANT_TYPE_SUNFLOWER:
-                    meta |= BlockDoublePlant.SUNFLOWER;
+                    meta |= BlockDoublePlant.TYPE_SUNFLOWER;
                     break;
                 case DOUBLE_PLANT_TYPE_SYRINGA:
-                    meta |= BlockDoublePlant.LILAC;
+                    meta |= BlockDoublePlant.TYPE_LILAC;
                     break;
                 case DOUBLE_PLANT_TYPE_GRASS:
-                    meta |= BlockDoublePlant.TALL_GRASS;
+                    meta |= BlockDoublePlant.TYPE_TALL_GRASS;
                     break;
                 case DOUBLE_PLANT_TYPE_FERN:
-                    meta |= BlockDoublePlant.LARGE_FERN;
+                    meta |= BlockDoublePlant.TYPE_LARGE_FERN;
                     break;
                 case DOUBLE_PLANT_TYPE_ROSE:
-                    meta |= BlockDoublePlant.ROSE_BUSH;
+                    meta |= BlockDoublePlant.TYPE_ROSE_BUSH;
                     break;
                 case DOUBLE_PLANT_TYPE_PAEONIA:
-                    meta |= BlockDoublePlant.PEONY;
+                    meta |= BlockDoublePlant.TYPE_PEONY;
                     break;
             }
             return meta;

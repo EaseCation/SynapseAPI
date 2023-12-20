@@ -12,6 +12,7 @@ import cn.nukkit.blockentity.BlockEntityItemFrame;
 import cn.nukkit.blockentity.BlockEntitySpawnable;
 import cn.nukkit.command.data.CommandPermission;
 import cn.nukkit.entity.Entity;
+import cn.nukkit.entity.EntityFullNames;
 import cn.nukkit.entity.EntityRideable;
 import cn.nukkit.entity.data.ShortEntityData;
 import cn.nukkit.entity.item.EntityBoat;
@@ -1407,7 +1408,7 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
                             break;
                         case PlayerActionPacket.ACTION_MISSED_SWING:
                             if (isServerAuthoritativeSoundEnabled()) {
-                                level.addLevelSoundEvent(this, LevelSoundEventPacket.SOUND_ATTACK_NODAMAGE, "minecraft:player");
+                                level.addLevelSoundEvent(this, LevelSoundEventPacket.SOUND_ATTACK_NODAMAGE, EntityFullNames.PLAYER);
                             }
                             break;
                         case PlayerActionPacket.ACTION_START_CRAWLING:

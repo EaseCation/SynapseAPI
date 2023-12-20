@@ -11,6 +11,7 @@ import cn.nukkit.blockentity.BlockEntity;
 import cn.nukkit.blockentity.BlockEntityItemFrame;
 import cn.nukkit.blockentity.BlockEntitySpawnable;
 import cn.nukkit.entity.Entity;
+import cn.nukkit.entity.EntityFullNames;
 import cn.nukkit.entity.EntityRideable;
 import cn.nukkit.entity.item.EntityBoat;
 import cn.nukkit.event.entity.EntityDamageByEntityEvent;
@@ -880,7 +881,7 @@ public class SynapsePlayer116 extends SynapsePlayer113 {
 				}
 
 				if ((inputFlags & (1L << PlayerAuthInputFlags.MISSED_SWING)) != 0 && isServerAuthoritativeSoundEnabled()) {
-					level.addLevelSoundEvent(this, LevelSoundEventPacket.SOUND_ATTACK_NODAMAGE, "minecraft:player");
+					level.addLevelSoundEvent(this, LevelSoundEventPacket.SOUND_ATTACK_NODAMAGE, EntityFullNames.PLAYER);
 
 					// touch bug: https://bugs.mojang.com/browse/MCPE-107865
 					if (getLoginChainData().getCurrentInputMode() == ClientChainData.INPUT_TOUCH) {
