@@ -37,6 +37,7 @@ import org.itxtech.synapseapi.multiprotocol.utils.item.CraftingManagerMedieval;
 import org.itxtech.synapseapi.multiprotocol.utils.item.CraftingManagerNew;
 import org.itxtech.synapseapi.utils.ClientData;
 import org.itxtech.synapseapi.utils.NetTest;
+import org.itxtech.synapseapi.utils.SynapsePlayerViolationListener;
 
 import java.util.*;
 import java.util.Map.Entry;
@@ -84,6 +85,8 @@ public class SynapseAPI extends PluginBase implements Listener {
 
     @Override
     public void onEnable() {
+        Player.setViolationListener(new SynapsePlayerViolationListener());
+
         this.messenger = new StandardMessenger();
         loadEntries();
 

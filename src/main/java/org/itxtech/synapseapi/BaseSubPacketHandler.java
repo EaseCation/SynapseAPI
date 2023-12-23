@@ -22,11 +22,11 @@ public class BaseSubPacketHandler implements ServerSubPacketHandler {
         String emote = packet.emoteName();
 
         if (emote.length() > 100) {
-            player.violation += 60;
+            player.addViolationLevel(60, "emote_long_cn");
             return;
         }
         if (!player.emoteRequest()) {
-            player.violation += 10;
+            player.addViolationLevel(10, "emote_req_cn");
             return;
         }
 

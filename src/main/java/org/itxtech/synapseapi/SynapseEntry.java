@@ -498,7 +498,7 @@ public class SynapseEntry {
 
                 UUID uuid = redirectPacket.uuid;
                 SynapsePlayer player = this.players.get(uuid);
-                if (player != null && !player.violated) {
+                if (player != null && !player.isViolated()) {
                     DataPacket pk0 = PacketRegister.getFullPacket(redirectPacket.mcpeBuffer, redirectPacket.protocol);
                     //Server.getInstance().getLogger().info("to server : " + pk0.getClass().getName());
                     if (pk0 != null) {
@@ -518,7 +518,7 @@ public class SynapseEntry {
                                 }
 
                                 if (player.incomingPacketBatchBudget <= 0) {
-                                    player.violated = true;
+                                    player.setViolated("net_batch_fast");
                                     synapse.getServer().getScheduler().scheduleTask(synapse, () -> {
                                         new SynapsePlayerTooManyBatchPacketsEvent(player, SynapsePlayer.INCOMING_PACKET_BATCH_MAX_BUDGET + 1).call();
                                         player.onPacketViolation(PacketViolationReason.RECEIVING_BATCHES_TOO_FAST, "async");
@@ -530,7 +530,7 @@ public class SynapseEntry {
 
                             List<DataPacket> packets = processBatch((BatchPacket) pk0, redirectPacket.protocol, player.isNetEaseClient());
                             if (packets == null) {
-                                player.violated = true;
+                                player.setViolated("packet_bad_batch");
                                 synapse.getServer().getScheduler().scheduleTask(synapse, () -> {
                                     player.onPacketViolation(PacketViolationReason.MALFORMED_PACKET, "batch");
                                 });
@@ -543,7 +543,7 @@ public class SynapseEntry {
                             for (DataPacket subPacket : packets) {
                                 int packetId = subPacket.pid();
                                 if (packetId >= PACKET_TYPE_COUNT) {
-                                    player.violated = true;
+                                    player.setViolated("packet_bad_id");
                                     synapse.getServer().getScheduler().scheduleTask(synapse, () -> {
                                         player.onPacketViolation(PacketViolationReason.MALFORMED_PACKET, "pid");
                                     });
@@ -624,7 +624,7 @@ public class SynapseEntry {
 
                                             long tick = authInputPacket.getTick();
                                             if (player.lastAuthInputPacketTick > tick) {
-                                                player.violated = true;
+                                                player.setViolated("input_tick");
                                                 synapse.getServer().getScheduler().scheduleTask(synapse, () -> {
                                                     player.onPacketViolation(PacketViolationReason.IMPOSSIBLE_BEHAVIOR, "input_tick");
                                                 });
@@ -671,18 +671,18 @@ public class SynapseEntry {
                             if (tooManyPackets) {
 //                                log.warn("SubChunkRequestPacket: {}", packetCount[ProtocolInfo.SUB_CHUNK_REQUEST_PACKET]);
                                 Server.getInstance().getPluginManager().callEvent(new SynapsePlayerTooManyPacketsInBatchEvent(player, packetCount));
-                                synapse.getServer().getScheduler().scheduleTask(synapse, () -> player.violation += 60);
+                                synapse.getServer().getScheduler().scheduleTask(synapse, () -> player.addViolationLevel(60, "net_pib_si"));
 
                                 //判断连续触发
                                 if ((player.violationIncomingThread += 60) > 100) {
-                                    player.violated = true;
+                                    player.setViolated("net_pib_mu");
                                     synapse.getServer().getScheduler().scheduleTask(synapse, () -> {
                                         player.onPacketViolation(PacketViolationReason.TOO_MANY_PACKETS_IN_BATCH, "async");
                                     });
                                     break HANDLER;
                                 }
                             } else {
-                                player.violationIncomingThread = player.violation;
+                                player.violationIncomingThread = player.getViolationLevel();
                             }
                         } else {
                             this.redirectPacketQueue.offer(new RedirectPacketEntry(player, pk0));

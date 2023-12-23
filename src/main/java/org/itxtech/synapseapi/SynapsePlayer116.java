@@ -707,7 +707,7 @@ public class SynapsePlayer116 extends SynapsePlayer113 {
 					break;
 				}
 				if (!emoteRequest()) {
-					violation += 8;
+					this.addViolationLevel(8, "emote_req");
 					break;
 				}
 

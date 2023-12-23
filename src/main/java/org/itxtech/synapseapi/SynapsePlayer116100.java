@@ -1759,7 +1759,7 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
                     break;
                 }
 
-                this.violation += 5;
+                this.addViolationLevel(5, "cmd_req_chat");
 
                 if (!this.spawned || !this.isAlive()) {
                     break;
@@ -1874,7 +1874,7 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
                     break;
                 }
                 if (!emoteRequest()) {
-                    violation += 8;
+                    this.addViolationLevel(8, "emote_req");
                     break;
                 }
 
