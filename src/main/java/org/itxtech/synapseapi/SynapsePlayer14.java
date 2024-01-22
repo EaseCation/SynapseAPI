@@ -150,9 +150,7 @@ public class SynapsePlayer14 extends SynapsePlayer {
 					switch (buildPlatform) {
 						case BuildPlatform.GOOGLE:
 						case BuildPlatform.IOS:
-							break;
 						case BuildPlatform.WIN32:
-							// ModPC
 							break;
 						default:
 							onPacketViolation(PacketViolationReason.IMPOSSIBLE_BEHAVIOR, "ce_os" + buildPlatform);
