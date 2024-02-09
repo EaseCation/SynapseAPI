@@ -581,7 +581,9 @@ public class SynapsePlayer116 extends SynapsePlayer113 {
 								this.server.getPluginManager().callEvent(event);
 								float itemDamage = event.getAttackDamage();
 
-								for (Enchantment enchantment : item.getEnchantments()) {
+								Enchantment[] enchantments = item.getId() != Item.ENCHANTED_BOOK ? item.getEnchantments() : Enchantment.EMPTY;
+
+								for (Enchantment enchantment : enchantments) {
 									itemDamage += enchantment.getDamageBonus(target);
 								}
 
@@ -606,7 +608,7 @@ public class SynapsePlayer116 extends SynapsePlayer113 {
 									}
 								}
 
-								EntityDamageByEntityEvent entityDamageByEntityEvent = new EntityDamageByEntityEvent(this, target, EntityDamageEvent.DamageCause.ENTITY_ATTACK, damage, knockBackH, knockBackV, item.getEnchantments());
+								EntityDamageByEntityEvent entityDamageByEntityEvent = new EntityDamageByEntityEvent(this, target, EntityDamageEvent.DamageCause.ENTITY_ATTACK, damage, knockBackH, knockBackV, enchantments);
 								if (this.isSpectator()) entityDamageByEntityEvent.setCancelled();
 								if (!target.attack(entityDamageByEntityEvent)) {
 									if (item.isTool() && this.isSurvival()) {
@@ -615,7 +617,7 @@ public class SynapsePlayer116 extends SynapsePlayer113 {
 									break;
 								}
 
-								for (Enchantment enchantment : item.getEnchantments()) {
+								for (Enchantment enchantment : enchantments) {
 									enchantment.doPostAttack(this, target, null);
 								}
 
@@ -727,7 +729,9 @@ public class SynapsePlayer116 extends SynapsePlayer113 {
 				IPlayerAuthInputPacket playerAuthInputPacket = (IPlayerAuthInputPacket) packet;
 				if (!validateCoordinate(playerAuthInputPacket.getX()) || !validateCoordinate(playerAuthInputPacket.getY()) || !validateCoordinate(playerAuthInputPacket.getZ())
 						|| !validateFloat(playerAuthInputPacket.getPitch()) || !validateFloat(playerAuthInputPacket.getYaw()) || !validateFloat(playerAuthInputPacket.getHeadYaw())
-						|| !validateFloat(playerAuthInputPacket.getDeltaX()) || !validateFloat(playerAuthInputPacket.getDeltaY()) || !validateFloat(playerAuthInputPacket.getDeltaZ())) {
+						|| !validateFloat(playerAuthInputPacket.getDeltaX()) || !validateFloat(playerAuthInputPacket.getDeltaY()) || !validateFloat(playerAuthInputPacket.getDeltaZ())
+						|| !validateFloat(playerAuthInputPacket.getVrGazeDirectionX()) || !validateFloat(playerAuthInputPacket.getVrGazeDirectionY()) || !validateFloat(playerAuthInputPacket.getVrGazeDirectionZ())
+						|| !validateFloat(playerAuthInputPacket.getAnalogMoveVecX()) || !validateFloat(playerAuthInputPacket.getAnalogMoveVecZ())) {
 					this.getServer().getLogger().warning("Invalid movement received: " + this.getName());
 					this.close("", "Invalid movement");
 					return;
@@ -880,7 +884,7 @@ public class SynapsePlayer116 extends SynapsePlayer113 {
 					//TODO
 				}
 
-				if ((inputFlags & (1L << PlayerAuthInputFlags.MISSED_SWING)) != 0 && isServerAuthoritativeSoundEnabled()) {
+				if ((inputFlags & (1L << PlayerAuthInputFlags.MISSED_SWING)) != 0 && isServerAuthoritativeSoundEnabled() && !isSpectator()) {
 					level.addLevelSoundEvent(this, LevelSoundEventPacket.SOUND_ATTACK_NODAMAGE, EntityFullNames.PLAYER);
 
 					// touch bug: https://bugs.mojang.com/browse/MCPE-107865
@@ -897,7 +901,16 @@ public class SynapsePlayer116 extends SynapsePlayer113 {
 					}
 				}
 
+				boolean predictedInVehicle = (inputFlags & (1L << PlayerAuthInputFlags.IN_CLIENT_PREDICTED_IN_VEHICLE)) != 0;
+				boolean inBoat = predictedInVehicle && riding instanceof EntityBoat && riding.getId() == playerAuthInputPacket.getPredictedVehicleEntityUniqueId();
+
 				Vector3 newPos = new Vector3(playerAuthInputPacket.getX(), playerAuthInputPacket.getY() - this.getBaseOffset(), playerAuthInputPacket.getZ());
+				if (inBoat) {
+					Vector3f offset = riding.getMountedOffset(this);
+					newPos.x += offset.x;
+					newPos.y += offset.y;
+					newPos.z += offset.z;
+				}
 				double dis = newPos.distanceSquared(this);
 
 				if (this.teleportPosition == null && (dis != 0 || playerAuthInputPacket.getYaw() % 360 != this.yaw || playerAuthInputPacket.getPitch() % 360 != this.pitch)) {
@@ -919,14 +932,14 @@ public class SynapsePlayer116 extends SynapsePlayer113 {
 					if (this.forceMovement != null && (newPos.distanceSquared(this.forceMovement) > 0.1 || revert)) {
 						this.sendPosition(this.forceMovement, this.yaw, this.pitch, MovePlayerPacket.MODE_TELEPORT);
 					} else {
-						playerAuthInputPacket.setYaw(playerAuthInputPacket.getYaw() % 360);
-						playerAuthInputPacket.setPitch(playerAuthInputPacket.getPitch() % 360);
+						float yaw = (predictedInVehicle ? playerAuthInputPacket.getHeadYaw() : playerAuthInputPacket.getYaw()) % 360;
+						float pitch = playerAuthInputPacket.getPitch() % 360;
 
-						if (playerAuthInputPacket.getYaw() < 0) {
-							playerAuthInputPacket.setYaw(playerAuthInputPacket.getYaw() + 360);
+						if (yaw < 0) {
+							yaw += 360;
 						}
 
-						this.setRotation(playerAuthInputPacket.getYaw(), playerAuthInputPacket.getPitch());
+						this.setRotation(yaw, pitch);
 						this.newPosition = newPos;
 						this.forceMovement = null;
 					}
@@ -1358,14 +1371,26 @@ public class SynapsePlayer116 extends SynapsePlayer113 {
 					}
 				}
 
-				if (this.riding != null && (moveVecX != 0 || moveVecY != 0)) {
+				if (predictedInVehicle) {
+					if (!inBoat) {
+						break;
+					}
+
+					if (!riding.isControlling(this)) {
+						break;
+					}
+
+					if (newPos.distanceSquared(riding) > 1000) {
+						break;
+					}
+
+					((EntityBoat) riding).onInput(playerAuthInputPacket.getX(), playerAuthInputPacket.getY(), playerAuthInputPacket.getZ(), playerAuthInputPacket.getYaw());
+				} else if (this.riding != null && (moveVecX != 0 || moveVecY != 0) && riding.isControlling(this)) {
 					moveVecX = Mth.clamp(moveVecX, -1, 1);
 					moveVecY = Mth.clamp(moveVecY, -1, 1);
 
-					if (this.riding instanceof EntityRideable && !(this.riding instanceof EntityBoat)) {
-						((EntityRideable) riding).onPlayerInput(this, moveVecX, moveVecY);
-						Vector3f offset = riding.getMountedOffset(this);
-						((EntityRideable) riding).onPlayerRiding(this.temporalVector.setComponents(playerAuthInputPacket.getX() - offset.x, playerAuthInputPacket.getY() - offset.y, playerAuthInputPacket.getZ() - offset.z), (playerAuthInputPacket.getHeadYaw() + 90) % 360, 0);
+					if (this.riding instanceof EntityRideable rideable && !(this.riding instanceof EntityBoat)) {
+						rideable.onPlayerInput(this, moveVecX, moveVecY);
 					}
 
 					new PlayerVehicleInputEvent(this, moveVecX, moveVecY).call();

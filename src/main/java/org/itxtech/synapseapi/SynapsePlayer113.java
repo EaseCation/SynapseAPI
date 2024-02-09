@@ -578,7 +578,7 @@ public class SynapsePlayer113 extends SynapsePlayer112 {
 									}
 								}
 
-								Enchantment[] enchantments = item.getEnchantments();
+								Enchantment[] enchantments = item.getId() != Item.ENCHANTED_BOOK ? item.getEnchantments() : Enchantment.EMPTY;
 
 								float itemDamage = item.getAttackDamage();
 								for (Enchantment enchantment : enchantments) {
@@ -607,7 +607,7 @@ public class SynapsePlayer113 extends SynapsePlayer112 {
 									break;
 								}
 
-								for (Enchantment enchantment : item.getEnchantments()) {
+								for (Enchantment enchantment : enchantments) {
 									enchantment.doPostAttack(this, target, null);
 								}
 

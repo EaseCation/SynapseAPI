@@ -80,6 +80,8 @@ import org.itxtech.synapseapi.multiprotocol.protocol12040.BinaryStreamHelper1204
 import org.itxtech.synapseapi.multiprotocol.protocol12040.protocol.Packet12040;
 import org.itxtech.synapseapi.multiprotocol.protocol12050.BinaryStreamHelper12050;
 import org.itxtech.synapseapi.multiprotocol.protocol12050.protocol.Packet12050;
+import org.itxtech.synapseapi.multiprotocol.protocol12060.BinaryStreamHelper12060;
+import org.itxtech.synapseapi.multiprotocol.protocol12060.protocol.Packet12060;
 import org.itxtech.synapseapi.multiprotocol.protocol14.BinaryStreamHelper14;
 import org.itxtech.synapseapi.multiprotocol.protocol14.protocol.Packet14;
 import org.itxtech.synapseapi.multiprotocol.protocol15.BinaryStreamHelper15;
@@ -148,6 +150,7 @@ public enum AbstractProtocol {
     PROTOCOL_120_30(618, Packet12030.class, SynapsePlayer116100.class, BinaryStreamHelper12030.create(), true),
     PROTOCOL_120_40(622, Packet12040.class, SynapsePlayer116100.class, BinaryStreamHelper12040.create(), true),
     PROTOCOL_120_50(630, Packet12050.class, SynapsePlayer116100.class, BinaryStreamHelper12050.create(), true),
+    PROTOCOL_120_60(649, Packet12060.class, SynapsePlayer116100.class, BinaryStreamHelper12060.create(), true),
     ;
 
     private static final AbstractProtocol[] VALUES = values();
@@ -221,14 +224,9 @@ public enum AbstractProtocol {
 
     public PacketHeadData tryDecodePacketHead(byte[] data, boolean maybeBatch) {
         if (maybeBatch) {
-            //System.out.println(Binary.bytesToHexString(new byte[]{data[0]}));
             if (data[0] == (byte) ProtocolInfo.BATCH_PACKET) {
                 return new PacketHeadData(BatchPacket.NETWORK_ID, 1);
-            } else if (data[0] == (byte) 0x78) {
-                return new PacketHeadData(BatchPacket.NETWORK_ID, 0);
-            }/* else if (this.ordinal() >= PROTOCOL_116.ordinal()) {
-                return new PacketHeadData(BatchPacket.NETWORK_ID, 0);
-            }*/
+            }
         }
         if (this == PROTOCOL_11) return null;
         BinaryStream stream = new BinaryStream(data);

@@ -69,7 +69,7 @@ public final class LegacyBlockSerializer {
         log.debug("Loading block serializer...");
 
         registerDeserializer(AIR, LegacyBlockSerializer::deserializeSimple);
-        registerDeserializer(GRASS, LegacyBlockSerializer::deserializeSimple);
+        registerDeserializer(GRASS_BLOCK, LegacyBlockSerializer::deserializeSimple);
         registerDeserializer(COBBLESTONE, LegacyBlockSerializer::deserializeSimple);
         registerDeserializer(GRAVEL, LegacyBlockSerializer::deserializeSimple);
         registerDeserializer(GOLD_ORE, LegacyBlockSerializer::deserializeSimple);

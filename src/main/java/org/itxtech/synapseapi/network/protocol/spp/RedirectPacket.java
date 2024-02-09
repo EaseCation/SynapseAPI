@@ -1,5 +1,7 @@
 package org.itxtech.synapseapi.network.protocol.spp;
 
+import cn.nukkit.network.CompressionAlgorithm;
+
 import java.util.UUID;
 
 /**
@@ -14,6 +16,7 @@ public class RedirectPacket extends SynapseDataPacket {
     public int channel;
     public byte[] mcpeBuffer;
     public int protocol;
+    public byte compressionAlgorithm = CompressionAlgorithm.ZLIB;
 
     @Override
     public byte pid() {
@@ -30,6 +33,7 @@ public class RedirectPacket extends SynapseDataPacket {
         this.putByte((byte) channel);
         this.putUnsignedVarInt(this.mcpeBuffer.length);
         this.put(this.mcpeBuffer);
+        putByte(compressionAlgorithm);
     }
 
     @Override
@@ -40,5 +44,6 @@ public class RedirectPacket extends SynapseDataPacket {
         this.reliability = this.getByte();
         this.channel = this.getByte();
         this.mcpeBuffer = this.get((int) this.getUnsignedVarInt());
+        compressionAlgorithm = getSingedByte();
     }
 }

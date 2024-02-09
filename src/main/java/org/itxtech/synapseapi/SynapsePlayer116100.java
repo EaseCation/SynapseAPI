@@ -15,7 +15,6 @@ import cn.nukkit.entity.Entity;
 import cn.nukkit.entity.EntityFullNames;
 import cn.nukkit.entity.EntityRideable;
 import cn.nukkit.entity.data.ShortEntityData;
-import cn.nukkit.entity.item.EntityBoat;
 import cn.nukkit.event.inventory.InventoryCloseEvent;
 import cn.nukkit.event.player.*;
 import cn.nukkit.form.window.FormWindow;
@@ -870,13 +869,6 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
                     this.setRotation(movePlayerPacket.yaw, movePlayerPacket.pitch);
                     this.newPosition = newPos;
                     this.forceMovement = null;
-                }
-
-                if (riding != null) {
-                    if (riding instanceof EntityRideable && !(this.riding instanceof EntityBoat)) {
-                        Vector3f offset = riding.getMountedOffset(this);
-                        ((EntityRideable) riding).onPlayerRiding(this.temporalVector.setComponents(movePlayerPacket.x - offset.x, movePlayerPacket.y - offset.y, movePlayerPacket.z - offset.z), (movePlayerPacket.headYaw + 90) % 360, 0);
-                    }
                 }
                 break;
             case ProtocolInfo.TEXT_PACKET:
@@ -1883,6 +1875,12 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
                     viewer.playEmote(emotePacket.emoteID, this.getId(), flags);
                 }
                 break;
+            case ProtocolInfo.MOVE_ACTOR_ABSOLUTE_PACKET:
+                if (isServerAuthoritativeMovementEnabled() && getProtocol() >= AbstractProtocol.PROTOCOL_120_60.getProtocolStart()) {
+                    break;
+                }
+                super.handleDataPacket(packet);
+                break;
             default:
                 super.handleDataPacket(packet);
                 break;
@@ -2001,7 +1999,7 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
 
     @Override
     public void sendChunk(int x, int z, int subChunkCount, ChunkBlobCache blobCache, DataPacket packet) {
-        if (!this.isSubChunkRequestAvailable() || blobCache == null) {
+        if (protocol < AbstractProtocol.PROTOCOL_120_60.getProtocolStart() && (!this.isSubChunkRequestAvailable() || blobCache == null)) {
             super.sendChunk(x, z, subChunkCount, blobCache, packet);
             return;
         }
@@ -2027,9 +2025,10 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
             long hash = ids[ids.length - 1]; // biome
             this.clientCacheTrack.put(hash, new BlobTrack(hash, extendedClientBlobs.get(hash)));
 
-            LevelChunkPacket pk = new LevelChunkPacket();
+            LevelChunkPacket pk = createLevelChunkPacket();
             pk.chunkX = x;
             pk.chunkZ = z;
+            pk.dimension = getDummyDimension();
             if (ENABLE_SUB_CHUNK_NETWORK_OPTIMIZATION && this.protocol >= AbstractProtocol.PROTOCOL_118_10.getProtocolStart()) {
                 pk.subChunkCount = LevelChunkPacket.CLIENT_REQUEST_TRUNCATED_COLUMN_FAKE_COUNT;
             } else {
@@ -2039,6 +2038,23 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
             pk.blobIds = new long[]{hash};
             pk.cacheEnabled = true;
             pk.data = blobCache.getSubModeCachedPayload();
+            this.dataPacket(pk);
+        } else if (protocol >= AbstractProtocol.PROTOCOL_120_60.getProtocolStart()) {
+            LevelChunkPacket pk = createLevelChunkPacket();
+            pk.chunkX = x;
+            pk.chunkZ = z;
+            pk.dimension = getDummyDimension();
+            if (isSubChunkRequestAvailable()) {
+                if (ENABLE_SUB_CHUNK_NETWORK_OPTIMIZATION) {
+                    pk.subChunkCount = LevelChunkPacket.CLIENT_REQUEST_TRUNCATED_COLUMN_FAKE_COUNT;
+                } else {
+                    pk.subChunkCount = LevelChunkPacket.CLIENT_REQUEST_FULL_COLUMN_FAKE_COUNT;
+                }
+            } else {
+                pk.subChunkCount = subChunkCount;
+            }
+            pk.subChunkRequestLimit = subChunkCount /*+ PADDING_SUB_CHUNK_COUNT*/;
+            pk.data = ((LevelChunkPacket12060) packet).data;
             this.dataPacket(pk);
         } else {
             this.dataPacket(packet);
@@ -2063,7 +2079,7 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
 
     @Override
     public void sendChunk(int x, int z, int subChunkCount, ChunkBlobCache blobCache, byte[] payload, byte[] subModePayload) {
-        if (!this.isSubChunkRequestAvailable() || blobCache == null || this.getChunkX() == x && this.getChunkZ() == z) {
+        if (protocol < AbstractProtocol.PROTOCOL_120_60.getProtocolStart() && (!this.isSubChunkRequestAvailable() || blobCache == null || this.getChunkX() == x && this.getChunkZ() == z)) {
             super.sendChunk(x, z, subChunkCount, blobCache, payload, subModePayload);
             return;
         }
@@ -2076,13 +2092,18 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
         this.chunkLoadCount++;
         boolean centerChunk = !this.isNeedLevelChangeLoadScreen() && CENTER_CHUNK_WITHOUT_CACHE && this.getChunkX() == x && this.getChunkZ() == z;
 
-        LevelChunkPacket pk = new LevelChunkPacket();
+        LevelChunkPacket pk = createLevelChunkPacket();
         pk.chunkX = x;
         pk.chunkZ = z;
-        if (ENABLE_SUB_CHUNK_NETWORK_OPTIMIZATION && this.protocol >= AbstractProtocol.PROTOCOL_118_10.getProtocolStart()) {
-            pk.subChunkCount = LevelChunkPacket.CLIENT_REQUEST_TRUNCATED_COLUMN_FAKE_COUNT;
+        pk.dimension = getDummyDimension();
+        if (isSubChunkRequestAvailable()) {
+            if (ENABLE_SUB_CHUNK_NETWORK_OPTIMIZATION && this.protocol >= AbstractProtocol.PROTOCOL_118_10.getProtocolStart()) {
+                pk.subChunkCount = LevelChunkPacket.CLIENT_REQUEST_TRUNCATED_COLUMN_FAKE_COUNT;
+            } else {
+                pk.subChunkCount = LevelChunkPacket.CLIENT_REQUEST_FULL_COLUMN_FAKE_COUNT;
+            }
         } else {
-            pk.subChunkCount = LevelChunkPacket.CLIENT_REQUEST_FULL_COLUMN_FAKE_COUNT;
+            pk.subChunkCount = subChunkCount;
         }
         pk.subChunkRequestLimit = subChunkCount /*+ PADDING_SUB_CHUNK_COUNT*/;
         if (this.isBlobCacheAvailable() && this.isSubModeLevelChunkBlobCacheEnabled() && !centerChunk) {
@@ -2612,6 +2633,10 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
 
     protected SubChunkPacket createSubChunkPacket() {
         return this.protocol < AbstractProtocol.PROTOCOL_118_10.getProtocolStart() ? new SubChunkPacket() : new SubChunkPacket11810();
+    }
+
+    protected LevelChunkPacket createLevelChunkPacket() {
+        return this.protocol < AbstractProtocol.PROTOCOL_120_60.getProtocolStart() ? new LevelChunkPacket() : new LevelChunkPacket12060();
     }
 
     public boolean isDimensionChangingSystemEnabled() {

@@ -3,9 +3,7 @@ package org.itxtech.synapseapi.multiprotocol;
 import cn.nukkit.Server;
 import cn.nukkit.network.protocol.*;
 import cn.nukkit.network.protocol.BatchPacket;
-import cn.nukkit.utils.BinaryStream;
 import cn.nukkit.utils.MainLogger;
-import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import lombok.extern.log4j.Log4j2;
 import org.itxtech.synapseapi.multiprotocol.protocol110.protocol.AvailableCommandsPacket110;
 import org.itxtech.synapseapi.multiprotocol.protocol110.protocol.LecternUpdatePacket110;
@@ -96,6 +94,10 @@ import org.itxtech.synapseapi.multiprotocol.protocol12030.protocol.StartGamePack
 import org.itxtech.synapseapi.multiprotocol.protocol12040.protocol.DisconnectPacket12040;
 import org.itxtech.synapseapi.multiprotocol.protocol12050.protocol.PlayerToggleCrafterSlotRequestPacket12050;
 import org.itxtech.synapseapi.multiprotocol.protocol12050.protocol.SetPlayerInventoryOptionsPacket12050;
+import org.itxtech.synapseapi.multiprotocol.protocol12060.protocol.CorrectPlayerMovePredictionPacket12060;
+import org.itxtech.synapseapi.multiprotocol.protocol12060.protocol.PlayerListPacket12060;
+import org.itxtech.synapseapi.multiprotocol.protocol12060.protocol.ServerPlayerPostMovePositionPacket12060;
+import org.itxtech.synapseapi.multiprotocol.protocol12060.protocol.SetHudPacket12060;
 import org.itxtech.synapseapi.multiprotocol.protocol15.protocol.AddEntityPacket15;
 import org.itxtech.synapseapi.multiprotocol.protocol15.protocol.ClientboundMapItemDataPacket15;
 import org.itxtech.synapseapi.multiprotocol.protocol15.protocol.MoveEntityAbsolutePacket15;
@@ -374,6 +376,11 @@ public class PacketRegister {
         registerPacket(AbstractProtocol.PROTOCOL_120_50, ProtocolInfo.PLAYER_TOGGLE_CRAFTER_SLOT_REQUEST_PACKET, PlayerToggleCrafterSlotRequestPacket12050.class);
         registerPacket(AbstractProtocol.PROTOCOL_120_50, ProtocolInfo.SET_PLAYER_INVENTORY_OPTIONS_PACKET, SetPlayerInventoryOptionsPacket12050.class);
 
+        registerPacket(AbstractProtocol.PROTOCOL_120_60, ProtocolInfo.PLAYER_LIST_PACKET, PlayerListPacket12060.class);
+        registerPacket(AbstractProtocol.PROTOCOL_120_60, ProtocolInfo.CORRECT_PLAYER_MOVE_PREDICTION_PACKET, CorrectPlayerMovePredictionPacket12060.class);
+        registerPacket(AbstractProtocol.PROTOCOL_120_60, ProtocolInfo.SET_HUD_PACKET, SetHudPacket12060.class);
+        registerPacket(AbstractProtocol.PROTOCOL_120_60, ProtocolInfo.SERVER_PLAYER_POST_MOVE_POSITION_PACKET, ServerPlayerPostMovePositionPacket12060.class);
+
         checkNeteaseSpecialExtend();
     }
 
@@ -466,7 +473,6 @@ public class PacketRegister {
     }
 
     public static DataPacket getFullPacket(byte[] data, int protocol, boolean maybeBatch) {
-        //Server.getInstance().getLogger().debug(Arrays.toString(data));
         AbstractProtocol ptl = AbstractProtocol.fromRealProtocol(protocol);
         AbstractProtocol.PacketHeadData head = ptl.tryDecodePacketHead(data, maybeBatch);
 
@@ -571,36 +577,6 @@ public class PacketRegister {
             return special[pid];
         }
         return false;
-    }
-
-    public static DataPacket[] decodeBatch(BatchPacket batchPacket) {
-        /*byte[][] payload = new byte[packets.length * 2][];
-        for (int i = 0; i < packets.length; i++) {
-            DataPacket p = packets[i];
-            int idx = i * 2;
-            if (!p.isEncoded) {
-                p.encode();
-            }
-            byte[] buf = p.getBuffer();
-            payload[idx] = Binary.writeUnsignedVarInt(buf.length);
-            payload[idx + 1] = buf;
-        }
-        byte[] data;
-        data = Binary.appendBytes(payload);*/
-
-        List<DataPacket> packets = new ObjectArrayList<>();
-
-        byte[] payload = batchPacket.payload;
-        BinaryStream stream = new BinaryStream(payload);
-        while (!stream.feof()) {
-            int len = (int) stream.getUnsignedVarInt();
-            byte[] buffer = stream.get(len);
-
-            DataPacket pk = getFullPacket(buffer, 113);
-            packets.add(pk);
-        }
-
-        return packets.toArray(new DataPacket[0]);
     }
 
 }

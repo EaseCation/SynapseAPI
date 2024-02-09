@@ -13,6 +13,8 @@ import lombok.ToString;
 import lombok.extern.log4j.Log4j2;
 import org.apache.commons.lang3.mutable.MutableInt;
 import org.itxtech.synapseapi.SynapseSharedConstants;
+import org.itxtech.synapseapi.multiprotocol.AbstractProtocol;
+import org.itxtech.synapseapi.multiprotocol.common.PlayerAuthInputFlags;
 import org.itxtech.synapseapi.multiprotocol.protocol113.protocol.IPlayerAuthInputPacket;
 import org.itxtech.synapseapi.multiprotocol.protocol116.protocol.PlayerAuthInputPacket116;
 
@@ -109,6 +111,12 @@ public class PlayerAuthInputPacket116220 extends Packet116220 implements Invento
     public float deltaX;
     public float deltaY;
     public float deltaZ;
+    /**
+     * @since 1.20.60
+     */
+    public long predictedVehicleEntityUniqueId;
+    public float analogMoveVecX;
+    public float analogMoveVecZ;
 
     public boolean hasNetworkIds;
     @Nullable
@@ -256,6 +264,15 @@ public class PlayerAuthInputPacket116220 extends Packet116220 implements Invento
             this.blockActions = deque.toArray(new PlayerBlockAction[0]);
         }
 
+        if ((this.inputFlags & (1L << PlayerAuthInputFlags.IN_CLIENT_PREDICTED_IN_VEHICLE)) != 0) {
+            predictedVehicleEntityUniqueId = getVarLong();
+        }
+
+        if (((AbstractProtocol) helper.getProtocol()).getProtocolStart() >= AbstractProtocol.PROTOCOL_119_70.getProtocolStart()) {
+            analogMoveVecX = getLFloat();
+            analogMoveVecZ = getLFloat();
+        }
+
         if (SynapseSharedConstants.MAC_DEBUG) {
             String debug = "";
             if (debugFlags[0]) debug += "PERFORM_ITEM_INTERACTION | ";
@@ -263,8 +280,6 @@ public class PlayerAuthInputPacket116220 extends Packet116220 implements Invento
             if (debugFlags[2]) debug += "PERFORM_BLOCK_ACTIONS | ";
             if (!debug.isEmpty()) log.debug("{} {}", debug, this);
         }
-
-        //TODO: more
     }
 
     @Override
@@ -432,16 +447,6 @@ public class PlayerAuthInputPacket116220 extends Packet116220 implements Invento
     }
 
     @Override
-    public void setPitch(float pitch) {
-        this.pitch = pitch;
-    }
-
-    @Override
-    public void setYaw(float yaw) {
-        this.yaw = yaw;
-    }
-
-    @Override
     public NetworkInventoryAction[] getInventoryActions() {
         return this.inventoryActions;
     }
@@ -457,12 +462,17 @@ public class PlayerAuthInputPacket116220 extends Packet116220 implements Invento
     }
 
     @Override
-    public boolean hasInventoryActionsField() {
-        return true;
+    public long getPredictedVehicleEntityUniqueId() {
+        return predictedVehicleEntityUniqueId;
     }
 
     @Override
-    public boolean hasBlockActionsField() {
-        return true;
+    public float getAnalogMoveVecX() {
+        return analogMoveVecX;
+    }
+
+    @Override
+    public float getAnalogMoveVecZ() {
+        return analogMoveVecZ;
     }
 }

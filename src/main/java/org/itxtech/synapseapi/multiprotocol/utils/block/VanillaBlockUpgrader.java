@@ -275,11 +275,7 @@ public final class VanillaBlockUpgrader {
             }
         }
 
-        List<BlockUpgradeSchema> schemas = SCHEMAS.get(baseGameVersion);
-        if (schemas == null) {
-            schemas = new ObjectArrayList<>();
-            SCHEMAS.put(baseGameVersion, schemas);
-        }
+        List<BlockUpgradeSchema> schemas = SCHEMAS.computeIfAbsent(baseGameVersion, k -> new ObjectArrayList<>());
         schemas.add(schema);
 
         return schema;
@@ -307,11 +303,7 @@ public final class VanillaBlockUpgrader {
 
                 CompoundTag states = (CompoundTag) Tag.readNamedTag(new NBTInputStream(stream, ByteOrder.LITTLE_ENDIAN, true));
 
-                List<CompoundTag> list = legacyToCurrent.get(name);
-                if (list == null) {
-                    list = new ObjectArrayList<>();
-                    legacyToCurrent.put(name, list);
-                }
+                List<CompoundTag> list = legacyToCurrent.computeIfAbsent(name, k -> new ObjectArrayList<>());
                 while (list.size() <= meta) {
                     list.add(meta, null);
                 }
@@ -382,6 +374,7 @@ public final class VanillaBlockUpgrader {
         addSchema("0221_1.20.20.23_beta_to_1.20.30.22_beta.json", V1_20_30);
         addSchema("0231_1.20.30.22_beta_to_1.20.40.24_beta.json", V1_20_40);
         addSchema("0241_1.20.40.24_beta_to_1.20.50.23_beta.json", V1_20_50);
+        addSchema("0251_1.20.50.23_beta_to_1.20.60.26_beta.json", V1_20_60);
 
         BlockUpgrader.setUpgrader(new BedrockBlockUpgrader() {
             @Override

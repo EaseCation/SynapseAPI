@@ -5,6 +5,7 @@ import cn.nukkit.Player;
 import cn.nukkit.Server;
 import cn.nukkit.entity.Entity;
 import cn.nukkit.math.NukkitMath;
+import cn.nukkit.network.Compressor;
 import cn.nukkit.network.Network;
 import cn.nukkit.network.PacketViolationReason;
 import cn.nukkit.network.SourceInterface;
@@ -528,7 +529,7 @@ public class SynapseEntry {
                             }
                             player.incomingPacketBatchBudget--;
 
-                            List<DataPacket> packets = processBatch((BatchPacket) pk0, redirectPacket.protocol, player.isNetEaseClient());
+                            List<DataPacket> packets = processBatch((BatchPacket) pk0, redirectPacket.protocol, player.isNetEaseClient(), redirectPacket.compressionAlgorithm);
                             if (packets == null) {
                                 player.setViolated("packet_bad_batch");
                                 synapse.getServer().getScheduler().scheduleTask(synapse, () -> {
@@ -652,9 +653,14 @@ public class SynapseEntry {
                                                 packet.pitch = authInputPacket.getPitch();
                                                 packet.mode = MovePlayerPacket.MODE_NORMAL;
                                                 packet.onGround = player.onGround;
-                                                Entity riding = player.riding;
-                                                if (riding!= null) {
-                                                    packet.ridingEid = riding.getId();
+                                                long ridingEid = authInputPacket.getPredictedVehicleEntityUniqueId();
+                                                if (ridingEid != 0) {
+                                                    packet.ridingEid = ridingEid;
+                                                } else {
+                                                    Entity riding = player.riding;
+                                                    if (riding != null) {
+                                                        packet.ridingEid = riding.getId();
+                                                    }
                                                 }
                                                 packet.setChannel(DataPacket.CHANNEL_PLAYER_MOVING);
                                                 for (Player viewer : new ObjectArrayList<>(player.getViewers().values())) {
@@ -717,17 +723,31 @@ public class SynapseEntry {
     }
 
     @Nullable
-    public static List<DataPacket> processBatch(BatchPacket packet, int protocol, boolean netease) {
+    public static List<DataPacket> processBatch(BatchPacket packet, int protocol, boolean netease, byte compressionAlgorithm) {
+        byte[] payload = packet.payload;
+
         byte[] data;
         try {
-            if (protocol < 407) data = Zlib.inflate(packet.payload, MAX_SIZE);
-            else data = Network.inflateRaw(packet.payload, MAX_SIZE);
+            if (protocol >= 649) {
+                Compressor compressor = Compressor.get(compressionAlgorithm);
+                if (compressor == null) {
+                    compressor = Compressor.NONE;
+                }
+                data = compressor.decompress(payload);
+            } else if (protocol >= 407) {
+                data = Network.inflateRaw(payload, MAX_SIZE);
+            } else {
+                data = Zlib.inflate(payload, MAX_SIZE);
+            }
         } catch (Exception e) {
             // malformed batch
             return null;
         }
 
         int len = data.length;
+        if (protocol >= 649) {
+            len -= 8; //FIXME: 奇怪的bug, nemisys网络加密层的checksum怎么会传到这边来了???
+        }
         BinaryStream stream = new BinaryStream(data);
         AbstractProtocol apl = AbstractProtocol.fromRealProtocol(protocol);
         boolean v1180 = apl == AbstractProtocol.PROTOCOL_118;

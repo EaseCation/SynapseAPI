@@ -27,6 +27,8 @@ public final class BlockItemFlattener {
         DOWNGRADERS.put(AbstractProtocol.PROTOCOL_120_30, BlockItemFlattener::downgrader12030);
         DOWNGRADERS.put(AbstractProtocol.PROTOCOL_120_40, BlockItemFlattener::downgrader12030);
         DOWNGRADERS.put(AbstractProtocol.PROTOCOL_120_50, BlockItemFlattener::downgrader12050);
+        DOWNGRADERS.put(AbstractProtocol.PROTOCOL_120_60, BlockItemFlattener::downgrader12060);
+//        DOWNGRADERS.put(AbstractProtocol.PROTOCOL_120_70, BlockItemFlattener::downgrader12070);
     }
 
     private static int downgrader11970(int id) {
@@ -99,6 +101,35 @@ public final class BlockItemFlattener {
         return downgrader12030(id);
     }
 
+    private static int downgrader12060(int id) {
+        if (id <= ItemBlockID.HARD_ORANGE_STAINED_GLASS && id >= ItemBlockID.HARD_BLACK_STAINED_GLASS) {
+            return ItemBlockID.HARD_STAINED_GLASS;
+        }
+        if (id <= ItemBlockID.HARD_ORANGE_STAINED_GLASS_PANE && id >= ItemBlockID.HARD_BLACK_STAINED_GLASS_PANE) {
+            return ItemBlockID.HARD_STAINED_GLASS_PANE;
+        }
+        return downgrader12050(id);
+    }
+
+    private static int downgrader12070(int id) {
+        if (id <= ItemBlockID.SPRUCE_LEAVES && id >= ItemBlockID.JUNGLE_LEAVES) {
+            return ItemBlockID.LEAVES;
+        }
+        if (id == ItemBlockID.DARK_OAK_LEAVES) {
+            return ItemBlockID.LEAVES2;
+        }
+        if (id <= ItemBlockID.SPRUCE_SLAB && id >= ItemBlockID.DARK_OAK_SLAB) {
+            return ItemBlockID.WOODEN_SLAB;
+        }
+        if (id <= ItemBlockID.SPRUCE_DOUBLE_SLAB && id >= ItemBlockID.DARK_OAK_DOUBLE_SLAB) {
+            return ItemBlockID.DOUBLE_WOODEN_SLAB;
+        }
+        if (id <= ItemBlockID.SPRUCE_WOOD && id >= ItemBlockID.STRIPPED_DARK_OAK_WOOD) {
+            return ItemBlockID.WOOD;
+        }
+        return downgrader12060(id);
+    }
+
     private BlockItemFlattener() {
         throw new IllegalStateException();
     }
@@ -107,7 +138,6 @@ public final class BlockItemFlattener {
 //dirt
 //sapling
 //sand
-//leaves
 //sandstone
 //tallgrass
 //red_flower
@@ -118,20 +148,15 @@ public final class BlockItemFlattener {
 //stonebrick
 //cobblestone_wall
 //quartz_block
-//double_wooden_slab
-//wooden_slab
-//leaves2
 //prismarine
 //double_plant
 //red_sandstone
 //double_stone_slab2
 //stone_slab2
-//hard_stained_glass_pane
 //purpur_block
 //colored_torch_rg
 //colored_torch_bp
 //chemistry_table
-//hard_stained_glass
 //coral_block
 //coral_fan
 //coral_fan_dead
@@ -142,4 +167,3 @@ public final class BlockItemFlattener {
 //stone_slab4
 //double_stone_slab3
 //double_stone_slab4
-//wood

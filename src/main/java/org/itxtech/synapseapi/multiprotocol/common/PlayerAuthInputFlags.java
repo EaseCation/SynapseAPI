@@ -148,4 +148,8 @@ public interface PlayerAuthInputFlags {
      * @since 1.20.40
      */
     int ACK_ENTITY_DATA = 44;
+    /**
+     * @since 1.20.60
+     */
+    int IN_CLIENT_PREDICTED_IN_VEHICLE = 45;
 }
