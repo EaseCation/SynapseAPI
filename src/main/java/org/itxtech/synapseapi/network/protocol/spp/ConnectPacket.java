@@ -6,6 +6,7 @@ package org.itxtech.synapseapi.network.protocol.spp;
 public class ConnectPacket extends SynapseDataPacket {
 
     public static final int NETWORK_ID = SynapseInfo.CONNECT_PACKET;
+
     public int protocol = SynapseInfo.CURRENT_PROTOCOL;
     public int maxPlayers;
     public boolean isMainServer;

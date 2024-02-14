@@ -6,11 +6,14 @@ package org.itxtech.synapseapi.network.protocol.spp;
 public class InformationPacket extends SynapseDataPacket {
 
     public static final int NETWORK_ID = SynapseInfo.INFORMATION_PACKET;
+
     public static final byte TYPE_LOGIN = 0;
     public static final byte TYPE_CLIENT_DATA = 1;
     public static final byte TYPE_PLAYER_NETWORK_LATENCY = 2;
+
     public static final String INFO_LOGIN_SUCCESS = "success";
     public static final String INFO_LOGIN_FAILED = "failed";
+
     public byte type;
     public String message;
 

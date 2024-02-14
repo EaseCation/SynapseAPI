@@ -12,6 +12,7 @@ public class TransferPacket extends SynapseDataPacket {
     private static final Gson GSON = new Gson();
 
     public static final int NETWORK_ID = SynapseInfo.TRANSFER_PACKET;
+
     public UUID uuid;
     public String clientHash;
     public JsonObject extra = new JsonObject();

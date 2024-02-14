@@ -8,6 +8,7 @@ import java.util.UUID;
 public class PlayerLogoutPacket extends SynapseDataPacket {
 
     public static final int NETWORK_ID = SynapseInfo.PLAYER_LOGOUT_PACKET;
+
     public UUID uuid;
     public String reason;
 

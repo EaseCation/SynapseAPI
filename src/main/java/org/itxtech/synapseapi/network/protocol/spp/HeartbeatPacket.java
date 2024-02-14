@@ -6,6 +6,7 @@ package org.itxtech.synapseapi.network.protocol.spp;
 public class HeartbeatPacket extends SynapseDataPacket {
 
     public static final int NETWORK_ID = SynapseInfo.HEARTBEAT_PACKET;
+
     public float tps;
     public float load;
     public long upTime;

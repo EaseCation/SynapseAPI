@@ -6,8 +6,10 @@ package org.itxtech.synapseapi.network.protocol.spp;
 public class DisconnectPacket extends SynapseDataPacket {
 
     public static final int NETWORK_ID = SynapseInfo.DISCONNECT_PACKET;
+
     public static final byte TYPE_WRONG_PROTOCOL = 0;
     public static final byte TYPE_GENERIC = 1;
+
     public byte type;
     public String message;
 
