@@ -73,7 +73,7 @@ public class SynapsePlayer16 extends SynapsePlayer14 {
 			this.protocol = packet.protocol;
 
 			try {
-				DataPacket pk = PacketRegister.getFullPacket(packet.cachedLoginPacket, packet.protocol, false);
+				DataPacket pk = packet.decodedLoginPacket;
 				if (pk instanceof LoginPacket14) {
 					((LoginPacket14) pk).isFirstTimeLogin = packet.isFirstTime;
 					((LoginPacket14) pk).username = packet.extra.get("username").getAsString();
@@ -83,7 +83,11 @@ public class SynapsePlayer16 extends SynapsePlayer14 {
 					if (packet.extra.has("sandboxId")) ((LoginPacket14) pk).sandboxId = packet.extra.get("sandboxId").getAsString();
 					this.isNetEaseClient = Optional.ofNullable(packet.extra.get("netease")).orElseGet(() -> new JsonPrimitive(false)).getAsBoolean();
 				}
-				this.handleDataPacket(pk);
+				if (pk == null) {
+					close();
+				} else {
+					this.handleDataPacket(pk);
+				}
 			} catch (Exception e) {
 				MainLogger.getLogger().logException(e);
 				this.close();
