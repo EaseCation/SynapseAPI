@@ -725,6 +725,11 @@ public class SynapsePlayer116 extends SynapsePlayer113 {
 				}
 
 				IPlayerAuthInputPacket playerAuthInputPacket = (IPlayerAuthInputPacket) packet;
+				/*this.sendActionBar(this.motionX + "," + this.motionY + "," + this.motionZ);
+				double speed = Math.sqrt(this.motionX * this.motionX + this.motionZ * this.motionZ);
+				if (speed > 0.001) {
+					this.sendMessage("speed: " + speed);
+				}*/
 				if (!validateCoordinate(playerAuthInputPacket.getX()) || !validateCoordinate(playerAuthInputPacket.getY()) || !validateCoordinate(playerAuthInputPacket.getZ())
 						|| !validateFloat(playerAuthInputPacket.getPitch()) || !validateFloat(playerAuthInputPacket.getYaw()) || !validateFloat(playerAuthInputPacket.getHeadYaw())
 						|| !validateFloat(playerAuthInputPacket.getDeltaX()) || !validateFloat(playerAuthInputPacket.getDeltaY()) || !validateFloat(playerAuthInputPacket.getDeltaZ())) {
@@ -805,6 +810,11 @@ public class SynapsePlayer116 extends SynapsePlayer113 {
 				}
 				if ((inputFlags & (1L << PlayerAuthInputPacket116.FLAG_START_JUMPING)) != 0) {
 					this.server.getPluginManager().callEvent(new PlayerJumpEvent(this));
+					if (this.isSprinting()) {
+						this.motionX = playerAuthInputPacket.getDeltaX();
+						this.motionY = playerAuthInputPacket.getDeltaY();
+						this.motionZ = playerAuthInputPacket.getDeltaZ();
+					}
 				}
 				if ((inputFlags & (1L << PlayerAuthInputPacket116.FLAG_START_GLIDING)) != 0 && !this.isGliding()) {
 					PlayerToggleGlideEvent playerToggleGlideEvent = new PlayerToggleGlideEvent(this, true);
