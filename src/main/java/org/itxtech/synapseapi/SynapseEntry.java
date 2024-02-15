@@ -236,10 +236,12 @@ public class SynapseEntry {
         BroadcastPacket broadcastPacket = new BroadcastPacket();
         broadcastPacket.direct = direct;
         broadcastPacket.payload = packet.getBuffer();
-        broadcastPacket.entries = new ObjectArrayList<>();
-        for (SynapsePlayer player : players) {
-            broadcastPacket.entries.add(player.getUniqueId());
+        int length = players.length;
+        UUID[] uuids = new UUID[length];
+        for (int i = 0; i < length; i++) {
+            uuids[i] = players[i].getUniqueId();
         }
+        broadcastPacket.entries = uuids;
         this.sendDataPacket(broadcastPacket);
     }
 

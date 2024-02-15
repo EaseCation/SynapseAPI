@@ -22,8 +22,8 @@ public class ConnectPacket extends SynapseDataPacket {
     public void encode() {
         this.reset();
         this.putInt(this.protocol);
-        this.putInt(this.maxPlayers);
-        this.putByte(this.isMainServer ? (byte) 1 : (byte) 0);
+        this.putVarInt(this.maxPlayers);
+        this.putBoolean(this.isMainServer);
         this.putString(this.description);
         this.putString(this.password);
     }
@@ -31,8 +31,8 @@ public class ConnectPacket extends SynapseDataPacket {
     @Override
     public void decode() {
         this.protocol = this.getInt();
-        this.maxPlayers = this.getInt();
-        this.isMainServer = this.getByte() == 1;
+        this.maxPlayers = this.getVarInt();
+        this.isMainServer = this.getBoolean();
         this.description = this.getString();
         this.password = this.getString();
     }

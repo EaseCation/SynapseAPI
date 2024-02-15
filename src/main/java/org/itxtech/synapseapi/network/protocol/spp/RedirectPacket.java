@@ -27,24 +27,24 @@ public class RedirectPacket extends SynapseDataPacket {
     @Override
     public void encode() {
         this.reset();
-        this.putInt(this.protocol);
         this.putUUID(this.uuid);
+        this.putInt(this.protocol);
+        putByte(compressionAlgorithm);
 //        this.putByte(this.direct ? (byte) 1 : (byte) 0);
 //        this.putByte((byte) reliability);
 //        this.putByte((byte) channel);
         this.putUnsignedVarInt(this.mcpeBuffer.length);
         this.put(this.mcpeBuffer);
-        putByte(compressionAlgorithm);
     }
 
     @Override
     public void decode() {
-        this.protocol = this.getInt();
         this.uuid = this.getUUID();
+        this.protocol = this.getInt();
+        compressionAlgorithm = getSingedByte();
 //        this.direct = this.getByte() == 1;
 //        this.reliability = this.getByte();
 //        this.channel = this.getByte();
         this.mcpeBuffer = this.get((int) this.getUnsignedVarInt());
-        compressionAlgorithm = getSingedByte();
     }
 }

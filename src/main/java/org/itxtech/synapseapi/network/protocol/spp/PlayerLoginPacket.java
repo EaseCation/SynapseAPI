@@ -33,8 +33,8 @@ public class PlayerLoginPacket extends SynapseDataPacket {
         this.putInt(this.protocol);
         this.putUUID(this.uuid);
         this.putString(this.address);
-        this.putInt(this.port);
-        this.putByte(this.isFirstTime ? (byte) 1 : (byte) 0);
+        this.putShort(this.port);
+        this.putBoolean(this.isFirstTime);
         this.putUnsignedVarInt(this.cachedLoginPacket.length);
         this.put(this.cachedLoginPacket);
         this.putString(GSON.toJson(this.extra));
@@ -45,8 +45,8 @@ public class PlayerLoginPacket extends SynapseDataPacket {
         this.protocol = this.getInt();
         this.uuid = this.getUUID();
         this.address = this.getString();
-        this.port = this.getInt();
-        this.isFirstTime = this.getByte() == 1;
+        this.port = this.getShort() & 0xffff;
+        this.isFirstTime = this.getBoolean();
         this.cachedLoginPacket = this.get((int) this.getUnsignedVarInt());
         this.extra = GSON.fromJson(this.getString(), JsonObject.class);
     }

@@ -21,13 +21,13 @@ public class HeartbeatPacket extends SynapseDataPacket {
         this.reset();
         this.putFloat(this.tps);
         this.putFloat(this.load);
-        this.putLong(this.upTime);
+        this.putUnsignedVarLong(this.upTime);
     }
 
     @Override
     public void decode() {
         this.tps = this.getFloat();
         this.load = this.getFloat();
-        this.upTime = this.getLong();
+        this.upTime = this.getUnsignedVarLong();
     }
 }
