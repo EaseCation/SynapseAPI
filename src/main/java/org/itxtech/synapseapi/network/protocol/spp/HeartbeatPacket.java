@@ -6,6 +6,7 @@ package org.itxtech.synapseapi.network.protocol.spp;
 public class HeartbeatPacket extends SynapseDataPacket {
 
     public static final int NETWORK_ID = SynapseInfo.HEARTBEAT_PACKET;
+
     public float tps;
     public float load;
     public long upTime;
@@ -20,13 +21,13 @@ public class HeartbeatPacket extends SynapseDataPacket {
         this.reset();
         this.putFloat(this.tps);
         this.putFloat(this.load);
-        this.putLong(this.upTime);
+        this.putUnsignedVarLong(this.upTime);
     }
 
     @Override
     public void decode() {
         this.tps = this.getFloat();
         this.load = this.getFloat();
-        this.upTime = this.getLong();
+        this.upTime = this.getUnsignedVarLong();
     }
 }

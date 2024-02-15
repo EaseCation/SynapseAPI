@@ -3,12 +3,15 @@ package org.itxtech.synapseapi.multiprotocol.utils;
 import cn.nukkit.level.particle.Particle;
 import org.itxtech.synapseapi.multiprotocol.AbstractProtocol;
 
+import java.util.Arrays;
+
 public final class ParticleIdTranslator {
 
     public final static int[] v12ToV112Book = new int[Particle.UNDEFINED];
     public final static int[] v12ToV114Book = new int[Particle.UNDEFINED];
     public final static int[] v12ToV116220Book = new int[Particle.UNDEFINED];
     public final static int[] v12ToV11710Book = new int[Particle.UNDEFINED];
+    public final static int[] v12ToV12060Book = new int[Particle.UNDEFINED];
 
     public static final int TYPE_BUBBLE = 1;
     public static final int TYPE_BUBBLE_MANUAL = 2;
@@ -308,7 +311,84 @@ public final class ParticleIdTranslator {
 
     public static final int V12030_CHERRY_LEAVES = 86;
 
+    public static final int V12050_DUST_PLUME = 87;
+    public static final int V12050_WHITE_SMOKE = 88;
+
+    public static final int V12060_WIND_EXPLOSION = 18;
+    public static final int V12060_MOB_FLAME = 19;
+    public static final int V12060_HEART = 20;
+    public static final int V12060_TERRAIN = 21;
+    public static final int V12060_TOWN_AURA = 22;
+    public static final int V12060_PORTAL = 23;
+    public static final int V12060_MOB_PORTAL = 24;
+    public static final int V12060_WATER_SPLASH = 25;
+    public static final int V12060_WATER_SPLASH_MANUAL = 26;
+    public static final int V12060_WATER_WAKE = 27;
+    public static final int V12060_DRIP_WATER = 28;
+    public static final int V12060_DRIP_LAVA = 29;
+    public static final int V12060_DRIP_HONEY = 30;
+    public static final int V12060_STALACTITE_DRIP_WATER = 31;
+    public static final int V12060_STALACTITE_DRIP_LAVA = 32;
+    public static final int V12060_FALLING_DUST = 33;
+    public static final int V12060_MOB_SPELL = 34;
+    public static final int V12060_MOB_SPELL_AMBIENT = 35;
+    public static final int V12060_MOB_SPELL_INSTANTANEOUS = 36;
+    public static final int V12060_INK = 37;
+    public static final int V12060_SLIME = 38;
+    public static final int V12060_RAIN_SPLASH = 39;
+    public static final int V12060_VILLAGER_ANGRY = 40;
+    public static final int V12060_VILLAGER_HAPPY = 41;
+    public static final int V12060_ENCHANTING_TABLE = 42;
+    public static final int V12060_TRACKING_EMITTER = 43;
+    public static final int V12060_NOTE = 44;
+    public static final int V12060_WITCH_SPELL = 45;
+    public static final int V12060_CARROT_BOOST = 46;
+    public static final int V12060_MOB_APPEARANCE = 47;
+    public static final int V12060_END_ROD = 48;
+    public static final int V12060_DRAGON_BREATH = 49;
+    public static final int V12060_SPIT = 50;
+    public static final int V12060_TOTEM = 51;
+    public static final int V12060_FOOD = 52;
+    public static final int V12060_FIREWORKS_STARTER = 53;
+    public static final int V12060_FIREWORKS = 54;
+    public static final int V12060_FIREWORKS_OVERLAY = 55;
+    public static final int V12060_BALLOON_GAS = 56;
+    public static final int V12060_COLORED_FLAME = 57;
+    public static final int V12060_SPARKLER = 58;
+    public static final int V12060_CONDUIT = 59;
+    public static final int V12060_BUBBLE_COLUMN_UP = 60;
+    public static final int V12060_BUBBLE_COLUMN_DOWN = 61;
+    public static final int V12060_SNEEZE = 62;
+    public static final int V12060_SHULKER_BULLET = 63;
+    public static final int V12060_BLEACH = 64;
+    public static final int V12060_DRAGON_DESTROY_BLOCK = 65;
+    public static final int V12060_MYCELIUM_DUST = 66;
+    public static final int V12060_FALLING_BORDER_DUST = 67;
+    public static final int V12060_CAMPFIRE_SMOKE = 68;
+    public static final int V12060_CAMPFIRE_SMOKE_TALL = 69;
+    public static final int V12060_DRAGON_BREATH_FIRE = 70;
+    public static final int V12060_DRAGON_BREATH_TRAIL = 71;
+    public static final int V12060_BLUE_FLAME = 72;
+    public static final int V12060_SOUL = 73;
+    public static final int V12060_OBSIDIAN_TEAR = 74;
+    public static final int V12060_PORTAL_REVERSE = 75;
+    public static final int V12060_SNOWFLAKE = 76;
+    public static final int V12060_VIBRATION_SIGNAL = 77;
+    public static final int V12060_SCULK_SENSOR_REDSTONE = 78;
+    public static final int V12060_SPORE_BLOSSOM_SHOWER = 79;
+    public static final int V12060_SPORE_BLOSSOM_AMBIENT = 80;
+    public static final int V12060_WAX = 81;
+    public static final int V12060_ELECTRIC_SPARK = 82;
+    public static final int V12060_SHRIEK = 83;
+    public static final int V12060_SCULK_SOUL = 84;
+    public static final int V12060_SONIC_EXPLOSION = 85;
+    public static final int V12060_BRUSH_DUST = 86;
+    public static final int V12060_CHERRY_LEAVES = 87;
+    public static final int V12060_DUST_PLUME = 88;
+    public static final int V12060_WHITE_SMOKE = 89;
+
     static {
+        Arrays.fill(v12ToV112Book, -1);
         v12ToV112Book[Particle.BUBBLE] = TYPE_BUBBLE;
         v12ToV112Book[Particle.BUBBLE_MANUAL] = TYPE_BUBBLE_MANUAL;
         v12ToV112Book[Particle.CRIT] = TYPE_CRITICAL;
@@ -367,6 +447,7 @@ public final class ParticleIdTranslator {
         v12ToV112Book[Particle.BUBBLE_COLUMN_DOWN] = TYPE_BUBBLE_COLUMN_DOWN;
         v12ToV112Book[Particle.SNEEZE] = TYPE_SNEEZE;
 
+        Arrays.fill(v12ToV114Book, -1);
         v12ToV114Book[Particle.BUBBLE] = V114_BUBBLE;
         v12ToV114Book[Particle.BUBBLE_MANUAL] = V114_BUBBLE_MANUAL;
         v12ToV114Book[Particle.CRIT] = V114_CRIT;
@@ -433,6 +514,7 @@ public final class ParticleIdTranslator {
         v12ToV114Book[Particle.DRAGON_BREATH_FIRE] = V114_DRAGON_BREATH_FIRE;
         v12ToV114Book[Particle.DRAGON_BREATH_TRAIL] = V114_DRAGON_BREATH_TRAIL;
 
+        Arrays.fill(v12ToV116220Book, -1);
         v12ToV116220Book[Particle.BUBBLE] = V116220_BUBBLE;
         v12ToV116220Book[Particle.BUBBLE_MANUAL] = V116220_BUBBLE_MANUAL;
         v12ToV116220Book[Particle.CRIT] = V116220_CRIT;
@@ -514,6 +596,7 @@ public final class ParticleIdTranslator {
         v12ToV116220Book[Particle.WAX] = V116220_WAX;
         v12ToV116220Book[Particle.ELECTRIC_SPARK] = V116220_ELECTRIC_SPARK;
 
+        Arrays.fill(v12ToV11710Book, -1);
         v12ToV11710Book[Particle.BUBBLE] = V11710_BUBBLE;
         v12ToV11710Book[Particle.BUBBLE_MANUAL] = V11710_BUBBLE_MANUAL;
         v12ToV11710Book[Particle.CRIT] = V11710_CRIT;
@@ -606,6 +689,82 @@ public final class ParticleIdTranslator {
 
         v12ToV11710Book[Particle.CHERRY_LEAVES] = V12030_CHERRY_LEAVES;
 
+        v12ToV11710Book[Particle.DUST_PLUME] = V12050_DUST_PLUME;
+        v12ToV11710Book[Particle.WHITE_SMOKE] = V12050_WHITE_SMOKE;
+
+        System.arraycopy(v12ToV11710Book, 0, v12ToV12060Book, 0, Particle.UNDEFINED);
+        v12ToV12060Book[Particle.WIND_EXPLOSION] = V12060_WIND_EXPLOSION;
+        v12ToV12060Book[Particle.MOB_FLAME] = V12060_MOB_FLAME;
+        v12ToV12060Book[Particle.HEART] = V12060_HEART;
+        v12ToV12060Book[Particle.TERRAIN] = V12060_TERRAIN;
+        v12ToV12060Book[Particle.TOWN_AURA] = V12060_TOWN_AURA;
+        v12ToV12060Book[Particle.PORTAL] = V12060_PORTAL;
+        v12ToV12060Book[Particle.MOB_PORTAL] = V12060_MOB_PORTAL;
+        v12ToV12060Book[Particle.WATER_SPLASH] = V12060_WATER_SPLASH;
+        v12ToV12060Book[Particle.WATER_SPLASH_MANUAL] = V12060_WATER_SPLASH_MANUAL;
+        v12ToV12060Book[Particle.WATER_WAKE] = V12060_WATER_WAKE;
+        v12ToV12060Book[Particle.DRIP_WATER] = V12060_DRIP_WATER;
+        v12ToV12060Book[Particle.DRIP_LAVA] = V12060_DRIP_LAVA;
+        v12ToV12060Book[Particle.DRIP_HONEY] = V12060_DRIP_HONEY;
+        v12ToV12060Book[Particle.STALACTITE_DRIP_WATER] = V12060_STALACTITE_DRIP_WATER;
+        v12ToV12060Book[Particle.STALACTITE_DRIP_LAVA] = V12060_STALACTITE_DRIP_LAVA;
+        v12ToV12060Book[Particle.FALLING_DUST] = V12060_FALLING_DUST;
+        v12ToV12060Book[Particle.MOB_SPELL] = V12060_MOB_SPELL;
+        v12ToV12060Book[Particle.MOB_SPELL_AMBIENT] = V12060_MOB_SPELL_AMBIENT;
+        v12ToV12060Book[Particle.MOB_SPELL_INSTANTANEOUS] = V12060_MOB_SPELL_INSTANTANEOUS;
+        v12ToV12060Book[Particle.INK] = V12060_INK;
+        v12ToV12060Book[Particle.SLIME] = V12060_SLIME;
+        v12ToV12060Book[Particle.RAIN_SPLASH] = V12060_RAIN_SPLASH;
+        v12ToV12060Book[Particle.VILLAGER_ANGRY] = V12060_VILLAGER_ANGRY;
+        v12ToV12060Book[Particle.VILLAGER_HAPPY] = V12060_VILLAGER_HAPPY;
+        v12ToV12060Book[Particle.ENCHANTING_TABLE] = V12060_ENCHANTING_TABLE;
+        v12ToV12060Book[Particle.TRACKING_EMITTER] = V12060_TRACKING_EMITTER;
+        v12ToV12060Book[Particle.NOTE] = V12060_NOTE;
+        v12ToV12060Book[Particle.WITCH_SPELL] = V12060_WITCH_SPELL;
+        v12ToV12060Book[Particle.CARROT_BOOST] = V12060_CARROT_BOOST;
+        v12ToV12060Book[Particle.MOB_APPEARANCE] = V12060_MOB_APPEARANCE;
+        v12ToV12060Book[Particle.END_ROD] = V12060_END_ROD;
+        v12ToV12060Book[Particle.DRAGON_BREATH] = V12060_DRAGON_BREATH;
+        v12ToV12060Book[Particle.SPIT] = V12060_SPIT;
+        v12ToV12060Book[Particle.TOTEM] = V12060_TOTEM;
+        v12ToV12060Book[Particle.FOOD] = V12060_FOOD;
+        v12ToV12060Book[Particle.FIREWORKS_STARTER] = V12060_FIREWORKS_STARTER;
+        v12ToV12060Book[Particle.FIREWORKS] = V12060_FIREWORKS;
+        v12ToV12060Book[Particle.FIREWORKS_OVERLAY] = V12060_FIREWORKS_OVERLAY;
+        v12ToV12060Book[Particle.BALLOON_GAS] = V12060_BALLOON_GAS;
+        v12ToV12060Book[Particle.COLORED_FLAME] = V12060_COLORED_FLAME;
+        v12ToV12060Book[Particle.SPARKLER] = V12060_SPARKLER;
+        v12ToV12060Book[Particle.CONDUIT] = V12060_CONDUIT;
+        v12ToV12060Book[Particle.BUBBLE_COLUMN_UP] = V12060_BUBBLE_COLUMN_UP;
+        v12ToV12060Book[Particle.BUBBLE_COLUMN_DOWN] = V12060_BUBBLE_COLUMN_DOWN;
+        v12ToV12060Book[Particle.SNEEZE] = V12060_SNEEZE;
+        v12ToV12060Book[Particle.SHULKER_BULLET] = V12060_SHULKER_BULLET;
+        v12ToV12060Book[Particle.BLEACH] = V12060_BLEACH;
+        v12ToV12060Book[Particle.DRAGON_DESTROY_BLOCK] = V12060_DRAGON_DESTROY_BLOCK;
+        v12ToV12060Book[Particle.MYCELIUM_DUST] = V12060_MYCELIUM_DUST;
+        v12ToV12060Book[Particle.FALLING_BORDER_DUST] = V12060_FALLING_BORDER_DUST;
+        v12ToV12060Book[Particle.CAMPFIRE_SMOKE] = V12060_CAMPFIRE_SMOKE;
+        v12ToV12060Book[Particle.CAMPFIRE_SMOKE_TALL] = V12060_CAMPFIRE_SMOKE_TALL;
+        v12ToV12060Book[Particle.DRAGON_BREATH_FIRE] = V12060_DRAGON_BREATH_FIRE;
+        v12ToV12060Book[Particle.DRAGON_BREATH_TRAIL] = V12060_DRAGON_BREATH_TRAIL;
+        v12ToV12060Book[Particle.BLUE_FLAME] = V12060_BLUE_FLAME;
+        v12ToV12060Book[Particle.SOUL] = V12060_SOUL;
+        v12ToV12060Book[Particle.OBSIDIAN_TEAR] = V12060_OBSIDIAN_TEAR;
+        v12ToV12060Book[Particle.PORTAL_REVERSE] = V12060_PORTAL_REVERSE;
+        v12ToV12060Book[Particle.SNOWFLAKE] = V12060_SNOWFLAKE;
+        v12ToV12060Book[Particle.VIBRATION_SIGNAL] = V12060_VIBRATION_SIGNAL;
+        v12ToV12060Book[Particle.SCULK_SENSOR_REDSTONE] = V12060_SCULK_SENSOR_REDSTONE;
+        v12ToV12060Book[Particle.SPORE_BLOSSOM_SHOWER] = V12060_SPORE_BLOSSOM_SHOWER;
+        v12ToV12060Book[Particle.SPORE_BLOSSOM_AMBIENT] = V12060_SPORE_BLOSSOM_AMBIENT;
+        v12ToV12060Book[Particle.WAX] = V12060_WAX;
+        v12ToV12060Book[Particle.ELECTRIC_SPARK] = V12060_ELECTRIC_SPARK;
+        v12ToV12060Book[Particle.SHRIEK] = V12060_SHRIEK;
+        v12ToV12060Book[Particle.SCULK_SOUL] = V12060_SCULK_SOUL;
+        v12ToV12060Book[Particle.SONIC_EXPLOSION] = V12060_SONIC_EXPLOSION;
+        v12ToV12060Book[Particle.BRUSH_DUST] = V12060_BRUSH_DUST;
+        v12ToV12060Book[Particle.CHERRY_LEAVES] = V12060_CHERRY_LEAVES;
+        v12ToV12060Book[Particle.DUST_PLUME] = V12060_DUST_PLUME;
+        v12ToV12060Book[Particle.WHITE_SMOKE] = V12060_WHITE_SMOKE;
     }
 
     public static int translateTo112(int particleId) {
@@ -640,9 +799,19 @@ public final class ParticleIdTranslator {
         return value != -1 ? value : particleId;
     }
 
+    public static int translateTo12060(int particleId) {
+        if (particleId < 0 || particleId >= Particle.UNDEFINED) {
+            return particleId;
+        }
+        int value = v12ToV12060Book[particleId];
+        return value != -1 ? value : particleId;
+    }
+
     public static int translateTo(AbstractProtocol protocol, int particleId) {
         int ver = protocol.getProtocolStart();
-        if (ver >= AbstractProtocol.PROTOCOL_117_10.getProtocolStart()) {
+        if (ver >= AbstractProtocol.PROTOCOL_120_60.getProtocolStart()) {
+            return translateTo12060(particleId);
+        } else if (ver >= AbstractProtocol.PROTOCOL_117_10.getProtocolStart()) {
             return translateTo11710(particleId);
         } else if (ver >= AbstractProtocol.PROTOCOL_116_220.getProtocolStart()) {
             return translateTo116220(particleId);

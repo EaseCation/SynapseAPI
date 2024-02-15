@@ -398,16 +398,6 @@ public class PlayerAuthInputPacket116 extends Packet116 implements IPlayerAuthIn
     }
 
     @Override
-    public void setPitch(float pitch) {
-        this.pitch = pitch;
-    }
-
-    @Override
-    public void setYaw(float yaw) {
-        this.yaw = yaw;
-    }
-
-    @Override
     public NetworkInventoryAction[] getInventoryActions() {
         return this.inventoryActions;
     }
@@ -420,15 +410,5 @@ public class PlayerAuthInputPacket116 extends Packet116 implements IPlayerAuthIn
     @Override
     public PlayerBlockAction[] getBlockActions() {
         return this.blockActions;
-    }
-
-    @Override
-    public boolean hasInventoryActionsField() {
-        return this.netease;
-    }
-
-    @Override
-    public boolean hasBlockActionsField() {
-        return this.netease;
     }
 }

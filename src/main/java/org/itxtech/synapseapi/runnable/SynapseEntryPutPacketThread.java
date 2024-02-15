@@ -141,7 +141,7 @@ public class SynapseEntryPutPacketThread extends Thread {
                     if (!entry.player.closed) {
                         RedirectPacket pk = new RedirectPacket();
                         pk.uuid = entry.player.getUniqueId();
-                        pk.direct = entry.immediate;
+//                        pk.direct = entry.immediate;
 
                         /*if(entry.packet.pid() == UpdateAttributesPacket.NETWORK_ID) {
                             MainLogger.getLogger().info("ENTITY: "+((UpdateAttributesPacket) entry.packet).entityId);
@@ -150,8 +150,8 @@ public class SynapseEntryPutPacketThread extends Thread {
                         //MainLogger.getLogger().notice("PACKET: "+entry.packet.getClass().getName());
                         DataPacket old = entry.packet;
 
-                        pk.reliability = old.reliability.ordinal();
-                        pk.channel = old.getChannel();
+//                        pk.reliability = old.reliability.ordinal();
+//                        pk.channel = old.getChannel();
 
                         entry.packet = PacketRegister.getCompatiblePacket(entry.packet, (entry.player).getProtocol(), entry.player.isNetEaseClient());
 
@@ -336,7 +336,7 @@ public class SynapseEntryPutPacketThread extends Thread {
                             RedirectPacket pk = new RedirectPacket();
                             pk.protocol = player.getProtocol();
                             pk.uuid = player.getUniqueId();
-                            pk.channel = DataPacket.CHANNEL_BATCH;
+//                            pk.channel = DataPacket.CHANNEL_BATCH;
 
                             byte[][] datas = pair.getLeft();
                             Track[][] trackPairs = pair.getRight();

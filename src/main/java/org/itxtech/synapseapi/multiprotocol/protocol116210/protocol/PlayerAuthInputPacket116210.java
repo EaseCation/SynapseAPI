@@ -401,16 +401,6 @@ public class PlayerAuthInputPacket116210 extends Packet116210 implements Invento
     }
 
     @Override
-    public void setPitch(float pitch) {
-        this.pitch = pitch;
-    }
-
-    @Override
-    public void setYaw(float yaw) {
-        this.yaw = yaw;
-    }
-
-    @Override
     public NetworkInventoryAction[] getInventoryActions() {
         return this.inventoryActions;
     }
@@ -423,15 +413,5 @@ public class PlayerAuthInputPacket116210 extends Packet116210 implements Invento
     @Override
     public PlayerBlockAction[] getBlockActions() {
         return this.blockActions;
-    }
-
-    @Override
-    public boolean hasInventoryActionsField() {
-        return true;
-    }
-
-    @Override
-    public boolean hasBlockActionsField() {
-        return true;
     }
 }

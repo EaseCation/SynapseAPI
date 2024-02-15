@@ -28,7 +28,6 @@ import cn.nukkit.utils.DummyBossBar;
 import cn.nukkit.utils.MainLogger;
 import cn.nukkit.utils.TextFormat;
 import com.google.gson.JsonPrimitive;
-import org.itxtech.synapseapi.event.player.SynapsePlayerBroadcastLevelSoundEvent;
 import org.itxtech.synapseapi.event.player.SynapsePlayerConnectEvent;
 import org.itxtech.synapseapi.multiprotocol.AbstractProtocol;
 import org.itxtech.synapseapi.multiprotocol.PacketRegister;
@@ -632,23 +631,25 @@ public class SynapsePlayer14 extends SynapsePlayer {
 			case ProtocolInfo.MOVE_ACTOR_ABSOLUTE_PACKET:
 				if (this.getProtocol() >= AbstractProtocol.PROTOCOL_15.getProtocolStart()) {
 					MoveEntityAbsolutePacket15 moveEntityAbsolutePacket = (MoveEntityAbsolutePacket15) packet;
-					if (!validateCoordinate((float) moveEntityAbsolutePacket.x) || !validateCoordinate((float) moveEntityAbsolutePacket.y) || !validateCoordinate((float) moveEntityAbsolutePacket.z)
-							|| !validateFloat((float) moveEntityAbsolutePacket.pitch) || !validateFloat((float) moveEntityAbsolutePacket.yaw) || !validateFloat((float) moveEntityAbsolutePacket.headYaw)) {
+					if (!validateCoordinate(moveEntityAbsolutePacket.x) || !validateCoordinate(moveEntityAbsolutePacket.y) || !validateCoordinate(moveEntityAbsolutePacket.z)
+							|| !validateFloat(moveEntityAbsolutePacket.pitch) || !validateFloat(moveEntityAbsolutePacket.yaw) || !validateFloat(moveEntityAbsolutePacket.headYaw)) {
 						this.getServer().getLogger().warning("Invalid vehicle movement received: " + this.getName());
 						this.close("", "Invalid vehicle movement");
 						return;
 					}
 
-					if (this.riding == null || this.riding.getId() != moveEntityAbsolutePacket.eid) {
+					if (this.riding == null || this.riding.getId() != moveEntityAbsolutePacket.eid || !this.riding.isControlling(this)) {
 						break;
 					}
 
-					if (this.riding instanceof EntityBoat) {
+					if (this.riding instanceof EntityBoat boat) {
 						if (this.temporalVector.setComponents(moveEntityAbsolutePacket.x, moveEntityAbsolutePacket.y, moveEntityAbsolutePacket.z).distanceSquared(this.riding) < 1000) {
-							((EntityBoat) this.riding).onInput(moveEntityAbsolutePacket.x, moveEntityAbsolutePacket.y, moveEntityAbsolutePacket.z, moveEntityAbsolutePacket.yaw);
+							boat.onInput(moveEntityAbsolutePacket.x, moveEntityAbsolutePacket.y, moveEntityAbsolutePacket.z, moveEntityAbsolutePacket.yaw % 360);
 						}
 					}
+					break;
 				}
+				super.handleDataPacket(packet);
 				break;
 			default:
 				super.handleDataPacket(packet);

@@ -2,7 +2,6 @@ package org.itxtech.synapseapi.multiprotocol.utils.item;
 
 import cn.nukkit.GameVersion;
 import cn.nukkit.block.Block;
-import cn.nukkit.block.BlockID;
 import cn.nukkit.block.BlockUpgrader;
 import cn.nukkit.item.ItemID;
 import cn.nukkit.item.ItemUpgrader;
@@ -181,11 +180,7 @@ public final class VanillaItemUpgrader {
             UPGRADE_SCHEMAS.add(schema);
         }
 
-        List<ItemUpgradeSchema> schemas = SCHEMAS.get(baseGameVersion);
-        if (schemas == null) {
-            schemas = new ObjectArrayList<>();
-            SCHEMAS.put(baseGameVersion, schemas);
-        }
+        List<ItemUpgradeSchema> schemas = SCHEMAS.computeIfAbsent(baseGameVersion, k -> new ObjectArrayList<>());
         schemas.add(schema);
 
         return schema;
@@ -213,6 +208,7 @@ public final class VanillaItemUpgrader {
         addSchema("0131_1.20.10.24_beta_to_1.20.20.23_beta.json", V1_20_30);
         addSchema("0141_1.20.20.23_beta_to_1.20.30.22_beta.json", V1_20_30);
         addSchema("0151_1.20.30.22_beta_to_1.20.50.23_beta.json", V1_20_50);
+        addSchema("0161_1.20.50.23_beta_to_1.20.60.26_beta.json", V1_20_60);
 
         ItemUpgrader.setUpgrader(VanillaItemUpgrader::upgrade);
     }

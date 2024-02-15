@@ -20,12 +20,14 @@ public class FastPlayerListPacket extends SynapseDataPacket {
     public void decode() {
         this.sendTo = this.getUUID();
         this.type = (byte) this.getByte();
-        int len = this.getInt();
+        int len = (int) this.getUnsignedVarInt();
         this.entries = new FastPlayerListPacket.Entry[len];
-        for (int i = 0; i < len; i++) {
-            if (this.type == TYPE_ADD) {
-                this.entries[i] = new Entry(this.getUUID(), this.getLong(), this.getString());
-            } else {
+        if (this.type == TYPE_ADD) {
+            for (int i = 0; i < len; i++) {
+                this.entries[i] = new Entry(this.getUUID(), this.getUnsignedVarLong(), this.getString());
+            }
+        } else {
+            for (int i = 0; i < len; i++) {
                 this.entries[i] = new Entry(this.getUUID());
             }
         }
@@ -36,13 +38,15 @@ public class FastPlayerListPacket extends SynapseDataPacket {
         this.reset();
         this.putUUID(this.sendTo);
         this.putByte(this.type);
-        this.putInt(this.entries.length);
-        for (FastPlayerListPacket.Entry entry : this.entries) {
-            if (type == TYPE_ADD) {
+        this.putUnsignedVarInt(this.entries.length);
+        if (type == TYPE_ADD) {
+            for (FastPlayerListPacket.Entry entry : this.entries) {
                 this.putUUID(entry.uuid);
-                this.putLong(entry.entityId);
+                this.putUnsignedVarLong(entry.entityId);
                 this.putString(entry.name);
-            } else {
+            }
+        } else {
+            for (FastPlayerListPacket.Entry entry : this.entries) {
                 this.putUUID(entry.uuid);
             }
         }
@@ -56,11 +60,11 @@ public class FastPlayerListPacket extends SynapseDataPacket {
     public static class Entry {
 
         public final UUID uuid;
-        public long entityId = 0;
-        public String name = "";
+        public final long entityId;
+        public final String name;
 
         public Entry(UUID uuid) {
-            this.uuid = uuid;
+            this(uuid, 0, "");
         }
 
         public Entry(UUID uuid, long entityId, String name) {

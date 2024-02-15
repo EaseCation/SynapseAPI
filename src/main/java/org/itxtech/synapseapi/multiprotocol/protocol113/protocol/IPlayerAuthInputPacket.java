@@ -28,9 +28,6 @@ public interface IPlayerAuthInputPacket extends InventoryTransactionPacketInterf
     float getDeltaY();
     float getDeltaZ();
 
-    void setPitch(float pitch);
-    void setYaw(float yaw);
-
     @Nullable
     default NetworkInventoryAction[] getInventoryActions() {
         return null;
@@ -47,10 +44,16 @@ public interface IPlayerAuthInputPacket extends InventoryTransactionPacketInterf
     }
 
     /**
+     * @since 1.20.60
+     */
+    default long getPredictedVehicleEntityUniqueId() {
+        return 0;
+    }
+
+    /**
      * @since 1.19.70
      */
     default float getAnalogMoveVecX() {
-        //TODO
         return 0;
     }
 
@@ -58,16 +61,7 @@ public interface IPlayerAuthInputPacket extends InventoryTransactionPacketInterf
      * @since 1.19.70
      */
     default float getAnalogMoveVecZ() {
-        //TODO
         return 0;
-    }
-
-    default boolean hasInventoryActionsField() {
-        return false;
-    }
-
-    default boolean hasBlockActionsField() {
-        return false;
     }
 
     @ToString
