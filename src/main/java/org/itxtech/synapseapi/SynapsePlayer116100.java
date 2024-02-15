@@ -28,6 +28,7 @@ import cn.nukkit.level.GlobalBlockPaletteInterface.StaticVersion;
 import cn.nukkit.level.Level;
 import cn.nukkit.level.Position;
 import cn.nukkit.level.format.generic.ChunkBlobCache;
+import cn.nukkit.level.format.generic.ChunkCachedData;
 import cn.nukkit.level.format.generic.ChunkPacketCache;
 import cn.nukkit.level.generator.Generator;
 import cn.nukkit.level.particle.PunchBlockParticle;
@@ -45,7 +46,6 @@ import it.unimi.dsi.fastutil.ints.IntIterator;
 import it.unimi.dsi.fastutil.ints.IntOpenHashSet;
 import it.unimi.dsi.fastutil.ints.IntSet;
 import it.unimi.dsi.fastutil.longs.*;
-import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import it.unimi.dsi.fastutil.objects.ObjectIterator;
 import lombok.extern.log4j.Log4j2;
 import org.itxtech.synapseapi.dialogue.NPCDialoguePlayerHandler;
@@ -118,14 +118,11 @@ import org.itxtech.synapseapi.utils.PacketUtil;
 import javax.annotation.Nullable;
 import java.net.InetSocketAddress;
 import java.util.Arrays;
-import java.util.Comparator;
 import java.util.EnumMap;
-import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ThreadLocalRandom;
 
 import static cn.nukkit.SharedConstants.*;
-import static cn.nukkit.level.format.generic.ChunkRequestTask.*;
 import static org.itxtech.synapseapi.SynapseSharedConstants.*;
 
 //TODO: 这个类已经用了好几个版本了 有时间可以整理一下 像以前那样分成不同版本
@@ -145,28 +142,13 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
     public static final int GAME_TYPE_SPECTATOR = 6;
 
     protected static final byte[] EMPTY_SUBCHUNK_HEIGHTMAP = new byte[256];
+    public static final byte[] EMPTY_SUBCHUNK_DATA = new byte[]{
+            8, // sub chunk version
+            0, // no layers - client will treat this as all-air
+    };
 
     protected final Long2ObjectMap<IntSet> subChunkRequestQueue = new Long2ObjectOpenHashMap<>();
     protected final Long2ObjectMap<IntSet> subChunkSendQueue = new Long2ObjectOpenHashMap<>();
-
-    //TODO: 新版加载屏系统接入跨服
-    protected boolean dimensionChanging;
-    protected LongSet dimensionWaitingChunks = new LongOpenHashSet();
-    protected int dimensionRequestedChunkCount;
-    protected int dimensionNeedingChunk;
-    protected boolean dimensionBack;
-    protected LongSet overworldRequestedChunks = new LongOpenHashSet();
-    protected Comparator<LevelChunkPacket> chunkPacketComparator = (packet0, packet1) -> {
-        int spawnX = getChunkX();
-        int spawnZ = getChunkZ();
-        return Integer.compare(distance(spawnX, spawnZ, packet0.chunkX, packet0.chunkZ), distance(spawnX, spawnZ, packet1.chunkX, packet1.chunkZ));
-    };
-    protected long changeDimensionTimeout = -1;
-    protected long changeDimensionAckTimeout = -1;
-    protected long changeDimensionBackTimeout = -1;
-    protected boolean dimensionNeedBackAck;
-    protected boolean changeDimensionImmobile;
-    protected Position changeDimensionPosition;
 
     public NPCDialoguePlayerHandler npcDialoguePlayerHandler;
 
@@ -1988,19 +1970,14 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
     }
 
     @Override
-    protected boolean isExtendedLevel() {
-        return this.protocol >= AbstractProtocol.PROTOCOL_118.getProtocolStart();
-    }
-
-    @Override
     public boolean isSubChunkRequestAvailable() {
         return USE_SUB_CHUNK_REQUEST && this.protocol >= AbstractProtocol.PROTOCOL_118.getProtocolStart() /*&& (this.isBlobCacheAvailable() || !this.isNetEaseClient())*/;
     }
 
     @Override
-    public void sendChunk(int x, int z, int subChunkCount, ChunkBlobCache blobCache, DataPacket packet) {
-        if (protocol < AbstractProtocol.PROTOCOL_120_60.getProtocolStart() && (!this.isSubChunkRequestAvailable() || blobCache == null)) {
-            super.sendChunk(x, z, subChunkCount, blobCache, packet);
+    public void sendChunk(int x, int z, int subChunkCount, ChunkCachedData cachedData, DataPacket packet) {
+        if (protocol < AbstractProtocol.PROTOCOL_120_60.getProtocolStart() && !this.isSubChunkRequestAvailable()) {
+            super.sendChunk(x, z, subChunkCount, cachedData, packet);
             return;
         }
         if (!this.connected) {
@@ -2013,15 +1990,10 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
         boolean centerChunk = !this.isNeedLevelChangeLoadScreen() && CENTER_CHUNK_WITHOUT_CACHE && this.getChunkX() == x && this.getChunkZ() == z;
 
         if (this.isBlobCacheAvailable() && this.isSubModeLevelChunkBlobCacheEnabled() && !centerChunk) {
-            long[] ids;
-            Long2ObjectMap<byte[]> extendedClientBlobs;
-            if (this.getProtocol() >= AbstractProtocol.PROTOCOL_118_30.getProtocolStart()) {
-                ids = blobCache.getExtendedBlobIdsNew();
-                extendedClientBlobs = blobCache.getExtendedClientBlobsNew();
-            } else {
-                ids = blobCache.getExtendedBlobIds();
-                extendedClientBlobs = blobCache.getExtendedClientBlobs();
-            }
+            ChunkBlobCache blobCache = cachedData.getBlobCache();
+            long[] ids = blobCache.getBlobIds();
+            Long2ObjectMap<byte[]> extendedClientBlobs = blobCache.getBlobs();
+
             long hash = ids[ids.length - 1]; // biome
             this.clientCacheTrack.put(hash, new BlobTrack(hash, extendedClientBlobs.get(hash)));
 
@@ -2029,31 +2001,19 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
             pk.chunkX = x;
             pk.chunkZ = z;
             pk.dimension = getDummyDimension();
-            if (ENABLE_SUB_CHUNK_NETWORK_OPTIMIZATION && this.protocol >= AbstractProtocol.PROTOCOL_118_10.getProtocolStart()) {
-                pk.subChunkCount = LevelChunkPacket.CLIENT_REQUEST_TRUNCATED_COLUMN_FAKE_COUNT;
-            } else {
-                pk.subChunkCount = LevelChunkPacket.CLIENT_REQUEST_FULL_COLUMN_FAKE_COUNT;
-            }
-            pk.subChunkRequestLimit = subChunkCount /*+ PADDING_SUB_CHUNK_COUNT*/;
+            pk.subChunkCount = LevelChunkPacket.CLIENT_REQUEST_TRUNCATED_COLUMN_FAKE_COUNT;
+            pk.subChunkRequestLimit = subChunkCount;
             pk.blobIds = new long[]{hash};
             pk.cacheEnabled = true;
-            pk.data = blobCache.getSubModeCachedPayload();
+            pk.data = blobCache.getSubRequestModeFullChunkPayload();
             this.dataPacket(pk);
         } else if (protocol >= AbstractProtocol.PROTOCOL_120_60.getProtocolStart()) {
             LevelChunkPacket pk = createLevelChunkPacket();
             pk.chunkX = x;
             pk.chunkZ = z;
             pk.dimension = getDummyDimension();
-            if (isSubChunkRequestAvailable()) {
-                if (ENABLE_SUB_CHUNK_NETWORK_OPTIMIZATION) {
-                    pk.subChunkCount = LevelChunkPacket.CLIENT_REQUEST_TRUNCATED_COLUMN_FAKE_COUNT;
-                } else {
-                    pk.subChunkCount = LevelChunkPacket.CLIENT_REQUEST_FULL_COLUMN_FAKE_COUNT;
-                }
-            } else {
-                pk.subChunkCount = subChunkCount;
-            }
-            pk.subChunkRequestLimit = subChunkCount /*+ PADDING_SUB_CHUNK_COUNT*/;
+            pk.subChunkCount = LevelChunkPacket.CLIENT_REQUEST_TRUNCATED_COLUMN_FAKE_COUNT;
+            pk.subChunkRequestLimit = subChunkCount;
             pk.data = ((LevelChunkPacket12060) packet).data;
             this.dataPacket(pk);
         } else {
@@ -2078,9 +2038,9 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
     }
 
     @Override
-    public void sendChunk(int x, int z, int subChunkCount, ChunkBlobCache blobCache, byte[] payload, byte[] subModePayload) {
-        if (protocol < AbstractProtocol.PROTOCOL_120_60.getProtocolStart() && (!this.isSubChunkRequestAvailable() || blobCache == null || this.getChunkX() == x && this.getChunkZ() == z)) {
-            super.sendChunk(x, z, subChunkCount, blobCache, payload, subModePayload);
+    public void sendChunk(int x, int z, int subChunkCount, ChunkCachedData cachedData, byte[] payload, byte[] subModePayload) {
+        if (protocol < AbstractProtocol.PROTOCOL_120_60.getProtocolStart() && (!this.isSubChunkRequestAvailable() || this.getChunkX() == x && this.getChunkZ() == z)) {
+            super.sendChunk(x, z, subChunkCount, cachedData, payload, subModePayload);
             return;
         }
         if (!this.connected) {
@@ -2096,32 +2056,19 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
         pk.chunkX = x;
         pk.chunkZ = z;
         pk.dimension = getDummyDimension();
-        if (isSubChunkRequestAvailable()) {
-            if (ENABLE_SUB_CHUNK_NETWORK_OPTIMIZATION && this.protocol >= AbstractProtocol.PROTOCOL_118_10.getProtocolStart()) {
-                pk.subChunkCount = LevelChunkPacket.CLIENT_REQUEST_TRUNCATED_COLUMN_FAKE_COUNT;
-            } else {
-                pk.subChunkCount = LevelChunkPacket.CLIENT_REQUEST_FULL_COLUMN_FAKE_COUNT;
-            }
-        } else {
-            pk.subChunkCount = subChunkCount;
-        }
-        pk.subChunkRequestLimit = subChunkCount /*+ PADDING_SUB_CHUNK_COUNT*/;
+        pk.subChunkCount = LevelChunkPacket.CLIENT_REQUEST_TRUNCATED_COLUMN_FAKE_COUNT;
+        pk.subChunkRequestLimit = subChunkCount;
         if (this.isBlobCacheAvailable() && this.isSubModeLevelChunkBlobCacheEnabled() && !centerChunk) {
-            long[] ids;
-            Long2ObjectMap<byte[]> extendedClientBlobs;
-            if (this.getProtocol() >= AbstractProtocol.PROTOCOL_118_30.getProtocolStart()) {
-                ids = blobCache.getExtendedBlobIdsNew();
-                extendedClientBlobs = blobCache.getExtendedClientBlobsNew();
-            } else {
-                ids = blobCache.getExtendedBlobIds();
-                extendedClientBlobs = blobCache.getExtendedClientBlobs();
-            }
+            ChunkBlobCache blobCache = cachedData.getBlobCache();
+            long[] ids = blobCache.getBlobIds();
+            Long2ObjectMap<byte[]> extendedClientBlobs = blobCache.getBlobs();
+
             long hash = ids[ids.length - 1]; // biome
             this.clientCacheTrack.put(hash, new BlobTrack(hash, extendedClientBlobs.get(hash)));
 
             pk.blobIds = new long[]{hash};
             pk.cacheEnabled = true;
-            pk.data = blobCache.getSubModeCachedPayload();
+            pk.data = blobCache.getSubRequestModeFullChunkPayload();
         } else {
             pk.data = subModePayload;
         }
@@ -2145,7 +2092,7 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
     }
 
     @Override
-    public void sendSubChunks(int dimension, int x, int z, int subChunkCount, ChunkBlobCache blobCache, Map<StaticVersion, byte[][]> payload, byte[] heightMapType, byte[][] heightMap) {
+    public void sendSubChunks(int dimension, int x, int z, int subChunkCount, ChunkCachedData cachedData, Map<StaticVersion, byte[][]> payload, byte[] heightMapType, byte[][] heightMap) {
         if (!this.connected) {
             return;
         }
@@ -2164,16 +2111,15 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
             }
         }
 
+        ChunkBlobCache blobCache = cachedData.getBlobCache();
+        int chunkYIndexOffset = level.getHeightRange().getChunkYIndexOffset();
         boolean centerChunk = !this.isNeedLevelChangeLoadScreen() && CENTER_CHUNK_WITHOUT_CACHE && this.getChunkX() == x && this.getChunkZ() == z;
-        if (subChunkCount != 0) {
-            subChunkCount += PADDING_SUB_CHUNK_COUNT;
-        }
         byte[][] payloads = payload.get(blockVersion);
 
         IntIterator iter = requests.iterator();
         while (iter.hasNext()) {
             int y = iter.nextInt();
-            int index = y + PADDING_SUB_CHUNK_COUNT;
+            int index = Level.yToIndex(y, chunkYIndexOffset);
 
             SubChunkPacket pk = this.createSubChunkPacket();
 //            pk.dimension = dimension;
@@ -2183,46 +2129,35 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
             pk.subChunkZ = z;
 
             if (subChunkCount == 0) {
-                pk.data = PADDING_SUB_CHUNK_BLOB;
+                pk.data = EMPTY_SUBCHUNK_DATA;
                 if (index == 0) {
                     pk.heightMapType = SubChunkPacket.HEIGHT_MAP_TYPE_HAS_DATA;
                     pk.heightMap = EMPTY_SUBCHUNK_HEIGHTMAP;
                 } else {
                     pk.heightMapType = SubChunkPacket.HEIGHT_MAP_TYPE_ALL_TOO_LOW;
                 }
-                if (ENABLE_EMPTY_SUB_CHUNK_NETWORK_OPTIMIZATION && this.protocol >= AbstractProtocol.PROTOCOL_118_10.getProtocolStart()) {
-                    pk.requestResult = SubChunkPacket.REQUEST_RESULT_SUCCESS_ALL_AIR;
-                }
+                pk.requestResult = SubChunkPacket.REQUEST_RESULT_SUCCESS_ALL_AIR;
                 this.dataPacket(pk);
                 iter.remove();
                 continue;
             } else if (index >= subChunkCount) {
-                pk.data = PADDING_SUB_CHUNK_BLOB;
+                pk.data = EMPTY_SUBCHUNK_DATA;
                 pk.heightMapType = SubChunkPacket.HEIGHT_MAP_TYPE_ALL_TOO_LOW;
-                if (ENABLE_EMPTY_SUB_CHUNK_NETWORK_OPTIMIZATION && this.protocol >= AbstractProtocol.PROTOCOL_118_10.getProtocolStart()) {
-                    pk.requestResult = SubChunkPacket.REQUEST_RESULT_SUCCESS_ALL_AIR;
-                }
+                pk.requestResult = SubChunkPacket.REQUEST_RESULT_SUCCESS_ALL_AIR;
                 this.dataPacket(pk);
                 iter.remove();
                 continue;
             }
 
-            if (ENABLE_EMPTY_SUB_CHUNK_NETWORK_OPTIMIZATION && this.protocol >= AbstractProtocol.PROTOCOL_118_10.getProtocolStart() && (y < 0 || blobCache != null && (y >= blobCache.getEmptySection().length || blobCache.getEmptySection()[y]))) {
+            if (index >= cachedData.getEmptySection().length || cachedData.getEmptySection()[index]) {
                 pk.requestResult = SubChunkPacket.REQUEST_RESULT_SUCCESS_ALL_AIR;
-            } else if (blobCache != null && this.isBlobCacheAvailable() && this.isSubChunkBlobCacheEnabled() && !centerChunk) {
-                long[] ids;
-                Long2ObjectMap<byte[]> extendedClientBlobs;
-                if (this.getProtocol() >= AbstractProtocol.PROTOCOL_118_30.getProtocolStart()) {
-                    ids = blobCache.getExtendedBlobIdsNew();
-                    extendedClientBlobs = blobCache.getExtendedClientBlobsNew();
-                } else {
-                    ids = blobCache.getExtendedBlobIds();
-                    extendedClientBlobs = blobCache.getExtendedClientBlobs();
-                }
+            } else if (this.isBlobCacheAvailable() && this.isSubChunkBlobCacheEnabled() && !centerChunk) {
+                long[] ids = blobCache.getBlobIds();
+                Long2ObjectMap<byte[]> extendedClientBlobs = blobCache.getBlobs();
                 long hash = ids[index];
                 this.clientCacheTrack.put(hash, new BlobTrack(hash, extendedClientBlobs.get(hash)));
 
-                pk.data = blobCache.getSubChunkCachedPayload()[index];
+                pk.data = blobCache.getSubChunkPayloads()[index];
                 pk.blobId = hash;
                 pk.cacheEnabled = true;
             } else {
@@ -2237,7 +2172,7 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
     }
 
     @Override
-    public void sendSubChunks(int dimension, int x, int z, int subChunkCount, ChunkBlobCache blobCache, ChunkPacketCache packetCache, byte[] heightMapType, byte[][] heightMap) {
+    public void sendSubChunks(int dimension, int x, int z, int subChunkCount, ChunkCachedData cachedData, byte[] heightMapType, byte[][] heightMap) {
         if (!this.connected) {
             return;
         }
@@ -2256,17 +2191,18 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
             }
         }
 
+        ChunkPacketCache packetCache = cachedData.getPacketCache();
+        assert packetCache != null;
+        ChunkBlobCache blobCache = cachedData.getBlobCache();
+        int chunkYIndexOffset = level.getHeightRange().getChunkYIndexOffset();
         boolean centerChunk = !this.isNeedLevelChangeLoadScreen() && CENTER_CHUNK_WITHOUT_CACHE && this.getChunkX() == x && this.getChunkZ() == z;
-        if (subChunkCount != 0) {
-            subChunkCount += PADDING_SUB_CHUNK_COUNT;
-        }
-        BatchPacket[] packets = packetCache.getSubPackets(blockVersion);
-        SubChunkPacket[] packetsUncompressed = packetCache.getSubPacketsUncompressed(blockVersion);
+        BatchPacket[] packets = packetCache.getSubChunkPackets(blockVersion);
+        SubChunkPacket[] packetsUncompressed = packetCache.getSubChunkPacketsUncompressed(blockVersion);
 
         IntIterator iter = requests.iterator();
         while (iter.hasNext()) {
             int y = iter.nextInt();
-            int index = y + PADDING_SUB_CHUNK_COUNT;
+            int index = Level.yToIndex(y, chunkYIndexOffset);
 
             if (subChunkCount == 0) {
                 SubChunkPacket pk = this.createSubChunkPacket();
@@ -2275,16 +2211,14 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
                 pk.subChunkX = x;
                 pk.subChunkY = y;
                 pk.subChunkZ = z;
-                pk.data = PADDING_SUB_CHUNK_BLOB;
+                pk.data = EMPTY_SUBCHUNK_DATA;
                 if (index == 0) {
                     pk.heightMapType = SubChunkPacket.HEIGHT_MAP_TYPE_HAS_DATA;
                     pk.heightMap = EMPTY_SUBCHUNK_HEIGHTMAP;
                 } else {
                     pk.heightMapType = SubChunkPacket.HEIGHT_MAP_TYPE_ALL_TOO_LOW;
                 }
-                if (ENABLE_EMPTY_SUB_CHUNK_NETWORK_OPTIMIZATION && this.protocol >= AbstractProtocol.PROTOCOL_118_10.getProtocolStart()) {
-                    pk.requestResult = SubChunkPacket.REQUEST_RESULT_SUCCESS_ALL_AIR;
-                }
+                pk.requestResult = SubChunkPacket.REQUEST_RESULT_SUCCESS_ALL_AIR;
                 this.dataPacket(pk);
                 iter.remove();
                 continue;
@@ -2295,17 +2229,15 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
                 pk.subChunkX = x;
                 pk.subChunkY = y;
                 pk.subChunkZ = z;
-                pk.data = PADDING_SUB_CHUNK_BLOB;
+                pk.data = EMPTY_SUBCHUNK_DATA;
                 pk.heightMapType = SubChunkPacket.HEIGHT_MAP_TYPE_ALL_TOO_LOW;
-                if (ENABLE_EMPTY_SUB_CHUNK_NETWORK_OPTIMIZATION && this.protocol >= AbstractProtocol.PROTOCOL_118_10.getProtocolStart()) {
-                    pk.requestResult = SubChunkPacket.REQUEST_RESULT_SUCCESS_ALL_AIR;
-                }
+                pk.requestResult = SubChunkPacket.REQUEST_RESULT_SUCCESS_ALL_AIR;
                 this.dataPacket(pk);
                 iter.remove();
                 continue;
             }
 
-            if (ENABLE_EMPTY_SUB_CHUNK_NETWORK_OPTIMIZATION && this.protocol >= AbstractProtocol.PROTOCOL_118_10.getProtocolStart() && (y < 0 || blobCache != null && (y >= blobCache.getEmptySection().length || blobCache.getEmptySection()[y]))) {
+            if (index >= cachedData.getEmptySection().length || cachedData.getEmptySection()[index]) {
                 SubChunkPacket pk = this.createSubChunkPacket();
 //                pk.dimension = dimension;
                 pk.dimension = this.dummyDimension;  // Level.DIMENSION_OVERWORLD;
@@ -2316,16 +2248,9 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
                 pk.heightMapType = heightMapType[index];
                 pk.heightMap = heightMap[index];
                 this.dataPacket(pk);
-            } else if (blobCache != null && this.isBlobCacheAvailable() && this.isSubChunkBlobCacheEnabled() && !centerChunk) {
-                long[] ids;
-                Long2ObjectMap<byte[]> extendedClientBlobs;
-                if (this.getProtocol() >= AbstractProtocol.PROTOCOL_118_30.getProtocolStart()) {
-                    ids = blobCache.getExtendedBlobIdsNew();
-                    extendedClientBlobs = blobCache.getExtendedClientBlobsNew();
-                } else {
-                    ids = blobCache.getExtendedBlobIds();
-                    extendedClientBlobs = blobCache.getExtendedClientBlobs();
-                }
+            } else if (this.isBlobCacheAvailable() && this.isSubChunkBlobCacheEnabled() && !centerChunk) {
+                long[] ids = blobCache.getBlobIds();
+                Long2ObjectMap<byte[]> extendedClientBlobs = blobCache.getBlobs();
                 long hash = ids[index];
                 this.clientCacheTrack.put(hash, new BlobTrack(hash, extendedClientBlobs.get(hash)));
 
@@ -2335,7 +2260,7 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
                 pk.subChunkX = x;
                 pk.subChunkY = y;
                 pk.subChunkZ = z;
-                pk.data = blobCache.getSubChunkCachedPayload()[index];
+                pk.data = blobCache.getSubChunkPayloads()[index];
                 pk.blobId = hash;
                 pk.cacheEnabled = true;
                 pk.heightMapType = heightMapType[index];
@@ -2509,11 +2434,11 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
     }
 
     public boolean isSubModeLevelChunkBlobCacheEnabled() {
-        return true; //FIXME: crash 1.18.0
+        return true;
     }
 
     protected boolean handleSubChunkRequest(int dimension, int subChunkX, int subChunkY, int subChunkZ) {
-        if (subChunkY < -4 || subChunkY > 19) {
+        if (!level.getHeightRange().isValidSubChunkY(subChunkY)) {
             SubChunkPacket pk = this.createSubChunkPacket();
             pk.dimension = dimension;
             pk.subChunkX = subChunkX;
@@ -2523,44 +2448,7 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
             this.dataPacket(pk);
             return false;
         }
-        if (dimension == Level.DIMENSION_NETHER || dimension == Level.DIMENSION_THE_END) {
-            if (this.dimensionChanging && !this.dimensionBack && this.dimensionWaitingChunks.remove(Level.chunkHash(subChunkX, subChunkZ)) && ++this.dimensionRequestedChunkCount >= this.dimensionNeedingChunk) {
-                this.changeDimensionTimeout = -1;
-                this.changeDimensionToOverworld();
-            }
-            if (this.getProtocol() >= AbstractProtocol.PROTOCOL_118_10.getProtocolStart()) {
-                SubChunkPacket pk = this.createSubChunkPacket();
-                pk.dimension = dimension;
-                pk.subChunkX = subChunkX;
-                pk.subChunkY = subChunkY;
-                pk.subChunkZ = subChunkZ;
-                pk.requestResult = SubChunkPacket.REQUEST_RESULT_SUCCESS_ALL_AIR;
-                this.dataPacket(pk);
-            } else /*if (this.dimensionChanging)*/ {
-                SubChunkPacket pk = this.createSubChunkPacket();
-                pk.dimension = dimension;
-                pk.subChunkX = subChunkX;
-                pk.subChunkY = subChunkY;
-                pk.subChunkZ = subChunkZ;
-                pk.requestResult = SubChunkPacket.REQUEST_RESULT_SUCCESS;
-                if (pk.subChunkY == -4) {
-                    pk.heightMapType = SubChunkPacket.HEIGHT_MAP_TYPE_HAS_DATA;
-                    pk.heightMap = EMPTY_SUBCHUNK_HEIGHTMAP;
-                } else {
-                    pk.heightMapType = SubChunkPacket.HEIGHT_MAP_TYPE_ALL_TOO_LOW;
-                }
-                boolean centerChunk = !this.isNeedLevelChangeLoadScreen() && this.getChunkX() == subChunkX && this.getChunkZ() == subChunkZ;
-                if (false && this.isBlobCacheAvailable() && !centerChunk) {
-                    this.clientCacheTrack.put(PADDING_SUB_CHUNK_HASH, new BlobTrack(PADDING_SUB_CHUNK_HASH, PADDING_SUB_CHUNK_BLOB));
-                    pk.cacheEnabled = true;
-                    pk.blobId = PADDING_SUB_CHUNK_HASH;
-                } else {
-                    pk.data = PADDING_SUB_CHUNK_BLOB;
-                }
-                this.dataPacket(pk);
-            }
-            return false;
-        }
+
         // dummyDimension HACK!
         if (dimension != Level.DIMENSION_OVERWORLD && dimension != this.dummyDimension) {
             SubChunkPacket pk = this.createSubChunkPacket();
@@ -2572,23 +2460,7 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
             this.dataPacket(pk);
             return false;
         }
-        if (this.dimensionChanging) {
-            long index = Level.chunkHash(subChunkX, subChunkZ);
-            if (this.overworldRequestedChunks.add(index) && this.overworldRequestedChunks.size() >= this.dimensionNeedingChunk) {
-                this.dimensionChanging = false;
-            }
-        }
-        if (subChunkY > 0xf) {
-            SubChunkPacket pk = this.createSubChunkPacket();
-            pk.dimension = dimension;
-            pk.subChunkX = subChunkX;
-            pk.subChunkY = subChunkY;
-            pk.subChunkZ = subChunkZ;
-            pk.data = PADDING_SUB_CHUNK_BLOB; // higher padding
-            pk.heightMapType = SubChunkPacket.HEIGHT_MAP_TYPE_ALL_TOO_LOW;
-            this.dataPacket(pk);
-            return false;
-        }
+
         if (this.getLoaderId() <= 0) {
             SubChunkPacket pk = this.createSubChunkPacket();
             pk.dimension = dimension;
@@ -2622,251 +2494,21 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
             return true;
         }
 
-        IntSet requests = this.subChunkRequestQueue.get(index);
-        if (requests == null) {
-            requests = new IntOpenHashSet();
-            this.subChunkRequestQueue.put(index, requests);
-        }
-        requests.add(subChunkY);
+        this.subChunkRequestQueue.computeIfAbsent(index, key -> new IntOpenHashSet())
+                .add(subChunkY);
         return true;
     }
 
     protected SubChunkPacket createSubChunkPacket() {
-        return this.protocol < AbstractProtocol.PROTOCOL_118_10.getProtocolStart() ? new SubChunkPacket() : new SubChunkPacket11810();
+        return /*this.protocol < AbstractProtocol.PROTOCOL_118_10.getProtocolStart() ? new SubChunkPacket() :*/ new SubChunkPacket11810();
     }
 
     protected LevelChunkPacket createLevelChunkPacket() {
         return this.protocol < AbstractProtocol.PROTOCOL_120_60.getProtocolStart() ? new LevelChunkPacket() : new LevelChunkPacket12060();
     }
 
-    public boolean isDimensionChangingSystemEnabled() {
-        return USE_CHANGE_DIMENSION_PACKET && this.isSubChunkRequestAvailable();
-    }
-
-    @Override
-    protected boolean onLevelSwitch() {
-        if (this.isNeedLevelChangeLoadScreen()) {
-            return super.onLevelSwitch();
-        }
-        if (this.isDimensionChangingSystemEnabled() && !this.dimensionChanging) {
-            this.dimensionChanging = true;
-//            this.dimensionBack = false;
-            this.dimensionRequestedChunkCount = 0;
-            this.dimensionNeedingChunk = Math.min(chunkRadius * chunkRadius, 20);
-
-            ChangeDimensionPacket pk0 = new ChangeDimensionPacket();
-            pk0.dimension = Level.DIMENSION_NETHER;
-            pk0.x = (float) this.x;
-            pk0.y = (float) this.y + this.getBaseOffset();
-            pk0.z = (float) this.z;
-//            pk0.respawn = true;
-            this.dataPacket(pk0);
-
-            int centerChunkX = this.getChunkX();
-            int centerChunkZ = this.getChunkZ();
-            Vector2 chunkPos2d = new Vector2(centerChunkX, centerChunkZ);
-            List<LevelChunkPacket> packets = new ObjectArrayList<>();
-            int count = 0;
-            for (int x = -chunkRadius; x < chunkRadius; x++) {
-                for (int z = -chunkRadius; z < chunkRadius; z++) {
-                    int chunkX = centerChunkX + x;
-                    int chunkZ = centerChunkZ + z;
-                    if (chunkPos2d.distance(chunkX, chunkZ) > chunkRadius) {
-                        continue; // round
-                    }
-                    ++count;
-                    boolean centerChunk = !this.isNeedLevelChangeLoadScreen() && centerChunkX == chunkX && centerChunkZ == chunkZ;
-
-                    LevelChunkPacket packet = new LevelChunkPacket();
-                    packet.chunkX = chunkX;
-                    packet.chunkZ = chunkZ;
-//                    packet.subChunkCount = 0;
-                    if (ENABLE_SUB_CHUNK_NETWORK_OPTIMIZATION && this.protocol >= AbstractProtocol.PROTOCOL_118_10.getProtocolStart()) {
-                        packet.subChunkCount = LevelChunkPacket.CLIENT_REQUEST_TRUNCATED_COLUMN_FAKE_COUNT;
-                    } else {
-                        packet.subChunkCount = LevelChunkPacket.CLIENT_REQUEST_FULL_COLUMN_FAKE_COUNT;
-                    }
-                    packet.subChunkRequestLimit = 0;
-                    if (false && this.isBlobCacheAvailable() && !centerChunk) {
-                        this.clientCacheTrack.put(MINIMIZE_BIOME_PALETTES_HASH, new BlobTrack(MINIMIZE_BIOME_PALETTES_HASH, MINIMIZE_BIOME_PALETTES));
-                        packet.cacheEnabled = true;
-                        packet.blobIds = new long[]{MINIMIZE_BIOME_PALETTES_HASH};
-                        packet.data = new byte[1]; // borderBlocks
-                    } else {
-                        packet.data = MINIMIZE_CHUNK_DATA_NO_CACHE;
-                    }
-                    packets.add(packet);
-
-                    this.dimensionWaitingChunks.add(Level.chunkHash(chunkX, chunkZ));
-                }
-            }
-            this.dimensionNeedingChunk = Math.min(count, this.dimensionNeedingChunk);
-            packets.sort(this.chunkPacketComparator);
-            packets.forEach(packet -> {
-                this.noticeChunkPublisherUpdate();
-                this.dataPacket(packet);
-            });
-
-            /*RespawnPacket pkk0 = new RespawnPacket();
-            pkk0.x = pos.x;
-            pkk0.y = pos.y;
-            pkk0.z = pos.z;
-            pkk0.runtimeEntityId = this.getId();
-            pkk0.respawnState = RespawnPacket.STATE_SEARCHING_FOR_SPAWN;
-            this.dataPacket(pkk0);
-
-            RespawnPacket pkk1 = new RespawnPacket();
-            pkk1.x = pos.x;
-            pkk1.y = pos.y;
-            pkk1.z = pos.z;
-            pkk1.runtimeEntityId = this.getId();
-            pkk1.respawnState = RespawnPacket.STATE_CLIENT_READY_TO_SPAWN;
-            this.dataPacket(pkk1);
-
-            SetHealthPacket pk = new SetHealthPacket();
-            pk.health = 20;
-            this.dataPacket(pk);*/
-
-            this.sendPosition(this, this.yaw, this.pitch, MovePlayerPacket.MODE_RESPAWN);
-
-            if (getProtocol() >= AbstractProtocol.PROTOCOL_119_50.getProtocolStart()) {
-                PlayerActionPacket119 ackPacket = new PlayerActionPacket119();
-                ackPacket.action = PlayerActionPacket.ACTION_DIMENSION_CHANGE_ACK;
-                ackPacket.entityId = getId();
-                ackPacket.x = getFloorX();
-                ackPacket.y = getFloorY();
-                ackPacket.z = getFloorZ();
-                ackPacket.resultX = ackPacket.x;
-                ackPacket.resultY = ackPacket.y;
-                ackPacket.resultZ = ackPacket.z;
-                dataPacket(ackPacket);
-            }
-
-//            this.setImmobile(true);
-            this.changeDimensionImmobile = true;
-            this.changeDimensionPosition = this.getPosition();
-
-            long timeout = System.currentTimeMillis() + 7 * 1000;
-            this.changeDimensionTimeout = timeout;
-            this.changeDimensionAckTimeout = timeout;
-            return true;
-        }
-        return false;
-    }
-
-    protected void changeDimensionToOverworld() {
-        this.dimensionWaitingChunks.clear();
-        this.dimensionRequestedChunkCount = 0;
-        this.dimensionBack = true;
-        this.dimensionNeedBackAck = true;
-
-        ChangeDimensionPacket pk1 = new ChangeDimensionPacket();
-        pk1.dimension = Level.DIMENSION_OVERWORLD;
-        pk1.x = (float) this.x;
-        pk1.y = (float) this.y + this.getBaseOffset();
-        pk1.z = (float) this.z;
-//        pk1.respawn = true;
-        this.dataPacket(pk1);
-
-        int centerChunkX = this.getChunkX();
-        int centerChunkZ = this.getChunkZ();
-        Vector2 chunkPos2d = new Vector2(centerChunkX, centerChunkZ);
-        List<LevelChunkPacket> packets = new ObjectArrayList<>();
-        for (int x = -chunkRadius; x < chunkRadius; x++) {
-            for (int z = -chunkRadius; z < chunkRadius; z++) {
-                int chunkX = centerChunkX + x;
-                int chunkZ = centerChunkZ + z;
-                if (chunkPos2d.distance(chunkX, chunkZ) > chunkRadius) {
-                    continue; // round
-                }
-                boolean centerChunk = !this.isNeedLevelChangeLoadScreen() && centerChunkX == chunkX && centerChunkZ == chunkZ;
-                if (centerChunk) {
-                    continue;
-                }
-
-                LevelChunkPacket packet = new LevelChunkPacket();
-                packet.chunkX = chunkX;
-                packet.chunkZ = chunkZ;
-//                packet.subChunkCount = 0;
-                if (ENABLE_SUB_CHUNK_NETWORK_OPTIMIZATION && this.protocol >= AbstractProtocol.PROTOCOL_118_10.getProtocolStart()) {
-                    packet.subChunkCount = LevelChunkPacket.CLIENT_REQUEST_TRUNCATED_COLUMN_FAKE_COUNT;
-                } else {
-                    packet.subChunkCount = LevelChunkPacket.CLIENT_REQUEST_FULL_COLUMN_FAKE_COUNT;
-                }
-                packet.subChunkRequestLimit = 0;
-                if (false && this.isBlobCacheAvailable() && !centerChunk) {
-                    this.clientCacheTrack.put(MINIMIZE_BIOME_PALETTES_HASH, new BlobTrack(MINIMIZE_BIOME_PALETTES_HASH, MINIMIZE_BIOME_PALETTES));
-                    packet.cacheEnabled = true;
-                    packet.blobIds = new long[]{MINIMIZE_BIOME_PALETTES_HASH};
-                    packet.data = new byte[1]; // borderBlocks
-                } else {
-                    packet.data = MINIMIZE_CHUNK_DATA_NO_CACHE;
-                }
-                packets.add(packet);
-
-//                this.dimensionWaitingChunks.add(Level.chunkHash(chunkX, chunkZ));
-            }
-        }
-        packets.sort(this.chunkPacketComparator);
-        packets.forEach(packet -> {
-            this.noticeChunkPublisherUpdate();
-            this.dataPacket(packet);
-        });
-
-        /*RespawnPacket pkk0 = new RespawnPacket();
-        pkk0.x = pos.x;
-        pkk0.y = pos.y;
-        pkk0.z = pos.z;
-        pkk0.runtimeEntityId = this.getId();
-        pkk0.respawnState = RespawnPacket.STATE_SEARCHING_FOR_SPAWN;
-        this.dataPacket(pkk0);
-
-        RespawnPacket pkk1 = new RespawnPacket();
-        pkk1.x = pos.x;
-        pkk1.y = pos.y;
-        pkk1.z = pos.z;
-        pkk1.runtimeEntityId = this.getId();
-        pkk1.respawnState = RespawnPacket.STATE_CLIENT_READY_TO_SPAWN;
-        this.dataPacket(pkk1);
-
-        SetHealthPacket pk = new SetHealthPacket();
-        pk.health = 20;
-        this.dataPacket(pk);*/
-
-        this.sendPosition(this, this.yaw, this.pitch, MovePlayerPacket.MODE_RESPAWN);
-
-        if (getProtocol() >= AbstractProtocol.PROTOCOL_119_50.getProtocolStart()) {
-            PlayerActionPacket119 ackPacket = new PlayerActionPacket119();
-            ackPacket.action = PlayerActionPacket.ACTION_DIMENSION_CHANGE_ACK;
-            ackPacket.entityId = getId();
-            ackPacket.x = getFloorX();
-            ackPacket.y = getFloorY();
-            ackPacket.z = getFloorZ();
-            ackPacket.resultX = ackPacket.x;
-            ackPacket.resultY = ackPacket.y;
-            ackPacket.resultZ = ackPacket.z;
-            dataPacket(ackPacket);
-        }
-
-        this.removeAllChunks();
-        this.usedChunks = new Long2BooleanOpenHashMap();
-
-        this.changeDimensionPosition = null;
-        this.changeDimensionBackTimeout = System.currentTimeMillis() + 15 * 1000;
-    }
-
     @Override
     protected void onDimensionChangeSuccess() {
-        this.changeDimensionAckTimeout = -1;
-        if (this.dimensionBack) {
-            this.dimensionBack = false;
-            this.changeDimensionBackTimeout = -1;
-
-            if (this.changeDimensionImmobile) {
-                this.changeDimensionImmobile = false;
-//                this.setImmobile(false);
-            }
-        }
 //        log.info("dimension change success: {}", this);
     }
 
@@ -2878,76 +2520,6 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
                 if (onGround && isGliding()) {
                     setGliding(false);
                 }
-            }
-
-            if (this.changeDimensionPosition != null && currentTick % 10 == 0) {
-//                this.sendPosition(this.changeDimensionPosition, this.yaw, this.pitch, MovePlayerPacket.MODE_TELEPORT);
-            }
-
-            long time = System.currentTimeMillis();
-
-            if (this.changeDimensionBackTimeout != -1 && time > this.changeDimensionBackTimeout) {
-//                this.changeDimensionTimeout = -1;
-//                this.changeDimensionToOverworld();
-            }
-
-            if (this.changeDimensionTimeout != -1 && time > this.changeDimensionTimeout) {
-                this.changeDimensionTimeout = -1;
-                this.changeDimensionToOverworld();
-            }
-
-            if (this.changeDimensionAckTimeout != -1 && time > this.changeDimensionAckTimeout) {
-                this.changeDimensionAckTimeout = time + 7 * 1000;
-
-                int centerChunkX = this.getChunkX();
-                int centerChunkZ = this.getChunkZ();
-                Vector2 chunkPos2d = new Vector2(centerChunkX, centerChunkZ);
-                List<LevelChunkPacket> packets = new ObjectArrayList<>();
-                for (int x = -chunkRadius; x < chunkRadius; x++) {
-                    for (int z = -chunkRadius; z < chunkRadius; z++) {
-                        int chunkX = centerChunkX + x;
-                        int chunkZ = centerChunkZ + z;
-                        if (chunkPos2d.distance(chunkX, chunkZ) > chunkRadius) {
-                            continue; // round
-                        }
-                        boolean centerChunk = !this.isNeedLevelChangeLoadScreen() && centerChunkX == chunkX && centerChunkZ == chunkZ;
-                        if (centerChunk) {
-                            continue;
-                        }
-
-                        LevelChunkPacket packet = new LevelChunkPacket();
-                        packet.chunkX = chunkX;
-                        packet.chunkZ = chunkZ;
-//                        packet.subChunkCount = 0;
-                        if (ENABLE_SUB_CHUNK_NETWORK_OPTIMIZATION && this.protocol >= AbstractProtocol.PROTOCOL_118_10.getProtocolStart()) {
-                            packet.subChunkCount = LevelChunkPacket.CLIENT_REQUEST_TRUNCATED_COLUMN_FAKE_COUNT;
-                        } else {
-                            packet.subChunkCount = LevelChunkPacket.CLIENT_REQUEST_FULL_COLUMN_FAKE_COUNT;
-                        }
-                        packet.subChunkRequestLimit = 0;
-                        if (false && this.isBlobCacheAvailable() && !centerChunk) {
-                            this.clientCacheTrack.put(MINIMIZE_BIOME_PALETTES_HASH, new BlobTrack(MINIMIZE_BIOME_PALETTES_HASH, MINIMIZE_BIOME_PALETTES));
-                            packet.cacheEnabled = true;
-                            packet.blobIds = new long[]{MINIMIZE_BIOME_PALETTES_HASH};
-                            packet.data = new byte[1]; // borderBlocks
-                        } else {
-                            packet.data = MINIMIZE_CHUNK_DATA_NO_CACHE;
-                        }
-                        packets.add(packet);
-
-//                        this.dimensionWaitingChunks.add(Level.chunkHash(chunkX, chunkZ));
-                    }
-                }
-                packets.sort(this.chunkPacketComparator);
-                packets.forEach(packet -> {
-                    this.noticeChunkPublisherUpdate();
-                    this.dataPacket(packet);
-                });
-
-                this.sendPosition(this, this.yaw, this.pitch, MovePlayerPacket.MODE_RESPAWN);
-
-                this.removeAllChunks();
-                this.usedChunks = new Long2BooleanOpenHashMap();
             }
         }
         return super.onUpdate(currentTick);
@@ -3218,8 +2790,7 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
 
         DimensionDataPacket11830 packet = new DimensionDataPacket11830();
         packet.definitions = new DimensionDefinition[]{
-                //TODO: 无需填充负数子区块, 子区块从0开始共16个. (需加载一个1.18.0+的行为包)
-                new DimensionDefinition(DimensionDataPacket11830.VANILLA_OVERWORLD.identifier, 256, 0, Generator.TYPE_VOID),
+                new DimensionDefinition(DimensionDataPacket11830.VANILLA_OVERWORLD.identifier, 320, -64, Generator.TYPE_VOID),
                 new DimensionDefinition(DimensionDataPacket11830.VANILLA_NETHER.identifier, 0, 0, Generator.TYPE_VOID),
                 new DimensionDefinition(DimensionDataPacket11830.VANILLA_THE_END.identifier, 0, 0, Generator.TYPE_VOID),
         };

@@ -132,7 +132,7 @@ public class CreativeItemsPalette {
         List<Item> result = new ObjectArrayList<>();
         Config config = new Config(Config.JSON);
         config.load(SynapseAPI.class.getClassLoader().getResourceAsStream(file));
-        List<Map> list = config.getMapList("items");
+        List<Map<?, ?>> list = config.getMapList("items");
 
         for (Map map : list) {
             try {

@@ -67,7 +67,11 @@ public class SynapsePlayer14 extends SynapsePlayer {
 			this.protocol = packet.protocol;
 
 			try {
-				DataPacket pk = PacketRegister.getFullPacket(packet.cachedLoginPacket, packet.protocol);
+				DataPacket pk = packet.decodedLoginPacket;
+				if (pk == null) {
+					close();
+					return;
+				}
 				if (pk instanceof org.itxtech.synapseapi.multiprotocol.protocol14.protocol.LoginPacket14) {
 					((org.itxtech.synapseapi.multiprotocol.protocol14.protocol.LoginPacket14) pk).isFirstTimeLogin = packet.isFirstTime;
 					((org.itxtech.synapseapi.multiprotocol.protocol14.protocol.LoginPacket14) pk).username = packet.extra.get("username").getAsString();

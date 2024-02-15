@@ -8,6 +8,8 @@ import cn.nukkit.entity.Entity;
 import cn.nukkit.level.Level;
 import cn.nukkit.level.Position;
 import cn.nukkit.level.format.generic.ChunkBlobCache;
+import cn.nukkit.level.format.generic.ChunkCachedData;
+import cn.nukkit.level.format.generic.ChunkPacketCache;
 import cn.nukkit.network.SourceInterface;
 import cn.nukkit.network.protocol.DataPacket;
 import cn.nukkit.network.protocol.LevelChunkPacket;
@@ -24,7 +26,6 @@ import org.itxtech.synapseapi.multiprotocol.protocol112.protocol.ClientCacheStat
 import org.itxtech.synapseapi.multiprotocol.protocol112.protocol.StartGamePacket112;
 import org.itxtech.synapseapi.multiprotocol.protocol18.protocol.BiomeDefinitionListPacket18;
 import org.itxtech.synapseapi.multiprotocol.utils.BiomeDefinitions;
-import org.itxtech.synapseapi.network.protocol.spp.PlayerLoginPacket;
 import org.itxtech.synapseapi.utils.BlobTrack;
 
 import java.net.InetSocketAddress;
@@ -111,9 +112,9 @@ public class SynapsePlayer112 extends SynapsePlayer19 {
 	}
 
 	@Override
-	public void sendChunk(int x, int z, int subChunkCount, ChunkBlobCache blobCache, DataPacket packet) {
-		if (!this.isBlobCacheAvailable() || blobCache == null || this.isBlobCacheDisabled()) {
-			super.sendChunk(x, z, subChunkCount, blobCache, packet);
+	public void sendChunk(int x, int z, int subChunkCount, ChunkCachedData cachedData, DataPacket packet) {
+		if (!this.isBlobCacheAvailable() || this.isBlobCacheDisabled()) {
+			super.sendChunk(x, z, subChunkCount, cachedData, packet);
 		} else {
 			if (!this.connected) {
 				return;
@@ -121,26 +122,12 @@ public class SynapsePlayer112 extends SynapsePlayer19 {
 			this.noticeChunkPublisherUpdate();
 			long chunkHash = Level.chunkHash(x, z);
 
-			long[] blobIds;
-			Long2ObjectMap<byte[]> blobs;
-			if (this.isExtendedLevel()) {
-//				subChunkCount += Anvil.PADDING_SUB_CHUNK_COUNT;
-				if (this.getProtocol() >= AbstractProtocol.PROTOCOL_118_30.getProtocolStart()) {
-					blobIds = blobCache.getExtendedBlobIdsNew();
-					blobs = blobCache.getExtendedClientBlobsNew();
-				} else {
-					blobIds = blobCache.getExtendedBlobIds();
-					blobs = blobCache.getExtendedClientBlobs();
-				}
-			} else {
-				blobIds = blobCache.getBlobIds();
-				blobs = blobCache.getClientBlobs();
-			}
+			ChunkBlobCache blobCache = cachedData.getBlobCache();
+			long[] blobIds = blobCache.getBlobIds();
+			Long2ObjectMap<byte[]> blobs = blobCache.getBlobs();
 
 			this.usedChunks.put(chunkHash, true);
 			this.chunkLoadCount++;
-
-			LevelChunkPacket pk = new LevelChunkPacket();
 
 			ObjectIterator<Long2ObjectMap.Entry<byte[]>> iter = Long2ObjectMaps.fastIterator(blobs);
 			while (iter.hasNext()) {
@@ -149,27 +136,17 @@ public class SynapsePlayer112 extends SynapsePlayer19 {
 				clientCacheTrack.put(hash, new BlobTrack(hash, entry.getValue()));
 			}
 
-			/*
-			List<String> dump = new ArrayList<>();
-			for (long blobId : blobIds) {
-				dump.add(Binary.bytesToHexString(Binary.writeLLong(blobId)));
-			}
-			this.getServer().getLogger().warning("[ClientCache] put=" + Arrays.toString(dump.toArray()));
-			*/
-
+			LevelChunkPacket pk = new LevelChunkPacket();
 			pk.chunkX = x;
 			pk.chunkZ = z;
 			pk.subChunkCount = subChunkCount;
 			pk.cacheEnabled = true;
 			pk.blobIds = blobIds;
-			pk.data = blobCache.getFullChunkCachedPayload();
+			pk.data = blobCache.getFullChunkPayload();
 			pk.setReliability(RakNetReliability.RELIABLE_ORDERED);
-
 			this.dataPacket(pk);
 
 			this.sendQueuedChunk = false;
-
-			//chunkDebug = true;
 
 			for (BlockEntity blockEntity : this.level.getChunkBlockEntities(x, z).values()) {
 				if (!(blockEntity instanceof BlockEntitySpawnable)) {
@@ -198,7 +175,7 @@ public class SynapsePlayer112 extends SynapsePlayer19 {
 	}
 
 	@Override
-	public void sendChunk(int x, int z, int subChunkCount, ChunkBlobCache blobCache, byte[] payload, byte[] subModePayload) {
+	public void sendChunk(int x, int z, int subChunkCount, ChunkCachedData cachedData, byte[] payload, byte[] subModePayload) {
 		if (!this.connected) {
 			return;
 		}
@@ -212,26 +189,13 @@ public class SynapsePlayer112 extends SynapsePlayer19 {
 
 		boolean centerChunk = this.getChunkX() == x && this.getChunkZ() == z;
 		if (centerChunk) {
-			//this.getServer().getLogger().debug("Send self chunk (payload) " + x + ":" + z + " pos=" + this.x + "," + this.y + "," + this.z + " teleportPos=" + teleportPosition);
 			this.teleportChunkLoaded = true;
 		}
 
-		if (this.isBlobCacheAvailable() && blobCache != null && (!centerChunk || !CENTER_CHUNK_WITHOUT_CACHE) && !this.isBlobCacheDisabled()) {
-			long[] blobIds;
-			Long2ObjectMap<byte[]> blobs;
-			if (this.isExtendedLevel()) {
-//				subChunkCount += Anvil.PADDING_SUB_CHUNK_COUNT;
-				if (this.getProtocol() >= AbstractProtocol.PROTOCOL_118_30.getProtocolStart()) {
-					blobIds = blobCache.getExtendedBlobIdsNew();
-					blobs = blobCache.getExtendedClientBlobsNew();
-				} else {
-					blobIds = blobCache.getExtendedBlobIds();
-					blobs = blobCache.getExtendedClientBlobs();
-				}
-			} else {
-				blobIds = blobCache.getBlobIds();
-				blobs = blobCache.getClientBlobs();
-			}
+		if (this.isBlobCacheAvailable() && (!centerChunk || !CENTER_CHUNK_WITHOUT_CACHE) && !this.isBlobCacheDisabled()) {
+			ChunkBlobCache blobCache = cachedData.getBlobCache();
+			long[] blobIds = blobCache.getBlobIds();
+			Long2ObjectMap<byte[]> blobs = blobCache.getBlobs();
 
 			ObjectIterator<Long2ObjectMap.Entry<byte[]>> iter = Long2ObjectMaps.fastIterator(blobs);
 			while (iter.hasNext()) {
@@ -245,7 +209,7 @@ public class SynapsePlayer112 extends SynapsePlayer19 {
 			pk.subChunkCount = subChunkCount;
 			pk.cacheEnabled = true;
 			pk.blobIds = blobIds;
-			pk.data = blobCache.getFullChunkCachedPayload();
+			pk.data = blobCache.getFullChunkPayload();
 			pk.setReliability(RakNetReliability.RELIABLE_ORDERED);
 
 			this.sendQueuedChunk = false;
@@ -435,10 +399,6 @@ public class SynapsePlayer112 extends SynapsePlayer19 {
 	}
 
 	public boolean isBlobCacheDisabled() {
-		return false;
-	}
-
-	protected boolean isExtendedLevel() {
 		return false;
 	}
 }

@@ -1,13 +1,17 @@
 package org.itxtech.synapseapi.network.protocol.spp;
 
+import cn.nukkit.network.protocol.DataPacket;
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;
+import lombok.extern.log4j.Log4j2;
+import org.itxtech.synapseapi.multiprotocol.PacketRegister;
 
 import java.util.UUID;
 
 /**
  * Created by boybook on 16/6/24.
  */
+@Log4j2
 public class PlayerLoginPacket extends SynapseDataPacket {
     private static final Gson GSON = new Gson();
 
@@ -21,6 +25,8 @@ public class PlayerLoginPacket extends SynapseDataPacket {
     public byte[] cachedLoginPacket;
 
     public JsonObject extra = new JsonObject();
+
+    public DataPacket decodedLoginPacket;
 
     @Override
     public byte pid() {
@@ -49,5 +55,15 @@ public class PlayerLoginPacket extends SynapseDataPacket {
         this.isFirstTime = this.getBoolean();
         this.cachedLoginPacket = this.get((int) this.getUnsignedVarInt());
         this.extra = GSON.fromJson(this.getString(), JsonObject.class);
+
+        tryDecodeLoginPacket();
+    }
+
+    private void tryDecodeLoginPacket() {
+        try {
+            decodedLoginPacket = PacketRegister.getFullPacket(cachedLoginPacket, protocol, false);
+        } catch (Exception e) {
+            log.throwing(e);
+        }
     }
 }

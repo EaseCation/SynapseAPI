@@ -38,6 +38,8 @@ import static cn.nukkit.GameVersion.*;
 
 @Log4j2
 public final class VanillaBlockUpgrader {
+    private static final int ALLOWED_VERSION = (1 << 24) | (18 << 16) | (0 << 8) | (0 << 0); //TODO: Chunker.app temporary HACK
+
     private static final Map<GameVersion, List<BlockUpgradeSchema>> SCHEMAS = new EnumMap<>(GameVersion.class);
     private static final List<BlockUpgradeSchema> UPGRADE_SCHEMAS = new ObjectArrayList<>();
     private static int CURRENT_VERSION;
@@ -71,7 +73,8 @@ public final class VanillaBlockUpgrader {
 
     public static void upgrade(CompoundTag tag, List<BlockUpgradeSchema> schemas) {
         int version = tag.getInt("version");
-        if (version > CURRENT_VERSION) {
+//        if (version > CURRENT_VERSION) {
+        if (version > ALLOWED_VERSION) {
             log.warn("Unsupported blockstate version: {}", version);
             return;
         }

@@ -11,6 +11,7 @@ public class NPCDialoguePlayerHandler {
     private NPCDialogueScene currentScene;
     private String currentSceneName;
     private Entity currentEntity;
+    private String currentNpcName;
     private int lastDialogueTick;
 
     public NPCDialoguePlayerHandler(SynapsePlayer player) {
@@ -34,7 +35,7 @@ public class NPCDialoguePlayerHandler {
         }
         this.currentSceneName = scene.getSceneName();
         this.currentScene = scene;
-        scene.sendTo(player, currentEntity.getId(), currentEntity.getName());
+        scene.sendTo(player, currentEntity.getId(), currentNpcName);
     }
 
     public void openDialogue(NPCDialogueScene scene, Entity entity) {
@@ -45,6 +46,7 @@ public class NPCDialoguePlayerHandler {
         this.currentSceneName = scene.getSceneName();
         this.currentScene = scene;
         this.currentEntity = entity;
+        this.currentNpcName = name;
         scene.sendTo(player, entity.getId(), name);
         this.lastDialogueTick = Server.getInstance().getTick();
     }
@@ -63,7 +65,7 @@ public class NPCDialoguePlayerHandler {
                     button.getClickCallback().accept(this);
                 }
                 if (button.isForceCloseOnClick()) {
-                    this.currentScene.close(player, currentEntity.getId(), currentEntity.getName());
+                    this.currentScene.close(player, currentEntity.getId(), currentNpcName);
                 }
             }
         } catch (ArrayIndexOutOfBoundsException e) {
