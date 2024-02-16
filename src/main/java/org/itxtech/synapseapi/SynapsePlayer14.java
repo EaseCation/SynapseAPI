@@ -25,21 +25,17 @@ import cn.nukkit.resourcepacks.ResourcePack;
 import cn.nukkit.scheduler.AsyncTask;
 import cn.nukkit.utils.Binary;
 import cn.nukkit.utils.DummyBossBar;
+import cn.nukkit.utils.LoginChainData;
 import cn.nukkit.utils.MainLogger;
 import cn.nukkit.utils.TextFormat;
 import com.google.gson.JsonPrimitive;
 import org.itxtech.synapseapi.event.player.SynapsePlayerConnectEvent;
 import org.itxtech.synapseapi.multiprotocol.AbstractProtocol;
-import org.itxtech.synapseapi.multiprotocol.PacketRegister;
 import org.itxtech.synapseapi.multiprotocol.common.BuildPlatform;
 import org.itxtech.synapseapi.multiprotocol.protocol119.protocol.PlayerActionPacket119;
-import org.itxtech.synapseapi.multiprotocol.protocol12.utils.ClientChainData12;
-import org.itxtech.synapseapi.multiprotocol.protocol12.utils.ClientChainData12NetEase;
-import org.itxtech.synapseapi.multiprotocol.protocol12.utils.ClientChainData12Urgency;
 import org.itxtech.synapseapi.multiprotocol.protocol14.protocol.*;
 import org.itxtech.synapseapi.multiprotocol.protocol15.protocol.MoveEntityAbsolutePacket15;
 import org.itxtech.synapseapi.network.protocol.spp.PlayerLoginPacket;
-import org.itxtech.synapseapi.utils.ClientChainDataXbox;
 
 import java.net.InetSocketAddress;
 import java.util.Arrays;
@@ -130,23 +126,13 @@ public class SynapsePlayer14 extends SynapsePlayer {
 
 				this.setDataProperty(new StringEntityData(DATA_NAMETAG, this.username), false);
 
-				setLoginChainData(ClientChainData12NetEase.of(loginPacket.getBuffer()));
-				if (this.loginChainData.getClientUUID() != null) { // 网易认证通过！
-					this.isNetEaseClient = true;
-					this.getServer().getLogger().notice(this.username + TextFormat.RED + " 中国版验证通过！");
-				} else if (DEBUG_ENVIRONMENT && !ClientChainDataXbox.of(loginPacket.getBuffer()).isXboxAuthed() && username.startsWith("netease")) { // 国际版验证失败, 特定前缀玩家名解析为中国版 (仅限调试环境)
-					this.isNetEaseClient = true;
-					this.getServer().getLogger().notice(this.username + TextFormat.RED + " Xbox验证未通过！");
-				} else { // 国际版普通认证
-					try {
-						this.getServer().getLogger().notice(this.username + TextFormat.YELLOW + " 正在解析为国际版！");
-						setLoginChainData(ClientChainData12.of(loginPacket.getBuffer()));
-					} catch (Exception e) {
-						this.getServer().getLogger()
-								.notice(this.username + TextFormat.RED + " 解析时出现问题，采用紧急解析方案！", e);
-						setLoginChainData(ClientChainData12Urgency.of(loginPacket.getBuffer()));
-					}
+				LoginChainData chainData = loginPacket.decodedLoginChainData;
+				if (chainData == null) {
+					this.close("", "disconnectionScreen.notAuthenticated");
+					break;
 				}
+				setLoginChainData(chainData);
+				this.isNetEaseClient = loginPacket.netEaseClient;
 
 				if (isNetEaseClient()) {
 					int buildPlatform = loginChainData.getDeviceOS();

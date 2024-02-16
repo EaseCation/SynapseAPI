@@ -4,10 +4,12 @@ import cn.nukkit.Server;
 import cn.nukkit.entity.data.Skin;
 import cn.nukkit.network.protocol.ProtocolInfo;
 import cn.nukkit.utils.JsonUtil;
+import cn.nukkit.utils.LoginChainData;
 import cn.nukkit.utils.PersonaPiece;
 import cn.nukkit.utils.PersonaPieceTint;
 import cn.nukkit.utils.SerializedImage;
 import cn.nukkit.utils.SkinAnimation;
+import cn.nukkit.utils.TextFormat;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
@@ -16,6 +18,11 @@ import com.google.gson.JsonObject;
 import com.netease.mc.authlib.TokenChainEC;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import lombok.ToString;
+import lombok.extern.log4j.Log4j2;
+import org.itxtech.synapseapi.multiprotocol.protocol12.utils.ClientChainData12;
+import org.itxtech.synapseapi.multiprotocol.protocol12.utils.ClientChainData12NetEase;
+import org.itxtech.synapseapi.multiprotocol.protocol12.utils.ClientChainData12Urgency;
+import org.itxtech.synapseapi.utils.ClientChainDataXbox;
 
 import java.nio.charset.StandardCharsets;
 import java.util.*;
@@ -23,8 +30,11 @@ import java.util.*;
 /**
  * Created by on 15-10-13.
  */
+@Log4j2
 @ToString
 public class LoginPacket14 extends Packet14 {
+    private static final boolean DEBUG_ENVIRONMENT = Boolean.getBoolean("easecation.debugging");
+
     private static final TypeReference<Map<String, List<String>>> CHAIN_DATA_TYPE_REFERENCE = new TypeReference<Map<String, List<String>>>() {
     };
 
@@ -43,6 +53,9 @@ public class LoginPacket14 extends Packet14 {
 
     public Skin skin;
 
+    public LoginChainData decodedLoginChainData;
+    public boolean netEaseClient;
+
     @Override
     public int pid() {
         return NETWORK_ID;
@@ -57,6 +70,38 @@ public class LoginPacket14 extends Packet14 {
             decodeSkinData();
         } catch (JsonProcessingException e) {
             throw new RuntimeException("broken json", e);
+        }
+
+        tryDecodeLoginChainData();
+    }
+
+    public void tryDecodeLoginChainData() {
+        try {
+            byte[] buffer = getBuffer();
+
+            decodedLoginChainData = ClientChainData12NetEase.of(buffer);
+            if (decodedLoginChainData.getClientUUID() != null) { // 网易认证通过！
+                this.netEaseClient = true;
+                log.warn("[Login] " + this.username + TextFormat.RED + " 中国版验证通过！");
+                return;
+            }
+
+            if (DEBUG_ENVIRONMENT && !ClientChainDataXbox.of(buffer).isXboxAuthed() && username.startsWith("netease")) { // 国际版验证失败, 特定前缀玩家名解析为中国版 (仅限调试环境)
+                this.netEaseClient = true;
+                log.warn("[Login] " + this.username + TextFormat.BLUE + " Xbox验证未通过！");
+                return;
+            }
+
+            try { // 国际版普通认证
+                log.warn("[Login] " + this.username + TextFormat.GREEN + " 正在解析为国际版！");
+                decodedLoginChainData = ClientChainData12.of(buffer);
+            } catch (Exception e) {
+                log.warn("[Login] " + this.username + TextFormat.YELLOW + " 解析时出现问题，采用紧急解析方案！", e);
+                decodedLoginChainData = ClientChainData12Urgency.of(buffer);
+            }
+        } catch (Exception e) {
+            decodedLoginChainData = null;
+            log.throwing(e);
         }
     }
 
