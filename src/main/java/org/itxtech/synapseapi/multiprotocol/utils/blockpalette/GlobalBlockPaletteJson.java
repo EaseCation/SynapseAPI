@@ -36,7 +36,7 @@ public class GlobalBlockPaletteJson implements AdvancedGlobalBlockPaletteInterfa
     }
 
     public GlobalBlockPaletteJson(AbstractProtocol protocol, PaletteBlockTable blockTable, String itemDataPaletteJsonFile) {
-        log.info("Loading Advanced Global Block Palette from PaletteBlockTable(old json) for {}", protocol);
+        log.debug("Loading Advanced Global Block Palette from PaletteBlockTable(old json) for {}", protocol);
         legacyToRuntimeId.defaultReturnValue(-1);
         runtimeIdToLegacy.defaultReturnValue(-1);
 
@@ -69,7 +69,7 @@ public class GlobalBlockPaletteJson implements AdvancedGlobalBlockPaletteInterfa
     }
 
     public GlobalBlockPaletteJson(AbstractProtocol protocol, String blockPaletteFile, String itemDataPaletteJsonFile) {
-        Server.getInstance().getLogger().info("Loading Advanced Global Block Palette from " + blockPaletteFile);
+        Server.getInstance().getLogger().debug("Loading Advanced Global Block Palette from " + blockPaletteFile);
         legacyToRuntimeId.defaultReturnValue(-1);
         runtimeIdToLegacy.defaultReturnValue(-1);
 

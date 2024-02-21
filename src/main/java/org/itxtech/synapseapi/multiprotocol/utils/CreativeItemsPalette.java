@@ -128,7 +128,7 @@ public class CreativeItemsPalette {
 
     @SuppressWarnings("unchecked")
     private static List<Item> load(String file, boolean ignoreUnsupported) {
-        Server.getInstance().getLogger().info("Loading Creative Items Palette from " + file);
+        Server.getInstance().getLogger().debug("Loading Creative Items Palette from " + file);
         List<Item> result = new ObjectArrayList<>();
         Config config = new Config(Config.JSON);
         config.load(SynapseAPI.class.getClassLoader().getResourceAsStream(file));

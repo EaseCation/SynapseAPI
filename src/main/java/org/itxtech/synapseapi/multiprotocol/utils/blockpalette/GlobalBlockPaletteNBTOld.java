@@ -25,7 +25,7 @@ public class GlobalBlockPaletteNBTOld implements AdvancedGlobalBlockPaletteInter
     final byte[] itemDataPalette;
 
     public GlobalBlockPaletteNBTOld(AbstractProtocol protocol, PaletteBlockTable blockTable, String itemDataPaletteJsonFile) {
-        log.info("Loading Advanced Global Block Palette from PaletteBlockTable(old nbt) for {}", protocol);
+        log.debug("Loading Advanced Global Block Palette from PaletteBlockTable(old nbt) for {}", protocol);
         legacyToRuntimeId.defaultReturnValue(-1);
         runtimeIdToLegacy.defaultReturnValue(-1);
 

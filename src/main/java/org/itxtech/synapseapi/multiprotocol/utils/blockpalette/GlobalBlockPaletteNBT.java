@@ -46,7 +46,7 @@ public class GlobalBlockPaletteNBT implements AdvancedGlobalBlockPaletteInterfac
     private final Lock writeLock = readWriteLock.writeLock();
 
     public GlobalBlockPaletteNBT(AbstractProtocol protocol, PaletteBlockTable blockTable, String itemDataPaletteJsonFile, boolean allowUnknownBlock) {
-        log.info("Loading Advanced Global Block Palette from PaletteBlockTable(nbt) for {}. totalRuntimeIds {} remapSize {}", protocol, blockTable.totalRuntimeIds, blockTable.size());
+        log.debug("Loading Advanced Global Block Palette from PaletteBlockTable(nbt) for {}. totalRuntimeIds {} remapSize {}", protocol, blockTable.totalRuntimeIds, blockTable.size());
 
         totalRuntimeIds = Math.max(blockTable.totalRuntimeIds, blockTable.size());
         runtimeIdToLegacy = new int[totalRuntimeIds];
@@ -130,7 +130,7 @@ public class GlobalBlockPaletteNBT implements AdvancedGlobalBlockPaletteInterfac
     public GlobalBlockPaletteNBT(AbstractProtocol protocol, List<BlockData> palette, List<BlockProperty> properties) {
         this.allowUnknownBlock = true;
         totalRuntimeIds = palette.size();
-        log.info("Loading Advanced Global Block Palette from runtime mapping for {}. total {}", protocol, totalRuntimeIds);
+        log.debug("Loading Advanced Global Block Palette from runtime mapping for {}. total {}", protocol, totalRuntimeIds);
         runtimeIdToLegacy = new int[totalRuntimeIds];
         runtimeIdToState = new CompoundTag[totalRuntimeIds];
         Arrays.fill(runtimeIdToLegacy, -1);
