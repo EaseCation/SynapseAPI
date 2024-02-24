@@ -58,6 +58,7 @@ import java.net.InetSocketAddress;
 import java.util.*;
 import java.util.concurrent.ThreadLocalRandom;
 
+import static cn.nukkit.SharedConstants.EXPERIMENTAL_COMBAT_KNOCKBACK_TEST;
 import static org.itxtech.synapseapi.SynapseSharedConstants.SERVER_AUTHORITATIVE_BLOCK_BREAKING;
 import static org.itxtech.synapseapi.SynapseSharedConstants.SERVER_AUTHORITATIVE_MOVEMENT;
 
@@ -809,6 +810,12 @@ public class SynapsePlayer116 extends SynapsePlayer113 {
 				}
 				if ((inputFlags & (1L << PlayerAuthInputPacket116.FLAG_START_JUMPING)) != 0) {
 					this.server.getPluginManager().callEvent(new PlayerJumpEvent(this));
+
+					if (EXPERIMENTAL_COMBAT_KNOCKBACK_TEST && this.isSprinting()) {
+						this.motionX = playerAuthInputPacket.getDeltaX();
+						this.motionY = playerAuthInputPacket.getDeltaY();
+						this.motionZ = playerAuthInputPacket.getDeltaZ();
+					}
 				}
 				if ((inputFlags & (1L << PlayerAuthInputPacket116.FLAG_START_GLIDING)) != 0 && !this.isGliding()) {
 					PlayerToggleGlideEvent playerToggleGlideEvent = new PlayerToggleGlideEvent(this, true);
