@@ -23,7 +23,7 @@ public final class CraftingPacketManager {
     private static final Map<AbstractProtocol, BatchPacket[]> packets = new EnumMap<>(AbstractProtocol.class);
 
     public static void rebuildPacket() {
-        log.debug("Loading crafting data...");
+        log.debug("cache crafting data...");
 
         CraftingDataPacket pk = new CraftingDataPacket();
         pk.cleanRecipes = true;

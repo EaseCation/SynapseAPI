@@ -277,6 +277,19 @@ public class GlobalBlockPaletteNBT implements AdvancedGlobalBlockPaletteInterfac
     }
 
     @Override
+    public int getRuntimeId(int id, int meta) {
+        int[] metaToRuntimeId;
+        if (id >= Block.BLOCK_ID_COUNT || (metaToRuntimeId = idMetaToRuntimeId[id]) == null) {
+            return Integer.MIN_VALUE;
+        }
+
+        if (meta >= metaToRuntimeId.length) {
+            return -metaToRuntimeId[0];
+        }
+        return metaToRuntimeId[meta];
+    }
+
+    @Override
     public int getLegacyId(int runtimeId) {
         if (runtimeId < 0) {
             return -1;

@@ -96,6 +96,8 @@ import org.itxtech.synapseapi.multiprotocol.protocol19.BinaryStreamHelper19;
 import org.itxtech.synapseapi.multiprotocol.protocol19.protocol.Packet19;
 import org.itxtech.synapseapi.multiprotocol.utils.AdvancedBinaryStreamHelper;
 
+import java.util.Arrays;
+
 /**
  * org.itxtech.synapseapi.multiprotocol
  * ===============
@@ -154,9 +156,28 @@ public enum AbstractProtocol {
     ;
 
     private static final AbstractProtocol[] VALUES = values();
+    private static final AbstractProtocol[] BY_PROTOCOL;
+    public static final AbstractProtocol FIRST_PROTOCOL = VALUES[0];
+    public static final AbstractProtocol LAST_PROTOCOL = VALUES[VALUES.length - 1];
     public static final AbstractProtocol FIRST_AVAILABLE_PROTOCOL = AbstractProtocol.PROTOCOL_117_40;
     public static final AbstractProtocol FIRST_ALLOW_LOGIN_PROTOCOL = AbstractProtocol.PROTOCOL_118_30;
-    public static final AbstractProtocol LAST_ALLOW_LOGIN_PROTOCOL = VALUES[VALUES.length - 1];
+    public static final AbstractProtocol LAST_ALLOW_LOGIN_PROTOCOL = LAST_PROTOCOL;
+
+    static {
+        BY_PROTOCOL = new AbstractProtocol[LAST_ALLOW_LOGIN_PROTOCOL.protocolStart + 1];
+        Arrays.fill(BY_PROTOCOL, PROTOCOL_12);
+        for (int i = 0; i < VALUES.length; i++) {
+            AbstractProtocol version = VALUES[i];
+            int next = i + 1;
+            AbstractProtocol nextVersion = next < VALUES.length ? VALUES[next] : null;
+            if (nextVersion == null) {
+                continue;
+            }
+            for (int j = version.protocolStart; j < nextVersion.protocolStart; j++) {
+                BY_PROTOCOL[j] = version;
+            }
+        }
+    }
 
     private final int protocolStart;
     private final Class<? extends DataPacket> packetClass;
@@ -181,10 +202,13 @@ public enum AbstractProtocol {
     }
 
     public static AbstractProtocol fromRealProtocol(int protocol) {
-        for (int i = getValues().length - 1; i >= 0; i--) {
-            if (protocol >= getValues()[i].protocolStart) return getValues()[i];
+        if (protocol >= LAST_PROTOCOL.protocolStart) {
+            return LAST_PROTOCOL;
         }
-        return PROTOCOL_12; //Might never happen
+        if (protocol <= FIRST_PROTOCOL.protocolStart) {
+            return FIRST_PROTOCOL;
+        }
+        return BY_PROTOCOL[protocol];
 	}
 
     public int getProtocolStart() {

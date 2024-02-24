@@ -33,6 +33,8 @@ public interface AdvancedGlobalBlockPaletteInterface {
 
     int getOrCreateRuntimeId(int legacyId);
 
+    int getRuntimeId(int id, int meta);
+
     int getLegacyId(int runtimeId);
 
     byte[] getCompiledTable();

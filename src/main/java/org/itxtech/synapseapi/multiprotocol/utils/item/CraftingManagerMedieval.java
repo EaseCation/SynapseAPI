@@ -138,7 +138,7 @@ public class CraftingManagerMedieval extends CraftingManagerLegacy {
 
         try {
             registerRecipe(new SmithingTransformRecipe(
-                    String.valueOf(++RECIPE_COUNT),
+                    Integer.toUnsignedString(++RECIPE_COUNT, 36),
                     deserializeLegacyItem(entry.getAsJsonObject("output")),
                     Items.air(), //deserializeItem(entry.getAsJsonObject("template")), //TODO: 1.20.0+
                     deserializeLegacyItem(entry.getAsJsonObject("input")),

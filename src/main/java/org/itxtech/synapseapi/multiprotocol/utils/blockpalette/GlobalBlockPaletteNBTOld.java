@@ -67,6 +67,11 @@ public class GlobalBlockPaletteNBTOld implements AdvancedGlobalBlockPaletteInter
     }
 
     @Override
+    public int getRuntimeId(int id, int meta) {
+        return getOrCreateRuntimeId(id, meta);
+    }
+
+    @Override
     public int getLegacyId(int runtimeId) {
         return runtimeIdToLegacy.get(runtimeId);
     }

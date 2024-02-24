@@ -266,6 +266,18 @@ public final class AdvancedGlobalBlockPalette {
         }
     }
 
+    public static int getRuntimeId(AbstractProtocol protocol, boolean netease, int id, int meta) {
+        AdvancedGlobalBlockPaletteInterface[] versions = palettes.get(protocol);
+        if (versions != null) {
+            if (versions.length > 1) {
+                return netease ? versions[1].getRuntimeId(id, meta) : versions[0].getRuntimeId(id, meta);
+            }
+            return versions[0].getRuntimeId(id, meta);
+        } else {
+            throw new RuntimeException("Advanced global block palette protocol " + protocol.name() + " not found");
+        }
+    }
+
     public static int getLegacyId(AbstractProtocol protocol, boolean netease, int runtimeId) {
         AdvancedGlobalBlockPaletteInterface[] versions = palettes.get(protocol);
         if (versions != null) {

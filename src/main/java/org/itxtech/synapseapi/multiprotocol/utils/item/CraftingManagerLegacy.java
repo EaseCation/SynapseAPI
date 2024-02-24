@@ -90,7 +90,8 @@ public class CraftingManagerLegacy extends CraftingManager {
             ingredients.sort(recipeComparator);
 
             registerRecipe(supplier.create(
-                    String.valueOf(RECIPE_COUNT),
+                    entry.get("id").getAsString(),
+                    Integer.toUnsignedString(RECIPE_COUNT, 36),
                     entry.get("priority").getAsInt(),
                     deserializeItem(output.get(0).getAsJsonObject()),
                     ingredients,
@@ -127,7 +128,8 @@ public class CraftingManagerLegacy extends CraftingManager {
             }
 
             registerRecipe(supplier.create(
-                    String.valueOf(RECIPE_COUNT),
+                    entry.get("id").getAsString(),
+                    Integer.toUnsignedString(RECIPE_COUNT, 36),
                     entry.get("priority").getAsInt(),
                     firstResult,
                     shape.asList().stream().map(JsonElement::getAsString).toArray(String[]::new),
@@ -197,7 +199,7 @@ public class CraftingManagerLegacy extends CraftingManager {
 
         try {
             registerRecipe(new SmithingTransformRecipe(
-                    String.valueOf(++RECIPE_COUNT),
+                    Integer.toUnsignedString(++RECIPE_COUNT, 36),
                     deserializeItem(entry.getAsJsonObject("output")),
                     Items.air(), //deserializeItem(entry.getAsJsonObject("template")), //TODO: 1.20.0+
                     deserializeItem(entry.getAsJsonObject("input")),
@@ -254,11 +256,11 @@ public class CraftingManagerLegacy extends CraftingManager {
 
     @FunctionalInterface
     protected interface Shapeless {
-        Recipe create(String recipeId, int priority, Item result, Collection<Item> ingredients, RecipeTag tag);
+        Recipe create(String vanillaRecipeId, String recipeId, int priority, Item result, Collection<Item> ingredients, RecipeTag tag);
     }
 
     @FunctionalInterface
     protected interface Shaped {
-        Recipe create(String recipeId, int priority, Item primaryResult, String[] shape, Map<Character, Item> ingredients, List<Item> extraResults, RecipeTag tag);
+        Recipe create(String vanillaRecipeId, String recipeId, int priority, Item primaryResult, String[] shape, Map<Character, Item> ingredients, List<Item> extraResults, RecipeTag tag);
     }
 }

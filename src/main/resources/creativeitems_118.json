@@ -2287,19 +2287,19 @@
     },
     {
         "name": "minecraft:amethyst_cluster",
-        "blockNetId": 137
+        "blockNetId": 138
     },
     {
         "name": "minecraft:large_amethyst_bud",
-        "blockNetId": 5367
+        "blockNetId": 5368
     },
     {
         "name": "minecraft:medium_amethyst_bud",
-        "blockNetId": 5603
+        "blockNetId": 5604
     },
     {
         "name": "minecraft:small_amethyst_bud",
-        "blockNetId": 6865
+        "blockNetId": 6866
     },
     {
         "name": "minecraft:tuff",

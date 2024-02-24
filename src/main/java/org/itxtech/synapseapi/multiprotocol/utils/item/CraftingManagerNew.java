@@ -94,7 +94,7 @@ public class CraftingManagerNew extends CraftingManagerLegacy {
 
         try {
             registerRecipe(new SmithingTransformRecipe(
-                    String.valueOf(++RECIPE_COUNT),
+                    Integer.toUnsignedString(++RECIPE_COUNT, 36),
                     deserializeItem(entry.getAsJsonObject("output")),
                     Items.air(), //deserializeItem(entry.getAsJsonObject("template")), //TODO: 1.20.0+
                     deserializeItem(entry.getAsJsonObject("input")),

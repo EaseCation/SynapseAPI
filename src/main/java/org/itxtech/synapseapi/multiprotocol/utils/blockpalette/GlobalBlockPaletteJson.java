@@ -115,6 +115,11 @@ public class GlobalBlockPaletteJson implements AdvancedGlobalBlockPaletteInterfa
         return runtimeId;
     }
 
+    @Override
+    public int getRuntimeId(int id, int meta) {
+        return getOrCreateRuntimeId(id, meta);
+    }
+
     private int registerMapping(int legacyId, String name) {
         int runtimeId = runtimeIdAllocator.getAndIncrement();
         runtimeIdToLegacy.put(runtimeId, legacyId);

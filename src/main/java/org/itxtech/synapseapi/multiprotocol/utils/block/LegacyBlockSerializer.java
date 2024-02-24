@@ -7,6 +7,8 @@ import cn.nukkit.nbt.tag.CompoundTag;
 import it.unimi.dsi.fastutil.ints.Int2ObjectFunction;
 import lombok.extern.log4j.Log4j2;
 import org.itxtech.synapseapi.multiprotocol.utils.AdvancedGlobalBlockPalette;
+import org.itxtech.synapseapi.multiprotocol.utils.CraftingPacketManager;
+import org.itxtech.synapseapi.multiprotocol.utils.CreativeItemsPalette;
 
 import static cn.nukkit.block.BlockID.*;
 import static org.itxtech.synapseapi.multiprotocol.utils.block.BlockStateNames.*;
@@ -1610,6 +1612,9 @@ public final class LegacyBlockSerializer {
             @Override
             public void rebuildPalette() {
                 AdvancedGlobalBlockPalette.rebuildStaticPalettes();
+
+                CraftingPacketManager.rebuildPacket();
+                CreativeItemsPalette.cachePackets();
             }
         });
     }

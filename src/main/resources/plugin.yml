@@ -19,3 +19,6 @@ permissions:
   synapseapi.command.chunknetv:
     description: /chunknetv
     default: op
+  synapseapi.command.netdataquery:
+    description: /netdataquery or /ndq
+    default: op

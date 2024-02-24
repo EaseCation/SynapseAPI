@@ -157,7 +157,7 @@ public class CreativeItemsPalette {
         }
     }
 
-    private static void cachePackets() {
+    public static void cachePackets() {
         log.debug("cache creative content...");
 
         for (AbstractProtocol protocol : AbstractProtocol.getValues()) {

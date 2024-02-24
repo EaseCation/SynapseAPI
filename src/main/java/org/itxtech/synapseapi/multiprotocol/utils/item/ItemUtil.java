@@ -91,6 +91,11 @@ public final class ItemUtil {
                     }
                     metaToNewName.set(legacyMeta, newName);
 
+                    ObjectIntPair<String> existed = FLATTENED_TO_LEGACY.get(newName);
+                    if (existed != null && existed.rightInt() > legacyMeta) {
+                        return;
+                    }
+
                     FLATTENED_TO_LEGACY.put(newName, ObjectIntPair.of(legacyName, legacyMeta));
                 });
 
