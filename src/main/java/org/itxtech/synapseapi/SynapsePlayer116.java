@@ -441,7 +441,7 @@ public class SynapsePlayer116 extends SynapsePlayer113 {
 
 								if (this.canInteract(blockVector.add(0.5, 0.5, 0.5), this.isCreative() ? 16 : 8) && (i = this.level.useBreakOn(blockVector.asVector3(), face, i, this, true)) != null) {
 									if (this.isSurvival()) {
-										this.getFoodData().updateFoodExpLevel(0.005);
+										this.getFoodData().updateFoodExpLevel(0.005f);
 										if (!i.equals(oldItem) || i.getCount() != oldItem.getCount()) {
 											inventory.setItemInHand(i);
 											inventory.sendHeldItem(this.getViewers().values());
@@ -1036,7 +1036,7 @@ public class SynapsePlayer116 extends SynapsePlayer113 {
 								if (this.canInteract(pos.add(0.5, 0.5, 0.5), this.isCreative() ? 16 : 8) && (item = this.level.useBreakOn(pos, face, item, this, true)) != null) {
 									// success
 									if (this.isSurvival()) {
-										this.getFoodData().updateFoodExpLevel(0.005);
+										this.getFoodData().updateFoodExpLevel(0.005f);
 										if (!item.equals(oldItem) || item.getCount() != oldItem.getCount()) {
 											this.inventory.setItemInHand(item);
 											this.inventory.sendHeldItem(this.getViewers().values());
@@ -1303,7 +1303,7 @@ public class SynapsePlayer116 extends SynapsePlayer113 {
 								if (this.canInteract(blockVector.add(0.5, 0.5, 0.5), this.isCreative() ? 16 : 8)
 										&& (i = this.level.useBreakOn(blockVector.asVector3(), face, i, this, true)) != null) {
 									if (this.isSurvival()) {
-										this.getFoodData().updateFoodExpLevel(0.005);
+										this.getFoodData().updateFoodExpLevel(0.005f);
 										if (!i.equals(oldItem) || i.getCount() != oldItem.getCount()) {
 											inventory.setItemInHand(i);
 											inventory.sendHeldItem(this.getViewers().values());

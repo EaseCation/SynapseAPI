@@ -952,7 +952,7 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
                             break;
                         }
 
-                        getFoodData().updateFoodExpLevel(0.005);
+                        getFoodData().updateFoodExpLevel(0.005f);
 
                         if (!item.equals(oldItem) || item.getCount() != oldItem.getCount()) {
                             inventory.setItemInHand(item);
@@ -1372,7 +1372,7 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
                                 break;
                             }
 
-                            getFoodData().updateFoodExpLevel(0.005);
+                            getFoodData().updateFoodExpLevel(0.005f);
 
                             if (!item.equals(oldItem) || item.getCount() != oldItem.getCount()) {
                                 inventory.setItemInHand(item);
