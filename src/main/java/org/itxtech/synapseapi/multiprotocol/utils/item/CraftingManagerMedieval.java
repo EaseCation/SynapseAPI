@@ -173,11 +173,16 @@ public class CraftingManagerMedieval extends CraftingManagerLegacy {
                 meta = 0;
             }
         }
-        return Item.getCraftingItem(
+        Item result = Item.getCraftingItem(
                 id,
                 meta,
                 itemEntry.has("count") ? itemEntry.get("count").getAsInt() : 1,
                 itemEntry.has("nbt") ? Base64.getDecoder().decode(itemEntry.get("nbt").getAsString()) : new byte[0]);
+        if (result == null) {
+            log.debug("Unexpected unsupported item: {}", itemEntry);
+            throw UNSUPPORTED_ITEM_EXCEPTION;
+        }
+        return result;
     }
 
     private Item deserializeLegacyItem(JsonObject itemEntry) throws UnsupportedOperationException {

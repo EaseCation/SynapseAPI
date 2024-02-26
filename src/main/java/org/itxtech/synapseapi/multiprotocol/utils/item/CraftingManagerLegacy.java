@@ -247,11 +247,16 @@ public class CraftingManagerLegacy extends CraftingManager {
     }
 
     protected Item deserializeItem(JsonObject itemEntry) throws UnsupportedOperationException {
-        return Item.getCraftingItem(
+        Item item = Item.getCraftingItem(
                 itemEntry.get("id").getAsInt(),
                 itemEntry.has("damage") ? itemEntry.get("damage").getAsInt() : 0,
                 itemEntry.has("count") ? itemEntry.get("count").getAsInt() : 1,
                 itemEntry.has("nbt_b64") ? Base64.getDecoder().decode(itemEntry.get("nbt_b64").getAsString()) : new byte[0]);
+        if (item == null) {
+            log.debug("unexpected unsupported item: {}", itemEntry);
+            throw UNSUPPORTED_ITEM_EXCEPTION;
+        }
+        return item;
     }
 
     @FunctionalInterface
