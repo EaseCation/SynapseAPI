@@ -1381,6 +1381,11 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
 
                             break;
                         case PlayerActionPacket.ACTION_MISSED_SWING:
+                            if (isServerAuthoritativeMovementEnabled()) {
+                                onPacketViolation(PacketViolationReason.IMPOSSIBLE_BEHAVIOR, "action31");
+                                return;
+                            }
+
                             if (isServerAuthoritativeSoundEnabled()) {
                                 level.addLevelSoundEvent(this, LevelSoundEventPacket.SOUND_ATTACK_NODAMAGE, EntityFullNames.PLAYER);
                             }
@@ -1468,6 +1473,18 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
                                 this.getAdventureSettings().set(Type.FLYING, playerToggleFlightEvent.isFlying());
                             }
                             break packetswitch;
+                        case PlayerActionPacket.ACTION_HANDLED_TELEPORT:
+                            if (isServerAuthoritativeMovementEnabled()) {
+                                onPacketViolation(PacketViolationReason.IMPOSSIBLE_BEHAVIOR, "action30");
+                                return;
+                            }
+                            break;
+                        case PlayerActionPacket.ACTION_ACK_ENTITY_DATA:
+                            if (isServerAuthoritativeMovementEnabled()) {
+                                onPacketViolation(PacketViolationReason.IMPOSSIBLE_BEHAVIOR, "action36");
+                                return;
+                            }
+                            break;
                     }
 
                     this.setUsingItem(false);
