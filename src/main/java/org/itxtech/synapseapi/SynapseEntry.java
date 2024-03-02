@@ -507,6 +507,7 @@ public class SynapseEntry {
                     if (pk0 != null) {
                         //pk0.decode();
                         if (pk0.pid() == ProtocolInfo.BATCH_PACKET) {
+/*                          // 批包速率检测已移到Nemisys
                             if (player.incomingPacketBatchBudget <= 0) {
                                 long nowNs = System.nanoTime();
                                 long timeSinceLastUpdateNs = nowNs - player.lastPacketBudgetUpdateTimeNs;
@@ -530,6 +531,7 @@ public class SynapseEntry {
                                 }
                             }
                             player.incomingPacketBatchBudget--;
+*/
 
                             List<DataPacket> packets = processBatch((BatchPacket) pk0, redirectPacket.protocol, player.isNetEaseClient(), redirectPacket.compressionAlgorithm);
                             if (packets == null) {
