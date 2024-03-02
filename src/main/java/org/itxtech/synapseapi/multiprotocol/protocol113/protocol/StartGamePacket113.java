@@ -72,7 +72,7 @@ public class StartGamePacket113 extends Packet113 {
 	public boolean isOnlySpawningV1Villagers = false;
 	public String vanillaVersion = "1.13.0";
 	public String levelId = ""; //base64 string, usually the same as world folder name in vanilla
-	public String worldName;
+	public String worldName = "";
 	public String premiumWorldTemplateId = "";
 	public boolean isTrial = false;
 	public boolean isMovementServerAuthoritative;

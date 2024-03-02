@@ -98,7 +98,7 @@ public class StartGamePacket11960 extends Packet11960 {
     public boolean disablePlayerInteractions;
 
     public String levelId = ""; //base64 string, usually the same as world folder name in vanilla
-    public String worldName;
+    public String worldName = "";
     public String premiumWorldTemplateId = "00000000-0000-0000-0000-000000000000";
     public boolean isTrial = false;
     public int movementType;

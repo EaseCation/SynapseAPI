@@ -326,7 +326,7 @@ public class SynapseAPI extends PluginBase implements Listener {
         data = Server.getInstance().getNetwork().getPacket(pid);
 
         if (data == null) {
-            Server.getInstance().getLogger().notice("C => S 未找到匹配数据包");
+            Server.getInstance().getLogger().info("C => S 未找到匹配数据包: " + pid);
             return null;
         }
         data.setBuffer(buffer, start);

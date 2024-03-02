@@ -258,7 +258,7 @@ public class SynapseEntry {
     }
 
     public void connect() {
-        this.getSynapse().getLogger().notice("Connecting " + this.getHash());
+        this.getSynapse().getLogger().info("Connecting " + this.getHash());
         this.verified = false;
         ConnectPacket pk = new ConnectPacket();
         pk.password = this.password;
@@ -315,7 +315,7 @@ public class SynapseEntry {
         @Override
         public void run() {
             if (!verified && System.currentTimeMillis() - lastLogin >= 3000) {
-                getSynapse().getLogger().notice("Trying to re-login to Synapse Server: " + getHash());
+                getSynapse().getLogger().info("Trying to re-login to Synapse Server: " + getHash());
                 synapseInterface.getClient().setNeedAuth(true);
                 lastLogin = System.currentTimeMillis();
             }
@@ -450,7 +450,7 @@ public class SynapseEntry {
                 this.verified = false;
                 switch (disconnectPacket.type) {
                     case DisconnectPacket.TYPE_GENERIC:
-                        this.getSynapse().getLogger().notice("Synapse Client has disconnected due to " + disconnectPacket.message);
+                        this.getSynapse().getLogger().info("Synapse Client has disconnected due to " + disconnectPacket.message);
                         this.synapseInterface.reconnect();
                         break;
                     case DisconnectPacket.TYPE_WRONG_PROTOCOL:
@@ -463,10 +463,10 @@ public class SynapseEntry {
                 switch (informationPacket.type) {
                     case InformationPacket.TYPE_LOGIN:
                         if (informationPacket.message.equals(InformationPacket.INFO_LOGIN_SUCCESS)) {
-                            this.getSynapse().getLogger().notice("Login success to " + this.serverIp + ":" + this.port);
+                            this.getSynapse().getLogger().info("Login success to " + this.serverIp + ":" + this.port);
                             this.verified = true;
                         } else if (informationPacket.message.equals(InformationPacket.INFO_LOGIN_FAILED)) {
-                            this.getSynapse().getLogger().notice("Login failed to " + this.serverIp + ":" + this.port);
+                            this.getSynapse().getLogger().info("Login failed to " + this.serverIp + ":" + this.port);
                         }
                         break;
                     case InformationPacket.TYPE_CLIENT_DATA:

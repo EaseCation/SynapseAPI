@@ -62,7 +62,7 @@ public class StartGamePacket16 extends Packet16 {
 	public boolean hasLockedResourcePack = false;
 	public boolean isFromLockedWorldTemplate = false;
 	public String levelId = ""; //base64 string, usually the same as world folder name in vanilla
-	public String worldName;
+	public String worldName = "";
 	public String premiumWorldTemplateId = "";
 	public boolean isTrial = false;
 	public long currentTick;

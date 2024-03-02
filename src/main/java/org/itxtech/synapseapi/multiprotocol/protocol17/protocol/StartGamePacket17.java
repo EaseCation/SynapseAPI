@@ -63,7 +63,7 @@ public class StartGamePacket17 extends Packet17 {
 	public boolean isFromLockedWorldTemplate = false;
 	public boolean useMsaGamertagsOnly = false;
 	public String levelId = ""; //base64 string, usually the same as world folder name in vanilla
-	public String worldName;
+	public String worldName = "";
 	public String premiumWorldTemplateId = "";
 	public boolean isTrial = false;
 	public long currentTick; //only used if isTrial is true

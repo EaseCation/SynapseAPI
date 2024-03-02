@@ -65,7 +65,7 @@ public class StartGamePacket18 extends Packet18 {
 	public boolean isFromWorldTemplate = false;
 	public boolean isWorldTemplateOptionLocked = false;
 	public String levelId = ""; //base64 string, usually the same as world folder name in vanilla
-	public String worldName;
+	public String worldName = "";
 	public String premiumWorldTemplateId = "";
 	public boolean isTrial = false;
 	public long currentTick; //only used if isTrial is true

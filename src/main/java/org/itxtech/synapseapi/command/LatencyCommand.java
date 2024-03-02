@@ -38,7 +38,7 @@ public class LatencyCommand extends Command implements PluginIdentifiableCommand
         SynapsePlayer player = (SynapsePlayer) sender;
         int latencyMs = (int) (player.getLatency() / 1_000_000);
         int latencyTicks = latencyMs / 50;
-        player.sendMessage("RTT: " + latencyTicks + " ticks (" + latencyMs + " ms)\nTPS: " + sender.getServer().getTicksPerSecond());
+        player.sendMessage("RTT: " + latencyTicks + " ticks (" + latencyMs + " ms)\nTPS: " + sender.getServer().getTicksPerSecondAverage());
         return true;
     }
 

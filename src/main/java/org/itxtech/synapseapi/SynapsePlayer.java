@@ -933,13 +933,13 @@ public class SynapsePlayer extends Player {
                 setLoginChainData(ClientChainData12NetEase.read(loginPacket));
                 if (this.loginChainData.getClientUUID() != null) {  //网易认证通过！
                     this.isNetEaseClient = true;
-                    this.getServer().getLogger().notice(this.username + TextFormat.RED + " 中国版验证通过！");
+                    this.getServer().getLogger().info(this.username + TextFormat.RED + " 中国版验证通过！");
                 } else {  //国际版普通认证
                     try {
-                        this.getServer().getLogger().notice(this.username + TextFormat.YELLOW + " 正在解析为国际版！");
+                        this.getServer().getLogger().info(this.username + TextFormat.YELLOW + " 正在解析为国际版！");
                         setLoginChainData(ClientChainData12.read(loginPacket));
                     } catch (Exception e) {
-                        this.getServer().getLogger().notice(this.username + TextFormat.RED + " 解析时出现问题，采用紧急解析方案！", e);
+                        this.getServer().getLogger().info(this.username + TextFormat.RED + " 解析时出现问题，采用紧急解析方案！", e);
                         setLoginChainData(ClientChainData12Urgency.read(loginPacket));
                     }
                 }

@@ -69,7 +69,7 @@ public class StartGamePacket112 extends Packet112 {
 	public boolean isWorldTemplateOptionLocked = false;
 	public boolean isOnlySpawningV1Villagers = false;
 	public String levelId = ""; //base64 string, usually the same as world folder name in vanilla
-	public String worldName;
+	public String worldName = "";
 	public String premiumWorldTemplateId = "";
 	public boolean isTrial = false;
 	public long currentTick; //only used if isTrial is true

@@ -56,7 +56,7 @@ public class StartGamePacket14 extends Packet14 {
 	public boolean xblBroadcastIntent = true; // added by 1.4
 
 	public String levelId = ""; // base64 string, usually the same as world folder name in vanilla
-	public String worldName;
+	public String worldName = "";
 	public String premiumWorldTemplateId = "";
 	public boolean unknown = false;
 	public long currentTick;

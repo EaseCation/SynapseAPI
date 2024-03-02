@@ -485,7 +485,7 @@ public class PacketRegister {
 
             DataPacket pk = getPacket(head.getPid(), protocol);
             if(pk == null) {
-                Server.getInstance().getLogger().notice("C -> S null packet with PID: " + head.getPid());
+                Server.getInstance().getLogger().info("C -> S null packet with PID: " + head.getPid());
                 return null;
             }
 
