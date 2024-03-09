@@ -10,24 +10,29 @@ import javax.annotation.Nullable;
 @AllArgsConstructor
 @ToString
 public class CameraPreset {
+    public static final CameraPreset FIRST_PERSON_PRESET = CameraPreset.builder()
+            .name("minecraft:first_person")
+            .build();
+    public static final CameraPreset FREE_PRESET = CameraPreset.builder()
+            .name("minecraft:free")
+            .x(0f)
+            .y(0f)
+            .z(0f)
+            .pitch(0f)
+            .yaw(0f)
+            .build();
+    public static final CameraPreset THIRD_PERSON_PRESET = CameraPreset.builder()
+            .name("minecraft:third_person")
+            .build();
+    public static final CameraPreset THIRD_PERSON_FRONT_PRESET = CameraPreset.builder()
+            .name("minecraft:third_person_front")
+            .build();
+
     public static final CameraPreset[] DEFAULT_PRESETS = new CameraPreset[]{
-            CameraPreset.builder()
-                    .name("minecraft:first_person")
-                    .build(),
-            CameraPreset.builder()
-                    .name("minecraft:free")
-                    .x(0f)
-                    .y(0f)
-                    .z(0f)
-                    .pitch(0f)
-                    .yaw(0f)
-                    .build(),
-            CameraPreset.builder()
-                    .name("minecraft:third_person")
-                    .build(),
-            CameraPreset.builder()
-                    .name("minecraft:third_person_front")
-                    .build(),
+            FIRST_PERSON_PRESET,
+            FREE_PRESET,
+            THIRD_PERSON_PRESET,
+            THIRD_PERSON_FRONT_PRESET,
     };
     public static final CameraPreset[] EMPTY_PRESETS = new CameraPreset[0];
 

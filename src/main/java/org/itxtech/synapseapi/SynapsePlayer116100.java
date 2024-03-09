@@ -2939,9 +2939,7 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
         this.dataPacket(packet);
     }
 
-    /**
-     * @since 1.20.30
-     */
+    @Override
     public void startCameraInstruction(CameraSetInstruction set, CameraFadeInstruction fade) {
         if (getProtocol() < AbstractProtocol.PROTOCOL_120_30.getProtocolStart()) {
             return;
@@ -2952,30 +2950,23 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
         this.dataPacket(pk);
     }
 
-    /**
-     * @since 1.20.30
-     */
+    @Override
     public void startCameraInstruction(CameraSetInstruction set) {
         this.startCameraInstruction(set, null);
     }
 
-    /**
-     * @since 1.20.30
-     */
+    @Override
     public void startCameraInstruction(CameraFadeInstruction fade) {
         this.startCameraInstruction(null, fade);
     }
 
-    /**
-     * @since 1.20.30
-     */
+    @Override
     public void clearCameraInstruction() {
         if (getProtocol() < AbstractProtocol.PROTOCOL_120_30.getProtocolStart()) {
             return;
         }
         CameraInstructionPacket12030 pk = new CameraInstructionPacket12030();
         pk.clear = true;
-        this.getServer().getLogger().debug("[Camera.stop]");
         this.dataPacket(pk);
     }
 
