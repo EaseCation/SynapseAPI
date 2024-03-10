@@ -3,6 +3,7 @@ package org.itxtech.synapseapi.multiprotocol.protocol14.protocol;
 import cn.nukkit.block.Block;
 import cn.nukkit.level.particle.Particle;
 import cn.nukkit.network.protocol.DataPacket;
+import cn.nukkit.network.protocol.LevelEventPacket;
 import cn.nukkit.network.protocol.ProtocolInfo;
 import lombok.ToString;
 import org.itxtech.synapseapi.multiprotocol.utils.GlobalBlockPalette;
@@ -131,7 +132,7 @@ public class LevelEventPacket14 extends Packet14 {
         this.y = packet.y;
         this.z = packet.z;
 
-        if (packet.evid == EVENT_PARTICLE_DESTROY || packet.evid == (short) (EVENT_ADD_PARTICLE_MASK | Particle.TERRAIN)) {
+        if (packet.evid == EVENT_PARTICLE_DESTROY || packet.evid == LevelEventPacket.EVENT_PARTICLE_DESTROY_BLOCK_NO_SOUND || packet.evid == (short) (EVENT_ADD_PARTICLE_MASK | Particle.TERRAIN)) {
             this.data = GlobalBlockPalette.getOrCreateRuntimeId(packet.data >> Block.BLOCK_META_BITS, packet.data & Block.BLOCK_META_MASK);
         } else if (packet.evid == EVENT_PARTICLE_PUNCH_BLOCK) {
             this.data = GlobalBlockPalette.getOrCreateRuntimeId((packet.data >> Block.BLOCK_META_BITS) & Block.BLOCK_ID_MASK, packet.data & Block.BLOCK_META_MASK) | ((packet.data >> 30) & 0x7) << 24;
