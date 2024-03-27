@@ -40,6 +40,7 @@ public final class AvailableEntityIdentifiersPalette {
             byte[] data11980 = ByteStreams.toByteArray(SynapseAPI.getInstance().getResource("entity_identifiers_11980.nbt"));
             byte[] data12040 = ByteStreams.toByteArray(SynapseAPI.getInstance().getResource("entity_identifiers_12040.nbt"));
             byte[] data12060 = ByteStreams.toByteArray(SynapseAPI.getInstance().getResource("entity_identifiers_12060.nbt"));
+            byte[] data12070 = ByteStreams.toByteArray(SynapseAPI.getInstance().getResource("entity_identifiers_12070.nbt"));
 
             palettes.put(AbstractProtocol.PROTOCOL_18, data18);
             palettes.put(AbstractProtocol.PROTOCOL_19, data19);
@@ -81,6 +82,7 @@ public final class AvailableEntityIdentifiersPalette {
             palettes.put(AbstractProtocol.PROTOCOL_120_40, data12040);
             palettes.put(AbstractProtocol.PROTOCOL_120_50, data12040);
             palettes.put(AbstractProtocol.PROTOCOL_120_60, data12060);
+            palettes.put(AbstractProtocol.PROTOCOL_120_70, data12070);
         } catch (NullPointerException | IOException e) {
             throw new AssertionError("Unable to load entity_identifiers.dat");
         }

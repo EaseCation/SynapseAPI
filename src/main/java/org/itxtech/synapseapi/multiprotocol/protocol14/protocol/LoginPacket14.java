@@ -82,18 +82,18 @@ public class LoginPacket14 extends Packet14 {
             decodedLoginChainData = ClientChainData12NetEase.of(buffer);
             if (decodedLoginChainData.getClientUUID() != null) { // 网易认证通过！
                 this.netEaseClient = true;
-                log.info("[Login] " + this.username + TextFormat.RED + " 中国版验证通过！");
+                log.info("[Login] " + this.username + TextFormat.RED + " 中国版验证通过！" + protocol);
                 return;
             }
 
             if (DEBUG_ENVIRONMENT && !ClientChainDataXbox.of(buffer).isXboxAuthed() && username.startsWith("netease")) { // 国际版验证失败, 特定前缀玩家名解析为中国版 (仅限调试环境)
                 this.netEaseClient = true;
-                log.info("[Login] " + this.username + TextFormat.BLUE + " Xbox验证未通过！");
+                log.info("[Login] " + this.username + TextFormat.BLUE + " Xbox验证未通过！" + protocol);
                 return;
             }
 
             try { // 国际版普通认证
-                log.info("[Login] " + this.username + TextFormat.GREEN + " 正在解析为国际版！");
+                log.info("[Login] " + this.username + TextFormat.GREEN + " 正在解析为国际版！" + protocol);
                 decodedLoginChainData = ClientChainData12.of(buffer);
             } catch (Exception e) {
                 log.info("[Login] " + this.username + TextFormat.YELLOW + " 解析时出现问题，采用紧急解析方案！", e);

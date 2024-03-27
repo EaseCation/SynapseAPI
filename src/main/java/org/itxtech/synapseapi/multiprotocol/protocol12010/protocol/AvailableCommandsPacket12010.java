@@ -12,6 +12,7 @@ import cn.nukkit.network.protocol.ProtocolInfo;
 import cn.nukkit.utils.BinaryStream;
 import cn.nukkit.utils.SequencedHashSet;
 import it.unimi.dsi.fastutil.longs.LongObjectPair;
+import lombok.ToString;
 import org.itxtech.synapseapi.utils.ClassUtils;
 
 import java.util.HashSet;
@@ -20,6 +21,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.function.ObjIntConsumer;
 
+@ToString
 public class AvailableCommandsPacket12010 extends Packet12010 {
     public static final byte NETWORK_ID = ProtocolInfo.AVAILABLE_COMMANDS_PACKET;
 

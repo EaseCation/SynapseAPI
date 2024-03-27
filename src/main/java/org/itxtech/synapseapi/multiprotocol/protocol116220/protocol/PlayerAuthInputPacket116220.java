@@ -112,6 +112,14 @@ public class PlayerAuthInputPacket116220 extends Packet116220 implements Invento
     public float deltaY;
     public float deltaZ;
     /**
+     * @since 1.20.70
+     */
+    public float vehiclePitch;
+    /**
+     * @since 1.20.70
+     */
+    public float vehicleYaw;
+    /**
      * @since 1.20.60
      */
     public long predictedVehicleEntityUniqueId;
@@ -265,6 +273,11 @@ public class PlayerAuthInputPacket116220 extends Packet116220 implements Invento
         }
 
         if ((this.inputFlags & (1L << PlayerAuthInputFlags.IN_CLIENT_PREDICTED_IN_VEHICLE)) != 0) {
+            if (((AbstractProtocol) helper.getProtocol()).getProtocolStart() >= AbstractProtocol.PROTOCOL_120_70.getProtocolStart()) {
+                vehiclePitch = getLFloat();
+                vehicleYaw = getLFloat();
+            }
+
             predictedVehicleEntityUniqueId = getVarLong();
         }
 
@@ -459,6 +472,16 @@ public class PlayerAuthInputPacket116220 extends Packet116220 implements Invento
     @Override
     public PlayerBlockAction[] getBlockActions() {
         return this.blockActions;
+    }
+
+    @Override
+    public float getVehiclePitch() {
+        return vehiclePitch;
+    }
+
+    @Override
+    public float getVehicleYaw() {
+        return vehicleYaw;
     }
 
     @Override

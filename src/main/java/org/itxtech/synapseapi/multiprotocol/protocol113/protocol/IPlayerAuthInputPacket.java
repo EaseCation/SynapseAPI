@@ -44,6 +44,20 @@ public interface IPlayerAuthInputPacket extends InventoryTransactionPacketInterf
     }
 
     /**
+     * @since 1.20.70
+     */
+    default float getVehiclePitch() {
+        return 0;
+    }
+
+    /**
+     * @since 1.20.70
+     */
+    default float getVehicleYaw() {
+        return 0;
+    }
+
+    /**
      * @since 1.20.60
      */
     default long getPredictedVehicleEntityUniqueId() {

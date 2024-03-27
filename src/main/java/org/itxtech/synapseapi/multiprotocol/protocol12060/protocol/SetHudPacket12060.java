@@ -19,6 +19,20 @@ public class SetHudPacket12060 extends Packet12060 {
     public static final int ELEMENT_AIR_BUBBLES = 9;
     public static final int ELEMENT_HORSE_HEALTH = 10;
 
+    public static final int[] ALL_ELEMENTS = {
+            ELEMENT_PAPER_DOLL,
+            ELEMENT_ARMOR,
+            ELEMENT_TOOL_TIPS,
+            ELEMENT_TOUCH_CONTROLS,
+            ELEMENT_CROSSHAIR,
+            ELEMENT_HOTBAR,
+            ELEMENT_HEALTH,
+            ELEMENT_XP,
+            ELEMENT_FOOD,
+            ELEMENT_AIR_BUBBLES,
+            ELEMENT_HORSE_HEALTH,
+    };
+
     public static final int VISIBILITY_HIDE = 0;
     public static final int VISIBILITY_RESET = 1;
 

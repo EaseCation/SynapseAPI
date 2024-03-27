@@ -48,6 +48,7 @@ public final class RuntimeBlockMapper {
         BlockPalette palette12050 = BlockPalette.fromNBT("block_state_list_12050.nbt");
 //        BlockPalette palette12050 = BlockPalette.fromVanillaNBT("block_state_list_12050_raw.nbt", true);
         BlockPalette palette12060 = BlockPalette.fromNBT("block_state_list_12060.nbt");
+        BlockPalette palette12070 = BlockPalette.fromNBT("block_state_list_12070.nbt");
 
         PALETTES.put(AbstractProtocol.PROTOCOL_117_40, new BlockPalette[]{palette11740, palette118N});
         PALETTES.put(AbstractProtocol.PROTOCOL_118, new BlockPalette[]{palette11740, palette118N});
@@ -71,6 +72,7 @@ public final class RuntimeBlockMapper {
         PALETTES.put(AbstractProtocol.PROTOCOL_120_40, new BlockPalette[]{palette12040, palette12040});
         PALETTES.put(AbstractProtocol.PROTOCOL_120_50, new BlockPalette[]{palette12050, palette12050});
         PALETTES.put(AbstractProtocol.PROTOCOL_120_60, new BlockPalette[]{palette12060, palette12060});
+        PALETTES.put(AbstractProtocol.PROTOCOL_120_70, new BlockPalette[]{palette12070, palette12070});
 
         GameVersion baseVersion = V1_18_0;
         BlockPalette basePalette = palette118N;
@@ -92,7 +94,8 @@ public final class RuntimeBlockMapper {
                 CompletableFuture.runAsync(() -> map(V1_20_30, basePalette, palette12030, ver -> ver.ordinal() >= baseVersion.ordinal() && ver.ordinal() <= V1_20_30.ordinal())),
                 CompletableFuture.runAsync(() -> map(V1_20_40, basePalette, palette12040, ver -> ver.ordinal() >= baseVersion.ordinal() && ver.ordinal() <= V1_20_40.ordinal())),
                 CompletableFuture.runAsync(() -> map(V1_20_50, basePalette, palette12050, ver -> ver.ordinal() >= baseVersion.ordinal() && ver.ordinal() <= V1_20_50.ordinal())),
-                CompletableFuture.runAsync(() -> map(V1_20_60, basePalette, palette12060, ver -> ver.ordinal() >= baseVersion.ordinal() && ver.ordinal() <= V1_20_60.ordinal()))
+                CompletableFuture.runAsync(() -> map(V1_20_60, basePalette, palette12060, ver -> ver.ordinal() >= baseVersion.ordinal() && ver.ordinal() <= V1_20_60.ordinal())),
+                CompletableFuture.runAsync(() -> map(V1_20_70, basePalette, palette12070, ver -> ver.ordinal() >= baseVersion.ordinal() && ver.ordinal() <= V1_20_70.ordinal()))
         ).join();
 
         RUNTIME_BLOCK_SERIALIZER = new RuntimeBlockSerializer(basePalette);

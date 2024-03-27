@@ -9,10 +9,12 @@ import cn.nukkit.block.BlockDragonEgg;
 import cn.nukkit.block.BlockNoteblock;
 import cn.nukkit.blockentity.BlockEntity;
 import cn.nukkit.blockentity.BlockEntityItemFrame;
+import cn.nukkit.blockentity.BlockEntityLectern;
 import cn.nukkit.blockentity.BlockEntitySpawnable;
 import cn.nukkit.entity.Entity;
 import cn.nukkit.entity.EntityFullNames;
 import cn.nukkit.entity.EntityRideable;
+import cn.nukkit.entity.data.FloatEntityData;
 import cn.nukkit.entity.item.EntityBoat;
 import cn.nukkit.event.entity.EntityDamageByEntityEvent;
 import cn.nukkit.event.entity.EntityDamageEvent;
@@ -41,7 +43,7 @@ import cn.nukkit.network.protocol.*;
 import cn.nukkit.network.protocol.AnimatePacket.Action;
 import cn.nukkit.network.protocol.types.ContainerIds;
 import cn.nukkit.network.protocol.types.NetworkInventoryAction;
-import cn.nukkit.utils.Binary;
+import cn.nukkit.potion.Effect;
 import cn.nukkit.utils.ClientChainData;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import lombok.extern.log4j.Log4j2;
@@ -59,8 +61,7 @@ import java.util.*;
 import java.util.concurrent.ThreadLocalRandom;
 
 import static cn.nukkit.SharedConstants.EXPERIMENTAL_COMBAT_KNOCKBACK_TEST;
-import static org.itxtech.synapseapi.SynapseSharedConstants.SERVER_AUTHORITATIVE_BLOCK_BREAKING;
-import static org.itxtech.synapseapi.SynapseSharedConstants.SERVER_AUTHORITATIVE_MOVEMENT;
+import static org.itxtech.synapseapi.SynapseSharedConstants.*;
 
 @Log4j2
 public class SynapsePlayer116 extends SynapsePlayer113 {
@@ -68,6 +69,10 @@ public class SynapsePlayer116 extends SynapsePlayer113 {
 	protected boolean inventoryOpen;
 
 	protected boolean serverAuthoritativeMovement = SERVER_AUTHORITATIVE_MOVEMENT;
+	private long clientTick = -1;
+	private long clientTickDiff;
+	private int clientTickTooFastCount;
+	private int clientTickCheckCd;
 
 	/**
 	 * Server Authoritative Movement is required.
@@ -113,7 +118,7 @@ public class SynapsePlayer116 extends SynapsePlayer113 {
 		startGamePacket.generator = 1; // 0 old, 1 infinite, 2 flat
 		startGamePacket.gameRules = getSupportedRules();
 		startGamePacket.isMovementServerAuthoritative = this.isNetEaseClient();
-		startGamePacket.currentTick = this.server.getTick();
+		startGamePacket.currentTick = 0;//this.server.getTick();
 		startGamePacket.enchantmentSeed = ThreadLocalRandom.current().nextInt();
 		return startGamePacket;
 	}
@@ -365,7 +370,7 @@ public class SynapsePlayer116 extends SynapsePlayer113 {
 								this.newPosition = useItemData.playerPos.subtract(0, this.getBaseOffset(), 0);
 								boolean entityInBlock = false;
 
-								if (this.canInteract(blockVector.add(0.5, 0.5, 0.5), this.isCreative() ? 13 : 7)) {
+								if (this.canInteract(blockVector.add(0.5, 0.5, 0.5), this.isCreative() ? MAX_REACH_DISTANCE_CREATIVE : MAX_REACH_DISTANCE_SURVIVAL)) {
 									if (this.isCreative()) {
 										Item i = inventory.getItemInHand();
 										if (this.level.useItemOn(blockVector.asVector3(), i, face, clickPos.x, clickPos.y, clickPos.z, this) != null) {
@@ -440,7 +445,7 @@ public class SynapsePlayer116 extends SynapsePlayer113 {
 
 								Item oldItem = i.clone();
 
-								if (this.canInteract(blockVector.add(0.5, 0.5, 0.5), this.isCreative() ? 16 : 8) && (i = this.level.useBreakOn(blockVector.asVector3(), face, i, this, true)) != null) {
+								if (this.canInteract(blockVector.add(0.5, 0.5, 0.5), this.isCreative() ? MAX_REACH_DISTANCE_CREATIVE : MAX_REACH_DISTANCE_SURVIVAL) && (i = this.level.useBreakOn(blockVector.asVector3(), face, i, this, true)) != null) {
 									if (this.isSurvival()) {
 										this.getFoodData().updateFoodExpLevel(0.005f);
 										if (!i.equals(oldItem) || i.getCount() != oldItem.getCount()) {
@@ -538,6 +543,10 @@ public class SynapsePlayer116 extends SynapsePlayer113 {
 
 						switch (type) {
 							case InventoryTransactionPacket116.USE_ITEM_ON_ENTITY_ACTION_INTERACT:
+								if (!this.canInteract(target, isCreative() ? MAX_REACH_DISTANCE_ENTITY_INTERACTION : 5)) {
+									break;
+								}
+
 								PlayerInteractEntityEvent playerInteractEntityEvent = new PlayerInteractEntityEvent(this, target, item, useItemOnEntityData.clickPos);
 								if (this.isSpectator()) playerInteractEntityEvent.setCancelled();
 								getServer().getPluginManager().callEvent(playerInteractEntityEvent);
@@ -577,6 +586,9 @@ public class SynapsePlayer116 extends SynapsePlayer113 {
 									break;
 								}
 */
+								if (!this.canInteract(target, isCreative() ? MAX_REACH_DISTANCE_ENTITY_INTERACTION : 5)) {
+									break;
+								}
 
 								ItemAttackDamageEvent event = new ItemAttackDamageEvent(item);
 								this.server.getPluginManager().callEvent(event);
@@ -599,9 +611,7 @@ public class SynapsePlayer116 extends SynapsePlayer113 {
 									knockBackV += knockBackEnchantment.getLevel() * 0.1f;
 								}
 
-								if (!this.canInteract(target, isCreative() ? 8 : 5)) {
-									break;
-								} else if (target instanceof Player) {
+								if (target instanceof Player) {
 									if ((((Player) target).getGamemode() & 0x01) > 0) {
 										break;
 									} else if (!this.server.getConfiguration().isPvp() || this.server.getDifficulty() == 0) {
@@ -689,7 +699,7 @@ public class SynapsePlayer116 extends SynapsePlayer113 {
 				this.getServer().getLogger().warning("Received PacketViolationWarningPacket from " + this.getName());
 				this.getServer().getLogger().warning("type=" + packetViolationWarningPacket.type.name());
 				this.getServer().getLogger().warning("severity=" + packetViolationWarningPacket.severity.name());
-				this.getServer().getLogger().warning("packetId=0x" + Binary.bytesToHexString(new byte[]{(byte) packetViolationWarningPacket.packetId}) + " (" + packetViolationWarningPacket.packetId + ")");
+				this.getServer().getLogger().warning("packetId=0x" + Integer.toHexString(packetViolationWarningPacket.packetId) + " (" + packetViolationWarningPacket.packetId + ")");
 				this.getServer().getLogger().warning("context=" + packetViolationWarningPacket.context);
 				break;
 			case ProtocolInfo.EMOTE_PACKET:
@@ -715,6 +725,9 @@ public class SynapsePlayer116 extends SynapsePlayer113 {
 				}
 
 				int flags = emotePacket.flags | EmotePacket116.FLAG_SERVER;
+				if (MUTE_EMOTE_CHAT) {
+					flags |= EmotePacket116.FLAG_MUTE_ANNOUNCEMENT;
+				}
 				for (Player viewer : this.getViewers().values()) {
 					viewer.playEmote(emotePacket.emoteID, this.getId(), flags);
 				}
@@ -756,6 +769,9 @@ public class SynapsePlayer116 extends SynapsePlayer113 {
 				long inputFlags = playerAuthInputPacket.getInputFlags();
 				if ((inputFlags & (1L << PlayerAuthInputPacket116.FLAG_START_SPRINTING)) != 0 && !this.isSprinting()) {
 					PlayerToggleSprintEvent playerToggleSprintEvent = new PlayerToggleSprintEvent(this, true);
+					if (hasEffect(Effect.BLINDNESS)) {
+						playerToggleSprintEvent.setCancelled();
+					}
 					this.server.getPluginManager().callEvent(playerToggleSprintEvent);
 					if (playerToggleSprintEvent.isCancelled()) {
 						this.sendData(this);
@@ -995,12 +1011,22 @@ public class SynapsePlayer116 extends SynapsePlayer113 {
 												((BlockDragonEgg) target).teleport();
 												break actionswitch;
 											}
+											break;
 										case Block.BLOCK_FRAME:
 										case Block.BLOCK_GLOW_FRAME:
 											BlockEntity itemFrame = this.level.getBlockEntityIfLoaded(pos);
-											if (itemFrame instanceof BlockEntityItemFrame && (((BlockEntityItemFrame) itemFrame).dropItem(this) || isCreative())) {
+											if (itemFrame instanceof BlockEntityItemFrame && (((BlockEntityItemFrame) itemFrame).dropItem(this) || isCreative() && getProtocol() < AbstractProtocol.PROTOCOL_120_70.getProtocolStart())) {
 												break actionswitch;
 											}
+											break;
+										case Block.LECTERN:
+											if (level.getBlockEntityIfLoaded(pos) instanceof BlockEntityLectern lectern && lectern.dropBook(this)) {
+												lectern.spawnToAll();
+												if (isCreative()) {
+													break actionswitch;
+												}
+											}
+											break;
 									}
 								}
 								block = target.getSide(face);
@@ -1040,7 +1066,7 @@ public class SynapsePlayer116 extends SynapsePlayer113 {
 
 								item = this.getInventory().getItemInHand();
 								Item oldItem = item.clone();
-								if (this.canInteract(pos.add(0.5, 0.5, 0.5), this.isCreative() ? 16 : 8) && (item = this.level.useBreakOn(pos, face, item, this, true)) != null) {
+								if (this.canInteract(pos.add(0.5, 0.5, 0.5), this.isCreative() ? MAX_REACH_DISTANCE_CREATIVE : MAX_REACH_DISTANCE_SURVIVAL) && (item = this.level.useBreakOn(pos, face, item, this, true)) != null) {
 									// success
 									if (this.isSurvival()) {
 										this.getFoodData().updateFoodExpLevel(0.005f);
@@ -1251,7 +1277,7 @@ public class SynapsePlayer116 extends SynapsePlayer113 {
 									break;
 								}
 
-								if (this.canInteract(blockVector.add(0.5, 0.5, 0.5), this.isCreative() ? 13 : 7)) {
+								if (this.canInteract(blockVector.add(0.5, 0.5, 0.5), this.isCreative() ? MAX_REACH_DISTANCE_CREATIVE : MAX_REACH_DISTANCE_SURVIVAL)) {
 									if (this.isCreative()) {
 										Item i = inventory.getItemInHand();
 										if (this.level.useItemOn(blockVector.asVector3(), i, face, clickPos.x, clickPos.y, clickPos.z, this) != null) {
@@ -1307,7 +1333,7 @@ public class SynapsePlayer116 extends SynapsePlayer113 {
 								Item i = this.getInventory().getItemInHand();
 								Item oldItem = i.clone();
 
-								if (this.canInteract(blockVector.add(0.5, 0.5, 0.5), this.isCreative() ? 16 : 8)
+								if (this.canInteract(blockVector.add(0.5, 0.5, 0.5), this.isCreative() ? MAX_REACH_DISTANCE_CREATIVE : MAX_REACH_DISTANCE_SURVIVAL)
 										&& (i = this.level.useBreakOn(blockVector.asVector3(), face, i, this, true)) != null) {
 									if (this.isSurvival()) {
 										this.getFoodData().updateFoodExpLevel(0.005f);
@@ -1391,7 +1417,82 @@ public class SynapsePlayer116 extends SynapsePlayer113 {
 						break;
 					}
 
-					((EntityBoat) riding).onInput(playerAuthInputPacket.getX(), playerAuthInputPacket.getY(), playerAuthInputPacket.getZ(), playerAuthInputPacket.getYaw());
+					EntityBoat boat = (EntityBoat) riding;
+
+					float vehiclePitch;
+					float vehicleYaw;
+					if (getProtocol() >= AbstractProtocol.PROTOCOL_120_70.getProtocolStart()) {
+						vehiclePitch = playerAuthInputPacket.getVehiclePitch();
+						vehicleYaw = playerAuthInputPacket.getVehicleYaw();
+
+						float left = 0;
+						float right = 0;
+						if ((inputFlags & (1L << PlayerAuthInputFlags.UP)) != 0) {
+							left = 0.04f;
+							right = 0.04f;
+							if ((inputFlags & ((1L << PlayerAuthInputFlags.PADDLE_LEFT) | 1L << PlayerAuthInputFlags.PADDLE_RIGHT)) != ((1L << PlayerAuthInputFlags.PADDLE_LEFT) | 1L << PlayerAuthInputFlags.PADDLE_RIGHT)) {
+								if ((inputFlags & (1L << PlayerAuthInputFlags.PADDLE_LEFT)) != 0) {
+									left = 0.05f;
+									right = 0.02f;
+								} else if ((inputFlags & (1L << PlayerAuthInputFlags.PADDLE_RIGHT)) != 0) {
+									left = 0.02f;
+									right = 0.05f;
+								}
+							}
+						} else if ((inputFlags & (1L << PlayerAuthInputFlags.DOWN)) != 0) {
+							left = -0.004f;
+							right = -0.004f;
+							if ((inputFlags & ((1L << PlayerAuthInputFlags.PADDLE_LEFT) | 1L << PlayerAuthInputFlags.PADDLE_RIGHT)) != ((1L << PlayerAuthInputFlags.PADDLE_LEFT) | 1L << PlayerAuthInputFlags.PADDLE_RIGHT)) {
+								if ((inputFlags & (1L << PlayerAuthInputFlags.PADDLE_LEFT)) != 0) {
+									left = -0.005f;
+									right = -0.002f;
+								} else if ((inputFlags & (1L << PlayerAuthInputFlags.PADDLE_RIGHT)) != 0) {
+									left = -0.002f;
+									right = -0.005f;
+								}
+							}
+						} else if ((inputFlags & ((1L << PlayerAuthInputFlags.PADDLE_LEFT) | 1L << PlayerAuthInputFlags.PADDLE_RIGHT)) != ((1L << PlayerAuthInputFlags.PADDLE_LEFT) | 1L << PlayerAuthInputFlags.PADDLE_RIGHT)) {
+							if ((inputFlags & (1L << PlayerAuthInputFlags.PADDLE_LEFT)) != 0) {
+								left = 0.04f;
+							} else if ((inputFlags & (1L << PlayerAuthInputFlags.PADDLE_RIGHT)) != 0) {
+								right = 0.04f;
+							}
+						}
+						float random = 0.0002f * ThreadLocalRandom.current().nextFloat();
+						left += left * random;
+						right += right * random;
+
+						float frameSecondsLeft = boat.getDataPropertyFloat(DATA_PADDLE_TIME_LEFT);
+						if (Mth.sign(frameSecondsLeft) != Mth.sign(left)) {
+							frameSecondsLeft = left;
+						} else {
+							frameSecondsLeft += left;
+							if (frameSecondsLeft > 1000) {
+								frameSecondsLeft -= 1000;
+							} else if (frameSecondsLeft < -1000) {
+								frameSecondsLeft += 1000;
+							}
+						}
+						boat.setDataProperty(new FloatEntityData(DATA_PADDLE_TIME_LEFT, frameSecondsLeft));
+
+						float frameSecondsRight = boat.getDataPropertyFloat(DATA_PADDLE_TIME_RIGHT);
+						if (Mth.sign(frameSecondsRight) != Mth.sign(right)) {
+							frameSecondsRight = right;
+						} else {
+							frameSecondsRight += right;
+							if (frameSecondsRight > 1000) {
+								frameSecondsRight -= 1000;
+							} else if (frameSecondsRight < -1000) {
+								frameSecondsRight += 1000;
+							}
+						}
+						boat.setDataProperty(new FloatEntityData(DATA_PADDLE_TIME_RIGHT, frameSecondsRight));
+					} else {
+						vehiclePitch = 0;
+						vehicleYaw = playerAuthInputPacket.getYaw();
+					}
+
+					boat.onInput(playerAuthInputPacket.getX(), playerAuthInputPacket.getY(), playerAuthInputPacket.getZ(), vehicleYaw, vehiclePitch);
 				} else if (this.riding != null && (moveVecX != 0 || moveVecY != 0) && riding.isControlling(this)) {
 					moveVecX = Mth.clamp(moveVecX, -1, 1);
 					moveVecY = Mth.clamp(moveVecY, -1, 1);
@@ -1516,8 +1617,46 @@ public class SynapsePlayer116 extends SynapsePlayer113 {
 
 			this.emotedCurrentTick = false;
 			this.currentTickAttackPacketCount = 0;
+
+			if (clientTickCheckCd > 0) {
+				clientTickCheckCd--;
+			}
+			if ((currentTick & INPUT_TICK_DESYNC_FORGET_CD) == 0 && clientTickTooFastCount > 0) {
+				clientTickTooFastCount--;
+			}
 		}
 		return super.onUpdate(currentTick);
+	}
+
+	@Override
+	protected void onClientTickUpdated(long tick) {
+        long tickDiff = tick - server.getTick();
+		if (clientTick == -1) {
+			clientTick = tick;
+			clientTickDiff = tickDiff;
+		} else if (tick != ++clientTick) {
+			if (!isNeedLevelChangeLoadScreen()) { // 处于切换世界加载屏时会暂停发送AuthInput
+				onPacketViolation(PacketViolationReason.IMPOSSIBLE_BEHAVIOR, "input_lost");
+			}
+			clientTick = tick;
+			clientTickDiff = tickDiff;
+		} else if (Math.abs(tickDiff - clientTickDiff) > INPUT_TICK_ACCEPTANCE_THRESHOLD && clientTickCheckCd <= 0) {
+			if (server.getTicksPerSecondRaw() < 19 || server.getTicksPerSecondAverage() < 19) {
+				if (clientTickTooFastCount > 0) {
+					clientTickTooFastCount--;
+				}
+				clientTickCheckCd = INPUT_TICK_OVERLOAD_CHECK_CD;
+				clientTickDiff = tickDiff;
+			} else if (++clientTickTooFastCount > INPUT_TICK_DESYNC_KICK_THRESHOLD) {
+				onPacketViolation(PacketViolationReason.VIOLATION_OVER_THRESHOLD, "input_fast");
+				clientTickTooFastCount = 0;
+				clientTickCheckCd = INPUT_TICK_CHECK_CD;
+				clientTickDiff = tickDiff;
+			} else {
+				clientTickCheckCd = INPUT_TICK_CHECK_CD;
+				clientTickDiff = tickDiff;
+			}
+		}
 	}
 
 	@Override

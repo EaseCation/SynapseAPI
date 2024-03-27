@@ -24,7 +24,7 @@ public interface BuildPlatform {
      * Bedrock Dedicated Server
      */
     int DEDICATED = 9;
-
+    int TV_OS = 10;
     /**
      * Play Station
      */
@@ -35,4 +35,5 @@ public interface BuildPlatform {
     int NX = 12;
     int XBOX = 13;
     int WINDOWS_PHONE = 14;
+    int LINUX = 15;
 }

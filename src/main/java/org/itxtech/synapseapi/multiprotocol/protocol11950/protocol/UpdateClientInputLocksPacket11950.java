@@ -7,6 +7,9 @@ import lombok.ToString;
 public class UpdateClientInputLocksPacket11950 extends Packet11950 {
     public static final int NETWORK_ID = ProtocolInfo.UPDATE_CLIENT_INPUT_LOCKS_PACKET;
 
+    public static final int FLAG_ROTATION = 0b10;
+    public static final int FLAG_MOVEMENT = 0b100;
+
     public int flags;
     public float x;
     public float y;

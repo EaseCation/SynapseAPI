@@ -152,4 +152,12 @@ public interface PlayerAuthInputFlags {
      * @since 1.20.60
      */
     int IN_CLIENT_PREDICTED_IN_VEHICLE = 45;
+    /**
+     * @since 1.20.70
+     */
+    int PADDLE_LEFT = 46;
+    /**
+     * @since 1.20.70
+     */
+    int PADDLE_RIGHT = 47;
 }

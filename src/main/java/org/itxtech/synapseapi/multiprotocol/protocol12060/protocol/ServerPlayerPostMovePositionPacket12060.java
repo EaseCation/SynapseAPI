@@ -1,7 +1,9 @@
 package org.itxtech.synapseapi.multiprotocol.protocol12060.protocol;
 
 import cn.nukkit.network.protocol.ProtocolInfo;
+import lombok.ToString;
 
+@ToString
 public class ServerPlayerPostMovePositionPacket12060 extends Packet12060 {
     public static final int NETWORK_ID = ProtocolInfo.SERVER_PLAYER_POST_MOVE_POSITION_PACKET;
 

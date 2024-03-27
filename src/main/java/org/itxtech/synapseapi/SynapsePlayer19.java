@@ -8,6 +8,7 @@ import cn.nukkit.blockentity.BlockEntity;
 import cn.nukkit.blockentity.BlockEntityLectern;
 import cn.nukkit.level.Position;
 import cn.nukkit.math.Vector3;
+import cn.nukkit.network.PacketViolationReason;
 import cn.nukkit.network.SourceInterface;
 import cn.nukkit.network.protocol.DataPacket;
 import cn.nukkit.network.protocol.ProtocolInfo;
@@ -17,6 +18,7 @@ import org.itxtech.synapseapi.event.player.SynapsePlayerNetworkStackLatencyUpdat
 import org.itxtech.synapseapi.multiprotocol.AbstractProtocol;
 import org.itxtech.synapseapi.multiprotocol.protocol110.protocol.LecternUpdatePacket110;
 import org.itxtech.synapseapi.multiprotocol.protocol111.protocol.LecternUpdatePacket111;
+import org.itxtech.synapseapi.multiprotocol.protocol111.protocol.OnScreenTextureAnimationPacket111;
 import org.itxtech.synapseapi.multiprotocol.protocol19.protocol.LevelSoundEventPacketV319;
 import org.itxtech.synapseapi.multiprotocol.protocol19.protocol.NetworkStackLatencyPacket19;
 import org.itxtech.synapseapi.multiprotocol.protocol19.protocol.ResourcePacksInfoPacket19;
@@ -31,6 +33,9 @@ import static org.itxtech.synapseapi.SynapseSharedConstants.*;
 
 public class SynapsePlayer19 extends SynapsePlayer18 {
 	private boolean pingNeedUpdate;
+
+	private int waitingPongTicks = PONG_TIMEOUT_TICKS;
+	private int pongTimeoutCount;
 
 	public SynapsePlayer19(SourceInterface interfaz, SynapseEntry synapseEntry, Long clientID, InetSocketAddress socketAddress) {
 		super(interfaz, synapseEntry, clientID, socketAddress);
@@ -112,8 +117,12 @@ public class SynapsePlayer19 extends SynapsePlayer18 {
 			case ProtocolInfo.LECTERN_UPDATE_PACKET:
 				if (getProtocol() >= AbstractProtocol.PROTOCOL_111.getProtocolStart()) {
 					LecternUpdatePacket111 lecternUpdatePacket = (LecternUpdatePacket111) packet;
+					if (lecternUpdatePacket.droppingBook) {
+						// Drop book is handled with an interact event on use item transaction
+						break;
+					}
 
-					if (distanceSquared(lecternUpdatePacket.x, lecternUpdatePacket.y, lecternUpdatePacket.z) > 100) {
+					if (!canInteract(temporalVector.setComponents(lecternUpdatePacket.x + 0.5, lecternUpdatePacket.y + 0.5, lecternUpdatePacket.z + 0.5), isCreative() ? MAX_REACH_DISTANCE_CREATIVE : MAX_REACH_DISTANCE_SURVIVAL)) {
 						break;
 					}
 
@@ -150,8 +159,12 @@ public class SynapsePlayer19 extends SynapsePlayer18 {
 					}
 				} else if (getProtocol() == AbstractProtocol.PROTOCOL_110.getProtocolStart()) {
 					LecternUpdatePacket110 lecternUpdatePacket = (LecternUpdatePacket110) packet;
+					if (lecternUpdatePacket.droppingBook) {
+						// Drop book is handled with an interact event on use item transaction
+						break;
+					}
 
-					if (distanceSquared(lecternUpdatePacket.x, lecternUpdatePacket.y, lecternUpdatePacket.z) > 100) {
+					if (!canInteract(temporalVector.setComponents(lecternUpdatePacket.x + 0.5, lecternUpdatePacket.y + 0.5, lecternUpdatePacket.z + 0.5), isCreative() ? MAX_REACH_DISTANCE_CREATIVE : MAX_REACH_DISTANCE_SURVIVAL)) {
 						break;
 					}
 
@@ -272,9 +285,42 @@ public class SynapsePlayer19 extends SynapsePlayer18 {
 		long time = System.nanoTime();
 		pingNs = time;
 
+		waitingPongTicks = PONG_TIMEOUT_TICKS;
+		pongTimeoutCount = 0;
+
 		NetworkStackLatencyPacket19 packet = new NetworkStackLatencyPacket19();
 		packet.isFromServer = true;
 		packet.timestamp = time;
+		dataPacket(packet);
+	}
+
+	@Override
+	public boolean onUpdate(int currentTick) {
+		int tickDiff = currentTick - this.lastUpdate;
+		if (tickDiff > 0) {
+			if (pingNs != 0) {
+				if (waitingPongTicks > 0) {
+					waitingPongTicks--;
+				} else if (++pongTimeoutCount > PONG_TIMEOUT_DISCONNECT_THRESHOLD) {
+					onPacketViolation(PacketViolationReason.VIOLATION_OVER_THRESHOLD, "timeout");
+					pongTimeoutCount = 0;
+				} else {
+					// retry
+					ping();
+				}
+			}
+		}
+		return super.onUpdate(currentTick);
+	}
+
+	@Override
+	public void playOnScreenEffectAnimation(int effectId) {
+		if (getProtocol() < AbstractProtocol.PROTOCOL_111.getProtocolStart()) {
+			return;
+		}
+
+		OnScreenTextureAnimationPacket111 packet = new OnScreenTextureAnimationPacket111();
+		packet.effectId = effectId;
 		dataPacket(packet);
 	}
 }

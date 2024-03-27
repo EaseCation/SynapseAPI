@@ -28,7 +28,8 @@ public final class BlockItemFlattener {
         DOWNGRADERS.put(AbstractProtocol.PROTOCOL_120_40, BlockItemFlattener::downgrader12030);
         DOWNGRADERS.put(AbstractProtocol.PROTOCOL_120_50, BlockItemFlattener::downgrader12050);
         DOWNGRADERS.put(AbstractProtocol.PROTOCOL_120_60, BlockItemFlattener::downgrader12060);
-//        DOWNGRADERS.put(AbstractProtocol.PROTOCOL_120_70, BlockItemFlattener::downgrader12070);
+        DOWNGRADERS.put(AbstractProtocol.PROTOCOL_120_70, BlockItemFlattener::downgrader12070);
+//        DOWNGRADERS.put(AbstractProtocol.PROTOCOL_120_80, BlockItemFlattener::downgrader12080);
     }
 
     private static int downgrader11970(int id) {
@@ -130,17 +131,31 @@ public final class BlockItemFlattener {
         return downgrader12060(id);
     }
 
+    private static int downgrader12080(int id) {
+        if (id <= ItemBlockID.SPRUCE_SAPLING && id >= ItemBlockID.DARK_OAK_SAPLING) {
+            return ItemBlockID.SAPLING;
+        }
+        if (id <= ItemBlockID.BRAIN_CORAL_FAN && id >= ItemBlockID.HORN_CORAL_FAN) {
+            return ItemBlockID.CORAL_FAN;
+        }
+        if (id <= ItemBlockID.DEAD_BRAIN_CORAL_FAN && id >= ItemBlockID.DEAD_HORN_CORAL_FAN) {
+            return ItemBlockID.CORAL_FAN_DEAD;
+        }
+        if (id <= ItemBlockID.BLUE_ORCHID && id >= ItemBlockID.LILY_OF_THE_VALLEY) {
+            return ItemBlockID.RED_FLOWER;
+        }
+        return downgrader12070(id);
+    }
+
     private BlockItemFlattener() {
         throw new IllegalStateException();
     }
 }
 
 //dirt
-//sapling
 //sand
 //sandstone
 //tallgrass
-//red_flower
 //double_stone_slab
 //stone_slab
 //tnt
@@ -158,8 +173,6 @@ public final class BlockItemFlattener {
 //colored_torch_bp
 //chemistry_table
 //coral_block
-//coral_fan
-//coral_fan_dead
 //coral_fan_hang
 //coral_fan_hang2
 //coral_fan_hang3

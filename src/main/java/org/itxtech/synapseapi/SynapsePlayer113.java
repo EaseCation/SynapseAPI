@@ -387,7 +387,7 @@ public class SynapsePlayer113 extends SynapsePlayer112 {
 
 								this.setDataFlag(DATA_FLAG_ACTION, false);
 
-								if (this.canInteract(blockVector.add(0.5, 0.5, 0.5), this.isCreative() ? 13 : 7)) {
+								if (this.canInteract(blockVector.add(0.5, 0.5, 0.5), this.isCreative() ? MAX_REACH_DISTANCE_CREATIVE : MAX_REACH_DISTANCE_SURVIVAL)) {
 									if (this.isCreative()) {
 										Item i = inventory.getItemInHand();
 										if (this.level.useItemOn(blockVector.asVector3(), i, face, clickPos.x, clickPos.y, clickPos.z, this) != null) {
@@ -446,7 +446,7 @@ public class SynapsePlayer113 extends SynapsePlayer112 {
 
 								Item oldItem = i.clone();
 
-								if (this.canInteract(blockVector.add(0.5, 0.5, 0.5), this.isCreative() ? 16 : 8) && (i = this.level.useBreakOn(blockVector.asVector3(), face, i, this, true)) != null) {
+								if (this.canInteract(blockVector.add(0.5, 0.5, 0.5), this.isCreative() ? MAX_REACH_DISTANCE_CREATIVE : MAX_REACH_DISTANCE_SURVIVAL) && (i = this.level.useBreakOn(blockVector.asVector3(), face, i, this, true)) != null) {
 									if (this.isSurvival()) {
 										this.getFoodData().updateFoodExpLevel(0.005f);
 										if (!i.equals(oldItem) || i.getCount() != oldItem.getCount()) {
@@ -544,6 +544,10 @@ public class SynapsePlayer113 extends SynapsePlayer112 {
 
 						switch (type) {
 							case InventoryTransactionPacket.USE_ITEM_ON_ENTITY_ACTION_INTERACT:
+								if (!this.canInteract(target, isCreative() ? MAX_REACH_DISTANCE_ENTITY_INTERACTION : 5)) {
+									break;
+								}
+
 								PlayerInteractEntityEvent playerInteractEntityEvent = new PlayerInteractEntityEvent(this, target, item, useItemOnEntityData.clickPos);
 								if (this.isSpectator()) playerInteractEntityEvent.setCancelled();
 								getServer().getPluginManager().callEvent(playerInteractEntityEvent);
@@ -568,7 +572,7 @@ public class SynapsePlayer113 extends SynapsePlayer112 {
 								}
 								break;
 							case InventoryTransactionPacket.USE_ITEM_ON_ENTITY_ACTION_ATTACK:
-								if (!this.canInteract(target, isCreative() ? 8 : 5)) {
+								if (!this.canInteract(target, isCreative() ? MAX_REACH_DISTANCE_ENTITY_INTERACTION : 5)) {
 									break;
 								} else if (target instanceof Player) {
 									if ((((Player) target).getGamemode() & 0x01) > 0) {
@@ -669,6 +673,10 @@ public class SynapsePlayer113 extends SynapsePlayer112 {
 				break;
 			case ProtocolInfo.TICK_SYNC_PACKET:
 				if (!callPacketReceiveEvent(packet)) break;
+				if (true) {
+					// 不响应, 客户端使用自己的时间, 由服务端自动计算时间差
+					break;
+				}
 				TickSyncPacket113 tickSyncRequest = (TickSyncPacket113) packet;
 
 				TickSyncPacket113 tickSyncResponse = new TickSyncPacket113();

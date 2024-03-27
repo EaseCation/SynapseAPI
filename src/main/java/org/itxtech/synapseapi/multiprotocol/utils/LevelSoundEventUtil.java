@@ -19,6 +19,8 @@ public final class LevelSoundEventUtil {
             case SOUND_PLACE:
             case SOUND_ITEM_USE_ON:
             case SOUND_HIT:
+            case SOUND_STEP:
+            case SOUND_HEAVY_STEP:
             case SOUND_LAND:
             case SOUND_POWER_ON:
             case SOUND_POWER_OFF:
@@ -33,6 +35,8 @@ public final class LevelSoundEventUtil {
         switch (sound) {
             case SOUND_ITEM_USE_ON:
             case SOUND_HIT:
+            case SOUND_STEP:
+            case SOUND_HEAVY_STEP:
             case SOUND_PLACE:
             case SOUND_LAND:
             case SOUND_POWER_ON:

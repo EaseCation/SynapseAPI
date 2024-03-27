@@ -5,6 +5,7 @@ import cn.nukkit.Server;
 import cn.nukkit.block.Block;
 import cn.nukkit.block.BlockID;
 import cn.nukkit.block.BlockNoteblock;
+import cn.nukkit.blockentity.BlockEntityLectern;
 import cn.nukkit.entity.data.ShortEntityData;
 import cn.nukkit.entity.data.StringEntityData;
 import cn.nukkit.entity.item.EntityBoat;
@@ -21,6 +22,7 @@ import cn.nukkit.math.Vector3;
 import cn.nukkit.network.PacketViolationReason;
 import cn.nukkit.network.SourceInterface;
 import cn.nukkit.network.protocol.*;
+import cn.nukkit.potion.Effect;
 import cn.nukkit.resourcepacks.ResourcePack;
 import cn.nukkit.scheduler.AsyncTask;
 import cn.nukkit.utils.Binary;
@@ -245,6 +247,7 @@ public class SynapsePlayer14 extends SynapsePlayer {
 				playerActionPacket.entityId = this.id;
 				Vector3 pos = new Vector3(playerActionPacket.x, playerActionPacket.y, playerActionPacket.z);
 
+				actionswitch:
 				switch (playerActionPacket.action) {
 					case PlayerActionPacket14.ACTION_START_BREAK:
 						if (isServerAuthoritativeBlockBreakingEnabled()) {
@@ -259,7 +262,7 @@ public class SynapsePlayer14 extends SynapsePlayer {
 						long currentBreak = System.currentTimeMillis();
 						BlockVector3 currentBreakPosition = new BlockVector3(playerActionPacket.x, playerActionPacket.y, playerActionPacket.z);
 						// HACK: Client spams multiple left clicks so we need to skip them.
-						if ((lastBreakPosition.equalsVec(currentBreakPosition) && (currentBreak - this.lastBreak) < 10) || pos.distanceSquared(this) > 100) {
+						if ((lastBreakPosition.equalsVec(currentBreakPosition) && (currentBreak - this.lastBreak) < 10) || !canInteract(pos.blockCenter(), isCreative() ? MAX_REACH_DISTANCE_CREATIVE : MAX_REACH_DISTANCE_SURVIVAL)) {
 							break;
 						}
 
@@ -273,9 +276,20 @@ public class SynapsePlayer14 extends SynapsePlayer {
 							break;
 						}
 
-						if (/*!isAdventure() &&*/ target.getId() == Block.NOTEBLOCK) {
-							((BlockNoteblock) target).emitSound();
-							break;
+						if (/*!isAdventure()*/true) {
+							switch (target.getId()) {
+								case Block.NOTEBLOCK:
+									((BlockNoteblock) target).emitSound();
+									break actionswitch;
+								case Block.LECTERN:
+									if (level.getBlockEntityIfLoaded(pos) instanceof BlockEntityLectern lectern && lectern.dropBook(this)) {
+										lectern.spawnToAll();
+										if (isCreative()) {
+											break actionswitch;
+										}
+									}
+									break;
+							}
 						}
 
 						Block block = target.getSide(face);
@@ -415,6 +429,9 @@ public class SynapsePlayer14 extends SynapsePlayer {
 						}
 
 						PlayerToggleSprintEvent playerToggleSprintEvent = new PlayerToggleSprintEvent(this, true);
+						if (hasEffect(Effect.BLINDNESS)) {
+							playerToggleSprintEvent.setCancelled();
+						}
 						this.server.getPluginManager().callEvent(playerToggleSprintEvent);
 						if (playerToggleSprintEvent.isCancelled()) {
 							this.sendData(this);
@@ -630,7 +647,7 @@ public class SynapsePlayer14 extends SynapsePlayer {
 
 					if (this.riding instanceof EntityBoat boat) {
 						if (this.temporalVector.setComponents(moveEntityAbsolutePacket.x, moveEntityAbsolutePacket.y, moveEntityAbsolutePacket.z).distanceSquared(this.riding) < 1000) {
-							boat.onInput(moveEntityAbsolutePacket.x, moveEntityAbsolutePacket.y, moveEntityAbsolutePacket.z, moveEntityAbsolutePacket.yaw % 360);
+							boat.onInput(moveEntityAbsolutePacket.x, moveEntityAbsolutePacket.y, moveEntityAbsolutePacket.z, moveEntityAbsolutePacket.yaw % 360, 0);
 						}
 					}
 					break;

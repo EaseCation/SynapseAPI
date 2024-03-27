@@ -3,6 +3,7 @@ package org.itxtech.synapseapi.utils;
 import cn.nukkit.entity.Entity;
 import cn.nukkit.entity.data.EntityData;
 import cn.nukkit.entity.data.EntityMetadata;
+import cn.nukkit.entity.data.LongEntityData;
 import cn.nukkit.network.protocol.*;
 import org.itxtech.synapseapi.multiprotocol.protocol113.protocol.MoveEntityDeltaPacket113;
 import org.itxtech.synapseapi.multiprotocol.protocol116100.protocol.AnimateEntityPacket116100;
@@ -13,10 +14,13 @@ import org.itxtech.synapseapi.multiprotocol.protocol11730.protocol.AnimateEntity
 import org.itxtech.synapseapi.multiprotocol.protocol11830.protocol.SpawnParticleEffectPacket11830;
 import org.itxtech.synapseapi.multiprotocol.protocol119.protocol.PlayerActionPacket119;
 import org.itxtech.synapseapi.multiprotocol.protocol11910.protocol.UpdateAbilitiesPacket11910;
+import org.itxtech.synapseapi.multiprotocol.protocol12070.protocol.MobEffectPacket12070;
+import org.itxtech.synapseapi.multiprotocol.protocol12070.protocol.SetEntityMotionPacket12070;
 import org.itxtech.synapseapi.multiprotocol.protocol14.protocol.PlayerActionPacket14;
 import org.itxtech.synapseapi.multiprotocol.protocol15.protocol.MoveEntityDeltaPacket;
 import org.itxtech.synapseapi.multiprotocol.protocol18.protocol.SpawnParticleEffectPacket18;
 
+import javax.annotation.Nullable;
 import java.util.Arrays;
 import java.util.Map;
 
@@ -42,7 +46,11 @@ public class DataPacketEidReplacer {
                 if (((TakeItemEntityPacket) packet).entityId == from) ((TakeItemEntityPacket) packet).entityId = to;
                 break;
             case ProtocolInfo.SET_ACTOR_MOTION_PACKET:
-                if (((SetEntityMotionPacket) packet).eid == from) ((SetEntityMotionPacket) packet).eid = to;
+                if (packet instanceof SetEntityMotionPacket) {
+                    if (((SetEntityMotionPacket) packet).eid == from) ((SetEntityMotionPacket) packet).eid = to;
+                } else if (packet instanceof SetEntityMotionPacket12070) {
+                    if (((SetEntityMotionPacket12070) packet).eid == from) ((SetEntityMotionPacket12070) packet).eid = to;
+                }
                 break;
             case ProtocolInfo.SET_ACTOR_LINK_PACKET:
                 if (((SetEntityLinkPacket) packet).vehicleUniqueId == from)
@@ -51,17 +59,13 @@ public class DataPacketEidReplacer {
                     ((SetEntityLinkPacket) packet).riderUniqueId = to;
                 break;
             case ProtocolInfo.SET_ACTOR_DATA_PACKET:
-                if (((SetEntityDataPacket) packet).eid == from) ((SetEntityDataPacket) packet).eid = to;
-                if (((SetEntityDataPacket) packet).metadata.exists(Entity.DATA_OWNER_EID)) {
-                    ((SetEntityDataPacket) packet).metadata = cloneEntityMetadata(((SetEntityDataPacket) packet).metadata);
-                    if (((SetEntityDataPacket) packet).metadata.getLong(Entity.DATA_OWNER_EID) == from) {
-                        ((SetEntityDataPacket) packet).metadata.putLong(Entity.DATA_OWNER_EID, to);
+                if (packet instanceof SetEntityDataPacket dp) {
+                    if (dp.eid == from) {
+                        dp.eid = to;
                     }
-                }
-                if (((SetEntityDataPacket) packet).metadata.exists(Entity.DATA_TARGET_EID)) {
-                    ((SetEntityDataPacket) packet).metadata = cloneEntityMetadata(((SetEntityDataPacket) packet).metadata);
-                    if (((SetEntityDataPacket) packet).metadata.getLong(Entity.DATA_TARGET_EID) == from) {
-                        ((SetEntityDataPacket) packet).metadata.putLong(Entity.DATA_TARGET_EID, to);
+                    EntityMetadata newMetadata = replaceEntityMetadata(dp.metadata, from, to);
+                    if (newMetadata != null) {
+                        dp.metadata = newMetadata;
                     }
                 }
                 break;
@@ -82,7 +86,11 @@ public class DataPacketEidReplacer {
                 if (((MobEquipmentPacket) packet).eid == from) ((MobEquipmentPacket) packet).eid = to;
                 break;
             case ProtocolInfo.MOB_EFFECT_PACKET:
-                if (((MobEffectPacket) packet).eid == from) ((MobEffectPacket) packet).eid = to;
+                if (packet instanceof MobEffectPacket) {
+                    if (((MobEffectPacket) packet).eid == from) ((MobEffectPacket) packet).eid = to;
+                } else if (packet instanceof MobEffectPacket12070) {
+                    if (((MobEffectPacket12070) packet).eid == from) ((MobEffectPacket12070) packet).eid = to;
+                }
                 break;
             case ProtocolInfo.MOVE_ACTOR_ABSOLUTE_PACKET:
                 if (((MoveEntityPacket) packet).eid == from) ((MoveEntityPacket) packet).eid = to;
@@ -108,10 +116,26 @@ public class DataPacketEidReplacer {
                 }
                 break;
             case ProtocolInfo.ADD_ACTOR_PACKET:
-                if (((AddEntityPacket) packet).metadata.exists(Entity.DATA_OWNER_EID)) {
-                    ((AddEntityPacket) packet).metadata = cloneEntityMetadata(((AddEntityPacket) packet).metadata);
-                    if (((AddEntityPacket) packet).metadata.getLong(Entity.DATA_OWNER_EID) == from) {
-                        ((AddEntityPacket) packet).metadata.putLong(Entity.DATA_OWNER_EID, to);
+                if (packet instanceof AddEntityPacket dp) {
+                    EntityMetadata newMetadata = replaceEntityMetadata(dp.metadata, from, to);
+                    if (newMetadata != null) {
+                        dp.metadata = newMetadata;
+                    }
+                }
+                break;
+            case ProtocolInfo.ADD_ITEM_ACTOR_PACKET:
+                if (packet instanceof AddItemEntityPacket dp) {
+                    EntityMetadata newMetadata = replaceEntityMetadata(dp.metadata, from, to);
+                    if (newMetadata != null) {
+                        dp.metadata = newMetadata;
+                    }
+                }
+                break;
+            case ProtocolInfo.ADD_PLAYER_PACKET:
+                if (packet instanceof AddPlayerPacket dp) {
+                    EntityMetadata newMetadata = replaceEntityMetadata(dp.metadata, from, to);
+                    if (newMetadata != null) {
+                        dp.metadata = newMetadata;
                     }
                 }
                 break;
@@ -217,5 +241,38 @@ public class DataPacketEidReplacer {
         EntityMetadata re = new EntityMetadata();
         map.forEach((i, data) -> re.put(data));
         return re;
+    }
+
+    @Nullable
+    private static EntityMetadata replaceEntityMetadata(EntityMetadata metadata, long from, long to) {
+        EntityMetadata newMetadata = null;
+        newMetadata = replaceEntityMetadata(metadata, newMetadata, Entity.DATA_OWNER_EID, from, to);
+        newMetadata = replaceEntityMetadata(metadata, newMetadata, Entity.DATA_TARGET_EID, from, to);
+        newMetadata = replaceEntityMetadata(metadata, newMetadata, Entity.DATA_ARROW_SHOOTER_EID, from, to);
+        newMetadata = replaceEntityMetadata(metadata, newMetadata, Entity.DATA_FIREWORK_ATTACHED_EID, from, to);
+        newMetadata = replaceEntityMetadata(metadata, newMetadata, Entity.DATA_LEAD_HOLDER_EID, from, to);
+        newMetadata = replaceEntityMetadata(metadata, newMetadata, Entity.DATA_WITHER_TARGET_1_EID, from, to);
+        newMetadata = replaceEntityMetadata(metadata, newMetadata, Entity.DATA_WITHER_TARGET_2_EID, from, to);
+        newMetadata = replaceEntityMetadata(metadata, newMetadata, Entity.DATA_WITHER_TARGET_3_EID, from, to);
+        newMetadata = replaceEntityMetadata(metadata, newMetadata, Entity.DATA_TRADING_PLAYER_EID, from, to);
+        newMetadata = replaceEntityMetadata(metadata, newMetadata, Entity.DATA_BALLOON_ATTACHED_EID, from, to);
+        newMetadata = replaceEntityMetadata(metadata, newMetadata, Entity.DATA_PLAYER_AGENT_EID, from, to);
+        return newMetadata;
+    }
+
+    @Nullable
+    private static EntityMetadata replaceEntityMetadata(EntityMetadata metadata, @Nullable EntityMetadata newMetadata, int dataId, long from, long to) {
+        EntityData<?> entityData = metadata.get(dataId);
+        if (!(entityData instanceof LongEntityData data)) {
+            return newMetadata;
+        }
+        if (data.getDataAsLong() != from) {
+            return newMetadata;
+        }
+        if (newMetadata == null) {
+            newMetadata = cloneEntityMetadata(metadata);
+        }
+        newMetadata.putLong(dataId, to);
+        return newMetadata;
     }
 }

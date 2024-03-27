@@ -98,6 +98,10 @@ import org.itxtech.synapseapi.multiprotocol.protocol12060.protocol.CorrectPlayer
 import org.itxtech.synapseapi.multiprotocol.protocol12060.protocol.PlayerListPacket12060;
 import org.itxtech.synapseapi.multiprotocol.protocol12060.protocol.ServerPlayerPostMovePositionPacket12060;
 import org.itxtech.synapseapi.multiprotocol.protocol12060.protocol.SetHudPacket12060;
+import org.itxtech.synapseapi.multiprotocol.protocol12070.protocol.LecternUpdatePacket12070;
+import org.itxtech.synapseapi.multiprotocol.protocol12070.protocol.MobEffectPacket12070;
+import org.itxtech.synapseapi.multiprotocol.protocol12070.protocol.ResourcePacksInfoPacket12070;
+import org.itxtech.synapseapi.multiprotocol.protocol12070.protocol.SetEntityMotionPacket12070;
 import org.itxtech.synapseapi.multiprotocol.protocol15.protocol.AddEntityPacket15;
 import org.itxtech.synapseapi.multiprotocol.protocol15.protocol.ClientboundMapItemDataPacket15;
 import org.itxtech.synapseapi.multiprotocol.protocol15.protocol.MoveEntityAbsolutePacket15;
@@ -380,6 +384,11 @@ public class PacketRegister {
         registerPacket(AbstractProtocol.PROTOCOL_120_60, ProtocolInfo.CORRECT_PLAYER_MOVE_PREDICTION_PACKET, CorrectPlayerMovePredictionPacket12060.class);
         registerPacket(AbstractProtocol.PROTOCOL_120_60, ProtocolInfo.SET_HUD_PACKET, SetHudPacket12060.class);
         registerPacket(AbstractProtocol.PROTOCOL_120_60, ProtocolInfo.SERVER_PLAYER_POST_MOVE_POSITION_PACKET, ServerPlayerPostMovePositionPacket12060.class);
+
+        registerPacket(AbstractProtocol.PROTOCOL_120_70, ProtocolInfo.RESOURCE_PACKS_INFO_PACKET, ResourcePacksInfoPacket12070.class);
+        registerPacket(AbstractProtocol.PROTOCOL_120_70, ProtocolInfo.MOB_EFFECT_PACKET, MobEffectPacket12070.class);
+        registerPacket(AbstractProtocol.PROTOCOL_120_70, ProtocolInfo.SET_ACTOR_MOTION_PACKET, SetEntityMotionPacket12070.class);
+        registerPacket(AbstractProtocol.PROTOCOL_120_70, ProtocolInfo.LECTERN_UPDATE_PACKET, LecternUpdatePacket12070.class);
 
         checkNeteaseSpecialExtend();
     }
