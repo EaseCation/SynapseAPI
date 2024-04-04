@@ -11,6 +11,7 @@ import cn.nukkit.entity.data.StringEntityData;
 import cn.nukkit.entity.item.EntityBoat;
 import cn.nukkit.event.player.*;
 import cn.nukkit.item.Item;
+import cn.nukkit.item.enchantment.Enchantment;
 import cn.nukkit.lang.TranslationContainer;
 import cn.nukkit.level.GameRules;
 import cn.nukkit.level.Position;
@@ -46,7 +47,6 @@ import java.util.Optional;
 import java.util.concurrent.ThreadLocalRandom;
 
 public class SynapsePlayer14 extends SynapsePlayer {
-	private static final boolean DEBUG_ENVIRONMENT = Boolean.getBoolean("easecation.debugging");
 
 	public SynapsePlayer14(SourceInterface interfaz, SynapseEntry synapseEntry, Long clientID, InetSocketAddress socketAddress) {
 		super(interfaz, synapseEntry, clientID, socketAddress);
@@ -299,10 +299,11 @@ public class SynapsePlayer14 extends SynapsePlayer {
 							break;
 						}
 
+						Item held = inventory.getItemInHand();
 						if (!this.isCreative()) {
 							//improved this to take stuff like swimming, ladders, enchanted tools into account, fix wrong tool break time calculations for bad tools (pmmp/PocketMine-MP#211)
 							//Done by lmlstarqaq
-							double breakTime = Mth.ceil(target.getBreakTime(this.inventory.getItemInHand(), this) * 20);
+							double breakTime = Mth.ceil(target.getBreakTime(held, this) * 20);
 							if (breakTime > 0) {
 								LevelEventPacket pk = new LevelEventPacket();
 								pk.evid = LevelEventPacket.EVENT_BLOCK_START_BREAK;
@@ -312,6 +313,8 @@ public class SynapsePlayer14 extends SynapsePlayer {
 								pk.data = (int) (65535 / breakTime);
 								this.getLevel().addChunkPacket(pos.getFloorX() >> 4, pos.getFloorZ() >> 4, pk);
 							}
+						} else if (held.isSword() || held.is(Item.TRIDENT)) {
+							break;
 						}
 
 						this.breakingBlock = target;
@@ -584,6 +587,31 @@ public class SynapsePlayer14 extends SynapsePlayer {
 						} else {
 							this.setSwimming(false);
 						}
+						break;
+					case PlayerActionPacket.ACTION_START_SPIN_ATTACK:
+						if (isSpectator()) {
+							break;
+						}
+
+						Item trident = getInventory().getItemInHand();
+						if (trident.is(Item.TRIDENT)) {
+							int riptide = trident.getEnchantmentLevel(Enchantment.RIPTIDE);
+							if (riptide > 0) {
+								//TODO: check water/rain
+								if (setDataFlag(DATA_FLAG_SPIN_ATTACK, true)) {
+									damageNearbyMobsTick = 20;
+									level.addLevelSoundEvent(this.add(0, getHeight() * 0.5f, 0), switch (riptide) {
+										case 1 -> LevelSoundEventPacket.SOUND_ITEM_TRIDENT_RIPTIDE_1;
+										case 2 -> LevelSoundEventPacket.SOUND_ITEM_TRIDENT_RIPTIDE_2;
+                                        default -> LevelSoundEventPacket.SOUND_ITEM_TRIDENT_RIPTIDE_3;
+                                    });
+								}
+							}
+						}
+						break;
+					case PlayerActionPacket.ACTION_STOP_SPIN_ATTACK:
+						damageNearbyMobsTick = 0;
+						setDataFlag(DATA_FLAG_SPIN_ATTACK, false);
 						break;
 				}
 

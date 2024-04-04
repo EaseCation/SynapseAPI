@@ -493,7 +493,7 @@ public class SynapsePlayer113 extends SynapsePlayer112 {
 								}
 
 								if (item.onClickAir(this, directionVector)) {
-									if (this.isSurvival()) {
+									if (this.isSurvivalLike()) {
 										this.inventory.setItemInHand(item);
 									}
 
@@ -557,8 +557,9 @@ public class SynapsePlayer113 extends SynapsePlayer112 {
 								}
 								if (target.onInteract(this, item, useItemOnEntityData.clickPos) && this.isSurvival()) {
 									if (item.isTool()) {
-										if (item.useOn(target) && item.getDamage() >= item.getMaxDurability()) {
+										if (item.useOn(target) && item.getDamage() > item.getMaxDurability()) {
 											item = Items.air();
+											level.addLevelSoundEvent(this, LevelSoundEventPacket.SOUND_BREAK);
 										}
 									} else {
 										if (item.count > 1) {
@@ -585,9 +586,12 @@ public class SynapsePlayer113 extends SynapsePlayer112 {
 								Enchantment[] enchantments = item.getId() != Item.ENCHANTED_BOOK ? item.getEnchantments() : Enchantment.EMPTY;
 
 								float itemDamage = item.getAttackDamage();
+
+								float damageBonus = 0;
 								for (Enchantment enchantment : enchantments) {
-									itemDamage += enchantment.getDamageBonus(target);
+									damageBonus += enchantment.getDamageBonus(target);
 								}
+								itemDamage += Mth.floor(damageBonus);
 
 								Map<EntityDamageEvent.DamageModifier, Float> damage = new EnumMap<>(EntityDamageEvent.DamageModifier.class);
 								damage.put(EntityDamageEvent.DamageModifier.BASE, itemDamage);
@@ -612,14 +616,19 @@ public class SynapsePlayer113 extends SynapsePlayer112 {
 								}
 
 								for (Enchantment enchantment : enchantments) {
-									enchantment.doPostAttack(this, target, null);
+									enchantment.doPostAttack(item, this, target, null);
 								}
 
 								if (item.isTool() && this.isSurvivalLike()) {
-									if (item.useOn(target) && item.getDamage() >= item.getMaxDurability()) {
-										this.inventory.setItemInHand(Item.get(0));
+									if (item.useOn(target)) {
+										if (item.getDamage() > item.getMaxDurability()) {
+											this.inventory.setItemInHand(Items.air());
+											level.addLevelSoundEvent(this, LevelSoundEventPacket.SOUND_BREAK);
+										} else {
+											this.inventory.setItemInHand(item);
+										}
 									} else {
-										if (item.getId() == 0 || this.inventory.getItemInHand().getId() == item.getId()) {
+										if (item.getId() == Item.AIR || this.inventory.getItemInHand().getId() == item.getId()) {
 											this.inventory.setItemInHand(item);
 										} else {
 											server.getLogger().debug("Tried to set item " + item.getId() + " but " + this.username + " had item " + this.inventory.getItemInHand().getId() + " in their hand slot");

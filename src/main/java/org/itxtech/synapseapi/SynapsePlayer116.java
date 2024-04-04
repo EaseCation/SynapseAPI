@@ -148,7 +148,7 @@ public class SynapsePlayer116 extends SynapsePlayer113 {
 		switch (packet.pid()) {
 			case ProtocolInfo.INTERACT_PACKET:
 				InteractPacket interactPacket = (InteractPacket) packet;
-				if (interactPacket.action == InteractPacket.ACTION_OPEN_INVENTORY && interactPacket.target == getLocalEntityId() && !this.inventoryOpen) {
+				if (interactPacket.action == InteractPacket.ACTION_OPEN_INVENTORY && interactPacket.target == getLocalEntityId() && !this.inventoryOpen && !isSpectator()) {
 //					this.openInventory();
 					this.inventory.open(this);
 					this.inventoryOpen = true;
@@ -492,7 +492,7 @@ public class SynapsePlayer116 extends SynapsePlayer113 {
 								}
 
 								if (item.onClickAir(this, directionVector)) {
-									if (this.isSurvival()) {
+									if (this.isSurvivalLike()) {
 										this.inventory.setItemInHand(item);
 									}
 
@@ -556,8 +556,9 @@ public class SynapsePlayer116 extends SynapsePlayer113 {
 								}
 								if (target.onInteract(this, item, useItemOnEntityData.clickPos) && this.isSurvival()) {
 									if (item.isTool()) {
-										if (item.useOn(target) && item.getDamage() >= item.getMaxDurability()) {
+										if (item.useOn(target) && item.getDamage() > item.getMaxDurability()) {
 											item = Items.air();
+											level.addLevelSoundEvent(this, LevelSoundEventPacket.SOUND_BREAK);
 										}
 									} else {
 										if (item.count > 1) {
@@ -596,9 +597,11 @@ public class SynapsePlayer116 extends SynapsePlayer113 {
 
 								Enchantment[] enchantments = item.getId() != Item.ENCHANTED_BOOK ? item.getEnchantments() : Enchantment.EMPTY;
 
+								float damageBonus = 0;
 								for (Enchantment enchantment : enchantments) {
-									itemDamage += enchantment.getDamageBonus(target);
+									damageBonus += enchantment.getDamageBonus(target);
 								}
+								itemDamage += Mth.floor(damageBonus);
 
 								Map<EntityDamageEvent.DamageModifier, Float> damage = new EnumMap<>(EntityDamageEvent.DamageModifier.class);
 								damage.put(EntityDamageEvent.DamageModifier.BASE, itemDamage);
@@ -629,12 +632,17 @@ public class SynapsePlayer116 extends SynapsePlayer113 {
 								}
 
 								for (Enchantment enchantment : enchantments) {
-									enchantment.doPostAttack(this, target, null);
+									enchantment.doPostAttack(item, this, target, null);
 								}
 
 								if (item.isTool() && this.isSurvival()) {
-									if (item.useOn(target) && item.getDamage() >= item.getMaxDurability()) {
-										this.inventory.setItemInHand(Items.air());
+									if (item.useOn(target)) {
+										if (item.getDamage() > item.getMaxDurability()) {
+											this.inventory.setItemInHand(Items.air());
+											level.addLevelSoundEvent(this, LevelSoundEventPacket.SOUND_BREAK);
+										} else {
+											this.inventory.setItemInHand(item);
+										}
 									} else {
 										this.inventory.setItemInHand(item);
 									}
@@ -1035,13 +1043,17 @@ public class SynapsePlayer116 extends SynapsePlayer113 {
 									this.level.addLevelSoundEvent(block, LevelSoundEventPacket.SOUND_EXTINGUISH_FIRE);
 									break;
 								}
+
+								Item held = inventory.getItemInHand();
 								if (!this.isCreative()) {
 									//improved this to take stuff like swimming, ladders, enchanted tools into account, fix wrong tool break time calculations for bad tools (pmmp/PocketMine-MP#211)
 									//Done by lmlstarqaq
-									double breakTime = Mth.ceil(target.getBreakTime(this.inventory.getItemInHand(), this) * 20);
+									double breakTime = Mth.ceil(target.getBreakTime(held, this) * 20);
 									if (breakTime > 0) {
 										this.level.addLevelEvent(pos, LevelEventPacket.EVENT_BLOCK_START_BREAK, (int) (65535 / breakTime));
 									}
+								} else if (held.isSword() || held.is(Item.TRIDENT)) {
+									break;
 								}
 
 								this.breakingBlock = target;
@@ -1379,7 +1391,7 @@ public class SynapsePlayer116 extends SynapsePlayer113 {
 								}
 
 								if (item.onClickAir(this, directionVector)) {
-									if (this.isSurvival()) {
+									if (this.isSurvivalLike()) {
 										this.inventory.setItemInHand(item);
 									}
 
@@ -1563,10 +1575,10 @@ public class SynapsePlayer116 extends SynapsePlayer113 {
 
 	@Override
 	public void sendCreativeContents() {
-		if (this.isSpectator()) {
-			this.dataPacket(new CreativeContentPacket116());
-			return;
-		}
+//		if (this.isSpectator()) {
+//			this.dataPacket(new CreativeContentPacket116());
+//			return;
+//		}
 
 		DataPacket packet = CreativeItemsPalette.getCachedCreativeContentPacket(getAbstractProtocol(), isNetEaseClient());
 		if (packet != null) {
@@ -1635,9 +1647,6 @@ public class SynapsePlayer116 extends SynapsePlayer113 {
 			clientTick = tick;
 			clientTickDiff = tickDiff;
 		} else if (tick != ++clientTick) {
-			if (!isNeedLevelChangeLoadScreen()) { // 处于切换世界加载屏时会暂停发送AuthInput
-				onPacketViolation(PacketViolationReason.IMPOSSIBLE_BEHAVIOR, "input_lost");
-			}
 			clientTick = tick;
 			clientTickDiff = tickDiff;
 		} else if (Math.abs(tickDiff - clientTickDiff) > INPUT_TICK_ACCEPTANCE_THRESHOLD && clientTickCheckCd <= 0) {

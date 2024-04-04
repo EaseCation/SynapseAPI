@@ -382,10 +382,9 @@ public class SynapsePlayer16 extends SynapsePlayer14 {
 
 		this.noDamageTicks = 60;
 
-		this.sendRecipeList();
-		this.sendTrimRecipes();
-
 		this.sendCreativeContents();
+		this.sendTrimRecipes();
+		this.sendRecipeList();
 
 		for (long index : this.usedChunks.keySet()) {
 			int chunkX = Level.getHashX(index);
