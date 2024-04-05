@@ -1932,6 +1932,10 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
                     this.addViolationLevel(8, "emote_req");
                     break;
                 }
+                if (isNetEaseClient()) {
+                    onPacketViolation(PacketViolationReason.IMPOSSIBLE_BEHAVIOR, "ce_emote", emotePacket.emoteID);
+                    break;
+                }
 
                 int flags = emotePacket.flags | EmotePacket120.FLAG_SERVER;
                 if (MUTE_EMOTE_CHAT) {

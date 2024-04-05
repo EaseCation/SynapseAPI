@@ -731,6 +731,10 @@ public class SynapsePlayer116 extends SynapsePlayer113 {
 					this.addViolationLevel(8, "emote_req");
 					break;
 				}
+				if (isNetEaseClient()) {
+					onPacketViolation(PacketViolationReason.IMPOSSIBLE_BEHAVIOR, "ce_emote", emotePacket.emoteID);
+					break;
+				}
 
 				int flags = emotePacket.flags | EmotePacket116.FLAG_SERVER;
 				if (MUTE_EMOTE_CHAT) {
@@ -1657,7 +1661,7 @@ public class SynapsePlayer116 extends SynapsePlayer113 {
 				clientTickCheckCd = INPUT_TICK_OVERLOAD_CHECK_CD;
 				clientTickDiff = tickDiff;
 			} else if (++clientTickTooFastCount > INPUT_TICK_DESYNC_KICK_THRESHOLD) {
-				onPacketViolation(PacketViolationReason.VIOLATION_OVER_THRESHOLD, "input_fast");
+				onPacketViolation(PacketViolationReason.VIOLATION_OVER_THRESHOLD, "input_fast", String.valueOf(tick));
 				clientTickTooFastCount = 0;
 				clientTickCheckCd = INPUT_TICK_CHECK_CD;
 				clientTickDiff = tickDiff;

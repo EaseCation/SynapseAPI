@@ -1352,8 +1352,12 @@ public class SynapsePlayer extends Player {
     }
 
     public void onUnexpectedBehavior(String tag) {
-        new SynapsePlayerUnexpectedBehaviorEvent(this, tag).call();
-//        onPacketViolation(PacketViolationReason.IMPOSSIBLE_BEHAVIOR);
+        onUnexpectedBehavior(tag, "");
+    }
+
+    public void onUnexpectedBehavior(String tag, String context) {
+        new SynapsePlayerUnexpectedBehaviorEvent(this, tag, context).call();
+//        onPacketViolation(PacketViolationReason.IMPOSSIBLE_BEHAVIOR, tag, context);
     }
 
     protected void sendDimensionData() {

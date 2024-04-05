@@ -11,13 +11,23 @@ public class SynapsePlayerUnexpectedBehaviorEvent extends SynapsePlayerEvent {
     }
 
     private final String tag;
+    private final String context;
 
     public SynapsePlayerUnexpectedBehaviorEvent(SynapsePlayer player, String tag) {
+        this(player, tag, "");
+    }
+
+    public SynapsePlayerUnexpectedBehaviorEvent(SynapsePlayer player, String tag, String context) {
         super(player);
         this.tag = tag;
+        this.context = context;
     }
 
     public String getTag() {
         return tag;
+    }
+
+    public String getContext() {
+        return context;
     }
 }

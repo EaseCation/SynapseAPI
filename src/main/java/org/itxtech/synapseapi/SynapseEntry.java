@@ -80,6 +80,7 @@ public class SynapseEntry {
         PACKET_COUNT_LIMIT[ProtocolInfo.LEVEL_SOUND_EVENT_PACKET_V3] = 30;
         PACKET_COUNT_LIMIT[ProtocolInfo.COMMAND_REQUEST_PACKET] = 5;
         PACKET_COUNT_LIMIT[ProtocolInfo.SETTINGS_COMMAND_PACKET] = 5;
+        PACKET_COUNT_LIMIT[ProtocolInfo.NETWORK_STACK_LATENCY_PACKET] = 50;
     }
 
     private final SynapseAPI synapse;
@@ -548,9 +549,9 @@ public class SynapseEntry {
                             for (DataPacket subPacket : packets) {
                                 int packetId = subPacket.pid();
                                 if (packetId >= PACKET_TYPE_COUNT) {
-                                    player.setViolated("packet_bad_id");
+                                    player.setViolated("packet_bad_id" + packetId);
                                     synapse.getServer().getScheduler().scheduleTask(synapse, () -> {
-                                        player.onPacketViolation(PacketViolationReason.MALFORMED_PACKET, "pid");
+                                        player.onPacketViolation(PacketViolationReason.MALFORMED_PACKET, "pid" + packetId);
                                     });
                                     break HANDLER;
                                 }
@@ -631,7 +632,7 @@ public class SynapseEntry {
                                             if (player.lastAuthInputPacketTick > tick) {
                                                 player.setViolated("input_tick");
                                                 synapse.getServer().getScheduler().scheduleTask(synapse, () -> {
-                                                    player.onPacketViolation(PacketViolationReason.IMPOSSIBLE_BEHAVIOR, "input_tick");
+                                                    player.onPacketViolation(PacketViolationReason.IMPOSSIBLE_BEHAVIOR, "input_tick", String.valueOf(tick));
                                                 });
                                                 break HANDLER;
                                             }
