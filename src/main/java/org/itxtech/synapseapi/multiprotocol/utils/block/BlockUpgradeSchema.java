@@ -148,7 +148,19 @@ public class BlockUpgradeSchema {
                     if (newFlattenedName != null) {
                         newName = null;
                         JsonObject flattening = newFlattenedName.getAsJsonObject();
-                        flatten = new BlockFlatten(flattening.get("prefix").getAsString(), flattening.get("flattenedProperty").getAsString(), flattening.get("suffix").getAsString());
+
+                        Map<String, String> remaps;
+                        JsonElement flattenedValueRemaps = flattening.get("flattenedValueRemaps");
+                        if (flattenedValueRemaps != null) {
+                            remaps = new Object2ObjectOpenHashMap<>();
+                            for (Entry<String, JsonElement> remap : flattenedValueRemaps.getAsJsonObject().entrySet()) {
+                                remaps.put(remap.getKey(), remap.getValue().getAsString());
+                            }
+                        } else {
+                            remaps = Collections.emptyMap();
+                        }
+
+                        flatten = new BlockFlatten(flattening.get("prefix").getAsString(), flattening.get("flattenedProperty").getAsString(), flattening.get("suffix").getAsString(), remaps);
                     } else {
                         newName = obj.get("newName").getAsString();
                         flatten = null;
@@ -243,5 +255,6 @@ public class BlockUpgradeSchema {
         private final String prefix;
         private final String flattenedProperty;
         private final String suffix;
+        private final Map<String, String> flattenedValueRemaps;
     }
 }

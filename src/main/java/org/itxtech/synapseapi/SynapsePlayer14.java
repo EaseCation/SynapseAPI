@@ -6,9 +6,9 @@ import cn.nukkit.block.Block;
 import cn.nukkit.block.BlockID;
 import cn.nukkit.block.BlockNoteblock;
 import cn.nukkit.blockentity.BlockEntityLectern;
+import cn.nukkit.entity.EntityRideable;
 import cn.nukkit.entity.data.ShortEntityData;
 import cn.nukkit.entity.data.StringEntityData;
-import cn.nukkit.entity.item.EntityBoat;
 import cn.nukkit.event.player.*;
 import cn.nukkit.item.Item;
 import cn.nukkit.item.enchantment.Enchantment;
@@ -313,7 +313,7 @@ public class SynapsePlayer14 extends SynapsePlayer {
 								pk.data = (int) (65535 / breakTime);
 								this.getLevel().addChunkPacket(pos.getFloorX() >> 4, pos.getFloorZ() >> 4, pk);
 							}
-						} else if (held.isSword() || held.is(Item.TRIDENT)) {
+						} else if (held.isSword() || held.is(Item.TRIDENT) || held.is(Item.MACE)) {
 							break;
 						}
 
@@ -673,9 +673,9 @@ public class SynapsePlayer14 extends SynapsePlayer {
 						break;
 					}
 
-					if (this.riding instanceof EntityBoat boat) {
+					if (this.riding instanceof EntityRideable rideable) {
 						if (this.temporalVector.setComponents(moveEntityAbsolutePacket.x, moveEntityAbsolutePacket.y, moveEntityAbsolutePacket.z).distanceSquared(this.riding) < 1000) {
-							boat.onInput(moveEntityAbsolutePacket.x, moveEntityAbsolutePacket.y, moveEntityAbsolutePacket.z, moveEntityAbsolutePacket.yaw % 360, 0);
+							rideable.onPlayerInput(this, moveEntityAbsolutePacket.x, moveEntityAbsolutePacket.y, moveEntityAbsolutePacket.z, moveEntityAbsolutePacket.yaw % 360, 0);
 						}
 					}
 					break;

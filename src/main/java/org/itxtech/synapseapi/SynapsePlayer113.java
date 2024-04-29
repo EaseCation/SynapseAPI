@@ -589,7 +589,7 @@ public class SynapsePlayer113 extends SynapsePlayer112 {
 
 								float damageBonus = 0;
 								for (Enchantment enchantment : enchantments) {
-									damageBonus += enchantment.getDamageBonus(target);
+									damageBonus += enchantment.getDamageBonus(this, target);
 								}
 								itemDamage += Mth.floor(damageBonus);
 

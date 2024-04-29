@@ -93,8 +93,6 @@ public class ClientboundMapItemDataPacket11830NE extends Packet11830NE {
                     this.putBlockVector3(object.x, object.y, object.z);
                 } else if (object.type == MapTrackedObject.TYPE_ENTITY) {
                     this.putEntityUniqueId(object.entityUniqueId);
-                } else {
-                    throw new IllegalArgumentException("Unknown map object type " + object.type);
                 }
             }
 

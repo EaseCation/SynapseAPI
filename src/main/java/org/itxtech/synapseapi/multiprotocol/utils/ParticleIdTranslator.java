@@ -12,6 +12,7 @@ public final class ParticleIdTranslator {
     public final static int[] v12ToV116220Book = new int[Particle.UNDEFINED];
     public final static int[] v12ToV11710Book = new int[Particle.UNDEFINED];
     public final static int[] v12ToV12060Book = new int[Particle.UNDEFINED];
+    public final static int[] v12ToV12070Book = new int[Particle.UNDEFINED];
 
     public static final int TYPE_BUBBLE = 1;
     public static final int TYPE_BUBBLE_MANUAL = 2;
@@ -386,6 +387,12 @@ public final class ParticleIdTranslator {
     public static final int V12060_CHERRY_LEAVES = 87;
     public static final int V12060_DUST_PLUME = 88;
     public static final int V12060_WHITE_SMOKE = 89;
+
+    public static final int V12070_BREEZE_WIND_EXPLOSION = 18;
+    public static final int V12070_VAULT_CONNECTION = 90;
+    public static final int V12070_WIND_EXPLOSION = 91;
+
+    public static final int V12080_WOLF_ARMOR_BREAK = 92;
 
     static {
         Arrays.fill(v12ToV112Book, -1);
@@ -765,6 +772,15 @@ public final class ParticleIdTranslator {
         v12ToV12060Book[Particle.CHERRY_LEAVES] = V12060_CHERRY_LEAVES;
         v12ToV12060Book[Particle.DUST_PLUME] = V12060_DUST_PLUME;
         v12ToV12060Book[Particle.WHITE_SMOKE] = V12060_WHITE_SMOKE;
+
+        v12ToV12060Book[Particle.BREEZE_WIND_EXPLOSION] = V12060_WIND_EXPLOSION;
+
+        System.arraycopy(v12ToV12060Book, 0, v12ToV12070Book, 0, Particle.UNDEFINED);
+        v12ToV12070Book[Particle.BREEZE_WIND_EXPLOSION] = V12070_BREEZE_WIND_EXPLOSION;
+        v12ToV12070Book[Particle.VAULT_CONNECTION] = V12070_VAULT_CONNECTION;
+        v12ToV12070Book[Particle.WIND_EXPLOSION] = V12070_WIND_EXPLOSION;
+
+        v12ToV12070Book[Particle.WOLF_ARMOR_BREAK] = V12080_WOLF_ARMOR_BREAK;
     }
 
     public static int translateTo112(int particleId) {
@@ -807,9 +823,19 @@ public final class ParticleIdTranslator {
         return value != -1 ? value : particleId;
     }
 
+    public static int translateTo12070(int particleId) {
+        if (particleId < 0 || particleId >= Particle.UNDEFINED) {
+            return particleId;
+        }
+        int value = v12ToV12070Book[particleId];
+        return value != -1 ? value : particleId;
+    }
+
     public static int translateTo(AbstractProtocol protocol, int particleId) {
         int ver = protocol.getProtocolStart();
-        if (ver >= AbstractProtocol.PROTOCOL_120_60.getProtocolStart()) {
+        if (ver >= AbstractProtocol.PROTOCOL_120_70.getProtocolStart()) {
+            return translateTo12070(particleId);
+        } else if (ver >= AbstractProtocol.PROTOCOL_120_60.getProtocolStart()) {
             return translateTo12060(particleId);
         } else if (ver >= AbstractProtocol.PROTOCOL_117_10.getProtocolStart()) {
             return translateTo11710(particleId);

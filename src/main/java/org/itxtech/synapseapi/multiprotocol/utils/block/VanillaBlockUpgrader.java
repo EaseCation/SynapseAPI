@@ -154,7 +154,8 @@ public final class VanillaBlockUpgrader {
                             continue;
                         }
 
-                        newName = flatten.getPrefix() + ((StringTag) flattened).data + flatten.getSuffix();
+                        String value = ((StringTag) flattened).data;
+                        newName = flatten.getPrefix() + flatten.getFlattenedValueRemaps().getOrDefault(value, value) + flatten.getSuffix();
 
                         states.remove(stateName);
                     }
@@ -379,6 +380,7 @@ public final class VanillaBlockUpgrader {
         addSchema("0241_1.20.40.24_beta_to_1.20.50.23_beta.json", V1_20_50);
         addSchema("0251_1.20.50.23_beta_to_1.20.60.26_beta.json", V1_20_60);
         addSchema("0261_1.20.60.26_beta_to_1.20.70.24_beta.json", V1_20_70);
+        addSchema("0271_1.20.70.24_beta_to_1.20.80.24_beta.json", V1_20_80);
 
         BlockUpgrader.setUpgrader(new BedrockBlockUpgrader() {
             @Override

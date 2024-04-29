@@ -102,6 +102,11 @@ import org.itxtech.synapseapi.multiprotocol.protocol12070.protocol.LecternUpdate
 import org.itxtech.synapseapi.multiprotocol.protocol12070.protocol.MobEffectPacket12070;
 import org.itxtech.synapseapi.multiprotocol.protocol12070.protocol.ResourcePacksInfoPacket12070;
 import org.itxtech.synapseapi.multiprotocol.protocol12070.protocol.SetEntityMotionPacket12070;
+import org.itxtech.synapseapi.multiprotocol.protocol12080.protocol.CorrectPlayerMovePredictionPacket12080;
+import org.itxtech.synapseapi.multiprotocol.protocol12080.protocol.CraftingDataPacket12080;
+import org.itxtech.synapseapi.multiprotocol.protocol12080.protocol.ResourcePackStackPacket12080;
+import org.itxtech.synapseapi.multiprotocol.protocol12080.protocol.StartGamePacket12080;
+import org.itxtech.synapseapi.multiprotocol.protocol12080.protocol.UpdatePlayerGameTypePacket12080;
 import org.itxtech.synapseapi.multiprotocol.protocol15.protocol.AddEntityPacket15;
 import org.itxtech.synapseapi.multiprotocol.protocol15.protocol.ClientboundMapItemDataPacket15;
 import org.itxtech.synapseapi.multiprotocol.protocol15.protocol.MoveEntityAbsolutePacket15;
@@ -389,6 +394,12 @@ public class PacketRegister {
         registerPacket(AbstractProtocol.PROTOCOL_120_70, ProtocolInfo.MOB_EFFECT_PACKET, MobEffectPacket12070.class);
         registerPacket(AbstractProtocol.PROTOCOL_120_70, ProtocolInfo.SET_ACTOR_MOTION_PACKET, SetEntityMotionPacket12070.class);
         registerPacket(AbstractProtocol.PROTOCOL_120_70, ProtocolInfo.LECTERN_UPDATE_PACKET, LecternUpdatePacket12070.class);
+
+        registerPacket(AbstractProtocol.PROTOCOL_120_80, ProtocolInfo.RESOURCE_PACK_STACK_PACKET, ResourcePackStackPacket12080.class);
+        registerPacket(AbstractProtocol.PROTOCOL_120_80, ProtocolInfo.START_GAME_PACKET, StartGamePacket12080.class);
+        registerPacket(AbstractProtocol.PROTOCOL_120_80, ProtocolInfo.CRAFTING_DATA_PACKET, CraftingDataPacket12080.class);
+        registerPacket(AbstractProtocol.PROTOCOL_120_80, ProtocolInfo.UPDATE_PLAYER_GAME_TYPE_PACKET, UpdatePlayerGameTypePacket12080.class);
+        registerPacket(AbstractProtocol.PROTOCOL_120_80, ProtocolInfo.CORRECT_PLAYER_MOVE_PREDICTION_PACKET, CorrectPlayerMovePredictionPacket12080.class);
 
         checkNeteaseSpecialExtend();
     }

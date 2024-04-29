@@ -101,6 +101,28 @@ public interface BlockStateStringValues {
     String LEVER_DIRECTION_UP_NORTH_SOUTH = "up_north_south";
     String LEVER_DIRECTION_WEST = "west";
 
+    String MINECRAFT_BLOCK_FACE_DOWN = "down";
+    String MINECRAFT_BLOCK_FACE_EAST = "east";
+    String MINECRAFT_BLOCK_FACE_NORTH = "north";
+    String MINECRAFT_BLOCK_FACE_SOUTH = "south";
+    String MINECRAFT_BLOCK_FACE_UP = "up";
+    String MINECRAFT_BLOCK_FACE_WEST = "west";
+
+    String MINECRAFT_CARDINAL_DIRECTION_EAST = "east";
+    String MINECRAFT_CARDINAL_DIRECTION_NORTH = "north";
+    String MINECRAFT_CARDINAL_DIRECTION_SOUTH = "south";
+    String MINECRAFT_CARDINAL_DIRECTION_WEST = "west";
+
+    String MINECRAFT_FACING_DIRECTION_DOWN = "down";
+    String MINECRAFT_FACING_DIRECTION_EAST = "east";
+    String MINECRAFT_FACING_DIRECTION_NORTH = "north";
+    String MINECRAFT_FACING_DIRECTION_SOUTH = "south";
+    String MINECRAFT_FACING_DIRECTION_UP = "up";
+    String MINECRAFT_FACING_DIRECTION_WEST = "west";
+
+    String MINECRAFT_VERTICAL_HALF_BOTTOM = "bottom";
+    String MINECRAFT_VERTICAL_HALF_TOP = "top";
+
     String MONSTER_EGG_STONE_TYPE_CHISELED_STONE_BRICK = "chiseled_stone_brick";
     String MONSTER_EGG_STONE_TYPE_COBBLESTONE = "cobblestone";
     String MONSTER_EGG_STONE_TYPE_CRACKED_STONE_BRICK = "cracked_stone_brick";
@@ -123,6 +145,19 @@ public interface BlockStateStringValues {
     String OLD_LOG_TYPE_JUNGLE = "jungle";
     String OLD_LOG_TYPE_OAK = "oak";
     String OLD_LOG_TYPE_SPRUCE = "spruce";
+
+    String ORIENTATION_DOWN_EAST = "down_east";
+    String ORIENTATION_DOWN_NORTH = "down_north";
+    String ORIENTATION_DOWN_SOUTH = "down_south";
+    String ORIENTATION_DOWN_WEST = "down_west";
+    String ORIENTATION_EAST_UP = "east_up";
+    String ORIENTATION_NORTH_UP = "north_up";
+    String ORIENTATION_SOUTH_UP = "south_up";
+    String ORIENTATION_UP_EAST = "up_east";
+    String ORIENTATION_UP_NORTH = "up_north";
+    String ORIENTATION_UP_SOUTH = "up_south";
+    String ORIENTATION_UP_WEST = "up_west";
+    String ORIENTATION_WEST_UP = "west_up";
 
     String PILLAR_AXIS_X = "x";
     String PILLAR_AXIS_Y = "y";
@@ -231,6 +266,11 @@ public interface BlockStateStringValues {
     String TURTLE_EGG_COUNT_ONE_EGG = "one_egg";
     String TURTLE_EGG_COUNT_THREE_EGG = "three_egg";
     String TURTLE_EGG_COUNT_TWO_EGG = "two_egg";
+
+    String VAULT_STATE_ACTIVE = "active";
+    String VAULT_STATE_EJECTING = "ejecting";
+    String VAULT_STATE_INACTIVE = "inactive";
+    String VAULT_STATE_UNLOCKING = "unlocking";
 
     String WALL_BLOCK_TYPE_ANDESITE = "andesite";
     String WALL_BLOCK_TYPE_BRICK = "brick";

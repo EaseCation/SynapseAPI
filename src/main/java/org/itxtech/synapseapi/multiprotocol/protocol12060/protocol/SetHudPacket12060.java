@@ -18,6 +18,14 @@ public class SetHudPacket12060 extends Packet12060 {
     public static final int ELEMENT_FOOD = 8;
     public static final int ELEMENT_AIR_BUBBLES = 9;
     public static final int ELEMENT_HORSE_HEALTH = 10;
+    /**
+     * @since 1.20.80
+     */
+    public static final int ELEMENT_STATUS_EFFECTS = 11;
+    /**
+     * @since 1.20.80
+     */
+    public static final int ELEMENT_ITEM_TEXT = 12;
 
     public static final int[] ALL_ELEMENTS = {
             ELEMENT_PAPER_DOLL,
@@ -31,6 +39,8 @@ public class SetHudPacket12060 extends Packet12060 {
             ELEMENT_FOOD,
             ELEMENT_AIR_BUBBLES,
             ELEMENT_HORSE_HEALTH,
+            ELEMENT_STATUS_EFFECTS,
+            ELEMENT_ITEM_TEXT,
     };
 
     public static final int VISIBILITY_HIDE = 0;

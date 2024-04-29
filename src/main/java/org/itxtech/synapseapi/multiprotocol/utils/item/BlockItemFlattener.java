@@ -29,7 +29,8 @@ public final class BlockItemFlattener {
         DOWNGRADERS.put(AbstractProtocol.PROTOCOL_120_50, BlockItemFlattener::downgrader12050);
         DOWNGRADERS.put(AbstractProtocol.PROTOCOL_120_60, BlockItemFlattener::downgrader12060);
         DOWNGRADERS.put(AbstractProtocol.PROTOCOL_120_70, BlockItemFlattener::downgrader12070);
-//        DOWNGRADERS.put(AbstractProtocol.PROTOCOL_120_80, BlockItemFlattener::downgrader12080);
+        DOWNGRADERS.put(AbstractProtocol.PROTOCOL_120_80, BlockItemFlattener::downgrader12080);
+//        DOWNGRADERS.put(AbstractProtocol.PROTOCOL_121, BlockItemFlattener::downgrader121);
     }
 
     private static int downgrader11970(int id) {
@@ -147,6 +148,22 @@ public final class BlockItemFlattener {
         return downgrader12070(id);
     }
 
+    private static int downgrader121(int id) {
+        if (id == ItemBlockID.FERN) {
+            return ItemBlockID.SHORT_GRASS;
+        }
+        if (id <= ItemBlockID.LILAC && id >= ItemBlockID.PEONY) {
+            return ItemBlockID.DOUBLE_PLANT;
+        }
+        if (id <= ItemBlockID.BRAIN_CORAL_BLOCK && id >= ItemBlockID.DEAD_HORN_CORAL_BLOCK) {
+            return ItemBlockID.CORAL_BLOCK;
+        }
+        if (id <= ItemBlockID.SANDSTONE_SLAB && id >= ItemBlockID.NETHER_BRICK_SLAB) {
+            return ItemBlockID.STONE_SLAB;
+        }
+        return downgrader12080(id);
+    }
+
     private BlockItemFlattener() {
         throw new IllegalStateException();
     }
@@ -155,16 +172,13 @@ public final class BlockItemFlattener {
 //dirt
 //sand
 //sandstone
-//tallgrass
 //double_stone_slab
-//stone_slab
 //tnt
 //monster_egg
 //stonebrick
 //cobblestone_wall
 //quartz_block
 //prismarine
-//double_plant
 //red_sandstone
 //double_stone_slab2
 //stone_slab2
@@ -172,7 +186,6 @@ public final class BlockItemFlattener {
 //colored_torch_rg
 //colored_torch_bp
 //chemistry_table
-//coral_block
 //coral_fan_hang
 //coral_fan_hang2
 //coral_fan_hang3

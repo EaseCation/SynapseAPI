@@ -1,4 +1,4 @@
-package org.itxtech.synapseapi.multiprotocol.protocol116100.protocol;
+package org.itxtech.synapseapi.multiprotocol.protocol12080.protocol;
 
 import cn.nukkit.network.protocol.DataPacket;
 import cn.nukkit.network.protocol.ProtocolInfo;
@@ -9,18 +9,17 @@ import org.itxtech.synapseapi.multiprotocol.AbstractProtocol;
 import org.itxtech.synapseapi.utils.ClassUtils;
 
 @ToString
-public class ResourcePackStackPacket116100 extends Packet116100 {
-
+public class ResourcePackStackPacket12080 extends Packet12080 {
     public static final int NETWORK_ID = ProtocolInfo.RESOURCE_PACK_STACK_PACKET;
 
     public boolean mustAccept = false;
     public ResourcePack[] behaviourPackStack = new ResourcePack[0];
     public ResourcePack[] resourcePackStack = new ResourcePack[0];
-    public String gameVersion = "1.16.100";
+    public String gameVersion = "1.20.80";
+    public boolean hasEditorPacks;
 
     @Override
     public void decode() {
-
     }
 
     @Override
@@ -45,6 +44,7 @@ public class ResourcePackStackPacket116100 extends Packet116100 {
         this.putString("*");//this.putString(this.helper.getGameVersion());
         this.putLInt(0); // Experiments length
         this.putBoolean(false); //Were experiments previously toggled
+        this.putBoolean(this.hasEditorPacks);
     }
 
     @Override

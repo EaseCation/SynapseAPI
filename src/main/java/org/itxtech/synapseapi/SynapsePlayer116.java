@@ -13,9 +13,12 @@ import cn.nukkit.blockentity.BlockEntityLectern;
 import cn.nukkit.blockentity.BlockEntitySpawnable;
 import cn.nukkit.entity.Entity;
 import cn.nukkit.entity.EntityFullNames;
+import cn.nukkit.entity.EntityID;
 import cn.nukkit.entity.EntityRideable;
 import cn.nukkit.entity.data.FloatEntityData;
 import cn.nukkit.entity.item.EntityBoat;
+import cn.nukkit.entity.passive.EntityAbstractHorse;
+import cn.nukkit.entity.passive.EntityCamel;
 import cn.nukkit.event.entity.EntityDamageByEntityEvent;
 import cn.nukkit.event.entity.EntityDamageEvent;
 import cn.nukkit.event.inventory.InventoryCloseEvent;
@@ -148,7 +151,9 @@ public class SynapsePlayer116 extends SynapsePlayer113 {
 		switch (packet.pid()) {
 			case ProtocolInfo.INTERACT_PACKET:
 				InteractPacket interactPacket = (InteractPacket) packet;
-				if (interactPacket.action == InteractPacket.ACTION_OPEN_INVENTORY && interactPacket.target == getLocalEntityId() && !this.inventoryOpen && !isSpectator()) {
+				if (interactPacket.action == InteractPacket.ACTION_OPEN_INVENTORY
+						&& (interactPacket.target == getLocalEntityId() || isRiding() && interactPacket.target == riding.getId() && (!riding.getDataFlag(DATA_FLAG_TAMED) || riding.getNetworkId() == EntityID.SKELETON_HORSE))
+						&& !this.inventoryOpen && !isSpectator()) {
 //					this.openInventory();
 					this.inventory.open(this);
 					this.inventoryOpen = true;
@@ -599,7 +604,7 @@ public class SynapsePlayer116 extends SynapsePlayer113 {
 
 								float damageBonus = 0;
 								for (Enchantment enchantment : enchantments) {
-									damageBonus += enchantment.getDamageBonus(target);
+									damageBonus += enchantment.getDamageBonus(this, target);
 								}
 								itemDamage += Mth.floor(damageBonus);
 
@@ -936,11 +941,19 @@ public class SynapsePlayer116 extends SynapsePlayer113 {
 					}
 				}
 
+				if (isRiding()) {
+					if (riding instanceof EntityAbstractHorse horse) {
+						horse.updatePlayerJump((inputFlags & (1L << PlayerAuthInputFlags.JUMPING)) != 0);
+					} else if (riding instanceof EntityCamel camel && camel.isControlling(this)) {
+						camel.updatePlayerJump(this, (inputFlags & (1L << PlayerAuthInputFlags.JUMPING)) != 0);
+					}
+				}
+
 				boolean predictedInVehicle = (inputFlags & (1L << PlayerAuthInputFlags.IN_CLIENT_PREDICTED_IN_VEHICLE)) != 0;
-				boolean inBoat = predictedInVehicle && riding instanceof EntityBoat && riding.getId() == playerAuthInputPacket.getPredictedVehicleEntityUniqueId();
+				boolean inPredictedVehicle = predictedInVehicle && riding.getId() == playerAuthInputPacket.getPredictedVehicleEntityUniqueId();
 
 				Vector3 newPos = new Vector3(playerAuthInputPacket.getX(), playerAuthInputPacket.getY() - this.getBaseOffset(), playerAuthInputPacket.getZ());
-				if (inBoat) {
+				if (inPredictedVehicle) {
 					Vector3f offset = riding.getMountedOffset(this);
 					newPos.x += offset.x;
 					newPos.y += offset.y;
@@ -1056,7 +1069,7 @@ public class SynapsePlayer116 extends SynapsePlayer113 {
 									if (breakTime > 0) {
 										this.level.addLevelEvent(pos, LevelEventPacket.EVENT_BLOCK_START_BREAK, (int) (65535 / breakTime));
 									}
-								} else if (held.isSword() || held.is(Item.TRIDENT)) {
+								} else if (held.isSword() || held.is(Item.TRIDENT) || held.is(Item.MACE)) {
 									break;
 								}
 
@@ -1421,7 +1434,11 @@ public class SynapsePlayer116 extends SynapsePlayer113 {
 				}
 
 				if (predictedInVehicle) {
-					if (!inBoat) {
+					if (!inPredictedVehicle) {
+						break;
+					}
+
+					if (!(riding instanceof EntityRideable rideable)) {
 						break;
 					}
 
@@ -1433,82 +1450,84 @@ public class SynapsePlayer116 extends SynapsePlayer113 {
 						break;
 					}
 
-					EntityBoat boat = (EntityBoat) riding;
-
 					float vehiclePitch;
 					float vehicleYaw;
 					if (getProtocol() >= AbstractProtocol.PROTOCOL_120_70.getProtocolStart()) {
 						vehiclePitch = playerAuthInputPacket.getVehiclePitch();
 						vehicleYaw = playerAuthInputPacket.getVehicleYaw();
 
-						float left = 0;
-						float right = 0;
-						if ((inputFlags & (1L << PlayerAuthInputFlags.UP)) != 0) {
-							left = 0.04f;
-							right = 0.04f;
-							if ((inputFlags & ((1L << PlayerAuthInputFlags.PADDLE_LEFT) | 1L << PlayerAuthInputFlags.PADDLE_RIGHT)) != ((1L << PlayerAuthInputFlags.PADDLE_LEFT) | 1L << PlayerAuthInputFlags.PADDLE_RIGHT)) {
-								if ((inputFlags & (1L << PlayerAuthInputFlags.PADDLE_LEFT)) != 0) {
-									left = 0.05f;
-									right = 0.02f;
-								} else if ((inputFlags & (1L << PlayerAuthInputFlags.PADDLE_RIGHT)) != 0) {
-									left = 0.02f;
-									right = 0.05f;
-								}
-							}
-						} else if ((inputFlags & (1L << PlayerAuthInputFlags.DOWN)) != 0) {
-							left = -0.004f;
-							right = -0.004f;
-							if ((inputFlags & ((1L << PlayerAuthInputFlags.PADDLE_LEFT) | 1L << PlayerAuthInputFlags.PADDLE_RIGHT)) != ((1L << PlayerAuthInputFlags.PADDLE_LEFT) | 1L << PlayerAuthInputFlags.PADDLE_RIGHT)) {
-								if ((inputFlags & (1L << PlayerAuthInputFlags.PADDLE_LEFT)) != 0) {
-									left = -0.005f;
-									right = -0.002f;
-								} else if ((inputFlags & (1L << PlayerAuthInputFlags.PADDLE_RIGHT)) != 0) {
-									left = -0.002f;
-									right = -0.005f;
-								}
-							}
-						} else if ((inputFlags & ((1L << PlayerAuthInputFlags.PADDLE_LEFT) | 1L << PlayerAuthInputFlags.PADDLE_RIGHT)) != ((1L << PlayerAuthInputFlags.PADDLE_LEFT) | 1L << PlayerAuthInputFlags.PADDLE_RIGHT)) {
-							if ((inputFlags & (1L << PlayerAuthInputFlags.PADDLE_LEFT)) != 0) {
+						if (riding instanceof EntityBoat) {
+							EntityBoat boat = (EntityBoat) rideable;
+
+							float left = 0;
+							float right = 0;
+							if ((inputFlags & (1L << PlayerAuthInputFlags.UP)) != 0) {
 								left = 0.04f;
-							} else if ((inputFlags & (1L << PlayerAuthInputFlags.PADDLE_RIGHT)) != 0) {
 								right = 0.04f;
+								if ((inputFlags & ((1L << PlayerAuthInputFlags.PADDLE_LEFT) | 1L << PlayerAuthInputFlags.PADDLE_RIGHT)) != ((1L << PlayerAuthInputFlags.PADDLE_LEFT) | 1L << PlayerAuthInputFlags.PADDLE_RIGHT)) {
+									if ((inputFlags & (1L << PlayerAuthInputFlags.PADDLE_LEFT)) != 0) {
+										left = 0.05f;
+										right = 0.02f;
+									} else if ((inputFlags & (1L << PlayerAuthInputFlags.PADDLE_RIGHT)) != 0) {
+										left = 0.02f;
+										right = 0.05f;
+									}
+								}
+							} else if ((inputFlags & (1L << PlayerAuthInputFlags.DOWN)) != 0) {
+								left = -0.004f;
+								right = -0.004f;
+								if ((inputFlags & ((1L << PlayerAuthInputFlags.PADDLE_LEFT) | 1L << PlayerAuthInputFlags.PADDLE_RIGHT)) != ((1L << PlayerAuthInputFlags.PADDLE_LEFT) | 1L << PlayerAuthInputFlags.PADDLE_RIGHT)) {
+									if ((inputFlags & (1L << PlayerAuthInputFlags.PADDLE_LEFT)) != 0) {
+										left = -0.005f;
+										right = -0.002f;
+									} else if ((inputFlags & (1L << PlayerAuthInputFlags.PADDLE_RIGHT)) != 0) {
+										left = -0.002f;
+										right = -0.005f;
+									}
+								}
+							} else if ((inputFlags & ((1L << PlayerAuthInputFlags.PADDLE_LEFT) | 1L << PlayerAuthInputFlags.PADDLE_RIGHT)) != ((1L << PlayerAuthInputFlags.PADDLE_LEFT) | 1L << PlayerAuthInputFlags.PADDLE_RIGHT)) {
+								if ((inputFlags & (1L << PlayerAuthInputFlags.PADDLE_LEFT)) != 0) {
+									left = 0.04f;
+								} else if ((inputFlags & (1L << PlayerAuthInputFlags.PADDLE_RIGHT)) != 0) {
+									right = 0.04f;
+								}
 							}
-						}
-						float random = 0.0002f * ThreadLocalRandom.current().nextFloat();
-						left += left * random;
-						right += right * random;
+							float random = 0.0002f * ThreadLocalRandom.current().nextFloat();
+							left += left * random;
+							right += right * random;
 
-						float frameSecondsLeft = boat.getDataPropertyFloat(DATA_PADDLE_TIME_LEFT);
-						if (Mth.sign(frameSecondsLeft) != Mth.sign(left)) {
-							frameSecondsLeft = left;
-						} else {
-							frameSecondsLeft += left;
-							if (frameSecondsLeft > 1000) {
-								frameSecondsLeft -= 1000;
-							} else if (frameSecondsLeft < -1000) {
-								frameSecondsLeft += 1000;
+							float frameSecondsLeft = boat.getDataPropertyFloat(DATA_PADDLE_TIME_LEFT);
+							if (Mth.sign(frameSecondsLeft) != Mth.sign(left)) {
+								frameSecondsLeft = left;
+							} else {
+								frameSecondsLeft += left;
+								if (frameSecondsLeft > 1000) {
+									frameSecondsLeft -= 1000;
+								} else if (frameSecondsLeft < -1000) {
+									frameSecondsLeft += 1000;
+								}
 							}
-						}
-						boat.setDataProperty(new FloatEntityData(DATA_PADDLE_TIME_LEFT, frameSecondsLeft));
+							boat.setDataProperty(new FloatEntityData(DATA_PADDLE_TIME_LEFT, frameSecondsLeft));
 
-						float frameSecondsRight = boat.getDataPropertyFloat(DATA_PADDLE_TIME_RIGHT);
-						if (Mth.sign(frameSecondsRight) != Mth.sign(right)) {
-							frameSecondsRight = right;
-						} else {
-							frameSecondsRight += right;
-							if (frameSecondsRight > 1000) {
-								frameSecondsRight -= 1000;
-							} else if (frameSecondsRight < -1000) {
-								frameSecondsRight += 1000;
+							float frameSecondsRight = boat.getDataPropertyFloat(DATA_PADDLE_TIME_RIGHT);
+							if (Mth.sign(frameSecondsRight) != Mth.sign(right)) {
+								frameSecondsRight = right;
+							} else {
+								frameSecondsRight += right;
+								if (frameSecondsRight > 1000) {
+									frameSecondsRight -= 1000;
+								} else if (frameSecondsRight < -1000) {
+									frameSecondsRight += 1000;
+								}
 							}
+							boat.setDataProperty(new FloatEntityData(DATA_PADDLE_TIME_RIGHT, frameSecondsRight));
 						}
-						boat.setDataProperty(new FloatEntityData(DATA_PADDLE_TIME_RIGHT, frameSecondsRight));
 					} else {
 						vehiclePitch = 0;
 						vehicleYaw = playerAuthInputPacket.getYaw();
 					}
 
-					boat.onInput(playerAuthInputPacket.getX(), playerAuthInputPacket.getY(), playerAuthInputPacket.getZ(), vehicleYaw, vehiclePitch);
+					rideable.onPlayerInput(this, playerAuthInputPacket.getX(), playerAuthInputPacket.getY(), playerAuthInputPacket.getZ(), vehicleYaw, vehiclePitch);
 				} else if (this.riding != null && (moveVecX != 0 || moveVecY != 0) && riding.isControlling(this)) {
 					moveVecX = Mth.clamp(moveVecX, -1, 1);
 					moveVecY = Mth.clamp(moveVecY, -1, 1);
