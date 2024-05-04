@@ -481,7 +481,8 @@ public class SynapsePlayer116 extends SynapsePlayer113 {
 								if (this.isCreative()) {
 									item = this.inventory.getItemInHand();
 								} else if (!this.inventory.getItemInHand().equals(useItemData.itemInHand)) {
-									this.inventory.sendHeldItem(this);
+//									server.getLogger().debug(getName() + " held desync\nC: " + useItemData.itemInHand + "\nS: " + inventory.getItemInHand());
+//									this.inventory.sendHeldItem(this); // 这里不再强制同步, 尝试解决使用物品后快速切换物品的回弹问题
 									break packetswitch;
 								} else {
 									item = this.inventory.getItemInHand();
@@ -950,7 +951,7 @@ public class SynapsePlayer116 extends SynapsePlayer113 {
 				}
 
 				boolean predictedInVehicle = (inputFlags & (1L << PlayerAuthInputFlags.IN_CLIENT_PREDICTED_IN_VEHICLE)) != 0;
-				boolean inPredictedVehicle = predictedInVehicle && riding.getId() == playerAuthInputPacket.getPredictedVehicleEntityUniqueId();
+				boolean inPredictedVehicle = predictedInVehicle && riding != null && riding.getId() == playerAuthInputPacket.getPredictedVehicleEntityUniqueId();
 
 				Vector3 newPos = new Vector3(playerAuthInputPacket.getX(), playerAuthInputPacket.getY() - this.getBaseOffset(), playerAuthInputPacket.getZ());
 				if (inPredictedVehicle) {
@@ -1394,7 +1395,8 @@ public class SynapsePlayer116 extends SynapsePlayer113 {
 								if (this.isCreative()) {
 									item = this.inventory.getItemInHand();
 								} else if (!this.inventory.getItemInHand().equals(useItemData.itemInHand)) {
-									this.inventory.sendHeldItem(this);
+//									server.getLogger().debug(getName() + " held desync\nC: " + useItemData.itemInHand + "\nS: " + inventory.getItemInHand());
+//									this.inventory.sendHeldItem(this); // 这里不再强制同步, 尝试解决使用物品后快速切换物品的回弹问题
 									break ;
 								} else {
 									item = this.inventory.getItemInHand();
