@@ -55,6 +55,7 @@ import org.itxtech.synapseapi.multiprotocol.AbstractProtocol;
 import org.itxtech.synapseapi.multiprotocol.common.PlayerAuthInputFlags;
 import org.itxtech.synapseapi.multiprotocol.protocol113.protocol.IPlayerAuthInputPacket;
 import org.itxtech.synapseapi.multiprotocol.protocol113.protocol.IPlayerAuthInputPacket.PlayerBlockAction;
+import org.itxtech.synapseapi.multiprotocol.protocol113.protocol.InteractPacket113;
 import org.itxtech.synapseapi.multiprotocol.protocol116.protocol.*;
 import org.itxtech.synapseapi.multiprotocol.protocol14.protocol.PlayerActionPacket14;
 import org.itxtech.synapseapi.multiprotocol.utils.CreativeItemsPalette;
@@ -150,8 +151,8 @@ public class SynapsePlayer116 extends SynapsePlayer113 {
 		packetswitch:
 		switch (packet.pid()) {
 			case ProtocolInfo.INTERACT_PACKET:
-				InteractPacket interactPacket = (InteractPacket) packet;
-				if (interactPacket.action == InteractPacket.ACTION_OPEN_INVENTORY
+				InteractPacket113 interactPacket = (InteractPacket113) packet;
+				if (interactPacket.action == InteractPacket113.ACTION_OPEN_INVENTORY
 						&& (interactPacket.target == getLocalEntityId() || isRiding() && interactPacket.target == riding.getId() && (!riding.getDataFlag(DATA_FLAG_TAMED) || riding.getNetworkId() == EntityID.SKELETON_HORSE))
 						&& !this.inventoryOpen && !isSpectator()) {
 //					this.openInventory();

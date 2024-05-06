@@ -11,7 +11,6 @@ import cn.nukkit.network.PacketViolationReason;
 import cn.nukkit.network.SourceInterface;
 import cn.nukkit.network.protocol.BatchPacket;
 import cn.nukkit.network.protocol.DataPacket;
-import cn.nukkit.network.protocol.InteractPacket;
 import cn.nukkit.network.protocol.MovePlayerPacket;
 import cn.nukkit.network.protocol.ProtocolInfo;
 import cn.nukkit.plugin.Plugin;
@@ -27,12 +26,12 @@ import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import lombok.extern.log4j.Log4j2;
 import org.itxtech.synapseapi.event.player.SynapsePlayerCreationEvent;
-import org.itxtech.synapseapi.event.player.SynapsePlayerTooManyBatchPacketsEvent;
 import org.itxtech.synapseapi.event.player.SynapsePlayerTooManyPacketsInBatchEvent;
 import org.itxtech.synapseapi.messaging.StandardMessenger;
 import org.itxtech.synapseapi.multiprotocol.AbstractProtocol;
 import org.itxtech.synapseapi.multiprotocol.PacketRegister;
 import org.itxtech.synapseapi.multiprotocol.protocol113.protocol.IPlayerAuthInputPacket;
+import org.itxtech.synapseapi.multiprotocol.protocol113.protocol.InteractPacket113;
 import org.itxtech.synapseapi.multiprotocol.protocol116100ne.protocol.MovePlayerPacket116100NE;
 import org.itxtech.synapseapi.network.SynLibInterface;
 import org.itxtech.synapseapi.network.SynapseInterface;
@@ -556,7 +555,7 @@ public class SynapseEntry {
                                     break HANDLER;
                                 }
                                 try {
-                                    if (subPacket instanceof InteractPacket interactPacket && interactPacket.action == InteractPacket.ACTION_MOUSEOVER) {
+                                    if (subPacket instanceof InteractPacket113 interactPacket && interactPacket.action == InteractPacket113.ACTION_MOUSEOVER) {
                                         // 看向实体的交互包不稳定因此不参与计数
                                     } else if (packetCount[packetId]++ > PACKET_COUNT_LIMIT[packetId]) {
                                         tooManyPackets = true;

@@ -6,13 +6,22 @@ import cn.nukkit.block.BlockDoor;
 import cn.nukkit.blockentity.BlockEntity;
 import cn.nukkit.blockentity.BlockEntitySpawnable;
 import cn.nukkit.entity.Entity;
+import cn.nukkit.entity.EntityInteractable;
+import cn.nukkit.entity.EntityRideable;
+import cn.nukkit.entity.data.ByteEntityData;
 import cn.nukkit.entity.data.ShortEntityData;
+import cn.nukkit.entity.item.EntityItem;
+import cn.nukkit.entity.item.EntityXPOrb;
+import cn.nukkit.entity.projectile.EntityArrow;
 import cn.nukkit.event.entity.EntityDamageByEntityEvent;
 import cn.nukkit.event.entity.EntityDamageEvent;
 import cn.nukkit.event.player.PlayerCommandPreprocessEvent;
 import cn.nukkit.event.player.PlayerInteractEntityEvent;
 import cn.nukkit.event.player.PlayerInteractEvent;
+import cn.nukkit.event.player.PlayerKickEvent;
+import cn.nukkit.event.player.PlayerMouseOverEntityEvent;
 import cn.nukkit.event.player.PlayerRespawnEvent;
+import cn.nukkit.inventory.InventoryHolder;
 import cn.nukkit.inventory.transaction.CraftingTransaction;
 import cn.nukkit.inventory.transaction.InventoryTransaction;
 import cn.nukkit.inventory.transaction.RepairItemTransaction;
@@ -36,7 +45,9 @@ import cn.nukkit.network.protocol.types.ContainerIds;
 import cn.nukkit.network.protocol.types.NetworkInventoryAction;
 import cn.nukkit.resourcepacks.ResourcePack;
 import cn.nukkit.utils.TextFormat;
+import lombok.extern.log4j.Log4j2;
 import org.itxtech.synapseapi.multiprotocol.AbstractProtocol;
+import org.itxtech.synapseapi.multiprotocol.protocol113.protocol.InteractPacket113;
 import org.itxtech.synapseapi.multiprotocol.protocol113.protocol.ResourcePackStackPacket113;
 import org.itxtech.synapseapi.multiprotocol.protocol113.protocol.RespawnPacket113;
 import org.itxtech.synapseapi.multiprotocol.protocol113.protocol.SettingsCommandPacket113;
@@ -50,6 +61,7 @@ import java.net.InetSocketAddress;
 import java.util.*;
 import java.util.concurrent.ThreadLocalRandom;
 
+@Log4j2
 public class SynapsePlayer113 extends SynapsePlayer112 {
 
 	public SynapsePlayer113(SourceInterface interfaz, SynapseEntry synapseEntry, Long clientID, InetSocketAddress socketAddress) {
@@ -730,6 +742,65 @@ public class SynapsePlayer113 extends SynapsePlayer112 {
 				}
 
 				this.server.dispatchCommand(playerCommandPreprocessEvent.getPlayer(), playerCommandPreprocessEvent.getMessage().substring(1));
+				break;
+			case ProtocolInfo.INTERACT_PACKET:
+				InteractPacket113 interactPacket = (InteractPacket113) packet;
+				if (!callPacketReceiveEvent(interactPacket.toDefault())) {
+					break;
+				}
+				if (!this.spawned || !this.isAlive()) {
+					break;
+				}
+
+//                    this.craftingType = CRAFTING_SMALL;
+				//this.resetCraftingGridType();
+
+				if (interactPacket.target == 0 && interactPacket.action == InteractPacket113.ACTION_MOUSEOVER) {
+					this.lookAtEntity = null;
+					this.setButtonText("");
+					setDataProperty(new ByteEntityData(DATA_CAN_RIDE_TARGET, false));
+					break;
+				}
+
+				Entity targetEntity = interactPacket.target == this.getId() ? this : this.level.getEntity(interactPacket.target);
+
+				if (targetEntity == null || !this.isAlive() || !targetEntity.isAlive()) {
+					break;
+				}
+
+				if (targetEntity instanceof EntityItem || targetEntity instanceof EntityArrow || targetEntity instanceof EntityXPOrb) {
+					this.kick(PlayerKickEvent.Reason.INVALID_PVE, "Attempting to interact with an invalid entity");
+					log.warn(this.getServer().getLanguage().translate("nukkit.player.invalidEntity", this.getName()));
+					break;
+				}
+
+				switch (interactPacket.action) {
+					case InteractPacket113.ACTION_MOUSEOVER:
+						this.lookAtEntity = targetEntity;
+
+						if (targetEntity instanceof EntityInteractable interactable) {
+							String text = interactable.getInteractButtonText(this);
+							this.setButtonText(text);
+							setDataProperty(new ByteEntityData(DATA_CAN_RIDE_TARGET, targetEntity != riding && targetEntity instanceof EntityRideable && ("action.interact.mount".equals(text) || text.startsWith("action.interact.ride."))));
+						}
+
+						this.getServer().getPluginManager().callEvent(new PlayerMouseOverEntityEvent(this, targetEntity));
+						break;
+					case InteractPacket113.ACTION_VEHICLE_EXIT:
+						if (!(targetEntity instanceof EntityRideable) || this.riding != targetEntity) {
+							break;
+						}
+
+						((EntityRideable) riding).dismountEntity(this);
+						break;
+					case InteractPacket113.ACTION_OPEN_INVENTORY:
+						if (!(targetEntity instanceof InventoryHolder)) {
+							break;
+						}
+
+						((InventoryHolder) targetEntity).openInventory(this);
+						break;
+				}
 				break;
 			default:
 				super.handleDataPacket(packet);

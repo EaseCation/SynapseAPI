@@ -205,6 +205,7 @@ public class PacketRegister {
         registerPacket(AbstractProtocol.PROTOCOL_18, ProtocolInfo.LEVEL_SOUND_EVENT_PACKET, LevelSoundEventPacket18.class);
         registerPacket(AbstractProtocol.PROTOCOL_18, ProtocolInfo.LEVEL_SOUND_EVENT_PACKET_V2, LevelSoundEventPacketV218.class);
         registerPacket(AbstractProtocol.PROTOCOL_18, ProtocolInfo.SPAWN_PARTICLE_EFFECT_PACKET, SpawnParticleEffectPacket18.class);
+        registerPacket(AbstractProtocol.PROTOCOL_18, ProtocolInfo.UPDATE_TRADE_PACKET, UpdateTradePacket18.class);
 
         registerPacket(AbstractProtocol.PROTOCOL_19, ProtocolInfo.START_GAME_PACKET, StartGamePacket19.class);
         registerPacket(AbstractProtocol.PROTOCOL_19, ProtocolInfo.RESOURCE_PACKS_INFO_PACKET, ResourcePacksInfoPacket19.class);
@@ -241,6 +242,7 @@ public class PacketRegister {
         registerPacket(AbstractProtocol.PROTOCOL_113, ProtocolInfo.CRAFTING_DATA_PACKET, CraftingDataPacket113.class);
         registerPacket(AbstractProtocol.PROTOCOL_113, ProtocolInfo.AVAILABLE_COMMANDS_PACKET, AvailableCommandsPacket113.class);
         registerPacket(AbstractProtocol.PROTOCOL_113, ProtocolInfo.ADD_PLAYER_PACKET, AddPlayerPacket113.class);
+        registerPacket(AbstractProtocol.PROTOCOL_113, ProtocolInfo.INTERACT_PACKET, InteractPacket113.class);
         registerPacket(AbstractProtocol.PROTOCOL_113, ProtocolInfo.TICK_SYNC_PACKET, TickSyncPacket113.class);
         registerPacket(AbstractProtocol.PROTOCOL_113, ProtocolInfo.SETTINGS_COMMAND_PACKET, SettingsCommandPacket113.class);
         registerPacket(AbstractProtocol.PROTOCOL_113, ProtocolInfo.MOVE_ACTOR_DELTA_PACKET, MoveEntityDeltaPacket113.class);
