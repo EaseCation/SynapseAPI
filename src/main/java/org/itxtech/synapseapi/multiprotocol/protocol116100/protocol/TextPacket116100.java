@@ -43,6 +43,8 @@ public class TextPacket116100 extends Packet116100 {
     public String sendersXUID = "";
     public String platformIdString = "";
 
+    public String unknownNE = ""; // Biggest wtf
+
     @Override
     public void decode() {
         this.type = (byte) getByte();
@@ -72,6 +74,12 @@ public class TextPacket116100 extends Packet116100 {
         }
         this.sendersXUID = this.getString();
         this.platformIdString = this.getString();
+
+        if (this.neteaseMode) {
+            if (this.type == TYPE_CHAT || this.type == TYPE_POPUP) {
+                this.unknownNE = this.getString();
+            }
+        }
     }
 
     @Override
@@ -117,7 +125,7 @@ public class TextPacket116100 extends Packet116100 {
 
         if (this.neteaseMode) {
             if (this.type == TYPE_CHAT || this.type == TYPE_POPUP) {
-                this.putString(""); // Biggest wtf
+                this.putString(this.unknownNE);
             }
         }
     }

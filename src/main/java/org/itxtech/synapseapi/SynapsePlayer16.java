@@ -348,7 +348,7 @@ public class SynapsePlayer16 extends SynapsePlayer14 {
 		this.spawned = true;
 
 		this.inventory.sendContents(this);
-		this.inventory.sendArmorContents(this);
+		this.armorInventory.sendContents(this);
 		this.offhandInventory.sendContents(this);
 
 		this.sendPotionEffects(this);

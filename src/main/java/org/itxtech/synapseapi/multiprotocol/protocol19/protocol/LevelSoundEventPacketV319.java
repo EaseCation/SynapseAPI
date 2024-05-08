@@ -11,7 +11,7 @@ import org.itxtech.synapseapi.utils.ClassUtils;
 
 @ToString
 public class LevelSoundEventPacketV319 extends Packet19 {
-    public static final byte NETWORK_ID = ProtocolInfo.LEVEL_SOUND_EVENT_PACKET_V3;
+    public static final int NETWORK_ID = ProtocolInfo.LEVEL_SOUND_EVENT_PACKET_V3;
 
     public int sound;
     public float x;

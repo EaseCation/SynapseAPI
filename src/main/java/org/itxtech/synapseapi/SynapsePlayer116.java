@@ -854,7 +854,7 @@ public class SynapsePlayer116 extends SynapsePlayer113 {
 				}
 				if ((inputFlags & (1L << PlayerAuthInputPacket116.FLAG_START_GLIDING)) != 0 && !this.isGliding()) {
 					PlayerToggleGlideEvent playerToggleGlideEvent = new PlayerToggleGlideEvent(this, true);
-					Item chestplate = getInventory().getChestplate();
+					Item chestplate = getArmorInventory().getChestplate();
 					if (chestplate.getId() != Item.ELYTRA || chestplate.getDamage() >= chestplate.getMaxDurability() - 1) {
 						playerToggleGlideEvent.setCancelled();
 					}

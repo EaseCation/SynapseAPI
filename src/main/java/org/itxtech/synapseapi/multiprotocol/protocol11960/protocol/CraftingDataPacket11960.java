@@ -23,7 +23,7 @@ import java.util.stream.Collectors;
 
 @ToString
 public class CraftingDataPacket11960 extends Packet11960 {
-    public static final byte NETWORK_ID = ProtocolInfo.CRAFTING_DATA_PACKET;
+    public static final int NETWORK_ID = ProtocolInfo.CRAFTING_DATA_PACKET;
 
     private List<Recipe> entries = new ObjectArrayList<>();
     private List<BrewingRecipe> brewingEntries = new ObjectArrayList<>();

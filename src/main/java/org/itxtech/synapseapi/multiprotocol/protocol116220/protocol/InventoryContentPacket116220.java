@@ -10,7 +10,7 @@ import org.itxtech.synapseapi.utils.ClassUtils;
 @ToString
 public class InventoryContentPacket116220 extends Packet116220 {
 
-    public static final byte NETWORK_ID = ProtocolInfo.INVENTORY_CONTENT_PACKET;
+    public static final int NETWORK_ID = ProtocolInfo.INVENTORY_CONTENT_PACKET;
 
     @Override
     public int pid() {

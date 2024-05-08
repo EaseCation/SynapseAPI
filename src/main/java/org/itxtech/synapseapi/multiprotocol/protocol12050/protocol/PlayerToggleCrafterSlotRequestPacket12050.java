@@ -24,6 +24,9 @@ public class PlayerToggleCrafterSlotRequestPacket12050 extends Packet12050 {
         y = (int) getUnsignedVarInt();
         z = (int) getUnsignedVarInt();
         slot = getByte();
+        if (slot >= 128) {
+            throw new IndexOutOfBoundsException("The slot index is too big");
+        }
         disabled = getBoolean();
     }
 

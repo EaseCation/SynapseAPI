@@ -25,7 +25,7 @@ import java.util.stream.Collectors;
 @Log4j2
 @ToString
 public class CraftingDataPacket11980 extends Packet11980 {
-    public static final byte NETWORK_ID = ProtocolInfo.CRAFTING_DATA_PACKET;
+    public static final int NETWORK_ID = ProtocolInfo.CRAFTING_DATA_PACKET;
 
     private List<Recipe> entries = new ObjectArrayList<>();
     private List<BrewingRecipe> brewingEntries = new ObjectArrayList<>();

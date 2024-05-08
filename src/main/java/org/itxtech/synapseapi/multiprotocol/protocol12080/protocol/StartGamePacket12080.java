@@ -93,7 +93,7 @@ public class StartGamePacket12080 extends Packet12080 {
     public boolean isOnlySpawningV1Villagers = false;
     public boolean isDisablingPersonas;
     public boolean isDisablingCustomSkins;
-    public String vanillaVersion = "1.20.30";
+    public String vanillaVersion = "1.20.80";
     public boolean muteEmoteAnnouncements;
     public int limitedWorldWidth = 16;
     public int limitedWorldLength = 16;

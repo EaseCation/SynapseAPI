@@ -12,7 +12,7 @@ import java.util.Optional;
 
 @ToString
 public class LevelSoundEventPacketV218 extends Packet18 {
-    public static final byte NETWORK_ID = ProtocolInfo.LEVEL_SOUND_EVENT_PACKET_V2;
+    public static final int NETWORK_ID = ProtocolInfo.LEVEL_SOUND_EVENT_PACKET_V2;
 
     public int sound;
     public float x;

@@ -252,7 +252,7 @@ public class SynapsePlayer113 extends SynapsePlayer112 {
 
 						this.getAdventureSettings().update();
 						this.inventory.sendContents(this);
-						this.inventory.sendArmorContents(this);
+						this.armorInventory.sendContents(this);
 						this.offhandInventory.sendContents(this);
 
 						this.spawnToAll();

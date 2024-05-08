@@ -6,7 +6,7 @@ import lombok.ToString;
 
 @ToString
 public class LecternUpdatePacket12070 extends Packet12070 {
-    public static final byte NETWORK_ID = ProtocolInfo.LECTERN_UPDATE_PACKET;
+    public static final int NETWORK_ID = ProtocolInfo.LECTERN_UPDATE_PACKET;
 
     public int page;
     public int totalPages;

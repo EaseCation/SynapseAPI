@@ -399,11 +399,7 @@ public class SynapsePlayer extends Player {
             return;
         }
 
-        if (this.isCreative()) {
-            this.inventory.setHeldItemSlot(0);
-        } else {
-            this.inventory.setHeldItemSlot(this.inventory.getHotbarSlotIndex(0));
-        }
+        this.inventory.setHeldItemIndex(0);
 
         if (this.isSpectator()) {
             this.keepMovement = true;
@@ -832,7 +828,7 @@ public class SynapsePlayer extends Player {
         pk.metadata = this.dataProperties;
         Server.broadcastPacket(this.getViewers().values(), pk);
 
-        this.inventory.sendArmorContents(this.getViewers().values());
+        this.armorInventory.sendContents(this.getViewers().values());
         this.offhandInventory.sendContents(this.getViewers().values());
 
         if (this.riding != null) {
@@ -872,7 +868,7 @@ public class SynapsePlayer extends Player {
         pk.metadata = this.dataProperties;
         player.dataPacket(pk);
 
-        this.inventory.sendArmorContents(player);
+        this.armorInventory.sendContents(player);
         this.offhandInventory.sendContents(player);
 
         if (this.riding != null) {

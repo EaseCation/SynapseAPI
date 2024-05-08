@@ -17,7 +17,7 @@ import java.util.function.ObjIntConsumer;
 @ToString
 public class AvailableCommandsPacket111 extends Packet111 {
 
-    public static final byte NETWORK_ID = ProtocolInfo.AVAILABLE_COMMANDS_PACKET;
+    public static final int NETWORK_ID = ProtocolInfo.AVAILABLE_COMMANDS_PACKET;
 
     private static final ObjIntConsumer<BinaryStream> WRITE_BYTE = (s, v) -> s.putByte((byte) v);
     private static final ObjIntConsumer<BinaryStream> WRITE_SHORT = BinaryStream::putLShort;

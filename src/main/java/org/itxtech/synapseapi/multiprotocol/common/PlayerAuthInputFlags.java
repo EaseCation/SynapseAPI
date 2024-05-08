@@ -11,6 +11,7 @@ public interface PlayerAuthInputFlags {
     int DESCEND = 1;
     /**
      * Pressing (and optionally holding) the jump key (while not flying).
+     * @deprecated 1.21.0
      */
     int NORTH_JUMP = 2;
     /**
@@ -160,4 +161,8 @@ public interface PlayerAuthInputFlags {
      * @since 1.20.70
      */
     int PADDLE_RIGHT = 47;
+    /**
+     * @since 1.21.0
+     */
+    int BLOCK_BREAKING_DELAY_ENABLED = 48;
 }

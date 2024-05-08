@@ -1085,7 +1085,7 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
 
                             this.getAdventureSettings().update();
                             this.inventory.sendContents(this);
-                            this.inventory.sendArmorContents(this);
+                            this.armorInventory.sendContents(this);
                             this.offhandInventory.sendContents(this);
 
                             this.spawnToAll();
@@ -1300,7 +1300,7 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
                             }
 
                             PlayerToggleGlideEvent playerToggleGlideEvent = new PlayerToggleGlideEvent(this, true);
-                            Item chestplate = getInventory().getChestplate();
+                            Item chestplate = getArmorInventory().getChestplate();
                             if (chestplate.getId() != Item.ELYTRA || chestplate.getDamage() >= chestplate.getMaxDurability() - 1) {
                                 playerToggleGlideEvent.setCancelled();
                             }
