@@ -47,6 +47,9 @@ public class LoginPacket14 extends Packet14 {
     public UUID clientUUID;
     public long clientId;
     public String deviceId;
+    public String platformOfflineId;
+    public boolean editorMode;
+    public boolean supportClientChunkGeneration;
     public String xuid;
     public String titleId;
     public String sandboxId;// = "RETAIL"
@@ -313,9 +316,29 @@ public class LoginPacket14 extends Packet14 {
             }
         }
 
+        JsonNode platformOfflineIdNode = skinToken.get("PlatformOfflineId");
+        if (platformOfflineIdNode != null) {
+            this.platformOfflineId = platformOfflineIdNode.asText();
+        }
+
+        JsonNode trustedSkinNode = skinToken.get("TrustedSkin");
+        if (trustedSkinNode != null) {
+            skin.setTrusted(trustedSkinNode.asBoolean());
+        }
+
+        JsonNode isEditorModeNode = skinToken.get("IsEditorMode");
+        if (isEditorModeNode != null) {
+            this.editorMode = isEditorModeNode.asBoolean();
+        }
+
         JsonNode overrideSkinNode = skinToken.get("OverrideSkin");
         if (overrideSkinNode != null) {
             skin.setOverridingPlayerAppearance(overrideSkinNode.asBoolean());
+        }
+
+        JsonNode compatibleWithClientSideChunkGenNode = skinToken.get("CompatibleWithClientSideChunkGen");
+        if (compatibleWithClientSideChunkGenNode != null) {
+            this.supportClientChunkGeneration = compatibleWithClientSideChunkGenNode.asBoolean();
         }
     }
 

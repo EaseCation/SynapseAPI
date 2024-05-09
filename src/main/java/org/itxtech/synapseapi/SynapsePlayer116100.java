@@ -118,6 +118,9 @@ import org.itxtech.synapseapi.multiprotocol.protocol12070.protocol.LecternUpdate
 import org.itxtech.synapseapi.multiprotocol.protocol12070.protocol.ResourcePacksInfoPacket12070;
 import org.itxtech.synapseapi.multiprotocol.protocol12080.protocol.ResourcePackStackPacket12080;
 import org.itxtech.synapseapi.multiprotocol.protocol12080.protocol.StartGamePacket12080;
+import org.itxtech.synapseapi.multiprotocol.protocol121.protocol.ContainerClosePacket121;
+import org.itxtech.synapseapi.multiprotocol.protocol121.protocol.StartGamePacket121;
+import org.itxtech.synapseapi.multiprotocol.protocol121.protocol.TextPacket121;
 import org.itxtech.synapseapi.multiprotocol.protocol14.protocol.PlayerActionPacket14;
 import org.itxtech.synapseapi.multiprotocol.protocol16.protocol.ResourcePackClientResponsePacket16;
 import org.itxtech.synapseapi.multiprotocol.utils.EntityProperties;
@@ -183,7 +186,41 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
 
     @Override
     protected DataPacket generateStartGamePacket(Position spawnPosition) {
-        if (this.getProtocol() >= AbstractProtocol.PROTOCOL_120_80.getProtocolStart()) {
+        if (this.getProtocol() >= AbstractProtocol.PROTOCOL_121.getProtocolStart()) {
+            StartGamePacket121 startGamePacket = new StartGamePacket121();
+            startGamePacket.protocol = AbstractProtocol.fromRealProtocol(this.protocol);
+            startGamePacket.netease = this.isNetEaseClient();
+            startGamePacket.entityUniqueId = SYNAPSE_PLAYER_ENTITY_ID;
+            startGamePacket.entityRuntimeId = SYNAPSE_PLAYER_ENTITY_ID;
+            startGamePacket.playerGamemode = getClientFriendlyGamemode(this.gamemode);
+            startGamePacket.x = (float) this.x;
+            startGamePacket.y = (float) this.y;
+            startGamePacket.z = (float) this.z;
+            startGamePacket.yaw = (float) this.yaw;
+            startGamePacket.pitch = (float) this.pitch;
+            startGamePacket.seed = -1;
+            startGamePacket.dimension = (byte) (this.level.getDimension().ordinal() & 0xff);
+            startGamePacket.worldGamemode = getClientFriendlyGamemode(this.gamemode);
+            startGamePacket.difficulty = this.server.getDifficulty();
+            startGamePacket.spawnX = (int) spawnPosition.x;
+            startGamePacket.spawnY = (int) spawnPosition.y;
+            startGamePacket.spawnZ = (int) spawnPosition.z;
+            startGamePacket.hasAchievementsDisabled = true;
+            startGamePacket.dayCycleStopTime = -1;
+            startGamePacket.rainLevel = 0;
+            startGamePacket.lightningLevel = 0;
+            startGamePacket.commandsEnabled = this.isEnableClientCommand();
+            startGamePacket.levelId = "";
+            startGamePacket.worldName = this.getServer().getNetwork().getName();
+            startGamePacket.generator = 1; // 0 old, 1 infinite, 2 flat
+            startGamePacket.gameRules = getSupportedRules();
+            startGamePacket.movementType = serverAuthoritativeMovement ? StartGamePacket121.MOVEMENT_SERVER_AUTHORITATIVE : StartGamePacket121.MOVEMENT_CLIENT_AUTHORITATIVE;
+            startGamePacket.isBlockBreakingServerAuthoritative = this.serverAuthoritativeBlockBreaking;
+            startGamePacket.currentTick = 0;//this.server.getTick();
+            startGamePacket.enchantmentSeed = ThreadLocalRandom.current().nextInt();
+            startGamePacket.isSoundServerAuthoritative = isServerAuthoritativeSoundEnabled();
+            return startGamePacket;
+        } else if (this.getProtocol() >= AbstractProtocol.PROTOCOL_120_80.getProtocolStart()) {
             StartGamePacket12080 startGamePacket = new StartGamePacket12080();
             startGamePacket.protocol = AbstractProtocol.fromRealProtocol(this.protocol);
             startGamePacket.netease = this.isNetEaseClient();
@@ -828,6 +865,41 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
                     super.handleDataPacket(packet);
                     return;
                 }
+
+                if (this.getProtocol() >= AbstractProtocol.PROTOCOL_121.getProtocolStart()) {
+                    ContainerClosePacket121 containerClosePacket = (ContainerClosePacket121) packet;
+                    if (!this.spawned || containerClosePacket.windowId == ContainerIds.INVENTORY && !inventoryOpen) {
+                        break;
+                    }
+
+                    Inventory windowInventory = this.windowIndex.get(containerClosePacket.windowId);
+                    if (windowInventory != null) {
+                        this.server.getPluginManager().callEvent(new InventoryCloseEvent(windowInventory, this));
+
+                        if (containerClosePacket.windowId == ContainerIds.INVENTORY) {
+                            this.inventoryOpen = false;
+                        }
+
+                        this.closingWindowId = containerClosePacket.windowId;
+                        this.removeWindow(this.windowIndex.get(containerClosePacket.windowId), true);
+                        this.closingWindowId = Integer.MIN_VALUE;
+                    } else {
+                        this.getServer().getLogger().debug(getName() + " unopened window: " + containerClosePacket.windowId);
+                    }
+
+                    if (containerClosePacket.windowId == -1) {
+                        this.craftingType = CRAFTING_SMALL;
+                        this.resetCraftingGridType();
+                        this.addWindow(this.craftingGrid, ContainerIds.NONE);
+
+                        ContainerClosePacket121 pk = new ContainerClosePacket121();
+                        pk.wasServerInitiated = false;
+                        pk.windowId = -1;
+                        this.dataPacket(pk);
+                    }
+                    break;
+                }
+
                 ContainerClosePacket116100 containerClosePacket = (ContainerClosePacket116100) packet;
                 if (!this.spawned || containerClosePacket.windowId == ContainerIds.INVENTORY && !inventoryOpen) {
                     break;
@@ -844,7 +916,7 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
                     this.removeWindow(this.windowIndex.get(containerClosePacket.windowId), true);
                     this.closingWindowId = Integer.MIN_VALUE;
                 } else {
-                    this.getServer().getLogger().debug("Unopened window: " + containerClosePacket.windowId);
+                    this.getServer().getLogger().debug(getName() + " unopened window: " + containerClosePacket.windowId);
                 }
 
                 if (containerClosePacket.windowId == -1) {
@@ -909,7 +981,13 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
                 if (!this.spawned || !this.isAlive()) {
                     break;
                 }
-                if (this.getProtocol() < AbstractProtocol.PROTOCOL_116_100.getProtocolStart()) {
+                if (this.getProtocol() >= AbstractProtocol.PROTOCOL_121.getProtocolStart()) {
+                    TextPacket121 textPacket = (TextPacket121) packet;
+
+                    if (textPacket.type == TextPacket121.TYPE_CHAT) {
+                        this.chat(textPacket.message);
+                    }
+                } else if (this.getProtocol() < AbstractProtocol.PROTOCOL_116_100.getProtocolStart()) {
                     TextPacket116100NE textPacket = (TextPacket116100NE) packet;
 
                     if (textPacket.type == TextPacket116100NE.TYPE_CHAT) {
@@ -2788,6 +2866,16 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
 
     @Override
     public void sendJukeboxPopup(TranslationContainer message) {
+        if (this.getProtocol() >= AbstractProtocol.PROTOCOL_121.getProtocolStart()) {
+            TextPacket121 pk = new TextPacket121();
+            pk.type = TextPacket121.TYPE_JUKEBOX_POPUP;
+            pk.isLocalized = true;
+            pk.message = message.getText();
+            pk.parameters = Arrays.stream(message.getParameters()).map(String::valueOf).toArray(String[]::new);
+            this.dataPacket(pk);
+            return;
+        }
+
         if (this.getProtocol() < AbstractProtocol.PROTOCOL_116_100.getProtocolStart()) {
             TextPacket116100NE pk = new TextPacket116100NE();
             pk.type = TextPacket116100NE.TYPE_JUKEBOX_POPUP;

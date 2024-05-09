@@ -4907,7 +4907,8 @@
     },
     {
         "name": "minecraft:music_disc_relic",
-        "id": 704
+        "id": 704,
+        "oldId": 780
     },
     {
         "name": "minecraft:music_disc_stal",

@@ -107,6 +107,11 @@ import org.itxtech.synapseapi.multiprotocol.protocol12080.protocol.CraftingDataP
 import org.itxtech.synapseapi.multiprotocol.protocol12080.protocol.ResourcePackStackPacket12080;
 import org.itxtech.synapseapi.multiprotocol.protocol12080.protocol.StartGamePacket12080;
 import org.itxtech.synapseapi.multiprotocol.protocol12080.protocol.UpdatePlayerGameTypePacket12080;
+import org.itxtech.synapseapi.multiprotocol.protocol121.protocol.AwardAchievementPacket121;
+import org.itxtech.synapseapi.multiprotocol.protocol121.protocol.ContainerClosePacket121;
+import org.itxtech.synapseapi.multiprotocol.protocol121.protocol.CraftingDataPacket121;
+import org.itxtech.synapseapi.multiprotocol.protocol121.protocol.StartGamePacket121;
+import org.itxtech.synapseapi.multiprotocol.protocol121.protocol.TextPacket121;
 import org.itxtech.synapseapi.multiprotocol.protocol15.protocol.AddEntityPacket15;
 import org.itxtech.synapseapi.multiprotocol.protocol15.protocol.ClientboundMapItemDataPacket15;
 import org.itxtech.synapseapi.multiprotocol.protocol15.protocol.MoveEntityAbsolutePacket15;
@@ -402,6 +407,12 @@ public class PacketRegister {
         registerPacket(AbstractProtocol.PROTOCOL_120_80, ProtocolInfo.CRAFTING_DATA_PACKET, CraftingDataPacket12080.class);
         registerPacket(AbstractProtocol.PROTOCOL_120_80, ProtocolInfo.UPDATE_PLAYER_GAME_TYPE_PACKET, UpdatePlayerGameTypePacket12080.class);
         registerPacket(AbstractProtocol.PROTOCOL_120_80, ProtocolInfo.CORRECT_PLAYER_MOVE_PREDICTION_PACKET, CorrectPlayerMovePredictionPacket12080.class);
+
+        registerPacket(AbstractProtocol.PROTOCOL_121, ProtocolInfo.START_GAME_PACKET, StartGamePacket121.class);
+        registerPacket(AbstractProtocol.PROTOCOL_121, ProtocolInfo.CRAFTING_DATA_PACKET, CraftingDataPacket121.class);
+        registerPacket(AbstractProtocol.PROTOCOL_121, ProtocolInfo.TEXT_PACKET, TextPacket121.class);
+        registerPacket(AbstractProtocol.PROTOCOL_121, ProtocolInfo.CONTAINER_CLOSE_PACKET, ContainerClosePacket121.class);
+        registerPacket(AbstractProtocol.PROTOCOL_121, ProtocolInfo.AWARD_ACHIEVEMENT_PACKET, AwardAchievementPacket121.class);
 
         checkNeteaseSpecialExtend();
     }

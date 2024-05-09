@@ -73,6 +73,8 @@ public class BinaryStreamHelper12050 extends BinaryStreamHelper12040 {
             }
         }
 
+        damage = BlockItemFlattener.fixMeta(this.protocol, id, damage);
+
         byte[] bytes = stream.getByteArray();
         ByteBuf buf = ByteBufAllocator.DEFAULT.ioBuffer(bytes.length);
         buf.writeBytes(bytes);

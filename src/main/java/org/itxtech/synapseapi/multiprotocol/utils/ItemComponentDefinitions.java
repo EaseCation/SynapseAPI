@@ -39,6 +39,7 @@ public final class ItemComponentDefinitions {
             Map<String, byte[]> definition12060 = load("item_components12060.nbt");
             Map<String, byte[]> definition12070 = load("item_components12070.nbt");
             Map<String, byte[]> definition12080 = load("item_components12080.nbt");
+            Map<String, byte[]> definition121 = load("item_components121.nbt");
 
             DEFINITIONS.put(AbstractProtocol.PROTOCOL_118_10, definition11810);
             DEFINITIONS.put(AbstractProtocol.PROTOCOL_118_30, definition11830);
@@ -62,6 +63,7 @@ public final class ItemComponentDefinitions {
             DEFINITIONS.put(AbstractProtocol.PROTOCOL_120_60, definition12060);
             DEFINITIONS.put(AbstractProtocol.PROTOCOL_120_70, definition12070);
             DEFINITIONS.put(AbstractProtocol.PROTOCOL_120_80, definition12080);
+            DEFINITIONS.put(AbstractProtocol.PROTOCOL_121, definition121);
 
             Map<String, byte[]> definitionNetEase11830 = loadAndMappingToNetEase(AbstractProtocol.PROTOCOL_118_30, "item_components11830.nbt");
             Map<String, byte[]> definitionNetEase11830NE = loadAndMappingToNetEase(AbstractProtocol.PROTOCOL_118_30_NE, "item_components11830.nbt");

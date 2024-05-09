@@ -804,17 +804,27 @@ public final class LegacyBlockSerializer {
         registerDeserializer(TUFF_BRICK_DOUBLE_SLAB, LegacyBlockSerializer::deserializeSlab);
 
 //        registerDeserializer(OAK_SLAB, LegacyBlockSerializer::deserializeSlab);
-//        registerDeserializer(OAK_DOUBLE_SLAB, LegacyBlockSerializer::deserializeSlab);
         registerDeserializer(SPRUCE_SLAB, LegacyBlockSerializer::deserializeSlab);
-        registerDeserializer(SPRUCE_DOUBLE_SLAB, LegacyBlockSerializer::deserializeSlab);
         registerDeserializer(BIRCH_SLAB, LegacyBlockSerializer::deserializeSlab);
-        registerDeserializer(BIRCH_DOUBLE_SLAB, LegacyBlockSerializer::deserializeSlab);
         registerDeserializer(JUNGLE_SLAB, LegacyBlockSerializer::deserializeSlab);
-        registerDeserializer(JUNGLE_DOUBLE_SLAB, LegacyBlockSerializer::deserializeSlab);
         registerDeserializer(ACACIA_SLAB, LegacyBlockSerializer::deserializeSlab);
-        registerDeserializer(ACACIA_DOUBLE_SLAB, LegacyBlockSerializer::deserializeSlab);
         registerDeserializer(DARK_OAK_SLAB, LegacyBlockSerializer::deserializeSlab);
+
+//        registerDeserializer(OAK_DOUBLE_SLAB, LegacyBlockSerializer::deserializeSlab);
+        registerDeserializer(SPRUCE_DOUBLE_SLAB, LegacyBlockSerializer::deserializeSlab);
+        registerDeserializer(BIRCH_DOUBLE_SLAB, LegacyBlockSerializer::deserializeSlab);
+        registerDeserializer(JUNGLE_DOUBLE_SLAB, LegacyBlockSerializer::deserializeSlab);
+        registerDeserializer(ACACIA_DOUBLE_SLAB, LegacyBlockSerializer::deserializeSlab);
         registerDeserializer(DARK_OAK_DOUBLE_SLAB, LegacyBlockSerializer::deserializeSlab);
+
+//        registerDeserializer(SMOOTH_STONE_SLAB, LegacyBlockSerializer::deserializeSlab);
+        registerDeserializer(SANDSTONE_SLAB, LegacyBlockSerializer::deserializeSlab);
+        registerDeserializer(PETRIFIED_OAK_SLAB, LegacyBlockSerializer::deserializeSlab);
+        registerDeserializer(COBBLESTONE_SLAB, LegacyBlockSerializer::deserializeSlab);
+        registerDeserializer(BRICK_SLAB, LegacyBlockSerializer::deserializeSlab);
+        registerDeserializer(STONE_BRICK_SLAB, LegacyBlockSerializer::deserializeSlab);
+        registerDeserializer(QUARTZ_SLAB, LegacyBlockSerializer::deserializeSlab);
+        registerDeserializer(NETHER_BRICK_SLAB, LegacyBlockSerializer::deserializeSlab);
 
         registerDeserializer(TNT, states -> {
             int meta = states.getBoolean(EXPLODE_BIT) ? 0b1 : 0;
@@ -1357,6 +1367,13 @@ public final class LegacyBlockSerializer {
             }
             return meta;
         });
+
+//        registerDeserializer(SUNFLOWER, states -> states.getBoolean(UPPER_BLOCK_BIT) ? 0b1 : 0);
+        registerDeserializer(LILAC, states -> states.getBoolean(UPPER_BLOCK_BIT) ? 0b1 : 0);
+        registerDeserializer(TALL_GRASS, states -> states.getBoolean(UPPER_BLOCK_BIT) ? 0b1 : 0);
+        registerDeserializer(LARGE_FERN, states -> states.getBoolean(UPPER_BLOCK_BIT) ? 0b1 : 0);
+        registerDeserializer(ROSE_BUSH, states -> states.getBoolean(UPPER_BLOCK_BIT) ? 0b1 : 0);
+        registerDeserializer(PEONY, states -> states.getBoolean(UPPER_BLOCK_BIT) ? 0b1 : 0);
 
         registerDeserializer(BLOCK_FRAME, LegacyBlockSerializer::deserializeFrame);
         registerDeserializer(BLOCK_GLOW_FRAME, LegacyBlockSerializer::deserializeFrame);
@@ -1913,10 +1930,19 @@ public final class LegacyBlockSerializer {
                     meta |= 0b1100;
                     break;
             }
+            if (states.getBoolean(OMINOUS)) {
+                meta |= 0b10000;
+            }
             return meta;
         });
 
-        registerDeserializer(TRIAL_SPAWNER, states -> states.getInt(TRIAL_SPAWNER_STATE) & 0b111);
+        registerDeserializer(TRIAL_SPAWNER, states -> {
+            int meta = states.getInt(TRIAL_SPAWNER_STATE) & 0b111;
+            if (states.getBoolean(OMINOUS)) {
+                meta |= 0b1000;
+            }
+            return meta;
+        });
 
         registerDeserializer(ELEMENT_0, LegacyBlockSerializer::deserializeSimple);
         registerDeserializer(ELEMENT_1, LegacyBlockSerializer::deserializeSimple);

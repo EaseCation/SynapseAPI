@@ -1,5 +1,6 @@
 package org.itxtech.synapseapi.multiprotocol.utils.item;
 
+import cn.nukkit.block.BlockTallGrass;
 import cn.nukkit.item.ItemBlockID;
 import it.unimi.dsi.fastutil.ints.Int2IntFunction;
 import org.itxtech.synapseapi.multiprotocol.AbstractProtocol;
@@ -10,6 +11,7 @@ import java.util.Map;
 public final class BlockItemFlattener {
     private static final AbstractProtocol BASE_GAME_VERSION = AbstractProtocol.PROTOCOL_118;
     private static final Map<AbstractProtocol, Int2IntFunction> DOWNGRADERS = new EnumMap<>(AbstractProtocol.class);
+    private static final Map<AbstractProtocol, AuxValueFixer> AUX_VALUE_FIXERS = new EnumMap<>(AbstractProtocol.class);
 
     public static int downgrade(AbstractProtocol protocol, int id) {
         Int2IntFunction func = DOWNGRADERS.get(protocol);
@@ -17,6 +19,14 @@ public final class BlockItemFlattener {
             return id;
         }
         return func.applyAsInt(id);
+    }
+
+    public static int fixMeta(AbstractProtocol protocol, int id, int meta) {
+        AuxValueFixer fixer = AUX_VALUE_FIXERS.get(protocol);
+        if (fixer == null) {
+            return meta;
+        }
+        return fixer.fix(id, meta);
     }
 
     static {
@@ -30,7 +40,9 @@ public final class BlockItemFlattener {
         DOWNGRADERS.put(AbstractProtocol.PROTOCOL_120_60, BlockItemFlattener::downgrader12060);
         DOWNGRADERS.put(AbstractProtocol.PROTOCOL_120_70, BlockItemFlattener::downgrader12070);
         DOWNGRADERS.put(AbstractProtocol.PROTOCOL_120_80, BlockItemFlattener::downgrader12080);
-//        DOWNGRADERS.put(AbstractProtocol.PROTOCOL_121, BlockItemFlattener::downgrader121);
+        DOWNGRADERS.put(AbstractProtocol.PROTOCOL_121, BlockItemFlattener::downgrader121);
+
+        AUX_VALUE_FIXERS.put(AbstractProtocol.PROTOCOL_121, BlockItemFlattener::metaFixer121);
     }
 
     private static int downgrader11970(int id) {
@@ -161,7 +173,24 @@ public final class BlockItemFlattener {
         if (id <= ItemBlockID.SANDSTONE_SLAB && id >= ItemBlockID.NETHER_BRICK_SLAB) {
             return ItemBlockID.STONE_SLAB;
         }
+        if (id == ItemBlockID.PETRIFIED_OAK_SLAB) {
+            return ItemBlockID.STONE_SLAB;
+        }
         return downgrader12080(id);
+    }
+
+    private static int metaFixer121(int id, int meta) {
+        if (id == ItemBlockID.SHORT_GRASS) {
+            if (meta == 0) {
+                return BlockTallGrass.TYPE_GRASS;
+            }
+        }
+        return meta;
+    }
+
+    @FunctionalInterface
+    private interface AuxValueFixer {
+        int fix(int id, int meta);
     }
 
     private BlockItemFlattener() {

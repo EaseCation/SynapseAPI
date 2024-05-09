@@ -81,6 +81,7 @@ public interface BlockStateNames {
     String OCCUPIED_BIT = "occupied_bit";
     String OLD_LEAF_TYPE = "old_leaf_type";
     String OLD_LOG_TYPE = "old_log_type";
+    String OMINOUS = "ominous";
     String OPEN_BIT = "open_bit";
     String ORIENTATION = "orientation";
     String OUTPUT_LIT_BIT = "output_lit_bit";
