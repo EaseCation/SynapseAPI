@@ -54,6 +54,7 @@ public class RuntimeItemPalette implements AdvancedRuntimeItemPaletteInterface {
     private final Int2IntMap networkLegacyMap = new Int2IntOpenHashMap();
     private final Int2IntMap blockLegacyToFlatten = new Int2IntOpenHashMap();
 //    private final Int2IntMap blockFlattenToLegacy = new Int2IntOpenHashMap();
+    private final Object2IntMap<String> nameToNetTodoMap = new Object2IntOpenHashMap<>();
 
     private byte[] itemDataPalette;
 
@@ -74,6 +75,7 @@ public class RuntimeItemPalette implements AdvancedRuntimeItemPaletteInterface {
         blockLegacyToFlatten.defaultReturnValue(-1);
         nameToNetworkMap.defaultReturnValue(-1);
 //        blockFlattenToLegacy.defaultReturnValue(-1);
+        nameToNetTodoMap.defaultReturnValue(-1);
 
         for (Entry entry : entries) {
             registerItem(entry);
@@ -123,6 +125,7 @@ public class RuntimeItemPalette implements AdvancedRuntimeItemPaletteInterface {
         blockLegacyToFlatten.defaultReturnValue(-1);
         nameToNetworkMap.defaultReturnValue(-1);
 //        blockFlattenToLegacy.defaultReturnValue(-1);
+        nameToNetTodoMap.defaultReturnValue(-1);
 
         for (RuntimeEntry entry : runtimeIds) {
             Integer oldId;
@@ -168,6 +171,7 @@ public class RuntimeItemPalette implements AdvancedRuntimeItemPaletteInterface {
 
             if (oldId == -1) {
                 entries.add(entry);
+                nameToNetTodoMap.put(entry.name, entry.id);
                 log.trace("Unmapped runtime item: id {} name {} ({})", entry.id, entry.name, protocol);
                 return;
             }
@@ -252,6 +256,11 @@ public class RuntimeItemPalette implements AdvancedRuntimeItemPaletteInterface {
     @Override
     public int getNetworkIdByName(String name) {
         return nameToNetworkMap.getInt(name);
+    }
+
+    @Override
+    public int getNetworkIdByNameTodo(String name) {
+        return nameToNetTodoMap.getInt(name);
     }
 
     @Override

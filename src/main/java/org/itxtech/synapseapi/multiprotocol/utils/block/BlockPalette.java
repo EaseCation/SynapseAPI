@@ -161,6 +161,18 @@ public class BlockPalette {
         }
     }
 
+    public BlockPalette toNetease() {
+        BlockPalette netease = new BlockPalette();
+        netease.palette.addAll(this.palette);
+        netease.properties.addAll(this.properties);
+
+        netease.palette.add(new BlockData("minecraft:mod_ore", 230));
+        netease.palette.add(new BlockData("minecraft:micro_block", 9990));
+
+        netease.sortHash();
+        return netease;
+    }
+
     @ToString
     @AllArgsConstructor
     public static class BlockData {

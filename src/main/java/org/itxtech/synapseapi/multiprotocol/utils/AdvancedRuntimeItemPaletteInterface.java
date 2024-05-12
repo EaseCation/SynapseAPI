@@ -21,6 +21,8 @@ public interface AdvancedRuntimeItemPaletteInterface {
 
     int getNetworkIdByName(String name);
 
+    int getNetworkIdByNameTodo(String name);
+
     boolean hasData(int id);
 
     byte[] getCompiledData();

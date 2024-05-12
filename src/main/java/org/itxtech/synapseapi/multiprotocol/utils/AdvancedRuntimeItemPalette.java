@@ -197,6 +197,10 @@ public final class AdvancedRuntimeItemPalette {
         return getPalette(protocol, netease).getNetworkIdByName(name);
     }
 
+    public static int getNetworkIdByNameTodo(AbstractProtocol protocol, boolean netease, String name) {
+        return getPalette(protocol, netease).getNetworkIdByNameTodo(name);
+    }
+
     public static void init() {
         // NOOP
     }

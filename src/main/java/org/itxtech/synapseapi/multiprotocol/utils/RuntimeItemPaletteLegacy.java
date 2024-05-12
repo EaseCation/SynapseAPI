@@ -52,6 +52,11 @@ public class RuntimeItemPaletteLegacy implements AdvancedRuntimeItemPaletteInter
     }
 
     @Override
+    public int getNetworkIdByNameTodo(String name) {
+        return -1;
+    }
+
+    @Override
     public boolean hasData(int id) {
         return false;
     }

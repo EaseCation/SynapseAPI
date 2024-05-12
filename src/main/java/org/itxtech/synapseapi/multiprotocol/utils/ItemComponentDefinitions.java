@@ -16,61 +16,105 @@ import java.util.Map;
 
 @Log4j2
 public final class ItemComponentDefinitions {
-    private static final Map<AbstractProtocol, Map<String, byte[]>> DEFINITIONS = new EnumMap<>(AbstractProtocol.class);
-    private static final Map<AbstractProtocol, Map<String, byte[]>> DEFINITIONS_NETEASE = new EnumMap<>(AbstractProtocol.class);
+    private static final Map<AbstractProtocol, Map<String, byte[]>[]> DEFINITIONS = new EnumMap<>(AbstractProtocol.class);
 
     static {
         log.debug("Loading item component definitions...");
 
         // vanilla 在 1.18.10 前发的都是空的
         try {
-            Map<String, byte[]> definition11810 = load("item_components11810.nbt");
-            Map<String, byte[]> definition11830 = load("item_components11830.nbt");
-            Map<String, byte[]> definition119 = load("item_components119.nbt");
-            Map<String, byte[]> definition11910 = load("item_components11910.nbt");
-            Map<String, byte[]> definition11950 = load("item_components11950.nbt");
-            Map<String, byte[]> definition11960 = load("item_components11960.nbt");
-            Map<String, byte[]> definition11970 = load("item_components11970.nbt");
-            Map<String, byte[]> definition11980 = load("item_components11980.nbt");
-            Map<String, byte[]> definition120 = load("item_components120.nbt");
-            Map<String, byte[]> definition12010 = load("item_components12010.nbt");
-            Map<String, byte[]> definition12030 = load("item_components12030.nbt");
-            Map<String, byte[]> definition12050 = load("item_components12050.nbt");
-            Map<String, byte[]> definition12060 = load("item_components12060.nbt");
-            Map<String, byte[]> definition12070 = load("item_components12070.nbt");
-            Map<String, byte[]> definition12080 = load("item_components12080.nbt");
-            Map<String, byte[]> definition121 = load("item_components121.nbt");
-
-            DEFINITIONS.put(AbstractProtocol.PROTOCOL_118_10, definition11810);
-            DEFINITIONS.put(AbstractProtocol.PROTOCOL_118_30, definition11830);
-            DEFINITIONS.put(AbstractProtocol.PROTOCOL_118_30_NE, definition11830);
-            DEFINITIONS.put(AbstractProtocol.PROTOCOL_119, definition119);
-            DEFINITIONS.put(AbstractProtocol.PROTOCOL_119_10, definition11910);
-            DEFINITIONS.put(AbstractProtocol.PROTOCOL_119_20, definition11910);
-            DEFINITIONS.put(AbstractProtocol.PROTOCOL_119_21, definition11910);
-            DEFINITIONS.put(AbstractProtocol.PROTOCOL_119_30, definition11910);
-            DEFINITIONS.put(AbstractProtocol.PROTOCOL_119_40, definition11910);
-            DEFINITIONS.put(AbstractProtocol.PROTOCOL_119_50, definition11950);
-            DEFINITIONS.put(AbstractProtocol.PROTOCOL_119_60, definition11960);
-            DEFINITIONS.put(AbstractProtocol.PROTOCOL_119_63, definition11960);
-            DEFINITIONS.put(AbstractProtocol.PROTOCOL_119_70, definition11970);
-            DEFINITIONS.put(AbstractProtocol.PROTOCOL_119_80, definition11980);
-            DEFINITIONS.put(AbstractProtocol.PROTOCOL_120, definition120);
-            DEFINITIONS.put(AbstractProtocol.PROTOCOL_120_10, definition12010);
-            DEFINITIONS.put(AbstractProtocol.PROTOCOL_120_30, definition12030);
-            DEFINITIONS.put(AbstractProtocol.PROTOCOL_120_40, definition12030);
-            DEFINITIONS.put(AbstractProtocol.PROTOCOL_120_50, definition12050);
-            DEFINITIONS.put(AbstractProtocol.PROTOCOL_120_60, definition12060);
-            DEFINITIONS.put(AbstractProtocol.PROTOCOL_120_70, definition12070);
-            DEFINITIONS.put(AbstractProtocol.PROTOCOL_120_80, definition12080);
-            DEFINITIONS.put(AbstractProtocol.PROTOCOL_121, definition121);
-
-            Map<String, byte[]> definitionNetEase11830 = loadAndMappingToNetEase(AbstractProtocol.PROTOCOL_118_30, "item_components11830.nbt");
-            Map<String, byte[]> definitionNetEase11830NE = loadAndMappingToNetEase(AbstractProtocol.PROTOCOL_118_30_NE, "item_components11830.nbt");
-
-            DEFINITIONS_NETEASE.put(AbstractProtocol.PROTOCOL_118_30, definitionNetEase11830);
-            DEFINITIONS_NETEASE.put(AbstractProtocol.PROTOCOL_118_30_NE, definitionNetEase11830NE);
-
+            DEFINITIONS.put(AbstractProtocol.PROTOCOL_118_10, new Map[]{
+                    load("item_components11810.nbt", AbstractProtocol.PROTOCOL_118_10, false),
+                    null,
+            });
+            DEFINITIONS.put(AbstractProtocol.PROTOCOL_118_30, new Map[]{
+                    load("item_components11830.nbt", AbstractProtocol.PROTOCOL_118_30, false),
+                    null,
+            });
+            DEFINITIONS.put(AbstractProtocol.PROTOCOL_118_30_NE, new Map[]{
+                    null,
+                    load("item_components11830.nbt", AbstractProtocol.PROTOCOL_118_30_NE, true),
+            });
+            DEFINITIONS.put(AbstractProtocol.PROTOCOL_119, new Map[]{
+                    load("item_components119.nbt", AbstractProtocol.PROTOCOL_119, false),
+                    null,
+            });
+            DEFINITIONS.put(AbstractProtocol.PROTOCOL_119_10, new Map[]{
+                    load("item_components11910.nbt", AbstractProtocol.PROTOCOL_119_10, false),
+                    null,
+            });
+            DEFINITIONS.put(AbstractProtocol.PROTOCOL_119_20, new Map[]{
+                    load("item_components11910.nbt", AbstractProtocol.PROTOCOL_119_20, false),
+                    null,
+            });
+            DEFINITIONS.put(AbstractProtocol.PROTOCOL_119_21, new Map[]{
+                    load("item_components11910.nbt", AbstractProtocol.PROTOCOL_119_21, false),
+                    null,
+            });
+            DEFINITIONS.put(AbstractProtocol.PROTOCOL_119_30, new Map[]{
+                    load("item_components11910.nbt", AbstractProtocol.PROTOCOL_119_30, false),
+                    null,
+            });
+            DEFINITIONS.put(AbstractProtocol.PROTOCOL_119_40, new Map[]{
+                    load("item_components11910.nbt", AbstractProtocol.PROTOCOL_119_40, false),
+                    null,
+            });
+            DEFINITIONS.put(AbstractProtocol.PROTOCOL_119_50, new Map[]{
+                    load("item_components11950.nbt", AbstractProtocol.PROTOCOL_119_50, false),
+                    null,
+            });
+            DEFINITIONS.put(AbstractProtocol.PROTOCOL_119_60, new Map[]{
+                    load("item_components11960.nbt", AbstractProtocol.PROTOCOL_119_60, false),
+                    null,
+            });
+            DEFINITIONS.put(AbstractProtocol.PROTOCOL_119_63, new Map[]{
+                    load("item_components11960.nbt", AbstractProtocol.PROTOCOL_119_63, false),
+                    null,
+            });
+            DEFINITIONS.put(AbstractProtocol.PROTOCOL_119_70, new Map[]{
+                    load("item_components11970.nbt", AbstractProtocol.PROTOCOL_119_70, false),
+                    null,
+            });
+            DEFINITIONS.put(AbstractProtocol.PROTOCOL_119_80, new Map[]{
+                    load("item_components11980.nbt", AbstractProtocol.PROTOCOL_119_80, false),
+                    null,
+            });
+            DEFINITIONS.put(AbstractProtocol.PROTOCOL_120, new Map[]{
+                    load("item_components120.nbt", AbstractProtocol.PROTOCOL_120, false),
+                    null,
+            });
+            DEFINITIONS.put(AbstractProtocol.PROTOCOL_120_10, new Map[]{
+                    load("item_components12010.nbt", AbstractProtocol.PROTOCOL_120_10, false),
+                    null,
+            });
+            DEFINITIONS.put(AbstractProtocol.PROTOCOL_120_30, new Map[]{
+                    load("item_components12030.nbt", AbstractProtocol.PROTOCOL_120_30, false),
+                    null,
+            });
+            DEFINITIONS.put(AbstractProtocol.PROTOCOL_120_40, new Map[]{
+                    load("item_components12030.nbt", AbstractProtocol.PROTOCOL_120_40, false),
+                    null,
+            });
+            DEFINITIONS.put(AbstractProtocol.PROTOCOL_120_50, new Map[]{
+                    load("item_components12050.nbt", AbstractProtocol.PROTOCOL_120_50, false),
+                    null,
+            });
+            DEFINITIONS.put(AbstractProtocol.PROTOCOL_120_60, new Map[]{
+                    load("item_components12060.nbt", AbstractProtocol.PROTOCOL_120_60, false),
+                    null,
+            });
+            DEFINITIONS.put(AbstractProtocol.PROTOCOL_120_70, new Map[]{
+                    load("item_components12070.nbt", AbstractProtocol.PROTOCOL_120_70, false),
+                    null,
+            });
+            DEFINITIONS.put(AbstractProtocol.PROTOCOL_120_80, new Map[]{
+                    load("item_components12080.nbt", AbstractProtocol.PROTOCOL_120_80, false),
+                    null,
+            });
+            DEFINITIONS.put(AbstractProtocol.PROTOCOL_121, new Map[]{
+                    load("item_components121.nbt", AbstractProtocol.PROTOCOL_121, false),
+                    null,
+            });
         } catch (NullPointerException | IOException e) {
             throw new AssertionError("Unable to load item_components.nbt", e);
         }
@@ -85,41 +129,35 @@ public final class ItemComponentDefinitions {
         }
     }
 
-    private static Map<String, byte[]> load(String file) throws IOException {
-        Map<String, byte[]> map = new Object2ObjectOpenHashMap<>();
-        CompoundTag nbt = NBTIO.read(ByteStreams.toByteArray(SynapseAPI.getInstance().getResource(file)));
-        for (Map.Entry<String, Tag> entry : nbt.getTags().entrySet()) {
-            map.put(entry.getKey(), NBTIO.writeNetwork(entry.getValue()));
-        }
-        return map;
-    }
-
-    private static Map<String, byte[]> loadAndMappingToNetEase(AbstractProtocol protocol, String file) throws IOException {
+    private static Map<String, byte[]> load(String file, AbstractProtocol protocol, boolean netease) throws IOException {
         Map<String, byte[]> map = new Object2ObjectOpenHashMap<>();
         CompoundTag nbt = NBTIO.read(ByteStreams.toByteArray(SynapseAPI.getInstance().getResource(file)));
         for (Map.Entry<String, Tag> entry : nbt.getTags().entrySet()) {
             String identifier = entry.getKey();
-            int networkId = AdvancedRuntimeItemPalette.getNetworkIdByName(protocol, true, identifier);
-            if (networkId < 0) {
-                continue;
+            CompoundTag tag = (CompoundTag) entry.getValue();
+            int defaultNetId = tag.getInt("id");
+            int networkId = AdvancedRuntimeItemPalette.getNetworkIdByName(protocol, netease, identifier);
+            if (networkId == -1) {
+                networkId = AdvancedRuntimeItemPalette.getNetworkIdByNameTodo(protocol, netease, identifier);
+                if (networkId != -1) {
+                    log.trace("Unavailable item: {} | {} => {} ({})", identifier, defaultNetId, networkId, protocol);
+                }
             }
-            if (entry.getValue() instanceof CompoundTag e && e.contains("id")) {
-                e.putInt("id", networkId);
+            if (networkId != -1) {
+                tag.putInt("id", networkId);
+                if (defaultNetId != networkId) {
+                    log.trace("item network id changed: {} | {} => {} ({})", identifier, defaultNetId, networkId, protocol);
+                }
+            } else {
+                log.warn("Unmapped network item: {} | {} ({})", identifier, defaultNetId, protocol);
             }
-            map.put(entry.getKey(), NBTIO.writeNetwork(entry.getValue()));
+            map.put(entry.getKey(), NBTIO.writeNetwork(tag));
         }
         return map;
     }
 
     public static Map<String, byte[]> get(AbstractProtocol protocol, boolean netease) {
-        if (netease) {
-            Map<String, byte[]> data = DEFINITIONS_NETEASE.get(protocol);
-            if (data != null) {
-                return data;
-            }
-        }
-
-        Map<String, byte[]> data = DEFINITIONS.get(protocol);
+        Map<String, byte[]> data = DEFINITIONS.get(protocol)[netease ? 1 : 0];
         return data != null ? data : Collections.emptyMap();
     }
 
@@ -138,20 +176,17 @@ public final class ItemComponentDefinitions {
             if (protocol.getProtocolStart() < AbstractProtocol.PROTOCOL_118_10.getProtocolStart()) {
                 return;
             }
-            try {
-                map.put(name, NBTIO.writeNetwork(fullTag));
-            } catch (IOException e) {
-                throw new RuntimeException(e);
-            }
-        });
-        DEFINITIONS_NETEASE.forEach((protocol, map) -> {
-            if (protocol.getProtocolStart() < AbstractProtocol.PROTOCOL_118_10.getProtocolStart()) {
-                return;
-            }
-            try {
-                map.put(name, NBTIO.writeNetwork(fullTag));
-            } catch (IOException e) {
-                throw new RuntimeException(e);
+
+            for (int i = 0; i <= 1; i++) {
+                Map<String, byte[]> data = map[i];
+                if (data == null) {
+                    continue;
+                }
+                try {
+                    data.put(name, NBTIO.writeNetwork(fullTag));
+                } catch (IOException e) {
+                    throw new RuntimeException(e);
+                }
             }
         });
     }

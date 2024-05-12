@@ -22,3 +22,6 @@ permissions:
   synapseapi.command.netdataquery:
     description: /netdataquery or /ndq
     default: op
+  synapseapi.command.debugexport:
+    description: /debugexport
+    default: op
