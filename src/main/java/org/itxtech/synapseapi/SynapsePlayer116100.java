@@ -3,6 +3,7 @@ package org.itxtech.synapseapi;
 import cn.nukkit.AdventureSettings;
 import cn.nukkit.AdventureSettings.Type;
 import cn.nukkit.Player;
+import cn.nukkit.Server;
 import cn.nukkit.block.Block;
 import cn.nukkit.block.BlockDragonEgg;
 import cn.nukkit.block.BlockID;
@@ -20,8 +21,10 @@ import cn.nukkit.event.inventory.InventoryCloseEvent;
 import cn.nukkit.event.player.*;
 import cn.nukkit.form.window.FormWindow;
 import cn.nukkit.form.window.FormWindowCustom;
+import cn.nukkit.inventory.AnvilInventory;
 import cn.nukkit.inventory.Inventory;
 import cn.nukkit.item.Item;
+import cn.nukkit.item.ItemEdible;
 import cn.nukkit.item.ItemMap;
 import cn.nukkit.item.enchantment.Enchantment;
 import cn.nukkit.lang.TextContainer;
@@ -2115,6 +2118,57 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
                     lectern.spawnToAll();
                 } else {
                     lectern.spawnTo(this);
+                }
+                break;
+            case ProtocolInfo.ACTOR_EVENT_PACKET:
+                if (!callPacketReceiveEvent(packet)) {
+                    break;
+                }
+                if (!this.spawned || !this.isAlive()) {
+                    break;
+                }
+                EntityEventPacket116100 entityEventPacket = (EntityEventPacket116100) packet;
+                if (entityEventPacket.event != EntityEventPacket116100.ENCHANT) {
+                    this.craftingType = CRAFTING_SMALL;
+                }
+                //this.resetCraftingGridType();
+
+                switch (entityEventPacket.event) {
+                    case EntityEventPacket116100.EATING_ITEM:
+                        if (entityEventPacket.data == 0 || entityEventPacket.eid != this.getId()) {
+                            break;
+                        }
+                        Item held = inventory.getItemInHand();
+                        if (!(held instanceof ItemEdible)) {
+                            break;
+                        }
+
+                        EntityEventPacket pk = new EntityEventPacket();
+                        pk.eid = getId();
+                        pk.event = EntityEventPacket.EATING_ITEM;
+                        pk.data = (held.getId() << 16) | held.getDamage();
+                        this.dataPacket(pk);
+                        Server.broadcastPacket(this.getViewers().values(), pk);
+                        break;
+                    case EntityEventPacket116100.ENCHANT:
+                        if (entityEventPacket.eid != this.getId()) {
+                            break;
+                        }
+                        if (this.getWindowById(ENCHANT_WINDOW_ID) != null) {
+                            break; //附魔现在在 EnchantTransaction 中扣减经验等级
+                        }
+
+                        Inventory inventory = this.getWindowById(ANVIL_WINDOW_ID);
+                        if (inventory instanceof AnvilInventory anvilInventory) {
+                            anvilInventory.setCost(-entityEventPacket.data);
+                        } else if (this.getWindowById(ENCHANT_WINDOW_ID) != null) {
+                            int levels = entityEventPacket.data; // Sent as negative number of levels lost
+                            if (levels < 0) {
+                                this.setExperience(this.getExperience(), this.getExperienceLevel() + levels);
+                            }
+                            break;
+                        }
+                        break;
                 }
                 break;
             default:

@@ -701,7 +701,6 @@ public class SynapsePlayer116 extends SynapsePlayer113 {
 				}
 				break;
 			case ProtocolInfo.ACTOR_EVENT_PACKET:
-				if (!callPacketReceiveEvent(packet)) break;
 				EntityEventPacket entityEventPacket = (EntityEventPacket) packet;
 				if (entityEventPacket.event == EntityEventPacket.ENCHANT && this.getWindowById(ENCHANT_WINDOW_ID) != null) {
 					break; //附魔现在在 EnchantTransaction 中扣减经验等级

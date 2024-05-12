@@ -7,6 +7,7 @@ import cn.nukkit.entity.data.LongEntityData;
 import cn.nukkit.network.protocol.*;
 import org.itxtech.synapseapi.multiprotocol.protocol113.protocol.MoveEntityDeltaPacket113;
 import org.itxtech.synapseapi.multiprotocol.protocol116100.protocol.AnimateEntityPacket116100;
+import org.itxtech.synapseapi.multiprotocol.protocol116100.protocol.EntityEventPacket116100;
 import org.itxtech.synapseapi.multiprotocol.protocol116100.protocol.MotionPredictionHintsPacket116100;
 import org.itxtech.synapseapi.multiprotocol.protocol116100.protocol.MoveEntityDeltaPacket116100;
 import org.itxtech.synapseapi.multiprotocol.protocol116100ne.protocol.MovePlayerPacket116100NE;
@@ -73,7 +74,15 @@ public class DataPacketEidReplacer {
                 if (((UpdateAttributesPacket) packet).entityId == from) ((UpdateAttributesPacket) packet).entityId = to;
                 break;
             case ProtocolInfo.ACTOR_EVENT_PACKET:
-                if (((EntityEventPacket) packet).eid == from) ((EntityEventPacket) packet).eid = to;
+                if (packet instanceof EntityEventPacket116100 dp) {
+                    if (dp.eid == from) {
+                        dp.eid = to;
+                    }
+                } else if (packet instanceof EntityEventPacket dp) {
+                    if (dp.eid == from) {
+                        dp.eid = to;
+                    }
+                }
                 break;
             case ProtocolInfo.MOVE_PLAYER_PACKET:
                 if (packet instanceof MovePlayerPacket) {
@@ -229,7 +238,15 @@ public class DataPacketEidReplacer {
     public static DataPacket replaceBack(DataPacket packet, long from, long to) {
         switch (packet.pid()) {
             case ProtocolInfo.ACTOR_EVENT_PACKET:
-                if (((EntityEventPacket) packet).eid == from) ((EntityEventPacket) packet).eid = to;
+                if (packet instanceof EntityEventPacket116100 pk) {
+                    if (pk.eid == from) {
+                        pk.eid = to;
+                    }
+                } else if (packet instanceof EntityEventPacket pk) {
+                    if (pk.eid == from) {
+                        pk.eid = to;
+                    }
+                }
                 break;
         }
 
