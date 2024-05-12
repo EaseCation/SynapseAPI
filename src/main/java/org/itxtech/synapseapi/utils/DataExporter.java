@@ -26,6 +26,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.TreeMap;
 
 public class DataExporter {
     public static void exportAll(Path saveDir, boolean minify) throws IOException {
@@ -54,8 +55,9 @@ public class DataExporter {
                 List<Map<String, Object>> container = new ArrayList<>();
                 ListTag<CompoundTag> containerNbt = new ListTag<>();
                 for (BlockData block : palette.palette) {
+                    CompoundTag statesSorted = new CompoundTag(new TreeMap<>(block.states.getTagsUnsafe()));
                     List<Map<String, Object>> states = new ArrayList<>();
-                    for (Entry<String, Tag> entry : block.states.entrySet()) {
+                    for (Entry<String, Tag> entry : statesSorted.entrySet()) {
                         Tag tag = entry.getValue();
                         Map<String, Object> state = new LinkedHashMap<>();
                         state.put("name", entry.getKey());
@@ -80,7 +82,7 @@ public class DataExporter {
                     containerNbt.addCompound(new CompoundTag(new LinkedHashMap<>())
                             .putInt("netId", block.runtimeId)
                             .putString("name", block.name)
-                            .putCompound("states", block.states)
+                            .putCompound("states", statesSorted)
                             .putInt("id", block.id)
                             .putInt("val", block.val)
                     );
