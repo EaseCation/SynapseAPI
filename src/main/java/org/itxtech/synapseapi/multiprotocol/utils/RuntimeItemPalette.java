@@ -59,6 +59,10 @@ public class RuntimeItemPalette implements AdvancedRuntimeItemPaletteInterface {
     private byte[] itemDataPalette;
 
     public RuntimeItemPalette(AbstractProtocol protocol, String runtimeItemIdJsonFile) {
+        this(protocol, runtimeItemIdJsonFile, false);
+    }
+
+    public RuntimeItemPalette(AbstractProtocol protocol, String runtimeItemIdJsonFile, boolean microsoftToNetease) {
         this.protocol = protocol;
 
         List<Entry> entries;
@@ -79,6 +83,15 @@ public class RuntimeItemPalette implements AdvancedRuntimeItemPaletteInterface {
 
         for (Entry entry : entries) {
             registerItem(entry);
+        }
+
+        if (microsoftToNetease) {
+            registerItem(new Entry("minecraft:mod_ore", 230, 230, null));
+            registerItem(new Entry("minecraft:micro_block", -9735, -9735, null));
+            registerItem(new Entry("minecraft:mod_armor", 1996, null, null));
+            registerItem(new Entry("minecraft:mod", 1997, null, null));
+            registerItem(new Entry("minecraft:mod_ex", 1998, null, null));
+            registerItem(new Entry("minecraft:debug_stick", 1999, null, null));
         }
 
         this.buildNetworkCache();

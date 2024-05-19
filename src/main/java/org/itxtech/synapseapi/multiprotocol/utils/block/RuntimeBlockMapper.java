@@ -34,7 +34,8 @@ public final class RuntimeBlockMapper {
         BlockPalette palette118N = BlockPalette.fromJson("block_state_list_118_netease.json");
         BlockPalette palette11810 = BlockPalette.fromNBT("block_state_list_11810.dat");
         BlockPalette palette11830 = BlockPalette.fromNBT("block_state_list_11830.nbt");
-        BlockPalette palette11830N = BlockPalette.fromJson("block_state_list_11830_netease.json");
+//        BlockPalette palette11830N = BlockPalette.fromJson("block_state_list_11830_netease.json");
+        BlockPalette palette11830N = BlockPalette.fromNBT("block_state_list_11830.nbt").toNetease();
         BlockPalette palette119 = BlockPalette.fromNBT("block_state_list_119.nbt");
         BlockPalette palette11920 = BlockPalette.fromNBT("block_state_list_11920.nbt");
         BlockPalette palette11950 = BlockPalette.fromNBT("block_state_list_11950.nbt");
@@ -43,6 +44,7 @@ public final class RuntimeBlockMapper {
         BlockPalette palette11980 = BlockPalette.fromNBT("block_state_list_11980.nbt");
         BlockPalette palette120 = BlockPalette.fromNBT("block_state_list_120.nbt");
         BlockPalette palette12010 = BlockPalette.fromNBT("block_state_list_12010.nbt");
+        BlockPalette palette12010N = BlockPalette.fromNBT("block_state_list_12010.nbt").toNetease();
         BlockPalette palette12030 = BlockPalette.fromNBT("block_state_list_12030.nbt");
         BlockPalette palette12040 = BlockPalette.fromNBT("block_state_list_12040.nbt");
         BlockPalette palette12050 = BlockPalette.fromNBT("block_state_list_12050.nbt");
@@ -69,7 +71,7 @@ public final class RuntimeBlockMapper {
         PALETTES.put(AbstractProtocol.PROTOCOL_119_70, new BlockPalette[]{palette11970, palette11970});
         PALETTES.put(AbstractProtocol.PROTOCOL_119_80, new BlockPalette[]{palette11980, palette11980});
         PALETTES.put(AbstractProtocol.PROTOCOL_120, new BlockPalette[]{palette120, palette120});
-        PALETTES.put(AbstractProtocol.PROTOCOL_120_10, new BlockPalette[]{palette12010, palette12010});
+        PALETTES.put(AbstractProtocol.PROTOCOL_120_10, new BlockPalette[]{palette12010, palette12010N});
         PALETTES.put(AbstractProtocol.PROTOCOL_120_30, new BlockPalette[]{palette12030, palette12030});
         PALETTES.put(AbstractProtocol.PROTOCOL_120_40, new BlockPalette[]{palette12040, palette12040});
         PALETTES.put(AbstractProtocol.PROTOCOL_120_50, new BlockPalette[]{palette12050, palette12050});
@@ -86,7 +88,7 @@ public final class RuntimeBlockMapper {
                 CompletableFuture.runAsync(() -> map(V1_17_40, basePalette, palette11740, ver -> ver.ordinal() >= V1_17_40.ordinal() && ver.ordinal() <= V1_18_0.ordinal())),
                 CompletableFuture.runAsync(() -> map(V1_18_10, basePalette, palette11810, ver -> ver.ordinal() >= baseVersion.ordinal() && ver.ordinal() <= V1_18_10.ordinal())),
                 CompletableFuture.runAsync(() -> map(V1_18_30, basePalette, palette11830, ver -> ver.ordinal() >= baseVersion.ordinal() && ver.ordinal() <= V1_18_30.ordinal())),
-//                CompletableFuture.runAsync(() -> map(V1_18_30, basePalette, palette11830N, ver -> ver.ordinal() >= baseVersion.ordinal() && ver.ordinal() <= V1_18_30.ordinal())),
+                CompletableFuture.runAsync(() -> map(V1_18_30, basePalette, palette11830N, ver -> ver.ordinal() >= baseVersion.ordinal() && ver.ordinal() <= V1_18_30.ordinal())),
                 CompletableFuture.runAsync(() -> map(V1_19_0, basePalette, palette119, ver -> ver.ordinal() >= baseVersion.ordinal() && ver.ordinal() <= V1_19_0.ordinal())),
                 CompletableFuture.runAsync(() -> map(V1_19_20, basePalette, palette11920, ver -> ver.ordinal() >= baseVersion.ordinal() && ver.ordinal() <= V1_19_20.ordinal())),
                 CompletableFuture.runAsync(() -> map(V1_19_50, basePalette, palette11950, ver -> ver.ordinal() >= baseVersion.ordinal() && ver.ordinal() <= V1_19_50.ordinal())),
@@ -95,6 +97,7 @@ public final class RuntimeBlockMapper {
                 CompletableFuture.runAsync(() -> map(V1_19_80, basePalette, palette11980, ver -> ver.ordinal() >= baseVersion.ordinal() && ver.ordinal() <= V1_19_80.ordinal())),
                 CompletableFuture.runAsync(() -> map(V1_20_0, basePalette, palette120, ver -> ver.ordinal() >= baseVersion.ordinal() && ver.ordinal() <= V1_20_0.ordinal())),
                 CompletableFuture.runAsync(() -> map(V1_20_10, basePalette, palette12010, ver -> ver.ordinal() >= baseVersion.ordinal() && ver.ordinal() <= V1_20_10.ordinal())),
+                CompletableFuture.runAsync(() -> map(V1_20_10, basePalette, palette12010N, ver -> ver.ordinal() >= baseVersion.ordinal() && ver.ordinal() <= V1_20_10.ordinal())),
                 CompletableFuture.runAsync(() -> map(V1_20_30, basePalette, palette12030, ver -> ver.ordinal() >= baseVersion.ordinal() && ver.ordinal() <= V1_20_30.ordinal())),
                 CompletableFuture.runAsync(() -> map(V1_20_40, basePalette, palette12040, ver -> ver.ordinal() >= baseVersion.ordinal() && ver.ordinal() <= V1_20_40.ordinal())),
                 CompletableFuture.runAsync(() -> map(V1_20_50, basePalette, palette12050, ver -> ver.ordinal() >= baseVersion.ordinal() && ver.ordinal() <= V1_20_50.ordinal())),

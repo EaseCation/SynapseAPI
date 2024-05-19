@@ -155,7 +155,10 @@ public class CreativeItemsPalette {
 
     public static List<Item> getCreativeItems(AbstractProtocol protocol, boolean netease) {
         List<Item>[] lists = palettes.get(protocol);
-        if (lists == null) return new ObjectArrayList<>(Item.getCreativeItems());
+        if (lists == null) {
+//            return new ObjectArrayList<>(Item.getCreativeItems());
+            return Collections.emptyList();
+        }
         if (netease && lists.length > 1) {
             return lists[1];
         } else {

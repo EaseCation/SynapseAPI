@@ -93,6 +93,8 @@ public class SynapsePlayer extends Player {
     protected final JsonObject transferExtra = new JsonObject();
     protected int dummyDimension = 0;
 
+    protected boolean emoting;
+
     /**
      * At most this many more packets can be received.
      * If this reaches zero, any additional packets received will cause the player to be kicked from the server.

@@ -2059,6 +2059,12 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
                     onPacketViolation(PacketViolationReason.IMPOSSIBLE_BEHAVIOR, "ce_emote", emotePacket.emoteID);
                     break;
                 }
+                if (isSpectator()) {
+                    break;
+                }
+                if (emoting) {
+                    break;
+                }
 
                 int flags = emotePacket.flags | EmotePacket120.FLAG_SERVER;
                 if (MUTE_EMOTE_CHAT) {
@@ -2139,7 +2145,7 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
                             break;
                         }
                         Item held = inventory.getItemInHand();
-                        if (!(held instanceof ItemEdible)) {
+                        if (!(held instanceof ItemEdible) && !held.is(Item.POTION)) {
                             break;
                         }
 

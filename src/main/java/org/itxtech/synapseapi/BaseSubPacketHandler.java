@@ -30,6 +30,13 @@ public class BaseSubPacketHandler implements ServerSubPacketHandler {
             return;
         }
 
+        if (player.isSpectator()) {
+            return;
+        }
+        if (player.emoting) {
+            return;
+        }
+
         player.playAnimation(emote, player.getId());
         player.getViewers().values().forEach(v -> v.playAnimation(emote, player.getId()));
     }

@@ -615,7 +615,7 @@ public class SynapsePlayer116 extends SynapsePlayer113 {
 
 								float knockBackH = EntityDamageByEntityEvent.GLOBAL_KNOCKBACK_H;
 								float knockBackV = EntityDamageByEntityEvent.GLOBAL_KNOCKBACK_V;
-								Enchantment knockBackEnchantment = item.getEnchantment(Enchantment.KNOCKBACK);
+								Enchantment knockBackEnchantment = !item.is(Item.ENCHANTED_BOOK) ? item.getEnchantment(Enchantment.KNOCKBACK) : null;
 								if (knockBackEnchantment != null) {
 									knockBackH += knockBackEnchantment.getLevel() * 0.1f;
 									knockBackV += knockBackEnchantment.getLevel() * 0.1f;
@@ -739,6 +739,12 @@ public class SynapsePlayer116 extends SynapsePlayer113 {
 				}
 				if (isNetEaseClient()) {
 					onPacketViolation(PacketViolationReason.IMPOSSIBLE_BEHAVIOR, "ce_emote", emotePacket.emoteID);
+					break;
+				}
+				if (isSpectator()) {
+					break;
+				}
+				if (emoting) {
 					break;
 				}
 
@@ -920,6 +926,8 @@ public class SynapsePlayer116 extends SynapsePlayer113 {
 						this.getAdventureSettings().set(Type.FLYING, playerToggleFlightEvent.isFlying());
 					}
 				}
+
+				emoting = (inputFlags & (1L << PlayerAuthInputFlags.EMOTING)) != 0;
 
 				if ((inputFlags & (1L << PlayerAuthInputFlags.HANDLED_TELEPORT)) != 0) {
 					//TODO

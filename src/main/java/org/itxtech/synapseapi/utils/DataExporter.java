@@ -1,5 +1,6 @@
 package org.itxtech.synapseapi.utils;
 
+import cn.nukkit.block.Block;
 import cn.nukkit.nbt.NBTIO;
 import cn.nukkit.nbt.tag.CompoundTag;
 import cn.nukkit.nbt.tag.ListTag;
@@ -54,6 +55,7 @@ public class DataExporter {
                 }
                 List<Map<String, Object>> container = new ArrayList<>();
                 ListTag<CompoundTag> containerNbt = new ListTag<>();
+                List<Map<String, Object>> containerCommunity = netease ? new ArrayList<>() : null;
                 for (BlockData block : palette.palette) {
                     CompoundTag statesSorted = new CompoundTag(new TreeMap<>(block.states.getTagsUnsafe()));
                     List<Map<String, Object>> states = new ArrayList<>();
@@ -79,6 +81,27 @@ public class DataExporter {
                     entry.put("val", block.val);
                     container.add(entry);
 
+                    if (netease) {
+                        Map<String, Object> entryCommunity = new LinkedHashMap<>(entry);
+                        switch (block.id) {
+                            case Block.LOG2, Block.LEAVES2 -> {
+                                int meta = block.val;
+                                int newMeta = ((meta & ~0b1) << 1) | (meta & 0b1);
+                                if (meta != newMeta) {
+                                    entryCommunity.put("val", newMeta);
+                                }
+                            }
+                            case Block.BLOCK_FRAME, Block.BLOCK_GLOW_FRAME -> {
+                                int meta = block.val;
+                                int newMeta = (meta & ~0b111) | (5 - (meta & 0b111));
+                                if (meta != newMeta) {
+                                    entryCommunity.put("val", newMeta);
+                                }
+                            }
+                        }
+                        containerCommunity.add(entryCommunity);
+                    }
+
                     containerNbt.addCompound(new CompoundTag(new LinkedHashMap<>())
                             .putInt("netId", block.runtimeId)
                             .putString("name", block.name)
@@ -90,6 +113,9 @@ public class DataExporter {
                 String fileName = getFileName(protocol, netease);
                 Files.writeString(saveDir.resolve(fileName + ".json"), JsonUtil.PRETTY_JSON_MAPPER.writeValueAsString(container));
                 Files.writeString(saveDir.resolve(fileName + ".mojangson"), containerNbt.toMojangson(true));
+                if (netease) {
+                    Files.writeString(saveDir.resolve(fileName + "_community.json"), JsonUtil.PRETTY_JSON_MAPPER.writeValueAsString(containerCommunity)); //用于阿尔尼亚RPG服的社区旧版nk
+                }
                 if (minify) {
                     Files.writeString(saveDir.resolve(fileName + ".min.json"), JsonUtil.TRUSTED_JSON_MAPPER.writeValueAsString(container));
                     Files.writeString(saveDir.resolve(fileName + ".min.mojangson"), containerNbt.toMojangson(false));

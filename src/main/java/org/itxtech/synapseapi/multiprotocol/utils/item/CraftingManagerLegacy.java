@@ -212,6 +212,9 @@ public class CraftingManagerLegacy extends CraftingManager {
 
     protected RecipeTag getShapelessRecipeTag(String block, RecipeType type) {
         RecipeTag tag = RecipeTag.byName(block);
+        if (tag == RecipeTag.DEPRECATED) {
+            return null;
+        }
         if (tag != RecipeTag.CRAFTING_TABLE && (type != RecipeType.SHAPELESS || tag != RecipeTag.CARTOGRAPHY_TABLE && tag != RecipeTag.STONECUTTER && tag != RecipeTag.SMITHING_TABLE)) {
             log.trace("Unexpected shapeless recipe block: {} (type {})", block, type);
             return null;
@@ -221,6 +224,9 @@ public class CraftingManagerLegacy extends CraftingManager {
 
     protected RecipeTag getShapedRecipeTag(String block) {
         RecipeTag tag = RecipeTag.byName(block);
+        if (tag == RecipeTag.DEPRECATED) {
+            return null;
+        }
         if (tag != RecipeTag.CRAFTING_TABLE) {
             log.trace("Unexpected shaped recipe block: {}", block);
             return null;
@@ -230,6 +236,9 @@ public class CraftingManagerLegacy extends CraftingManager {
 
     protected RecipeTag getSmeltingRecipeTag(String block) {
         RecipeTag tag = RecipeTag.byName(block);
+        if (tag == RecipeTag.DEPRECATED) {
+            return null;
+        }
         if (tag != RecipeTag.FURNACE && tag != RecipeTag.BLAST_FURNACE && tag != RecipeTag.SMOKER && tag != RecipeTag.CAMPFIRE && tag != RecipeTag.SOUL_CAMPFIRE) {
             log.trace("Unexpected smelting recipe block: {}", block);
             return null;
@@ -239,6 +248,9 @@ public class CraftingManagerLegacy extends CraftingManager {
 
     protected RecipeTag getSmithingRecipeTag(String block) {
         RecipeTag tag = RecipeTag.byName(block);
+        if (tag == RecipeTag.DEPRECATED) {
+            return null;
+        }
         if (tag != RecipeTag.SMITHING_TABLE) {
             log.trace("Unexpected smithing recipe block: {}", block);
             return null;

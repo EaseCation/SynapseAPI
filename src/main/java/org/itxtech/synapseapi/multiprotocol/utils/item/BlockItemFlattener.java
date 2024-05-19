@@ -30,19 +30,33 @@ public final class BlockItemFlattener {
     }
 
     static {
-        DOWNGRADERS.put(AbstractProtocol.PROTOCOL_119_70, BlockItemFlattener::downgrader11970);
-        DOWNGRADERS.put(AbstractProtocol.PROTOCOL_119_80, BlockItemFlattener::downgrader11980);
-        DOWNGRADERS.put(AbstractProtocol.PROTOCOL_120, BlockItemFlattener::downgrader120);
-        DOWNGRADERS.put(AbstractProtocol.PROTOCOL_120_10, BlockItemFlattener::downgrader12010);
-        DOWNGRADERS.put(AbstractProtocol.PROTOCOL_120_30, BlockItemFlattener::downgrader12030);
-        DOWNGRADERS.put(AbstractProtocol.PROTOCOL_120_40, BlockItemFlattener::downgrader12030);
-        DOWNGRADERS.put(AbstractProtocol.PROTOCOL_120_50, BlockItemFlattener::downgrader12050);
-        DOWNGRADERS.put(AbstractProtocol.PROTOCOL_120_60, BlockItemFlattener::downgrader12060);
-        DOWNGRADERS.put(AbstractProtocol.PROTOCOL_120_70, BlockItemFlattener::downgrader12070);
-        DOWNGRADERS.put(AbstractProtocol.PROTOCOL_120_80, BlockItemFlattener::downgrader12080);
-        DOWNGRADERS.put(AbstractProtocol.PROTOCOL_121, BlockItemFlattener::downgrader121);
+        registerIdDowngrader(AbstractProtocol.PROTOCOL_119_70, BlockItemFlattener::downgrader11970);
+        registerIdDowngrader(AbstractProtocol.PROTOCOL_119_80, BlockItemFlattener::downgrader11980);
+        registerIdDowngrader(AbstractProtocol.PROTOCOL_120, BlockItemFlattener::downgrader120);
+        registerIdDowngrader(AbstractProtocol.PROTOCOL_120_10, BlockItemFlattener::downgrader12010);
+        registerIdDowngrader(AbstractProtocol.PROTOCOL_120_30, BlockItemFlattener::downgrader12030);
+        registerIdDowngrader(AbstractProtocol.PROTOCOL_120_40, BlockItemFlattener::downgrader12030);
+        registerIdDowngrader(AbstractProtocol.PROTOCOL_120_50, BlockItemFlattener::downgrader12050);
+        registerIdDowngrader(AbstractProtocol.PROTOCOL_120_60, BlockItemFlattener::downgrader12060);
+        registerIdDowngrader(AbstractProtocol.PROTOCOL_120_70, BlockItemFlattener::downgrader12070);
+        registerIdDowngrader(AbstractProtocol.PROTOCOL_120_80, BlockItemFlattener::downgrader12080);
+        registerIdDowngrader(AbstractProtocol.PROTOCOL_121, BlockItemFlattener::downgrader121);
 
-        AUX_VALUE_FIXERS.put(AbstractProtocol.PROTOCOL_121, BlockItemFlattener::metaFixer121);
+        registerAuxValueFixer(AbstractProtocol.PROTOCOL_121, BlockItemFlattener::metaFixer121);
+    }
+
+    private static void registerIdDowngrader(AbstractProtocol protocol, Int2IntFunction downgrader) {
+        if (protocol.getProtocolStart() <= BASE_GAME_VERSION.getProtocolStart()) {
+            return;
+        }
+        DOWNGRADERS.put(protocol, downgrader);
+    }
+
+    private static void registerAuxValueFixer(AbstractProtocol protocol, AuxValueFixer fixer) {
+        if (protocol.getProtocolStart() <= BASE_GAME_VERSION.getProtocolStart()) {
+            return;
+        }
+        AUX_VALUE_FIXERS.put(protocol, fixer);
     }
 
     private static int downgrader11970(int id) {

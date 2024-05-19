@@ -609,7 +609,7 @@ public class SynapsePlayer113 extends SynapsePlayer112 {
 								damage.put(EntityDamageEvent.DamageModifier.BASE, itemDamage);
 
 								float knockBack = 0.29f;
-								Enchantment knockBackEnchantment = item.getEnchantment(Enchantment.KNOCKBACK);
+								Enchantment knockBackEnchantment = !item.is(Item.ENCHANTED_BOOK) ? item.getEnchantment(Enchantment.KNOCKBACK) : null;
 								if (knockBackEnchantment != null) {
 									knockBack += knockBackEnchantment.getLevel() * 0.1f;
 								}
