@@ -105,7 +105,12 @@ public class SynapsePlayer19 extends SynapsePlayer18 {
 				}
 
 				if (NETWORK_STACK_LATENCY_TELEMETRY) {
-					latencyNs = System.nanoTime() - pingNs;
+					long latency = System.nanoTime() - pingNs;
+					if (latency < 10_000_000) {
+						// 原版延迟最低1tick, <10ms可能是跨服时触发了重复发送bug
+						break;
+					}
+					latencyNs = latency;
 					ping();
 				}
 
