@@ -3,7 +3,7 @@ package org.itxtech.synapseapi.multiprotocol.protocol117.protocol;
 import cn.nukkit.network.protocol.ProtocolInfo;
 import lombok.ToString;
 
-@ToString
+@ToString(exclude = "nbt")
 public class SyncEntityPropertyPacket117 extends Packet117 {
     public static final int NETWORK_ID = ProtocolInfo.SYNC_ACTOR_PROPERTY_PACKET;
 

@@ -25,3 +25,6 @@ permissions:
   synapseapi.command.debugexport:
     description: /debugexport
     default: op
+  synapseapi.command.communitytool:
+    description: /communitytool
+    default: op

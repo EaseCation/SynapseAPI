@@ -1240,7 +1240,8 @@
     },
     {
         "name": "minecraft:debug_stick",
-        "id": 593
+        "id": 593,
+        "oldId": 735
     },
     {
         "name": "minecraft:deepslate",
@@ -3441,15 +3442,18 @@
     },
     {
         "name": "minecraft:mod",
-        "id": 596
+        "id": 596,
+        "oldId": 456
     },
     {
         "name": "minecraft:mod_armor",
-        "id": 351
+        "id": 351,
+        "oldId": 454
     },
     {
         "name": "minecraft:mod_ex",
-        "id": 597
+        "id": 597,
+        "oldId": 498
     },
     {
         "name": "minecraft:mod_ore",

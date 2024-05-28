@@ -74,7 +74,9 @@ public class DataExporter {
                     }
 
                     Map<String, Object> entry = new LinkedHashMap<>();
-                    entry.put("netId", block.runtimeId);
+                    entry.put("runtime_id", block.runtimeId);
+//                    entry.put("network_id", block.networkId);
+//                    entry.put("name_hash", block.nameHash);
                     entry.put("name", block.name);
                     entry.put("states", states);
                     entry.put("id", block.id);
@@ -103,7 +105,9 @@ public class DataExporter {
                     }
 
                     containerNbt.addCompound(new CompoundTag(new LinkedHashMap<>())
-                            .putInt("netId", block.runtimeId)
+                            .putInt("runtime_id", block.runtimeId)
+//                            .putInt("network_id", block.networkId)
+//                            .putLong("name_hash", block.nameHash)
                             .putString("name", block.name)
                             .putCompound("states", statesSorted)
                             .putInt("id", block.id)
@@ -182,7 +186,7 @@ public class DataExporter {
 
                     Map<String, Object> entry = new LinkedHashMap<>();
                     entry.put("name", name);
-                    entry.put("netId", id);
+                    entry.put("runtime_id", id);
                     entry.put("component", component);
                     containerFull.add(entry);
                 }
@@ -232,13 +236,15 @@ public class DataExporter {
 }
 
 /* NETEASE EDITION
-Block(name=minecraft:mod_ore, states={}, id=230, val=0)
+Block(name=minecraft:mod_ore, states={}, id=230, val=0) // chalkboard
 Block(name=minecraft:micro_block, states={}, id=9990, val=0)
 
 Item(name=minecraft:micro_block, id=-9735)
 Item(name=minecraft:mod_ore, id=230)
-Item(name=minecraft:mod_armor)
-Item(name=minecraft:debug_stick)
-Item(name=minecraft:mod)
-Item(name=minecraft:mod_ex)
+
+Item(name=minecraft:mod_armor, id=454) // board
+Item(name=minecraft:mod, id=456) // portfolio
+Item(name=minecraft:mod_ex, id=498) // camera
+
+Item(name=minecraft:debug_stick, id=735)
 */

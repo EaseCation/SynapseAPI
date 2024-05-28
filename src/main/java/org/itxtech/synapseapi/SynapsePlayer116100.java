@@ -105,6 +105,8 @@ import org.itxtech.synapseapi.multiprotocol.protocol11960.protocol.CommandReques
 import org.itxtech.synapseapi.multiprotocol.protocol11960.protocol.PlayerSkinPacket11960;
 import org.itxtech.synapseapi.multiprotocol.protocol11960.protocol.StartGamePacket11960;
 import org.itxtech.synapseapi.multiprotocol.protocol11963.protocol.PlayerSkinPacket11963;
+import org.itxtech.synapseapi.multiprotocol.protocol11970.protocol.CameraInstructionPacket11970;
+import org.itxtech.synapseapi.multiprotocol.protocol11970.protocol.CameraPresetsPacket11970;
 import org.itxtech.synapseapi.multiprotocol.protocol11980.protocol.OpenSignPacket11980;
 import org.itxtech.synapseapi.multiprotocol.protocol11980.protocol.RequestChunkRadiusPacket11980;
 import org.itxtech.synapseapi.multiprotocol.protocol11980.protocol.StartGamePacket11980;
@@ -3247,21 +3249,35 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
 
     @Override
     protected void sendCameraPresets() {
-        if (getProtocol() < AbstractProtocol.PROTOCOL_120_30.getProtocolStart()) {
+        if (getProtocol() >= AbstractProtocol.PROTOCOL_120_30.getProtocolStart()) {
+            CameraPresetsPacket12030 packet = new CameraPresetsPacket12030();
+            packet.presets = CameraPreset.DEFAULT_PRESETS;
+            this.dataPacket(packet);
             return;
         }
 
-        CameraPresetsPacket12030 packet = new CameraPresetsPacket12030();
+        if (getProtocol() < AbstractProtocol.PROTOCOL_119_70.getProtocolStart()) {
+            return;
+        }
+        CameraPresetsPacket11970 packet = new CameraPresetsPacket11970();
         packet.presets = CameraPreset.DEFAULT_PRESETS;
         this.dataPacket(packet);
     }
 
     @Override
     public void startCameraInstruction(CameraSetInstruction set, CameraFadeInstruction fade) {
-        if (getProtocol() < AbstractProtocol.PROTOCOL_120_30.getProtocolStart()) {
+        if (getProtocol() >= AbstractProtocol.PROTOCOL_120_30.getProtocolStart()) {
+            CameraInstructionPacket12030 pk = new CameraInstructionPacket12030();
+            pk.set = set;
+            pk.fade = fade;
+            this.dataPacket(pk);
             return;
         }
-        CameraInstructionPacket12030 pk = new CameraInstructionPacket12030();
+
+        if (getProtocol() < AbstractProtocol.PROTOCOL_119_70.getProtocolStart()) {
+            return;
+        }
+        CameraInstructionPacket11970 pk = new CameraInstructionPacket11970();
         pk.set = set;
         pk.fade = fade;
         this.dataPacket(pk);
@@ -3279,10 +3295,17 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
 
     @Override
     public void clearCameraInstruction() {
-        if (getProtocol() < AbstractProtocol.PROTOCOL_120_30.getProtocolStart()) {
+        if (getProtocol() >= AbstractProtocol.PROTOCOL_120_30.getProtocolStart()) {
+            CameraInstructionPacket12030 pk = new CameraInstructionPacket12030();
+            pk.clear = true;
+            this.dataPacket(pk);
             return;
         }
-        CameraInstructionPacket12030 pk = new CameraInstructionPacket12030();
+
+        if (getProtocol() < AbstractProtocol.PROTOCOL_119_70.getProtocolStart()) {
+            return;
+        }
+        CameraInstructionPacket11970 pk = new CameraInstructionPacket11970();
         pk.clear = true;
         this.dataPacket(pk);
     }

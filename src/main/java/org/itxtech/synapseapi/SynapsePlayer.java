@@ -40,7 +40,6 @@ import org.itxtech.synapseapi.event.player.SynapsePlayerConnectEvent;
 import org.itxtech.synapseapi.event.player.SynapsePlayerTransferEvent;
 import org.itxtech.synapseapi.event.player.SynapsePlayerUnexpectedBehaviorEvent;
 import org.itxtech.synapseapi.multiprotocol.AbstractProtocol;
-import org.itxtech.synapseapi.multiprotocol.PacketRegister;
 import org.itxtech.synapseapi.multiprotocol.common.camera.CameraFadeInstruction;
 import org.itxtech.synapseapi.multiprotocol.common.camera.CameraSetInstruction;
 import org.itxtech.synapseapi.multiprotocol.protocol116100.protocol.TextPacket116100;
@@ -598,6 +597,8 @@ public class SynapsePlayer extends Player {
             this.teleportPosition = null;
             this.isLevelChange = true;
 
+            preChangeDimensionScreen(true);
+
             if (this.isNeedLevelChangeLoadScreen()) {
                 if (!isLevelChanging) {
                     this.nextDummyDimension();
@@ -753,8 +754,14 @@ public class SynapsePlayer extends Player {
             }
             this.isLevelChange = true;
         }
-        if (super.teleport(location, cause) && this.isNeedLevelChangeLoadScreen()) {
+        if (super.teleport(location, cause)) {
             if (location.level != null && from.getLevel() != location.level && this.spawned) {
+                preChangeDimensionScreen(false);
+
+                if (!this.isNeedLevelChangeLoadScreen()) {
+                    return true;
+                }
+
                 // 用于连续切换世界的情况下，防止卡在loading screen
                 if (!isLevelChanging) {
                     this.nextDummyDimension();
@@ -1416,5 +1423,8 @@ public class SynapsePlayer extends Player {
 
     public void clearCameraInstruction() {
         // 1.20.30+
+    }
+
+    protected void preChangeDimensionScreen(boolean transfer) {
     }
 }

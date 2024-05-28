@@ -16,10 +16,7 @@ import cn.nukkit.network.RakNetInterface;
 import cn.nukkit.network.SourceInterface;
 import cn.nukkit.network.protocol.DataPacket;
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
-import org.itxtech.synapseapi.command.ChunkNetVerCommand;
-import org.itxtech.synapseapi.command.DebugExportCommand;
-import org.itxtech.synapseapi.command.LatencyCommand;
-import org.itxtech.synapseapi.command.NetDataCommand;
+import org.itxtech.synapseapi.command.*;
 import org.itxtech.synapseapi.multiprotocol.AbstractProtocol;
 import org.itxtech.synapseapi.multiprotocol.PacketRegister;
 import cn.nukkit.plugin.PluginBase;
@@ -283,6 +280,7 @@ public class SynapseAPI extends PluginBase implements Listener {
         this.getServer().getCommandMap().register("synapse", new ChunkNetVerCommand(this));
         this.getServer().getCommandMap().register("synapse", new NetDataCommand(this));
         this.getServer().getCommandMap().register("synapse", new DebugExportCommand(this));
+        this.getServer().getCommandMap().register("synapse", new CommunityToolCommand(this));
     }
 
     public boolean isUseLoadingScreen() {

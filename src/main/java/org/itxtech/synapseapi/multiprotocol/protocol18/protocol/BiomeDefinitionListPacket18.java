@@ -1,7 +1,9 @@
 package org.itxtech.synapseapi.multiprotocol.protocol18.protocol;
 
 import cn.nukkit.network.protocol.ProtocolInfo;
+import lombok.ToString;
 
+@ToString(exclude = "tag")
 public class BiomeDefinitionListPacket18 extends Packet18 {
     public static final int NETWORK_ID = ProtocolInfo.BIOME_DEFINITION_LIST_PACKET;
 

@@ -1024,7 +1024,8 @@
     },
     {
         "name": "minecraft:debug_stick",
-        "id": 582
+        "id": 582,
+        "oldId": 735
     },
     {
         "name": "minecraft:deny",
@@ -2906,19 +2907,23 @@
     },
     {
         "name": "minecraft:mod",
-        "id": 585
+        "id": 585,
+        "oldId": 456
     },
     {
         "name": "minecraft:mod_armor",
-        "id": 351
+        "id": 351,
+        "oldId": 454
     },
     {
         "name": "minecraft:mod_ex",
-        "id": 586
+        "id": 586,
+        "oldId": 498
     },
     {
         "name": "minecraft:mod_ore",
-        "id": 230
+        "id": 230,
+        "oldId": 230
     },
     {
         "name": "minecraft:mojang_banner_pattern",
