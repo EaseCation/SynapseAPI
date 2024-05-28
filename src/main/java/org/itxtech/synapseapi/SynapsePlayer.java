@@ -1384,10 +1384,6 @@ public class SynapsePlayer extends Player {
         // 1.12+
     }
 
-    protected void sendFogStack(String... fogStack) {
-        // 1.16.100+
-    }
-
     protected void syncEntityProperties() {
         // 1.17+
     }
