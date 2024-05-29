@@ -3,8 +3,10 @@ package org.itxtech.synapseapi.multiprotocol.protocol12030.protocol;
 import cn.nukkit.level.GameRules;
 import cn.nukkit.nbt.tag.CompoundTag;
 import cn.nukkit.network.protocol.ProtocolInfo;
+import cn.nukkit.utils.BinaryStream;
 import lombok.ToString;
 import org.itxtech.synapseapi.multiprotocol.AbstractProtocol;
+import org.itxtech.synapseapi.multiprotocol.common.Experiments;
 import org.itxtech.synapseapi.multiprotocol.utils.AdvancedGlobalBlockPalette;
 import org.itxtech.synapseapi.multiprotocol.utils.AdvancedRuntimeItemPalette;
 
@@ -77,7 +79,7 @@ public class StartGamePacket12030 extends Packet12030 {
     public boolean commandsEnabled;
     public boolean isTexturePacksRequired = false;
     public GameRules gameRules;
-    public boolean hasPreviouslyUsedExperiments;
+    public Experiments experiments = Experiments.NONE;
     public boolean bonusChest = false;
     public boolean hasStartWithMapEnabled = false;
     public boolean trustingPlayers;
@@ -99,7 +101,7 @@ public class StartGamePacket12030 extends Packet12030 {
     public boolean isNewNether;
     public String eduSharedUriResourceButtonName = "";
     public String eduSharedUriResourceLinkUri = "";
-    public boolean experimentalGameplayOverride;
+    public Boolean experimentalGameplayOverride;
     public byte chatRestrictionLevel;
     /**
      * If true, the server will inform clients that they should ignore other players when interacting with the world.
@@ -182,8 +184,12 @@ public class StartGamePacket12030 extends Packet12030 {
         this.putBoolean(this.commandsEnabled);
         this.putBoolean(this.isTexturePacksRequired);
         this.putGameRules(this.gameRules);
-        this.putLInt(0); // Experiment count
-        this.putBoolean(this.hasPreviouslyUsedExperiments);
+        this.putLInt(experiments.experiments.length);
+        for (Experiments.Experiment experiment : experiments.experiments) {
+            this.putString(experiment.name());
+            this.putBoolean(experiment.enable());
+        }
+        this.putBoolean(experiments.hasPreviouslyUsedExperiments);
         this.putBoolean(this.bonusChest);
         this.putBoolean(this.hasStartWithMapEnabled);
         this.putVarInt(this.permissionLevel);
@@ -204,7 +210,7 @@ public class StartGamePacket12030 extends Packet12030 {
         this.putBoolean(this.isNewNether);
         this.putString(this.eduSharedUriResourceButtonName);
         this.putString(this.eduSharedUriResourceLinkUri);
-        this.putBoolean(this.experimentalGameplayOverride);
+        this.putOptional(this.experimentalGameplayOverride, BinaryStream::putBoolean);
         this.putByte(this.chatRestrictionLevel);
         this.putBoolean(this.disablePlayerInteractions);
 

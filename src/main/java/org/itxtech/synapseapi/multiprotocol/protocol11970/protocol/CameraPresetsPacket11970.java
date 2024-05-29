@@ -50,6 +50,14 @@ public class CameraPresetsPacket11970 extends Packet11970 {
                 entry.putFloat("rot_y", preset.yaw);
             }
 
+            if (preset.audioListener != null && preset.audioListener == CameraPreset.AUDIO_LISTENER_PLAYER) {
+                entry.putString("listener", "player");
+            }
+
+            if (preset.playerEffects != null) {
+                entry.putBoolean("player_effects", preset.playerEffects);
+            }
+
             list.add(entry);
         }
 

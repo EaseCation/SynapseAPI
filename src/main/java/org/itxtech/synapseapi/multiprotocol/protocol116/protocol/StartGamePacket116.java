@@ -2,6 +2,7 @@ package org.itxtech.synapseapi.multiprotocol.protocol116.protocol;
 
 import cn.nukkit.level.GameRules;
 import cn.nukkit.network.protocol.ProtocolInfo;
+import cn.nukkit.utils.BinaryStream;
 import lombok.ToString;
 import org.itxtech.synapseapi.multiprotocol.AbstractProtocol;
 import org.itxtech.synapseapi.multiprotocol.utils.AdvancedGlobalBlockPalette;
@@ -81,7 +82,7 @@ public class StartGamePacket116 extends Packet116 {
 	public int limitedWorldWidth = 16;
 	public int limitedWorldLength = 16;
 	public boolean isNewNether;
-	public boolean experimentalGameplayOverride;
+	public Boolean experimentalGameplayOverride;
 	public String levelId = ""; //base64 string, usually the same as world folder name in vanilla
 	public String worldName = "";
 	public String premiumWorldTemplateId = "00000000-0000-0000-0000-000000000000";
@@ -150,7 +151,7 @@ public class StartGamePacket116 extends Packet116 {
 		this.putLInt(this.limitedWorldWidth);
 		this.putLInt(this.limitedWorldLength);
 		this.putBoolean(this.isNewNether);
-		this.putBoolean(this.experimentalGameplayOverride);
+		this.putOptional(this.experimentalGameplayOverride, BinaryStream::putBoolean);
 
 		this.putString(this.levelId);
 		this.putString(this.worldName);

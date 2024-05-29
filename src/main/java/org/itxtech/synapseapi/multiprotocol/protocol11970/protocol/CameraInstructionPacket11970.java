@@ -54,7 +54,8 @@ public class CameraInstructionPacket11970 extends Packet11970 {
 
             Vector3f pos = set.pos;
             if (pos != null) {
-                tag.putList("pos", pos.toNbt());
+                tag.putCompound("pos", new CompoundTag()
+                        .putList("pos", pos.toNbt()));
             }
 
             Vector2f rot = set.rot;
@@ -66,7 +67,8 @@ public class CameraInstructionPacket11970 extends Packet11970 {
 
             Vector3f facing = set.facing;
             if (facing != null) {
-                tag.putList("facing", facing.toNbt()); //TODO: check
+                tag.putCompound("facing", new CompoundTag()
+                        .putList("pos", facing.toNbt()));
             }
 
             Boolean defaultPreset = set.defaultPreset;

@@ -16,6 +16,7 @@ import cn.nukkit.network.RakNetInterface;
 import cn.nukkit.network.SourceInterface;
 import cn.nukkit.network.protocol.DataPacket;
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
+import org.itxtech.synapseapi.camera.CameraManager;
 import org.itxtech.synapseapi.command.*;
 import org.itxtech.synapseapi.multiprotocol.AbstractProtocol;
 import org.itxtech.synapseapi.multiprotocol.PacketRegister;
@@ -223,6 +224,7 @@ public class SynapseAPI extends PluginBase implements Listener {
         BiomeDefinitions.init();
         ItemComponentDefinitions.init();
         EntityProperties.init();
+        CameraManager.init();
 
         getServer().setCraftingManager(V1_19_0.isAvailable() ? new CraftingManagerNew()
                 : V1_18_0.isAvailable() ? new CraftingManagerMedieval()

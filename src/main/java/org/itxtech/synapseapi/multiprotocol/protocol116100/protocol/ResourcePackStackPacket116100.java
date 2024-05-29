@@ -6,6 +6,7 @@ import cn.nukkit.network.protocol.ResourcePackStackPacket;
 import cn.nukkit.resourcepacks.ResourcePack;
 import lombok.ToString;
 import org.itxtech.synapseapi.multiprotocol.AbstractProtocol;
+import org.itxtech.synapseapi.multiprotocol.common.Experiments;
 import org.itxtech.synapseapi.utils.ClassUtils;
 
 @ToString
@@ -17,6 +18,7 @@ public class ResourcePackStackPacket116100 extends Packet116100 {
     public ResourcePack[] behaviourPackStack = new ResourcePack[0];
     public ResourcePack[] resourcePackStack = new ResourcePack[0];
     public String gameVersion = "1.16.100";
+    public Experiments experiments = Experiments.NONE;
 
     @Override
     public void decode() {
@@ -43,8 +45,12 @@ public class ResourcePackStackPacket116100 extends Packet116100 {
         }
 
         this.putString("*");//this.putString(this.helper.getGameVersion());
-        this.putLInt(0); // Experiments length
-        this.putBoolean(false); //Were experiments previously toggled
+        this.putLInt(experiments.experiments.length);
+        for (Experiments.Experiment experiment : experiments.experiments) {
+            this.putString(experiment.name());
+            this.putBoolean(experiment.enable());
+        }
+        this.putBoolean(experiments.hasPreviouslyUsedExperiments);
     }
 
     @Override
