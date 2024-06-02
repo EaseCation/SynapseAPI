@@ -9,7 +9,6 @@ import cn.nukkit.entity.Entity;
 import cn.nukkit.entity.EntityInteractable;
 import cn.nukkit.entity.EntityRideable;
 import cn.nukkit.entity.data.ByteEntityData;
-import cn.nukkit.entity.data.ShortEntityData;
 import cn.nukkit.entity.item.EntityItem;
 import cn.nukkit.entity.item.EntityXPOrb;
 import cn.nukkit.entity.projectile.EntityArrow;
@@ -20,7 +19,6 @@ import cn.nukkit.event.player.PlayerInteractEntityEvent;
 import cn.nukkit.event.player.PlayerInteractEvent;
 import cn.nukkit.event.player.PlayerKickEvent;
 import cn.nukkit.event.player.PlayerMouseOverEntityEvent;
-import cn.nukkit.event.player.PlayerRespawnEvent;
 import cn.nukkit.inventory.InventoryHolder;
 import cn.nukkit.inventory.transaction.CraftingTransaction;
 import cn.nukkit.inventory.transaction.InventoryTransaction;
@@ -202,61 +200,7 @@ public class SynapsePlayer113 extends SynapsePlayer112 {
 						if (!this.spawned || this.isAlive() || !this.isOnline()) {
 							break;
 						}
-
-						if (this.server.isHardcore()) {
-							this.setBanned(true);
-							break;
-						}
-
-						this.craftingType = CRAFTING_SMALL;
-						this.resetCraftingGridType();
-
-						PlayerRespawnEvent playerRespawnEvent = new PlayerRespawnEvent(this, this.getSpawn());
-						this.server.getPluginManager().callEvent(playerRespawnEvent);
-
-						Position respawnPos = playerRespawnEvent.getRespawnPosition();
-
-						this.teleport(respawnPos, null);
-
-						this.setSprinting(false);
-						if (isSneaking()) {
-							this.setSneaking(false);
-						}
-						if (isGliding()) {
-							this.setGliding(false);
-						}
-						if (isSwimming()) {
-							this.setSwimming(false);
-						}
-						if (isCrawling()) {
-							this.setCrawling(false);
-						}
-
-						this.setDataProperty(new ShortEntityData(Player.DATA_AIR, 300), false);
-						this.deadTicks = 0;
-						this.noDamageTicks = 60;
-
-						this.removeAllEffects();
-
-						SetHealthPacket healthPacket = new SetHealthPacket();
-						healthPacket.health = getMaxHealth();
-						this.dataPacket(healthPacket);
-
-						this.setHealth(this.getMaxHealth());
-						this.getFoodData().setLevel(20, 20);
-
-						this.sendData(this);
-						this.sendData(this.getViewers().values().toArray(new Player[0]));
-
-						this.setMovementSpeed(DEFAULT_SPEED);
-
-						this.getAdventureSettings().update();
-						this.inventory.sendContents(this);
-						this.armorInventory.sendContents(this);
-						this.offhandInventory.sendContents(this);
-
-						this.spawnToAll();
-						this.scheduleUpdate();
+						this.respawn();
 
 						this.setUsingItem(false);
 						break;
@@ -825,6 +769,10 @@ public class SynapsePlayer113 extends SynapsePlayer112 {
 
 		this.dataPacket(respawnPacket0);
 		this.dataPacket(respawnPacket1);
+	}
+
+	@Override
+	protected void initiateLegacyRespawn(Position respawnPos) {
 	}
 
 	@Override

@@ -1639,6 +1639,7 @@ public class SynapsePlayer116 extends SynapsePlayer113 {
 		ContainerClosePacket pk = new ContainerClosePacket();
 		pk.windowId = this.getWindowId(this.inventory);
 		pk.wasServerInitiated = this.closingWindowId != pk.windowId;
+		this.resetClosingWindowId(pk.windowId);
 		this.dataPacket(pk);
 	}
 

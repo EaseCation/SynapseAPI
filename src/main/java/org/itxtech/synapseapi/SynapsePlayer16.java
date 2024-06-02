@@ -391,6 +391,10 @@ public class SynapsePlayer16 extends SynapsePlayer14 {
 		this.sendTrimRecipes();
 		this.sendRecipeList();
 
+		if (this.getHealth() < 1) {
+			this.respawn();
+		}
+
 		for (long index : this.usedChunks.keySet()) {
 			int chunkX = Level.getHashX(index);
 			int chunkZ = Level.getHashZ(index);

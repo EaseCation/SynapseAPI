@@ -7,7 +7,6 @@ import cn.nukkit.block.BlockID;
 import cn.nukkit.block.BlockNoteblock;
 import cn.nukkit.blockentity.BlockEntityLectern;
 import cn.nukkit.entity.EntityRideable;
-import cn.nukkit.entity.data.ShortEntityData;
 import cn.nukkit.entity.data.StringEntityData;
 import cn.nukkit.event.player.*;
 import cn.nukkit.item.Item;
@@ -350,67 +349,7 @@ public class SynapsePlayer14 extends SynapsePlayer {
 						if (!this.spawned || this.isAlive() || !this.isOnline()) {
 							break;
 						}
-
-						if (this.server.isHardcore()) {
-							this.setBanned(true);
-							break;
-						}
-
-						this.craftingType = CRAFTING_SMALL;
-						this.resetCraftingGridType();
-
-						PlayerRespawnEvent playerRespawnEvent = new PlayerRespawnEvent(this, this.getSpawn());
-						this.server.getPluginManager().callEvent(playerRespawnEvent);
-
-						Position respawnPos = playerRespawnEvent.getRespawnPosition();
-
-						this.teleport(respawnPos, null);
-
-						RespawnPacket respawnPacket = new RespawnPacket();
-						respawnPacket.x = (float) respawnPos.x;
-						respawnPacket.y = (float) respawnPos.y;
-						respawnPacket.z = (float) respawnPos.z;
-						this.dataPacket(respawnPacket);
-
-						this.setSprinting(false);
-						if (isSneaking()) {
-							this.setSneaking(false);
-						}
-						if (isGliding()) {
-							this.setGliding(false);
-						}
-						if (isSwimming()) {
-							this.setSwimming(false);
-						}
-						if (isCrawling()) {
-							this.setCrawling(false);
-						}
-
-						this.setDataProperty(new ShortEntityData(Player.DATA_AIR, 300), false);
-						this.deadTicks = 0;
-						this.noDamageTicks = 60;
-
-						this.removeAllEffects();
-
-						SetHealthPacket healthPacket = new SetHealthPacket();
-						healthPacket.health = getMaxHealth();
-						this.dataPacket(healthPacket);
-
-						this.setHealth(this.getMaxHealth());
-						this.getFoodData().setLevel(20, 20);
-
-						this.sendData(this);
-						this.sendData(this.getViewers().values().toArray(new Player[0]));
-
-						this.setMovementSpeed(DEFAULT_SPEED);
-
-						this.getAdventureSettings().update();
-						this.inventory.sendContents(this);
-						this.armorInventory.sendContents(this);
-						this.offhandInventory.sendContents(this);
-
-						this.spawnToAll();
-						this.scheduleUpdate();
+						this.respawn();
 						break;
 					case PlayerActionPacket14.ACTION_JUMP:
 						if (isServerAuthoritativeMovementEnabled()) {
