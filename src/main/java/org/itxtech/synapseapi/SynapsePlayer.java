@@ -643,7 +643,7 @@ public class SynapsePlayer extends Player {
                     pk.extra = transferExtra;
                     pk.extra.addProperty("username", originName);
                     pk.extra.addProperty("xuid", getLoginChainData().getXUID());
-                    pk.extra.addProperty("netease", isNetEaseClient);
+                    pk.extra.addProperty("netease", isNetEaseClient());
                     pk.extra.addProperty("blob_cache", getClientCacheTrack() != null);
                     //跨服时，传输到目标服务器当前玩家安装上的材质
                     JsonArray resPacks = new JsonArray();

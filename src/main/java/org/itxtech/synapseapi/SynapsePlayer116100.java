@@ -137,9 +137,7 @@ import org.itxtech.synapseapi.utils.PacketUtil;
 
 import javax.annotation.Nullable;
 import java.net.InetSocketAddress;
-import java.util.Arrays;
-import java.util.EnumMap;
-import java.util.Map;
+import java.util.*;
 import java.util.concurrent.ThreadLocalRandom;
 
 import static cn.nukkit.SharedConstants.*;
@@ -2946,38 +2944,52 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
             return;
         }
 
-        Map<PlayerAbility, Boolean> baseAbilities = new EnumMap<>(PlayerAbility.class);
-        baseAbilities.put(PlayerAbility.BUILD, settings.get(Type.BUILD));
-        baseAbilities.put(PlayerAbility.MINE, settings.get(Type.MINE));
-        baseAbilities.put(PlayerAbility.DOORS_AND_SWITCHES, settings.get(Type.DOORS_AND_SWITCHED));
-        baseAbilities.put(PlayerAbility.OPEN_CONTAINERS, settings.get(Type.OPEN_CONTAINERS));
-        baseAbilities.put(PlayerAbility.ATTACK_PLAYERS, settings.get(Type.ATTACK_PLAYERS));
-        baseAbilities.put(PlayerAbility.ATTACK_MOBS, settings.get(Type.ATTACK_MOBS));
-        baseAbilities.put(PlayerAbility.OPERATOR_COMMANDS, settings.get(Type.OPERATOR));
-        baseAbilities.put(PlayerAbility.TELEPORT, settings.get(Type.TELEPORT));
-        baseAbilities.put(PlayerAbility.INVULNERABLE, settings.get(Type.INVULNERABLE));
-        baseAbilities.put(PlayerAbility.FLYING, settings.get(Type.FLYING));
-        baseAbilities.put(PlayerAbility.MAY_FLY, settings.get(Type.ALLOW_FLIGHT));
-        baseAbilities.put(PlayerAbility.INSTABUILD, settings.get(Type.INSTABUILD));
-        baseAbilities.put(PlayerAbility.LIGHTNING, settings.get(Type.LIGHTNING));
-        baseAbilities.put(PlayerAbility.MUTED, settings.get(Type.MUTED));
-        baseAbilities.put(PlayerAbility.WORLD_BUILDER, settings.get(Type.WORLD_BUILDER));
-        baseAbilities.put(PlayerAbility.NO_CLIP, settings.get(Type.NO_CLIP));
-        baseAbilities.put(PlayerAbility.PRIVILEGED_BUILDER, settings.get(Type.PRIVILEGED_BUILDER));
+        Set<PlayerAbility> baseAbilities = EnumSet.allOf(PlayerAbility.class);
+        Set<PlayerAbility> baseAbilityValues = EnumSet.noneOf(PlayerAbility.class);
+        if (settings.get(Type.BUILD)) baseAbilityValues.add(PlayerAbility.BUILD);
+        if (settings.get(Type.MINE)) baseAbilityValues.add(PlayerAbility.MINE);
+        if (settings.get(Type.DOORS_AND_SWITCHED)) baseAbilityValues.add(PlayerAbility.DOORS_AND_SWITCHES);
+        if (settings.get(Type.OPEN_CONTAINERS)) baseAbilityValues.add(PlayerAbility.OPEN_CONTAINERS);
+        if (settings.get(Type.ATTACK_PLAYERS)) baseAbilityValues.add(PlayerAbility.ATTACK_PLAYERS);
+        if (settings.get(Type.ATTACK_MOBS)) baseAbilityValues.add(PlayerAbility.ATTACK_MOBS);
+        if (settings.get(Type.OPERATOR)) baseAbilityValues.add(PlayerAbility.OPERATOR_COMMANDS);
+        if (settings.get(Type.TELEPORT)) baseAbilityValues.add(PlayerAbility.TELEPORT);
+        if (settings.get(Type.INVULNERABLE)) baseAbilityValues.add(PlayerAbility.INVULNERABLE);
+        if (settings.get(Type.FLYING)) baseAbilityValues.add(PlayerAbility.FLYING);
+        if (settings.get(Type.ALLOW_FLIGHT)) baseAbilityValues.add(PlayerAbility.MAY_FLY);
+        if (settings.get(Type.INSTABUILD)) baseAbilityValues.add(PlayerAbility.INSTABUILD);
+        if (settings.get(Type.LIGHTNING)) baseAbilityValues.add(PlayerAbility.LIGHTNING);
+        if (settings.get(Type.MUTED)) baseAbilityValues.add(PlayerAbility.MUTED);
+        if (settings.get(Type.WORLD_BUILDER)) baseAbilityValues.add(PlayerAbility.WORLD_BUILDER);
+        boolean noClip = settings.get(Type.NO_CLIP);
+        if (noClip) baseAbilityValues.add(PlayerAbility.NO_CLIP);
+        if (settings.get(Type.PRIVILEGED_BUILDER)) baseAbilityValues.add(PlayerAbility.PRIVILEGED_BUILDER);
 
-        baseAbilities.put(PlayerAbility.FLY_SPEED, false);
-        baseAbilities.put(PlayerAbility.WALK_SPEED, false);
+        AbilityLayer[] layers;
+        if (!noClip) {
+            layers = new AbilityLayer[]{
+                    new AbilityLayer(UpdateAbilitiesPacket11910.LAYER_BASE, baseAbilities, baseAbilityValues, 0.05f, 0.1f),
+            };
+        } else {
+            Set<PlayerAbility> spectatorAbilities = EnumSet.allOf(PlayerAbility.class);
+            Set<PlayerAbility> spectatorAbilityValues = EnumSet.copyOf(baseAbilityValues);
+            spectatorAbilities.remove(PlayerAbility.FLY_SPEED);
+            spectatorAbilities.remove(PlayerAbility.WALK_SPEED);
+            spectatorAbilityValues.add(PlayerAbility.FLYING);
+            spectatorAbilityValues.add(PlayerAbility.NO_CLIP);
+
+            layers = new AbilityLayer[]{
+                    new AbilityLayer(UpdateAbilitiesPacket11910.LAYER_BASE, baseAbilities, baseAbilityValues, 0.05f, 0.1f),
+                    new AbilityLayer(UpdateAbilitiesPacket11910.LAYER_SPECTATOR, spectatorAbilities, spectatorAbilityValues, 0.05f, 0.1f),
+            };
+        }
 
         UpdateAbilitiesPacket11910 packet = new UpdateAbilitiesPacket11910();
         packet.entityUniqueId = player.getId();
         boolean isOp = player.isOp();
         packet.playerPermission = isOp && !player.isSpectator() ? Player.PERMISSION_OPERATOR : Player.PERMISSION_MEMBER;
         packet.commandPermission = isOp ? CommandPermission.GAME_DIRECTORS : CommandPermission.ALL;
-        packet.abilityLayers = !isSpectator() ? new AbilityLayer[]{
-                new AbilityLayer(UpdateAbilitiesPacket11910.LAYER_BASE, baseAbilities, 0.05f, 0.1f),
-        } : new AbilityLayer[]{
-                new AbilityLayer(UpdateAbilitiesPacket11910.LAYER_SPECTATOR, baseAbilities, 0.05f, 0.1f),
-        };
+        packet.abilityLayers = layers;
         dataPacket(packet);
     }
 

@@ -7,8 +7,7 @@ import cn.nukkit.network.protocol.types.PlayerAbility;
 import lombok.AllArgsConstructor;
 import lombok.ToString;
 
-import java.util.Map;
-import java.util.Map.Entry;
+import java.util.Set;
 
 @ToString
 public class UpdateAbilitiesPacket11910 extends Packet11910 {
@@ -48,29 +47,28 @@ public class UpdateAbilitiesPacket11910 extends Packet11910 {
         for (AbilityLayer layer : abilityLayers) {
             putLShort(layer.type);
 
-            int keyFlags = 0;
-            int valueFlags = 0;
-            for (Entry<PlayerAbility, Boolean> entry : layer.abilities.entrySet()) {
-                int abilityBit = 1 << entry.getKey().ordinal();
-                keyFlags |= abilityBit;
-                if (entry.getValue()) {
-                    valueFlags |= abilityBit;
-                }
-            }
-
-            putLInt(keyFlags);
-            putLInt(valueFlags);
+            putLInt(getFlags(layer.abilitiesSet));
+            putLInt(getFlags(layer.abilityValues));
 
             putLFloat(layer.flySpeed);
             putLFloat(layer.walkSpeed);
         }
     }
 
+    private static int getFlags(Set<PlayerAbility> abilities) {
+        int flags = 0;
+        for (PlayerAbility ability : abilities) {
+            flags |= 1 << ability.ordinal();
+        }
+        return flags;
+    }
+
     @ToString
     @AllArgsConstructor
     public static class AbilityLayer {
         public int type;
-        public Map<PlayerAbility, Boolean> abilities;
+        public Set<PlayerAbility> abilitiesSet;
+        public Set<PlayerAbility> abilityValues;
         public float flySpeed;
         public float walkSpeed;
     }
