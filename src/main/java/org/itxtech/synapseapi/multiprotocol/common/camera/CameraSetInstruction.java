@@ -28,6 +28,9 @@ public class CameraSetInstruction {
     @Nullable
     public Boolean defaultPreset;
 
+    /**
+     * @see <a href="https://easings.net/">Easing Functions Cheat Sheet</a>
+     */
     @Builder
     @NoArgsConstructor
     @AllArgsConstructor

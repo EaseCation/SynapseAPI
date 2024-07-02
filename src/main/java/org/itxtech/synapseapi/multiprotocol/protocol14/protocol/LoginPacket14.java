@@ -274,7 +274,7 @@ public class LoginPacket14 extends Packet14 {
         }
 
         JsonNode skinGeometryDataEngineVersionNode = skinToken.get("SkinGeometryDataEngineVersion");
-        if (skinToken.has("SkinGeometryDataEngineVersion")) {
+        if (skinGeometryDataEngineVersionNode != null) {
             skin.setGeometryDataEngineVersion(new String(Base64.getDecoder().decode(skinGeometryDataEngineVersionNode.asText()), StandardCharsets.UTF_8));
         }
 
@@ -406,10 +406,5 @@ public class LoginPacket14 extends Packet14 {
             colors.add(element.asText()); // remove #
         }
         return new PersonaPieceTint(pieceType, colors);
-    }
-
-    @Override
-    public Skin getSkin() {
-        return this.skin;
     }
 }

@@ -26,7 +26,6 @@ import cn.nukkit.potion.Effect;
 import cn.nukkit.resourcepacks.ResourcePack;
 import cn.nukkit.scheduler.AsyncTask;
 import cn.nukkit.utils.Binary;
-import cn.nukkit.utils.DummyBossBar;
 import cn.nukkit.utils.LoginChainData;
 import cn.nukkit.utils.MainLogger;
 import cn.nukkit.utils.TextFormat;
@@ -34,7 +33,6 @@ import com.google.gson.JsonPrimitive;
 import org.itxtech.synapseapi.event.player.SynapsePlayerConnectEvent;
 import org.itxtech.synapseapi.multiprotocol.AbstractProtocol;
 import org.itxtech.synapseapi.multiprotocol.common.BuildPlatform;
-import org.itxtech.synapseapi.multiprotocol.protocol119.protocol.PlayerActionPacket119;
 import org.itxtech.synapseapi.multiprotocol.protocol14.protocol.*;
 import org.itxtech.synapseapi.multiprotocol.protocol15.protocol.MoveEntityAbsolutePacket15;
 import org.itxtech.synapseapi.network.protocol.spp.PlayerLoginPacket;
@@ -200,7 +198,9 @@ public class SynapsePlayer14 extends SynapsePlayer {
 					this.close("", "disconnectionScreen.invalidSkin");
 					break;
 				} else {
-					this.setSkin(loginPacket.getSkin());
+					loginPacket.skin.setTrusted(false); // Don't trust player skins
+
+					this.setSkin(loginPacket.skin);
 				}
 
 				PlayerPreLoginEvent playerPreLoginEvent;
@@ -687,7 +687,7 @@ public class SynapsePlayer14 extends SynapsePlayer {
 		resoucePacket.mustAccept = this.forceResources;
 		return resoucePacket;
 	}
-
+/*
 	public void forceReteleport() {
 		this.teleportPosition = this.getPosition();
         this.getDummyBossBars().values().forEach(DummyBossBar::destroy);  //游戏崩溃问题
@@ -750,7 +750,7 @@ public class SynapsePlayer14 extends SynapsePlayer {
 			}
         }, 20);
     }
-
+*/
     /*@Override
 	public void sendLevelSoundEvent(LevelSoundEventEnum levelSound, Vector3 pos, int extraData, int pitch, String entityIdentifier, boolean isBabyMob, boolean isGlobal) {
 		if (levelSound == null || levelSound.getV14() == -1) return;

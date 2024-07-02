@@ -78,6 +78,7 @@ public interface BlockStateNames {
     String MULTI_FACE_DIRECTION_BITS = "multi_face_direction_bits";
     String NEW_LEAF_TYPE = "new_leaf_type";
     String NEW_LOG_TYPE = "new_log_type";
+    String NO_DROP_BIT = "no_drop_bit";
     String OCCUPIED_BIT = "occupied_bit";
     String OLD_LEAF_TYPE = "old_leaf_type";
     String OLD_LOG_TYPE = "old_log_type";

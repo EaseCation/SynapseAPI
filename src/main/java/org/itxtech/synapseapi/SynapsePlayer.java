@@ -991,7 +991,7 @@ public class SynapsePlayer extends Player {
                     this.close("", "disconnectionScreen.invalidSkin");
                     break;
                 } else {
-                    this.setSkin(loginPacket.getSkinLegacy());
+                    this.setSkin(loginPacket.skin);
                 }
 
                 PlayerPreLoginEvent playerPreLoginEvent;

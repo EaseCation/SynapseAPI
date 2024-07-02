@@ -173,7 +173,7 @@ public enum AbstractProtocol {
     public static final AbstractProtocol LAST_ALLOW_LOGIN_PROTOCOL = LAST_PROTOCOL;
 
     static {
-        BY_PROTOCOL = new AbstractProtocol[LAST_ALLOW_LOGIN_PROTOCOL.protocolStart + 1];
+        BY_PROTOCOL = new AbstractProtocol[LAST_PROTOCOL.protocolStart + 1];
         Arrays.fill(BY_PROTOCOL, PROTOCOL_12);
         for (int i = 0; i < VALUES.length; i++) {
             AbstractProtocol version = VALUES[i];

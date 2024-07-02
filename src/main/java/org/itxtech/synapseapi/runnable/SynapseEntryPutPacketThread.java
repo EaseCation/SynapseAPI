@@ -47,7 +47,7 @@ public class SynapseEntryPutPacketThread extends Thread {
     private final Queue<BroadcastEntry> broadcastQueue = new LinkedBlockingQueue<>();
 
     private final Deflater deflater = new Deflater(Server.getInstance().networkCompressionLevel);
-    private final byte[] buf = new byte[1024];
+    private final byte[] buf = new byte[8192];
 
     private final boolean isAutoCompress;
     private long tickUseTime = 0;

@@ -115,7 +115,9 @@ public class DisconnectPacket12040 extends Packet12040 {
     public void decode() {
         this.reason = this.getVarInt();
         this.hideDisconnectionScreen = this.getBoolean();
-        this.message = this.getString();
+        if (!this.hideDisconnectionScreen) {
+            this.message = this.getString();
+        }
     }
 
     @Override

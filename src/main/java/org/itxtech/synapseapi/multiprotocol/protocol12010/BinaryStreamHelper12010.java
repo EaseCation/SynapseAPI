@@ -7,12 +7,18 @@ import cn.nukkit.command.data.CommandFlag;
 import cn.nukkit.command.data.CommandOverload;
 import cn.nukkit.command.data.CommandParamOption;
 import cn.nukkit.command.data.CommandParameter;
+import cn.nukkit.entity.data.Skin;
 import cn.nukkit.utils.BinaryStream;
+import cn.nukkit.utils.PersonaPiece;
+import cn.nukkit.utils.PersonaPieceTint;
+import cn.nukkit.utils.SkinAnimation;
+import org.apache.commons.lang3.RandomStringUtils;
 import org.itxtech.synapseapi.multiprotocol.protocol120.BinaryStreamHelper120;
 import org.itxtech.synapseapi.multiprotocol.protocol12010.protocol.AvailableCommandsPacket12010;
 
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ThreadLocalRandom;
 
 public class BinaryStreamHelper12010 extends BinaryStreamHelper120 {
     public static BinaryStreamHelper12010 create() {
@@ -83,5 +89,63 @@ public class BinaryStreamHelper12010 extends BinaryStreamHelper120 {
                 }
             }
         });
+    }
+
+    @Override
+    public void putSkin(BinaryStream stream, Skin skin) {
+        if (!stream.neteaseMode) {
+            super.putSkin(stream, skin);
+            return;
+        }
+
+        stream.putString(skin.getSkinId());
+        stream.putString(skin.getPlayFabId());
+        stream.putString(skin.getSkinResourcePatch());
+        stream.putImage(skin.getSkinData());
+
+        List<SkinAnimation> animations = skin.getAnimations();
+        stream.putLInt(animations.size());
+        for (SkinAnimation animation : animations) {
+            stream.putImage(animation.image);
+            stream.putLInt(animation.type);
+            stream.putLFloat(animation.frames);
+            stream.putLInt(animation.expression);
+        }
+
+        stream.putImage(skin.getCapeData());
+        stream.putString(skin.getGeometryData());
+        stream.putString(skin.getGeometryDataEngineVersion());
+        stream.putString(skin.getAnimationData());
+        stream.putString(skin.getCapeId());
+        //TODO: 中国版 1.20.10 ConfirmSkinPacket 导致其他玩家隐形问题的临时方案, 网易下个构建修复后恢复 -- 07/01/2024
+        stream.putString(skin.getFullSkinId() + RandomStringUtils.random(8, 0, 0, true, true, null, ThreadLocalRandom.current()));
+        stream.putString(skin.getArmSize());
+        stream.putString(skin.getSkinColor());
+        List<PersonaPiece> pieces = skin.getPersonaPieces();
+        stream.putLInt(pieces.size());
+        for (PersonaPiece piece : pieces) {
+            stream.putString(piece.id);
+            stream.putString(piece.type);
+            stream.putString(piece.packId);
+            stream.putBoolean(piece.isDefault);
+            stream.putString(piece.productId);
+        }
+
+        List<PersonaPieceTint> tints = skin.getTintColors();
+        stream.putLInt(tints.size());
+        for (PersonaPieceTint tint : tints) {
+            stream.putString(tint.pieceType);
+            List<String> colors = tint.colors;
+            stream.putLInt(colors.size());
+            for (String color : colors) {
+                stream.putString(color);
+            }
+        }
+
+        stream.putBoolean(skin.isPremium());
+        stream.putBoolean(skin.isPersona());
+        stream.putBoolean(skin.isCapeOnClassic());
+        stream.putBoolean(skin.isPrimaryUser());
+        stream.putBoolean(skin.isOverridingPlayerAppearance());
     }
 }
