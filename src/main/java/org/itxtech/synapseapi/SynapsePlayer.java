@@ -1422,5 +1422,8 @@ public class SynapsePlayer extends Player {
     }
 
     protected void preChangeDimensionScreen(boolean transfer) {
+        if (riding != null) {
+            riding.dismountEntity(this);
+        }
     }
 }

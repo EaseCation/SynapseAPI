@@ -4,6 +4,7 @@ import cn.nukkit.block.Block;
 import cn.nukkit.nbt.NBTIO;
 import cn.nukkit.nbt.tag.CompoundTag;
 import cn.nukkit.utils.BinaryStream;
+import cn.nukkit.utils.Utils;
 import it.unimi.dsi.fastutil.ints.Int2IntMap;
 import it.unimi.dsi.fastutil.ints.Int2IntOpenHashMap;
 import it.unimi.dsi.fastutil.ints.IntArrayList;
@@ -217,6 +218,7 @@ public class GlobalBlockPaletteNBT implements AdvancedGlobalBlockPaletteInterfac
     public int getOrCreateRuntimeId(int id, int meta) {
         if (id < 0) {
             log.warn("Block ID must be positive: {}", id, new Throwable("debug trace"));
+            Utils.pauseInIde();
             id = 0xff - id;
         }
 
@@ -252,6 +254,7 @@ public class GlobalBlockPaletteNBT implements AdvancedGlobalBlockPaletteInterfac
                         runtimeId = unknownToRuntimeId.get(legacyIdNoMeta);
                         if (runtimeId == -1) {
                             log.warn("Creating new runtime ID for unknown block: id {} meta {}", id, meta, new Throwable("debug trace"));
+                            Utils.pauseInIde();
                             runtimeId = runtimeIdAllocator.getAndIncrement();
                             unknownToRuntimeId.put(legacyIdNoMeta, runtimeId);
                             runtimeIdToUnknown.add(legacyIdNoMeta);
