@@ -79,6 +79,7 @@ public final class RuntimeBlockMapper {
         PALETTES.put(AbstractProtocol.PROTOCOL_120_70, new BlockPalette[]{palette12070, palette12070});
         PALETTES.put(AbstractProtocol.PROTOCOL_120_80, new BlockPalette[]{palette12080, palette12080});
         PALETTES.put(AbstractProtocol.PROTOCOL_121, new BlockPalette[]{palette121, palette121});
+        PALETTES.put(AbstractProtocol.PROTOCOL_121_2, new BlockPalette[]{palette121, palette121});
 
         GameVersion baseVersion = V1_18_0;
         BlockPalette basePalette = palette118N;

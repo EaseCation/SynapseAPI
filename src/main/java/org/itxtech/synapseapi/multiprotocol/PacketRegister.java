@@ -112,6 +112,7 @@ import org.itxtech.synapseapi.multiprotocol.protocol121.protocol.ContainerCloseP
 import org.itxtech.synapseapi.multiprotocol.protocol121.protocol.CraftingDataPacket121;
 import org.itxtech.synapseapi.multiprotocol.protocol121.protocol.StartGamePacket121;
 import org.itxtech.synapseapi.multiprotocol.protocol121.protocol.TextPacket121;
+import org.itxtech.synapseapi.multiprotocol.protocol1212.protocol.ClientboundCloseFormPacket1212;
 import org.itxtech.synapseapi.multiprotocol.protocol15.protocol.AddEntityPacket15;
 import org.itxtech.synapseapi.multiprotocol.protocol15.protocol.ClientboundMapItemDataPacket15;
 import org.itxtech.synapseapi.multiprotocol.protocol15.protocol.MoveEntityAbsolutePacket15;
@@ -414,6 +415,8 @@ public class PacketRegister {
         registerPacket(AbstractProtocol.PROTOCOL_121, ProtocolInfo.TEXT_PACKET, TextPacket121.class);
         registerPacket(AbstractProtocol.PROTOCOL_121, ProtocolInfo.CONTAINER_CLOSE_PACKET, ContainerClosePacket121.class);
         registerPacket(AbstractProtocol.PROTOCOL_121, ProtocolInfo.AWARD_ACHIEVEMENT_PACKET, AwardAchievementPacket121.class);
+
+        registerPacket(AbstractProtocol.PROTOCOL_121_2, ProtocolInfo.CLIENTBOUND_CLOSE_FORM_PACKET, ClientboundCloseFormPacket1212.class);
 
         checkNeteaseSpecialExtend();
     }

@@ -126,6 +126,7 @@ import org.itxtech.synapseapi.multiprotocol.protocol12080.protocol.StartGamePack
 import org.itxtech.synapseapi.multiprotocol.protocol121.protocol.ContainerClosePacket121;
 import org.itxtech.synapseapi.multiprotocol.protocol121.protocol.StartGamePacket121;
 import org.itxtech.synapseapi.multiprotocol.protocol121.protocol.TextPacket121;
+import org.itxtech.synapseapi.multiprotocol.protocol1212.protocol.ClientboundCloseFormPacket1212;
 import org.itxtech.synapseapi.multiprotocol.protocol14.protocol.PlayerActionPacket14;
 import org.itxtech.synapseapi.multiprotocol.protocol16.protocol.ResourcePackClientResponsePacket16;
 import org.itxtech.synapseapi.multiprotocol.utils.EntityProperties;
@@ -3350,5 +3351,14 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
         packet.elements = elements;
         packet.visibility = SetHudPacket12060.VISIBILITY_RESET;
         dataPacket(packet);
+    }
+
+    @Override
+    public void requestCloseFormWindow() {
+        if (getProtocol() < AbstractProtocol.PROTOCOL_121_2.getProtocolStart()) {
+            return;
+        }
+
+        dataPacket(new ClientboundCloseFormPacket1212());
     }
 }
