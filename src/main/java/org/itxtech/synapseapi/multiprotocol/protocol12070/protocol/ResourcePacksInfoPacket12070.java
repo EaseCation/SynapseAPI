@@ -56,7 +56,7 @@ public class ResourcePacksInfoPacket12070 extends Packet12070 {
             this.putString(!entry.getEncryptionKey().isEmpty() ? entry.getPackId() : ""); // content identity
             this.putBoolean(false); // scripting
             if (entry.getPackType().equals("resources")) {
-                this.putBoolean(false); // raytracing capable
+                this.putBoolean(entry.getCapabilities().contains("raytraced"));
             }
         }
     }
