@@ -57,6 +57,7 @@ import it.unimi.dsi.fastutil.objects.ObjectIterator;
 import lombok.extern.log4j.Log4j2;
 import org.itxtech.synapseapi.camera.CameraManager;
 import org.itxtech.synapseapi.dialogue.NPCDialoguePlayerHandler;
+import org.itxtech.synapseapi.event.player.SynapsePlayerRequestAvailableEntityPropertiesPaletteEvent;
 import org.itxtech.synapseapi.multiprotocol.AbstractProtocol;
 import org.itxtech.synapseapi.multiprotocol.common.Experiments;
 import org.itxtech.synapseapi.multiprotocol.common.camera.CameraFadeInstruction;
@@ -70,6 +71,7 @@ import org.itxtech.synapseapi.multiprotocol.protocol116200.protocol.FilterTextPa
 import org.itxtech.synapseapi.multiprotocol.protocol116200.protocol.ResourcePacksInfoPacket116200;
 import org.itxtech.synapseapi.multiprotocol.protocol116200.protocol.StartGamePacket116200;
 import org.itxtech.synapseapi.multiprotocol.protocol116210.protocol.CameraShakePacket116210;
+import org.itxtech.synapseapi.multiprotocol.protocol117.protocol.ChangeMobPropertyPacket117;
 import org.itxtech.synapseapi.multiprotocol.protocol117.protocol.StartGamePacket117;
 import org.itxtech.synapseapi.multiprotocol.protocol117.protocol.SyncEntityPropertyPacket117;
 import org.itxtech.synapseapi.multiprotocol.protocol11710.protocol.NPCRequestPacket11710;
@@ -129,7 +131,7 @@ import org.itxtech.synapseapi.multiprotocol.protocol121.protocol.TextPacket121;
 import org.itxtech.synapseapi.multiprotocol.protocol1212.protocol.ClientboundCloseFormPacket1212;
 import org.itxtech.synapseapi.multiprotocol.protocol14.protocol.PlayerActionPacket14;
 import org.itxtech.synapseapi.multiprotocol.protocol16.protocol.ResourcePackClientResponsePacket16;
-import org.itxtech.synapseapi.multiprotocol.utils.EntityProperties;
+import org.itxtech.synapseapi.multiprotocol.utils.EntityPropertiesPalette;
 import org.itxtech.synapseapi.multiprotocol.utils.ItemComponentDefinitions;
 import org.itxtech.synapseapi.multiprotocol.utils.VanillaExperiments;
 import org.itxtech.synapseapi.network.protocol.spp.PlayerLoginPacket;
@@ -3129,23 +3131,68 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
 
     @Override
     public void syncEntityProperties() {
+        Map<String, byte[]> compiled = EntityPropertiesPalette.getCompiledPalette(AbstractProtocol.fromRealProtocol(protocol), isNetEaseClient());
+        SynapsePlayerRequestAvailableEntityPropertiesPaletteEvent event = new SynapsePlayerRequestAvailableEntityPropertiesPaletteEvent(this, compiled);
+        this.getServer().getPluginManager().callEvent(event);
+        compiled = event.getCompiled();
+        for (byte[] nbt : compiled.values()) {
+            SyncEntityPropertyPacket117 bee = new SyncEntityPropertyPacket117();
+            bee.nbt = nbt;
+            dataPacket(bee);
+        }
+    }
+
+    @Override
+    public void sendMobPropertyInt(long entityRuntimeId, String propertyName, int value) {
         if (getProtocol() < AbstractProtocol.PROTOCOL_117.getProtocolStart()) {
             return;
         }
 
-        if (getProtocol() < AbstractProtocol.PROTOCOL_119_70.getProtocolStart()) {
-            return;
-        }
-        SyncEntityPropertyPacket117 bee = new SyncEntityPropertyPacket117();
-        bee.nbt = EntityProperties.BEE;
-        dataPacket(bee);
+        ChangeMobPropertyPacket117 packet = new ChangeMobPropertyPacket117();
+        packet.uniqueEntityId = entityRuntimeId;
+        packet.property = propertyName;
+        packet.intValue = value;
+        dataPacket(packet);
+    }
 
-        if (getProtocol() < AbstractProtocol.PROTOCOL_120_80.getProtocolStart()) {
+    @Override
+    public void sendMobPropertyFloat(long entityRuntimeId, String propertyName, float value) {
+        if (getProtocol() < AbstractProtocol.PROTOCOL_117.getProtocolStart()) {
             return;
         }
-        SyncEntityPropertyPacket117 armadillo = new SyncEntityPropertyPacket117();
-        armadillo.nbt = EntityProperties.ARMADILLO;
-        dataPacket(armadillo);
+
+        ChangeMobPropertyPacket117 packet = new ChangeMobPropertyPacket117();
+        packet.uniqueEntityId = entityRuntimeId;
+        packet.property = propertyName;
+        packet.floatValue = value;
+        dataPacket(packet);
+    }
+
+    @Override
+    public void sendMobPropertyBool(long entityRuntimeId, String propertyName, boolean value) {
+        if (getProtocol() < AbstractProtocol.PROTOCOL_117.getProtocolStart()) {
+            return;
+        }
+
+        ChangeMobPropertyPacket117 packet = new ChangeMobPropertyPacket117();
+        packet.uniqueEntityId = entityRuntimeId;
+        packet.property = propertyName;
+        packet.boolValue = value;
+        dataPacket(packet);
+    }
+
+    @Override
+    public void sendMobPropertyEnum(long entityRuntimeId, String propertyName, String value) {
+        if (getProtocol() < AbstractProtocol.PROTOCOL_117.getProtocolStart()) {
+            super.sendMobPropertyEnum(entityRuntimeId, propertyName, value);
+            return;
+        }
+
+        ChangeMobPropertyPacket117 packet = new ChangeMobPropertyPacket117();
+        packet.uniqueEntityId = entityRuntimeId;
+        packet.property = propertyName;
+        packet.stringValue = value;
+        dataPacket(packet);
     }
 
     @Override
