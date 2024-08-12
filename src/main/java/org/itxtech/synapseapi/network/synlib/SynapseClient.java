@@ -163,7 +163,7 @@ public class SynapseClient extends Thread {
             //future.channel().closeFuture().sync();
             return true;
         } catch (Exception e) {
-            log.warn("Synapse Client can't connect to server: {}:{}", this.interfaz, this.port, e);
+            log.warn("Synapse client can't connect to server: {}:{}", this.interfaz, this.port, e);
             log.warn("We will reconnect in 3 seconds");
             this.reconnect();
             return false;

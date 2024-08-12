@@ -3,6 +3,7 @@ package org.itxtech.synapseapi.network.synlib;
 import cn.nukkit.Server;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInboundHandlerAdapter;
+import org.itxtech.synapseapi.SynapseAPI;
 import org.itxtech.synapseapi.network.protocol.spp.SynapseDataPacket;
 
 import java.net.InetSocketAddress;
@@ -31,7 +32,7 @@ public class SynapseClientHandler extends ChannelInboundHandlerAdapter {
         this.getSynapseClient().getSession().updateAddress(address);
         this.getSynapseClient().getSession().setConnected(true);
         this.getSynapseClient().setConnected(true);
-        Server.getInstance().getLogger().info("Synapse Client has connected to " + address.getAddress().getHostAddress() + ":" + address.getPort());
+        SynapseAPI.getInstance().getLogger().info("Synapse client has connected to {}:{}", address.getAddress().getHostAddress(), address.getPort());
     }
 
     @Override
@@ -39,6 +40,7 @@ public class SynapseClientHandler extends ChannelInboundHandlerAdapter {
         //Server.getInstance().getLogger().debug("client-ChannelInactive");
         this.getSynapseClient().setConnected(false);
         this.getSynapseClient().reconnect();
+        SynapseAPI.getInstance().getLogger().warning("Synapse client (" + synapseClient.getSession().getHash() + ") has disconnected due to inactivity");
     }
 
     @Override

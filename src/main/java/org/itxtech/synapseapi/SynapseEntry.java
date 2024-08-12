@@ -136,6 +136,10 @@ public class SynapseEntry {
 */
     }
 
+    public void updateLastLogin() {
+        this.lastLogin = System.currentTimeMillis();
+    }
+
     public static String getRandomString(int length) { //length表示生成字符串的长度
         String base = "abcdefghijklmnopqrstuvwxyz0123456789";
         Random random = ThreadLocalRandom.current();
@@ -258,7 +262,7 @@ public class SynapseEntry {
     }
 
     public void connect() {
-        this.getSynapse().getLogger().info("Connecting " + this.getHash());
+        this.getSynapse().getLogger().info("Try login to server: {}", this.getHash());
         this.verified = false;
         ConnectPacket pk = new ConnectPacket();
         pk.password = this.password;
@@ -424,6 +428,7 @@ public class SynapseEntry {
         //long usedTime = finalTime - time;
         //this.getSynapse().getServer().getLogger().warning(time + " -> threadTick 用时 " + usedTime + " 毫秒");
         if (((finalTime - this.lastUpdate) >= 30000) && this.synapseInterface.isConnected()) {  //30 seconds timeout
+            this.getSynapse().getLogger().warn("Synapse client {} has disconnected due to timeout (30s)", this.getHash());
             this.synapseInterface.reconnect();
         }
     }

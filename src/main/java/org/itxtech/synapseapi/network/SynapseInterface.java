@@ -89,6 +89,7 @@ public class SynapseInterface {
         this.connected = this.client.isConnected();
         if (this.connected && this.client.isNeedAuth()) {
             this.synapse.connect();
+            this.synapse.updateLastLogin();
             this.client.setNeedAuth(false);
         }
     }
