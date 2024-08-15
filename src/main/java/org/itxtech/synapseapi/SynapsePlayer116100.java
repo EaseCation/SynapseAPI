@@ -14,13 +14,16 @@ import cn.nukkit.blockentity.BlockEntityItemFrame;
 import cn.nukkit.blockentity.BlockEntityLectern;
 import cn.nukkit.blockentity.BlockEntitySpawnable;
 import cn.nukkit.command.data.CommandPermission;
+import cn.nukkit.entity.Entities;
 import cn.nukkit.entity.Entity;
 import cn.nukkit.entity.EntityFullNames;
+import cn.nukkit.entity.data.EntityMetadata;
 import cn.nukkit.event.inventory.InventoryCloseEvent;
 import cn.nukkit.event.player.*;
 import cn.nukkit.form.window.FormWindow;
 import cn.nukkit.form.window.FormWindowCustom;
 import cn.nukkit.inventory.AnvilInventory;
+import cn.nukkit.inventory.ContainerInventory;
 import cn.nukkit.inventory.Inventory;
 import cn.nukkit.item.Item;
 import cn.nukkit.item.ItemEdible;
@@ -37,6 +40,7 @@ import cn.nukkit.level.format.generic.ChunkPacketCache;
 import cn.nukkit.level.generator.Generator;
 import cn.nukkit.level.particle.PunchBlockParticle;
 import cn.nukkit.math.*;
+import cn.nukkit.nbt.tag.CompoundTag;
 import cn.nukkit.network.PacketViolationReason;
 import cn.nukkit.network.SourceInterface;
 import cn.nukkit.network.protocol.*;
@@ -57,7 +61,6 @@ import it.unimi.dsi.fastutil.objects.ObjectIterator;
 import lombok.extern.log4j.Log4j2;
 import org.itxtech.synapseapi.camera.CameraManager;
 import org.itxtech.synapseapi.dialogue.NPCDialoguePlayerHandler;
-import org.itxtech.synapseapi.event.player.SynapsePlayerRequestAvailableEntityPropertiesPaletteEvent;
 import org.itxtech.synapseapi.multiprotocol.AbstractProtocol;
 import org.itxtech.synapseapi.multiprotocol.common.Experiments;
 import org.itxtech.synapseapi.multiprotocol.common.camera.CameraFadeInstruction;
@@ -71,7 +74,8 @@ import org.itxtech.synapseapi.multiprotocol.protocol116200.protocol.FilterTextPa
 import org.itxtech.synapseapi.multiprotocol.protocol116200.protocol.ResourcePacksInfoPacket116200;
 import org.itxtech.synapseapi.multiprotocol.protocol116200.protocol.StartGamePacket116200;
 import org.itxtech.synapseapi.multiprotocol.protocol116210.protocol.CameraShakePacket116210;
-import org.itxtech.synapseapi.multiprotocol.protocol117.protocol.ChangeMobPropertyPacket117;
+import org.itxtech.synapseapi.multiprotocol.protocol11710.protocol.NpcDialoguePacket11710;
+import org.itxtech.synapseapi.multiprotocol.protocol11830.protocol.ChangeMobPropertyPacket11830;
 import org.itxtech.synapseapi.multiprotocol.protocol117.protocol.StartGamePacket117;
 import org.itxtech.synapseapi.multiprotocol.protocol117.protocol.SyncEntityPropertyPacket117;
 import org.itxtech.synapseapi.multiprotocol.protocol11710.protocol.NPCRequestPacket11710;
@@ -129,11 +133,16 @@ import org.itxtech.synapseapi.multiprotocol.protocol121.protocol.ContainerCloseP
 import org.itxtech.synapseapi.multiprotocol.protocol121.protocol.StartGamePacket121;
 import org.itxtech.synapseapi.multiprotocol.protocol121.protocol.TextPacket121;
 import org.itxtech.synapseapi.multiprotocol.protocol1212.protocol.ClientboundCloseFormPacket1212;
+import org.itxtech.synapseapi.multiprotocol.protocol12120.protocol.*;
 import org.itxtech.synapseapi.multiprotocol.protocol14.protocol.PlayerActionPacket14;
 import org.itxtech.synapseapi.multiprotocol.protocol16.protocol.ResourcePackClientResponsePacket16;
 import org.itxtech.synapseapi.multiprotocol.utils.EntityPropertiesPalette;
 import org.itxtech.synapseapi.multiprotocol.utils.ItemComponentDefinitions;
 import org.itxtech.synapseapi.multiprotocol.utils.VanillaExperiments;
+import org.itxtech.synapseapi.multiprotocol.utils.entityproperty.data.EntityPropertiesTable;
+import org.itxtech.synapseapi.multiprotocol.utils.entityproperty.data.EntityPropertyData;
+import org.itxtech.synapseapi.multiprotocol.utils.entityproperty.data.EntityPropertyDataEnum;
+import org.itxtech.synapseapi.multiprotocol.utils.entityproperty.data.EntityPropertyType;
 import org.itxtech.synapseapi.network.protocol.spp.PlayerLoginPacket;
 import org.itxtech.synapseapi.utils.BlobTrack;
 import org.itxtech.synapseapi.utils.PacketUtil;
@@ -174,6 +183,8 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
     public NPCDialoguePlayerHandler npcDialoguePlayerHandler;
 
     private byte skinHack; // 1.19.62
+
+    protected int clientMaxViewDistance = -1;
 
     public SynapsePlayer116100(SourceInterface interfaz, SynapseEntry synapseEntry, Long clientID, InetSocketAddress socketAddress) {
         super(interfaz, synapseEntry, clientID, socketAddress);
@@ -225,7 +236,13 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
             startGamePacket.isBlockBreakingServerAuthoritative = this.serverAuthoritativeBlockBreaking;
             startGamePacket.currentTick = 0;//this.server.getTick();
             startGamePacket.enchantmentSeed = ThreadLocalRandom.current().nextInt();
+            startGamePacket.playerPropertyData = getCompiledPlayerProperties();
             startGamePacket.isSoundServerAuthoritative = isServerAuthoritativeSoundEnabled();
+            if (isBetaClient()) {
+                startGamePacket.experiments = new Experiments(
+                        VanillaExperiments.DEFERRED_TECHNICAL_PREVIEW
+                );
+            }
             return startGamePacket;
         } else if (this.getProtocol() >= AbstractProtocol.PROTOCOL_120_80.getProtocolStart()) {
             StartGamePacket12080 startGamePacket = new StartGamePacket12080();
@@ -259,7 +276,13 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
             startGamePacket.isBlockBreakingServerAuthoritative = this.serverAuthoritativeBlockBreaking;
             startGamePacket.currentTick = 0;//this.server.getTick();
             startGamePacket.enchantmentSeed = ThreadLocalRandom.current().nextInt();
+            startGamePacket.playerPropertyData = getCompiledPlayerProperties();
             startGamePacket.isSoundServerAuthoritative = isServerAuthoritativeSoundEnabled();
+            if (isBetaClient()) {
+                startGamePacket.experiments = new Experiments(
+                        VanillaExperiments.DEFERRED_TECHNICAL_PREVIEW
+                );
+            }
             return startGamePacket;
         } else if (this.getProtocol() >= AbstractProtocol.PROTOCOL_120_30.getProtocolStart()) {
             StartGamePacket12030 startGamePacket = new StartGamePacket12030();
@@ -293,7 +316,13 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
             startGamePacket.isBlockBreakingServerAuthoritative = this.serverAuthoritativeBlockBreaking;
             startGamePacket.currentTick = 0;//this.server.getTick();
             startGamePacket.enchantmentSeed = ThreadLocalRandom.current().nextInt();
+            startGamePacket.playerPropertyData = getCompiledPlayerProperties();
             startGamePacket.isSoundServerAuthoritative = isServerAuthoritativeSoundEnabled();
+            if (isBetaClient()) {
+                startGamePacket.experiments = new Experiments(
+                        VanillaExperiments.DEFERRED_TECHNICAL_PREVIEW
+                );
+            }
             return startGamePacket;
         } else if (this.getProtocol() >= AbstractProtocol.PROTOCOL_120.getProtocolStart()) {
             StartGamePacket120 startGamePacket = new StartGamePacket120();
@@ -327,6 +356,7 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
             startGamePacket.isBlockBreakingServerAuthoritative = this.serverAuthoritativeBlockBreaking;
             startGamePacket.currentTick = 0;//this.server.getTick();
             startGamePacket.enchantmentSeed = ThreadLocalRandom.current().nextInt();
+            startGamePacket.playerPropertyData = getCompiledPlayerProperties();
             startGamePacket.isSoundServerAuthoritative = isServerAuthoritativeSoundEnabled();
             startGamePacket.experiments = new Experiments(VanillaExperiments.CAMERAS);
             return startGamePacket;
@@ -362,6 +392,7 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
             startGamePacket.isBlockBreakingServerAuthoritative = this.serverAuthoritativeBlockBreaking;
             startGamePacket.currentTick = 0;//this.server.getTick();
             startGamePacket.enchantmentSeed = ThreadLocalRandom.current().nextInt();
+            startGamePacket.playerPropertyData = getCompiledPlayerProperties();
             return startGamePacket;
         } else if (this.getProtocol() >= AbstractProtocol.PROTOCOL_119_60.getProtocolStart()) {
             StartGamePacket11960 startGamePacket = new StartGamePacket11960();
@@ -395,6 +426,7 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
             startGamePacket.isBlockBreakingServerAuthoritative = this.serverAuthoritativeBlockBreaking;
             startGamePacket.currentTick = 0;//this.server.getTick();
             startGamePacket.enchantmentSeed = ThreadLocalRandom.current().nextInt();
+            startGamePacket.playerPropertyData = getCompiledPlayerProperties();
             return startGamePacket;
         } else if (this.getProtocol() >= AbstractProtocol.PROTOCOL_119_20.getProtocolStart()) {
             StartGamePacket11920 startGamePacket = new StartGamePacket11920();
@@ -428,6 +460,7 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
             startGamePacket.isBlockBreakingServerAuthoritative = this.serverAuthoritativeBlockBreaking;
             startGamePacket.currentTick = 0;//this.server.getTick();
             startGamePacket.enchantmentSeed = ThreadLocalRandom.current().nextInt();
+            startGamePacket.playerPropertyData = getCompiledPlayerProperties();
             return startGamePacket;
         } else if (this.getProtocol() >= AbstractProtocol.PROTOCOL_119_10.getProtocolStart()) {
             StartGamePacket11910 startGamePacket = new StartGamePacket11910();
@@ -461,6 +494,7 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
             startGamePacket.isBlockBreakingServerAuthoritative = this.serverAuthoritativeBlockBreaking;
             startGamePacket.currentTick = 0;//this.server.getTick();
             startGamePacket.enchantmentSeed = ThreadLocalRandom.current().nextInt();
+            startGamePacket.playerPropertyData = getCompiledPlayerProperties();
             return startGamePacket;
         } else if (this.getProtocol() >= AbstractProtocol.PROTOCOL_119.getProtocolStart()) {
             StartGamePacket119 startGamePacket = new StartGamePacket119();
@@ -494,6 +528,7 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
             startGamePacket.isBlockBreakingServerAuthoritative = this.serverAuthoritativeBlockBreaking;
             startGamePacket.currentTick = 0;//this.server.getTick();
             startGamePacket.enchantmentSeed = ThreadLocalRandom.current().nextInt();
+            startGamePacket.playerPropertyData = getCompiledPlayerProperties();
             return startGamePacket;
         } else if (isNetEaseClient() && this.getProtocol() >= AbstractProtocol.PROTOCOL_118_30_NE.getProtocolStart()) {
             StartGamePacket11830NE startGamePacket = new StartGamePacket11830NE();
@@ -907,6 +942,16 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
                         pk.wasServerInitiated = false;
                         pk.windowId = -1;
                         this.dataPacket(pk);
+                    } else { // Close bugged inventory
+                        ContainerClosePacket pk = new ContainerClosePacket();
+                        pk.windowId = containerClosePacket.windowId;
+                        this.dataPacket(pk);
+
+                        for (Inventory open : new ArrayList<>(this.windows.keySet())) {
+                            if (open instanceof ContainerInventory) {
+                                this.removeWindow(open);
+                            }
+                        }
                     }
                     break;
                 }
@@ -1875,13 +1920,24 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
                     break;
                 }
                 NPCRequestPacket11710 npcRequestPacket = (NPCRequestPacket11710) packet;
+                String sceneName = npcRequestPacket.sceneName;
                 Entity entity = this.getLevel().getEntity(npcRequestPacket.entityRuntimeId);
                 if (entity == null) {
+                    NpcDialoguePacket11710 pk = new NpcDialoguePacket11710();
+                    pk.npcEntityUniqueId = npcRequestPacket.entityRuntimeId;
+                    pk.actionType = NpcDialoguePacket11710.ACTION_CLOSE;
+                    pk.sceneName = sceneName;
+                    dataPacket(pk);
                     break;  // 世界中不存在这个实体
                 }
-                String sceneName = npcRequestPacket.sceneName;
                 if (npcRequestPacket.type == NPCRequestPacket11710.TYPE_EXECUTE_COMMAND_ACTION) {
-                    this.getNpcDialoguePlayerHandler().onDialogueResponse(sceneName, npcRequestPacket.actionIndex);
+                    if (!this.getNpcDialoguePlayerHandler().onDialogueResponse(sceneName, npcRequestPacket.actionIndex)) {
+                        NpcDialoguePacket11710 pk = new NpcDialoguePacket11710();
+                        pk.npcEntityUniqueId = npcRequestPacket.entityRuntimeId;
+                        pk.actionType = NpcDialoguePacket11710.ACTION_CLOSE;
+                        pk.sceneName = sceneName;
+                        dataPacket(pk);
+                    }
                 }
                 break;
             case ProtocolInfo.COMMAND_REQUEST_PACKET:
@@ -1977,6 +2033,7 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
 
                 RequestChunkRadiusPacket11980 requestChunkRadiusPacket = (RequestChunkRadiusPacket11980) packet;
                 this.viewDistance = Mth.clamp(requestChunkRadiusPacket.radius, 4, 96);
+                this.clientMaxViewDistance = Math.max(this.viewDistance, Mth.clamp(requestChunkRadiusPacket.maxRadius, 4, 96));
                 this.chunkRadius = Math.min(this.viewDistance, this.getMaxViewDistance());
 
                 ChunkRadiusUpdatedPacket chunkRadiusUpdatePacket = new ChunkRadiusUpdatedPacket();
@@ -2189,7 +2246,13 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
 
     @Override
     protected DataPacket generateResourcePackInfoPacket() {
-        if (this.protocol >= AbstractProtocol.PROTOCOL_120_70.getProtocolStart()) {
+        if (this.protocol >= AbstractProtocol.PROTOCOL_121_20.getProtocolStart()) {
+            ResourcePacksInfoPacket12120 resourcePacket = new ResourcePacksInfoPacket12120();
+            resourcePacket.resourcePackEntries = this.resourcePacks.values().toArray(new ResourcePack[0]);
+            resourcePacket.behaviourPackEntries = this.behaviourPacks.values().toArray(new ResourcePack[0]);
+            resourcePacket.mustAccept = this.forceResources;
+            return resourcePacket;
+        } else if (this.protocol >= AbstractProtocol.PROTOCOL_120_70.getProtocolStart()) {
             ResourcePacksInfoPacket12070 resourcePacket = new ResourcePacksInfoPacket12070();
             resourcePacket.resourcePackEntries = this.resourcePacks.values().toArray(new ResourcePack[0]);
             resourcePacket.behaviourPackEntries = this.behaviourPacks.values().toArray(new ResourcePack[0]);
@@ -3023,35 +3086,6 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
     }
 
     @Override
-    public void setDimension(int dimension) {
-        super.setDimension(dimension);
-
-        if (getProtocol() < AbstractProtocol.PROTOCOL_119_50.getProtocolStart()) {
-            if (isNetEaseClient() && getProtocol() >= AbstractProtocol.PROTOCOL_118.getProtocolStart()) {
-                PlayerActionPacket14 packet = new PlayerActionPacket14();
-                packet.action = PlayerActionPacket.ACTION_DIMENSION_CHANGE_ACK;
-                packet.entityId = getId();
-                packet.x = getFloorX();
-                packet.y = getFloorY();
-                packet.z = getFloorZ();
-                dataPacket(packet);
-            }
-            return;
-        }
-
-        PlayerActionPacket119 packet = new PlayerActionPacket119();
-        packet.action = PlayerActionPacket.ACTION_DIMENSION_CHANGE_ACK;
-        packet.entityId = getId();
-        packet.x = getFloorX();
-        packet.y = getFloorY();
-        packet.z = getFloorZ();
-        packet.resultX = packet.x;
-        packet.resultY = packet.y;
-        packet.resultZ = packet.z;
-        dataPacket(packet);
-    }
-
-    @Override
     public void openSignEditor(BlockVector3 pos, boolean front) {
         if (getProtocol() < AbstractProtocol.PROTOCOL_119_80.getProtocolStart()) {
             return;
@@ -3132,64 +3166,153 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
     @Override
     public void syncEntityProperties() {
         Map<String, byte[]> compiled = EntityPropertiesPalette.getCompiledPalette(AbstractProtocol.fromRealProtocol(protocol), isNetEaseClient());
-        SynapsePlayerRequestAvailableEntityPropertiesPaletteEvent event = new SynapsePlayerRequestAvailableEntityPropertiesPaletteEvent(this, compiled);
-        this.getServer().getPluginManager().callEvent(event);
-        compiled = event.getCompiled();
         for (byte[] nbt : compiled.values()) {
-            SyncEntityPropertyPacket117 bee = new SyncEntityPropertyPacket117();
-            bee.nbt = nbt;
-            dataPacket(bee);
+            SyncEntityPropertyPacket117 packet = new SyncEntityPropertyPacket117();
+            packet.nbt = nbt;
+            dataPacket(packet);
         }
     }
 
+    protected byte[] getCompiledPlayerProperties() {
+        return EntityPropertiesPalette.getCompiledPalette(AbstractProtocol.fromRealProtocol(protocol), isNetEaseClient())
+                .getOrDefault(EntityFullNames.PLAYER, CompoundTag.EMPTY);
+    }
+
+    protected int lookupEntityPropertyIndex(Entity entity, String propertyName) {
+        String identifier;
+        int type = entity.getNetworkId();
+        if (type > 0) {
+            identifier = Entities.getIdentifierByType(type);
+            if (identifier == null) {
+                identifier = entity.getIdentifier();
+            }
+        } else if (type == -1) {
+            identifier = EntityFullNames.PLAYER;
+        } else {
+            identifier = entity.getIdentifier();
+        }
+        EntityPropertiesTable properties = EntityPropertiesPalette.getPalette(AbstractProtocol.fromRealProtocol(protocol), isNetEaseClient()).getProperties(identifier);
+        if (properties == null) {
+            throw new IllegalArgumentException("No properties for " + identifier + " (" + entity.getClass() + ")");
+        }
+        int index = properties.getPropertyIndex(propertyName);
+        if (index == -1) {
+            throw new IllegalArgumentException("Unknown property <" + propertyName + "> for " + identifier + " (" + entity.getClass() + ")");
+        }
+        return index;
+    }
+
     @Override
-    public void sendMobPropertyInt(long entityRuntimeId, String propertyName, int value) {
-        if (getProtocol() < AbstractProtocol.PROTOCOL_117.getProtocolStart()) {
+    public void sendEntityPropertyInt(Entity entity, String propertyName, int value) {
+        if (getProtocol() >= AbstractProtocol.PROTOCOL_119_40.getProtocolStart()) {
+            SetEntityDataPacket packet = new SetEntityDataPacket();
+            packet.eid = entity.getId();
+            packet.metadata = new EntityMetadata();
+            packet.intProperties.put(lookupEntityPropertyIndex(entity, propertyName), value);
+            dataPacket(packet);
             return;
         }
 
-        ChangeMobPropertyPacket117 packet = new ChangeMobPropertyPacket117();
-        packet.uniqueEntityId = entityRuntimeId;
+        if (getProtocol() < AbstractProtocol.PROTOCOL_118_30.getProtocolStart()) {
+            return;
+        }
+
+        ChangeMobPropertyPacket11830 packet = new ChangeMobPropertyPacket11830();
+        packet.uniqueEntityId = entity.getId();
         packet.property = propertyName;
         packet.intValue = value;
         dataPacket(packet);
     }
 
     @Override
-    public void sendMobPropertyFloat(long entityRuntimeId, String propertyName, float value) {
-        if (getProtocol() < AbstractProtocol.PROTOCOL_117.getProtocolStart()) {
+    public void sendEntityPropertyFloat(Entity entity, String propertyName, float value) {
+        if (getProtocol() >= AbstractProtocol.PROTOCOL_119_40.getProtocolStart()) {
+            SetEntityDataPacket packet = new SetEntityDataPacket();
+            packet.eid = entity.getId();
+            packet.metadata = new EntityMetadata();
+            packet.floatProperties.put(lookupEntityPropertyIndex(entity, propertyName), value);
+            dataPacket(packet);
             return;
         }
 
-        ChangeMobPropertyPacket117 packet = new ChangeMobPropertyPacket117();
-        packet.uniqueEntityId = entityRuntimeId;
+        if (getProtocol() < AbstractProtocol.PROTOCOL_118_30.getProtocolStart()) {
+            return;
+        }
+
+        ChangeMobPropertyPacket11830 packet = new ChangeMobPropertyPacket11830();
+        packet.uniqueEntityId = entity.getId();
         packet.property = propertyName;
         packet.floatValue = value;
         dataPacket(packet);
     }
 
     @Override
-    public void sendMobPropertyBool(long entityRuntimeId, String propertyName, boolean value) {
-        if (getProtocol() < AbstractProtocol.PROTOCOL_117.getProtocolStart()) {
+    public void sendEntityPropertyBool(Entity entity, String propertyName, boolean value) {
+        if (getProtocol() >= AbstractProtocol.PROTOCOL_119_40.getProtocolStart()) {
+            SetEntityDataPacket packet = new SetEntityDataPacket();
+            packet.eid = entity.getId();
+            packet.metadata = new EntityMetadata();
+            packet.intProperties.put(lookupEntityPropertyIndex(entity, propertyName), value ? 1 : 0);
+            dataPacket(packet);
             return;
         }
 
-        ChangeMobPropertyPacket117 packet = new ChangeMobPropertyPacket117();
-        packet.uniqueEntityId = entityRuntimeId;
+        if (getProtocol() < AbstractProtocol.PROTOCOL_118_30.getProtocolStart()) {
+            return;
+        }
+
+        ChangeMobPropertyPacket11830 packet = new ChangeMobPropertyPacket11830();
+        packet.uniqueEntityId = entity.getId();
         packet.property = propertyName;
         packet.boolValue = value;
         dataPacket(packet);
     }
 
     @Override
-    public void sendMobPropertyEnum(long entityRuntimeId, String propertyName, String value) {
-        if (getProtocol() < AbstractProtocol.PROTOCOL_117.getProtocolStart()) {
-            super.sendMobPropertyEnum(entityRuntimeId, propertyName, value);
+    public void sendEntityPropertyEnum(Entity entity, String propertyName, String value) {
+        if (getProtocol() >= AbstractProtocol.PROTOCOL_119_40.getProtocolStart()) {
+            String identifier;
+            int type = entity.getNetworkId();
+            if (type > 0) {
+                identifier = Entities.getIdentifierByType(type);
+                if (identifier == null) {
+                    identifier = entity.getIdentifier();
+                }
+            } else if (type == -1) {
+                identifier = EntityFullNames.PLAYER;
+            }  else {
+                identifier = entity.getIdentifier();
+            }
+            EntityPropertiesTable properties = EntityPropertiesPalette.getPalette(AbstractProtocol.fromRealProtocol(protocol), isNetEaseClient()).getProperties(identifier);
+            if (properties == null) {
+                throw new IllegalArgumentException("No properties for " + identifier + " (" + entity.getClass() + ")");
+            }
+            int index = properties.getPropertyIndex(propertyName);
+            if (index == -1) {
+                throw new IllegalArgumentException("Unknown property <" + propertyName + "> for " + identifier + " (" + entity.getClass() + ")");
+            }
+            if (!(properties.get(index) instanceof EntityPropertyDataEnum property)) {
+                throw new IllegalStateException(identifier + "'s property <" + propertyName + "> is not a string " + " (" + entity.getClass() + ")");
+            }
+            int valueIndex = property.getValues().indexOf(value);
+            if (valueIndex == -1) {
+                throw new IllegalArgumentException("Unknown property value <" + propertyName + " = " + value + "> for " + identifier + " (" + entity.getClass() + ")");
+            }
+
+            SetEntityDataPacket packet = new SetEntityDataPacket();
+            packet.eid = entity.getId();
+            packet.metadata = new EntityMetadata();
+            packet.intProperties.put(index, valueIndex);
+            dataPacket(packet);
             return;
         }
 
-        ChangeMobPropertyPacket117 packet = new ChangeMobPropertyPacket117();
-        packet.uniqueEntityId = entityRuntimeId;
+        if (getProtocol() < AbstractProtocol.PROTOCOL_118_30.getProtocolStart()) {
+            return;
+        }
+
+        ChangeMobPropertyPacket11830 packet = new ChangeMobPropertyPacket11830();
+        packet.uniqueEntityId = entity.getId();
         packet.property = propertyName;
         packet.stringValue = value;
         dataPacket(packet);
@@ -3260,6 +3383,13 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
 
     @Override
     protected void sendCameraPresets() {
+        if (getProtocol() >= AbstractProtocol.PROTOCOL_121_20.getProtocolStart()) {
+            CameraPresetsPacket12120 packet = new CameraPresetsPacket12120();
+            packet.presets = CameraManager.getInstance().getCameras();
+            this.dataPacket(packet);
+            return;
+        }
+
         if (getProtocol() >= AbstractProtocol.PROTOCOL_120_30.getProtocolStart()) {
             CameraPresetsPacket12030 packet = new CameraPresetsPacket12030();
             packet.presets = CameraManager.getInstance().getCameras();
@@ -3277,6 +3407,14 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
 
     @Override
     public void startCameraInstruction(CameraSetInstruction set, CameraFadeInstruction fade) {
+        if (getProtocol() >= AbstractProtocol.PROTOCOL_121_20.getProtocolStart()) {
+            CameraInstructionPacket12120 pk = new CameraInstructionPacket12120();
+            pk.set = set;
+            pk.fade = fade;
+            this.dataPacket(pk);
+            return;
+        }
+
         if (getProtocol() >= AbstractProtocol.PROTOCOL_120_30.getProtocolStart()) {
             CameraInstructionPacket12030 pk = new CameraInstructionPacket12030();
             pk.set = set;
@@ -3306,6 +3444,13 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
 
     @Override
     public void clearCameraInstruction() {
+        if (getProtocol() >= AbstractProtocol.PROTOCOL_121_20.getProtocolStart()) {
+            CameraInstructionPacket12120 pk = new CameraInstructionPacket12120();
+            pk.clear = true;
+            this.dataPacket(pk);
+            return;
+        }
+
         if (getProtocol() >= AbstractProtocol.PROTOCOL_120_30.getProtocolStart()) {
             CameraInstructionPacket12030 pk = new CameraInstructionPacket12030();
             pk.clear = true;
@@ -3323,6 +3468,18 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
 
     @Override
     public void sendDisconnectScreen(int reason, @Nullable String message) {
+        if (getProtocol() >= AbstractProtocol.PROTOCOL_121_20.getProtocolStart()) {
+            DisconnectPacket12120 packet = new DisconnectPacket12120();
+            packet.reason = reason;
+            if (message != null) {
+                packet.message = message;
+            } else {
+                packet.hideDisconnectionScreen = true;
+            }
+            dataPacket(packet);
+            return;
+        }
+
         if (getProtocol() < AbstractProtocol.PROTOCOL_120_40.getProtocolStart()) {
             super.sendDisconnectScreen(reason, message);
             return;
@@ -3407,5 +3564,64 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
         }
 
         dataPacket(new ClientboundCloseFormPacket1212());
+    }
+
+    @Override
+    protected void firstRespawn(Position pos) {
+        super.firstRespawn(pos);
+
+        if (getProtocol() < AbstractProtocol.PROTOCOL_121_20.getProtocolStart()) {
+            return;
+        }
+
+        CurrentStructureFeaturePacket12120 packet = new CurrentStructureFeaturePacket12120();
+        dataPacket(packet);
+    }
+
+    @Override
+    protected void firstSyncLocalPlayerEntityData() {
+        if (getProtocol() < AbstractProtocol.PROTOCOL_119_50.getProtocolStart()) {
+            super.firstSyncLocalPlayerEntityData();
+            return;
+        }
+
+        SetEntityDataPacket pk = new SetEntityDataPacket();
+        pk.eid = getId();
+        pk.metadata = dataProperties;
+
+        EntityPropertiesTable properties = EntityPropertiesPalette.getPalette(AbstractProtocol.fromRealProtocol(protocol), isNetEaseClient()).getProperties(EntityFullNames.PLAYER);
+        if (properties != null) {
+            for (int i = 0; i < properties.size(); i++) {
+                EntityPropertyData property = properties.get(i);
+                if (property.getType() == EntityPropertyType.FLOAT) {
+                    pk.floatProperties.put(i, property.getDefaultFloatValue());
+                } else {
+                    pk.intProperties.put(i, property.getDefaultIntValue());
+                }
+            }
+        }
+
+        dataPacket(pk);
+    }
+
+    @Override
+    public boolean setViewDistance(int distance) {
+        if (clientMaxViewDistance != -1) {
+            if (distance > clientMaxViewDistance) {
+                distance = clientMaxViewDistance;
+            }
+        } else if (distance > viewDistance) {
+            distance = viewDistance;
+        }
+        int viewDistance = Math.max(4, distance);
+        if (this.chunkRadius == viewDistance) {
+            return false;
+        }
+        this.chunkRadius = viewDistance;
+
+        ChunkRadiusUpdatedPacket pk = new ChunkRadiusUpdatedPacket();
+        pk.radius = viewDistance;
+        this.dataPacket(pk);
+        return true;
     }
 }

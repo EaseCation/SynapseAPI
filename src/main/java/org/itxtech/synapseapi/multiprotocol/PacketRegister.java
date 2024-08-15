@@ -113,6 +113,7 @@ import org.itxtech.synapseapi.multiprotocol.protocol121.protocol.CraftingDataPac
 import org.itxtech.synapseapi.multiprotocol.protocol121.protocol.StartGamePacket121;
 import org.itxtech.synapseapi.multiprotocol.protocol121.protocol.TextPacket121;
 import org.itxtech.synapseapi.multiprotocol.protocol1212.protocol.ClientboundCloseFormPacket1212;
+import org.itxtech.synapseapi.multiprotocol.protocol12120.protocol.*;
 import org.itxtech.synapseapi.multiprotocol.protocol15.protocol.AddEntityPacket15;
 import org.itxtech.synapseapi.multiprotocol.protocol15.protocol.ClientboundMapItemDataPacket15;
 import org.itxtech.synapseapi.multiprotocol.protocol15.protocol.MoveEntityAbsolutePacket15;
@@ -414,9 +415,18 @@ public class PacketRegister {
         registerPacket(AbstractProtocol.PROTOCOL_121, ProtocolInfo.CRAFTING_DATA_PACKET, CraftingDataPacket121.class);
         registerPacket(AbstractProtocol.PROTOCOL_121, ProtocolInfo.TEXT_PACKET, TextPacket121.class);
         registerPacket(AbstractProtocol.PROTOCOL_121, ProtocolInfo.CONTAINER_CLOSE_PACKET, ContainerClosePacket121.class);
-        registerPacket(AbstractProtocol.PROTOCOL_121, ProtocolInfo.AWARD_ACHIEVEMENT_PACKET, AwardAchievementPacket121.class);
 
-        registerPacket(AbstractProtocol.PROTOCOL_121_2, ProtocolInfo.CLIENTBOUND_CLOSE_FORM_PACKET, ClientboundCloseFormPacket1212.class);
+        registerPacket(AbstractProtocol.PROTOCOL_121_20, ProtocolInfo.DISCONNECT_PACKET, DisconnectPacket12120.class);
+        registerPacket(AbstractProtocol.PROTOCOL_121_20, ProtocolInfo.MOB_ARMOR_EQUIPMENT_PACKET, MobArmorEquipmentPacket12120.class);
+        registerPacket(AbstractProtocol.PROTOCOL_121_20, ProtocolInfo.SET_ACTOR_LINK_PACKET, SetEntityLinkPacket12120.class);
+        registerPacket(AbstractProtocol.PROTOCOL_121_20, ProtocolInfo.SET_TITLE_PACKET, SetTitlePacket12120.class);
+        registerPacket(AbstractProtocol.PROTOCOL_121_20, ProtocolInfo.STOP_SOUND_PACKET, StopSoundPacket12120.class);
+        registerPacket(AbstractProtocol.PROTOCOL_121_20, ProtocolInfo.CHANGE_DIMENSION_PACKET, ChangeDimensionPacket12120.class);
+        registerPacket(AbstractProtocol.PROTOCOL_121_20, ProtocolInfo.SERVERBOUND_LOADING_SCREEN_PACKET, ServerboundLoadingScreenPacket12120.class);
+        registerPacket(AbstractProtocol.PROTOCOL_121_20, ProtocolInfo.SERVERBOUND_DIAGNOSTICS_PACKET, ServerboundDiagnosticsPacket12120.class);
+        registerPacket(AbstractProtocol.PROTOCOL_121_20, ProtocolInfo.RESOURCE_PACKS_INFO_PACKET, ResourcePacksInfoPacket12120.class);
+        registerPacket(AbstractProtocol.PROTOCOL_121_20, ProtocolInfo.INVENTORY_CONTENT_PACKET, InventoryContentPacket12120.class);
+        registerPacket(AbstractProtocol.PROTOCOL_121_20, ProtocolInfo.INVENTORY_SLOT_PACKET, InventorySlotPacket12120.class);
 
         checkNeteaseSpecialExtend();
     }

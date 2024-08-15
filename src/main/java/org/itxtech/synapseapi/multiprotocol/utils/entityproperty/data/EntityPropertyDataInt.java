@@ -7,11 +7,17 @@ public class EntityPropertyDataInt implements EntityPropertyData {
     private final String name;
     private final int max;
     private final int min;
+    private final int defaultValue;
 
     public EntityPropertyDataInt(String name, int max, int min) {
+        this(name, max, min, min);
+    }
+
+    public EntityPropertyDataInt(String name, int max, int min, int defaultValue) {
         this.name = name;
         this.max = max;
         this.min = min;
+        this.defaultValue = defaultValue;
     }
 
     @Override
@@ -39,5 +45,10 @@ public class EntityPropertyDataInt implements EntityPropertyData {
             .putInt("max", max)
             .putInt("min", min)
             .putInt("type", getType().getType());
+    }
+
+    @Override
+    public int getDefaultIntValue() {
+        return defaultValue;
     }
 }

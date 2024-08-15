@@ -50,6 +50,7 @@ import org.itxtech.synapseapi.multiprotocol.protocol12.utils.ClientChainData12;
 import org.itxtech.synapseapi.multiprotocol.protocol12.utils.ClientChainData12NetEase;
 import org.itxtech.synapseapi.multiprotocol.protocol12.utils.ClientChainData12Urgency;
 import org.itxtech.synapseapi.multiprotocol.protocol121.protocol.TextPacket121;
+import org.itxtech.synapseapi.multiprotocol.protocol12120.protocol.ChangeDimensionPacket12120;
 import org.itxtech.synapseapi.multiprotocol.protocol14.protocol.PlayerActionPacket14;
 import org.itxtech.synapseapi.multiprotocol.protocol14.protocol.TextPacket14;
 import org.itxtech.synapseapi.multiprotocol.protocol17.protocol.TextPacket17;
@@ -88,6 +89,7 @@ public class SynapsePlayer extends Player {
 
     protected String originName;
     protected LoginChainData loginChainData;
+    protected boolean betaClient;
     protected JsonObject cachedExtra = new JsonObject();
     protected final JsonObject transferExtra = new JsonObject();
     protected int dummyDimension = 0;
@@ -443,6 +445,10 @@ public class SynapsePlayer extends Player {
 
             long flags = 1 << Entity.DATA_FLAG_IMMOBILE;
             this.sendData(this, new EntityMetadata().putLong(Entity.DATA_FLAGS, flags));
+
+            ChunkRadiusUpdatedPacket dp = new ChunkRadiusUpdatedPacket();
+            dp.radius = viewDistance;
+            dataPacket(dp);
         }
         this.sendFogStack();
 
@@ -603,12 +609,23 @@ public class SynapsePlayer extends Player {
                 if (!isLevelChanging) {
                     this.nextDummyDimension();
                 }
-                ChangeDimensionPacket changeDimensionPacket1 = new ChangeDimensionPacket();
-                changeDimensionPacket1.dimension = this.dummyDimension;
-                changeDimensionPacket1.x = 0;
-                changeDimensionPacket1.y = 32767;
-                changeDimensionPacket1.z = 0;
-                dataPacket(changeDimensionPacket1);
+
+                if (getProtocol() >= AbstractProtocol.PROTOCOL_121_20.getProtocolStart()) {
+                    ChangeDimensionPacket12120 changeDimensionPacket1 = new ChangeDimensionPacket12120();
+                    changeDimensionPacket1.dimension = this.dummyDimension;
+                    changeDimensionPacket1.x = 0;
+                    changeDimensionPacket1.y = 32767;
+                    changeDimensionPacket1.z = 0;
+                    dataPacket(changeDimensionPacket1);
+                } else {
+                    ChangeDimensionPacket changeDimensionPacket1 = new ChangeDimensionPacket();
+                    changeDimensionPacket1.dimension = this.dummyDimension;
+                    changeDimensionPacket1.x = 0;
+                    changeDimensionPacket1.y = 32767;
+                    changeDimensionPacket1.z = 0;
+                    dataPacket(changeDimensionPacket1);
+                }
+
                 // 传递给下一个服务器玩家的虚拟维度信息
                 this.transferExtra.addProperty("dummyDimension", this.dummyDimension);
 
@@ -768,12 +785,21 @@ public class SynapsePlayer extends Player {
                 }
                 this.isLevelChange = true;
 
-                ChangeDimensionPacket changeDimensionPacket = new ChangeDimensionPacket();
-                changeDimensionPacket.dimension = this.dummyDimension;
-                changeDimensionPacket.x = (float) this.getX();
-                changeDimensionPacket.y = (float) this.getY();
-                changeDimensionPacket.z = (float) this.getZ();
-                this.dataPacket(changeDimensionPacket);
+                if (getProtocol() >= AbstractProtocol.PROTOCOL_121_20.getProtocolStart()) {
+                    ChangeDimensionPacket12120 changeDimensionPacket = new ChangeDimensionPacket12120();
+                    changeDimensionPacket.dimension = this.dummyDimension;
+                    changeDimensionPacket.x = (float) this.getX();
+                    changeDimensionPacket.y = (float) this.getY();
+                    changeDimensionPacket.z = (float) this.getZ();
+                    this.dataPacket(changeDimensionPacket);
+                } else {
+                    ChangeDimensionPacket changeDimensionPacket = new ChangeDimensionPacket();
+                    changeDimensionPacket.dimension = this.dummyDimension;
+                    changeDimensionPacket.x = (float) this.getX();
+                    changeDimensionPacket.y = (float) this.getY();
+                    changeDimensionPacket.z = (float) this.getZ();
+                    this.dataPacket(changeDimensionPacket);
+                }
 
                 if (getProtocol() >= AbstractProtocol.PROTOCOL_119_50.getProtocolStart()) {
                     PlayerActionPacket119 ackPacket = new PlayerActionPacket119();
@@ -1425,5 +1451,13 @@ public class SynapsePlayer extends Player {
         if (riding != null) {
             riding.dismountEntity(this);
         }
+
+        if (!isNeedLevelChangeLoadScreen()) {
+            requestCloseFormWindow();
+        }
+    }
+
+    public boolean isBetaClient() {
+        return betaClient;
     }
 }

@@ -65,6 +65,7 @@ public final class EntityPropertiesPalette {
         register(AbstractProtocol.PROTOCOL_120_80, palette12080, null);
         register(AbstractProtocol.PROTOCOL_121, palette12080, null);
         register(AbstractProtocol.PROTOCOL_121_2, palette12080, null);
+        register(AbstractProtocol.PROTOCOL_121_20, palette12080, null);
     }
 
     private static void register(AbstractProtocol protocol, EntityPropertiesPaletteInterface palette, EntityPropertiesPaletteInterface paletteNetEase) {
@@ -75,7 +76,29 @@ public final class EntityPropertiesPalette {
         palettes.put(protocol, data);
     }
 
-    private static EntityPropertiesPaletteInterface getPalette(AbstractProtocol protocol, boolean netease) {
+    public static void registerCustomProperties(EntityPropertiesTable properties) {
+        for (EntityPropertiesPaletteInterface[] versions : palettes.values()) {
+            for (EntityPropertiesPaletteInterface data : versions) {
+                if (data == null) {
+                    continue;
+                }
+                data.registerProperties(properties);
+            }
+        }
+    }
+
+    public static void rebuildNetworkCache() {
+        for (EntityPropertiesPaletteInterface[] versions : palettes.values()) {
+            for (EntityPropertiesPaletteInterface data : versions) {
+                if (data == null) {
+                    continue;
+                }
+                data.rebuildNetworkCache();
+            }
+        }
+    }
+
+    public static EntityPropertiesPaletteInterface getPalette(AbstractProtocol protocol, boolean netease) {
         EntityPropertiesPaletteInterface[] interfaces = palettes.get(protocol);
         if (interfaces == null) {
             return EntityPropertiesPaletteLegacy.INSTANCE;

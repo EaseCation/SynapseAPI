@@ -148,6 +148,8 @@ public class PlayerAuthInputPacket116220 extends Packet116220 implements Invento
 
     @Override
     public void decode() {
+        AbstractProtocol protocol = (AbstractProtocol) helper.getProtocol();
+
         this.pitch = this.getLFloat();
         this.yaw = this.getLFloat();
         Vector3f position = this.getVector3f();
@@ -219,6 +221,9 @@ public class PlayerAuthInputPacket116220 extends Packet116220 implements Invento
 
             UseItemData itemData = new UseItemData();
             itemData.actionType = (int) this.getUnsignedVarInt();
+            if (protocol.getProtocolStart() >= AbstractProtocol.PROTOCOL_121_20.getProtocolStart()) {
+                itemData.triggerType = (int) this.getUnsignedVarInt();
+            }
             itemData.blockPos = this.getBlockVector3();
             itemData.face = this.getBlockFace();
             itemData.hotbarSlot = this.getVarInt();
@@ -226,6 +231,9 @@ public class PlayerAuthInputPacket116220 extends Packet116220 implements Invento
             itemData.playerPos = this.getVector3f().asVector3();
             itemData.clickPos = this.getVector3f();
             itemData.blockId = (int) this.getUnsignedVarInt();
+            if (protocol.getProtocolStart() >= AbstractProtocol.PROTOCOL_121_20.getProtocolStart()) {
+                itemData.clientInteractPrediction = this.getUnsignedVarInt() != 0;
+            }
             this.useItemData = itemData;
         }
 
@@ -273,7 +281,7 @@ public class PlayerAuthInputPacket116220 extends Packet116220 implements Invento
         }
 
         if ((this.inputFlags & (1L << PlayerAuthInputFlags.IN_CLIENT_PREDICTED_IN_VEHICLE)) != 0) {
-            if (((AbstractProtocol) helper.getProtocol()).getProtocolStart() >= AbstractProtocol.PROTOCOL_120_70.getProtocolStart()) {
+            if (protocol.getProtocolStart() >= AbstractProtocol.PROTOCOL_120_70.getProtocolStart()) {
                 vehiclePitch = getLFloat();
                 vehicleYaw = getLFloat();
             }
@@ -281,7 +289,7 @@ public class PlayerAuthInputPacket116220 extends Packet116220 implements Invento
             predictedVehicleEntityUniqueId = getVarLong();
         }
 
-        if (((AbstractProtocol) helper.getProtocol()).getProtocolStart() >= AbstractProtocol.PROTOCOL_119_70.getProtocolStart()) {
+        if (protocol.getProtocolStart() >= AbstractProtocol.PROTOCOL_119_70.getProtocolStart()) {
             analogMoveVecX = getLFloat();
             analogMoveVecZ = getLFloat();
         }

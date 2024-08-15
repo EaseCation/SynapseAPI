@@ -1,0 +1,53 @@
+package org.itxtech.synapseapi.multiprotocol.protocol12120.protocol;
+
+import cn.nukkit.network.protocol.ProtocolInfo;
+import lombok.ToString;
+
+@ToString
+public class PlayerArmorDamagePacket12120 extends Packet12120 {
+    public static final int NETWORK_ID = ProtocolInfo.PLAYER_ARMOR_DAMAGE_PACKET;
+
+    public static final int FLAG_HEAD = 1 << 0;
+    public static final int FLAG_CHEST = 1 << 1;
+    public static final int FLAG_LEGS = 1 << 2;
+    public static final int FLAG_FEET = 1 << 3;
+    public static final int FLAG_BODY = 1 << 4;
+
+    public int flags;
+    public int headSlotDamage;
+    public int chestSlotDamage;
+    public int legsSlotDamage;
+    public int feetSlotDamage;
+    public int bodySlotDamage;
+
+    @Override
+    public int pid() {
+        return NETWORK_ID;
+    }
+
+    @Override
+    public void decode() {
+    }
+
+    @Override
+    public void encode() {
+        reset();
+
+        putByte((byte) flags);
+        if ((flags & FLAG_HEAD) != 0) {
+            putVarInt(headSlotDamage);
+        }
+        if ((flags & FLAG_CHEST) != 0) {
+            putVarInt(chestSlotDamage);
+        }
+        if ((flags & FLAG_LEGS) != 0) {
+            putVarInt(legsSlotDamage);
+        }
+        if ((flags & FLAG_FEET) != 0) {
+            putVarInt(feetSlotDamage);
+        }
+        if ((flags & FLAG_BODY) != 0) {
+            putVarInt(bodySlotDamage);
+        }
+    }
+}

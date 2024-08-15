@@ -2,7 +2,6 @@ package org.itxtech.synapseapi.multiprotocol.utils.entityproperty;
 
 import cn.nukkit.nbt.NBTIO;
 import cn.nukkit.nbt.tag.CompoundTag;
-import it.unimi.dsi.fastutil.objects.Object2ObjectArrayMap;
 import org.itxtech.synapseapi.multiprotocol.utils.EntityPropertiesPaletteInterface;
 import org.itxtech.synapseapi.multiprotocol.utils.entityproperty.data.EntityPropertiesTable;
 import org.itxtech.synapseapi.multiprotocol.utils.entityproperty.data.EntityPropertyData;
@@ -12,8 +11,8 @@ import java.util.*;
 
 public class EntityPropertiesPaletteBase implements EntityPropertiesPaletteInterface {
 
-    private final Map<String, EntityPropertiesTable> palette = new Object2ObjectArrayMap<>();
-    private final Map<String, byte[]> compiled = new Object2ObjectArrayMap<>();
+    private final Map<String, EntityPropertiesTable> palette = new HashMap<>();
+    private final Map<String, byte[]> compiled = new HashMap<>();
 
     public EntityPropertiesPaletteBase() {
         this(List.of());
@@ -25,13 +24,20 @@ public class EntityPropertiesPaletteBase implements EntityPropertiesPaletteInter
 
     public EntityPropertiesPaletteBase(Collection<EntityPropertiesTable> palette) {
         for (EntityPropertiesTable table : palette) {
-            this.palette.put(table.getEntityIdentifier(), table);
+            registerProperties(table);
         }
 
-        this.compilePalette();
+        this.rebuildNetworkCache();
     }
 
-    private void compilePalette() {
+    @Override
+    public void registerProperties(EntityPropertiesTable properties) {
+        palette.put(properties.getEntityIdentifier(), properties);
+    }
+
+    @Override
+    public void rebuildNetworkCache() {
+        compiled.clear();
         for (Map.Entry<String, EntityPropertiesTable> entry : palette.entrySet()) {
             CompoundTag tag = entry.getValue().toTag();
             try {
@@ -66,6 +72,11 @@ public class EntityPropertiesPaletteBase implements EntityPropertiesPaletteInter
             if (property.getName().equals(propertyName)) return Optional.of(property);
         }
         return Optional.empty();
+    }
+
+    @Override
+    public EntityPropertiesTable getProperties(String entityIdentifier) {
+        return palette.get(entityIdentifier);
     }
 
     @Override

@@ -21,6 +21,10 @@ public class UpdateAbilitiesPacket11910 extends Packet11910 {
      * @since 1.19.40
      */
     public static final int LAYER_EDITOR = 4;
+    /**
+     * @since 1.21.20
+     */
+    public static final int LAYER_LOADING_SCREEN = 5;
 
     public long entityUniqueId;
     public int playerPermission = Player.PERMISSION_MEMBER;

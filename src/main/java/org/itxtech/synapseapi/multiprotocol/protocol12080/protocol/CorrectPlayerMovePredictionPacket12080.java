@@ -7,8 +7,8 @@ import lombok.ToString;
 public class CorrectPlayerMovePredictionPacket12080 extends Packet12080 {
     public static final int NETWORK_ID = ProtocolInfo.CORRECT_PLAYER_MOVE_PREDICTION_PACKET;
 
-    public static final int TYPE_VEHICLE = 0;
-    public static final int TYPE_PLAYER = 1;
+    public static final int TYPE_PLAYER = 0;
+    public static final int TYPE_VEHICLE = 1;
 
     public int type = TYPE_PLAYER;
     public float x;

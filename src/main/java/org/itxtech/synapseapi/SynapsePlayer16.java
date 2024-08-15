@@ -9,17 +9,13 @@ import cn.nukkit.lang.TranslationContainer;
 import cn.nukkit.level.GameRules;
 import cn.nukkit.level.Level;
 import cn.nukkit.level.Position;
-import cn.nukkit.math.Vector3;
 import cn.nukkit.network.SourceInterface;
 import cn.nukkit.network.protocol.*;
 import cn.nukkit.resourcepacks.ResourcePack;
 import cn.nukkit.utils.MainLogger;
 import cn.nukkit.utils.TextFormat;
 import com.google.gson.*;
-import org.itxtech.synapseapi.event.player.SynapsePlayerBroadcastLevelSoundEvent;
 import org.itxtech.synapseapi.event.player.SynapsePlayerConnectEvent;
-import org.itxtech.synapseapi.multiprotocol.AbstractProtocol;
-import org.itxtech.synapseapi.multiprotocol.PacketRegister;
 import org.itxtech.synapseapi.multiprotocol.protocol14.protocol.LoginPacket14;
 import org.itxtech.synapseapi.multiprotocol.protocol16.protocol.*;
 import org.itxtech.synapseapi.network.protocol.mod.EncryptedPacket;
@@ -357,7 +353,6 @@ public class SynapsePlayer16 extends SynapsePlayer14 {
 		this.offhandInventory.sendContents(this);
 
 		this.sendPotionEffects(this);
-		this.sendData(this);
 
 		Position pos = this.level.getSafeSpawn(this);
 
@@ -372,6 +367,8 @@ public class SynapsePlayer16 extends SynapsePlayer14 {
 		}
 
 		this.firstRespawn(pos);
+
+		this.firstSyncLocalPlayerEntityData();
 
 		this.sendPlayStatus(PlayStatusPacket.PLAYER_SPAWN);
 
@@ -498,5 +495,9 @@ public class SynapsePlayer16 extends SynapsePlayer14 {
 	@Override
 	public void setSubPacketHandler(ServerSubPacketHandler handler) {
 		subPacketHandler = handler;
+	}
+
+	protected void firstSyncLocalPlayerEntityData() {
+		this.sendData(this);
 	}
 }

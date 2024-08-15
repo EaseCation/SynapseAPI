@@ -1,6 +1,7 @@
 package org.itxtech.synapseapi.multiprotocol.utils.entityproperty;
 
 import org.itxtech.synapseapi.multiprotocol.utils.EntityPropertiesPaletteInterface;
+import org.itxtech.synapseapi.multiprotocol.utils.entityproperty.data.EntityPropertiesTable;
 import org.itxtech.synapseapi.multiprotocol.utils.entityproperty.data.EntityPropertyData;
 
 import java.util.*;
@@ -11,6 +12,14 @@ public class EntityPropertiesPaletteLegacy implements EntityPropertiesPaletteInt
 
     private EntityPropertiesPaletteLegacy() {
         // NOOP
+    }
+
+    @Override
+    public void registerProperties(EntityPropertiesTable properties) {
+    }
+
+    @Override
+    public void rebuildNetworkCache() {
     }
 
     @Override
@@ -26,6 +35,11 @@ public class EntityPropertiesPaletteLegacy implements EntityPropertiesPaletteInt
     @Override
     public Optional<EntityPropertyData> getProperty(String entityIdentifier, String propertyName) {
         return Optional.empty();
+    }
+
+    @Override
+    public EntityPropertiesTable getProperties(String entityIdentifier) {
+        return null;
     }
 
     @Override

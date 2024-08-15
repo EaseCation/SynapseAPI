@@ -1,10 +1,10 @@
-package org.itxtech.synapseapi.multiprotocol.protocol117.protocol;
+package org.itxtech.synapseapi.multiprotocol.protocol11830.protocol;
 
 import cn.nukkit.network.protocol.ProtocolInfo;
 import lombok.ToString;
 
 @ToString
-public class ChangeMobPropertyPacket117 extends Packet117 {
+public class ChangeMobPropertyPacket11830 extends Packet11830 {
 
     public static final int NETWORK_ID = ProtocolInfo.CHANGE_MOB_PROPERTY_PACKET;
 

@@ -28,11 +28,11 @@ public class ResourcePacksInfoPacket116200 extends Packet116200 {
         this.putBoolean(this.mustAccept);
         this.putBoolean(this.scripting);
 
-        encodePacks(this.behaviourPackEntries);
-        encodePacks(this.resourcePackEntries);
+        encodePacks(this.behaviourPackEntries, false);
+        encodePacks(this.resourcePackEntries, true);
     }
 
-    private void encodePacks(ResourcePack[] packs) {
+    private void encodePacks(ResourcePack[] packs, boolean resource) {
         this.putLShort(packs.length);
         for (ResourcePack entry : packs) {
             this.putString(entry.getPackId());
@@ -42,7 +42,7 @@ public class ResourcePacksInfoPacket116200 extends Packet116200 {
             this.putString(""); // sub-pack name
             this.putString(!entry.getEncryptionKey().isEmpty() ? entry.getPackId() : ""); // content identity
             this.putBoolean(false); // scripting
-            if (entry.getPackType().equals("resources")) {
+            if (resource) {
                 this.putBoolean(entry.getCapabilities().contains("raytraced"));
             }
         }

@@ -6,6 +6,7 @@ import com.google.gson.GsonBuilder;
 import org.itxtech.synapseapi.SynapsePlayer;
 import org.itxtech.synapseapi.multiprotocol.protocol11710.protocol.NpcDialoguePacket11710;
 
+import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -38,7 +39,11 @@ public class NPCDialogueScene {
         return buttons;
     }
 
+    @Nullable
     public NPCDialogueButton getButton(int index) {
+        if (index >= buttons.size()) {
+            return null;
+        }
         return buttons.get(index);
     }
 

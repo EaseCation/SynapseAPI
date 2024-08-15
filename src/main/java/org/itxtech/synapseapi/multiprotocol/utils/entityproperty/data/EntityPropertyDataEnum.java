@@ -12,14 +12,24 @@ public class EntityPropertyDataEnum implements EntityPropertyData {
 
     private final String name;
     private final List<String> values;
+    private final int defaultValueIndex;
 
     public EntityPropertyDataEnum(String name, String... values) {
         this(name, Arrays.asList(values));
     }
 
+    public EntityPropertyDataEnum(String name, int defaultValueIndex, String... values) {
+        this(name, defaultValueIndex, Arrays.asList(values));
+    }
+
     public EntityPropertyDataEnum(String name, Collection<String> values) {
+        this(name, 0, values);
+    }
+
+    public EntityPropertyDataEnum(String name, int defaultValueIndex, Collection<String> values) {
         this.name = name;
         this.values = List.copyOf(values);
+        this.defaultValueIndex = defaultValueIndex;
     }
 
     @Override
@@ -46,5 +56,10 @@ public class EntityPropertyDataEnum implements EntityPropertyData {
             .putString("name", name)
             .putList("enum", enumTag)
             .putInt("type", getType().getType());
+    }
+
+    @Override
+    public int getDefaultIntValue() {
+        return defaultValueIndex;
     }
 }

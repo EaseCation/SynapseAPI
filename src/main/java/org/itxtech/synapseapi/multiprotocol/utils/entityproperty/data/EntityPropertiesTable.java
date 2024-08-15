@@ -29,6 +29,15 @@ public class EntityPropertiesTable extends ObjectArrayList<EntityPropertyData> {
         return entityIdentifier;
     }
 
+    public int getPropertyIndex(String name) {
+        for (int i = 0; i < size(); i++) {
+            if (name.equals(get(i).getName())) {
+                return i;
+            }
+        }
+        return -1;
+    }
+
     public CompoundTag toTag() {
         ListTag<CompoundTag> propertiesTag = new ListTag<>("properties");
         for (EntityPropertyData property : this) {

@@ -9,4 +9,12 @@ public interface EntityPropertyData {
     String getName();
 
     CompoundTag toTag();
+
+    default int getDefaultIntValue() {
+        throw new UnsupportedOperationException();
+    }
+
+    default float getDefaultFloatValue() {
+        throw new UnsupportedOperationException();
+    }
 }

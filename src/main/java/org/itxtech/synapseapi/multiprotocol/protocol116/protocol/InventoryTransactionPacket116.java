@@ -39,6 +39,10 @@ public class InventoryTransactionPacket116 extends Packet116 implements Inventor
     public static final int ACTION_MAGIC_SLOT_CREATIVE_DELETE_ITEM = 0;
     public static final int ACTION_MAGIC_SLOT_CREATIVE_CREATE_ITEM = 1;
 
+    public static final int USE_ITEM_TRIGGER_TYPE_UNKNOWN = 0;
+    public static final int USE_ITEM_TRIGGER_TYPE_PLAYER_INPUT = 1;
+    public static final int USE_ITEM_TRIGGER_TYPE_SIMULATION_TICK = 2;
+
     public int transactionType;
     public NetworkInventoryAction[] actions;
     public TransactionData transactionData;
@@ -92,7 +96,8 @@ public class InventoryTransactionPacket116 extends Packet116 implements Inventor
     @Override
     public void encode() {
         //TODO 暂时先这样写吧, 应用层需要改的地方太多非常恶心 -- 04/17/2021
-        boolean field_hasNetworkIds = ((AbstractProtocol) this.helper.getProtocol()).getProtocolStart() < AbstractProtocol.PROTOCOL_116_220.getProtocolStart();
+        AbstractProtocol protocol = (AbstractProtocol) helper.getProtocol();
+        boolean field_hasNetworkIds = protocol.getProtocolStart() < AbstractProtocol.PROTOCOL_116_220.getProtocolStart();
 
         this.reset();
         this.putVarInt(this.legacyRequestId);
@@ -112,6 +117,9 @@ public class InventoryTransactionPacket116 extends Packet116 implements Inventor
                 UseItemData useItemData = (UseItemData) this.transactionData;
 
                 this.putUnsignedVarInt(useItemData.actionType);
+                if (protocol.getProtocolStart() >= AbstractProtocol.PROTOCOL_121_20.getProtocolStart()) {
+                    this.putUnsignedVarInt(useItemData.triggerType);
+                }
                 this.putBlockVector3(useItemData.blockPos);
                 this.putBlockFace(useItemData.face);
                 this.putVarInt(useItemData.hotbarSlot);
@@ -119,6 +127,9 @@ public class InventoryTransactionPacket116 extends Packet116 implements Inventor
                 this.putVector3f(useItemData.playerPos.asVector3f());
                 this.putVector3f(useItemData.clickPos);
                 this.putUnsignedVarInt(useItemData.blockId);
+                if (protocol.getProtocolStart() >= AbstractProtocol.PROTOCOL_121_20.getProtocolStart()) {
+                    this.putUnsignedVarInt(useItemData.clientInteractPrediction ? 1 : 0);
+                }
                 break;
             case TYPE_USE_ITEM_ON_ENTITY:
                 UseItemOnEntityData useItemOnEntityData = (UseItemOnEntityData) this.transactionData;
@@ -145,7 +156,8 @@ public class InventoryTransactionPacket116 extends Packet116 implements Inventor
 
     @Override
     public void decode() {
-        boolean field_hasNetworkIds = ((AbstractProtocol) this.helper.getProtocol()).getProtocolStart() < AbstractProtocol.PROTOCOL_116_220.getProtocolStart();
+        AbstractProtocol protocol = (AbstractProtocol) helper.getProtocol();
+        boolean field_hasNetworkIds = protocol.getProtocolStart() < AbstractProtocol.PROTOCOL_116_220.getProtocolStart();
 
         this.legacyRequestId = this.getVarInt();
         if (legacyRequestId < -1 && (legacyRequestId & 1) == 0) {
@@ -180,6 +192,9 @@ public class InventoryTransactionPacket116 extends Packet116 implements Inventor
                 UseItemData itemData = new UseItemData();
 
                 itemData.actionType = (int) this.getUnsignedVarInt();
+                if (protocol.getProtocolStart() >= AbstractProtocol.PROTOCOL_121_20.getProtocolStart()) {
+                    itemData.triggerType = (int) this.getUnsignedVarInt();
+                }
                 itemData.blockPos = this.getBlockVector3();
                 itemData.face = this.getBlockFace();
                 itemData.hotbarSlot = this.getVarInt();
@@ -187,6 +202,9 @@ public class InventoryTransactionPacket116 extends Packet116 implements Inventor
                 itemData.playerPos = this.getVector3f().asVector3();
                 itemData.clickPos = this.getVector3f();
                 itemData.blockId = (int) this.getUnsignedVarInt();
+                if (protocol.getProtocolStart() >= AbstractProtocol.PROTOCOL_121_20.getProtocolStart()) {
+                    itemData.clientInteractPrediction = this.getUnsignedVarInt() != 0;
+                }
 
                 this.transactionData = itemData;
                 break;

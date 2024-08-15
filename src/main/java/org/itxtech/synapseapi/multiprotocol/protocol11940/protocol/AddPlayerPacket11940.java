@@ -1,14 +1,23 @@
 package org.itxtech.synapseapi.multiprotocol.protocol11940.protocol;
 
+import cn.nukkit.entity.EntityFullNames;
 import cn.nukkit.entity.data.EntityMetadata;
 import cn.nukkit.item.Item;
 import cn.nukkit.network.protocol.AddPlayerPacket;
 import cn.nukkit.network.protocol.DataPacket;
 import cn.nukkit.network.protocol.ProtocolInfo;
 import cn.nukkit.network.protocol.types.EntityLink;
+import it.unimi.dsi.fastutil.ints.Int2FloatMap;
+import it.unimi.dsi.fastutil.ints.Int2FloatOpenHashMap;
+import it.unimi.dsi.fastutil.ints.Int2IntMap;
+import it.unimi.dsi.fastutil.ints.Int2IntOpenHashMap;
 import lombok.ToString;
 import org.itxtech.synapseapi.multiprotocol.AbstractProtocol;
 import org.itxtech.synapseapi.multiprotocol.utils.EntityMetadataGenerator;
+import org.itxtech.synapseapi.multiprotocol.utils.EntityPropertiesPalette;
+import org.itxtech.synapseapi.multiprotocol.utils.entityproperty.data.EntityPropertiesTable;
+import org.itxtech.synapseapi.multiprotocol.utils.entityproperty.data.EntityPropertyData;
+import org.itxtech.synapseapi.multiprotocol.utils.entityproperty.data.EntityPropertyType;
 import org.itxtech.synapseapi.utils.ClassUtils;
 
 import java.util.UUID;
@@ -41,6 +50,8 @@ public class AddPlayerPacket11940 extends Packet11940 {
     public Item item;
     public int gameMode = GAME_TYPE_SURVIVAL;
     public EntityMetadata metadata = new EntityMetadata();
+    public Int2IntMap intProperties = new Int2IntOpenHashMap();
+    public Int2FloatMap floatProperties = new Int2FloatOpenHashMap();
 
     public EntityLink[] links = new EntityLink[0];
     public String deviceId = "";
@@ -71,8 +82,16 @@ public class AddPlayerPacket11940 extends Packet11940 {
         this.putSlot(this.item);
         this.putVarInt(this.gameMode);
         this.putEntityMetadata(this.metadata);
-        this.putUnsignedVarInt(0); // entity int properties
-        this.putUnsignedVarInt(0); // entity float properties
+        this.putUnsignedVarInt(this.intProperties.size());
+        for (Int2IntMap.Entry property : this.intProperties.int2IntEntrySet()) {
+            this.putUnsignedVarInt(property.getIntKey());
+            this.putVarInt(property.getIntValue());
+        }
+        this.putUnsignedVarInt(this.floatProperties.size());
+        for (Int2FloatMap.Entry property : this.floatProperties.int2FloatEntrySet()) {
+            this.putUnsignedVarInt(property.getIntKey());
+            this.putLFloat(property.getFloatValue());
+        }
 
         // UpdateAbilitiesPacket
         this.putLLong(entityUniqueId);
@@ -116,6 +135,19 @@ public class AddPlayerPacket11940 extends Packet11940 {
         this.item = packet.item;
         this.metadata = EntityMetadataGenerator.generateFrom(packet.metadata, protocol, netease);
         this.links = packet.links;
+
+        EntityPropertiesTable properties = EntityPropertiesPalette.getPalette(protocol, netease).getProperties(EntityFullNames.PLAYER);
+        if (properties != null) {
+            for (int i = 0; i < properties.size(); i++) {
+                EntityPropertyData property = properties.get(i);
+                if (property.getType() == EntityPropertyType.FLOAT) {
+                    this.floatProperties.put(i, property.getDefaultFloatValue());
+                } else {
+                    this.intProperties.put(i, property.getDefaultIntValue());
+                }
+            }
+        }
+
         return this;
     }
 

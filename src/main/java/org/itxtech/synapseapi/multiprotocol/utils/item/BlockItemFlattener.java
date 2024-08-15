@@ -42,8 +42,11 @@ public final class BlockItemFlattener {
         registerIdDowngrader(AbstractProtocol.PROTOCOL_120_80, BlockItemFlattener::downgrader12080);
         registerIdDowngrader(AbstractProtocol.PROTOCOL_121, BlockItemFlattener::downgrader121);
         registerIdDowngrader(AbstractProtocol.PROTOCOL_121_2, BlockItemFlattener::downgrader121);
+        registerIdDowngrader(AbstractProtocol.PROTOCOL_121_20, BlockItemFlattener::downgrader12120);
 
         registerAuxValueFixer(AbstractProtocol.PROTOCOL_121, BlockItemFlattener::metaFixer121);
+        registerAuxValueFixer(AbstractProtocol.PROTOCOL_121_2, BlockItemFlattener::metaFixer121);
+        registerAuxValueFixer(AbstractProtocol.PROTOCOL_121_20, BlockItemFlattener::metaFixer121);
     }
 
     private static void registerIdDowngrader(AbstractProtocol protocol, Int2IntFunction downgrader) {
@@ -194,6 +197,92 @@ public final class BlockItemFlattener {
         return downgrader12080(id);
     }
 
+    private static int downgrader12120(int id) {
+        if (id <= ItemBlockID.SANDSTONE_DOUBLE_SLAB && id >= ItemBlockID.NETHER_BRICK_DOUBLE_SLAB) {
+            return ItemBlockID.DOUBLE_STONE_SLAB;
+        }
+        if (id == ItemBlockID.PETRIFIED_OAK_DOUBLE_SLAB) {
+            return ItemBlockID.DOUBLE_STONE_SLAB;
+        }
+        if (id <= ItemBlockID.PURPUR_SLAB && id >= ItemBlockID.RED_NETHER_BRICK_SLAB) {
+            return ItemBlockID.STONE_SLAB2;
+        }
+        if (id <= ItemBlockID.PURPUR_DOUBLE_SLAB && id >= ItemBlockID.RED_NETHER_BRICK_DOUBLE_SLAB) {
+            return ItemBlockID.DOUBLE_STONE_SLAB2;
+        }
+        if (id <= ItemBlockID.SMOOTH_RED_SANDSTONE_SLAB && id >= ItemBlockID.POLISHED_GRANITE_SLAB) {
+            return ItemBlockID.STONE_SLAB3;
+        }
+        if (id <= ItemBlockID.SMOOTH_RED_SANDSTONE_DOUBLE_SLAB && id >= ItemBlockID.POLISHED_GRANITE_DOUBLE_SLAB) {
+            return ItemBlockID.DOUBLE_STONE_SLAB3;
+        }
+        if (id <= ItemBlockID.SMOOTH_QUARTZ_SLAB && id >= ItemBlockID.CUT_RED_SANDSTONE_SLAB) {
+            return ItemBlockID.STONE_SLAB4;
+        }
+        if (id <= ItemBlockID.SMOOTH_QUARTZ_DOUBLE_SLAB && id >= ItemBlockID.CUT_RED_SANDSTONE_DOUBLE_SLAB) {
+            return ItemBlockID.DOUBLE_STONE_SLAB4;
+        }
+        if (id <= ItemBlockID.BRAIN_CORAL_WALL_FAN && id >= ItemBlockID.DEAD_BRAIN_CORAL_WALL_FAN) {
+            return ItemBlockID.CORAL_FAN_HANG;
+        }
+        if (id <= ItemBlockID.FIRE_CORAL_WALL_FAN && id >= ItemBlockID.DEAD_FIRE_CORAL_WALL_FAN) {
+            return ItemBlockID.CORAL_FAN_HANG2;
+        }
+        if (id == ItemBlockID.DEAD_HORN_CORAL_WALL_FAN) {
+            return ItemBlockID.CORAL_FAN_HANG3;
+        }
+        if (id <= ItemBlockID.INFESTED_COBBLESTONE && id >= ItemBlockID.INFESTED_CHISELED_STONE_BRICKS) {
+            return ItemBlockID.MONSTER_EGG;
+        }
+        if (id <= ItemBlockID.MOSSY_STONE_BRICKS && id >= ItemBlockID.CHISELED_STONE_BRICKS) {
+            return ItemBlockID.STONEBRICK;
+        }
+        if (id <= ItemBlockID.DARK_PRISMARINE && id >= ItemBlockID.PRISMARINE_BRICKS) {
+            return ItemBlockID.PRISMARINE;
+        }
+        if (id <= ItemBlockID.CHISELED_SANDSTONE && id >= ItemBlockID.SMOOTH_SANDSTONE) {
+            return ItemBlockID.SANDSTONE;
+        }
+        if (id <= ItemBlockID.CHISELED_RED_SANDSTONE && id >= ItemBlockID.SMOOTH_RED_SANDSTONE) {
+            return ItemBlockID.RED_SANDSTONE;
+        }
+        if (id <= ItemBlockID.LIGHT_BLOCK_1 && id >= ItemBlockID.LIGHT_BLOCK_15) {
+            return ItemBlockID.LIGHT_BLOCK;
+        }
+        if (id <= ItemBlockID.CHISELED_QUARTZ_BLOCK && id >= ItemBlockID.SMOOTH_QUARTZ) {
+            return ItemBlockID.QUARTZ_BLOCK;
+        }
+        if (id <= ItemBlockID.CHIPPED_ANVIL && id >= ItemBlockID.DEPRECATED_ANVIL) {
+            return ItemBlockID.ANVIL;
+        }
+        if (id == ItemBlockID.COARSE_DIRT) {
+            return ItemBlockID.DIRT;
+        }
+        if (id == ItemBlockID.RED_SAND) {
+            return ItemBlockID.SAND;
+        }
+        return downgrader121(id);
+    }
+
+    private static int downgrader12130(int id) {
+        if (id <= ItemBlockID.DEPRECATED_PURPUR_BLOCK_1 && id >= ItemBlockID.DEPRECATED_PURPUR_BLOCK_2) {
+            return ItemBlockID.PURPUR_BLOCK;
+        }
+        if (id <= ItemBlockID.MOSSY_COBBLESTONE_WALL && id >= ItemBlockID.RED_NETHER_BRICK_WALL) {
+            return ItemBlockID.COBBLESTONE_WALL;
+        }
+        if (id == ItemBlockID.WET_SPONGE) {
+            return ItemBlockID.SPONGE;
+        }
+        if (id == ItemBlockID.COLORED_TORCH_GREEN) {
+            return ItemBlockID.COLORED_TORCH_RG;
+        }
+        if (id == ItemBlockID.COLORED_TORCH_PURPLE) {
+            return ItemBlockID.COLORED_TORCH_BP;
+        }
+        return downgrader12120(id);
+    }
+
     private static int metaFixer121(int id, int meta) {
         if (id == ItemBlockID.SHORT_GRASS) {
             if (meta == 0) {
@@ -213,27 +302,5 @@ public final class BlockItemFlattener {
     }
 }
 
-//dirt
-//sand
-//sandstone
-//double_stone_slab
 //tnt
-//monster_egg
-//stonebrick
-//cobblestone_wall
-//quartz_block
-//prismarine
-//red_sandstone
-//double_stone_slab2
-//stone_slab2
-//purpur_block
-//colored_torch_rg
-//colored_torch_bp
 //chemistry_table
-//coral_fan_hang
-//coral_fan_hang2
-//coral_fan_hang3
-//stone_slab3
-//stone_slab4
-//double_stone_slab3
-//double_stone_slab4

@@ -3,6 +3,7 @@ package org.itxtech.synapseapi.multiprotocol.utils.block;
 import cn.nukkit.nbt.NBTIO;
 import cn.nukkit.nbt.tag.CompoundTag;
 import cn.nukkit.nbt.tag.ListTag;
+import cn.nukkit.nbt.tag.Tag;
 import cn.nukkit.utils.Hash;
 import com.google.common.io.ByteStreams;
 import com.google.gson.Gson;
@@ -25,9 +26,7 @@ import java.io.Reader;
 import java.lang.reflect.Type;
 import java.nio.ByteOrder;
 import java.nio.charset.StandardCharsets;
-import java.util.Collection;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.Map.Entry;
 import java.util.zip.GZIPInputStream;
 
@@ -122,6 +121,74 @@ public class BlockPalette {
         }
     }
 
+    public ListTag<CompoundTag> toNBT() {
+        return toNBT(0);
+    }
+
+    public ListTag<CompoundTag> toNBT(int version) {
+        ListTag<CompoundTag> container = new ListTag<>();
+        for (BlockData block : palette) {
+            CompoundTag tag = new CompoundTag()
+                    .putString("name", block.name)
+                    .putCompound("states", block.states);
+            if (version != 0) {
+                tag.putInt("version", version);
+            }
+            container.add(new CompoundTag().putCompound("block", tag));
+        }
+        return container;
+    }
+
+    public CompoundTag toVanillaNBT() {
+        return toVanillaNBT(0);
+    }
+
+    public CompoundTag toVanillaNBT(int version) {
+        ListTag<CompoundTag> container = new ListTag<>();
+        for (BlockData block : palette) {
+            CompoundTag tag = new CompoundTag()
+                    .putString("name", block.name)
+                    .putCompound("states", block.states);
+            if (version != 0) {
+                tag.putInt("version", version);
+            }
+            container.add(tag);
+        }
+        return new CompoundTag().putList("blocks", container);
+    }
+
+    public List<Map<String, Object>> toJson() {
+        List<Map<String, Object>> container = new ArrayList<>();
+        for (BlockData block : palette) {
+            List<Map<String, Object>> states = new ArrayList<>();
+            for (Entry<String, Tag> entry : new CompoundTag(new TreeMap<>(block.states.getTagsUnsafe())).entrySet()) {
+                Tag tag = entry.getValue();
+                Map<String, Object> state = new LinkedHashMap<>();
+                state.put("name", entry.getKey());
+                state.put("type", switch (tag.getId()) {
+                    case Tag.TAG_String -> "string";
+                    case Tag.TAG_Byte -> "byte";
+                    case Tag.TAG_Int -> "int";
+                    default -> throw new IllegalArgumentException("Unexpected tag type: " + Tag.getTagName(tag.getId()));
+                });
+                state.put("value", tag.parseValue());
+                states.add(state);
+            }
+
+            Map<String, Object> entry = new LinkedHashMap<>();
+            entry.put("name", block.name);
+            entry.put("states", states);
+            container.add(entry);
+        }
+        return container;
+    }
+
+    public Map<String, List<Map<String, Object>>> toVanillaJson() {
+        Map<String, List<Map<String, Object>>> container = new HashMap<>();
+        container.put("blocks", toJson());
+        return container;
+    }
+
     public void sortLegacy() {
         //TODO: 太旧的版本不需要做了
     }
@@ -182,6 +249,10 @@ public class BlockPalette {
 
         public int id;
         public int val;
+
+        public BlockData(String name, CompoundTag states) {
+            this(name, states, -1);
+        }
 
         public BlockData(String name, CompoundTag states, int runtimeId) {
             this(name, states, runtimeId, -1, -1);

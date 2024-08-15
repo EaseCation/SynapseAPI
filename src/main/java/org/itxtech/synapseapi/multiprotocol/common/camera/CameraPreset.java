@@ -1,5 +1,6 @@
 package org.itxtech.synapseapi.multiprotocol.common.camera;
 
+import cn.nukkit.math.Vector2f;
 import lombok.*;
 import lombok.Builder.Default;
 
@@ -68,6 +69,16 @@ public class CameraPreset {
     public Float pitch;
     @Nullable
     public Float yaw;
+    /**
+     * @since 1.21.20
+     */
+    @Nullable
+    public Vector2f viewOffset;
+    /**
+     * @since 1.21.20
+     */
+    @Nullable
+    public Float radius;
     @Nullable
     public Byte audioListener;
     @Nullable

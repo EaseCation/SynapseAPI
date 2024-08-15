@@ -132,6 +132,10 @@ public class SynapsePlayer14 extends SynapsePlayer {
 				}
 				setLoginChainData(chainData);
 				this.isNetEaseClient = loginPacket.netEaseClient;
+				String gameVersion = chainData.getGameVersion();
+				if (gameVersion != null) {
+					this.betaClient = gameVersion.split("\\.", 4).length == 4;
+				}
 
 				if (isNetEaseClient()) {
 					int buildPlatform = loginChainData.getDeviceOS();

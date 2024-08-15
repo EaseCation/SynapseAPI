@@ -24,6 +24,7 @@ import cn.nukkit.event.entity.EntityDamageEvent;
 import cn.nukkit.event.inventory.InventoryCloseEvent;
 import cn.nukkit.event.inventory.ItemAttackDamageEvent;
 import cn.nukkit.event.player.*;
+import cn.nukkit.inventory.ContainerInventory;
 import cn.nukkit.inventory.Inventory;
 import cn.nukkit.inventory.transaction.CraftingTransaction;
 import cn.nukkit.inventory.transaction.EnchantTransaction;
@@ -187,6 +188,16 @@ public class SynapsePlayer116 extends SynapsePlayer113 {
 					ContainerClosePacket pk = new ContainerClosePacket();
 					pk.windowId = -1;
 					this.dataPacket(pk);
+				} else { // Close bugged inventory
+					ContainerClosePacket pk = new ContainerClosePacket();
+					pk.windowId = containerClosePacket.windowId;
+					this.dataPacket(pk);
+
+					for (Inventory open : new ArrayList<>(this.windows.keySet())) {
+						if (open instanceof ContainerInventory) {
+							this.removeWindow(open);
+						}
+					}
 				}
 				break;
 			case ProtocolInfo.INVENTORY_TRANSACTION_PACKET:

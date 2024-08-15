@@ -5,6 +5,8 @@ import cn.nukkit.entity.data.EntityData;
 import cn.nukkit.entity.data.EntityMetadata;
 import cn.nukkit.entity.data.LongEntityData;
 import cn.nukkit.network.protocol.*;
+import cn.nukkit.network.protocol.PlayerListPacket.Entry;
+import org.itxtech.synapseapi.multiprotocol.common.camera.CameraTargetInstruction;
 import org.itxtech.synapseapi.multiprotocol.protocol113.protocol.MoveEntityDeltaPacket113;
 import org.itxtech.synapseapi.multiprotocol.protocol116100.protocol.AnimateEntityPacket116100;
 import org.itxtech.synapseapi.multiprotocol.protocol116100.protocol.EntityEventPacket116100;
@@ -17,12 +19,13 @@ import org.itxtech.synapseapi.multiprotocol.protocol119.protocol.PlayerActionPac
 import org.itxtech.synapseapi.multiprotocol.protocol11910.protocol.UpdateAbilitiesPacket11910;
 import org.itxtech.synapseapi.multiprotocol.protocol12070.protocol.MobEffectPacket12070;
 import org.itxtech.synapseapi.multiprotocol.protocol12070.protocol.SetEntityMotionPacket12070;
+import org.itxtech.synapseapi.multiprotocol.protocol12120.protocol.CameraInstructionPacket12120;
+import org.itxtech.synapseapi.multiprotocol.protocol12120.protocol.MobArmorEquipmentPacket12120;
 import org.itxtech.synapseapi.multiprotocol.protocol14.protocol.PlayerActionPacket14;
 import org.itxtech.synapseapi.multiprotocol.protocol15.protocol.MoveEntityDeltaPacket;
 import org.itxtech.synapseapi.multiprotocol.protocol18.protocol.SpawnParticleEffectPacket18;
 
 import javax.annotation.Nullable;
-import java.util.Arrays;
 import java.util.Map;
 
 /**
@@ -105,10 +108,31 @@ public class DataPacketEidReplacer {
                 if (((MoveEntityPacket) packet).eid == from) ((MoveEntityPacket) packet).eid = to;
                 break;
             case ProtocolInfo.MOB_ARMOR_EQUIPMENT_PACKET:
-                if (((MobArmorEquipmentPacket) packet).eid == from) ((MobArmorEquipmentPacket) packet).eid = to;
+                if (packet instanceof MobArmorEquipmentPacket dp) {
+                    if (dp.eid == from) {
+                        dp.eid = to;
+                    }
+                } else if (packet instanceof MobArmorEquipmentPacket12120 dp) {
+                    if (dp.eid == from) {
+                        dp.eid = to;
+                    }
+                }
                 break;
             case ProtocolInfo.PLAYER_LIST_PACKET:
-                Arrays.stream(((PlayerListPacket) packet).entries).filter(entry -> entry.entityId == from).forEach(entry -> entry.entityId = to);
+                if (packet instanceof PlayerListPacket dp) {
+                    boolean cloned = false;
+                    for (int i = 0; i < dp.entries.length; i++) {
+                        if (dp.entries[i].entityId == from) {
+                            if (!cloned) {
+                                cloned = true;
+                                dp.entries = dp.entries.clone();
+                            }
+                            Entry entry = dp.entries[i].copy();
+                            entry.entityId = to;
+                            dp.entries[i] = entry;
+                        }
+                    }
+                }
                 break;
             case ProtocolInfo.BOSS_EVENT_PACKET:
                 if (((BossEventPacket) packet).bossEid == from) ((BossEventPacket) packet).bossEid = to;
@@ -120,8 +144,17 @@ public class DataPacketEidReplacer {
                 if (((UpdateEquipmentPacket) packet).eid == from) ((UpdateEquipmentPacket) packet).eid = to;
                 break;
             case ProtocolInfo.CLIENTBOUND_MAP_ITEM_DATA_PACKET:
-                for (ClientboundMapItemDataPacket.MapTrackedObject object : ((ClientboundMapItemDataPacket) packet).trackedEntities) {
-                    if (object.entityUniqueId == from) object.entityUniqueId = to;
+                if (packet instanceof ClientboundMapItemDataPacket dp) {
+                    boolean cloned = false;
+                    for (int i = 0; i < dp.trackedEntities.length; i++) {
+                        if (dp.trackedEntities[i].entityUniqueId == from) {
+                            if (!cloned) {
+                                cloned = true;
+                                dp.trackedEntities = dp.trackedEntities.clone();
+                            }
+                            dp.trackedEntities[i].entityUniqueId = to;
+                        }
+                    }
                 }
                 break;
             case ProtocolInfo.ADD_ACTOR_PACKET:
@@ -169,16 +202,26 @@ public class DataPacketEidReplacer {
                 }
                 break;
             case ProtocolInfo.ANIMATE_ENTITY_PACKET:
-                if (packet instanceof AnimateEntityPacket116100) {
-                    for (int i = 0; i < ((AnimateEntityPacket116100) packet).entityRuntimeIds.length; i++) {
-                        if (((AnimateEntityPacket116100) packet).entityRuntimeIds[i] == from) {
-                            ((AnimateEntityPacket116100) packet).entityRuntimeIds[i] = to;
+                if (packet instanceof AnimateEntityPacket116100 dp) {
+                    boolean cloned = false;
+                    for (int i = 0; i < dp.entityRuntimeIds.length; i++) {
+                        if (dp.entityRuntimeIds[i] == from) {
+                            if (!cloned) {
+                                cloned = true;
+                                dp.entityRuntimeIds = dp.entityRuntimeIds.clone();
+                            }
+                            dp.entityRuntimeIds[i] = to;
                         }
                     }
-                } else if (packet instanceof AnimateEntityPacket11730) {
-                    for (int i = 0; i < ((AnimateEntityPacket11730) packet).entityRuntimeIds.length; i++) {
-                        if (((AnimateEntityPacket11730) packet).entityRuntimeIds[i] == from) {
-                            ((AnimateEntityPacket11730) packet).entityRuntimeIds[i] = to;
+                } else if (packet instanceof AnimateEntityPacket11730 dp) {
+                    boolean cloned = false;
+                    for (int i = 0; i < dp.entityRuntimeIds.length; i++) {
+                        if (dp.entityRuntimeIds[i] == from) {
+                            if (!cloned) {
+                                cloned = true;
+                                dp.entityRuntimeIds = dp.entityRuntimeIds.clone();
+                            }
+                            dp.entityRuntimeIds[i] = to;
                         }
                     }
                 }
@@ -221,6 +264,16 @@ public class DataPacketEidReplacer {
             case ProtocolInfo.MOTION_PREDICTION_HINTS_PACKET:
                 if (((MotionPredictionHintsPacket116100) packet).entityRuntimeId == from) {
                     ((MotionPredictionHintsPacket116100) packet).entityRuntimeId = to;
+                }
+                break;
+            case ProtocolInfo.CAMERA_INSTRUCTION_PACKET:
+                if (packet instanceof CameraInstructionPacket12120 dp) {
+                    CameraTargetInstruction target = dp.target;
+                    if (target != null && target.entityId == from) {
+                        CameraTargetInstruction copy = target.clone();
+                        copy.entityId = to;
+                        dp.target = copy;
+                    }
                 }
                 break;
             default:

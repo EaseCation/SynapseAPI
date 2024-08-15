@@ -4,6 +4,10 @@ import cn.nukkit.entity.data.EntityMetadata;
 import cn.nukkit.network.protocol.DataPacket;
 import cn.nukkit.network.protocol.ProtocolInfo;
 import cn.nukkit.network.protocol.SetEntityDataPacket;
+import it.unimi.dsi.fastutil.ints.Int2FloatMap;
+import it.unimi.dsi.fastutil.ints.Int2FloatOpenHashMap;
+import it.unimi.dsi.fastutil.ints.Int2IntMap;
+import it.unimi.dsi.fastutil.ints.Int2IntOpenHashMap;
 import lombok.ToString;
 import org.itxtech.synapseapi.multiprotocol.AbstractProtocol;
 import org.itxtech.synapseapi.multiprotocol.utils.EntityMetadataGenerator;
@@ -15,6 +19,8 @@ public class SetEntityDataPacket11940 extends Packet11940 {
 
     public long eid;
     public EntityMetadata metadata;
+    public Int2IntMap intProperties = new Int2IntOpenHashMap();
+    public Int2FloatMap floatProperties = new Int2FloatOpenHashMap();
     public long frame;
 
     @Override
@@ -31,8 +37,16 @@ public class SetEntityDataPacket11940 extends Packet11940 {
         this.reset();
         this.putEntityRuntimeId(this.eid);
         this.putEntityMetadata(this.metadata);
-        this.putUnsignedVarInt(0); // entity int properties
-        this.putUnsignedVarInt(0); // entity float properties
+        this.putUnsignedVarInt(this.intProperties.size());
+        for (Int2IntMap.Entry property : this.intProperties.int2IntEntrySet()) {
+            this.putUnsignedVarInt(property.getIntKey());
+            this.putVarInt(property.getIntValue());
+        }
+        this.putUnsignedVarInt(this.floatProperties.size());
+        for (Int2FloatMap.Entry property : this.floatProperties.int2FloatEntrySet()) {
+            this.putUnsignedVarInt(property.getIntKey());
+            this.putLFloat(property.getFloatValue());
+        }
         this.putUnsignedVarLong(this.frame);
     }
 
@@ -43,6 +57,8 @@ public class SetEntityDataPacket11940 extends Packet11940 {
         SetEntityDataPacket packet = (SetEntityDataPacket) pk;
         this.eid = packet.eid;
         this.metadata = EntityMetadataGenerator.generateFrom(packet.metadata, protocol, netease);
+        this.intProperties = packet.intProperties;
+        this.floatProperties = packet.floatProperties;
 
         return this;
     }

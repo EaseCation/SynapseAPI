@@ -13,9 +13,17 @@ import cn.nukkit.network.protocol.DataPacket;
 import cn.nukkit.network.protocol.ProtocolInfo;
 import cn.nukkit.network.protocol.types.EntityLink;
 import com.google.common.collect.ImmutableMap;
+import it.unimi.dsi.fastutil.ints.Int2FloatMap;
+import it.unimi.dsi.fastutil.ints.Int2FloatOpenHashMap;
+import it.unimi.dsi.fastutil.ints.Int2IntMap;
+import it.unimi.dsi.fastutil.ints.Int2IntOpenHashMap;
 import lombok.ToString;
 import org.itxtech.synapseapi.multiprotocol.AbstractProtocol;
 import org.itxtech.synapseapi.multiprotocol.utils.EntityMetadataGenerator;
+import org.itxtech.synapseapi.multiprotocol.utils.EntityPropertiesPalette;
+import org.itxtech.synapseapi.multiprotocol.utils.entityproperty.data.EntityPropertiesTable;
+import org.itxtech.synapseapi.multiprotocol.utils.entityproperty.data.EntityPropertyData;
+import org.itxtech.synapseapi.multiprotocol.utils.entityproperty.data.EntityPropertyType;
 import org.itxtech.synapseapi.utils.ClassUtils;
 
 @ToString
@@ -149,6 +157,8 @@ public class AddEntityPacket11940 extends Packet11940 {
     public float headYaw;
     public float bodyYaw = Float.MIN_VALUE;
     public EntityMetadata metadata = new EntityMetadata();
+    public Int2IntMap intProperties = new Int2IntOpenHashMap();
+    public Int2FloatMap floatProperties = new Int2FloatOpenHashMap();
     public Attribute[] attributes = new Attribute[0];
     public EntityLink[] links = new EntityLink[0];
 
@@ -173,8 +183,16 @@ public class AddEntityPacket11940 extends Packet11940 {
         this.putLFloat(this.bodyYaw == Float.MIN_VALUE ? this.yaw : this.bodyYaw);
         this.putAttributeList(this.attributes);
         this.putEntityMetadata(this.metadata);
-        this.putUnsignedVarInt(0); // entity int properties
-        this.putUnsignedVarInt(0); // entity float properties
+        this.putUnsignedVarInt(this.intProperties.size());
+        for (Int2IntMap.Entry property : this.intProperties.int2IntEntrySet()) {
+            this.putUnsignedVarInt(property.getIntKey());
+            this.putVarInt(property.getIntValue());
+        }
+        this.putUnsignedVarInt(this.floatProperties.size());
+        for (Int2FloatMap.Entry property : this.floatProperties.int2FloatEntrySet()) {
+            this.putUnsignedVarInt(property.getIntKey());
+            this.putLFloat(property.getFloatValue());
+        }
         this.putUnsignedVarInt(this.links.length);
         for (EntityLink link : this.links) {
             this.putEntityLink(link);
@@ -203,6 +221,23 @@ public class AddEntityPacket11940 extends Packet11940 {
         this.metadata = EntityMetadataGenerator.generateFrom(packet.metadata, protocol, netease);
         this.attributes = packet.attributes;
         this.links = packet.links;
+
+        if (this.id == null) {
+            this.id = Entities.getIdentifierByType(this.type);
+        }
+
+        EntityPropertiesTable properties = EntityPropertiesPalette.getPalette(protocol, netease).getProperties(this.id);
+        if (properties != null) {
+            for (int i = 0; i < properties.size(); i++) {
+                EntityPropertyData property = properties.get(i);
+                if (property.getType() == EntityPropertyType.FLOAT) {
+                    this.floatProperties.put(i, property.getDefaultFloatValue());
+                } else {
+                    this.intProperties.put(i, property.getDefaultIntValue());
+                }
+            }
+        }
+
         return this;
     }
 
