@@ -280,6 +280,12 @@ public final class BlockItemFlattener {
         if (id == ItemBlockID.COLORED_TORCH_PURPLE) {
             return ItemBlockID.COLORED_TORCH_BP;
         }
+        if (id <= ItemBlockID.MATERIAL_REDUCER && id >= ItemBlockID.LAB_TABLE) {
+            return ItemBlockID.CHEMISTRY_TABLE;
+        }
+        if (id == ItemBlockID.UNDERWATER_TNT) {
+            return ItemBlockID.TNT;
+        }
         return downgrader12120(id);
     }
 
@@ -301,6 +307,3 @@ public final class BlockItemFlattener {
         throw new IllegalStateException();
     }
 }
-
-//tnt
-//chemistry_table

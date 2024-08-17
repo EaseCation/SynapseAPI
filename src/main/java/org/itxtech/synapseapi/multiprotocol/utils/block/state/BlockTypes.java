@@ -2355,7 +2355,17 @@ public class BlockTypes {
     }
 
     public static class V1_21_30 extends V1_21_20 {
-        private static final BlockRegistry REGISTRY = new BlockRegistry((1 << 24) | (21 << 16) | (30 << 8) | 5, V1_21_20.REGISTRY);
+        private static final BlockRegistry REGISTRY = new BlockRegistry((1 << 24) | (21 << 16) | (30 << 8) | 7, V1_21_20.REGISTRY);
+
+        public static final BlockLegacy COMPOUND_CREATOR = REGISTRY.flatten(V1_21_20.CHEMISTRY_TABLE, "minecraft:compound_creator", BlockID.COMPOUND_CREATOR,
+                BlockStates.CHEMISTRY_TABLE_TYPE);
+        public static final BlockLegacy MATERIAL_REDUCER = REGISTRY.flatten(V1_21_20.CHEMISTRY_TABLE, "minecraft:material_reducer", BlockID.MATERIAL_REDUCER,
+                BlockStates.CHEMISTRY_TABLE_TYPE);
+        public static final BlockLegacy ELEMENT_CONSTRUCTOR = REGISTRY.flatten(V1_21_20.CHEMISTRY_TABLE, "minecraft:element_constructor", BlockID.ELEMENT_CONSTRUCTOR,
+                BlockStates.CHEMISTRY_TABLE_TYPE);
+        public static final BlockLegacy LAB_TABLE = REGISTRY.flatten(V1_21_20.CHEMISTRY_TABLE, "minecraft:lab_table", BlockID.LAB_TABLE,
+                BlockStates.CHEMISTRY_TABLE_TYPE);
+        public static final BlockLegacy CHEMISTRY_TABLE = COMPOUND_CREATOR;
 
         public static final BlockLegacy MOSSY_COBBLESTONE_WALL = REGISTRY.flatten(V1_21_20.COBBLESTONE_WALL, "minecraft:mossy_cobblestone_wall", BlockID.MOSSY_COBBLESTONE_WALL,
                 BlockStates.WALL_BLOCK_TYPE);
@@ -2414,6 +2424,11 @@ public class BlockTypes {
 
         public static final BlockLegacy STRUCTURE_VOID = REGISTRY.flatten(V1_21_20.STRUCTURE_VOID, "minecraft:structure_void", BlockID.STRUCTURE_VOID,
                 BlockStates.STRUCTURE_VOID_TYPE);
+
+        public static final BlockLegacy UNDERWATER_TNT = REGISTRY.flatten(V1_21_20.TNT, "minecraft:underwater_tnt", BlockID.UNDERWATER_TNT,
+                BlockStates.ALLOW_UNDERWATER_BIT);
+        public static final BlockLegacy TNT = REGISTRY.flatten(V1_21_20.TNT, "minecraft:tnt", BlockID.TNT,
+                BlockStates.ALLOW_UNDERWATER_BIT);
 
         static {
             REGISTRY.createBlockPermutations();

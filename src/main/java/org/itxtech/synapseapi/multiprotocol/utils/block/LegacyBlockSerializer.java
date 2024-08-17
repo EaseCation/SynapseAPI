@@ -903,12 +903,15 @@ public final class LegacyBlockSerializer {
         registerDeserializer(CUT_RED_SANDSTONE_DOUBLE_SLAB, LegacyBlockSerializer::deserializeSlab);
 
         registerDeserializer(TNT, states -> {
-            int meta = states.getBoolean(EXPLODE_BIT) ? 0b1 : 0;
+            int meta = deserializeExplode(states);
             if (states.getBoolean(ALLOW_UNDERWATER_BIT)) {
                 meta |= 0b10;
             }
             return meta;
         });
+
+//        registerDeserializer(TNT, LegacyBlockSerializer::deserializeExplode);
+        registerDeserializer(UNDERWATER_TNT, LegacyBlockSerializer::deserializeExplode);
 
         registerDeserializer(TORCH, LegacyBlockSerializer::deserializeTorch);
         registerDeserializer(REDSTONE_TORCH, LegacyBlockSerializer::deserializeTorch);
@@ -1548,20 +1551,25 @@ public final class LegacyBlockSerializer {
             switch (type) {
                 default:
                 case CHEMISTRY_TABLE_TYPE_COMPOUND_CREATOR:
-                    meta |= BlockChemistryTable.COMPOUND_CREATOR;
+                    meta |= BlockChemistryTable.TYPE_COMPOUND_CREATOR;
                     break;
                 case CHEMISTRY_TABLE_TYPE_MATERIAL_REDUCER:
-                    meta |= BlockChemistryTable.MATERIAL_REDUCER;
+                    meta |= BlockChemistryTable.TYPE_MATERIAL_REDUCER;
                     break;
                 case CHEMISTRY_TABLE_TYPE_ELEMENT_CONSTRUCTOR:
-                    meta |= BlockChemistryTable.ELEMENT_CONSTRUCTOR;
+                    meta |= BlockChemistryTable.TYPE_ELEMENT_CONSTRUCTOR;
                     break;
                 case CHEMISTRY_TABLE_TYPE_LAB_TABLE:
-                    meta |= BlockChemistryTable.LAB_TABLE;
+                    meta |= BlockChemistryTable.TYPE_LAB_TABLE;
                     break;
             }
             return meta;
         });
+
+//        registerDeserializer(COMPOUND_CREATOR, LegacyBlockSerializer::deserializeDirection);
+        registerDeserializer(MATERIAL_REDUCER, LegacyBlockSerializer::deserializeDirection);
+        registerDeserializer(ELEMENT_CONSTRUCTOR, LegacyBlockSerializer::deserializeDirection);
+        registerDeserializer(LAB_TABLE, LegacyBlockSerializer::deserializeDirection);
 
         registerDeserializer(OBSERVER, states -> {
 //            int meta = deserializeNewFacingDirection(states); //TODO: 1.20.10
@@ -2938,6 +2946,10 @@ public final class LegacyBlockSerializer {
             meta |= 0b10;
         }
         return meta;
+    }
+
+    private static int deserializeExplode(CompoundTag states) {
+        return states.getBoolean(EXPLODE_BIT) ? 0b1 : 0;
     }
 
     public static void initialize() {
