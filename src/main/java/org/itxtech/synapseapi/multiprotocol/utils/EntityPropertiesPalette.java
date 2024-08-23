@@ -66,6 +66,7 @@ public final class EntityPropertiesPalette {
         register(AbstractProtocol.PROTOCOL_121, palette12080, null);
         register(AbstractProtocol.PROTOCOL_121_2, palette12080, null);
         register(AbstractProtocol.PROTOCOL_121_20, palette12080, null);
+        register(AbstractProtocol.PROTOCOL_121_30, palette12080, null);
     }
 
     private static void register(AbstractProtocol protocol, EntityPropertiesPaletteInterface palette, EntityPropertiesPaletteInterface paletteNetEase) {

@@ -46,6 +46,7 @@ public class CameraInstructionPacket12120 extends Packet12120 {
             stream.putOptional(set.pos, BinaryStream::putVector3f);
             stream.putOptional(set.rot, BinaryStream::putVector2f);
             stream.putOptional(set.facing, BinaryStream::putVector3f);
+            stream.putOptional(set.viewOffset, BinaryStream::putVector2f);
             stream.putOptional(set.defaultPreset, BinaryStream::putBoolean);
         });
 

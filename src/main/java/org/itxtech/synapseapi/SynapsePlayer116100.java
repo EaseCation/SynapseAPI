@@ -23,6 +23,7 @@ import cn.nukkit.event.player.*;
 import cn.nukkit.form.window.FormWindow;
 import cn.nukkit.form.window.FormWindowCustom;
 import cn.nukkit.inventory.AnvilInventory;
+import cn.nukkit.inventory.ArmorInventory;
 import cn.nukkit.inventory.ContainerInventory;
 import cn.nukkit.inventory.Inventory;
 import cn.nukkit.item.Item;
@@ -59,6 +60,7 @@ import it.unimi.dsi.fastutil.ints.IntSet;
 import it.unimi.dsi.fastutil.longs.*;
 import it.unimi.dsi.fastutil.objects.ObjectIterator;
 import lombok.extern.log4j.Log4j2;
+import org.apache.commons.lang3.ArrayUtils;
 import org.itxtech.synapseapi.camera.CameraManager;
 import org.itxtech.synapseapi.dialogue.NPCDialoguePlayerHandler;
 import org.itxtech.synapseapi.multiprotocol.AbstractProtocol;
@@ -134,6 +136,9 @@ import org.itxtech.synapseapi.multiprotocol.protocol121.protocol.StartGamePacket
 import org.itxtech.synapseapi.multiprotocol.protocol121.protocol.TextPacket121;
 import org.itxtech.synapseapi.multiprotocol.protocol1212.protocol.ClientboundCloseFormPacket1212;
 import org.itxtech.synapseapi.multiprotocol.protocol12120.protocol.*;
+import org.itxtech.synapseapi.multiprotocol.protocol12130.protocol.CameraPresetsPacket12130;
+import org.itxtech.synapseapi.multiprotocol.protocol12130.protocol.EmotePacket12130;
+import org.itxtech.synapseapi.multiprotocol.protocol12130.protocol.ResourcePacksInfoPacket12130;
 import org.itxtech.synapseapi.multiprotocol.protocol14.protocol.PlayerActionPacket14;
 import org.itxtech.synapseapi.multiprotocol.protocol16.protocol.ResourcePackClientResponsePacket16;
 import org.itxtech.synapseapi.multiprotocol.utils.EntityPropertiesPalette;
@@ -2041,6 +2046,47 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
                 this.dataPacket(chunkRadiusUpdatePacket);
                 break;
             case ProtocolInfo.EMOTE_PACKET:
+                if (getProtocol() >= AbstractProtocol.PROTOCOL_121_30.getProtocolStart()) {
+                    if (!this.spawned) {
+                        break;
+                    }
+                    EmotePacket12130 emotePacket = (EmotePacket12130) packet;
+                    if (emotePacket.runtimeId != this.getLocalEntityId()) {
+                        server.getLogger().warning(this.username + " sent EmotePacket with invalid entity id: " + emotePacket.runtimeId + " != " + this.getLocalEntityId());
+                        break;
+                    }
+                    if (emotePacket.emoteID.length() != 32 + 4) { // 00000000-0000-0000-0000-000000000000
+                        onPacketViolation(PacketViolationReason.IMPOSSIBLE_BEHAVIOR, "emote");
+                        break;
+                    }
+                    if ((emotePacket.flags & EmotePacket12130.FLAG_SERVER) != 0) {
+                        break;
+                    }
+                    if (!emoteRequest()) {
+                        this.addViolationLevel(8, "emote_req");
+                        break;
+                    }
+                    if (isNetEaseClient()) {
+                        onPacketViolation(PacketViolationReason.IMPOSSIBLE_BEHAVIOR, "ce_emote", emotePacket.emoteID);
+                        break;
+                    }
+                    if (isSpectator()) {
+                        break;
+                    }
+                    if (emoting) {
+                        break;
+                    }
+
+                    int flags = emotePacket.flags | EmotePacket12130.FLAG_SERVER;
+                    if (MUTE_EMOTE_CHAT) {
+                        flags |= EmotePacket12130.FLAG_MUTE_ANNOUNCEMENT;
+                    }
+                    for (Player viewer : this.getViewers().values()) {
+                        viewer.playEmote(emotePacket.emoteID, this.getId(), flags, emotePacket.emoteTicks);
+                    }
+                    break;
+                }
+
                 if (getProtocol() < AbstractProtocol.PROTOCOL_120.getProtocolStart()) {
                     super.handleDataPacket(packet);
                     break;
@@ -2246,6 +2292,15 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
 
     @Override
     protected DataPacket generateResourcePackInfoPacket() {
+        if (getProtocol() >= AbstractProtocol.PROTOCOL_121_30.getProtocolStart()) {
+            ResourcePacksInfoPacket12130 resourcePacket = new ResourcePacksInfoPacket12130();
+            resourcePacket.resourcePackEntries = resourcePacks.values().toArray(new ResourcePack[0]);
+            if (isNetEaseClient()) {
+                resourcePacket.resourcePackEntries = ArrayUtils.addAll(resourcePacket.resourcePackEntries, behaviourPacks.values().toArray(new ResourcePack[0]));
+            }
+            resourcePacket.mustAccept = forceResources;
+            return resourcePacket;
+        }
         if (this.protocol >= AbstractProtocol.PROTOCOL_121_20.getProtocolStart()) {
             ResourcePacksInfoPacket12120 resourcePacket = new ResourcePacksInfoPacket12120();
             resourcePacket.resourcePackEntries = this.resourcePacks.values().toArray(new ResourcePack[0]);
@@ -3143,9 +3198,19 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
     }
 
     @Override
-    public void playEmote(String emoteId, long entityRuntimeId, int flags) {
+    public void playEmote(String emoteId, long entityRuntimeId, int flags, int emoteTicks) {
+        if (getProtocol() >= AbstractProtocol.PROTOCOL_121_30.getProtocolStart()) {
+            EmotePacket12130 packet = new EmotePacket12130();
+            packet.emoteID = emoteId;
+            packet.emoteTicks = emoteTicks;
+            packet.runtimeId = entityRuntimeId;
+            packet.flags = flags;
+            dataPacket(packet);
+            return;
+        }
+
         if (getProtocol() < AbstractProtocol.PROTOCOL_120.getProtocolStart()) {
-            super.playEmote(emoteId, entityRuntimeId, flags);
+            super.playEmote(emoteId, entityRuntimeId, flags, emoteTicks);
             return;
         }
 
@@ -3383,6 +3448,13 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
 
     @Override
     protected void sendCameraPresets() {
+        if (getProtocol() >= AbstractProtocol.PROTOCOL_121_30.getProtocolStart()) {
+            CameraPresetsPacket12130 packet = new CameraPresetsPacket12130();
+            packet.presets = CameraManager.getInstance().getCameras();
+            dataPacket(packet);
+            return;
+        }
+
         if (getProtocol() >= AbstractProtocol.PROTOCOL_121_20.getProtocolStart()) {
             CameraPresetsPacket12120 packet = new CameraPresetsPacket12120();
             packet.presets = CameraManager.getInstance().getCameras();
@@ -3623,5 +3695,14 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
         pk.radius = viewDistance;
         this.dataPacket(pk);
         return true;
+    }
+
+    @Override
+    public void tryDisruptIllegalClientBeforeStartGame() {
+        InventorySlotPacket packet = new InventorySlotPacket();
+        packet.inventoryId = ContainerIds.ARMOR;
+        packet.slot = ArmorInventory.SLOT_FEET;
+        packet.item = Item.get(Item.NETHERITE_BOOTS);
+        dataPacket(packet);
     }
 }

@@ -1,14 +1,8 @@
 {
     "remappedMetas": {
         "minecraft:anvil": {
-            "10": "minecraft:damaged_anvil",
-            "11": "minecraft:damaged_anvil",
             "4": "minecraft:chipped_anvil",
-            "5": "minecraft:chipped_anvil",
-            "6": "minecraft:chipped_anvil",
-            "7": "minecraft:chipped_anvil",
-            "8": "minecraft:damaged_anvil",
-            "9": "minecraft:damaged_anvil"
+            "8": "minecraft:damaged_anvil"
         },
         "minecraft:dirt": {
             "1": "minecraft:coarse_dirt"

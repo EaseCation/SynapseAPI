@@ -423,6 +423,8 @@ public class SynapsePlayer extends Player {
 
         Position spawnPosition = this.getSpawn();
         if (this.isFirstTimeLogin) {
+            tryDisruptIllegalClientBeforeStartGame();
+
             sendDimensionData();
 
             DataPacket startGamePacket = generateStartGamePacket(spawnPosition);
@@ -1459,5 +1461,8 @@ public class SynapsePlayer extends Player {
 
     public boolean isBetaClient() {
         return betaClient;
+    }
+
+    public void tryDisruptIllegalClientBeforeStartGame() {
     }
 }

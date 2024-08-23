@@ -1,6 +1,7 @@
 package org.itxtech.synapseapi.multiprotocol.common.camera;
 
 import cn.nukkit.math.Vector2f;
+import cn.nukkit.math.Vector3f;
 import lombok.*;
 import lombok.Builder.Default;
 
@@ -70,10 +71,26 @@ public class CameraPreset {
     @Nullable
     public Float yaw;
     /**
+     * @since 1.21.30
+     */
+    @Nullable
+    public Float rotationSpeed;
+    /**
+     * @since 1.21.30
+     */
+    @Nullable
+    public Boolean snapToTarget;
+    /**
      * @since 1.21.20
      */
     @Nullable
     public Vector2f viewOffset;
+    /**
+     * Changing the camera's pivot point from the center of the entity.
+     * @since 1.21.30
+     */
+    @Nullable
+    public Vector3f entityOffset;
     /**
      * @since 1.21.20
      */

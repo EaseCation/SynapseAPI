@@ -25,6 +25,11 @@ public class CameraSetInstruction {
     public Vector2f rot;
     @Nullable
     public Vector3f facing;
+    /**
+     * @since 1.21.20
+     */
+    @Nullable
+    public Vector2f viewOffset;
     @Nullable
     public Boolean defaultPreset;
 

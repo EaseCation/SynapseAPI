@@ -165,4 +165,20 @@ public interface PlayerAuthInputFlags {
      * @since 1.21.0
      */
     int BLOCK_BREAKING_DELAY_ENABLED = 48;
+    /**
+     * @since 1.21.30
+     */
+    int HORIZONTAL_COLLISION = 49;
+    /**
+     * @since 1.21.30
+     */
+    int VERTICAL_COLLISION = 50;
+    /**
+     * @since 1.21.30
+     */
+    int DOWN_LEFT = 51;
+    /**
+     * @since 1.21.30
+     */
+    int DOWN_RIGHT = 52;
 }

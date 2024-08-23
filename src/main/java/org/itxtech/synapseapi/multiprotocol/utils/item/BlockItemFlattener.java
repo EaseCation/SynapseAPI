@@ -43,10 +43,12 @@ public final class BlockItemFlattener {
         registerIdDowngrader(AbstractProtocol.PROTOCOL_121, BlockItemFlattener::downgrader121);
         registerIdDowngrader(AbstractProtocol.PROTOCOL_121_2, BlockItemFlattener::downgrader121);
         registerIdDowngrader(AbstractProtocol.PROTOCOL_121_20, BlockItemFlattener::downgrader12120);
+        registerIdDowngrader(AbstractProtocol.PROTOCOL_121_30, BlockItemFlattener::downgrader12130);
 
         registerAuxValueFixer(AbstractProtocol.PROTOCOL_121, BlockItemFlattener::metaFixer121);
         registerAuxValueFixer(AbstractProtocol.PROTOCOL_121_2, BlockItemFlattener::metaFixer121);
         registerAuxValueFixer(AbstractProtocol.PROTOCOL_121_20, BlockItemFlattener::metaFixer121);
+        registerAuxValueFixer(AbstractProtocol.PROTOCOL_121_30, BlockItemFlattener::metaFixer121);
     }
 
     private static void registerIdDowngrader(AbstractProtocol protocol, Int2IntFunction downgrader) {

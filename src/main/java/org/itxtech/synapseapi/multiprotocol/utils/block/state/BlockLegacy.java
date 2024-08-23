@@ -1,6 +1,8 @@
 package org.itxtech.synapseapi.multiprotocol.utils.block.state;
 
 import cn.nukkit.math.Mth;
+import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
+import it.unimi.dsi.fastutil.ints.Int2ObjectRBTreeMap;
 import lombok.ToString;
 
 import java.util.Arrays;
@@ -97,6 +99,7 @@ public class BlockLegacy {
             throw new IllegalArgumentException("flattened states must contain at least one state");
         }
         BlockLegacy newBlock = new BlockLegacy(id, name);
+        Int2ObjectMap<BlockStateInstance> permutations = new Int2ObjectRBTreeMap<>();
         int found = 0;
         INSTANCE:
         for (BlockStateInstance instance : states) {
@@ -109,10 +112,13 @@ public class BlockLegacy {
                     continue INSTANCE;
                 }
             }
-            newBlock.addState(instance.state, instance.variationCount);
+            permutations.put(instance.startBit, instance);
         }
         if (found != flattenedStates.length) {
             throw new IllegalArgumentException("states mismatch");
+        }
+        for (BlockStateInstance instance : permutations.values()) {
+            newBlock.addState(instance.state, instance.variationCount);
         }
         return newBlock;
     }
@@ -122,10 +128,14 @@ public class BlockLegacy {
      */
     public BlockLegacy rename(String name) {
         BlockLegacy newBlock = new BlockLegacy(id, name);
+        Int2ObjectMap<BlockStateInstance> permutations = new Int2ObjectRBTreeMap<>();
         for (BlockStateInstance instance : states) {
             if (instance == null) {
                 continue;
             }
+            permutations.put(instance.startBit, instance);
+        }
+        for (BlockStateInstance instance : permutations.values()) {
             newBlock.addState(instance.state, instance.variationCount);
         }
         return newBlock;

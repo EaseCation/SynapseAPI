@@ -107,13 +107,12 @@ import org.itxtech.synapseapi.multiprotocol.protocol12080.protocol.CraftingDataP
 import org.itxtech.synapseapi.multiprotocol.protocol12080.protocol.ResourcePackStackPacket12080;
 import org.itxtech.synapseapi.multiprotocol.protocol12080.protocol.StartGamePacket12080;
 import org.itxtech.synapseapi.multiprotocol.protocol12080.protocol.UpdatePlayerGameTypePacket12080;
-import org.itxtech.synapseapi.multiprotocol.protocol121.protocol.AwardAchievementPacket121;
 import org.itxtech.synapseapi.multiprotocol.protocol121.protocol.ContainerClosePacket121;
 import org.itxtech.synapseapi.multiprotocol.protocol121.protocol.CraftingDataPacket121;
 import org.itxtech.synapseapi.multiprotocol.protocol121.protocol.StartGamePacket121;
 import org.itxtech.synapseapi.multiprotocol.protocol121.protocol.TextPacket121;
-import org.itxtech.synapseapi.multiprotocol.protocol1212.protocol.ClientboundCloseFormPacket1212;
 import org.itxtech.synapseapi.multiprotocol.protocol12120.protocol.*;
+import org.itxtech.synapseapi.multiprotocol.protocol12130.protocol.*;
 import org.itxtech.synapseapi.multiprotocol.protocol15.protocol.AddEntityPacket15;
 import org.itxtech.synapseapi.multiprotocol.protocol15.protocol.ClientboundMapItemDataPacket15;
 import org.itxtech.synapseapi.multiprotocol.protocol15.protocol.MoveEntityAbsolutePacket15;
@@ -427,6 +426,13 @@ public class PacketRegister {
         registerPacket(AbstractProtocol.PROTOCOL_121_20, ProtocolInfo.RESOURCE_PACKS_INFO_PACKET, ResourcePacksInfoPacket12120.class);
         registerPacket(AbstractProtocol.PROTOCOL_121_20, ProtocolInfo.INVENTORY_CONTENT_PACKET, InventoryContentPacket12120.class);
         registerPacket(AbstractProtocol.PROTOCOL_121_20, ProtocolInfo.INVENTORY_SLOT_PACKET, InventorySlotPacket12120.class);
+
+        registerPacket(AbstractProtocol.PROTOCOL_121_30, ProtocolInfo.TRANSFER_PACKET, TransferPacket12130.class);
+        registerPacket(AbstractProtocol.PROTOCOL_121_30, ProtocolInfo.RESOURCE_PACKS_INFO_PACKET, ResourcePacksInfoPacket12130.class);
+        registerPacket(AbstractProtocol.PROTOCOL_121_30, ProtocolInfo.INVENTORY_CONTENT_PACKET, InventoryContentPacket12130.class);
+        registerPacket(AbstractProtocol.PROTOCOL_121_30, ProtocolInfo.INVENTORY_SLOT_PACKET, InventorySlotPacket12130.class);
+        registerPacket(AbstractProtocol.PROTOCOL_121_30, ProtocolInfo.UPDATE_ATTRIBUTES_PACKET, UpdateAttributesPacket12130.class);
+        registerPacket(AbstractProtocol.PROTOCOL_121_30, ProtocolInfo.EMOTE_PACKET, EmotePacket12130.class);
 
         checkNeteaseSpecialExtend();
     }

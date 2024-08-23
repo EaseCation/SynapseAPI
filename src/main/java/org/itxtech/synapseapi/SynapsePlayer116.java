@@ -1715,6 +1715,11 @@ public class SynapsePlayer116 extends SynapsePlayer113 {
 
 	@Override
 	public void playEmote(String emoteId, long entityRuntimeId, int flags) {
+		playEmote(emoteId, entityRuntimeId, flags, 0);
+	}
+
+	@Override
+	public void playEmote(String emoteId, long entityRuntimeId, int flags, int emoteTicks) {
 		EmotePacket116 packet = new EmotePacket116();
 		packet.emoteID = emoteId;
 		packet.runtimeId = entityRuntimeId;
