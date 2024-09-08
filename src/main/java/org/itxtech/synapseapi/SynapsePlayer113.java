@@ -650,7 +650,17 @@ public class SynapsePlayer113 extends SynapsePlayer112 {
 				this.dataPacket(tickSyncResponse);
 				break;
 			case ProtocolInfo.SETTINGS_COMMAND_PACKET:
-				this.addViolationLevel(5, "cmd_req_menu");
+				SettingsCommandPacket113 settingsCommandPacket = (SettingsCommandPacket113) packet;
+
+				int extra;
+				int length = settingsCommandPacket.command.length();
+				if (length > 32) {
+					float score = length / 15f;
+					extra = Mth.clamp((int) Mth.square(score), 1, 15);
+				} else {
+					extra = 0;
+				}
+				this.addViolationLevel(5 + extra, "cmd_req_menu");
 
 				if (!callPacketReceiveEvent(packet)) {
 					break;
@@ -667,7 +677,6 @@ public class SynapsePlayer113 extends SynapsePlayer112 {
 					break;
 				}
 
-				SettingsCommandPacket113 settingsCommandPacket = (SettingsCommandPacket113) packet;
 				if (settingsCommandPacket.command.length() > 512) {
 					break;
 				}

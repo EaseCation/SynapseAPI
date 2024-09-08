@@ -1950,8 +1950,17 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
                     super.handleDataPacket(packet);
                     break;
                 }
+                CommandRequestPacket11960 commandRequestPacket = (CommandRequestPacket11960) packet;
 
-                this.addViolationLevel(5, "cmd_req_chat");
+                int extra;
+                int length = commandRequestPacket.command.length();
+                if (length > 30) {
+                    float score = length / 15f;
+                    extra = Mth.clamp((int) Mth.square(score), 1, 15);
+                } else {
+                    extra = 0;
+                }
+                this.addViolationLevel(5 + extra, "cmd_req_chat");
 
                 if (!this.spawned || !this.isAlive()) {
                     break;
@@ -1964,7 +1973,6 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
                     break;
                 }
 
-                CommandRequestPacket11960 commandRequestPacket = (CommandRequestPacket11960) packet;
                 if (commandRequestPacket.command.length() > 512) {
                     break;
                 }
