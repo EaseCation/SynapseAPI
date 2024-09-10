@@ -95,9 +95,6 @@ public class BlockLegacy {
      * @return new block
      */
     public BlockLegacy flatten(String name, int id, BlockState... flattenedStates) {
-        if (flattenedStates.length == 0) {
-            throw new IllegalArgumentException("flattened states must contain at least one state");
-        }
         BlockLegacy newBlock = new BlockLegacy(id, name);
         Int2ObjectMap<BlockStateInstance> permutations = new Int2ObjectRBTreeMap<>();
         int found = 0;

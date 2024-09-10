@@ -120,8 +120,6 @@ public final class AdvancedRuntimeItemPalette {
     }
 
     public static void registerCustomItem(String fullName, int id, @Nullable Integer oldId, @Nullable CompoundTag components) {
-        boolean componentBased = components != null;
-
         Set<AdvancedRuntimeItemPaletteInterface> finished = new ObjectOpenHashSet<>();
         for (AdvancedRuntimeItemPaletteInterface[] interfaces : palettes.values()) {
             for (AdvancedRuntimeItemPaletteInterface palette : interfaces) {
@@ -129,11 +127,11 @@ public final class AdvancedRuntimeItemPalette {
                     continue;
                 }
 
-                palette.registerItem(new RuntimeItemPaletteInterface.Entry(fullName, id, oldId, null, componentBased));
+                palette.registerItem(new RuntimeItemPaletteInterface.Entry(fullName, id, oldId, null, components != null && components.contains("item_properties")));
             }
         }
 
-        if (componentBased) {
+        if (components != null) {
             ItemComponentDefinitions.registerCustomItemComponent(fullName, id, components);
         }
     }
