@@ -1249,6 +1249,7 @@ public final class LegacyBlockSerializer {
 
         registerDeserializer(BROWN_MUSHROOM_BLOCK, LegacyBlockSerializer::deserializeHugeMushroom);
         registerDeserializer(RED_MUSHROOM_BLOCK, LegacyBlockSerializer::deserializeHugeMushroom);
+        registerDeserializer(MUSHROOM_STEM, LegacyBlockSerializer::deserializeHugeMushroom);
 
         registerDeserializer(VINE, states -> states.getInt(VINE_DIRECTION_BITS) & 0b1111);
 
@@ -1400,6 +1401,12 @@ public final class LegacyBlockSerializer {
         registerDeserializer(BLOCK_FLOWER_POT, states -> states.getBoolean(UPDATE_BIT) ? 0b1 : 0);
 
         registerDeserializer(BLOCK_SKULL, LegacyBlockSerializer::deserializeFacingDirection);
+        registerDeserializer(WITHER_SKELETON_SKULL, LegacyBlockSerializer::deserializeFacingDirection);
+        registerDeserializer(ZOMBIE_HEAD, LegacyBlockSerializer::deserializeFacingDirection);
+        registerDeserializer(PLAYER_HEAD, LegacyBlockSerializer::deserializeFacingDirection);
+        registerDeserializer(CREEPER_HEAD, LegacyBlockSerializer::deserializeFacingDirection);
+        registerDeserializer(DRAGON_HEAD, LegacyBlockSerializer::deserializeFacingDirection);
+        registerDeserializer(PIGLIN_HEAD, LegacyBlockSerializer::deserializeFacingDirection);
 
         registerDeserializer(ANVIL, states -> {
             int meta = deserializeDirection(states);
@@ -1994,7 +2001,9 @@ public final class LegacyBlockSerializer {
         registerDeserializer(STRIPPED_CHERRY_WOOD, LegacyBlockSerializer::deserializePillarAxis);
 
         registerDeserializer(MANGROVE_WOOD, LegacyBlockSerializer::deserializeWood);
+//        registerDeserializer(MANGROVE_WOOD, LegacyBlockSerializer::deserializePillarAxis); //TODO: 1.21.40
         registerDeserializer(CHERRY_WOOD, LegacyBlockSerializer::deserializeWood);
+//        registerDeserializer(CHERRY_WOOD, LegacyBlockSerializer::deserializePillarAxis); //TODO: 1.21.40
 
         registerDeserializer(CHERRY_SAPLING, LegacyBlockSerializer::deserializeSapling);
 

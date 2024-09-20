@@ -5,6 +5,7 @@ import cn.nukkit.block.BlockUpgrader;
 import cn.nukkit.block.BlockUpgrader.BedrockBlockUpgrader;
 import cn.nukkit.nbt.stream.NBTInputStream;
 import cn.nukkit.nbt.tag.CompoundTag;
+import cn.nukkit.nbt.tag.IntTag;
 import cn.nukkit.nbt.tag.StringTag;
 import cn.nukkit.nbt.tag.Tag;
 import cn.nukkit.utils.Binary;
@@ -149,12 +150,15 @@ public final class VanillaBlockUpgrader {
                         String stateName = flatten.getFlattenedProperty();
 
                         Tag flattened = states.get(stateName);
-                        if (!(flattened instanceof StringTag)) {
-                            // flattened property is not a TAG_String, so this transformation is not applicable
+                        String value;
+                        if (flattened instanceof StringTag stringTag) {
+                            value = stringTag.data;
+                        } else if (flattened instanceof IntTag intTag) {
+                            value = String.valueOf(intTag.data);
+                        } else {
+                            // flattened property is not a stringable tag, so this transformation is not applicable
                             continue;
                         }
-
-                        String value = ((StringTag) flattened).data;
                         newName = flatten.getPrefix() + flatten.getFlattenedValueRemaps().getOrDefault(value, value) + flatten.getSuffix();
 
                         states.remove(stateName);
@@ -384,6 +388,7 @@ public final class VanillaBlockUpgrader {
         addSchema("0281_1.20.80.24_beta_to_1.21.0.25_beta.json", V1_21_0);
         addSchema("0291_1.21.0.25_beta_to_1.21.20.24_beta.json", V1_21_20);
         addSchema("0301_1.21.20.24_beta_to_1.21.30.24_beta.json", V1_21_30);
+        addSchema("0311_1.21.30.24_beta_to_1.21.40.20_beta.json", V1_21_40);
 
         BlockUpgrader.setUpgrader(new BedrockBlockUpgrader() {
             @Override

@@ -2,6 +2,7 @@ package org.itxtech.synapseapi.multiprotocol.protocol12050;
 
 import cn.nukkit.block.Block;
 import cn.nukkit.inventory.RecipeType;
+import cn.nukkit.inventory.recipe.*;
 import cn.nukkit.item.Item;
 import cn.nukkit.item.ItemDurable;
 import cn.nukkit.item.ItemID;
@@ -54,6 +55,7 @@ public class BinaryStreamHelper12050 extends BinaryStreamHelper12040 {
         int fullId = AdvancedRuntimeItemPalette.getLegacyFullId(this.protocol, stream.neteaseMode, id);
         id = AdvancedRuntimeItemPalette.getId(this.protocol, stream.neteaseMode, fullId);
 
+        int newId = id;
         id = BlockItemFlattener.downgrade(this.protocol, id);
 
         boolean hasData = AdvancedRuntimeItemPalette.hasData(this.protocol, stream.neteaseMode, fullId);
@@ -73,7 +75,9 @@ public class BinaryStreamHelper12050 extends BinaryStreamHelper12040 {
             }
         }
 
-        damage = BlockItemFlattener.fixMeta(this.protocol, id, damage);
+        int itemFullId = BlockItemFlattener.fixMeta(this.protocol, newId, id, damage);
+        id = Item.getIdFromFullId(itemFullId);
+        damage = Item.getMetaFromFullId(itemFullId);
 
         byte[] bytes = stream.getByteArray();
         ByteBuf buf = ByteBufAllocator.DEFAULT.ioBuffer(bytes.length);
@@ -262,6 +266,129 @@ public class BinaryStreamHelper12050 extends BinaryStreamHelper12040 {
         } finally {
             userDataBuf.release();
         }
+    }
+
+    @Override
+    public RecipeIngredient getRecipeIngredient(BinaryStream stream) {
+        ItemDescriptor descriptor;
+        switch (stream.getByte()) {
+            default:
+            case 0:
+                descriptor = InvalidItemDescriptor.INSTANCE;
+                break;
+            case 1:
+                int networkId = stream.getLShort();
+
+                int legacyFullId = AdvancedRuntimeItemPalette.getLegacyFullId(this.protocol, stream.neteaseMode, networkId);
+                int id = AdvancedRuntimeItemPalette.getId(this.protocol, stream.neteaseMode, legacyFullId);
+                boolean hasData = AdvancedRuntimeItemPalette.hasData(this.protocol, stream.neteaseMode, legacyFullId);
+
+                id = BlockItemFlattener.downgrade(this.protocol, id);
+
+                int damage = stream.getLShort();
+                if (hasData) {
+                    damage = AdvancedRuntimeItemPalette.getData(this.protocol, stream.neteaseMode, legacyFullId);
+                } else if (damage == 0x7fff) {
+                    damage = -1;
+                } else {
+                    damage = 0;
+                }
+
+                descriptor = new DefaultItemDescriptor(Item.get(id, damage));
+                break;
+            case 2:
+                String molangExpression = stream.getString();
+                int molangVersion = stream.getByte();
+
+                descriptor = new MolangItemDescriptor(molangExpression, molangVersion);
+                break;
+            case 3:
+                String tag = stream.getString();
+
+                descriptor = new TagItemDescriptor(tag);
+                break;
+            case 4:
+                String name = stream.getString();
+                damage = stream.getLShort();
+
+                descriptor = new DeferredItemDescriptor(name, damage);
+                break;
+            case 5:
+                name = stream.getString();
+
+                descriptor = new ComplexAliasItemDescriptor(name);
+                break;
+        }
+
+        int count = stream.getVarInt();
+
+        if (descriptor instanceof DefaultItemDescriptor internalDescriptor) {
+            internalDescriptor.getItem().setCount(count);
+        }
+
+        return new RecipeIngredient(descriptor, count);
+    }
+
+    @Override
+    public void putRecipeIngredient(BinaryStream stream, RecipeIngredient ingredient) {
+        if (ingredient == null) {
+            ingredient = RecipeIngredient.EMPTY;
+        }
+        ItemDescriptor descriptor = ingredient.getDescriptor();
+        ItemDescriptorType type = descriptor.getType();
+
+        stream.putByte(type.ordinal());
+        switch (type) {
+            default:
+            case NONE:
+                break;
+            case INTERNAL:
+                DefaultItemDescriptor internalDescriptor = (DefaultItemDescriptor) descriptor;
+                Item item = internalDescriptor.getItem();
+                if (item == null || item.isNull()) {
+                    stream.setCount(stream.getCount() - 1);
+                    stream.putByte(ItemDescriptorType.NONE.ordinal());
+                    stream.putVarInt(0);
+                    return;
+                }
+
+                int networkFullId = AdvancedRuntimeItemPalette.getNetworkFullId(this.protocol, stream.neteaseMode, item);
+                int networkId = AdvancedRuntimeItemPalette.getNetworkId(this.protocol, stream.neteaseMode, networkFullId);
+                int damage = item.hasMeta() ? item.getDamage() : 0x7fff;
+                if (AdvancedRuntimeItemPalette.hasData(this.protocol, stream.neteaseMode, networkFullId)) {
+                    damage = 0;
+                }
+
+                if (item.getId() > 0 && networkId < 0) { //TODO: flat upgrade mapping, e.g. "minecraft:wool"
+                    networkId >>= 1;
+                }
+
+                stream.putLShort(networkId);
+                stream.putLShort(damage);
+
+                stream.putVarInt(ingredient.getCount());
+                return;
+            case MOLANG:
+                MolangItemDescriptor molangDescriptor = (MolangItemDescriptor) descriptor;
+                stream.putString(molangDescriptor.getExpression());
+                stream.putByte(molangDescriptor.getVersion());
+                break;
+            case ITEM_TAG:
+                TagItemDescriptor tagDescriptor = (TagItemDescriptor) descriptor;
+                stream.putString(tagDescriptor.getTag());
+                break;
+            case DEFERRED:
+                DeferredItemDescriptor deferredDescriptor = (DeferredItemDescriptor) descriptor;
+                stream.putString(deferredDescriptor.getName());
+                stream.putLShort(deferredDescriptor.getMeta());
+                break;
+            case COMPLEX_ALIAS:
+                ComplexAliasItemDescriptor complexAliasDescriptor = (ComplexAliasItemDescriptor) descriptor;
+                stream.putString(complexAliasDescriptor.getName());
+                break;
+        }
+
+        stream.putVarInt(ingredient.getCount());
     }
 
     @Override

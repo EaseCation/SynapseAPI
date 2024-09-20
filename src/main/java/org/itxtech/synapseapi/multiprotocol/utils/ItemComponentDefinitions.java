@@ -127,6 +127,10 @@ public final class ItemComponentDefinitions {
                     load("item_components12130.nbt", AbstractProtocol.PROTOCOL_121_30, false),
                     null,
             });
+            DEFINITIONS.put(AbstractProtocol.PROTOCOL_121_40, new Map[]{
+                    load("item_components12140.nbt", AbstractProtocol.PROTOCOL_121_40, false),
+                    null,
+            });
         } catch (NullPointerException | IOException e) {
             throw new AssertionError("Unable to load item_components.nbt", e);
         }

@@ -44,6 +44,27 @@ public interface IPlayerAuthInputPacket extends InventoryTransactionPacketInterf
     }
 
     /**
+     * @since 1.19.0
+     */
+    default int getInteractionModel() {
+        return -1;
+    }
+
+    /**
+     * @since 1.21.40
+     */
+    default float getInteractRotationX() {
+        return 0;
+    }
+
+    /**
+     * @since 1.21.40
+     */
+    default float getInteractRotationY() {
+        return 0;
+    }
+
+    /**
      * @since 1.20.70
      */
     default float getVehiclePitch() {
@@ -75,6 +96,27 @@ public interface IPlayerAuthInputPacket extends InventoryTransactionPacketInterf
      * @since 1.19.70
      */
     default float getAnalogMoveVecZ() {
+        return 0;
+    }
+
+    /**
+     * @since 1.21.40
+     */
+    default float getDirectionX() {
+        return 0;
+    }
+
+    /**
+     * @since 1.21.40
+     */
+    default float getDirectionY() {
+        return 0;
+    }
+
+    /**
+     * @since 1.21.40
+     */
+    default float getDirectionZ() {
         return 0;
     }
 

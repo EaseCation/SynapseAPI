@@ -2,11 +2,11 @@ package org.itxtech.synapseapi.multiprotocol.protocol116220.protocol;
 
 import cn.nukkit.inventory.transaction.data.UseItemData;
 import cn.nukkit.math.BlockVector3;
+import cn.nukkit.math.Vector2f;
 import cn.nukkit.math.Vector3f;
 import cn.nukkit.network.protocol.DataPacket;
 import cn.nukkit.network.protocol.PlayerActionPacket;
 import cn.nukkit.network.protocol.ProtocolInfo;
-import cn.nukkit.network.protocol.types.InputInteractionModel;
 import cn.nukkit.network.protocol.types.InventoryTransactionPacketInterface;
 import cn.nukkit.network.protocol.types.NetworkInventoryAction;
 import lombok.ToString;
@@ -88,6 +88,11 @@ public class PlayerAuthInputPacket116220 extends Packet116220 implements Invento
     public static final int PLAY_MODE_EXIT_LEVEL = 7;
     public static final int PLAY_MODE_EXIT_LEVEL_LIVING_ROOM = 8;
 
+    public static final int INTERACTION_MODEL_UNKNOWN = -1;
+    public static final int INTERACTION_MODEL_TOUCH = 0;
+    public static final int INTERACTION_MODEL_CROSSHAIR = 1;
+    public static final int INTERACTION_MODEL_CLASSIC = 2;
+
     public float x;
     public float y;
     public float z;
@@ -102,10 +107,26 @@ public class PlayerAuthInputPacket116220 extends Packet116220 implements Invento
     /**
      * @since 1.19.0
      */
-    @Nullable
-    public InputInteractionModel interactionModel;
+    public int interactionModel = INTERACTION_MODEL_UNKNOWN;
+    /**
+     * @since 1.21.40
+     */
+    public float interactRotationX;
+    /**
+     * @since 1.21.40
+     */
+    public float interactRotationY;
+    /**
+     * deprecated 1.21.40
+     */
     public float vrGazeDirectionX;
+    /**
+     * deprecated 1.21.40
+     */
     public float vrGazeDirectionY;
+    /**
+     * deprecated 1.21.40
+     */
     public float vrGazeDirectionZ;
     public long tick;
     public float deltaX;
@@ -125,6 +146,18 @@ public class PlayerAuthInputPacket116220 extends Packet116220 implements Invento
     public long predictedVehicleEntityUniqueId;
     public float analogMoveVecX;
     public float analogMoveVecZ;
+    /**
+     * @since 1.21.40
+     */
+    public float directionX;
+    /**
+     * @since 1.21.40
+     */
+    public float directionY;
+    /**
+     * @since 1.21.40
+     */
+    public float directionZ;
 
     public boolean hasNetworkIds;
     @Nullable
@@ -162,8 +195,15 @@ public class PlayerAuthInputPacket116220 extends Packet116220 implements Invento
         this.inputFlags = this.getUnsignedVarLong();
         this.inputMode = (int) this.getUnsignedVarInt();
         this.playMode = (int) this.getUnsignedVarInt();
-        interactionModel = helper.getInteractionModel(this);
-        if (this.playMode == PLAY_MODE_VR) {
+        if (protocol.getProtocolStart() >= AbstractProtocol.PROTOCOL_119.getProtocolStart()) {
+            interactionModel = (int) this.getUnsignedVarInt();
+        }
+        if (protocol.getProtocolStart() >= AbstractProtocol.PROTOCOL_121_40.getProtocolStart()) {
+            Vector2f interactRotation = this.getVector2f();
+            this.interactRotationX = interactRotation.x;
+            this.interactRotationY = interactRotation.y;
+        }
+        if (this.playMode == PLAY_MODE_VR && protocol.getProtocolStart() < AbstractProtocol.PROTOCOL_121_40.getProtocolStart()) {
             Vector3f vrGazeDirection = this.getVector3f();
             this.vrGazeDirectionX = vrGazeDirection.x;
             this.vrGazeDirectionY = vrGazeDirection.y;
@@ -292,6 +332,13 @@ public class PlayerAuthInputPacket116220 extends Packet116220 implements Invento
         if (protocol.getProtocolStart() >= AbstractProtocol.PROTOCOL_119_70.getProtocolStart()) {
             analogMoveVecX = getLFloat();
             analogMoveVecZ = getLFloat();
+        }
+
+        if (protocol.getProtocolStart() >= AbstractProtocol.PROTOCOL_121_40.getProtocolStart()) {
+            Vector3f direction = this.getVector3f();
+            this.directionX = direction.x;
+            this.directionY = direction.y;
+            this.directionZ = direction.z;
         }
 
         if (SynapseSharedConstants.MAC_DEBUG) {
@@ -433,6 +480,21 @@ public class PlayerAuthInputPacket116220 extends Packet116220 implements Invento
     }
 
     @Override
+    public int getInteractionModel() {
+        return interactionModel;
+    }
+
+    @Override
+    public float getInteractRotationX() {
+        return interactRotationX;
+    }
+
+    @Override
+    public float getInteractRotationY() {
+        return interactRotationY;
+    }
+
+    @Override
     public float getVrGazeDirectionX() {
         return this.vrGazeDirectionX;
     }
@@ -505,5 +567,20 @@ public class PlayerAuthInputPacket116220 extends Packet116220 implements Invento
     @Override
     public float getAnalogMoveVecZ() {
         return analogMoveVecZ;
+    }
+
+    @Override
+    public float getDirectionX() {
+        return directionX;
+    }
+
+    @Override
+    public float getDirectionY() {
+        return directionY;
+    }
+
+    @Override
+    public float getDirectionZ() {
+        return directionZ;
     }
 }

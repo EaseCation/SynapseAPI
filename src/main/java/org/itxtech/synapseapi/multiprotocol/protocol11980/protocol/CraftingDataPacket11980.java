@@ -1,15 +1,7 @@
 package org.itxtech.synapseapi.multiprotocol.protocol11980.protocol;
 
-import cn.nukkit.inventory.BrewingRecipe;
-import cn.nukkit.inventory.ContainerRecipe;
-import cn.nukkit.inventory.FurnaceRecipe;
-import cn.nukkit.inventory.MaterialReducerRecipe;
-import cn.nukkit.inventory.MultiRecipe;
-import cn.nukkit.inventory.Recipe;
-import cn.nukkit.inventory.ShapedRecipe;
-import cn.nukkit.inventory.ShapelessRecipe;
-import cn.nukkit.inventory.SmithingTransformRecipe;
-import cn.nukkit.inventory.SmithingTrimRecipe;
+import cn.nukkit.inventory.*;
+import cn.nukkit.inventory.recipe.RecipeIngredient;
 import cn.nukkit.item.Item;
 import cn.nukkit.network.protocol.CraftingDataPacket;
 import cn.nukkit.network.protocol.DataPacket;
@@ -17,7 +9,9 @@ import cn.nukkit.network.protocol.ProtocolInfo;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import lombok.ToString;
 import lombok.extern.log4j.Log4j2;
-import org.itxtech.synapseapi.utils.ClassUtils;
+import org.itxtech.synapseapi.multiprotocol.AbstractProtocol;
+import org.itxtech.synapseapi.multiprotocol.utils.item.RecipeFlattener;
+import org.itxtech.synapseapi.multiprotocol.utils.item.TodoCraftingRecipe;
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -51,8 +45,58 @@ public class CraftingDataPacket11980 extends Packet11980 {
         int recipeNetworkId = 1;
 
         for (Recipe recipe : entries) {
-            this.putVarInt(recipe.getType().ordinal());
-            switch (recipe.getType()) {
+            RecipeType type = recipe.getType();
+            if (type == null) { //TODO: ItemDescriptor
+                TodoCraftingRecipe todo = (TodoCraftingRecipe) recipe;
+                type = todo.getRecipeType();
+                this.putVarInt(type.ordinal());
+                switch (type) {
+                    case SHAPELESS: {
+                        this.putString(todo.getRecipeId());
+                        List<RecipeIngredient> ingredients = todo.getShapelessInput();
+                        this.putUnsignedVarInt(ingredients.size());
+                        for (RecipeIngredient ingredient : ingredients) {
+                            this.helper.putRecipeIngredient(this, ingredient);
+                        }
+                        this.putUnsignedVarInt(1);
+                        this.putItemInstance(todo.getResult());
+                        this.putUUID(todo.getId());
+                        this.putString(todo.getTag().toString());
+                        this.putVarInt(todo.getPriority());
+                        this.putUnsignedVarInt(recipeNetworkId++);
+                        break;
+                    }
+                    case SHAPED: {
+                        this.putString(todo.getRecipeId());
+                        this.putVarInt(todo.getShapedWidth());
+                        this.putVarInt(todo.getShapedHeight());
+                        for (int z = 0; z < todo.getShapedHeight(); ++z) {
+                            for (int x = 0; x < todo.getShapedWidth(); ++x) {
+                                this.helper.putRecipeIngredient(this, todo.getShapedInput(x, z));
+                            }
+                        }
+                        List<Item> outputs = new ObjectArrayList<>();
+                        outputs.add(todo.getResult());
+                        outputs.addAll(todo.getExtraResults());
+                        this.putUnsignedVarInt(outputs.size());
+                        for (Item output : outputs) {
+                            this.putItemInstance(output);
+                        }
+                        this.putUUID(todo.getId());
+                        this.putString(todo.getTag().toString());
+                        this.putVarInt(todo.getPriority());
+                        this.putUnsignedVarInt(recipeNetworkId++);
+                        break;
+                    }
+                    default: {
+                        throw new IllegalStateException("Unimplemented todo recipe type: " + type);
+                    }
+                }
+                continue;
+            }
+
+            this.putVarInt(type.ordinal());
+            switch (type) {
                 case SHAPELESS:
                 case SHULKER_BOX:
                 case SHAPELESS_CHEMISTRY:
@@ -97,7 +141,7 @@ public class CraftingDataPacket11980 extends Packet11980 {
                 case FURNACE:
                 case FURNACE_DATA:
                     FurnaceRecipe furnace = (FurnaceRecipe) recipe;
-                    this.helper.putFurnaceRecipeIngredient(this, furnace.getInput(), recipe.getType());
+                    this.helper.putFurnaceRecipeIngredient(this, furnace.getInput(), type);
                     this.putItemInstance(furnace.getResult());
                     this.putString(furnace.getTag().toString());
                     break;
@@ -162,9 +206,7 @@ public class CraftingDataPacket11980 extends Packet11980 {
     }
 
     @Override
-    public DataPacket fromDefault(DataPacket pk) {
-        ClassUtils.requireInstance(pk, CraftingDataPacket.class);
-
+    public DataPacket fromDefault(DataPacket pk, AbstractProtocol protocol, boolean netease) {
         CraftingDataPacket packet = (CraftingDataPacket) pk;
 
         this.entries = packet.entries.stream().map(e -> (Recipe) e).collect(Collectors.toList());
@@ -172,6 +214,8 @@ public class CraftingDataPacket11980 extends Packet11980 {
         this.containerEntries = packet.containerEntries;
         this.materialReducerEntries = packet.materialReducerEntries;
         this.cleanRecipes = packet.cleanRecipes;
+
+        RecipeFlattener.addFlattenedRecipes(protocol, this.entries);
 
         return this;
     }

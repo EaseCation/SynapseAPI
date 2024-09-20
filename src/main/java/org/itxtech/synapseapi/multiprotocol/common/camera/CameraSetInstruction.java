@@ -30,6 +30,11 @@ public class CameraSetInstruction {
      */
     @Nullable
     public Vector2f viewOffset;
+    /**
+     * @since 1.21.40
+     */
+    @Nullable
+    public Vector3f entityOffset;
     @Nullable
     public Boolean defaultPreset;
 

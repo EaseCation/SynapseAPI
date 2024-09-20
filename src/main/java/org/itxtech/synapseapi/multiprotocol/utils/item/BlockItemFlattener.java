@@ -1,7 +1,10 @@
 package org.itxtech.synapseapi.multiprotocol.utils.item;
 
 import cn.nukkit.block.BlockTallGrass;
+import cn.nukkit.item.Item;
 import cn.nukkit.item.ItemBlockID;
+import cn.nukkit.item.ItemID;
+import cn.nukkit.item.ItemSkull;
 import it.unimi.dsi.fastutil.ints.Int2IntFunction;
 import org.itxtech.synapseapi.multiprotocol.AbstractProtocol;
 
@@ -21,12 +24,12 @@ public final class BlockItemFlattener {
         return func.applyAsInt(id);
     }
 
-    public static int fixMeta(AbstractProtocol protocol, int id, int meta) {
+    public static int fixMeta(AbstractProtocol protocol, int flattenedId, int id, int meta) {
         AuxValueFixer fixer = AUX_VALUE_FIXERS.get(protocol);
         if (fixer == null) {
             return meta;
         }
-        return fixer.fix(id, meta);
+        return fixer.fix(flattenedId, id, meta);
     }
 
     static {
@@ -44,11 +47,13 @@ public final class BlockItemFlattener {
         registerIdDowngrader(AbstractProtocol.PROTOCOL_121_2, BlockItemFlattener::downgrader121);
         registerIdDowngrader(AbstractProtocol.PROTOCOL_121_20, BlockItemFlattener::downgrader12120);
         registerIdDowngrader(AbstractProtocol.PROTOCOL_121_30, BlockItemFlattener::downgrader12130);
+        registerIdDowngrader(AbstractProtocol.PROTOCOL_121_40, BlockItemFlattener::downgrader12140);
 
         registerAuxValueFixer(AbstractProtocol.PROTOCOL_121, BlockItemFlattener::metaFixer121);
         registerAuxValueFixer(AbstractProtocol.PROTOCOL_121_2, BlockItemFlattener::metaFixer121);
         registerAuxValueFixer(AbstractProtocol.PROTOCOL_121_20, BlockItemFlattener::metaFixer121);
         registerAuxValueFixer(AbstractProtocol.PROTOCOL_121_30, BlockItemFlattener::metaFixer121);
+        registerAuxValueFixer(AbstractProtocol.PROTOCOL_121_40, BlockItemFlattener::metaFixer12140);
     }
 
     private static void registerIdDowngrader(AbstractProtocol protocol, Int2IntFunction downgrader) {
@@ -291,18 +296,47 @@ public final class BlockItemFlattener {
         return downgrader12120(id);
     }
 
-    private static int metaFixer121(int id, int meta) {
+    private static int downgrader12140(int id) {
+        if (id <= ItemBlockID.WITHER_SKELETON_SKULL && id >= ItemBlockID.PIGLIN_HEAD) {
+            return ItemID.SKULL;
+        }
+        return downgrader12130(id);
+    }
+
+    private static int metaFixer121(int flattenedId, int id, int meta) {
         if (id == ItemBlockID.SHORT_GRASS) {
             if (meta == 0) {
-                return BlockTallGrass.TYPE_GRASS;
+                return Item.getFullId(id, BlockTallGrass.TYPE_GRASS);
             }
         }
-        return meta;
+        return Item.getFullId(id, meta);
+    }
+
+    private static int metaFixer12140(int flattenedId, int id, int meta) {
+        if (flattenedId == ItemBlockID.WITHER_SKELETON_SKULL) {
+            return Item.getFullId(ItemID.SKULL, ItemSkull.HEAD_WITHER_SKELETON);
+        }
+        if (flattenedId == ItemBlockID.ZOMBIE_HEAD) {
+            return Item.getFullId(ItemID.SKULL, ItemSkull.HEAD_ZOMBIE);
+        }
+        if (flattenedId == ItemBlockID.PLAYER_HEAD) {
+            return Item.getFullId(ItemID.SKULL, ItemSkull.HEAD_PLAYER);
+        }
+        if (flattenedId == ItemBlockID.CREEPER_HEAD) {
+            return Item.getFullId(ItemID.SKULL, ItemSkull.HEAD_CREEPER);
+        }
+        if (flattenedId == ItemBlockID.DRAGON_HEAD) {
+            return Item.getFullId(ItemID.SKULL, ItemSkull.HEAD_DRAGON);
+        }
+        if (flattenedId == ItemBlockID.PIGLIN_HEAD) {
+            return Item.getFullId(ItemID.SKULL, ItemSkull.HEAD_PIGLIN);
+        }
+        return metaFixer121(flattenedId, id, meta);
     }
 
     @FunctionalInterface
     private interface AuxValueFixer {
-        int fix(int id, int meta);
+        int fix(int flattenedId, int id, int meta);
     }
 
     private BlockItemFlattener() {

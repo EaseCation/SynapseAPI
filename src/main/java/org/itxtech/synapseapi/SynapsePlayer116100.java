@@ -139,6 +139,9 @@ import org.itxtech.synapseapi.multiprotocol.protocol12120.protocol.*;
 import org.itxtech.synapseapi.multiprotocol.protocol12130.protocol.CameraPresetsPacket12130;
 import org.itxtech.synapseapi.multiprotocol.protocol12130.protocol.EmotePacket12130;
 import org.itxtech.synapseapi.multiprotocol.protocol12130.protocol.ResourcePacksInfoPacket12130;
+import org.itxtech.synapseapi.multiprotocol.protocol12140.protocol.CameraInstructionPacket12140;
+import org.itxtech.synapseapi.multiprotocol.protocol12140.protocol.CameraPresetsPacket12140;
+import org.itxtech.synapseapi.multiprotocol.protocol12140.protocol.ResourcePacksInfoPacket12140;
 import org.itxtech.synapseapi.multiprotocol.protocol14.protocol.PlayerActionPacket14;
 import org.itxtech.synapseapi.multiprotocol.protocol16.protocol.ResourcePackClientResponsePacket16;
 import org.itxtech.synapseapi.multiprotocol.utils.EntityPropertiesPalette;
@@ -2300,6 +2303,15 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
 
     @Override
     protected DataPacket generateResourcePackInfoPacket() {
+        if (getProtocol() >= AbstractProtocol.PROTOCOL_121_40.getProtocolStart()) {
+            ResourcePacksInfoPacket12140 resourcePacket = new ResourcePacksInfoPacket12140();
+            resourcePacket.resourcePackEntries = resourcePacks.values().toArray(new ResourcePack[0]);
+            if (isNetEaseClient()) {
+                resourcePacket.resourcePackEntries = ArrayUtils.addAll(resourcePacket.resourcePackEntries, behaviourPacks.values().toArray(new ResourcePack[0]));
+            }
+            resourcePacket.mustAccept = forceResources;
+            return resourcePacket;
+        }
         if (getProtocol() >= AbstractProtocol.PROTOCOL_121_30.getProtocolStart()) {
             ResourcePacksInfoPacket12130 resourcePacket = new ResourcePacksInfoPacket12130();
             resourcePacket.resourcePackEntries = resourcePacks.values().toArray(new ResourcePack[0]);
@@ -3456,6 +3468,13 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
 
     @Override
     protected void sendCameraPresets() {
+        if (getProtocol() >= AbstractProtocol.PROTOCOL_121_40.getProtocolStart()) {
+            CameraPresetsPacket12140 packet = new CameraPresetsPacket12140();
+            packet.presets = CameraManager.getInstance().getCameras();
+            dataPacket(packet);
+            return;
+        }
+
         if (getProtocol() >= AbstractProtocol.PROTOCOL_121_30.getProtocolStart()) {
             CameraPresetsPacket12130 packet = new CameraPresetsPacket12130();
             packet.presets = CameraManager.getInstance().getCameras();
@@ -3487,6 +3506,14 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
 
     @Override
     public void startCameraInstruction(CameraSetInstruction set, CameraFadeInstruction fade) {
+        if (getProtocol() >= AbstractProtocol.PROTOCOL_121_40.getProtocolStart()) {
+            CameraInstructionPacket12140 pk = new CameraInstructionPacket12140();
+            pk.set = set;
+            pk.fade = fade;
+            this.dataPacket(pk);
+            return;
+        }
+
         if (getProtocol() >= AbstractProtocol.PROTOCOL_121_20.getProtocolStart()) {
             CameraInstructionPacket12120 pk = new CameraInstructionPacket12120();
             pk.set = set;
@@ -3524,6 +3551,13 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
 
     @Override
     public void clearCameraInstruction() {
+        if (getProtocol() >= AbstractProtocol.PROTOCOL_121_40.getProtocolStart()) {
+            CameraInstructionPacket12140 pk = new CameraInstructionPacket12140();
+            pk.clear = true;
+            this.dataPacket(pk);
+            return;
+        }
+
         if (getProtocol() >= AbstractProtocol.PROTOCOL_121_20.getProtocolStart()) {
             CameraInstructionPacket12120 pk = new CameraInstructionPacket12120();
             pk.clear = true;
@@ -3660,7 +3694,7 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
 
     @Override
     protected void firstSyncLocalPlayerEntityData() {
-        if (getProtocol() < AbstractProtocol.PROTOCOL_119_50.getProtocolStart()) {
+        if (getProtocol() < AbstractProtocol.PROTOCOL_119_40.getProtocolStart()) {
             super.firstSyncLocalPlayerEntityData();
             return;
         }

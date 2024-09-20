@@ -2438,4 +2438,34 @@ public class BlockTypes {
             return REGISTRY;
         }
     }
+
+    public static class V1_21_40 extends V1_21_30 {
+        private static final BlockRegistry REGISTRY = new BlockRegistry((1 << 24) | (21 << 16) | (40 << 8) | 1, V1_21_30.REGISTRY);
+
+        public static final BlockLegacy CHERRY_WOOD = REGISTRY.flatten(V1_21_30.CHERRY_WOOD, "minecraft:cherry_wood", BlockID.CHERRY_WOOD,
+                BlockStates.STRIPPED_BIT);
+
+        public static final BlockLegacy MANGROVE_WOOD = REGISTRY.flatten(V1_21_30.MANGROVE_WOOD, "minecraft:mangrove_wood", BlockID.MANGROVE_WOOD,
+                BlockStates.STRIPPED_BIT);
+
+        public static final BlockLegacy MUSHROOM_STEM = REGISTRY.registerBlock("minecraft:mushroom_stem", BlockID.MUSHROOM_STEM)
+                .addState(BlockStates.HUGE_MUSHROOM_BITS);
+
+        public static final BlockLegacy SKELETON_SKULL = REGISTRY.flatten(V1_21_30.SKULL, "minecraft:skeleton_skull", BlockID.SKELETON_SKULL);
+        public static final BlockLegacy WITHER_SKELETON_SKULL = REGISTRY.flatten(V1_21_30.SKULL, "minecraft:wither_skeleton_skull", BlockID.WITHER_SKELETON_SKULL);
+        public static final BlockLegacy ZOMBIE_HEAD = REGISTRY.flatten(V1_21_30.SKULL, "minecraft:zombie_head", BlockID.ZOMBIE_HEAD);
+        public static final BlockLegacy PLAYER_HEAD = REGISTRY.flatten(V1_21_30.SKULL, "minecraft:player_head", BlockID.PLAYER_HEAD);
+        public static final BlockLegacy CREEPER_HEAD = REGISTRY.flatten(V1_21_30.SKULL, "minecraft:creeper_head", BlockID.CREEPER_HEAD);
+        public static final BlockLegacy DRAGON_HEAD = REGISTRY.flatten(V1_21_30.SKULL, "minecraft:dragon_head", BlockID.DRAGON_HEAD);
+        public static final BlockLegacy PIGLIN_HEAD = REGISTRY.flatten(V1_21_30.SKULL, "minecraft:piglin_head", BlockID.PIGLIN_HEAD);
+        public static final BlockLegacy SKULL = SKELETON_SKULL;
+
+        static {
+            REGISTRY.createBlockPermutations();
+        }
+
+        public static BlockRegistry getBlockRegistry() {
+            return REGISTRY;
+        }
+    }
 }

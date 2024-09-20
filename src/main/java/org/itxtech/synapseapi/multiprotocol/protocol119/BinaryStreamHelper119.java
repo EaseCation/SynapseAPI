@@ -71,9 +71,4 @@ public class BinaryStreamHelper119 extends BinaryStreamHelper11830NE {
         this.registerCommandParameterType(CommandParamType.BLOCK_STATES, ARG_TYPE_BLOCK_STATES);
     }
 
-    @Override
-    public InputInteractionModel getInteractionModel(BinaryStream stream) {
-        return InputInteractionModel.getValues()[(int) stream.getUnsignedVarInt()];
-    }
-
 }

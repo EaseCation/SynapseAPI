@@ -21,6 +21,8 @@ import org.itxtech.synapseapi.multiprotocol.protocol12070.protocol.MobEffectPack
 import org.itxtech.synapseapi.multiprotocol.protocol12070.protocol.SetEntityMotionPacket12070;
 import org.itxtech.synapseapi.multiprotocol.protocol12120.protocol.CameraInstructionPacket12120;
 import org.itxtech.synapseapi.multiprotocol.protocol12120.protocol.MobArmorEquipmentPacket12120;
+import org.itxtech.synapseapi.multiprotocol.protocol12140.protocol.CameraInstructionPacket12140;
+import org.itxtech.synapseapi.multiprotocol.protocol12140.protocol.MobEffectPacket12140;
 import org.itxtech.synapseapi.multiprotocol.protocol14.protocol.PlayerActionPacket14;
 import org.itxtech.synapseapi.multiprotocol.protocol15.protocol.MoveEntityDeltaPacket;
 import org.itxtech.synapseapi.multiprotocol.protocol18.protocol.SpawnParticleEffectPacket18;
@@ -102,6 +104,10 @@ public class DataPacketEidReplacer {
                     if (((MobEffectPacket) packet).eid == from) ((MobEffectPacket) packet).eid = to;
                 } else if (packet instanceof MobEffectPacket12070) {
                     if (((MobEffectPacket12070) packet).eid == from) ((MobEffectPacket12070) packet).eid = to;
+                } else if (packet instanceof MobEffectPacket12140 dp) {
+                    if (dp.eid == from) {
+                        dp.eid = to;
+                    }
                 }
                 break;
             case ProtocolInfo.MOVE_ACTOR_ABSOLUTE_PACKET:
@@ -267,7 +273,14 @@ public class DataPacketEidReplacer {
                 }
                 break;
             case ProtocolInfo.CAMERA_INSTRUCTION_PACKET:
-                if (packet instanceof CameraInstructionPacket12120 dp) {
+                if (packet instanceof CameraInstructionPacket12140 dp) {
+                    CameraTargetInstruction target = dp.target;
+                    if (target != null && target.entityId == from) {
+                        CameraTargetInstruction copy = target.clone();
+                        copy.entityId = to;
+                        dp.target = copy;
+                    }
+                } else if (packet instanceof CameraInstructionPacket12120 dp) {
                     CameraTargetInstruction target = dp.target;
                     if (target != null && target.entityId == from) {
                         CameraTargetInstruction copy = target.clone();

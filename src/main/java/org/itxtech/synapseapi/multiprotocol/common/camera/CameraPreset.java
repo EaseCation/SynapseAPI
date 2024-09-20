@@ -100,4 +100,9 @@ public class CameraPreset {
     public Byte audioListener;
     @Nullable
     public Boolean playerEffects;
+    /**
+     * @since 1.21.40
+     */
+    @Nullable
+    public Boolean alignTargetAndCameraForward;
 }
