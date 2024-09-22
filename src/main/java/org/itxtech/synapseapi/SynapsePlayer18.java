@@ -1,17 +1,11 @@
 package org.itxtech.synapseapi;
 
 import cn.nukkit.Player;
-import cn.nukkit.Server;
-import cn.nukkit.level.GameRules;
-import cn.nukkit.level.Level;
 import cn.nukkit.level.Position;
-import cn.nukkit.math.Vector3;
 import cn.nukkit.math.Vector3f;
 import cn.nukkit.network.SourceInterface;
 import cn.nukkit.network.protocol.*;
 import cn.nukkit.resourcepacks.ResourcePack;
-import org.itxtech.synapseapi.event.player.SynapsePlayerBroadcastLevelSoundEvent;
-import org.itxtech.synapseapi.event.player.SynapsePlayerRequestAvailableEntityIdentifiersPaletteEvent;
 import org.itxtech.synapseapi.multiprotocol.AbstractProtocol;
 import org.itxtech.synapseapi.multiprotocol.protocol16.protocol.ResourcePackClientResponsePacket16;
 import org.itxtech.synapseapi.multiprotocol.protocol18.protocol.*;
@@ -155,20 +149,11 @@ public class SynapsePlayer18 extends SynapsePlayer17 {
 
 	@Override
 	protected void sendAvailableEntityIdentifiers() {
-		AvailableEntityIdentifiersPacket18 pk = new AvailableEntityIdentifiersPacket18();
-		SynapsePlayerRequestAvailableEntityIdentifiersPaletteEvent event = new SynapsePlayerRequestAvailableEntityIdentifiersPaletteEvent(this, AvailableEntityIdentifiersPalette.getData(AbstractProtocol.fromRealProtocol(this.getProtocol())));
-		this.getServer().getPluginManager().callEvent(event);
-		pk.tag = event.getData();
-		if (pk.tag != null) {
-			this.dataPacket(pk);
-		} else {
-			Server.getInstance().getLogger().warning("Null AvailableEntityIdentifiersPacket data to player " + this.getName() + "!");
+		DataPacket pk = AvailableEntityIdentifiersPalette.getPacket(AbstractProtocol.fromRealProtocol(this.getProtocol()));
+		if (pk == null) {
+			return;
 		}
-	}
-
-	@Override
-	protected GameRules getSupportedRules() {
-		return this.level.gameRules;
+		this.dataPacket(pk);
 	}
 
 	@Override

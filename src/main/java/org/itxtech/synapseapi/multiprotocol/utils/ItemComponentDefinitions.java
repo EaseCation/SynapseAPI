@@ -2,21 +2,25 @@ package org.itxtech.synapseapi.multiprotocol.utils;
 
 import cn.nukkit.nbt.NBTIO;
 import cn.nukkit.nbt.tag.CompoundTag;
-import cn.nukkit.nbt.tag.Tag;
+import cn.nukkit.network.protocol.BatchPacket;
+import cn.nukkit.network.protocol.BatchPacket.Track;
+import cn.nukkit.network.protocol.DataPacket;
 import com.google.common.io.ByteStreams;
-import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
 import lombok.extern.log4j.Log4j2;
 import org.itxtech.synapseapi.SynapseAPI;
 import org.itxtech.synapseapi.multiprotocol.AbstractProtocol;
+import org.itxtech.synapseapi.multiprotocol.protocol116100.protocol.ItemComponentPacket116100;
+import org.itxtech.synapseapi.multiprotocol.protocol116100.protocol.ItemComponentPacket116100.Entry;
 
+import javax.annotation.Nullable;
 import java.io.IOException;
-import java.util.Collections;
-import java.util.EnumMap;
-import java.util.Map;
+import java.util.*;
+import java.util.zip.Deflater;
 
 @Log4j2
 public final class ItemComponentDefinitions {
-    private static final Map<AbstractProtocol, Map<String, byte[]>[]> DEFINITIONS = new EnumMap<>(AbstractProtocol.class);
+    private static final Map<AbstractProtocol, Map<String, CompoundTag>[]> DEFINITIONS = new EnumMap<>(AbstractProtocol.class);
+    private static final Map<AbstractProtocol, BatchPacket[]> PACKETS = new EnumMap<>(AbstractProtocol.class);
 
     static {
         log.debug("Loading item component definitions...");
@@ -85,7 +89,7 @@ public final class ItemComponentDefinitions {
             });
             DEFINITIONS.put(AbstractProtocol.PROTOCOL_120_10, new Map[]{
                     load("item_components12010.nbt", AbstractProtocol.PROTOCOL_120_10, false),
-                    null,
+                    load("item_components12010.nbt", AbstractProtocol.PROTOCOL_120_10, true),
             });
             DEFINITIONS.put(AbstractProtocol.PROTOCOL_120_30, new Map[]{
                     load("item_components12030.nbt", AbstractProtocol.PROTOCOL_120_30, false),
@@ -135,22 +139,56 @@ public final class ItemComponentDefinitions {
             throw new AssertionError("Unable to load item_components.nbt", e);
         }
 
+        cachePackets();
+    }
+
+    public static void cachePackets() {
+        log.debug("cache item component definitions...");
+
         for (AbstractProtocol protocol : AbstractProtocol.getValues()) {
             if (protocol.getProtocolStart() < AbstractProtocol.PROTOCOL_118_10.getProtocolStart()) {
                 continue;
             }
-            if (DEFINITIONS.get(protocol) == null) {
+            if (protocol.ordinal() < AbstractProtocol.FIRST_AVAILABLE_PROTOCOL.ordinal()) {
+                // drop support for unavailable versions
+                continue;
+            }
+
+            Map<String, CompoundTag>[] definition = DEFINITIONS.get(protocol);
+            if (definition == null) {
                 throw new AssertionError("Missing item_components.nbt: " + protocol);
             }
+
+            ItemComponentPacket116100 packet = new ItemComponentPacket116100();
+            packet.entries = mapToEntries(definition[0], protocol, false);
+            packet.setHelper(protocol.getHelper());
+            packet.tryEncode();
+
+            BatchPacket batch = packet.compress(Deflater.BEST_COMPRESSION, true);
+            batch.tracks = new Track[]{new Track(packet.pid(), packet.getCount())};
+
+            ItemComponentPacket116100 packetNe = new ItemComponentPacket116100();
+            packetNe.entries = mapToEntries(definition[1], protocol, true);
+            packetNe.setHelper(protocol.getHelper());
+            packetNe.neteaseMode = true;
+            packetNe.tryEncode();
+
+            BatchPacket batchNe = packetNe.compress(Deflater.BEST_COMPRESSION, true);
+            batchNe.tracks = new Track[]{new Track(packetNe.pid(), packetNe.getCount())};
+
+            PACKETS.put(protocol, new BatchPacket[]{batch, batchNe});
         }
     }
 
-    private static Map<String, byte[]> load(String file, AbstractProtocol protocol, boolean netease) throws IOException {
-        Map<String, byte[]> map = new Object2ObjectOpenHashMap<>();
-        CompoundTag nbt = NBTIO.read(ByteStreams.toByteArray(SynapseAPI.getInstance().getResource(file)));
-        for (Map.Entry<String, Tag> entry : nbt.getTags().entrySet()) {
+    private static Entry[] mapToEntries(@Nullable Map<String, CompoundTag> definition, AbstractProtocol protocol, boolean netease) {
+        if (definition == null) {
+            return new Entry[0];
+        }
+
+        List<Entry> entries = new ArrayList<>(definition.size());
+        for (Map.Entry<String, CompoundTag> entry : definition.entrySet()) {
             String identifier = entry.getKey();
-            CompoundTag tag = (CompoundTag) entry.getValue();
+            CompoundTag tag = entry.getValue();
             int defaultNetId = tag.getInt("id");
             int networkId = AdvancedRuntimeItemPalette.getNetworkIdByName(protocol, netease, identifier);
             if (networkId == -1) {
@@ -167,20 +205,37 @@ public final class ItemComponentDefinitions {
             } else {
                 log.warn("Unmapped network item: {} | {} ({})", identifier, defaultNetId, protocol);
             }
-            map.put(entry.getKey(), NBTIO.writeNetwork(tag));
+
+            byte[] data;
+            try {
+                data = NBTIO.writeNetwork(tag);
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
+            entries.add(new Entry(entry.getKey(), data));
         }
+
+        return entries.toArray(new Entry[0]);
+    }
+
+    private static Map<String, CompoundTag> load(String file, AbstractProtocol protocol, boolean netease) throws IOException {
+        Map<String, CompoundTag> map = new HashMap<>();
+        CompoundTag nbt = NBTIO.read(ByteStreams.toByteArray(SynapseAPI.getInstance().getResource(file)));
+        nbt.getTagsUnsafe().forEach((name, data) -> map.put(name, (CompoundTag) data));
         return map;
     }
 
-    public static Map<String, byte[]> get(AbstractProtocol protocol, boolean netease) {
-        Map<String, byte[]> data = DEFINITIONS.get(protocol)[netease ? 1 : 0];
-        return data != null ? data : Collections.emptyMap();
+    @Nullable
+    public static Map<String, CompoundTag> get(AbstractProtocol protocol, boolean netease) {
+        return DEFINITIONS.get(protocol)[netease ? 1 : 0];
+    }
+
+    @Nullable
+    public static DataPacket getPacket(AbstractProtocol protocol, boolean netease) {
+        return PACKETS.get(protocol)[netease ? 1 : 0];
     }
 
     public static void init() {
-//        if (!SynapseSharedConstants.CHECK_RESOURCE_DATA) {
-//            return;
-//        }
     }
 
     public static void registerCustomItemComponent(String name, int id, CompoundTag compoundTag) {
@@ -194,15 +249,13 @@ public final class ItemComponentDefinitions {
             }
 
             for (int i = 0; i <= 1; i++) {
-                Map<String, byte[]> data = map[i];
+                Map<String, CompoundTag> data = map[i];
                 if (data == null) {
                     continue;
+//                    data = new HashMap<>();
+//                    map[i] = data;
                 }
-                try {
-                    data.put(name, NBTIO.writeNetwork(fullTag));
-                } catch (IOException e) {
-                    throw new RuntimeException(e);
-                }
+                data.put(name, fullTag);
             }
         });
     }

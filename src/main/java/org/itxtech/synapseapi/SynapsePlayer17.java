@@ -3,7 +3,6 @@ package org.itxtech.synapseapi;
 import cn.nukkit.Player;
 import cn.nukkit.Server;
 import cn.nukkit.lang.TranslationContainer;
-import cn.nukkit.level.GameRules;
 import cn.nukkit.level.Position;
 import cn.nukkit.network.SourceInterface;
 import cn.nukkit.network.protocol.DataPacket;
@@ -83,10 +82,6 @@ public class SynapsePlayer17 extends SynapsePlayer16 {
 		startGamePacket.gameRules = getSupportedRules();
 		startGamePacket.enchantmentSeed = ThreadLocalRandom.current().nextInt();
 		return startGamePacket;
-	}
-
-	protected GameRules getSupportedRules() {
-		return this.level.gameRules;
 	}
 
 	/**

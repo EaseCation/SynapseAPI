@@ -6,7 +6,6 @@ import cn.nukkit.entity.Entity;
 import cn.nukkit.event.player.PlayerJoinEvent;
 import cn.nukkit.event.player.PlayerRespawnEvent;
 import cn.nukkit.lang.TranslationContainer;
-import cn.nukkit.level.GameRules;
 import cn.nukkit.level.Level;
 import cn.nukkit.level.Position;
 import cn.nukkit.network.SourceInterface;
@@ -309,11 +308,6 @@ public class SynapsePlayer16 extends SynapsePlayer14 {
 		startGamePacket.gameRules = getSupportedRules();
 		startGamePacket.enchantmentSeed = ThreadLocalRandom.current().nextInt();
 		return startGamePacket;
-	}
-
-	@Override
-	protected GameRules getSupportedRules() {
-		return this.level.gameRules;
 	}
 
 	/**

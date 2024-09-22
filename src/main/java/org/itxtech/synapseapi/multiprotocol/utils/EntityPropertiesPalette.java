@@ -1,20 +1,27 @@
 package org.itxtech.synapseapi.multiprotocol.utils;
 
+import cn.nukkit.network.protocol.BatchPacket;
+import cn.nukkit.network.protocol.DataPacket;
+import lombok.extern.log4j.Log4j2;
 import org.itxtech.synapseapi.multiprotocol.AbstractProtocol;
+import org.itxtech.synapseapi.multiprotocol.protocol117.protocol.SyncEntityPropertyPacket117;
 import org.itxtech.synapseapi.multiprotocol.utils.entityproperty.EntityPropertiesPaletteBase;
 import org.itxtech.synapseapi.multiprotocol.utils.entityproperty.EntityPropertiesPaletteLegacy;
-import org.itxtech.synapseapi.multiprotocol.utils.entityproperty.data.EntityPropertiesTable;
-import org.itxtech.synapseapi.multiprotocol.utils.entityproperty.data.EntityPropertyData;
-import org.itxtech.synapseapi.multiprotocol.utils.entityproperty.data.EntityPropertyDataBool;
-import org.itxtech.synapseapi.multiprotocol.utils.entityproperty.data.EntityPropertyDataEnum;
+import org.itxtech.synapseapi.multiprotocol.utils.entityproperty.data.*;
 
+import javax.annotation.Nullable;
 import java.util.*;
+import java.util.zip.Deflater;
 
+@Log4j2
 public final class EntityPropertiesPalette {
 
-    public static final Map<AbstractProtocol, EntityPropertiesPaletteInterface[]> palettes = new EnumMap<>(AbstractProtocol.class);
+    private static final Map<AbstractProtocol, EntityPropertiesPaletteInterface> palettes = new EnumMap<>(AbstractProtocol.class);
+    private static final Map<AbstractProtocol, BatchPacket> PACKETS = new EnumMap<>(AbstractProtocol.class);
 
     static {
+        log.debug("Loading entity properties...");
+
         EntityPropertiesPaletteInterface palette117 = new EntityPropertiesPaletteBase();
         EntityPropertiesPaletteInterface palette11970 = new EntityPropertiesPaletteBase(
             new EntityPropertiesTable("minecraft:bee",
@@ -68,48 +75,56 @@ public final class EntityPropertiesPalette {
         register(AbstractProtocol.PROTOCOL_121_20, palette12080, null);
         register(AbstractProtocol.PROTOCOL_121_30, palette12080, null);
         register(AbstractProtocol.PROTOCOL_121_40, palette12080, null);
+
+        cachePackets();
+    }
+
+    private static void cachePackets() {
+        log.debug("cache entity properties...");
+
+        for (AbstractProtocol protocol : AbstractProtocol.getValues()) {
+            if (protocol.getProtocolStart() < AbstractProtocol.PROTOCOL_117.getProtocolStart()) {
+                continue;
+            }
+            if (protocol.ordinal() < AbstractProtocol.FIRST_AVAILABLE_PROTOCOL.ordinal()) {
+                // drop support for unavailable versions
+                continue;
+            }
+
+            List<DataPacket> packets = new ArrayList<>();
+            for (byte[] nbt : getCompiledPalette(protocol, false).values()) {
+                SyncEntityPropertyPacket117 packet = new SyncEntityPropertyPacket117();
+                packet.nbt = nbt;
+                packet.setHelper(protocol.getHelper());
+                packets.add(packet);
+            }
+            BatchPacket batch = BatchPacket.compress(Deflater.BEST_COMPRESSION, true, packets.toArray(new DataPacket[0]));
+
+            PACKETS.put(protocol, batch);
+        }
     }
 
     private static void register(AbstractProtocol protocol, EntityPropertiesPaletteInterface palette, EntityPropertiesPaletteInterface paletteNetEase) {
         Objects.requireNonNull(palette);
-        EntityPropertiesPaletteInterface[] data = paletteNetEase != null
-            ? new EntityPropertiesPaletteInterface[]{palette, paletteNetEase}
-            : new EntityPropertiesPaletteInterface[]{palette};
-        palettes.put(protocol, data);
+        palettes.put(protocol, palette);
     }
 
     public static void registerCustomProperties(EntityPropertiesTable properties) {
-        for (EntityPropertiesPaletteInterface[] versions : palettes.values()) {
-            for (EntityPropertiesPaletteInterface data : versions) {
-                if (data == null) {
-                    continue;
-                }
-                data.registerProperties(properties);
-            }
+        for (EntityPropertiesPaletteInterface data : palettes.values()) {
+            data.registerProperties(properties);
         }
     }
 
     public static void rebuildNetworkCache() {
-        for (EntityPropertiesPaletteInterface[] versions : palettes.values()) {
-            for (EntityPropertiesPaletteInterface data : versions) {
-                if (data == null) {
-                    continue;
-                }
-                data.rebuildNetworkCache();
-            }
+        for (EntityPropertiesPaletteInterface data : palettes.values()) {
+            data.rebuildNetworkCache();
         }
+
+        cachePackets();
     }
 
     public static EntityPropertiesPaletteInterface getPalette(AbstractProtocol protocol, boolean netease) {
-        EntityPropertiesPaletteInterface[] interfaces = palettes.get(protocol);
-        if (interfaces == null) {
-            return EntityPropertiesPaletteLegacy.INSTANCE;
-        }
-        if (netease && interfaces.length > 1) {
-            return interfaces[1];
-        } else {
-            return interfaces[0];
-        }
+        return palettes.getOrDefault(protocol, EntityPropertiesPaletteLegacy.INSTANCE);
     }
 
     public static Set<String> getAllEntityIdentifiers(AbstractProtocol protocol, boolean netease) {
@@ -126,6 +141,14 @@ public final class EntityPropertiesPalette {
 
     public static Map<String, byte[]> getCompiledPalette(AbstractProtocol protocol, boolean netease) {
         return getPalette(protocol, netease).getCompiledPalette();
+    }
+
+    /**
+     * @return batch packet
+     */
+    @Nullable
+    public static DataPacket getPacket(AbstractProtocol protocol) {
+        return PACKETS.get(protocol);
     }
 
     public static void init() {

@@ -1,7 +1,6 @@
 package org.itxtech.synapseapi;
 
 import cn.nukkit.Player;
-import cn.nukkit.Server;
 import cn.nukkit.blockentity.BlockEntity;
 import cn.nukkit.blockentity.BlockEntitySpawnable;
 import cn.nukkit.entity.Entity;
@@ -9,7 +8,6 @@ import cn.nukkit.level.Level;
 import cn.nukkit.level.Position;
 import cn.nukkit.level.format.generic.ChunkBlobCache;
 import cn.nukkit.level.format.generic.ChunkCachedData;
-import cn.nukkit.level.format.generic.ChunkPacketCache;
 import cn.nukkit.network.SourceInterface;
 import cn.nukkit.network.protocol.DataPacket;
 import cn.nukkit.network.protocol.LevelChunkPacket;
@@ -24,7 +22,6 @@ import org.itxtech.synapseapi.multiprotocol.protocol112.protocol.ClientCacheBlob
 import org.itxtech.synapseapi.multiprotocol.protocol112.protocol.ClientCacheMissResponsePacket112;
 import org.itxtech.synapseapi.multiprotocol.protocol112.protocol.ClientCacheStatusPacket112;
 import org.itxtech.synapseapi.multiprotocol.protocol112.protocol.StartGamePacket112;
-import org.itxtech.synapseapi.multiprotocol.protocol18.protocol.BiomeDefinitionListPacket18;
 import org.itxtech.synapseapi.multiprotocol.utils.BiomeDefinitions;
 import org.itxtech.synapseapi.utils.BlobTrack;
 
@@ -88,12 +85,11 @@ public class SynapsePlayer112 extends SynapsePlayer19 {
 
 	@Override
 	protected void sendBiomeDefinitionList() {
-		BiomeDefinitionListPacket18 pk = new BiomeDefinitionListPacket18();
-		if ((pk.tag = BiomeDefinitions.getData(AbstractProtocol.fromRealProtocol(this.getProtocol()))) != null) {
-			this.dataPacket(pk);
-		} else {
-			Server.getInstance().getLogger().warning("null BiomeDefinitionListPacket data to player " + this.getName());
+		DataPacket pk = BiomeDefinitions.getPacket(AbstractProtocol.fromRealProtocol(this.getProtocol()));
+		if (pk == null) {
+			return;
 		}
+		this.dataPacket(pk);
 	}
 
 	/**

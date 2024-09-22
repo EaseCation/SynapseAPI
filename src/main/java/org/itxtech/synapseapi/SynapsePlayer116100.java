@@ -2987,10 +2987,10 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
 
     @Override
     public void sendItemComponents() {
-        ItemComponentPacket116100 pk = new ItemComponentPacket116100();
-        pk.entries = ItemComponentDefinitions.get(AbstractProtocol.fromRealProtocol(protocol), isNetEaseClient()).entrySet().stream()
-                .map(entry -> new ItemComponentPacket116100.Entry(entry.getKey(), entry.getValue()))
-                .toArray(ItemComponentPacket116100.Entry[]::new);
+        DataPacket pk = ItemComponentDefinitions.getPacket(AbstractProtocol.fromRealProtocol(protocol), isNetEaseClient());
+        if (pk == null) {
+            pk = new ItemComponentPacket116100();
+        }
         this.dataPacket(pk);
     }
 
@@ -3222,7 +3222,7 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
         if (getProtocol() >= AbstractProtocol.PROTOCOL_121_30.getProtocolStart()) {
             EmotePacket12130 packet = new EmotePacket12130();
             packet.emoteID = emoteId;
-            packet.emoteTicks = emoteTicks;
+            //packet.emoteTicks = emoteTicks; // seems to be irrelevant for the client, we cannot risk rebroadcasting random values received
             packet.runtimeId = entityRuntimeId;
             packet.flags = flags;
             dataPacket(packet);
@@ -3250,12 +3250,11 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
 
     @Override
     public void syncEntityProperties() {
-        Map<String, byte[]> compiled = EntityPropertiesPalette.getCompiledPalette(AbstractProtocol.fromRealProtocol(protocol), isNetEaseClient());
-        for (byte[] nbt : compiled.values()) {
-            SyncEntityPropertyPacket117 packet = new SyncEntityPropertyPacket117();
-            packet.nbt = nbt;
-            dataPacket(packet);
+        DataPacket packet = EntityPropertiesPalette.getPacket(AbstractProtocol.fromRealProtocol(protocol));
+        if (packet == null) {
+            return;
         }
+        dataPacket(packet);
     }
 
     protected byte[] getCompiledPlayerProperties() {

@@ -1,40 +1,47 @@
 package org.itxtech.synapseapi.multiprotocol.utils;
 
 import cn.nukkit.nbt.NBTIO;
+import cn.nukkit.nbt.tag.CompoundTag;
+import cn.nukkit.network.protocol.BatchPacket;
+import cn.nukkit.network.protocol.BatchPacket.Track;
+import cn.nukkit.network.protocol.DataPacket;
 import com.google.common.io.ByteStreams;
 import lombok.extern.log4j.Log4j2;
 import org.itxtech.synapseapi.SynapseAPI;
-import org.itxtech.synapseapi.SynapseSharedConstants;
 import org.itxtech.synapseapi.multiprotocol.AbstractProtocol;
+import org.itxtech.synapseapi.multiprotocol.protocol18.protocol.BiomeDefinitionListPacket18;
 
+import javax.annotation.Nullable;
 import java.io.IOException;
 import java.nio.ByteOrder;
 import java.util.EnumMap;
 import java.util.Map;
+import java.util.zip.Deflater;
 
 @Log4j2
 public final class BiomeDefinitions {
 
-    private static final Map<AbstractProtocol, byte[]> data = new EnumMap<>(AbstractProtocol.class);
+    private static final Map<AbstractProtocol, CompoundTag> data = new EnumMap<>(AbstractProtocol.class);
+    private static final Map<AbstractProtocol, BatchPacket> PACKETS = new EnumMap<>(AbstractProtocol.class);
 
     static {
         log.debug("Loading biome definitions...");
 
         try {
             //TODO: 1.8-1.11
-            byte[] data112 = ByteStreams.toByteArray(SynapseAPI.getInstance().getResource("biome_definitions112.dat"));
-            byte[] data116 = ByteStreams.toByteArray(SynapseAPI.getInstance().getResource("biome_definitions116.dat"));
-            byte[] data116210 = ByteStreams.toByteArray(SynapseAPI.getInstance().getResource("biome_definitions116210.dat"));
-            byte[] data11740 = ByteStreams.toByteArray(SynapseAPI.getInstance().getResource("biome_definitions11740.dat"));
-            byte[] data118 = ByteStreams.toByteArray(SynapseAPI.getInstance().getResource("biome_definitions118.dat"));
-            byte[] data11810 = ByteStreams.toByteArray(SynapseAPI.getInstance().getResource("biome_definitions11810.dat"));
-            byte[] data119 = ByteStreams.toByteArray(SynapseAPI.getInstance().getResource("biome_definitions119.nbt"));
-            byte[] data11920 = ByteStreams.toByteArray(SynapseAPI.getInstance().getResource("biome_definitions11920.nbt"));
-            byte[] data11930 = ByteStreams.toByteArray(SynapseAPI.getInstance().getResource("biome_definitions11930.nbt"));
-            byte[] data11940 = ByteStreams.toByteArray(SynapseAPI.getInstance().getResource("biome_definitions11940.nbt"));
-            byte[] data11980 = ByteStreams.toByteArray(SynapseAPI.getInstance().getResource("biome_definitions11980.nbt"));
-            byte[] data12120 = ByteStreams.toByteArray(SynapseAPI.getInstance().getResource("biome_definitions12120.nbt"));
-            byte[] data12140 = ByteStreams.toByteArray(SynapseAPI.getInstance().getResource("biome_definitions12140.nbt"));
+            CompoundTag data112 = NBTIO.read(ByteStreams.toByteArray(SynapseAPI.getInstance().getResource("biome_definitions112.dat")), ByteOrder.LITTLE_ENDIAN, true);
+            CompoundTag data116 = NBTIO.read(ByteStreams.toByteArray(SynapseAPI.getInstance().getResource("biome_definitions116.dat")), ByteOrder.LITTLE_ENDIAN, true);
+            CompoundTag data116210 = NBTIO.read(ByteStreams.toByteArray(SynapseAPI.getInstance().getResource("biome_definitions116210.dat")), ByteOrder.LITTLE_ENDIAN, true);
+            CompoundTag data11740 = NBTIO.read(ByteStreams.toByteArray(SynapseAPI.getInstance().getResource("biome_definitions11740.dat")), ByteOrder.LITTLE_ENDIAN, true);
+            CompoundTag data118 = NBTIO.read(ByteStreams.toByteArray(SynapseAPI.getInstance().getResource("biome_definitions118.dat")), ByteOrder.LITTLE_ENDIAN, true);
+            CompoundTag data11810 = NBTIO.read(ByteStreams.toByteArray(SynapseAPI.getInstance().getResource("biome_definitions11810.dat")), ByteOrder.LITTLE_ENDIAN, true);
+            CompoundTag data119 = NBTIO.read(ByteStreams.toByteArray(SynapseAPI.getInstance().getResource("biome_definitions119.nbt")), ByteOrder.LITTLE_ENDIAN, true);
+            CompoundTag data11920 = NBTIO.read(ByteStreams.toByteArray(SynapseAPI.getInstance().getResource("biome_definitions11920.nbt")), ByteOrder.LITTLE_ENDIAN, true);
+            CompoundTag data11930 = NBTIO.read(ByteStreams.toByteArray(SynapseAPI.getInstance().getResource("biome_definitions11930.nbt")), ByteOrder.LITTLE_ENDIAN, true);
+            CompoundTag data11940 = NBTIO.read(ByteStreams.toByteArray(SynapseAPI.getInstance().getResource("biome_definitions11940.nbt")), ByteOrder.LITTLE_ENDIAN, true);
+            CompoundTag data11980 = NBTIO.read(ByteStreams.toByteArray(SynapseAPI.getInstance().getResource("biome_definitions11980.nbt")), ByteOrder.LITTLE_ENDIAN, true);
+            CompoundTag data12120 = NBTIO.read(ByteStreams.toByteArray(SynapseAPI.getInstance().getResource("biome_definitions12120.nbt")), ByteOrder.LITTLE_ENDIAN, true);
+            CompoundTag data12140 = NBTIO.read(ByteStreams.toByteArray(SynapseAPI.getInstance().getResource("biome_definitions12140.nbt")), ByteOrder.LITTLE_ENDIAN, true);
 
             data.put(AbstractProtocol.PROTOCOL_112, data112);
             data.put(AbstractProtocol.PROTOCOL_113, data112);
@@ -83,30 +90,55 @@ public final class BiomeDefinitions {
             throw new AssertionError("Unable to load biome_definitions.dat");
         }
 
+        cachePackets();
+    }
+
+    public static void cachePackets() {
+        log.debug("cache biome definitions...");
+
         for (AbstractProtocol protocol : AbstractProtocol.getValues()) {
             if (protocol.getProtocolStart() < AbstractProtocol.PROTOCOL_112.getProtocolStart()) {
                 continue;
             }
-            if (data.get(protocol) == null) {
+            if (protocol.ordinal() < AbstractProtocol.FIRST_AVAILABLE_PROTOCOL.ordinal()) {
+                // drop support for unavailable versions
+                continue;
+            }
+
+            CompoundTag tag = data.get(protocol);
+            if (tag == null) {
                 throw new AssertionError("Missing biome_definitions.nbt: " + protocol);
             }
+
+            byte[] data;
+            try {
+                data = NBTIO.writeNetwork(tag);
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
+
+            BiomeDefinitionListPacket18 packet = new BiomeDefinitionListPacket18();
+            packet.tag = data;
+            packet.setHelper(protocol.getHelper());
+            packet.tryEncode();
+
+            BatchPacket batch = packet.compress(Deflater.BEST_COMPRESSION, protocol.getProtocolStart() >= AbstractProtocol.PROTOCOL_116.getProtocolStart());
+            batch.tracks = new Track[]{new Track(packet.pid(), packet.getCount())};
+
+            PACKETS.put(protocol, batch);
         }
     }
 
-    public static byte[] getData(AbstractProtocol protocol) {
+    @Nullable
+    public static CompoundTag getData(AbstractProtocol protocol) {
         return data.get(protocol);
     }
 
+    @Nullable
+    public static DataPacket getPacket(AbstractProtocol protocol) {
+        return PACKETS.get(protocol);
+    }
+
     public static void init() {
-        if (!SynapseSharedConstants.CHECK_RESOURCE_DATA) {
-            return;
-        }
-        data.forEach((protocol, data) -> {
-            try {
-                NBTIO.read(data, ByteOrder.LITTLE_ENDIAN, true); //检查数据
-            } catch (Exception e) {
-                SynapseAPI.getInstance().getLogger().error(protocol.toString() +" 的生物群系定义无效", e);
-            }
-        });
     }
 }

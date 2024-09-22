@@ -319,13 +319,6 @@ public class DataPacketEidReplacer {
         return packet;
     }
 
-    private static EntityMetadata cloneEntityMetadata(EntityMetadata metadata) {
-        Map<Integer, EntityData> map = metadata.getMap();
-        EntityMetadata re = new EntityMetadata();
-        map.forEach((i, data) -> re.put(data));
-        return re;
-    }
-
     @Nullable
     private static EntityMetadata replaceEntityMetadata(EntityMetadata metadata, long from, long to) {
         EntityMetadata newMetadata = null;
@@ -353,7 +346,7 @@ public class DataPacketEidReplacer {
             return newMetadata;
         }
         if (newMetadata == null) {
-            newMetadata = cloneEntityMetadata(metadata);
+            newMetadata = metadata.copy();
         }
         newMetadata.putLong(dataId, to);
         return newMetadata;

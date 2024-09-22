@@ -209,14 +209,11 @@ public class DataExporter {
             }
             for (int v = 0; v <= 1; v++) {
                 boolean netease = v == 1;
-                Map<String, byte[]> definitions = ItemComponentDefinitions.get(protocol, netease);
-                if (definitions.isEmpty()) {
+                Map<String, CompoundTag> definitions = ItemComponentDefinitions.get(protocol, netease);
+                if (definitions == null) {
                     continue;
                 }
-                CompoundTag container = new CompoundTag(new LinkedHashMap<>());
-                for (Entry<String, byte[]> entry : definitions.entrySet()) {
-                    container.putCompound(entry.getKey(), NBTIO.read(entry.getValue(), ByteOrder.LITTLE_ENDIAN, true));
-                }
+                CompoundTag container = new CompoundTag(new TreeMap<>(definitions));
                 String fileName = getFileName(protocol, netease);
                 Files.writeString(saveDir.resolve(fileName + ".mojangson"), container.toMojangson(true));
                 if (minify) {
