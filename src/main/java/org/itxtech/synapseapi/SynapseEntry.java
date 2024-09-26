@@ -649,8 +649,10 @@ public class SynapseEntry {
                                             ) {
                                                 continue;
                                             }*/
-                                            if (authInputPacket.getDeltaX() != 0 || authInputPacket.getDeltaZ() != 0 || authInputPacket.getY() != player.lastAuthInputY /*|| authInputPacket.getY() - player.getBaseOffset() != (float) player.getY()*/ /*|| authInputPacket.getYaw() != player.getYaw() || authInputPacket.getPitch() != player.getPitch()*/) {
+                                            if (authInputPacket.getDeltaX() != 0 || authInputPacket.getDeltaZ() != 0 || authInputPacket.getY() != player.lastAuthInputY || authInputPacket.getYaw() != player.lastAuthInputYaw || authInputPacket.getPitch() != player.lastAuthInputPitch) {
                                                 player.lastAuthInputY = authInputPacket.getY();
+                                                player.lastAuthInputYaw = authInputPacket.getYaw();
+                                                player.lastAuthInputPitch = authInputPacket.getPitch();
                                                 //Server.getInstance().getLogger().info(player.getName() + ": nkY=" + player.getY() + " y=" + authInputPacket.y + " deltaX=" + authInputPacket.deltaX + " deltaY=" + authInputPacket.deltaY + " deltaZ=" + authInputPacket.deltaZ + " moveVecX=" + authInputPacket.moveVecX + " moveVecZ=" + authInputPacket.moveVecZ);
                                                 MovePlayerPacket packet = new MovePlayerPacket();
                                                 packet.eid = player.getId();

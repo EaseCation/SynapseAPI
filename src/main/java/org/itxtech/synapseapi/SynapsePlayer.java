@@ -111,6 +111,8 @@ public class SynapsePlayer extends Player {
 
     long lastAuthInputPacketTick = -1;
     float lastAuthInputY;
+    float lastAuthInputYaw;
+    float lastAuthInputPitch;
 
     public SynapsePlayer(SourceInterface interfaz, SynapseEntry synapseEntry, Long clientID, InetSocketAddress socketAddress) {
         super(interfaz, clientID, socketAddress);
