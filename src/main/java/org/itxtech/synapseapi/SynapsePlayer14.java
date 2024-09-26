@@ -202,8 +202,7 @@ public class SynapsePlayer14 extends SynapsePlayer {
 					this.close("", "disconnectionScreen.invalidSkin");
 					break;
 				} else {
-					loginPacket.skin.setTrusted(false); // Don't trust player skins
-
+					loginPacket.skin.setTrusted(true); // Force trust player skins
 					this.setSkin(loginPacket.skin);
 				}
 
