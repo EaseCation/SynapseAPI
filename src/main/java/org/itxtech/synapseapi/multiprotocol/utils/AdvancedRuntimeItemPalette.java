@@ -50,7 +50,7 @@ public final class AdvancedRuntimeItemPalette {
         RuntimeItemPalette palette11980 = new RuntimeItemPalette(AbstractProtocol.PROTOCOL_119_80, "runtime_item_ids_11980.json");
         RuntimeItemPalette palette120 = new RuntimeItemPalette(AbstractProtocol.PROTOCOL_120, "runtime_item_ids_120.json");
         RuntimeItemPalette palette12010 = new RuntimeItemPalette(AbstractProtocol.PROTOCOL_120_10, "runtime_item_ids_12010.json");
-        RuntimeItemPalette palette12010N = new RuntimeItemPalette(AbstractProtocol.PROTOCOL_120_10, "runtime_item_ids_12010.json", true);
+        RuntimeItemPalette palette12010N = new RuntimeItemPalette(AbstractProtocol.PROTOCOL_120_10, "runtime_item_ids_12010NE.json"); //NOTICE: 中国版部分物品的运行时id硬编码在客户端 (目前已知所有药水容器都是静态id, 使用动态id会导致无法放进酿造台)
         RuntimeItemPalette palette12030 = new RuntimeItemPalette(AbstractProtocol.PROTOCOL_120_30, "runtime_item_ids_12030.json");
         RuntimeItemPalette palette12050 = new RuntimeItemPalette(AbstractProtocol.PROTOCOL_120_50, "runtime_item_ids_12050.json");
 //        RuntimeItemPalette palette12050 = new RuntimeItemPalette(AbstractProtocol.PROTOCOL_120_50, "runtime_item_ids_12050_raw.json", "item_id_map_12050.json", "item_flatten_map_12050.json");

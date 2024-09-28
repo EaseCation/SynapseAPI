@@ -50,6 +50,9 @@ public class LoginPacket14 extends Packet14 {
     public String platformOfflineId;
     public boolean editorMode;
     public boolean supportClientChunkGeneration;
+    public int platformType;
+    public int memoryTier;
+    public int maxViewDistance;
     public String xuid;
     public String titleId;
     public String sandboxId;// = "RETAIL"
@@ -339,6 +342,21 @@ public class LoginPacket14 extends Packet14 {
         JsonNode compatibleWithClientSideChunkGenNode = skinToken.get("CompatibleWithClientSideChunkGen");
         if (compatibleWithClientSideChunkGenNode != null) {
             this.supportClientChunkGeneration = compatibleWithClientSideChunkGenNode.asBoolean();
+        }
+
+        JsonNode platformTypeNode = skinToken.get("PlatformType");
+        if (platformTypeNode != null) {
+            this.platformType = platformTypeNode.asInt();
+        }
+
+        JsonNode memoryTierNode = skinToken.get("MemoryTier");
+        if (memoryTierNode != null) {
+            this.memoryTier = memoryTierNode.asInt();
+        }
+
+        JsonNode maxViewDistanceNode = skinToken.get("MaxViewDistance");
+        if (maxViewDistanceNode != null) {
+            this.maxViewDistance = maxViewDistanceNode.asInt();
         }
     }
 

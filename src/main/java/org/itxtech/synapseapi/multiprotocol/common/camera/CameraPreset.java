@@ -81,6 +81,21 @@ public class CameraPreset {
     @Nullable
     public Boolean snapToTarget;
     /**
+     * @since 1.21.40
+     */
+    @Nullable
+    public Vector2f horizontalRotationLimit;
+    /**
+     * @since 1.21.40
+     */
+    @Nullable
+    public Vector2f verticalRotationLimit;
+    /**
+     * @since 1.21.40
+     */
+    @Nullable
+    public Boolean continueTargeting;
+    /**
      * @since 1.21.20
      */
     @Nullable

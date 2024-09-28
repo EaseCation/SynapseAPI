@@ -122,6 +122,7 @@ public class SynapsePlayer116 extends SynapsePlayer113 {
 		startGamePacket.worldName = this.getServer().getNetwork().getName();
 		startGamePacket.generator = 1; // 0 old, 1 infinite, 2 flat
 		startGamePacket.gameRules = getSupportedRules();
+		startGamePacket.isInventoryServerAuthoritative = SERVER_AUTHORITATIVE_INVENTORY;
 		startGamePacket.isMovementServerAuthoritative = this.isNetEaseClient();
 		startGamePacket.currentTick = 0;//this.server.getTick();
 		startGamePacket.enchantmentSeed = ThreadLocalRandom.current().nextInt();
@@ -936,6 +937,31 @@ public class SynapsePlayer116 extends SynapsePlayer113 {
 					} else {
 						this.getAdventureSettings().set(Type.FLYING, playerToggleFlightEvent.isFlying());
 					}
+				}
+				if ((inputFlags & (1L << PlayerAuthInputFlags.START_SPIN_ATTACK)) != 0) {
+					if (isSpectator()) {
+						setDataFlag(DATA_FLAG_SPIN_ATTACK, false);
+					} else {
+						Item trident = getInventory().getItemInHand();
+						if (trident.is(Item.TRIDENT)) {
+							int riptide = trident.getEnchantmentLevel(Enchantment.RIPTIDE);
+							if (riptide > 0) {
+								//TODO: check water/rain
+								if (setDataFlag(DATA_FLAG_SPIN_ATTACK, true)) {
+									damageNearbyMobsTick = 20;
+									level.addLevelSoundEvent(this.add(0, getHeight() * 0.5f, 0), switch (riptide) {
+										case 1 -> LevelSoundEventPacket.SOUND_ITEM_TRIDENT_RIPTIDE_1;
+										case 2 -> LevelSoundEventPacket.SOUND_ITEM_TRIDENT_RIPTIDE_2;
+										default -> LevelSoundEventPacket.SOUND_ITEM_TRIDENT_RIPTIDE_3;
+									});
+								}
+							}
+						}
+					}
+				}
+				if ((inputFlags & (1L << PlayerAuthInputFlags.STOP_SPIN_ATTACK)) != 0) {
+					damageNearbyMobsTick = 0;
+					setDataFlag(DATA_FLAG_SPIN_ATTACK, false);
 				}
 
 				emoting = (inputFlags & (1L << PlayerAuthInputFlags.EMOTING)) != 0;

@@ -98,7 +98,7 @@ public class CraftingDataPacket11980 extends Packet11980 {
             this.putVarInt(type.ordinal());
             switch (type) {
                 case SHAPELESS:
-                case SHULKER_BOX:
+                case SHAPELESS_USER_DATA:
                 case SHAPELESS_CHEMISTRY:
                     ShapelessRecipe shapeless = (ShapelessRecipe) recipe;
                     this.putString(shapeless.getRecipeId());

@@ -118,7 +118,7 @@ public class StartGamePacket121 extends Packet121 {
     public String premiumWorldTemplateId = "00000000-0000-0000-0000-000000000000";
     public boolean isTrial = false;
     public int movementType;
-    public int rewindHistorySize = 20;
+    public int rewindHistorySize = 40;
     /**
      * If true, the server will compute block mining operations in sync with the client so it can verify that the client should be able to break blocks when it thinks it can.
      */

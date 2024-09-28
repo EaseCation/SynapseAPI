@@ -102,21 +102,21 @@ public interface IPlayerAuthInputPacket extends InventoryTransactionPacketInterf
     /**
      * @since 1.21.40
      */
-    default float getDirectionX() {
+    default float getCameraOrientationX() {
         return 0;
     }
 
     /**
      * @since 1.21.40
      */
-    default float getDirectionY() {
+    default float getCameraOrientationY() {
         return 0;
     }
 
     /**
      * @since 1.21.40
      */
-    default float getDirectionZ() {
+    default float getCameraOrientationZ() {
         return 0;
     }
 

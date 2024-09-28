@@ -23,12 +23,12 @@ import org.itxtech.synapseapi.multiprotocol.protocol12120.protocol.CameraInstruc
 import org.itxtech.synapseapi.multiprotocol.protocol12120.protocol.MobArmorEquipmentPacket12120;
 import org.itxtech.synapseapi.multiprotocol.protocol12140.protocol.CameraInstructionPacket12140;
 import org.itxtech.synapseapi.multiprotocol.protocol12140.protocol.MobEffectPacket12140;
+import org.itxtech.synapseapi.multiprotocol.protocol12140.protocol.MovementEffectPacket12140;
 import org.itxtech.synapseapi.multiprotocol.protocol14.protocol.PlayerActionPacket14;
 import org.itxtech.synapseapi.multiprotocol.protocol15.protocol.MoveEntityDeltaPacket;
 import org.itxtech.synapseapi.multiprotocol.protocol18.protocol.SpawnParticleEffectPacket18;
 
 import javax.annotation.Nullable;
-import java.util.Map;
 
 /**
  * DataPacketEidReplacer
@@ -286,6 +286,13 @@ public class DataPacketEidReplacer {
                         CameraTargetInstruction copy = target.clone();
                         copy.entityId = to;
                         dp.target = copy;
+                    }
+                }
+                break;
+            case ProtocolInfo.MOVEMENT_EFFECT_PACKET:
+                if (packet instanceof MovementEffectPacket12140 dp) {
+                    if (dp.entityRuntimeId == from) {
+                        dp.entityRuntimeId = to;
                     }
                 }
                 break;

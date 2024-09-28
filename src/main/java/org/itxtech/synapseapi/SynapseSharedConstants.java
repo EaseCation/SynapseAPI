@@ -17,6 +17,10 @@ public final class SynapseSharedConstants {
     public static final boolean FORCE_NETEASE_PLAYER = false;
 
     /**
+     * Enables new inventory system.
+     */
+    public static final boolean SERVER_AUTHORITATIVE_INVENTORY = false; //WIP
+    /**
      * Enables Movement Anti-Cheat?
      */
     public static final boolean SERVER_AUTHORITATIVE_MOVEMENT = true;

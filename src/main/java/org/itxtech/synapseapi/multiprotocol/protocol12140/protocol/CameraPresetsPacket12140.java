@@ -36,6 +36,9 @@ public class CameraPresetsPacket12140 extends Packet12140 {
 
             putOptional(preset.rotationSpeed, BinaryStream::putLFloat);
             putOptional(preset.snapToTarget, BinaryStream::putBoolean);
+            putOptional(preset.horizontalRotationLimit, BinaryStream::putVector2f);
+            putOptional(preset.verticalRotationLimit, BinaryStream::putVector2f);
+            putOptional(preset.continueTargeting, BinaryStream::putBoolean);
             putOptional(preset.viewOffset, BinaryStream::putVector2f);
             putOptional(preset.entityOffset, BinaryStream::putVector3f);
             putOptional(preset.radius, BinaryStream::putLFloat);

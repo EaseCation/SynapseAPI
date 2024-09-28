@@ -1,4 +1,4 @@
-package org.itxtech.synapseapi.multiprotocol.protocol12080.protocol;
+package org.itxtech.synapseapi.multiprotocol.protocol12140.protocol;
 
 import cn.nukkit.inventory.*;
 import cn.nukkit.inventory.recipe.RecipeIngredient;
@@ -18,8 +18,13 @@ import java.util.stream.Collectors;
 
 @Log4j2
 @ToString
-public class CraftingDataPacket12080 extends Packet12080 {
+public class CraftingDataPacket12140 extends Packet12140 {
     public static final int NETWORK_ID = ProtocolInfo.CRAFTING_DATA_PACKET;
+
+    public static final int UNLOCK_NONE = 0;
+    public static final int UNLOCK_ALWAYS_UNLOCKED = 1;
+    public static final int UNLOCK_IN_WATER = 2;
+    public static final int UNLOCK_HAS_ITEMS = 3;
 
     private List<Recipe> entries = new ObjectArrayList<>();
     private List<BrewingRecipe> brewingEntries = new ObjectArrayList<>();
@@ -51,7 +56,8 @@ public class CraftingDataPacket12080 extends Packet12080 {
                 type = todo.getRecipeType();
                 this.putVarInt(type.ordinal());
                 switch (type) {
-                    case SHAPELESS: {
+                    case SHAPELESS:
+                    case SHAPELESS_USER_DATA: {
                         this.putString(todo.getRecipeId());
                         List<RecipeIngredient> ingredients = todo.getShapelessInput();
                         this.putUnsignedVarInt(ingredients.size());
@@ -63,6 +69,19 @@ public class CraftingDataPacket12080 extends Packet12080 {
                         this.putUUID(todo.getId());
                         this.putString(todo.getTag().toString());
                         this.putVarInt(todo.getPriority());
+                        if (type == RecipeType.SHAPELESS || type == RecipeType.SHAPELESS_USER_DATA) {
+                            int unlockType = /*todo.getUnlockingContext()*/UNLOCK_ALWAYS_UNLOCKED;
+                            this.putByte((byte) unlockType);
+                            if (unlockType == UNLOCK_NONE) {
+                                /*
+                                List<RecipeIngredient> unlockingIngredients = todo.getUnlockingIngredients();
+                                this.putUnsignedVarInt(unlockingIngredients.size());
+                                for (Item unlockingIngredient : unlockingIngredients) {
+                                    this.helper.putRecipeIngredient(unlockingIngredient);
+                                }
+                                */this.putUnsignedVarInt(0);
+                            }
+                        }
                         this.putUnsignedVarInt(recipeNetworkId++);
                         break;
                     }
@@ -86,6 +105,19 @@ public class CraftingDataPacket12080 extends Packet12080 {
                         this.putString(todo.getTag().toString());
                         this.putVarInt(todo.getPriority());
                         this.putBoolean(todo.isAssumeSymmetry());
+                        if (type == RecipeType.SHAPED) {
+                            int unlockType = /*todo.getUnlockingContext()*/UNLOCK_ALWAYS_UNLOCKED;
+                            this.putByte((byte) unlockType);
+                            if (unlockType == UNLOCK_NONE) {
+                                /*
+                                List<RecipeIngredient> unlockingIngredients = todo.getUnlockingIngredients();
+                                this.putUnsignedVarInt(unlockingIngredients.size());
+                                for (Item unlockingIngredient : unlockingIngredients) {
+                                    this.helper.putRecipeIngredient(unlockingIngredient);
+                                }
+                                */this.putUnsignedVarInt(0);
+                            }
+                        }
                         this.putUnsignedVarInt(recipeNetworkId++);
                         break;
                     }
@@ -113,6 +145,19 @@ public class CraftingDataPacket12080 extends Packet12080 {
                     this.putUUID(shapeless.getId());
                     this.putString(shapeless.getTag().toString());
                     this.putVarInt(shapeless.getPriority());
+                    if (type == RecipeType.SHAPELESS || type == RecipeType.SHAPELESS_USER_DATA) {
+                        int unlockType = /*shapeless.getUnlockingContext()*/UNLOCK_ALWAYS_UNLOCKED;
+                        this.putByte((byte) unlockType);
+                        if (unlockType == UNLOCK_NONE) {
+                            /*
+                            List<Item> unlockingIngredients = shapeless.getUnlockingIngredientList();
+                            this.putUnsignedVarInt(unlockingIngredients.size());
+                            for (Item unlockingIngredient : unlockingIngredients) {
+                                this.putCraftingRecipeIngredient(unlockingIngredient);
+                            }
+                            */this.putUnsignedVarInt(0);
+                        }
+                    }
                     this.putUnsignedVarInt(recipeNetworkId++);
                     break;
                 case SHAPED:
@@ -138,6 +183,19 @@ public class CraftingDataPacket12080 extends Packet12080 {
                     this.putString(shaped.getTag().toString());
                     this.putVarInt(shaped.getPriority());
                     this.putBoolean(shaped.isAssumeSymmetry());
+                    if (type == RecipeType.SHAPED) {
+                        int unlockType = /*shaped.getUnlockingContext()*/UNLOCK_ALWAYS_UNLOCKED;
+                        this.putByte((byte) unlockType);
+                        if (unlockType == UNLOCK_NONE) {
+                            /*
+                            unlockingIngredients = shaped.getUnlockingIngredientList();
+                            this.putUnsignedVarInt(unlockingIngredients.size());
+                            for (Item unlockingIngredient : unlockingIngredients) {
+                                this.putCraftingRecipeIngredient(unlockingIngredient);
+                            }
+                            */this.putUnsignedVarInt(0);
+                        }
+                    }
                     this.putUnsignedVarInt(recipeNetworkId++);
                     break;
                 case FURNACE:
@@ -210,7 +268,6 @@ public class CraftingDataPacket12080 extends Packet12080 {
     @Override
     public DataPacket fromDefault(DataPacket pk, AbstractProtocol protocol, boolean netease) {
         CraftingDataPacket packet = (CraftingDataPacket) pk;
-
         this.entries = packet.entries.stream().map(e -> (Recipe) e).collect(Collectors.toList());
         this.brewingEntries = packet.brewingEntries;
         this.containerEntries = packet.containerEntries;

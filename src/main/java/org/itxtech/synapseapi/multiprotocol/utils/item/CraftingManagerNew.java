@@ -30,7 +30,7 @@ public class CraftingManagerNew extends CraftingManagerLegacy {
         RECIPE_COUNT = 1;
 
         loadRecipes("shapeless_crafting.json").forEach(element -> loadShapeless(element, ShapelessRecipe::new, RecipeType.SHAPELESS));
-//        loadRecipes("shapeless_shulker_box.json").forEach(element -> loadShapeless(element, ShulkerBoxRecipe::new, RecipeType.SHULKER_BOX)); //TODO: nbt
+//        loadRecipes("shapeless_shulker_box.json").forEach(element -> loadShapeless(element, ShapelessUserDataRecipe::new, RecipeType.SHAPELESS_USER_DATA)); //TODO: nbt
         if (ENABLE_CHEMISTRY_FEATURE) {
             loadRecipes("shapeless_chemistry.json").forEach(element -> loadShapeless(element, ShapelessChemistryRecipe::new, RecipeType.SHAPELESS_CHEMISTRY));
         }
@@ -44,7 +44,7 @@ public class CraftingManagerNew extends CraftingManagerLegacy {
 
         loadRecipes("special_hardcoded.json").forEach(this::loadHardcoded);
 
-        if (V1_19_60.isAvailable()) {
+        if (SERVER_AUTHORITATIVE_INVENTORY && V1_19_60.isAvailable()) {
             loadRecipes("smithing.json").forEach(this::loadSmithing);
         }
 

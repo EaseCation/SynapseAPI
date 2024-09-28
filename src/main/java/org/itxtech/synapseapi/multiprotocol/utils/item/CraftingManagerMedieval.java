@@ -44,7 +44,7 @@ public class CraftingManagerMedieval extends CraftingManagerLegacy {
                     loadShapeless(element, ShapelessRecipe::new, RecipeType.SHAPELESS);
                     break;
                 case 5:
-//                    loadShapeless(element, ShulkerBoxRecipe::new, RecipeType.SHULKER_BOX); //TODO: nbt
+//                    loadShapeless(element, ShapelessUserDataRecipe::new, RecipeType.SHAPELESS_USER_DATA); //TODO: nbt
                     break;
                 case 6:
                     if (!ENABLE_CHEMISTRY_FEATURE) {
@@ -75,7 +75,9 @@ public class CraftingManagerMedieval extends CraftingManagerLegacy {
 
         root.getAsJsonArray("containerMixes").forEach(this::loadPotionContainer);
 
-        root.getAsJsonArray("smithing").forEach(this::loadSmithing);
+        if (SERVER_AUTHORITATIVE_INVENTORY) {
+            root.getAsJsonArray("smithing").forEach(this::loadSmithing);
+        }
 
         log.info("Loaded " + this.recipes.size() + " recipes.");
     }

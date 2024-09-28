@@ -31,6 +31,11 @@ public class BinaryStreamHelper12010 extends BinaryStreamHelper120 {
     }
 
     @Override
+    public boolean isNetEase() {
+        return true;
+    }
+
+    @Override
     public void putCommandData(BinaryStream stream, Map<String, CommandDataVersions> commands, List<CommandEnum> enums, List<String> postFixes, List<CommandEnum> softEnums) {
         stream.putUnsignedVarInt(commands.size());
 

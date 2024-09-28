@@ -173,7 +173,7 @@ public enum AbstractProtocol {
     PROTOCOL_121_2(686, Packet1212.class, SynapsePlayer116100.class, BinaryStreamHelper1212.create(), true),
     PROTOCOL_121_20(712, Packet12120.class, SynapsePlayer116100.class, BinaryStreamHelper12120.create(), true),
     PROTOCOL_121_30(729, Packet12130.class, SynapsePlayer116100.class, BinaryStreamHelper12130.create(), true),
-    PROTOCOL_121_40(741, Packet12140.class, SynapsePlayer116100.class, BinaryStreamHelper12140.create(), true), // 1.21.40.21 beta
+    PROTOCOL_121_40(748, Packet12140.class, SynapsePlayer116100.class, BinaryStreamHelper12140.create(), true),
     ;
 
     private static final AbstractProtocol[] VALUES = values();

@@ -149,15 +149,15 @@ public class PlayerAuthInputPacket116220 extends Packet116220 implements Invento
     /**
      * @since 1.21.40
      */
-    public float directionX;
+    public float cameraOrientationX;
     /**
      * @since 1.21.40
      */
-    public float directionY;
+    public float cameraOrientationY;
     /**
      * @since 1.21.40
      */
-    public float directionZ;
+    public float cameraOrientationZ;
 
     public boolean hasNetworkIds;
     @Nullable
@@ -335,10 +335,10 @@ public class PlayerAuthInputPacket116220 extends Packet116220 implements Invento
         }
 
         if (protocol.getProtocolStart() >= AbstractProtocol.PROTOCOL_121_40.getProtocolStart()) {
-            Vector3f direction = this.getVector3f();
-            this.directionX = direction.x;
-            this.directionY = direction.y;
-            this.directionZ = direction.z;
+            Vector3f cameraOrientation = this.getVector3f();
+            this.cameraOrientationX = cameraOrientation.x;
+            this.cameraOrientationY = cameraOrientation.y;
+            this.cameraOrientationZ = cameraOrientation.z;
         }
 
         if (SynapseSharedConstants.MAC_DEBUG) {
@@ -569,18 +569,15 @@ public class PlayerAuthInputPacket116220 extends Packet116220 implements Invento
         return analogMoveVecZ;
     }
 
-    @Override
-    public float getDirectionX() {
-        return directionX;
+    public float getCameraOrientationX() {
+        return cameraOrientationX;
     }
 
-    @Override
-    public float getDirectionY() {
-        return directionY;
+    public float getCameraOrientationY() {
+        return cameraOrientationY;
     }
 
-    @Override
-    public float getDirectionZ() {
-        return directionZ;
+    public float getCameraOrientationZ() {
+        return cameraOrientationZ;
     }
 }

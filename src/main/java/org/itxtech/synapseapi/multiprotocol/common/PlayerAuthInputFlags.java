@@ -181,4 +181,24 @@ public interface PlayerAuthInputFlags {
      * @since 1.21.30
      */
     int DOWN_RIGHT = 52;
+    /**
+     * @since 1.21.40
+     */
+    int START_USING_ITEM = 53;
+    /**
+     * @since 1.21.40
+     */
+    int IS_CAMERA_RELATIVE_MOVEMENT_ENABLED = 54;
+    /**
+     * @since 1.21.40
+     */
+    int IS_ROT_CONTROLLED_BY_MOVE_DIRECTION = 55;
+    /**
+     * @since 1.21.40
+     */
+    int START_SPIN_ATTACK = 56;
+    /**
+     * @since 1.21.40
+     */
+    int STOP_SPIN_ATTACK = 57;
 }

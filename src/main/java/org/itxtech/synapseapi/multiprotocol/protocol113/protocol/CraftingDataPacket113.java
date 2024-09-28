@@ -77,7 +77,7 @@ public class CraftingDataPacket113 extends Packet113 {
             this.putVarInt(recipe.getType().ordinal());
             switch (recipe.getType()) {
                 case SHAPELESS:
-                case SHULKER_BOX:
+                case SHAPELESS_USER_DATA:
                 case SHAPELESS_CHEMISTRY:
                     ShapelessRecipe shapeless = (ShapelessRecipe) recipe;
                     this.putString(shapeless.getRecipeId());

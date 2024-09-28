@@ -81,7 +81,7 @@ public class CraftingDataPacket116 extends Packet116 {
             this.putVarInt(type == RecipeType.SMITHING_TRANSFORM ? RecipeType.SHAPELESS.ordinal() : type.ordinal());
             switch (type) {
                 case SHAPELESS:
-                case SHULKER_BOX:
+                case SHAPELESS_USER_DATA:
                 case SHAPELESS_CHEMISTRY:
                     ShapelessRecipe shapeless = (ShapelessRecipe) recipe;
                     this.putString(shapeless.getRecipeId());

@@ -532,6 +532,7 @@ public class SynapsePlayer14 extends SynapsePlayer {
 						break;
 					case PlayerActionPacket.ACTION_START_SPIN_ATTACK:
 						if (isSpectator()) {
+							setDataFlag(DATA_FLAG_SPIN_ATTACK, false);
 							break;
 						}
 
