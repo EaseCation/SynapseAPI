@@ -190,7 +190,9 @@ public class EntityMetadataGenerator {
 	}
 
 	private static int translateId(int v12Id, AbstractProtocol protocol) {
-		if (protocol.ordinal() >= AbstractProtocol.PROTOCOL_119_40.ordinal()) {
+		if (protocol.ordinal() >= AbstractProtocol.PROTOCOL_121.ordinal()) {
+			return EntityDataItemIDTranslator.translateTo121Id(v12Id);
+		} else if (protocol.ordinal() >= AbstractProtocol.PROTOCOL_119_40.ordinal()) {
 			return EntityDataItemIDTranslator.translateTo11940Id(v12Id);
 		} else if (protocol.ordinal() >= AbstractProtocol.PROTOCOL_117.ordinal()) {
 			return EntityDataItemIDTranslator.translateTo117Id(v12Id);

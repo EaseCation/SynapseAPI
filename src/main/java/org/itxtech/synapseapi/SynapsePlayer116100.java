@@ -27,6 +27,7 @@ import cn.nukkit.inventory.ArmorInventory;
 import cn.nukkit.inventory.ContainerInventory;
 import cn.nukkit.inventory.Inventory;
 import cn.nukkit.item.Item;
+import cn.nukkit.item.ItemBucket;
 import cn.nukkit.item.ItemEdible;
 import cn.nukkit.item.ItemMap;
 import cn.nukkit.item.enchantment.Enchantment;
@@ -2324,7 +2325,7 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
                             break;
                         }
                         Item held = inventory.getItemInHand();
-                        if (!(held instanceof ItemEdible) && !held.is(Item.POTION)) {
+                        if (!(held instanceof ItemEdible) && !held.is(Item.POTION) && !held.is(Item.BUCKET, ItemBucket.MILK_BUCKET)) {
                             break;
                         }
 

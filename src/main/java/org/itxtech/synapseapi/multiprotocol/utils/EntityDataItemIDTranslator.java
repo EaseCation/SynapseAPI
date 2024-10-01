@@ -14,6 +14,7 @@ public class EntityDataItemIDTranslator {
 	public final static int[] v12ToV116210Book = new int[DATA_UNDEFINED];
 	public final static int[] v12ToV117Book = new int[DATA_UNDEFINED];
 	public final static int[] v12ToV11940Book = new int[DATA_UNDEFINED];
+	public final static int[] v12ToV121Book = new int[DATA_UNDEFINED];
 
 	public final static int FLAGS = 0;
 	public final static int STRUCTURAL_INTEGRITY = 1;
@@ -616,7 +617,8 @@ public class EntityDataItemIDTranslator {
 		v12ToV11940Book[DATA_COLLISION_BOX] = V12010_COLLISION_BOX;
 
 		// 1.21.0
-		v12ToV11940Book[DATA_VISIBLE_MOB_EFFECTS] = V121_VISIBLE_MOB_EFFECTS;
+		System.arraycopy(v12ToV11940Book, 0, v12ToV121Book, 0, DATA_UNDEFINED);
+		v12ToV121Book[DATA_VISIBLE_MOB_EFFECTS] = V121_VISIBLE_MOB_EFFECTS;
 	}
 
 	public static int translateTo14Id(int v12Id) {
@@ -659,5 +661,12 @@ public class EntityDataItemIDTranslator {
 			return -1;
 		}
 		return v12ToV11940Book[v12Id];
+	}
+
+	public static int translateTo121Id(int v12Id) {
+		if (v12Id < 0 || v12Id >= Entity.DATA_UNDEFINED) {
+			return -1;
+		}
+		return v12ToV121Book[v12Id];
 	}
 }

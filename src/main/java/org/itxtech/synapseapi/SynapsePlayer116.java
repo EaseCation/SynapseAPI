@@ -530,7 +530,7 @@ public class SynapsePlayer116 extends SynapsePlayer113 {
 										this.inventory.sendContents(this);
 									}
 
-									if (item.canRelease()) {
+									if (item.canRelease() && !item.isNull()) {
 										this.setUsingItem(true);
 									}
 								}
@@ -1472,6 +1472,10 @@ public class SynapsePlayer116 extends SynapsePlayer113 {
 
 									if (!item.onUse(this, ticksUsed)) {
 										this.inventory.sendContents(this);
+									}
+
+									if (item.canRelease() && !item.isNull()) {
+										this.setUsingItem(true);
 									}
 								}
 

@@ -468,7 +468,7 @@ public class SynapsePlayer113 extends SynapsePlayer112 {
 										this.inventory.sendContents(this);
 									}
 
-									if (item.canRelease()) {
+									if (item.canRelease() && !item.isNull()) {
 										this.setUsingItem(true);
 									}
 								}
