@@ -30,7 +30,7 @@ public final class VanillaExperiments {
      * Includes adjustable fog parameters. (Upcoming Creator Features)
      * deprecated 1.19.50 entity properties
      * deprecated 1.21.20 volume area (removed)
-     * @since 1.16.230
+     * @since 1.17.0
      */
     public static final Experiment UPCOMING_CREATOR_FEATURES = new Experiment("upcoming_creator_features", true);
     /**

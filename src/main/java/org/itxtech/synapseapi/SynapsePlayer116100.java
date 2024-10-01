@@ -65,6 +65,7 @@ import org.itxtech.synapseapi.camera.CameraManager;
 import org.itxtech.synapseapi.dialogue.NPCDialoguePlayerHandler;
 import org.itxtech.synapseapi.multiprotocol.AbstractProtocol;
 import org.itxtech.synapseapi.multiprotocol.common.Experiments;
+import org.itxtech.synapseapi.multiprotocol.common.Experiments.Experiment;
 import org.itxtech.synapseapi.multiprotocol.common.camera.CameraFadeInstruction;
 import org.itxtech.synapseapi.multiprotocol.common.camera.CameraSetInstruction;
 import org.itxtech.synapseapi.multiprotocol.protocol113.protocol.ResourcePackStackPacket113;
@@ -247,11 +248,15 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
             startGamePacket.enchantmentSeed = ThreadLocalRandom.current().nextInt();
             startGamePacket.playerPropertyData = getCompiledPlayerProperties();
             startGamePacket.isSoundServerAuthoritative = isServerAuthoritativeSoundEnabled();
-            if (isBetaClient()) {
-                startGamePacket.experiments = new Experiments(
-                        VanillaExperiments.DEFERRED_TECHNICAL_PREVIEW
-                );
+            List<Experiment> experiments = new ArrayList<>(3);
+            if (getProtocol() < AbstractProtocol.PROTOCOL_121_20.getProtocolStart()) {
+                experiments.add(VanillaExperiments.DATA_DRIVEN_ITEMS);
             }
+            experiments.add(VanillaExperiments.UPCOMING_CREATOR_FEATURES);
+            if (isBetaClient()) {
+                experiments.add(VanillaExperiments.DEFERRED_TECHNICAL_PREVIEW);
+            }
+            startGamePacket.experiments = new Experiments(experiments.toArray(new Experiment[0]));
             return startGamePacket;
         } else if (this.getProtocol() >= AbstractProtocol.PROTOCOL_120_80.getProtocolStart()) {
             StartGamePacket12080 startGamePacket = new StartGamePacket12080();
@@ -288,11 +293,13 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
             startGamePacket.enchantmentSeed = ThreadLocalRandom.current().nextInt();
             startGamePacket.playerPropertyData = getCompiledPlayerProperties();
             startGamePacket.isSoundServerAuthoritative = isServerAuthoritativeSoundEnabled();
+            List<Experiment> experiments = new ArrayList<>(3);
+            experiments.add(VanillaExperiments.DATA_DRIVEN_ITEMS);
+            experiments.add(VanillaExperiments.UPCOMING_CREATOR_FEATURES);
             if (isBetaClient()) {
-                startGamePacket.experiments = new Experiments(
-                        VanillaExperiments.DEFERRED_TECHNICAL_PREVIEW
-                );
+                experiments.add(VanillaExperiments.DEFERRED_TECHNICAL_PREVIEW);
             }
+            startGamePacket.experiments = new Experiments(experiments.toArray(new Experiment[0]));
             return startGamePacket;
         } else if (this.getProtocol() >= AbstractProtocol.PROTOCOL_120_30.getProtocolStart()) {
             StartGamePacket12030 startGamePacket = new StartGamePacket12030();
@@ -329,11 +336,16 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
             startGamePacket.enchantmentSeed = ThreadLocalRandom.current().nextInt();
             startGamePacket.playerPropertyData = getCompiledPlayerProperties();
             startGamePacket.isSoundServerAuthoritative = isServerAuthoritativeSoundEnabled();
-            if (isBetaClient()) {
-                startGamePacket.experiments = new Experiments(
-                        VanillaExperiments.DEFERRED_TECHNICAL_PREVIEW
-                );
+            List<Experiment> experiments = new ArrayList<>(4);
+            experiments.add(VanillaExperiments.DATA_DRIVEN_ITEMS);
+            experiments.add(VanillaExperiments.UPCOMING_CREATOR_FEATURES);
+            if (getProtocol() < AbstractProtocol.PROTOCOL_120_70.getProtocolStart()) {
+                experiments.add(VanillaExperiments.EXPERIMENTAL_MOLANG_FEATURES);
             }
+            if (isBetaClient()) {
+                experiments.add(VanillaExperiments.DEFERRED_TECHNICAL_PREVIEW);
+            }
+            startGamePacket.experiments = new Experiments(experiments.toArray(new Experiment[0]));
             return startGamePacket;
         } else if (this.getProtocol() >= AbstractProtocol.PROTOCOL_120.getProtocolStart()) {
             StartGamePacket120 startGamePacket = new StartGamePacket120();
@@ -370,7 +382,12 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
             startGamePacket.enchantmentSeed = ThreadLocalRandom.current().nextInt();
             startGamePacket.playerPropertyData = getCompiledPlayerProperties();
             startGamePacket.isSoundServerAuthoritative = isServerAuthoritativeSoundEnabled();
-            startGamePacket.experiments = new Experiments(VanillaExperiments.CAMERAS);
+            startGamePacket.experiments = new Experiments(
+                    VanillaExperiments.DATA_DRIVEN_ITEMS,
+                    VanillaExperiments.UPCOMING_CREATOR_FEATURES,
+                    VanillaExperiments.EXPERIMENTAL_MOLANG_FEATURES,
+                    VanillaExperiments.CAMERAS
+            );
             return startGamePacket;
         } else if (this.getProtocol() >= AbstractProtocol.PROTOCOL_119_80.getProtocolStart()) {
             StartGamePacket11980 startGamePacket = new StartGamePacket11980();
@@ -406,6 +423,11 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
             startGamePacket.currentTick = 0;//this.server.getTick();
             startGamePacket.enchantmentSeed = ThreadLocalRandom.current().nextInt();
             startGamePacket.playerPropertyData = getCompiledPlayerProperties();
+            startGamePacket.experiments = new Experiments(
+                    VanillaExperiments.DATA_DRIVEN_ITEMS,
+                    VanillaExperiments.UPCOMING_CREATOR_FEATURES,
+                    VanillaExperiments.EXPERIMENTAL_MOLANG_FEATURES
+            );
             return startGamePacket;
         } else if (this.getProtocol() >= AbstractProtocol.PROTOCOL_119_60.getProtocolStart()) {
             StartGamePacket11960 startGamePacket = new StartGamePacket11960();
@@ -441,6 +463,11 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
             startGamePacket.currentTick = 0;//this.server.getTick();
             startGamePacket.enchantmentSeed = ThreadLocalRandom.current().nextInt();
             startGamePacket.playerPropertyData = getCompiledPlayerProperties();
+            startGamePacket.experiments = new Experiments(
+                    VanillaExperiments.DATA_DRIVEN_ITEMS,
+                    VanillaExperiments.UPCOMING_CREATOR_FEATURES,
+                    VanillaExperiments.EXPERIMENTAL_MOLANG_FEATURES
+            );
             return startGamePacket;
         } else if (this.getProtocol() >= AbstractProtocol.PROTOCOL_119_20.getProtocolStart()) {
             StartGamePacket11920 startGamePacket = new StartGamePacket11920();
@@ -476,6 +503,11 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
             startGamePacket.currentTick = 0;//this.server.getTick();
             startGamePacket.enchantmentSeed = ThreadLocalRandom.current().nextInt();
             startGamePacket.playerPropertyData = getCompiledPlayerProperties();
+            startGamePacket.experiments = new Experiments(
+                    VanillaExperiments.DATA_DRIVEN_ITEMS,
+                    VanillaExperiments.UPCOMING_CREATOR_FEATURES,
+                    VanillaExperiments.EXPERIMENTAL_MOLANG_FEATURES
+            );
             return startGamePacket;
         } else if (this.getProtocol() >= AbstractProtocol.PROTOCOL_119_10.getProtocolStart()) {
             StartGamePacket11910 startGamePacket = new StartGamePacket11910();
@@ -511,6 +543,11 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
             startGamePacket.currentTick = 0;//this.server.getTick();
             startGamePacket.enchantmentSeed = ThreadLocalRandom.current().nextInt();
             startGamePacket.playerPropertyData = getCompiledPlayerProperties();
+            startGamePacket.experiments = new Experiments(
+                    VanillaExperiments.DATA_DRIVEN_ITEMS,
+                    VanillaExperiments.UPCOMING_CREATOR_FEATURES,
+                    VanillaExperiments.EXPERIMENTAL_MOLANG_FEATURES
+            );
             return startGamePacket;
         } else if (this.getProtocol() >= AbstractProtocol.PROTOCOL_119.getProtocolStart()) {
             StartGamePacket119 startGamePacket = new StartGamePacket119();
@@ -546,6 +583,11 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
             startGamePacket.currentTick = 0;//this.server.getTick();
             startGamePacket.enchantmentSeed = ThreadLocalRandom.current().nextInt();
             startGamePacket.playerPropertyData = getCompiledPlayerProperties();
+            startGamePacket.experiments = new Experiments(
+                    VanillaExperiments.DATA_DRIVEN_ITEMS,
+                    VanillaExperiments.UPCOMING_CREATOR_FEATURES,
+                    VanillaExperiments.EXPERIMENTAL_MOLANG_FEATURES
+            );
             return startGamePacket;
         } else if (isNetEaseClient() && this.getProtocol() >= AbstractProtocol.PROTOCOL_118_30_NE.getProtocolStart()) {
             StartGamePacket11830NE startGamePacket = new StartGamePacket11830NE();
@@ -580,6 +622,11 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
             startGamePacket.isBlockBreakingServerAuthoritative = this.serverAuthoritativeBlockBreaking;
             startGamePacket.currentTick = 0;//this.server.getTick();
             startGamePacket.enchantmentSeed = ThreadLocalRandom.current().nextInt();
+            startGamePacket.experiments = new Experiments(
+                    VanillaExperiments.DATA_DRIVEN_ITEMS,
+                    VanillaExperiments.UPCOMING_CREATOR_FEATURES,
+                    VanillaExperiments.EXPERIMENTAL_MOLANG_FEATURES
+            );
             return startGamePacket;
         } else if (this.getProtocol() >= AbstractProtocol.PROTOCOL_118_30.getProtocolStart()) {
             StartGamePacket11830 startGamePacket = new StartGamePacket11830();
@@ -614,6 +661,11 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
             startGamePacket.isBlockBreakingServerAuthoritative = this.serverAuthoritativeBlockBreaking;
             startGamePacket.currentTick = 0;//this.server.getTick();
             startGamePacket.enchantmentSeed = ThreadLocalRandom.current().nextInt();
+            startGamePacket.experiments = new Experiments(
+                    VanillaExperiments.DATA_DRIVEN_ITEMS,
+                    VanillaExperiments.UPCOMING_CREATOR_FEATURES,
+                    VanillaExperiments.EXPERIMENTAL_MOLANG_FEATURES
+            );
             return startGamePacket;
         } else if (this.getProtocol() >= AbstractProtocol.PROTOCOL_118.getProtocolStart()) {
             StartGamePacket118 startGamePacket = new StartGamePacket118();
@@ -648,6 +700,11 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
             startGamePacket.isBlockBreakingServerAuthoritative = this.serverAuthoritativeBlockBreaking;
             startGamePacket.currentTick = 0;//this.server.getTick();
             startGamePacket.enchantmentSeed = ThreadLocalRandom.current().nextInt();
+            startGamePacket.experiments = new Experiments(
+                    VanillaExperiments.DATA_DRIVEN_ITEMS,
+                    VanillaExperiments.UPCOMING_CREATOR_FEATURES,
+                    VanillaExperiments.EXPERIMENTAL_MOLANG_FEATURES
+            );
             return startGamePacket;
         } else if (this.getProtocol() >= AbstractProtocol.PROTOCOL_117_30.getProtocolStart()) {
             StartGamePacket11730 startGamePacket = new StartGamePacket11730();
@@ -682,6 +739,11 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
             startGamePacket.isBlockBreakingServerAuthoritative = this.serverAuthoritativeBlockBreaking;
             startGamePacket.currentTick = 0;//this.server.getTick();
             startGamePacket.enchantmentSeed = ThreadLocalRandom.current().nextInt();
+            startGamePacket.experiments = new Experiments(
+                    VanillaExperiments.DATA_DRIVEN_ITEMS,
+                    VanillaExperiments.UPCOMING_CREATOR_FEATURES,
+                    VanillaExperiments.EXPERIMENTAL_MOLANG_FEATURES
+            );
             return startGamePacket;
         } else if (this.getProtocol() >= AbstractProtocol.PROTOCOL_117.getProtocolStart()) {
             StartGamePacket117 startGamePacket = new StartGamePacket117();
@@ -716,6 +778,10 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
             startGamePacket.isBlockBreakingServerAuthoritative = this.serverAuthoritativeBlockBreaking;
             startGamePacket.currentTick = 0;//this.server.getTick();
             startGamePacket.enchantmentSeed = ThreadLocalRandom.current().nextInt();
+            startGamePacket.experiments = new Experiments(
+                    VanillaExperiments.DATA_DRIVEN_ITEMS,
+                    VanillaExperiments.UPCOMING_CREATOR_FEATURES
+            );
             return startGamePacket;
         } else if (this.getProtocol() >= AbstractProtocol.PROTOCOL_116_200.getProtocolStart()) {
             StartGamePacket116200 startGamePacket = new StartGamePacket116200();
@@ -753,6 +819,9 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
                     (this.isNetEaseClient() || this.protocol > AbstractProtocol.PROTOCOL_116_200.getProtocolStart());
             startGamePacket.currentTick = 0;//this.server.getTick();
             startGamePacket.enchantmentSeed = ThreadLocalRandom.current().nextInt();
+            startGamePacket.experiments = new Experiments(
+                    VanillaExperiments.DATA_DRIVEN_ITEMS
+            );
             return startGamePacket;
         } else if (this.getProtocol() < AbstractProtocol.PROTOCOL_116_100.getProtocolStart()) {
             StartGamePacket116100NE startGamePacket = new StartGamePacket116100NE();
@@ -819,6 +888,9 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
         startGamePacket.movementType = this.isNetEaseClient() ? StartGamePacket116100.MOVEMENT_SERVER_AUTHORITATIVE : StartGamePacket116100.MOVEMENT_CLIENT_AUTHORITATIVE;
         startGamePacket.currentTick = 0;//this.server.getTick();
         startGamePacket.enchantmentSeed = ThreadLocalRandom.current().nextInt();
+        startGamePacket.experiments = new Experiments(
+                VanillaExperiments.DATA_DRIVEN_ITEMS
+        );
         return startGamePacket;
     }
 
@@ -903,6 +975,15 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
                             stackPacket.mustAccept = this.forceResources;
                             stackPacket.resourcePackStack = this.resourcePacks.values().toArray(new ResourcePack[0]);
                             stackPacket.behaviourPackStack = this.behaviourPacks.values().toArray(new ResourcePack[0]);
+                            List<Experiment> experiments = new ArrayList<>(3);
+                            if (getProtocol() < AbstractProtocol.PROTOCOL_121_20.getProtocolStart()) {
+                                experiments.add(VanillaExperiments.DATA_DRIVEN_ITEMS);
+                            }
+                            experiments.add(VanillaExperiments.UPCOMING_CREATOR_FEATURES);
+                            if (isBetaClient()) {
+                                experiments.add(VanillaExperiments.DEFERRED_TECHNICAL_PREVIEW);
+                            }
+                            stackPacket.experiments = new Experiments(experiments.toArray(new Experiment[0]));
                             this.dataPacket(stackPacket);
                         } else if (this.getProtocol() < AbstractProtocol.PROTOCOL_116_100.getProtocolStart()) {
                             ResourcePackStackPacket113 stackPacket = new ResourcePackStackPacket113();
@@ -915,9 +996,21 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
                             stackPacket.mustAccept = this.forceResources;
                             stackPacket.resourcePackStack = this.resourcePacks.values().toArray(new ResourcePack[0]);
                             stackPacket.behaviourPackStack = this.behaviourPacks.values().toArray(new ResourcePack[0]);
-                            if (getProtocol() < AbstractProtocol.PROTOCOL_120_30.getProtocolStart() && getProtocol() >= AbstractProtocol.PROTOCOL_120.getProtocolStart()) {
-                                stackPacket.experiments = new Experiments(VanillaExperiments.CAMERAS);
+                            List<Experiment> experiments = new ArrayList<>(5);
+                            experiments.add(VanillaExperiments.DATA_DRIVEN_ITEMS);
+                            if (getProtocol() >= AbstractProtocol.PROTOCOL_117.getProtocolStart()) {
+                                experiments.add(VanillaExperiments.UPCOMING_CREATOR_FEATURES);
                             }
+                            if (getProtocol() < AbstractProtocol.PROTOCOL_120_70.getProtocolStart() && getProtocol() >= AbstractProtocol.PROTOCOL_117_30.getProtocolStart()) {
+                                experiments.add(VanillaExperiments.EXPERIMENTAL_MOLANG_FEATURES);
+                            }
+                            if (getProtocol() < AbstractProtocol.PROTOCOL_120_30.getProtocolStart() && getProtocol() >= AbstractProtocol.PROTOCOL_120.getProtocolStart()) {
+                                experiments.add(VanillaExperiments.CAMERAS);
+                            }
+                            if (isBetaClient() && getProtocol() >= AbstractProtocol.PROTOCOL_120_30.getProtocolStart()) {
+                                experiments.add(VanillaExperiments.DEFERRED_TECHNICAL_PREVIEW);
+                            }
+                            stackPacket.experiments = new Experiments(experiments.toArray(new Experiment[0]));
                             this.dataPacket(stackPacket);
                         }
 
