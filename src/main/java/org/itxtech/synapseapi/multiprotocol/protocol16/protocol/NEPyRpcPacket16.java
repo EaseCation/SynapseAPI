@@ -16,7 +16,9 @@ import org.msgpack.value.Value;
 
 import javax.annotation.Nullable;
 import java.io.IOException;
+import java.util.HashSet;
 import java.util.Objects;
+import java.util.Set;
 
 /**
  * author: MagicDroidX
@@ -35,11 +37,11 @@ public class NEPyRpcPacket16 extends Packet16 {
     public SubPacket<SubPacketHandler>[] subPackets = new SubPacket[0];
     public boolean encrypt;
 
-    private static SubPacketDeserializer DESERIALIZER = (modName, systemName, eventName, eventData) -> null;
+    private static Set<SubPacketDeserializer> DESERIALIZER = new HashSet<>();
 
-    public static void setDeserializer(SubPacketDeserializer deserializer) {
+    public static void addDeserializer(SubPacketDeserializer deserializer) {
         Objects.requireNonNull(deserializer, "deserializer");
-        DESERIALIZER = deserializer;
+        DESERIALIZER.add(deserializer);
     }
 
     @Override
@@ -79,7 +81,12 @@ public class NEPyRpcPacket16 extends Packet16 {
                         JsonObject eventData = value1.get(3).getAsJsonObject();
                         SubPacket<? extends SubPacketHandler> subPacket = decodeSubPacket(modName, systemName, eventName, eventData);
                         if (subPacket == null) {
-                            subPacket = DESERIALIZER.deserialize(modName, systemName, eventName, eventData);
+                            for (SubPacketDeserializer deserializer : DESERIALIZER) {
+                                subPacket = deserializer.deserialize(modName, systemName, eventName, eventData);
+                                if (subPacket != null) {
+                                    break;
+                                }
+                            }
                             if (subPacket == null) {
                                 return;
                             }
@@ -104,7 +111,12 @@ public class NEPyRpcPacket16 extends Packet16 {
                     JsonObject eventData = value0.get(3).getAsJsonObject();
                     SubPacket<? extends SubPacketHandler> subPacket = decodeSubPacket(modName, systemName, eventName, eventData);
                     if (subPacket == null) {
-                        subPacket = DESERIALIZER.deserialize(modName, systemName, eventName, eventData);
+                        for (SubPacketDeserializer deserializer : DESERIALIZER) {
+                            subPacket = deserializer.deserialize(modName, systemName, eventName, eventData);
+                            if (subPacket != null) {
+                                break;
+                            }
+                        }
                         if (subPacket == null) {
                             return;
                         }
