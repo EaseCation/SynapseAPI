@@ -13,22 +13,24 @@ import cn.nukkit.network.protocol.*;
 import cn.nukkit.resourcepacks.ResourcePack;
 import cn.nukkit.utils.MainLogger;
 import cn.nukkit.utils.TextFormat;
-import com.google.gson.*;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonPrimitive;
 import org.itxtech.synapseapi.event.player.SynapsePlayerConnectEvent;
 import org.itxtech.synapseapi.multiprotocol.protocol14.protocol.LoginPacket14;
 import org.itxtech.synapseapi.multiprotocol.protocol16.protocol.*;
-import org.itxtech.synapseapi.network.protocol.mod.EncryptedPacket;
-import org.itxtech.synapseapi.network.protocol.mod.ServerSubPacketHandler;
-import org.itxtech.synapseapi.network.protocol.mod.SubPacket;
-import org.itxtech.synapseapi.network.protocol.mod.SubPacketHandler;
+import org.itxtech.synapseapi.network.protocol.mod.*;
 import org.itxtech.synapseapi.network.protocol.spp.PlayerLoginPacket;
 import org.msgpack.value.ArrayValue;
 import org.msgpack.value.MapValue;
 import org.msgpack.value.Value;
 import org.msgpack.value.ValueFactory;
 
+import java.lang.reflect.ParameterizedType;
+import java.lang.reflect.Type;
 import java.net.InetSocketAddress;
 import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.ThreadLocalRandom;
 import java.util.function.Function;
@@ -43,7 +45,7 @@ public class SynapsePlayer16 extends SynapsePlayer14 {
 	protected long pingNs;
 	protected long latencyNs;
 
-	private ServerSubPacketHandler subPacketHandler;
+	private List<ServerSubPacketHandler> subPacketHandlers = new ArrayList<>();
 
 	public SynapsePlayer16(SourceInterface interfaz, SynapseEntry synapseEntry, Long clientID, InetSocketAddress socketAddress) {
 		super(interfaz, synapseEntry, clientID, socketAddress);
@@ -89,8 +91,8 @@ public class SynapsePlayer16 extends SynapsePlayer14 {
 			}
 		}
 
-		if (isNetEaseClient() && subPacketHandler == null) {
-			subPacketHandler = new BaseSubPacketHandler(this);
+		if (isNetEaseClient() && subPacketHandlers.isEmpty()) {
+			subPacketHandlers.add(new BaseSubPacketHandler(this));
 		}
 	}
 
@@ -178,12 +180,17 @@ public class SynapsePlayer16 extends SynapsePlayer14 {
 			case ProtocolInfo.PACKET_PY_RPC:
 				if (!callPacketReceiveEvent(packet)) break;
 				NEPyRpcPacket16 pyRpcPacket = (NEPyRpcPacket16) packet;
-				if (subPacketHandler == null) {
+				if (subPacketHandlers.isEmpty()) {
 					break;
 				}
 				for (SubPacket<SubPacketHandler> subPacket : pyRpcPacket.subPackets) {
 					try {
-						subPacket.handle(subPacketHandler);
+						for (ServerSubPacketHandler subPacketHandler : subPacketHandlers) {
+							// 判断 SubPacket 的 T 类型是否与当前的 subPacketHandler 类型兼容
+							if (isHandlerCompatible(subPacket, subPacketHandler)) {
+								subPacket.handle(subPacketHandler);
+							}
+						}
 					} catch (Exception e) {
 						getServer().getLogger().error("Unable to handle netease rpc sub packet: " + getName(), e);
 					}
@@ -275,6 +282,30 @@ public class SynapsePlayer16 extends SynapsePlayer14 {
 				break;
 		}
 
+	}
+
+
+	// 判断 SubPacket 的泛型参数是否与 subPacketHandler 的类型兼容的方法
+	private boolean isHandlerCompatible(SubPacket<?> subPacket, ServerSubPacketHandler subPacketHandler) {
+		// 获取 SubPacket 类的泛型接口
+		Type[] genericInterfaces = subPacket.getClass().getGenericInterfaces();
+
+		for (Type type : genericInterfaces) {
+			// 检查是否是 ParameterizedType，并且原始类型是 ServerboundSubPacket
+			if (type instanceof ParameterizedType parameterizedType) {
+				Type rawType = parameterizedType.getRawType();
+				// 检查是否是 ServerboundSubPacket 接口
+				if (rawType instanceof Class<?> rawClass && ServerboundSubPacket.class.isAssignableFrom(rawClass)) {
+					// 获取泛型参数类型 T
+					Type actualTypeArgument = parameterizedType.getActualTypeArguments()[0];
+					// 检查 subPacketHandler 是否是该类型的实例
+					if (actualTypeArgument instanceof Class<?> handlerClass) {
+						return handlerClass.isInstance(subPacketHandler);
+					}
+				}
+			}
+		}
+		return false;
 	}
 
 	@Override
@@ -487,8 +518,8 @@ public class SynapsePlayer16 extends SynapsePlayer14 {
 	}
 
 	@Override
-	public void setSubPacketHandler(ServerSubPacketHandler handler) {
-		subPacketHandler = handler;
+	public void addSubPacketHandler(ServerSubPacketHandler handler) {
+		subPacketHandlers.add(handler);
 	}
 
 	protected void firstSyncLocalPlayerEntityData() {

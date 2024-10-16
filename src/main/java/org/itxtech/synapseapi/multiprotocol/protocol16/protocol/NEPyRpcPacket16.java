@@ -37,7 +37,7 @@ public class NEPyRpcPacket16 extends Packet16 {
     public SubPacket<SubPacketHandler>[] subPackets = new SubPacket[0];
     public boolean encrypt;
 
-    private static Set<SubPacketDeserializer> DESERIALIZER = new HashSet<>();
+    private static final Set<SubPacketDeserializer> DESERIALIZER = new HashSet<>();
 
     public static void addDeserializer(SubPacketDeserializer deserializer) {
         Objects.requireNonNull(deserializer, "deserializer");

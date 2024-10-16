@@ -1423,7 +1423,7 @@ public class SynapsePlayer extends Player {
         return true;
     }
 
-    public void setSubPacketHandler(ServerSubPacketHandler handler) {
+    public void addSubPacketHandler(ServerSubPacketHandler handler) {
         // NE 1.6+
     }
 
