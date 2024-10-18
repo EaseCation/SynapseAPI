@@ -17,6 +17,7 @@ import org.msgpack.value.Value;
 import javax.annotation.Nullable;
 import java.io.IOException;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Objects;
 import java.util.Set;
 
@@ -34,7 +35,7 @@ public class NEPyRpcPacket16 extends Packet16 {
 
     public Value data;
 
-    public SubPacket<SubPacketHandler>[] subPackets = new SubPacket[0];
+    public List<SubPacket<? extends SubPacketHandler<?>>> subPackets = List.of();
     public boolean encrypt;
 
     private static final Set<SubPacketDeserializer> DESERIALIZER = new HashSet<>();
@@ -79,7 +80,7 @@ public class NEPyRpcPacket16 extends Packet16 {
                         String systemName = value1.get(1).getAsString();
                         String eventName = value1.get(2).getAsString();
                         JsonObject eventData = value1.get(3).getAsJsonObject();
-                        SubPacket<? extends SubPacketHandler> subPacket = decodeSubPacket(modName, systemName, eventName, eventData);
+                        SubPacket<? extends SubPacketHandler<?>> subPacket = decodeSubPacket(modName, systemName, eventName, eventData);
                         if (subPacket == null) {
                             for (SubPacketDeserializer deserializer : DESERIALIZER) {
                                 subPacket = deserializer.deserialize(modName, systemName, eventName, eventData);
@@ -91,11 +92,11 @@ public class NEPyRpcPacket16 extends Packet16 {
                                 return;
                             }
                         }
-                        subPackets = new SubPacket[]{subPacket};
+                        subPackets = List.of(subPacket);
                     }
                 } else if ("StoreBuySuccServerEvent".equals(value0.get(0).getAsString())) {
                     StoreBuySuccessPacket subPacket = new StoreBuySuccessPacket();
-                    subPackets = new SubPacket[]{subPacket};
+                    subPackets = List.of(subPacket);
                 }
             }
         } else if (data.isArrayValue()) {
@@ -109,7 +110,7 @@ public class NEPyRpcPacket16 extends Packet16 {
                     String systemName = value0.get(1).getAsString();
                     String eventName = value0.get(2).getAsString();
                     JsonObject eventData = value0.get(3).getAsJsonObject();
-                    SubPacket<? extends SubPacketHandler> subPacket = decodeSubPacket(modName, systemName, eventName, eventData);
+                    SubPacket<? extends SubPacketHandler<?>> subPacket = decodeSubPacket(modName, systemName, eventName, eventData);
                     if (subPacket == null) {
                         for (SubPacketDeserializer deserializer : DESERIALIZER) {
                             subPacket = deserializer.deserialize(modName, systemName, eventName, eventData);
@@ -121,17 +122,17 @@ public class NEPyRpcPacket16 extends Packet16 {
                             return;
                         }
                     }
-                    subPackets = new SubPacket[]{subPacket};
+                    subPackets = List.of(subPacket);
                 } else if ("StoreBuySuccServerEvent".equals(type)) {
                     StoreBuySuccessPacket subPacket = new StoreBuySuccessPacket();
-                    subPackets = new SubPacket[]{subPacket};
+                    subPackets = List.of(subPacket);
                 }
             }
         }
     }
 
     @Nullable
-    private static SubPacket<? extends SubPacketHandler> decodeSubPacket(String modName, String systemName, String eventName, JsonObject eventData) {
+    private static SubPacket<? extends SubPacketHandler<?>> decodeSubPacket(String modName, String systemName, String eventName, JsonObject eventData) {
         switch (modName) {
             case "Minecraft": {
                 switch (systemName) {
@@ -157,7 +158,7 @@ public class NEPyRpcPacket16 extends Packet16 {
         this.reset();
         try (MessageBufferPacker packer = MessagePack.newDefaultBufferPacker()) {
             if (encrypt) {
-                packer.packValue(subPackets[0].pack());
+                packer.packValue(subPackets.getFirst().pack());
             } else {
                 packer.packValue(data);
             }
@@ -171,6 +172,6 @@ public class NEPyRpcPacket16 extends Packet16 {
     @FunctionalInterface
     public interface SubPacketDeserializer {
         @Nullable
-        SubPacket<? extends SubPacketHandler> deserialize(String modName, String systemName, String eventName, JsonObject eventData);
+        SubPacket<? extends SubPacketHandler<?>> deserialize(String modName, String systemName, String eventName, JsonObject eventData);
     }
 }

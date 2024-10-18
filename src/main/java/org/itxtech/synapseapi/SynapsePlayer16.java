@@ -25,8 +25,6 @@ import org.msgpack.value.MapValue;
 import org.msgpack.value.Value;
 import org.msgpack.value.ValueFactory;
 
-import java.lang.reflect.ParameterizedType;
-import java.lang.reflect.Type;
 import java.net.InetSocketAddress;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
@@ -45,7 +43,7 @@ public class SynapsePlayer16 extends SynapsePlayer14 {
 	protected long pingNs;
 	protected long latencyNs;
 
-	private List<ServerSubPacketHandler> subPacketHandlers = new ArrayList<>();
+	private List<ServerSubPacketHandler<?>> subPacketHandlers = new ArrayList<>();
 
 	public SynapsePlayer16(SourceInterface interfaz, SynapseEntry synapseEntry, Long clientID, InetSocketAddress socketAddress) {
 		super(interfaz, synapseEntry, clientID, socketAddress);
@@ -92,7 +90,7 @@ public class SynapsePlayer16 extends SynapsePlayer14 {
 		}
 
 		if (isNetEaseClient() && subPacketHandlers.isEmpty()) {
-			subPacketHandlers.add(new BaseSubPacketHandler(this));
+			subPacketHandlers.add(new ServerboundDefaultSubPacketHandler(this));
 		}
 	}
 
@@ -183,13 +181,10 @@ public class SynapsePlayer16 extends SynapsePlayer14 {
 				if (subPacketHandlers.isEmpty()) {
 					break;
 				}
-				for (SubPacket<SubPacketHandler> subPacket : pyRpcPacket.subPackets) {
+				for (SubPacket<? extends SubPacketHandler<?>> subPacket : pyRpcPacket.subPackets) {
 					try {
-						for (ServerSubPacketHandler subPacketHandler : subPacketHandlers) {
-							// 判断 SubPacket 的 T 类型是否与当前的 subPacketHandler 类型兼容
-							if (isHandlerCompatible(subPacket, subPacketHandler)) {
-								subPacket.handle(subPacketHandler);
-							}
+						for (ServerSubPacketHandler<?> subPacketHandler : subPacketHandlers) {
+							subPacketHandler.dispatch(subPacket);
 						}
 					} catch (Exception e) {
 						getServer().getLogger().error("Unable to handle netease rpc sub packet: " + getName(), e);
@@ -282,30 +277,6 @@ public class SynapsePlayer16 extends SynapsePlayer14 {
 				break;
 		}
 
-	}
-
-
-	// 判断 SubPacket 的泛型参数是否与 subPacketHandler 的类型兼容的方法
-	private boolean isHandlerCompatible(SubPacket<?> subPacket, ServerSubPacketHandler subPacketHandler) {
-		// 获取 SubPacket 类的泛型接口
-		Type[] genericInterfaces = subPacket.getClass().getGenericInterfaces();
-
-		for (Type type : genericInterfaces) {
-			// 检查是否是 ParameterizedType，并且原始类型是 ServerboundSubPacket
-			if (type instanceof ParameterizedType parameterizedType) {
-				Type rawType = parameterizedType.getRawType();
-				// 检查是否是 ServerboundSubPacket 接口
-				if (rawType instanceof Class<?> rawClass && ServerboundSubPacket.class.isAssignableFrom(rawClass)) {
-					// 获取泛型参数类型 T
-					Type actualTypeArgument = parameterizedType.getActualTypeArguments()[0];
-					// 检查 subPacketHandler 是否是该类型的实例
-					if (actualTypeArgument instanceof Class<?> handlerClass) {
-						return handlerClass.isInstance(subPacketHandler);
-					}
-				}
-			}
-		}
-		return false;
 	}
 
 	@Override
@@ -493,7 +464,7 @@ public class SynapsePlayer16 extends SynapsePlayer14 {
 	@Override
 	public void modNotifyToClientEncrypted(String modName, String systemName, String eventName, String data, Function<String, String> encMethod) {
 		NEPyRpcPacket16 pk = new NEPyRpcPacket16();
-		pk.subPackets = new SubPacket[]{new EncryptedPacket(modName, systemName, eventName, data, encMethod)};
+		pk.subPackets = List.of(new EncryptedPacket(modName, systemName, eventName, data, encMethod));
 		pk.encrypt = true;
 		this.dataPacket(pk);
 	}
@@ -518,7 +489,7 @@ public class SynapsePlayer16 extends SynapsePlayer14 {
 	}
 
 	@Override
-	public void addSubPacketHandler(ServerSubPacketHandler handler) {
+	public void addSubPacketHandler(ServerSubPacketHandler<?> handler) {
 		subPacketHandlers.add(handler);
 	}
 

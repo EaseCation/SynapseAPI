@@ -2,22 +2,18 @@ package org.itxtech.synapseapi;
 
 import org.itxtech.synapseapi.event.player.netease.SynapsePlayerNetEaseStoreBuySuccEvent;
 import org.itxtech.synapseapi.network.protocol.mod.AnimationEmotePacket;
-import org.itxtech.synapseapi.network.protocol.mod.ServerSubPacketHandler;
+import org.itxtech.synapseapi.network.protocol.mod.ServerboundDefaultSubPacket;
 import org.itxtech.synapseapi.network.protocol.mod.StoreBuySuccessPacket;
 
-public class BaseSubPacketHandler implements ServerSubPacketHandler {
-    protected final SynapsePlayer player;
-
-    public BaseSubPacketHandler(SynapsePlayer player) {
-        this.player = player;
+public final class ServerboundDefaultSubPacketHandler extends ServerboundAbstractSubPacketHandler<ServerboundDefaultSubPacket> {
+    public ServerboundDefaultSubPacketHandler(SynapsePlayer player) {
+        super(player);
     }
 
-    @Override
     public void handle(StoreBuySuccessPacket packet) {
         new SynapsePlayerNetEaseStoreBuySuccEvent(player).call();
     }
 
-    @Override
     public void handle(AnimationEmotePacket packet) {
         String emote = packet.emoteName();
 

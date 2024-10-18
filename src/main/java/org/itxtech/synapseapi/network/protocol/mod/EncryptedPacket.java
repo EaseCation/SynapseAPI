@@ -1,14 +1,20 @@
 package org.itxtech.synapseapi.network.protocol.mod;
 
+import org.itxtech.synapseapi.ClientboundDefaultSubPacketHandler;
 import org.msgpack.value.Value;
 import org.msgpack.value.ValueFactory;
 
 import java.nio.charset.StandardCharsets;
 import java.util.function.Function;
 
-public record EncryptedPacket(String modName, String systemName, String eventName, String data, Function<String, String> encMethod) implements ClientboundSubPacket<ClientSubPacketHandler> {
+public record EncryptedPacket(String modName, String systemName, String eventName, String data, Function<String, String> encMethod) implements ClientboundSubPacket<ClientboundDefaultSubPacketHandler> {
     @Override
-    public void handle(ClientSubPacketHandler handler) {
+    public Class<ClientboundDefaultSubPacketHandler> getHandlerClass() {
+        return ClientboundDefaultSubPacketHandler.class;
+    }
+
+    @Override
+    public void handle(ClientboundDefaultSubPacketHandler handler) {
         handler.handle(this);
     }
 

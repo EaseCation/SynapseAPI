@@ -1,9 +1,5 @@
 package org.itxtech.synapseapi.network.protocol.mod;
 
-public interface ServerSubPacketHandler extends SubPacketHandler {
-    default void handle(StoreBuySuccessPacket packet) {
-    }
+public interface ServerSubPacketHandler<P extends ServerboundSubPacket<?>> extends SubPacketHandler<P> {
 
-    default void handle(AnimationEmotePacket packet) {
-    }
 }

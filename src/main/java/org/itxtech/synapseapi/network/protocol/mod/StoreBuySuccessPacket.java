@@ -1,8 +1,10 @@
 package org.itxtech.synapseapi.network.protocol.mod;
 
-public record StoreBuySuccessPacket() implements ServerboundSubPacket<ServerSubPacketHandler> {
+import org.itxtech.synapseapi.ServerboundDefaultSubPacketHandler;
+
+public record StoreBuySuccessPacket() implements ServerboundDefaultSubPacket {
     @Override
-    public void handle(ServerSubPacketHandler handler) {
+    public void handle(ServerboundDefaultSubPacketHandler handler) {
         handler.handle(this);
     }
 }
