@@ -16,6 +16,7 @@ import org.itxtech.synapseapi.multiprotocol.utils.item.CreativeInventoryNew;
 
 import javax.annotation.Nullable;
 import java.util.*;
+import java.util.stream.Stream;
 import java.util.zip.Deflater;
 
 import static cn.nukkit.GameVersion.*;
@@ -25,6 +26,7 @@ import static org.itxtech.synapseapi.SynapseSharedConstants.*;
 public class CreativeItemsPalette {
 
     private static final Map<AbstractProtocol, List<Item>[]> palettes = new EnumMap<>(AbstractProtocol.class);
+    private static final List<Item> customItems = new ObjectArrayList<>();
 
     private static final Map<AbstractProtocol, BatchPacket[]> PACKETS = new EnumMap<>(AbstractProtocol.class);
     private static final BatchPacket[] NULL_PACKET = new BatchPacket[2];
@@ -138,6 +140,10 @@ public class CreativeItemsPalette {
         palettes.put(protocol, data);
     }
 
+    public static void registerCustomItem(Item item) {
+        customItems.add(item);
+    }
+
     private static List<Item> load(String file) {
         return load(file, false);
     }
@@ -170,9 +176,17 @@ public class CreativeItemsPalette {
             return Collections.emptyList();
         }
         if (netease && lists.length > 1) {
-            return lists[1];
+            if (customItems.isEmpty()) {
+                return lists[1];
+            } else {
+                return Stream.concat(lists[1].stream(), customItems.stream()).toList();
+            }
         } else {
-            return lists[0];
+            if (customItems.isEmpty()) {
+                return lists[0];
+            } else {
+                return Stream.concat(lists[0].stream(), customItems.stream()).toList();
+            }
         }
     }
 

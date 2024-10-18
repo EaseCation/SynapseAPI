@@ -1,24 +1,16 @@
 package org.itxtech.synapseapi.multiprotocol.utils.item;
 
 import cn.nukkit.block.Block;
-import cn.nukkit.block.BlockID;
 import cn.nukkit.block.BlockSerializer;
-import cn.nukkit.item.Item;
-import cn.nukkit.item.ItemDurable;
-import cn.nukkit.item.ItemID;
-import cn.nukkit.item.ItemSerializer;
+import cn.nukkit.item.*;
 import cn.nukkit.item.ItemSerializer.RuntimeItemSerializer;
-import cn.nukkit.item.Items;
-import cn.nukkit.nbt.tag.CompoundTag;
-import cn.nukkit.nbt.tag.IntTag;
-import cn.nukkit.nbt.tag.ListTag;
-import cn.nukkit.nbt.tag.StringTag;
-import cn.nukkit.nbt.tag.Tag;
+import cn.nukkit.nbt.tag.*;
 import it.unimi.dsi.fastutil.objects.Object2IntMap;
 import it.unimi.dsi.fastutil.objects.Object2IntOpenHashMap;
 import it.unimi.dsi.fastutil.objects.ObjectIntPair;
 import lombok.extern.log4j.Log4j2;
 import org.itxtech.synapseapi.multiprotocol.utils.AdvancedRuntimeItemPalette;
+import org.itxtech.synapseapi.multiprotocol.utils.CreativeItemsPalette;
 
 import javax.annotation.Nullable;
 import java.util.Objects;
@@ -311,8 +303,9 @@ public final class LegacyItemSerializer {
             @Override
             public void registerCustomBlockItem(String fullName, int itemId) {
                 LegacyItemSerializer.registerCustomBlockItem(fullName, itemId);
-
                 AdvancedRuntimeItemPalette.registerCustomItem(fullName, itemId, itemId);
+
+                CreativeItemsPalette.registerCustomItem(Item.get(itemId));
             }
 
             @Override
