@@ -234,12 +234,12 @@ public class SynapsePlayer extends Player {
         for (Player p : new ArrayList<>(this.server.getOnlinePlayers().values())) {
             if (p != this && p.getName() != null && p.getName().equalsIgnoreCase(this.getName())) {
                 if (!p.kick(PlayerKickEvent.Reason.NEW_CONNECTION, "logged in from another location")) {
-                    this.close(this.getLeaveMessage(), "Already connected");
+                    this.close(this.getLeaveMessage(), "disconnectionScreen.loggedinOtherLocation");
                     return;
                 }
             } else if (p.loggedIn && this.getUniqueId().equals(p.getUniqueId())) {
                 if (!p.kick(PlayerKickEvent.Reason.NEW_CONNECTION, "logged in from another location")) {
-                    this.close(this.getLeaveMessage(), "Already connected");
+                    this.close(this.getLeaveMessage(), "disconnectionScreen.loggedinOtherLocation");
                     return;
                 }
             }

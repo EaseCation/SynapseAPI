@@ -33,11 +33,7 @@ public class ItemUpgradeSchema {
             this.remappedMetas = new Object2ObjectOpenHashMap<>();
 
             for (Entry<String, JsonElement> entry : remappedMetas.getAsJsonObject().entrySet()) {
-                Int2ObjectMap<String> metas = this.remappedMetas.get(entry.getKey());
-                if (metas == null) {
-                    metas = new Int2ObjectOpenHashMap<>();
-                    this.remappedMetas.put(entry.getKey(), metas);
-                }
+                Int2ObjectMap<String> metas = this.remappedMetas.computeIfAbsent(entry.getKey(), k -> new Int2ObjectOpenHashMap<>());
 
                 for (Entry<String, JsonElement> pair : entry.getValue().getAsJsonObject().entrySet()) {
                     metas.put(Integer.parseInt(pair.getKey()), pair.getValue().getAsString());

@@ -1180,7 +1180,12 @@ public class SynapsePlayer116 extends SynapsePlayer113 {
 								if (this.isBreakingBlock() && pos.distanceSquared(this) < 100) {
 									this.breakingBlockFace = BlockFace.fromIndex(blockAction.data);
 									block = this.level.getBlock(pos, false);
-									this.level.addParticle(new PunchBlockParticle(pos, block, this.breakingBlockFace));
+									Vector3 blockCenter = pos.blockCenter();
+									this.level.addParticle(new PunchBlockParticle(blockCenter, block, this.breakingBlockFace));
+									level.addLevelEvent(blockCenter, LevelEventPacket.EVENT_PARTICLE_PUNCH_BLOCK_DOWN + breakingBlockFace.getIndex(), block.getFullId());
+
+									int breakTime = Mth.ceil(block.getBreakTime(inventory.getItemInHand(), this) * 20);
+									level.addLevelEvent(pos, LevelEventPacket.EVENT_BLOCK_UPDATE_BREAK, breakTime <= 0 ? 0 : 65535 / breakTime);
 								}
 								break;
 						}
@@ -1699,7 +1704,12 @@ public class SynapsePlayer116 extends SynapsePlayer113 {
 		int tickDiff = currentTick - this.lastUpdate;
 		if (tickDiff > 0) {
 			if (this.serverAuthoritativeBlockBreaking && this.breakingBlockFace != null && this.isBreakingBlock() && this.spawned && this.isAlive()) {
-				this.level.addParticle(new PunchBlockParticle(this.breakingBlock, this.breakingBlock, this.breakingBlockFace));
+				Vector3 blockCenter = breakingBlock.blockCenter();
+				this.level.addParticle(new PunchBlockParticle(blockCenter, this.breakingBlock, this.breakingBlockFace));
+				level.addLevelEvent(blockCenter, LevelEventPacket.EVENT_PARTICLE_PUNCH_BLOCK_DOWN + breakingBlockFace.getIndex(), breakingBlock.getFullId());
+
+				int breakTime = Mth.ceil(breakingBlock.getBreakTime(inventory.getItemInHand(), this) * 20);
+				level.addLevelEvent(breakingBlock, LevelEventPacket.EVENT_BLOCK_UPDATE_BREAK, breakTime <= 0 ? 0 : 65535 / breakTime);
 			}
 
 			this.emotedCurrentTick = false;

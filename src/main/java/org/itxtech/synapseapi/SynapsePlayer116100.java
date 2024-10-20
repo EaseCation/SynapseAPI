@@ -1537,7 +1537,12 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
                             if (this.isBreakingBlock()) {
                                 block = this.level.getBlock(pos, false);
                                 face = BlockFace.fromIndex(playerActionPacket.data);
-                                this.level.addParticle(new PunchBlockParticle(pos, block, face));
+                                Vector3 blockCenter = pos.blockCenter();
+                                this.level.addParticle(new PunchBlockParticle(blockCenter, block, face));
+                                level.addLevelEvent(blockCenter, LevelEventPacket.EVENT_PARTICLE_PUNCH_BLOCK_DOWN + face.getIndex(), block.getFullId());
+
+                                int breakTime = Mth.ceil(block.getBreakTime(inventory.getItemInHand(), this) * 20);
+                                level.addLevelEvent(pos, LevelEventPacket.EVENT_BLOCK_UPDATE_BREAK, breakTime <= 0 ? 0 : 65535 / breakTime);
                             }
                             break;
                         case PlayerActionPacket119.ACTION_START_SWIMMING:
