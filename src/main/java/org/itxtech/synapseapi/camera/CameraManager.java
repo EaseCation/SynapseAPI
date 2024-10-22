@@ -1,5 +1,6 @@
 package org.itxtech.synapseapi.camera;
 
+import org.itxtech.synapseapi.multiprotocol.AbstractProtocol;
 import org.itxtech.synapseapi.multiprotocol.common.camera.CameraPreset;
 
 import javax.annotation.Nullable;
@@ -18,6 +19,7 @@ public class CameraManager {
     private CameraManager() {
         // register builtin cameras
         registerCamera(CameraPreset.FIRST_PERSON_PRESET);
+        registerCamera(CameraPreset.FOLLOW_ORBIT_PRESET, AbstractProtocol.PROTOCOL_121_40);
         registerCamera(CameraPreset.FREE_PRESET);
         registerCamera(CameraPreset.THIRD_PERSON_PRESET);
         registerCamera(CameraPreset.THIRD_PERSON_FRONT_PRESET);
@@ -26,6 +28,10 @@ public class CameraManager {
 
     public boolean registerCamera(CameraPreset camera) {
         return cameras.putIfAbsent(camera.name, camera) == null;
+    }
+
+    public boolean registerCamera(CameraPreset camera, AbstractProtocol protocol) {
+        return false; //TODO: mv
     }
 
     public void rebuildRuntimeId() {

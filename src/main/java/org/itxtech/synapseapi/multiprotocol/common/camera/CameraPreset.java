@@ -15,6 +15,15 @@ public class CameraPreset {
     public static final CameraPreset FIRST_PERSON_PRESET = CameraPreset.builder()
             .name("minecraft:first_person")
             .build();
+    /**
+     * @since 1.21.40
+     */
+    public static final CameraPreset FOLLOW_ORBIT_PRESET = CameraPreset.builder()
+            .name("minecraft:follow_orbit")
+            .viewOffset(new Vector2f(0, 0))
+            .entityOffset(new Vector3f(-0, 0, 0))
+            .radius(10f)
+            .build();
     public static final CameraPreset FREE_PRESET = CameraPreset.builder()
             .name("minecraft:free")
             .x(0f)

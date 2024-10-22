@@ -979,11 +979,7 @@ public class SynapsePlayer116 extends SynapsePlayer113 {
 						pk.eid = getId();
 						pk.action = Action.SWING_ARM;
 						dataPacket(pk);
-
-						AnimatePacket pkBroadcast = new AnimatePacket();
-						pkBroadcast.eid = getId();
-						pkBroadcast.action = Action.SWING_ARM;
-						Server.broadcastPacket(getViewers().values(), pkBroadcast);
+						Server.broadcastPacket(getViewers().values(), pk);
 					}
 				}
 

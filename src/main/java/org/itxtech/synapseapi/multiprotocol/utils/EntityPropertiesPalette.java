@@ -1,5 +1,6 @@
 package org.itxtech.synapseapi.multiprotocol.utils;
 
+import cn.nukkit.entity.EntityFullNames;
 import cn.nukkit.network.protocol.BatchPacket;
 import cn.nukkit.network.protocol.DataPacket;
 import lombok.extern.log4j.Log4j2;
@@ -24,15 +25,12 @@ public final class EntityPropertiesPalette {
 
         EntityPropertiesPaletteInterface palette117 = new EntityPropertiesPaletteBase();
         EntityPropertiesPaletteInterface palette11970 = new EntityPropertiesPaletteBase(
-            new EntityPropertiesTable("minecraft:bee",
+            new EntityPropertiesTable(EntityFullNames.BEE,
                 new EntityPropertyDataBool("minecraft:has_nectar")
             )
         );
-        EntityPropertiesPaletteInterface palette12080 = new EntityPropertiesPaletteBase(
-            new EntityPropertiesTable("minecraft:bee",
-                new EntityPropertyDataBool("minecraft:has_nectar")
-            ),
-            new EntityPropertiesTable("minecraft:armadillo",
+        EntityPropertiesPaletteInterface palette12080 = new EntityPropertiesPaletteBase(palette11970,
+            new EntityPropertiesTable(EntityFullNames.ARMADILLO,
                 new EntityPropertyDataEnum("minecraft:armadillo_state",
                     "unrolled",
                     "rolled_up",
@@ -41,6 +39,15 @@ public final class EntityPropertiesPalette {
                     "rolled_up_unrolling"
                 )
             )
+        );
+        EntityPropertiesPaletteInterface palette12150 = new EntityPropertiesPaletteBase(palette12080,
+                new EntityPropertiesTable(EntityFullNames.CREAKING,
+                        new EntityPropertyDataEnum("minecraft:creaking_state",
+                                "neutral",
+                                "hostile_observed",
+                                "hostile_unobserved"
+                        )
+                )
         );
 
         register(AbstractProtocol.PROTOCOL_117, palette117, null);
@@ -75,6 +82,7 @@ public final class EntityPropertiesPalette {
         register(AbstractProtocol.PROTOCOL_121_20, palette12080, null);
         register(AbstractProtocol.PROTOCOL_121_30, palette12080, null);
         register(AbstractProtocol.PROTOCOL_121_40, palette12080, null);
+        register(AbstractProtocol.PROTOCOL_121_50, palette12150, null);
 
         cachePackets();
     }

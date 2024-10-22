@@ -4,10 +4,7 @@ import org.itxtech.synapseapi.multiprotocol.utils.entityproperty.data.EntityProp
 import org.itxtech.synapseapi.multiprotocol.utils.entityproperty.data.EntityPropertyData;
 
 import javax.annotation.Nullable;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.Set;
+import java.util.*;
 
 public interface EntityPropertiesPaletteInterface {
     void registerProperties(EntityPropertiesTable properties);
@@ -15,6 +12,8 @@ public interface EntityPropertiesPaletteInterface {
     void rebuildNetworkCache();
 
     Set<String> getAllEntityIdentifiers();
+
+    Collection<EntityPropertiesTable> getEntityPropertiesTables();
 
     List<String> getAllPropertyNames(String entityIdentifier);
 

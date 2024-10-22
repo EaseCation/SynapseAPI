@@ -282,6 +282,9 @@ public final class LegacyBlockSerializer {
         registerDeserializer(WAXED_WEATHERED_COPPER_GRATE, LegacyBlockSerializer::deserializeSimple);
         registerDeserializer(WAXED_OXIDIZED_COPPER_GRATE, LegacyBlockSerializer::deserializeSimple);
         registerDeserializer(HEAVY_CORE, LegacyBlockSerializer::deserializeSimple);
+        registerDeserializer(PALE_OAK_FENCE, LegacyBlockSerializer::deserializeSimple);
+        registerDeserializer(PALE_OAK_PLANKS, LegacyBlockSerializer::deserializeSimple);
+        registerDeserializer(PALE_MOSS_BLOCK, LegacyBlockSerializer::deserializeSimple);
 
         registerDeserializer(STONE, states -> {
             String type = states.getString(STONE_TYPE);
@@ -462,6 +465,7 @@ public final class LegacyBlockSerializer {
         registerDeserializer(AZALEA_LEAVES_FLOWERED, LegacyBlockSerializer::deserializeLeaves);
         registerDeserializer(MANGROVE_LEAVES, LegacyBlockSerializer::deserializeLeaves);
         registerDeserializer(CHERRY_LEAVES, LegacyBlockSerializer::deserializeLeaves);
+        registerDeserializer(PALE_OAK_LEAVES, LegacyBlockSerializer::deserializeLeaves);
 
 //        registerDeserializer(OAK_LEAVES, LegacyBlockSerializer::deserializeLeaves);
         registerDeserializer(SPRUCE_LEAVES, LegacyBlockSerializer::deserializeLeaves);
@@ -821,6 +825,8 @@ public final class LegacyBlockSerializer {
         registerDeserializer(POLISHED_TUFF_DOUBLE_SLAB, LegacyBlockSerializer::deserializeSlab);
         registerDeserializer(TUFF_BRICK_SLAB, LegacyBlockSerializer::deserializeSlab);
         registerDeserializer(TUFF_BRICK_DOUBLE_SLAB, LegacyBlockSerializer::deserializeSlab);
+        registerDeserializer(PALE_OAK_SLAB, LegacyBlockSerializer::deserializeSlab);
+        registerDeserializer(PALE_OAK_DOUBLE_SLAB, LegacyBlockSerializer::deserializeSlab);
 
 //        registerDeserializer(OAK_SLAB, LegacyBlockSerializer::deserializeSlab);
         registerDeserializer(SPRUCE_SLAB, LegacyBlockSerializer::deserializeSlab);
@@ -986,6 +992,7 @@ public final class LegacyBlockSerializer {
         registerDeserializer(TUFF_STAIRS, LegacyBlockSerializer::deserializeStairs);
         registerDeserializer(POLISHED_TUFF_STAIRS, LegacyBlockSerializer::deserializeStairs);
         registerDeserializer(TUFF_BRICK_STAIRS, LegacyBlockSerializer::deserializeStairs);
+        registerDeserializer(PALE_OAK_STAIRS, LegacyBlockSerializer::deserializeStairs);
 
         registerDeserializer(CHEST, LegacyBlockSerializer::deserializeFacingDirection);
         registerDeserializer(TRAPPED_CHEST, LegacyBlockSerializer::deserializeFacingDirection);
@@ -1022,6 +1029,7 @@ public final class LegacyBlockSerializer {
         registerDeserializer(MANGROVE_STANDING_SIGN, LegacyBlockSerializer::deserializeStandingSign);
         registerDeserializer(BAMBOO_STANDING_SIGN, LegacyBlockSerializer::deserializeStandingSign);
         registerDeserializer(CHERRY_STANDING_SIGN, LegacyBlockSerializer::deserializeStandingSign);
+        registerDeserializer(PALE_OAK_STANDING_SIGN, LegacyBlockSerializer::deserializeStandingSign);
         registerDeserializer(STANDING_BANNER, LegacyBlockSerializer::deserializeStandingSign);
 
         registerDeserializer(WALL_SIGN, LegacyBlockSerializer::deserializeFacingDirection);
@@ -1035,6 +1043,7 @@ public final class LegacyBlockSerializer {
         registerDeserializer(MANGROVE_WALL_SIGN, LegacyBlockSerializer::deserializeFacingDirection);
         registerDeserializer(BAMBOO_WALL_SIGN, LegacyBlockSerializer::deserializeFacingDirection);
         registerDeserializer(CHERRY_WALL_SIGN, LegacyBlockSerializer::deserializeFacingDirection);
+        registerDeserializer(PALE_OAK_WALL_SIGN, LegacyBlockSerializer::deserializeFacingDirection);
         registerDeserializer(WALL_BANNER, LegacyBlockSerializer::deserializeFacingDirection);
 
         registerDeserializer(OAK_HANGING_SIGN, LegacyBlockSerializer::deserializeHangingSign);
@@ -1048,6 +1057,7 @@ public final class LegacyBlockSerializer {
         registerDeserializer(MANGROVE_HANGING_SIGN, LegacyBlockSerializer::deserializeHangingSign);
         registerDeserializer(BAMBOO_HANGING_SIGN, LegacyBlockSerializer::deserializeHangingSign);
         registerDeserializer(CHERRY_HANGING_SIGN, LegacyBlockSerializer::deserializeHangingSign);
+        registerDeserializer(PALE_OAK_HANGING_SIGN, LegacyBlockSerializer::deserializeHangingSign);
 
         registerDeserializer(BLOCK_IRON_DOOR, LegacyBlockSerializer::deserializeDoor);
         registerDeserializer(BLOCK_WOODEN_DOOR, LegacyBlockSerializer::deserializeDoor);
@@ -1069,6 +1079,7 @@ public final class LegacyBlockSerializer {
         registerDeserializer(WAXED_EXPOSED_COPPER_DOOR, LegacyBlockSerializer::deserializeDoor);
         registerDeserializer(WAXED_WEATHERED_COPPER_DOOR, LegacyBlockSerializer::deserializeDoor);
         registerDeserializer(WAXED_OXIDIZED_COPPER_DOOR, LegacyBlockSerializer::deserializeDoor);
+        registerDeserializer(PALE_OAK_DOOR, LegacyBlockSerializer::deserializeDoor);
 
         registerDeserializer(LADDER, LegacyBlockSerializer::deserializeFacingDirection);
 
@@ -1120,6 +1131,7 @@ public final class LegacyBlockSerializer {
         registerDeserializer(MANGROVE_PRESSURE_PLATE, LegacyBlockSerializer::deserializeRedstoneSignal);
         registerDeserializer(BAMBOO_PRESSURE_PLATE, LegacyBlockSerializer::deserializeRedstoneSignal);
         registerDeserializer(CHERRY_PRESSURE_PLATE, LegacyBlockSerializer::deserializeRedstoneSignal);
+        registerDeserializer(PALE_OAK_PRESSURE_PLATE, LegacyBlockSerializer::deserializeRedstoneSignal);
 
         registerDeserializer(STONE_BUTTON, LegacyBlockSerializer::deserializeButton);
         registerDeserializer(WOODEN_BUTTON, LegacyBlockSerializer::deserializeButton);
@@ -1134,6 +1146,7 @@ public final class LegacyBlockSerializer {
         registerDeserializer(MANGROVE_BUTTON, LegacyBlockSerializer::deserializeButton);
         registerDeserializer(BAMBOO_BUTTON, LegacyBlockSerializer::deserializeButton);
         registerDeserializer(CHERRY_BUTTON, LegacyBlockSerializer::deserializeButton);
+        registerDeserializer(PALE_OAK_BUTTON, LegacyBlockSerializer::deserializeButton);
 
         registerDeserializer(SNOW_LAYER, states -> {
             int meta = states.getInt(HEIGHT) & 0b111;
@@ -1198,6 +1211,7 @@ public final class LegacyBlockSerializer {
         registerDeserializer(WAXED_EXPOSED_COPPER_TRAPDOOR, LegacyBlockSerializer::deserializeTrapdoor);
         registerDeserializer(WAXED_WEATHERED_COPPER_TRAPDOOR, LegacyBlockSerializer::deserializeTrapdoor);
         registerDeserializer(WAXED_OXIDIZED_COPPER_TRAPDOOR, LegacyBlockSerializer::deserializeTrapdoor);
+        registerDeserializer(PALE_OAK_TRAPDOOR, LegacyBlockSerializer::deserializeTrapdoor);
 
         registerDeserializer(MONSTER_EGG, states -> {
             String type = states.getString(MONSTER_EGG_STONE_TYPE);
@@ -1264,6 +1278,7 @@ public final class LegacyBlockSerializer {
         registerDeserializer(MANGROVE_FENCE_GATE, LegacyBlockSerializer::deserializeFenceGate);
         registerDeserializer(BAMBOO_FENCE_GATE, LegacyBlockSerializer::deserializeFenceGate);
         registerDeserializer(CHERRY_FENCE_GATE, LegacyBlockSerializer::deserializeFenceGate);
+        registerDeserializer(PALE_OAK_FENCE_GATE, LegacyBlockSerializer::deserializeFenceGate);
 
         registerDeserializer(BLOCK_NETHER_WART, states -> states.getInt(AGE) & 0b11);
 
@@ -2117,6 +2132,24 @@ public final class LegacyBlockSerializer {
             int meta = states.getInt(TRIAL_SPAWNER_STATE) & 0b111;
             if (states.getBoolean(OMINOUS)) {
                 meta |= 0b1000;
+            }
+            return meta;
+        });
+
+        registerDeserializer(PALE_OAK_LOG, LegacyBlockSerializer::deserializePillarAxis);
+        registerDeserializer(STRIPPED_PALE_OAK_LOG, LegacyBlockSerializer::deserializePillarAxis);
+
+        registerDeserializer(PALE_OAK_WOOD, LegacyBlockSerializer::deserializePillarAxis);
+        registerDeserializer(STRIPPED_PALE_OAK_WOOD, LegacyBlockSerializer::deserializePillarAxis);
+
+        registerDeserializer(PALE_OAK_SAPLING, LegacyBlockSerializer::deserializeSapling);
+
+        registerDeserializer(PALE_HANGING_MOSS, states -> states.getBoolean(TIP) ? 0b1 : 0);
+
+        registerDeserializer(CREAKING_HEART, states -> {
+            int meta = deserializePillarAxis(states);
+            if (states.getBoolean(ACTIVE)) {
+                meta |= 0b100;
             }
             return meta;
         });

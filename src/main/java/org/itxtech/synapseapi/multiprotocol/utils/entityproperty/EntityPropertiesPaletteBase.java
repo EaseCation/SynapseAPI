@@ -8,6 +8,8 @@ import org.itxtech.synapseapi.multiprotocol.utils.entityproperty.data.EntityProp
 
 import java.io.IOException;
 import java.util.*;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 public class EntityPropertiesPaletteBase implements EntityPropertiesPaletteInterface {
 
@@ -28,6 +30,12 @@ public class EntityPropertiesPaletteBase implements EntityPropertiesPaletteInter
         }
 
         this.rebuildNetworkCache();
+    }
+
+    public EntityPropertiesPaletteBase(EntityPropertiesPaletteInterface copy, EntityPropertiesTable... palette) {
+        this(Stream.of(copy.getEntityPropertiesTables(), Arrays.asList(palette))
+                .flatMap(Collection::stream)
+                .collect(Collectors.toList()));
     }
 
     @Override
@@ -51,6 +59,11 @@ public class EntityPropertiesPaletteBase implements EntityPropertiesPaletteInter
     @Override
     public Set<String> getAllEntityIdentifiers() {
         return Collections.unmodifiableSet(palette.keySet());
+    }
+
+    @Override
+    public Collection<EntityPropertiesTable> getEntityPropertiesTables() {
+        return palette.values();
     }
 
     @Override

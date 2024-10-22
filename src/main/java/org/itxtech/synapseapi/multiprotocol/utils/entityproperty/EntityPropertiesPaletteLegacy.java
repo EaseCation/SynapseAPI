@@ -28,6 +28,11 @@ public class EntityPropertiesPaletteLegacy implements EntityPropertiesPaletteInt
     }
 
     @Override
+    public Collection<EntityPropertiesTable> getEntityPropertiesTables() {
+        return List.of();
+    }
+
+    @Override
     public List<String> getAllPropertyNames(String entityIdentifier) {
         return List.of();
     }

@@ -229,6 +229,22 @@ public final class BlockStates {
             ORIENTATION_SOUTH_UP));
     public static final BooleanBlockState OUTPUT_LIT_BIT = register(new BooleanBlockState(BlockStateNames.OUTPUT_LIT_BIT));
     public static final BooleanBlockState OUTPUT_SUBTRACT_BIT = register(new BooleanBlockState(BlockStateNames.OUTPUT_SUBTRACT_BIT));
+    public static final StringBlockState PALE_MOSS_CARPET_SIDE_EAST = register(new StringBlockState(BlockStateNames.PALE_MOSS_CARPET_SIDE_EAST,
+            PALE_MOSS_CARPET_SIDE_EAST_NONE,
+            PALE_MOSS_CARPET_SIDE_EAST_SHORT,
+            PALE_MOSS_CARPET_SIDE_EAST_TALL));
+    public static final StringBlockState PALE_MOSS_CARPET_SIDE_NORTH = register(new StringBlockState(BlockStateNames.PALE_MOSS_CARPET_SIDE_NORTH,
+            PALE_MOSS_CARPET_SIDE_NORTH_NONE,
+            PALE_MOSS_CARPET_SIDE_NORTH_SHORT,
+            PALE_MOSS_CARPET_SIDE_NORTH_TALL));
+    public static final StringBlockState PALE_MOSS_CARPET_SIDE_SOUTH = register(new StringBlockState(BlockStateNames.PALE_MOSS_CARPET_SIDE_SOUTH,
+            PALE_MOSS_CARPET_SIDE_SOUTH_NONE,
+            PALE_MOSS_CARPET_SIDE_SOUTH_SHORT,
+            PALE_MOSS_CARPET_SIDE_SOUTH_TALL));
+    public static final StringBlockState PALE_MOSS_CARPET_SIDE_WEST = register(new StringBlockState(BlockStateNames.PALE_MOSS_CARPET_SIDE_WEST,
+            PALE_MOSS_CARPET_SIDE_WEST_NONE,
+            PALE_MOSS_CARPET_SIDE_WEST_SHORT,
+            PALE_MOSS_CARPET_SIDE_WEST_TALL));
     public static final BooleanBlockState PERSISTENT_BIT = register(new BooleanBlockState(BlockStateNames.PERSISTENT_BIT));
     public static final StringBlockState PILLAR_AXIS = register(new StringBlockState(BlockStateNames.PILLAR_AXIS,
             PILLAR_AXIS_Y,
@@ -339,6 +355,7 @@ public final class BlockStates {
             TALL_GRASS_TYPE_TALL,
             TALL_GRASS_TYPE_FERN,
             TALL_GRASS_TYPE_SNOW));
+    public static final BooleanBlockState TIP = register(new BooleanBlockState(BlockStateNames.TIP));
     public static final BooleanBlockState TOGGLE_BIT = register(new BooleanBlockState(BlockStateNames.TOGGLE_BIT));
     public static final BooleanBlockState TOP_SLOT_BIT = register(new BooleanBlockState(BlockStateNames.TOP_SLOT_BIT));
     public static final StringBlockState TORCH_FACING_DIRECTION = register(new StringBlockState(BlockStateNames.TORCH_FACING_DIRECTION,

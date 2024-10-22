@@ -144,6 +144,7 @@ import org.itxtech.synapseapi.multiprotocol.protocol12140.protocol.CameraInstruc
 import org.itxtech.synapseapi.multiprotocol.protocol12140.protocol.CameraPresetsPacket12140;
 import org.itxtech.synapseapi.multiprotocol.protocol12140.protocol.MovementEffectPacket12140;
 import org.itxtech.synapseapi.multiprotocol.protocol12140.protocol.ResourcePacksInfoPacket12140;
+import org.itxtech.synapseapi.multiprotocol.protocol12150.protocol.ResourcePacksInfoPacket12150;
 import org.itxtech.synapseapi.multiprotocol.protocol14.protocol.PlayerActionPacket14;
 import org.itxtech.synapseapi.multiprotocol.protocol16.protocol.ResourcePackClientResponsePacket16;
 import org.itxtech.synapseapi.multiprotocol.utils.EntityPropertiesPalette;
@@ -2420,6 +2421,15 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
 
     @Override
     protected DataPacket generateResourcePackInfoPacket() {
+        if (getProtocol() >= AbstractProtocol.PROTOCOL_121_50.getProtocolStart()) {
+            ResourcePacksInfoPacket12150 resourcePacket = new ResourcePacksInfoPacket12150();
+            resourcePacket.resourcePackEntries = resourcePacks.values().toArray(new ResourcePack[0]);
+            if (isNetEaseClient()) {
+                resourcePacket.resourcePackEntries = ArrayUtils.addAll(resourcePacket.resourcePackEntries, behaviourPacks.values().toArray(new ResourcePack[0]));
+            }
+            resourcePacket.mustAccept = forceResources;
+            return resourcePacket;
+        }
         if (getProtocol() >= AbstractProtocol.PROTOCOL_121_40.getProtocolStart()) {
             ResourcePacksInfoPacket12140 resourcePacket = new ResourcePacksInfoPacket12140();
             resourcePacket.resourcePackEntries = resourcePacks.values().toArray(new ResourcePack[0]);

@@ -87,6 +87,10 @@ public interface BlockStateNames {
     String ORIENTATION = "orientation";
     String OUTPUT_LIT_BIT = "output_lit_bit";
     String OUTPUT_SUBTRACT_BIT = "output_subtract_bit";
+    String PALE_MOSS_CARPET_SIDE_EAST = "pale_moss_carpet_side_east";
+    String PALE_MOSS_CARPET_SIDE_NORTH = "pale_moss_carpet_side_north";
+    String PALE_MOSS_CARPET_SIDE_SOUTH = "pale_moss_carpet_side_south";
+    String PALE_MOSS_CARPET_SIDE_WEST = "pale_moss_carpet_side_west";
     String PERSISTENT_BIT = "persistent_bit";
     String PILLAR_AXIS = "pillar_axis";
     String PORTAL_AXIS = "portal_axis";
@@ -118,6 +122,7 @@ public interface BlockStateNames {
     String STRUCTURE_VOID_TYPE = "structure_void_type";
     String SUSPENDED_BIT = "suspended_bit";
     String TALL_GRASS_TYPE = "tall_grass_type";
+    String TIP = "tip";
     String TOGGLE_BIT = "toggle_bit";
     String TOP_SLOT_BIT = "top_slot_bit";
     String TORCH_FACING_DIRECTION = "torch_facing_direction";

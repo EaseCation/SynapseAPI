@@ -159,6 +159,22 @@ public interface BlockStateStringValues {
     String ORIENTATION_UP_WEST = "up_west";
     String ORIENTATION_WEST_UP = "west_up";
 
+    String PALE_MOSS_CARPET_SIDE_EAST_NONE = "none";
+    String PALE_MOSS_CARPET_SIDE_EAST_SHORT = "short";
+    String PALE_MOSS_CARPET_SIDE_EAST_TALL = "tall";
+
+    String PALE_MOSS_CARPET_SIDE_NORTH_NONE = "none";
+    String PALE_MOSS_CARPET_SIDE_NORTH_SHORT = "short";
+    String PALE_MOSS_CARPET_SIDE_NORTH_TALL = "tall";
+
+    String PALE_MOSS_CARPET_SIDE_SOUTH_NONE = "none";
+    String PALE_MOSS_CARPET_SIDE_SOUTH_SHORT = "short";
+    String PALE_MOSS_CARPET_SIDE_SOUTH_TALL = "tall";
+
+    String PALE_MOSS_CARPET_SIDE_WEST_NONE = "none";
+    String PALE_MOSS_CARPET_SIDE_WEST_SHORT = "short";
+    String PALE_MOSS_CARPET_SIDE_WEST_TALL = "tall";
+
     String PILLAR_AXIS_X = "x";
     String PILLAR_AXIS_Y = "y";
     String PILLAR_AXIS_Z = "z";

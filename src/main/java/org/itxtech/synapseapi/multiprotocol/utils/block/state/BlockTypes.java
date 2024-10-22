@@ -2468,4 +2468,100 @@ public class BlockTypes {
             return REGISTRY;
         }
     }
+
+    public static class V1_21_50 extends V1_21_40 {
+        private static final BlockRegistry REGISTRY = new BlockRegistry((1 << 24) | (21 << 16) | (40 << 8) | 1, V1_21_40.REGISTRY);
+
+        public static final BlockLegacy CREAKING_HEART = REGISTRY.registerBlock("minecraft:creaking_heart", BlockID.CREAKING_HEART)
+                .addState(BlockStates.PILLAR_AXIS)
+                .addState(BlockStates.ACTIVE);
+
+        public static final BlockLegacy PALE_HANGING_MOSS = REGISTRY.registerBlock("minecraft:pale_hanging_moss", BlockID.PALE_HANGING_MOSS)
+                .addState(BlockStates.TIP);
+
+        public static final BlockLegacy PALE_MOSS_BLOCK = REGISTRY.registerBlock("minecraft:pale_moss_block", BlockID.PALE_MOSS_BLOCK);
+
+        public static final BlockLegacy PALE_MOSS_CARPET = REGISTRY.registerBlock("minecraft:pale_moss_carpet", BlockID.PALE_MOSS_CARPET)
+                .addState(BlockStates.UPPER_BLOCK_BIT)
+                .addState(BlockStates.PALE_MOSS_CARPET_SIDE_NORTH)
+                .addState(BlockStates.PALE_MOSS_CARPET_SIDE_EAST)
+                .addState(BlockStates.PALE_MOSS_CARPET_SIDE_SOUTH)
+                .addState(BlockStates.PALE_MOSS_CARPET_SIDE_WEST);
+
+        public static final BlockLegacy PALE_OAK_BUTTON = REGISTRY.registerBlock("minecraft:pale_oak_button", BlockID.PALE_OAK_BUTTON)
+                .addState(BlockStates.FACING_DIRECTION)
+                .addState(BlockStates.BUTTON_PRESSED_BIT);
+
+        public static final BlockLegacy PALE_OAK_DOOR = REGISTRY.registerBlock("minecraft:pale_oak_door", BlockID.PALE_OAK_DOOR)
+                .addState(BlockStates.DIRECTION)
+                .addState(BlockStates.OPEN_BIT)
+                .addState(BlockStates.UPPER_BLOCK_BIT)
+                .addState(BlockStates.DOOR_HINGE_BIT);
+
+        public static final BlockLegacy PALE_OAK_DOUBLE_SLAB = REGISTRY.registerBlock("minecraft:pale_oak_double_slab", BlockID.PALE_OAK_DOUBLE_SLAB)
+                .addState(BlockStates.MINECRAFT_VERTICAL_HALF);
+
+        public static final BlockLegacy PALE_OAK_FENCE = REGISTRY.registerBlock("minecraft:pale_oak_fence", BlockID.PALE_OAK_FENCE);
+
+        public static final BlockLegacy PALE_OAK_FENCE_GATE = REGISTRY.registerBlock("minecraft:pale_oak_fence_gate", BlockID.PALE_OAK_FENCE_GATE)
+                .addState(BlockStates.DIRECTION)
+                .addState(BlockStates.OPEN_BIT)
+                .addState(BlockStates.IN_WALL_BIT);
+
+        public static final BlockLegacy PALE_OAK_HANGING_SIGN = REGISTRY.registerBlock("minecraft:pale_oak_hanging_sign", BlockID.PALE_OAK_HANGING_SIGN)
+                .addState(BlockStates.FACING_DIRECTION)
+                .addState(BlockStates.GROUND_SIGN_DIRECTION)
+                .addState(BlockStates.HANGING)
+                .addState(BlockStates.ATTACHED_BIT);
+
+        public static final BlockLegacy PALE_OAK_LEAVES = REGISTRY.registerBlock("minecraft:pale_oak_leaves", BlockID.PALE_OAK_LEAVES)
+                .addState(BlockStates.UPDATE_BIT)
+                .addState(BlockStates.PERSISTENT_BIT);
+
+        public static final BlockLegacy PALE_OAK_LOG = REGISTRY.registerBlock("minecraft:pale_oak_log", BlockID.PALE_OAK_LOG)
+                .addState(BlockStates.PILLAR_AXIS);
+
+        public static final BlockLegacy PALE_OAK_PLANKS = REGISTRY.registerBlock("minecraft:pale_oak_planks", BlockID.PALE_OAK_PLANKS);
+
+        public static final BlockLegacy PALE_OAK_PRESSURE_PLATE = REGISTRY.registerBlock("minecraft:pale_oak_pressure_plate", BlockID.PALE_OAK_PRESSURE_PLATE)
+                .addState(BlockStates.REDSTONE_SIGNAL);
+
+        public static final BlockLegacy PALE_OAK_SAPLING = REGISTRY.registerBlock("minecraft:pale_oak_sapling", BlockID.PALE_OAK_SAPLING)
+                .addState(BlockStates.AGE_BIT);
+
+        public static final BlockLegacy PALE_OAK_SLAB = REGISTRY.registerBlock("minecraft:pale_oak_slab", BlockID.PALE_OAK_SLAB)
+                .addState(BlockStates.MINECRAFT_VERTICAL_HALF);
+
+        public static final BlockLegacy PALE_OAK_STAIRS = REGISTRY.registerBlock("minecraft:pale_oak_stairs", BlockID.PALE_OAK_STAIRS)
+                .addState(BlockStates.WEIRDO_DIRECTION)
+                .addState(BlockStates.UPSIDE_DOWN_BIT);
+
+        public static final BlockLegacy PALE_OAK_STANDING_SIGN = REGISTRY.registerBlock("minecraft:pale_oak_standing_sign", BlockID.PALE_OAK_STANDING_SIGN)
+                .addState(BlockStates.GROUND_SIGN_DIRECTION);
+
+        public static final BlockLegacy PALE_OAK_TRAPDOOR = REGISTRY.registerBlock("minecraft:pale_oak_trapdoor", BlockID.PALE_OAK_TRAPDOOR)
+                .addState(BlockStates.DIRECTION)
+                .addState(BlockStates.UPSIDE_DOWN_BIT)
+                .addState(BlockStates.OPEN_BIT);
+
+        public static final BlockLegacy PALE_OAK_WALL_SIGN = REGISTRY.registerBlock("minecraft:pale_oak_wall_sign", BlockID.PALE_OAK_WALL_SIGN)
+                .addState(BlockStates.FACING_DIRECTION);
+
+        public static final BlockLegacy PALE_OAK_WOOD = REGISTRY.registerBlock("minecraft:pale_oak_wood", BlockID.PALE_OAK_WOOD)
+                .addState(BlockStates.PILLAR_AXIS);
+
+        public static final BlockLegacy STRIPPED_PALE_OAK_LOG = REGISTRY.registerBlock("minecraft:stripped_pale_oak_log", BlockID.STRIPPED_PALE_OAK_LOG)
+                .addState(BlockStates.PILLAR_AXIS);
+
+        public static final BlockLegacy STRIPPED_PALE_OAK_WOOD = REGISTRY.registerBlock("minecraft:stripped_pale_oak_wood", BlockID.STRIPPED_PALE_OAK_WOOD)
+                .addState(BlockStates.PILLAR_AXIS);
+
+        static {
+            REGISTRY.createBlockPermutations();
+        }
+
+        public static BlockRegistry getBlockRegistry() {
+            return REGISTRY;
+        }
+    }
 }

@@ -114,6 +114,7 @@ import org.itxtech.synapseapi.multiprotocol.protocol121.protocol.TextPacket121;
 import org.itxtech.synapseapi.multiprotocol.protocol12120.protocol.*;
 import org.itxtech.synapseapi.multiprotocol.protocol12130.protocol.*;
 import org.itxtech.synapseapi.multiprotocol.protocol12140.protocol.*;
+import org.itxtech.synapseapi.multiprotocol.protocol12150.protocol.ResourcePacksInfoPacket12150;
 import org.itxtech.synapseapi.multiprotocol.protocol15.protocol.AddEntityPacket15;
 import org.itxtech.synapseapi.multiprotocol.protocol15.protocol.ClientboundMapItemDataPacket15;
 import org.itxtech.synapseapi.multiprotocol.protocol15.protocol.MoveEntityAbsolutePacket15;
@@ -440,6 +441,8 @@ public class PacketRegister {
         registerPacket(AbstractProtocol.PROTOCOL_121_40, ProtocolInfo.CRAFTING_DATA_PACKET, CraftingDataPacket12140.class);
         registerPacket(AbstractProtocol.PROTOCOL_121_40, ProtocolInfo.INVENTORY_CONTENT_PACKET, InventoryContentPacket12140.class);
         registerPacket(AbstractProtocol.PROTOCOL_121_40, ProtocolInfo.INVENTORY_SLOT_PACKET, InventorySlotPacket12140.class);
+
+        registerPacket(AbstractProtocol.PROTOCOL_121_50, ProtocolInfo.RESOURCE_PACKS_INFO_PACKET, ResourcePacksInfoPacket12150.class);
 
         checkNeteaseSpecialExtend();
     }

@@ -54,6 +54,7 @@ public final class AvailableEntityIdentifiersPalette {
             CompoundTag data12080 = NBTIO.read(ByteStreams.toByteArray(SynapseAPI.getInstance().getResource("entity_identifiers_12080.nbt")), ByteOrder.LITTLE_ENDIAN, true);
             CompoundTag data121 = NBTIO.read(ByteStreams.toByteArray(SynapseAPI.getInstance().getResource("entity_identifiers_121.nbt")), ByteOrder.LITTLE_ENDIAN, true);
             CompoundTag data12120 = NBTIO.read(ByteStreams.toByteArray(SynapseAPI.getInstance().getResource("entity_identifiers_12120.nbt")), ByteOrder.LITTLE_ENDIAN, true);
+            CompoundTag data12150 = NBTIO.read(ByteStreams.toByteArray(SynapseAPI.getInstance().getResource("entity_identifiers_12150.nbt")), ByteOrder.LITTLE_ENDIAN, true);
 
             palettes.put(AbstractProtocol.PROTOCOL_18, data18);
             palettes.put(AbstractProtocol.PROTOCOL_19, data19);
@@ -102,6 +103,7 @@ public final class AvailableEntityIdentifiersPalette {
             palettes.put(AbstractProtocol.PROTOCOL_121_20, data12120);
             palettes.put(AbstractProtocol.PROTOCOL_121_30, data12120);
             palettes.put(AbstractProtocol.PROTOCOL_121_40, data12120);
+            palettes.put(AbstractProtocol.PROTOCOL_121_50, data12150);
         } catch (NullPointerException | IOException e) {
             throw new AssertionError("Unable to load entity_identifiers.dat");
         }
