@@ -911,7 +911,7 @@ public class SynapsePlayer116 extends SynapsePlayer113 {
 				}
 				if ((inputFlags & (1L << PlayerAuthInputFlags.START_FLYING)) != 0 && !getAdventureSettings().get(Type.FLYING)) {
 					if (!server.getAllowFlight() && !getAdventureSettings().get(Type.ALLOW_FLIGHT)) {
-						kick(PlayerKickEvent.Reason.FLYING_DISABLED, "Flying is not enabled on this server");
+						kick(PlayerKickEvent.Reason.FLYING_DISABLED, "Flying is not enabled on this server", false);
 						break;
 					}
 

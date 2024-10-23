@@ -9,7 +9,7 @@ public class PlayerLogoutPacket extends SynapseDataPacket {
 
     public static final int NETWORK_ID = SynapseInfo.PLAYER_LOGOUT_PACKET;
 
-    public UUID uuid;
+    public UUID sessionId;
     public String reason;
 
     @Override
@@ -20,13 +20,13 @@ public class PlayerLogoutPacket extends SynapseDataPacket {
     @Override
     public void encode() {
         this.reset();
-        this.putUUID(this.uuid);
+        this.putUUID(sessionId);
         this.putString(this.reason);
     }
 
     @Override
     public void decode() {
-        this.uuid = this.getUUID();
+        this.sessionId = getUUID();
         this.reason = this.getString();
     }
 }

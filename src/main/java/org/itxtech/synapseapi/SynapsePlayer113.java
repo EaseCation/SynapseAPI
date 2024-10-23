@@ -722,7 +722,7 @@ public class SynapsePlayer113 extends SynapsePlayer112 {
 				}
 
 				if (targetEntity instanceof EntityItem || targetEntity instanceof EntityArrow || targetEntity instanceof EntityXPOrb) {
-					this.kick(PlayerKickEvent.Reason.INVALID_PVE, "Attempting to interact with an invalid entity");
+					this.kick(PlayerKickEvent.Reason.INVALID_PVE, "Attempting to interact with an invalid entity", false);
 					log.warn(this.getServer().getLanguage().translate("nukkit.player.invalidEntity", this.getName()));
 					break;
 				}

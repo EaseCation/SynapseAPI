@@ -19,11 +19,11 @@ public class PlayerLoginPacket extends SynapseDataPacket {
 
     public int protocol;
     public UUID uuid;
+    public UUID sessionId;
     public String address;
     public int port;
     public boolean isFirstTime;
     public byte[] cachedLoginPacket;
-
     public JsonObject extra = new JsonObject();
 
     public DataPacket decodedLoginPacket;
@@ -38,6 +38,7 @@ public class PlayerLoginPacket extends SynapseDataPacket {
         this.reset();
         this.putInt(this.protocol);
         this.putUUID(this.uuid);
+        putUUID(sessionId);
         this.putString(this.address);
         this.putShort(this.port);
         this.putBoolean(this.isFirstTime);
@@ -50,6 +51,7 @@ public class PlayerLoginPacket extends SynapseDataPacket {
     public void decode() {
         this.protocol = this.getInt();
         this.uuid = this.getUUID();
+        sessionId = getUUID();
         this.address = this.getString();
         this.port = this.getShort() & 0xffff;
         this.isFirstTime = this.getBoolean();

@@ -4,14 +4,13 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 /**
  * Created by boybook on 16/6/25.
  */
 public class ClientData {
 
-    public Map<String, Entry> clientList = new HashMap<>();
+    public final Map<String, Entry> clientList = new HashMap<>();
 
     public String getHashByDescription(String description) {
         return this.clientList.entrySet().stream()
@@ -29,11 +28,19 @@ public class ClientData {
     }
 
     public static class Entry {
-        private String ip;
-        private int port;
-        private int playerCount;
-        private int maxPlayers;
-        private String description;
+        private final String ip;
+        private final int port;
+        private final int playerCount;
+        private final int maxPlayers;
+        private final String description;
+
+        public Entry(String ip, int port, int playerCount, int maxPlayers, String description) {
+            this.ip = ip;
+            this.port = port;
+            this.playerCount = playerCount;
+            this.maxPlayers = maxPlayers;
+            this.description = description;
+        }
 
         public String getIp() {
             return ip;
@@ -98,6 +105,7 @@ public class ClientData {
                                 entry.getValue().maxPlayers +
                                 "]("
                                 + entry.getValue().getDescription() +
-                                ")").collect(Collectors.joining("\n"));
+                                ")"
+                ).collect(Collectors.joining("\n"));
     }
 }
