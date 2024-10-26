@@ -13,7 +13,7 @@ public final class BlockUtil {
     }
 
     public static void unknownBlock(CompoundTag tag) {
-        tag.putString("name", "minecraft:info_update");
+        tag.putString("name", "minecraft:unknown");
         tag.putCompound("states", new CompoundTag());
         tag.putInt("version", BlockUpgrader.getCurrentVersion());
     }

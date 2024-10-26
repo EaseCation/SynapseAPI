@@ -2472,9 +2472,19 @@ public class BlockTypes {
     public static class V1_21_50 extends V1_21_40 {
         private static final BlockRegistry REGISTRY = new BlockRegistry((1 << 24) | (21 << 16) | (40 << 8) | 1, V1_21_40.REGISTRY);
 
+        public static final BlockLegacy CHALKBOARD = REGISTRY.registerBlock("minecraft:chalkboard", BlockID.CHALKBOARD)
+                .addState(BlockStates.CHALKBOARD_DIRECTION);
+
+        public static final BlockLegacy CHISELED_RESIN_BRICKS = REGISTRY.registerBlock("minecraft:chiseled_resin_bricks", BlockID.CHISELED_RESIN_BRICKS);
+
+        public static final BlockLegacy CLOSED_EYEBLOSSOM = REGISTRY.registerBlock("minecraft:closed_eyeblossom", BlockID.CLOSED_EYEBLOSSOM);
+
         public static final BlockLegacy CREAKING_HEART = REGISTRY.registerBlock("minecraft:creaking_heart", BlockID.CREAKING_HEART)
                 .addState(BlockStates.PILLAR_AXIS)
-                .addState(BlockStates.ACTIVE);
+                .addState(BlockStates.ACTIVE)
+                .addState(BlockStates.NATURAL);
+
+        public static final BlockLegacy OPEN_EYEBLOSSOM = REGISTRY.registerBlock("minecraft:open_eyeblossom", BlockID.OPEN_EYEBLOSSOM);
 
         public static final BlockLegacy PALE_HANGING_MOSS = REGISTRY.registerBlock("minecraft:pale_hanging_moss", BlockID.PALE_HANGING_MOSS)
                 .addState(BlockStates.TIP);
@@ -2549,6 +2559,30 @@ public class BlockTypes {
 
         public static final BlockLegacy PALE_OAK_WOOD = REGISTRY.registerBlock("minecraft:pale_oak_wood", BlockID.PALE_OAK_WOOD)
                 .addState(BlockStates.PILLAR_AXIS);
+
+        public static final BlockLegacy RESIN_BLOCK = REGISTRY.registerBlock("minecraft:resin_block", BlockID.RESIN_BLOCK);
+
+        public static final BlockLegacy RESIN_BRICK_DOUBLE_SLAB = REGISTRY.registerBlock("minecraft:resin_brick_double_slab", BlockID.RESIN_BRICK_DOUBLE_SLAB)
+                .addState(BlockStates.MINECRAFT_VERTICAL_HALF);
+
+        public static final BlockLegacy RESIN_BRICK_SLAB = REGISTRY.registerBlock("minecraft:resin_brick_slab", BlockID.RESIN_BRICK_SLAB)
+                .addState(BlockStates.MINECRAFT_VERTICAL_HALF);
+
+        public static final BlockLegacy RESIN_BRICK_STAIRS = REGISTRY.registerBlock("minecraft:resin_brick_stairs", BlockID.RESIN_BRICK_STAIRS)
+                .addState(BlockStates.WEIRDO_DIRECTION)
+                .addState(BlockStates.UPSIDE_DOWN_BIT);
+
+        public static final BlockLegacy RESIN_BRICK_WALL = REGISTRY.registerBlock("minecraft:resin_brick_wall", BlockID.RESIN_BRICK_WALL)
+                .addState(BlockStates.WALL_POST_BIT)
+                .addState(BlockStates.WALL_CONNECTION_TYPE_NORTH)
+                .addState(BlockStates.WALL_CONNECTION_TYPE_EAST)
+                .addState(BlockStates.WALL_CONNECTION_TYPE_SOUTH)
+                .addState(BlockStates.WALL_CONNECTION_TYPE_WEST);
+
+        public static final BlockLegacy RESIN_BRICKS = REGISTRY.registerBlock("minecraft:resin_bricks", BlockID.RESIN_BRICKS);
+
+        public static final BlockLegacy RESIN_CLUMP = REGISTRY.registerBlock("minecraft:resin_clump", BlockID.RESIN_CLUMP)
+                .addState(BlockStates.MULTI_FACE_DIRECTION_BITS);
 
         public static final BlockLegacy STRIPPED_PALE_OAK_LOG = REGISTRY.registerBlock("minecraft:stripped_pale_oak_log", BlockID.STRIPPED_PALE_OAK_LOG)
                 .addState(BlockStates.PILLAR_AXIS);

@@ -1,6 +1,7 @@
 package org.itxtech.synapseapi.multiprotocol.protocol12140.protocol;
 
 import cn.nukkit.network.protocol.ProtocolInfo;
+import cn.nukkit.network.protocol.types.MovementEffectType;
 import lombok.ToString;
 
 /**
@@ -13,6 +14,9 @@ public class MovementEffectPacket12140 extends Packet12140 {
     public static final int NETWORK_ID = ProtocolInfo.MOVEMENT_EFFECT_PACKET;
 
     public long entityRuntimeId;
+    /**
+     * @see MovementEffectType
+     */
     public int effectType = -1;
     public int effectDuration;
     public long tick;

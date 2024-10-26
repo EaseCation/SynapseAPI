@@ -76,6 +76,7 @@ public interface BlockStateNames {
     String MOISTURIZED_AMOUNT = "moisturized_amount";
     String MONSTER_EGG_STONE_TYPE = "monster_egg_stone_type";
     String MULTI_FACE_DIRECTION_BITS = "multi_face_direction_bits";
+    String NATURAL = "natural";
     String NEW_LEAF_TYPE = "new_leaf_type";
     String NEW_LOG_TYPE = "new_log_type";
     String NO_DROP_BIT = "no_drop_bit";

@@ -194,6 +194,7 @@ public final class BlockStates {
             MONSTER_EGG_STONE_TYPE_CRACKED_STONE_BRICK,
             MONSTER_EGG_STONE_TYPE_CHISELED_STONE_BRICK));
     public static final IntegerBlockState MULTI_FACE_DIRECTION_BITS = register(new IntegerBlockState(BlockStateNames.MULTI_FACE_DIRECTION_BITS, MAX_MULTI_FACE_DIRECTION_BITS + 1));
+    public static final BooleanBlockState NATURAL = register(new BooleanBlockState(BlockStateNames.NATURAL));
     public static final StringBlockState NEW_LEAF_TYPE = register(new StringBlockState(BlockStateNames.NEW_LEAF_TYPE,
             NEW_LEAF_TYPE_ACACIA,
             NEW_LEAF_TYPE_DARK_OAK));
@@ -423,6 +424,8 @@ public final class BlockStates {
             WOOD_TYPE_JUNGLE,
             WOOD_TYPE_ACACIA,
             WOOD_TYPE_DARK_OAK));
+
+    public static final IntegerBlockState CHALKBOARD_DIRECTION = register(new IntegerBlockState(BlockStateNames.DIRECTION, CHALKBOARD_MAX_DIRECTION + 1));
 
     public static final int STATE_COUNT = REGISTRY.size();
 

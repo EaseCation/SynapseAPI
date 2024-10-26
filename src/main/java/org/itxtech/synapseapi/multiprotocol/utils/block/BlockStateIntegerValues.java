@@ -44,6 +44,8 @@ public interface BlockStateIntegerValues {
     int FROSTED_ICE_MAX_AGE = 3;
     int NETHER_WART_MAX_AGE = 3;
 
+    int CHALKBOARD_MAX_DIRECTION = 15;
+
     int ACTIVATOR_RAIL_MAX_RAIL_DIRECTION = 5;
     int DETECTOR_RAIL_MAX_RAIL_DIRECTION = 5;
     int GOLDEN_RAIL_MAX_RAIL_DIRECTION = 5;

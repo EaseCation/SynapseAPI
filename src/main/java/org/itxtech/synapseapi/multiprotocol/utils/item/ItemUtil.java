@@ -126,7 +126,7 @@ public final class ItemUtil {
     }
 
     public static void unknownBlockItem(CompoundTag tag) {
-        tag.putString("Name", "minecraft:info_update");
+        tag.putString("Name", "minecraft:unknown");
         tag.putShort("Damage", 0);
 
         CompoundTag block = new CompoundTag();
@@ -170,7 +170,7 @@ public final class ItemUtil {
 
             int blockFullId = BlockSerializer.deserializeRuntime(blockTag);
             int blockId = blockFullId >> Block.BLOCK_META_BITS;
-            if (blockId == BlockID.INFO_UPDATE) {
+            if (blockId == BlockID.UNKNOWN) {
                 log.debug("Unknown item: " + name);
                 return null;
             }

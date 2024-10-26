@@ -396,6 +396,8 @@ public final class ParticleIdTranslator {
 
     public static final int V121_OMINOUS_ITEM_SPAWNER = 93;
 
+    public static final int V12150_CREAKING_CRUMBLE = 94;
+
     static {
         Arrays.fill(v12ToV112Book, -1);
         v12ToV112Book[Particle.BUBBLE] = TYPE_BUBBLE;
@@ -785,6 +787,8 @@ public final class ParticleIdTranslator {
         v12ToV12070Book[Particle.WOLF_ARMOR_BREAK] = V12080_WOLF_ARMOR_BREAK;
 
         v12ToV12070Book[Particle.OMINOUS_ITEM_SPAWNER] = V121_OMINOUS_ITEM_SPAWNER;
+
+        v12ToV12070Book[Particle.CREAKING_CRUMBLE] = V12150_CREAKING_CRUMBLE;
     }
 
     public static int translateTo112(int particleId) {

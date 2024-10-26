@@ -60,6 +60,11 @@ public final class VanillaExperiments {
      * @since 1.21.20
      */
     public static final Experiment FOCUS_TARGET_CAMERA = new Experiment("focus_target_camera", true);
+    /**
+     * Player's aim assist system to interact with elements in the world while using custom cameras. (Aim Assist)
+     * @since 1.21.50
+     */
+    public static final Experiment CAMERA_AIM_ASSIST = new Experiment("camera_aim_assist", true);
 
     // Gameplay Experiments
 

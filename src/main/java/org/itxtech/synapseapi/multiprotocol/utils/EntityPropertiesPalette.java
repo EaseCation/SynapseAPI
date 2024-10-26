@@ -45,7 +45,9 @@ public final class EntityPropertiesPalette {
                         new EntityPropertyDataEnum("minecraft:creaking_state",
                                 "neutral",
                                 "hostile_observed",
-                                "hostile_unobserved"
+                                "hostile_unobserved",
+                                "twitching",
+                                "crumbling"
                         )
                 )
         );

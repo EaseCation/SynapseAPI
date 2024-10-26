@@ -58,7 +58,7 @@ public class PaletteBlockTable extends ObjectArrayList<PaletteBlockData> {
 
         PaletteBlockData air = PaletteBlockData.createUnknownData();
         PaletteBlockData unknown = new PaletteBlockData(Short.MAX_VALUE, new LegacyStates[0],
-                new Block("minecraft:info_update", 0, Collections.emptyList()));
+                new Block("minecraft:unknown", 0, Collections.emptyList()));
 
         ListTag<CompoundTag> tag;
         try (InputStream stream = SynapseAPI.class.getClassLoader().getResourceAsStream(file)) {

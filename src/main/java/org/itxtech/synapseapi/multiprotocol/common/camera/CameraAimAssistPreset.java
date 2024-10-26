@@ -12,7 +12,7 @@ import javax.annotation.Nullable;
 @NoArgsConstructor
 @AllArgsConstructor
 @ToString
-public class CameraAimAssistPresetDefinition {
+public class CameraAimAssistPreset {
     public String identifier;
     @Default
     public String categories = "";
@@ -21,9 +21,18 @@ public class CameraAimAssistPresetDefinition {
     @Default
     public String[] liquidTargetingList = new String[0];
     @Default
-    public String[] itemSettings = new String[0];
+    public ItemSetting[] itemSettings = new ItemSetting[0];
     @Nullable
     public String defaultItemSettings = "";
     @Nullable
     public String handSettings = "";
+
+    @Builder
+    @NoArgsConstructor
+    @AllArgsConstructor
+    @ToString
+    public static class ItemSetting {
+        public String identifier;
+        public String category;
+    }
 }

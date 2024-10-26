@@ -3,6 +3,9 @@
     "maxVersionMinor": 21,
     "maxVersionPatch": 40,
     "maxVersionRevision": 1,
+    "renamedIds": {
+        "minecraft:skull": "minecraft:skeleton_skull"
+    },
     "removedProperties": {
         "minecraft:cherry_wood": [
             "stripped_bit"
@@ -10,8 +13,5 @@
         "minecraft:mangrove_wood": [
             "stripped_bit"
         ]
-    },
-    "renamedIds": {
-        "minecraft:skull": "minecraft:skeleton_skull"
     }
 }

@@ -341,6 +341,10 @@ public class PlayerAuthInputPacket116220 extends Packet116220 implements Invento
             this.cameraOrientationZ = cameraOrientation.z;
         }
 
+        if (protocol.getProtocolStart() >= AbstractProtocol.PROTOCOL_121_50.getProtocolStart()) {
+            Vector2f vec = this.getVector2f();
+        }
+
         if (SynapseSharedConstants.MAC_DEBUG) {
             String debug = "";
             if (debugFlags[0]) debug += "PERFORM_ITEM_INTERACTION | ";

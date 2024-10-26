@@ -3,17 +3,18 @@ package org.itxtech.synapseapi.multiprotocol.protocol12150.protocol;
 import cn.nukkit.network.protocol.ProtocolInfo;
 import cn.nukkit.utils.BinaryStream;
 import lombok.ToString;
-import org.itxtech.synapseapi.multiprotocol.common.camera.CameraAimAssistCategoriesDefinition;
-import org.itxtech.synapseapi.multiprotocol.common.camera.CameraAimAssistCategoryDefinition;
-import org.itxtech.synapseapi.multiprotocol.common.camera.CameraAimAssistCategoryPriorities;
-import org.itxtech.synapseapi.multiprotocol.common.camera.CameraAimAssistPresetDefinition;
+import org.itxtech.synapseapi.multiprotocol.common.camera.CameraAimAssistCategories;
+import org.itxtech.synapseapi.multiprotocol.common.camera.CameraAimAssistCategories.Category;
+import org.itxtech.synapseapi.multiprotocol.common.camera.CameraAimAssistCategories.Category.Priority;
+import org.itxtech.synapseapi.multiprotocol.common.camera.CameraAimAssistPreset;
+import org.itxtech.synapseapi.multiprotocol.common.camera.CameraAimAssistPreset.ItemSetting;
 
 @ToString
 public class CameraAimAssistPresetsPacket12150 extends Packet12150 {
     public static final int NETWORK_ID = ProtocolInfo.CAMERA_AIM_ASSIST_PRESETS_PACKET;
 
-    public CameraAimAssistCategoriesDefinition[] categories = new CameraAimAssistCategoriesDefinition[0];
-    public CameraAimAssistPresetDefinition[] presets = new CameraAimAssistPresetDefinition[0];
+    public CameraAimAssistCategories[] categories = new CameraAimAssistCategories[0];
+    public CameraAimAssistPreset[] presets = new CameraAimAssistPreset[0];
 
     @Override
     public int pid() {
@@ -29,25 +30,32 @@ public class CameraAimAssistPresetsPacket12150 extends Packet12150 {
         reset();
 
         putUnsignedVarInt(categories.length);
-        for (CameraAimAssistCategoriesDefinition definition : categories) {
+        for (CameraAimAssistCategories definition : categories) {
             putString(definition.identifier);
 
             putUnsignedVarInt(definition.categories.length);
-            for (CameraAimAssistCategoryDefinition category : definition.categories) {
+            for (Category category : definition.categories) {
                 putString(category.name);
 
-                putUnsignedVarInt(category.priorities.length);
-                for (CameraAimAssistCategoryPriorities priority : category.priorities) {
-                    putByte(priority.entities);
-                    putByte(priority.blocks);
-                    putByte(priority.entityDefault);
-                    putByte(priority.blockDefault);
+                putUnsignedVarInt(category.entityPriorities.length);
+                for (Priority priority : category.entityPriorities) {
+                    putString(priority.identifier);
+                    putLInt(priority.priority);
                 }
+
+                putUnsignedVarInt(category.blockPriorities.length);
+                for (Priority priority : category.blockPriorities) {
+                    putString(priority.identifier);
+                    putLInt(priority.priority);
+                }
+
+                putOptional(category.defaultEntityPriority, BinaryStream::putLInt);
+                putOptional(category.defaultBlockPriority, BinaryStream::putLInt);
             }
         }
 
         putUnsignedVarInt(presets.length);
-        for (CameraAimAssistPresetDefinition preset : presets) {
+        for (CameraAimAssistPreset preset : presets) {
             putString(preset.identifier);
             putString(preset.categories);
 
@@ -62,8 +70,9 @@ public class CameraAimAssistPresetsPacket12150 extends Packet12150 {
             }
 
             putUnsignedVarInt(preset.itemSettings.length);
-            for (String itemSetting : preset.itemSettings) {
-                putString(itemSetting);
+            for (ItemSetting itemSetting : preset.itemSettings) {
+                putString(itemSetting.identifier);
+                putString(itemSetting.category);
             }
 
             putOptional(preset.defaultItemSettings, BinaryStream::putString);

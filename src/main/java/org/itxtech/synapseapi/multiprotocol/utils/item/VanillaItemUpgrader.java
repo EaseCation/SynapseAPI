@@ -142,7 +142,7 @@ public final class VanillaItemUpgrader {
 
             BlockUpgrader.upgrade(blockTag);
 
-            if (wasNumId && "minecraft:info_update".equals(blockTag.getString("name")) && !"minecraft:info_update".equals(rawNameId)) {
+            if (wasNumId && "minecraft:unknown".equals(blockTag.getString("name")) && !"minecraft:unknown".equals(rawNameId)) {
                 int id = ItemUtil.ITEM_NAME_TO_ID.getInt(newName);
                 if (id != ItemID.AIR) {
                     // NK 1.13-1.18

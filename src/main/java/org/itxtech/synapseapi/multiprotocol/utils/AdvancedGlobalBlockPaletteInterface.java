@@ -26,7 +26,7 @@ public interface AdvancedGlobalBlockPaletteInterface {
     int FULL_BLOCK_ID_MASK = Block.BLOCK_ID_MASK << BLOCK_META_BITS;
 
     CompoundTag UNKNOWN_BLOCK_STATE = new CompoundTag()
-            .putString("name", "minecraft:info_update")
+            .putString("name", "minecraft:unknown")
             .putShort("val", 0);
 
     int getOrCreateRuntimeId(int id, int meta);

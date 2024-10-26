@@ -1,6 +1,7 @@
 package org.itxtech.synapseapi.multiprotocol.protocol12060.protocol;
 
 import cn.nukkit.network.protocol.ProtocolInfo;
+import cn.nukkit.network.protocol.types.HudElement;
 import lombok.ToString;
 
 @ToString
@@ -46,6 +47,9 @@ public class SetHudPacket12060 extends Packet12060 {
     public static final int VISIBILITY_HIDE = 0;
     public static final int VISIBILITY_RESET = 1;
 
+    /**
+     * @see HudElement
+     */
     public int[] elements = new int[0];
     public int visibility = VISIBILITY_RESET;
 

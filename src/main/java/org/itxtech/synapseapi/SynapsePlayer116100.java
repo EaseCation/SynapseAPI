@@ -47,9 +47,7 @@ import cn.nukkit.network.PacketViolationReason;
 import cn.nukkit.network.SourceInterface;
 import cn.nukkit.network.protocol.*;
 import cn.nukkit.network.protocol.AnimatePacket.Action;
-import cn.nukkit.network.protocol.types.ContainerIds;
-import cn.nukkit.network.protocol.types.ContainerType;
-import cn.nukkit.network.protocol.types.PlayerAbility;
+import cn.nukkit.network.protocol.types.*;
 import cn.nukkit.potion.Effect;
 import cn.nukkit.resourcepacks.ResourcePack;
 import cn.nukkit.scheduler.AsyncTask;
@@ -3737,17 +3735,24 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
 
     @Override
     public void lockInput(boolean movement, boolean rotation) {
+        int flags = InputLock.NONE;
+        if (movement) {
+            flags |= InputLock.MOVEMENT;
+        }
+        if (rotation) {
+            flags |= InputLock.CAMERA;
+        }
+        lockInput(flags);
+    }
+
+    @Override
+    public void lockInput(int flags) {
         if (getProtocol() < AbstractProtocol.PROTOCOL_119_50.getProtocolStart()) {
             return;
         }
 
         UpdateClientInputLocksPacket11950 packet = new UpdateClientInputLocksPacket11950();
-        if (movement) {
-            packet.flags |= UpdateClientInputLocksPacket11950.FLAG_MOVEMENT;
-        }
-        if (rotation) {
-            packet.flags |= UpdateClientInputLocksPacket11950.FLAG_ROTATION;
-        }
+        packet.flags = flags;
         packet.x = (float) getX();
         packet.y = (float) getY() + getEyeHeight();
         packet.z = (float) getZ();
@@ -3765,7 +3770,7 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
 
     @Override
     public void hideHud() {
-        hideHudElements(SetHudPacket12060.ALL_ELEMENTS);
+        hideHudElements(HudElement.ALL);
     }
 
     @Override
@@ -3782,7 +3787,7 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
 
     @Override
     public void showHud() {
-        showHudElements(SetHudPacket12060.ALL_ELEMENTS);
+        showHudElements(HudElement.ALL);
     }
 
     @Override

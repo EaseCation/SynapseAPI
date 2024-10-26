@@ -11,7 +11,7 @@ import java.util.List;
 @Log4j2
 public class RuntimeBlockSerializer {
     final CompoundTag[][] idMetaToTag = new CompoundTag[Block.BLOCK_ID_COUNT][];
-    private final CompoundTag infoUpdateBlock;
+    private final CompoundTag unknownBlock;
 
     public RuntimeBlockSerializer(BlockPalette palette) {
         List<CompoundTag>[] mapping = new List[Block.BLOCK_ID_COUNT];
@@ -68,20 +68,20 @@ public class RuntimeBlockSerializer {
             idMetaToTag[id] = tags.toArray(new CompoundTag[0]);
         }
 
-        infoUpdateBlock = idMetaToTag[Block.INFO_UPDATE][0];
+        unknownBlock = idMetaToTag[Block.UNKNOWN][0];
     }
 
     public CompoundTag serialize(int fullId) {
         int id = fullId >> Block.BLOCK_META_BITS;
         if (id < 0 || id >= Block.BLOCK_ID_COUNT) {
             log.warn("Invalid block id: {}", id);
-            return infoUpdateBlock;
+            return unknownBlock;
         }
 
         CompoundTag[] tags = idMetaToTag[id];
         if (tags == null) {
             log.warn("Unmapped block id: {}", id);
-            return infoUpdateBlock;
+            return unknownBlock;
         }
 
         int meta = fullId & Block.BLOCK_META_MASK;
@@ -89,7 +89,7 @@ public class RuntimeBlockSerializer {
         if (meta < 0 || meta >= count) {
             log.warn("Invalid block meta: id {} val {}", id, meta);
             if (count == 0) {
-                return infoUpdateBlock;
+                return unknownBlock;
             }
             return tags[0];
         }
