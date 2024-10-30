@@ -80,6 +80,7 @@ public class SynapseEntry {
         PACKET_COUNT_LIMIT[ProtocolInfo.COMMAND_REQUEST_PACKET] = 5;
         PACKET_COUNT_LIMIT[ProtocolInfo.SETTINGS_COMMAND_PACKET] = 5;
         PACKET_COUNT_LIMIT[ProtocolInfo.NETWORK_STACK_LATENCY_PACKET] = 50;
+        PACKET_COUNT_LIMIT[ProtocolInfo.SET_ACTOR_LINK_PACKET] = 50;
     }
 
     private final SynapseAPI synapse;
