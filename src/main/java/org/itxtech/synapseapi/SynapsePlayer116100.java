@@ -1729,7 +1729,7 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
                             }
 
                             if (!server.getAllowFlight() && !getAdventureSettings().get(Type.ALLOW_FLIGHT)) {
-                                kick(PlayerKickEvent.Reason.FLYING_DISABLED, "Flying is not enabled on this server");
+                                kick(PlayerKickEvent.Reason.FLYING_DISABLED, "Flying is not enabled on this server", false);
                                 return;
                             }
 
@@ -2019,7 +2019,7 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
                 RequestAbilityPacket119 requestAbilityPacket = (RequestAbilityPacket119) packet;
                 if (requestAbilityPacket.ability == PlayerAbility.FLYING && requestAbilityPacket.type == RequestAbilityPacket119.TYPE_BOOL) {
                     if (requestAbilityPacket.boolValue && !server.getAllowFlight() && !getAdventureSettings().get(Type.ALLOW_FLIGHT)) {
-                        this.kick(PlayerKickEvent.Reason.FLYING_DISABLED, "Flying is not enabled on this server");
+                        this.kick(PlayerKickEvent.Reason.FLYING_DISABLED, "Flying is not enabled on this server", false);
                         break;
                     }
 

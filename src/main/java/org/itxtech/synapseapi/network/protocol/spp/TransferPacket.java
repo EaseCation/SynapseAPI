@@ -13,7 +13,7 @@ public class TransferPacket extends SynapseDataPacket {
 
     public static final int NETWORK_ID = SynapseInfo.TRANSFER_PACKET;
 
-    public UUID uuid;
+    public UUID sessionId;
     public String clientHash;
     public JsonObject extra = new JsonObject();
 
@@ -25,14 +25,14 @@ public class TransferPacket extends SynapseDataPacket {
     @Override
     public void encode() {
         this.reset();
-        this.putUUID(this.uuid);
+        this.putUUID(this.sessionId);
         this.putString(this.clientHash);
         this.putString(GSON.toJson(this.extra));
     }
 
     @Override
     public void decode() {
-        this.uuid = this.getUUID();
+        this.sessionId = this.getUUID();
         this.clientHash = this.getString();
         this.extra = GSON.fromJson(this.getString(), JsonObject.class);
     }

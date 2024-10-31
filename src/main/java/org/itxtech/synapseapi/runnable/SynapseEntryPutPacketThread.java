@@ -61,7 +61,7 @@ public class SynapseEntryPutPacketThread extends Thread {
         this.start();
     }
 
-    public void addMainToThread(SynapsePlayer player, DataPacket packet, boolean needACK, boolean immediate) {
+    public void addMainToThread(SynapsePlayer player, DataPacket packet) {
 //        if (packet instanceof LevelChunkPacket) {
 //            byte[] bytes = ((LevelChunkPacket) packet).data;
 //            if (bytes.length == 25676 && bytes[0] == 5) {
@@ -79,7 +79,7 @@ public class SynapseEntryPutPacketThread extends Thread {
         }
 */
         if (player.getSynapseEntry().getSynapse().isRecordPacketStack()) packet.stack = new Throwable();
-        this.queue.offer(new Entry(player, packet, needACK, immediate));
+        this.queue.offer(new Entry(player, packet));
 
         /*if (!(packet instanceof BossEventPacket)
                 && !(packet instanceof MovePlayerPacket)
@@ -140,8 +140,7 @@ public class SynapseEntryPutPacketThread extends Thread {
                 try {
                     if (!entry.player.closed) {
                         RedirectPacket pk = new RedirectPacket();
-                        pk.uuid = entry.player.getUniqueId();
-//                        pk.direct = entry.immediate;
+                        pk.sessionId = entry.player.getSessionId();
 
                         /*if(entry.packet.pid() == UpdateAttributesPacket.NETWORK_ID) {
                             MainLogger.getLogger().info("ENTITY: "+((UpdateAttributesPacket) entry.packet).entityId);
@@ -335,7 +334,7 @@ public class SynapseEntryPutPacketThread extends Thread {
                         if (pair != null) {
                             RedirectPacket pk = new RedirectPacket();
                             pk.protocol = player.getProtocol();
-                            pk.uuid = player.getUniqueId();
+                            pk.sessionId = player.getSessionId();
 //                            pk.channel = DataPacket.CHANNEL_BATCH;
 
                             byte[][] datas = pair.getLeft();
@@ -402,14 +401,10 @@ public class SynapseEntryPutPacketThread extends Thread {
     private static class Entry {
         private final SynapsePlayer player;
         private DataPacket packet;
-        private final boolean needACK;
-        private final boolean immediate;
 
-        public Entry(SynapsePlayer player, DataPacket packet, boolean needACK, boolean immediate) {
+        public Entry(SynapsePlayer player, DataPacket packet) {
             this.player = player;
             this.packet = packet;
-            this.needACK = needACK;
-            this.immediate = immediate;
         }
     }
 

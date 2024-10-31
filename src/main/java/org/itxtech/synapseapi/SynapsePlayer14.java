@@ -168,7 +168,7 @@ public class SynapsePlayer14 extends SynapsePlayer {
 					}
 				}
 
-				if (this.server.getOnlinePlayers().size() >= this.server.getMaxPlayers()
+				if (this.server.getOnlinePlayerCount() >= this.server.getMaxPlayers()
 						&& this.kick(PlayerKickEvent.Reason.SERVER_FULL, "disconnectionScreen.serverFull", false)) {
 					break;
 				}

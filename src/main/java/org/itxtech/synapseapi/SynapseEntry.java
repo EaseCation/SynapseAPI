@@ -4,6 +4,7 @@ import cn.nukkit.Nukkit;
 import cn.nukkit.Player;
 import cn.nukkit.Server;
 import cn.nukkit.entity.Entity;
+import cn.nukkit.event.player.PlayerKickEvent;
 import cn.nukkit.math.NukkitMath;
 import cn.nukkit.network.Compressor;
 import cn.nukkit.network.Network;
@@ -15,15 +16,15 @@ import cn.nukkit.network.protocol.MovePlayerPacket;
 import cn.nukkit.network.protocol.ProtocolInfo;
 import cn.nukkit.plugin.Plugin;
 import cn.nukkit.utils.BinaryStream;
-import cn.nukkit.utils.JsonUtil;
 import cn.nukkit.utils.MainLogger;
 import cn.nukkit.utils.Zlib;
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
+import it.unimi.dsi.fastutil.Pair;
 import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
 import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
+import it.unimi.dsi.fastutil.objects.ObjectIntPair;
 import lombok.extern.log4j.Log4j2;
 import org.itxtech.synapseapi.event.player.SynapsePlayerCreationEvent;
 import org.itxtech.synapseapi.event.player.SynapsePlayerTooManyPacketsInBatchEvent;
@@ -37,6 +38,7 @@ import org.itxtech.synapseapi.network.SynLibInterface;
 import org.itxtech.synapseapi.network.SynapseInterface;
 import org.itxtech.synapseapi.network.protocol.spp.*;
 import org.itxtech.synapseapi.utils.ClientData;
+import org.itxtech.synapseapi.utils.ClientData.Entry;
 import org.itxtech.synapseapi.utils.DataPacketEidReplacer;
 import org.itxtech.synapseapi.utils.PacketLogger;
 
@@ -44,7 +46,6 @@ import javax.annotation.Nullable;
 import java.lang.reflect.Constructor;
 import java.net.InetSocketAddress;
 import java.util.*;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.ThreadLocalRandom;
 
@@ -95,7 +96,6 @@ public class SynapseEntry {
     private long lastUpdate;
     private long lastRecvInfo;
     private final Map<UUID, SynapsePlayer> players = new Object2ObjectOpenHashMap<>();
-    private final Map<UUID, Integer> networkLatency = new ConcurrentHashMap<>();
     private SynLibInterface synLibInterface;
     private ClientData clientData;
     private String serverDescription;
@@ -172,10 +172,6 @@ public class SynapseEntry {
         return synapseInterface;
     }
 
-    public int getNetworkLatency(UUID uuid) {
-        return this.networkLatency.getOrDefault(uuid, 0);
-    }
-
     public void shutdown() {
         if (this.synapseInterface != null) {
             this.synapseInterface.markClosing();
@@ -242,11 +238,11 @@ public class SynapseEntry {
         broadcastPacket.direct = direct;
         broadcastPacket.payload = packet.getBuffer();
         int length = players.length;
-        UUID[] uuids = new UUID[length];
+        UUID[] sessionIds = new UUID[length];
         for (int i = 0; i < length; i++) {
-            uuids[i] = players[i].getUniqueId();
+            sessionIds[i] = players[i].getSessionId();
         }
-        broadcastPacket.entries = uuids;
+        broadcastPacket.sessionIds = sessionIds;
         this.sendDataPacket(broadcastPacket);
     }
 
@@ -329,8 +325,28 @@ public class SynapseEntry {
 
             PlayerLoginPacket playerLoginPacket;
             Random random = ThreadLocalRandom.current();
+            LOGIN:
             while ((playerLoginPacket = playerLoginQueue.poll()) != null) {
                 globalPacketCountThisTick[ProtocolInfo.LOGIN_PACKET]++;
+
+                UUID uuid = playerLoginPacket.uuid;
+                UUID sessionId = playerLoginPacket.sessionId;
+
+                for (Player player : synapse.getServer().getOnlinePlayerList()) {
+                    if (uuid.equals(player.getUniqueId())) {
+                        try {
+                            player.kick(PlayerKickEvent.Reason.NEW_CONNECTION, "disconnectionScreen.loggedinOtherLocation", false);
+                        } catch (Exception e) {
+                            log.throwing(e);
+                        }
+
+                        PlayerLogoutPacket pk = new PlayerLogoutPacket();
+                        pk.sessionId = sessionId;
+                        pk.reason = "disconnectionScreen.serverIdConflict";
+                        sendDataPacket(pk);
+                        continue LOGIN;
+                    }
+                }
 
                 int protocol = playerLoginPacket.protocol;
                 InetSocketAddress socketAddress = InetSocketAddress.createUnresolved(playerLoginPacket.address, playerLoginPacket.port);
@@ -343,8 +359,9 @@ public class SynapseEntry {
                 try {
                     Constructor<? extends SynapsePlayer> constructor = clazz.getConstructor(SourceInterface.class, SynapseEntry.class, Long.class, InetSocketAddress.class);
                     SynapsePlayer player = constructor.newInstance(synLibInterface, this.entry, ev.getClientId(), ev.getSocketAddress());
-                    player.setUniqueId(playerLoginPacket.uuid);
-                    players.put(playerLoginPacket.uuid, player);
+                    player.setUniqueId(uuid);
+                    player.setSessionId(sessionId);
+                    players.put(sessionId, player);
                     getSynapse().getServer().addPlayer(socketAddress, player);
                     player.handleLoginPacket(playerLoginPacket);
                 } catch (Exception e) {
@@ -375,11 +392,11 @@ public class SynapseEntry {
 
             PlayerLogoutPacket playerLogoutPacket;
             while ((playerLogoutPacket = playerLogoutQueue.poll()) != null) {
-                UUID uuid1 = playerLogoutPacket.uuid;
-                Player player = players.get(uuid1);
+                UUID sessionId = playerLogoutPacket.sessionId;
+                Player player = players.get(sessionId);
                 if (player != null) {
                     player.close("", playerLogoutPacket.reason, true);
-                    removePlayer(uuid1);
+                    removePlayer(sessionId);
                 }
             }
         }
@@ -434,13 +451,8 @@ public class SynapseEntry {
         }
     }
 
-    public void removePlayer(SynapsePlayer player) {
-        this.removePlayer(player.getUniqueId());
-    }
-
-    public void removePlayer(UUID uuid) {
-        this.players.remove(uuid);
-        this.networkLatency.remove(uuid);
+    public void removePlayer(UUID sessionId) {
+        this.players.remove(sessionId);
     }
 
     private final Queue<PlayerLoginPacket> playerLoginQueue = new LinkedBlockingQueue<>();
@@ -464,39 +476,34 @@ public class SynapseEntry {
                         break;
                 }
                 break;
+            case SynapseInfo.CONNECTION_STATUS_PACKET:
+                ConnectionStatusPacket connectionStatusPacket = (ConnectionStatusPacket) pk;
+                switch (connectionStatusPacket.type) {
+                    case ConnectionStatusPacket.TYPE_LOGIN_SUCCESS:
+                        this.getSynapse().getLogger().info("Login success to " + this.serverIp + ":" + this.port);
+                        this.verified = true;
+                        break;
+                    case ConnectionStatusPacket.TYPE_LOGIN_FAILED:
+                        this.getSynapse().getLogger().info("Login failed to " + this.serverIp + ":" + this.port);
+                        break;
+                }
+                break;
             case SynapseInfo.INFORMATION_PACKET:
                 InformationPacket informationPacket = (InformationPacket) pk;
-                switch (informationPacket.type) {
-                    case InformationPacket.TYPE_LOGIN:
-                        if (informationPacket.message.equals(InformationPacket.INFO_LOGIN_SUCCESS)) {
-                            this.getSynapse().getLogger().info("Login success to " + this.serverIp + ":" + this.port);
-                            this.verified = true;
-                        } else if (informationPacket.message.equals(InformationPacket.INFO_LOGIN_FAILED)) {
-                            this.getSynapse().getLogger().info("Login failed to " + this.serverIp + ":" + this.port);
-                        }
-                        break;
-                    case InformationPacket.TYPE_CLIENT_DATA:
-                        try {
-                            this.clientData = JsonUtil.TRUSTED_JSON_MAPPER.readValue(informationPacket.message, ClientData.class);
-                        } catch (JsonProcessingException e) {
-                            synapse.getServer().getLogger().logException(e);
-                        }
-                        this.lastRecvInfo = System.currentTimeMillis();
-                        //this.getSynapse().getLogger().debug("Received ClientData from " + this.serverIp + ":" + this.port);
-                        break;
-                    case InformationPacket.TYPE_PLAYER_NETWORK_LATENCY:
-                        try {
-                            Map<UUID, Integer> pings = JsonUtil.TRUSTED_JSON_MAPPER.readValue(informationPacket.message, NETWORK_LATENCY_TYPE_REFERENCE);
-                            pings.forEach((uuid, ping) -> {
-                                if (this.players.containsKey(uuid)) {
-                                    this.networkLatency.put(uuid, ping);
-                                    //this.getSynapse().getLogger().debug("更新玩家 " + uuid + " 的PING=" + ping);
-                                }
-                            });
-                        } catch (JsonProcessingException e) {
-                            synapse.getServer().getLogger().logException(e);
-                        }
-                        break;
+                ClientData clientData = new ClientData();
+                for (Pair<String, Entry> client : informationPacket.clientList) {
+                    clientData.clientList.put(client.left(), client.right());
+                }
+                this.clientData = clientData;
+                this.lastRecvInfo = System.currentTimeMillis();
+                break;
+            case SynapseInfo.PLAYER_LATENCY_PACKET:
+                PlayerLatencyPacket playerLatencyPacket = (PlayerLatencyPacket) pk;
+                for (ObjectIntPair<UUID> entry : playerLatencyPacket.pings) {
+                    SynapsePlayer player = this.players.get(entry.left());
+                    if (player != null) {
+                        player.rakNetLatency = entry.rightInt();
+                    }
                 }
                 break;
             case SynapseInfo.PLAYER_LOGIN_PACKET:
@@ -505,8 +512,7 @@ public class SynapseEntry {
             case SynapseInfo.REDIRECT_PACKET:
                 RedirectPacket redirectPacket = (RedirectPacket) pk;
 
-                UUID uuid = redirectPacket.uuid;
-                SynapsePlayer player = this.players.get(uuid);
+                SynapsePlayer player = this.players.get(redirectPacket.sessionId);
                 if (player != null && !player.isViolated()) {
                     DataPacket pk0 = PacketRegister.getFullPacket(redirectPacket.mcpeBuffer, redirectPacket.protocol);
                     //Server.getInstance().getLogger().info("to server : " + pk0.getClass().getName());
@@ -757,9 +763,6 @@ public class SynapseEntry {
         }
 
         int len = data.length;
-        if (protocol >= 649) {
-            len -= 8; //FIXME: 奇怪的bug, nemisys网络加密层的checksum怎么会传到这边来了???
-        }
         BinaryStream stream = new BinaryStream(data);
         AbstractProtocol apl = AbstractProtocol.fromRealProtocol(protocol);
         boolean v1180 = apl == AbstractProtocol.PROTOCOL_118;

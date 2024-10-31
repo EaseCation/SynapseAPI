@@ -50,7 +50,7 @@ public class TransferDimensionTaskThread extends Thread {
 
         private void doTransfer() {
             TransferPacket pk = new TransferPacket();
-            pk.uuid = this.player.getUniqueId();
+            pk.sessionId = this.player.getSessionId();
             pk.clientHash = hash;
             if (this.extra != null) pk.extra = extra;
             pk.extra.addProperty("username", player.getOriginName());

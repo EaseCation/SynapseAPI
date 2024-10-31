@@ -57,8 +57,8 @@ import org.itxtech.synapseapi.multiprotocol.protocol17.protocol.TextPacket17;
 import org.itxtech.synapseapi.multiprotocol.utils.CraftingPacketManager;
 import org.itxtech.synapseapi.multiprotocol.utils.CreativeItemsPalette;
 import org.itxtech.synapseapi.network.protocol.mod.ServerSubPacketHandler;
-import org.itxtech.synapseapi.network.protocol.spp.FastPlayerListPacket;
 import org.itxtech.synapseapi.network.protocol.spp.PlayerLoginPacket;
+import org.itxtech.synapseapi.network.protocol.spp.PlayerLogoutPacket;
 import org.itxtech.synapseapi.utils.BlobTrack;
 import org.itxtech.synapseapi.utils.ClientData;
 import org.itxtech.synapseapi.utils.ClientData.Entry;
@@ -82,6 +82,7 @@ public class SynapsePlayer extends Player {
     static final int INCOMING_PACKET_BATCH_PER_TICK = 2; // usually max 1 per tick, but transactions may arrive separately
     static final int INCOMING_PACKET_BATCH_MAX_BUDGET = 100 * INCOMING_PACKET_BATCH_PER_TICK; // enough to account for a 5-second lag spike
 
+    protected UUID sessionId;
     public boolean isSynapseLogin;
     protected SynapseEntry synapseEntry;
     protected boolean isFirstTimeLogin = false;
@@ -95,6 +96,8 @@ public class SynapsePlayer extends Player {
     protected int dummyDimension = 0;
 
     protected boolean emoting;
+
+    int rakNetLatency;
 
     /**
      * At most this many more packets can be received.
@@ -213,14 +216,14 @@ public class SynapsePlayer extends Player {
             return;
         }
         if (!this.server.isWhitelisted((this.getName()).toLowerCase())) {
-            this.kick(PlayerKickEvent.Reason.NOT_WHITELISTED, "Server is white-listed");
+            this.kick(PlayerKickEvent.Reason.NOT_WHITELISTED, "Server is white-listed", false);
 
             return;
         } else if (this.isBanned()) {
-            this.kick(PlayerKickEvent.Reason.NAME_BANNED, "You are banned");
+            this.kick(PlayerKickEvent.Reason.NAME_BANNED, "You are banned", false);
             return;
         } else if (this.server.getIPBans().isBanned(this.getAddress())) {
-            this.kick(PlayerKickEvent.Reason.IP_BANNED, "You are banned");
+            this.kick(PlayerKickEvent.Reason.IP_BANNED, "You are banned", false);
             return;
         }
 
@@ -231,23 +234,24 @@ public class SynapsePlayer extends Player {
             this.server.getPluginManager().subscribeToPermission(Server.BROADCAST_CHANNEL_ADMINISTRATIVE, this);
         }
 
-        for (Player p : new ArrayList<>(this.server.getOnlinePlayers().values())) {
-            if (p != this && p.getName() != null && p.getName().equalsIgnoreCase(this.getName())) {
-                if (!p.kick(PlayerKickEvent.Reason.NEW_CONNECTION, "logged in from another location")) {
-                    this.close(this.getLeaveMessage(), "disconnectionScreen.loggedinOtherLocation");
-                    return;
-                }
-            } else if (p.loggedIn && this.getUniqueId().equals(p.getUniqueId())) {
-                if (!p.kick(PlayerKickEvent.Reason.NEW_CONNECTION, "logged in from another location")) {
-                    this.close(this.getLeaveMessage(), "disconnectionScreen.loggedinOtherLocation");
-                    return;
-                }
+        for (Player p : this.server.getOnlinePlayerList()) {
+            if (p != this && (p.getName() != null && p.getName().equalsIgnoreCase(this.getName()) ||
+                    this.getUniqueId().equals(p.getUniqueId()))) {
+                p.kick(PlayerKickEvent.Reason.NEW_CONNECTION, "disconnectionScreen.loggedinOtherLocation", false);
+
+                this.close("", "disconnectionScreen.serverIdConflict");
+
+                PlayerLogoutPacket pk = new PlayerLogoutPacket();
+                pk.sessionId = getSessionId();
+                pk.reason = "disconnectionScreen.serverIdConflict";
+                this.getSynapseEntry().sendDataPacket(pk);
+                return;
             }
         }
 
         CompoundTag nbt = this.server.getOfflinePlayerData(this.username);
         if (nbt == null) {
-            this.close(this.getLeaveMessage(), "Invalid data");
+            this.close("", "disconnectionScreen.worldCorruption");
 
             return;
         }
@@ -659,7 +663,7 @@ public class SynapsePlayer extends Player {
                 @Override
                 public void onRun(int currentTick) {
                     org.itxtech.synapseapi.network.protocol.spp.TransferPacket pk = new org.itxtech.synapseapi.network.protocol.spp.TransferPacket();
-                    pk.uuid = getUniqueId();
+                    pk.sessionId = getSessionId();
                     pk.clientHash = hash;
                     pk.extra = transferExtra;
                     pk.extra.addProperty("username", originName);
@@ -981,7 +985,7 @@ public class SynapsePlayer extends Player {
                         setLoginChainData(ClientChainData12Urgency.read(loginPacket));
                     }
                 }
-                if (this.server.getOnlinePlayers().size() >= this.server.getMaxPlayers() && this.kick(PlayerKickEvent.Reason.SERVER_FULL, "disconnectionScreen.serverFull", false)) {
+                if (this.server.getOnlinePlayerCount() >= this.server.getMaxPlayers() && this.kick(PlayerKickEvent.Reason.SERVER_FULL, "disconnectionScreen.serverFull", false)) {
                     break;
                 }
 
@@ -1166,6 +1170,15 @@ public class SynapsePlayer extends Player {
         this.uuid = uuid;
     }
 
+    public void setSessionId(UUID sessionId) {
+        this.sessionId = sessionId;
+    }
+
+    @Override
+    public UUID getSessionId() {
+        return sessionId;
+    }
+
     public SynapsePlayer setCleanTextColor(boolean cleanTextColor) {
         this.cleanTextColor = cleanTextColor;
         return this;
@@ -1216,41 +1229,6 @@ public class SynapsePlayer extends Player {
         return true;
     }
 
-    /*
-    @Override
-    public boolean directDataPacket(DataPacket packet) {
-        if (!this.isSynapseLogin) return super.directDataPacket(packet);
-
-        packet = DataPacketEidReplacer.replace(packet, this.getId(), SynapsePlayer.SYNAPSE_PLAYER_ENTITY_ID);
-
-        DataPacketSendEvent ev = new DataPacketSendEvent(this, packet);
-        this.server.getPluginManager().callEvent(ev);
-        if (ev.isCancelled()) {
-            return false;
-        }
-
-        this.interfaz.putPacket(this, packet, false, true);
-        return true;
-    }
-    */
-
-    public void sendFullPlayerListData(boolean self) {
-        FastPlayerListPacket pk = new FastPlayerListPacket();
-        pk.sendTo = this.getUniqueId();
-        pk.type = PlayerListPacket.TYPE_ADD;
-        List<FastPlayerListPacket.Entry> entries = new ArrayList<>();
-        for (Player p : this.getServer().getOnlinePlayers().values()) {
-            if (!self && p == this) {
-                continue;
-            }
-            entries.add(new FastPlayerListPacket.Entry(p.getUniqueId(), p.getId(), p.getDisplayName()));
-        }
-
-        pk.entries = entries.toArray(FastPlayerListPacket.Entry[]::new);
-
-        this.getSynapseEntry().sendDataPacket(pk);
-    }
-
     public void sendLevelSoundEvent(int levelSound, Vector3 pos, int extraData, int pitch, String entityIdentifier, boolean isBabyMob, boolean isGlobal) {
 //        if (levelSound == null || levelSound.getV12() == -1) return;
         LevelSoundEventPacket pk = new LevelSoundEventPacket();
@@ -1264,12 +1242,6 @@ public class SynapsePlayer extends Player {
         pk.isGlobal = isGlobal;
         this.dataPacket(pk);
     }
-
-    /*
-    @Override
-    public void sendData(Player player, EntityMetadata data) {
-        if (player != this || player.spawned) super.sendData(player, data);
-    }*/
 
     public Long2ObjectMap<BlobTrack> getClientCacheTrack() {
         return null;
@@ -1372,6 +1344,14 @@ public class SynapsePlayer extends Player {
      */
     public long getLatency() {
         return -1;
+    }
+
+    /**
+     * Nemisys RakNet latency
+     * @return ms
+     */
+    public int getRakNetLatency() {
+        return rakNetLatency;
     }
 
     /**

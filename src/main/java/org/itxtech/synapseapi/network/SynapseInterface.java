@@ -111,7 +111,8 @@ public class SynapseInterface {
         registerPacket(SynapseInfo.INFORMATION_PACKET, new InformationPacket());
         registerPacket(SynapseInfo.TRANSFER_PACKET, new TransferPacket());
         registerPacket(SynapseInfo.BROADCAST_PACKET, new BroadcastPacket());
-        registerPacket(SynapseInfo.FAST_PLAYER_LIST_PACKET, new FastPlayerListPacket());
+        registerPacket(SynapseInfo.CONNECTION_STATUS_PACKET, new ConnectionStatusPacket());
         registerPacket(SynapseInfo.PLUGIN_MESSAGE_PACKET, new PluginMessagePacket());
+        registerPacket(SynapseInfo.PLAYER_LATENCY_PACKET, new PlayerLatencyPacket());
     }
 }

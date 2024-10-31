@@ -11,10 +11,7 @@ public class RedirectPacket extends SynapseDataPacket {
 
     public static final int NETWORK_ID = SynapseInfo.REDIRECT_PACKET;
 
-    public UUID uuid;
-//    public boolean direct;
-//    public int reliability;
-//    public int channel;
+    public UUID sessionId;
     public byte[] mcpeBuffer;
     public int protocol;
     public byte compressionAlgorithm = CompressionAlgorithm.ZLIB;
@@ -27,24 +24,18 @@ public class RedirectPacket extends SynapseDataPacket {
     @Override
     public void encode() {
         this.reset();
-        this.putUUID(this.uuid);
+        this.putUUID(this.sessionId);
         this.putInt(this.protocol);
         putByte(compressionAlgorithm);
-//        this.putByte(this.direct ? (byte) 1 : (byte) 0);
-//        this.putByte((byte) reliability);
-//        this.putByte((byte) channel);
         this.putUnsignedVarInt(this.mcpeBuffer.length);
         this.put(this.mcpeBuffer);
     }
 
     @Override
     public void decode() {
-        this.uuid = this.getUUID();
+        this.sessionId = this.getUUID();
         this.protocol = this.getInt();
         compressionAlgorithm = getSingedByte();
-//        this.direct = this.getByte() == 1;
-//        this.reliability = this.getByte();
-//        this.channel = this.getByte();
         this.mcpeBuffer = this.get((int) this.getUnsignedVarInt());
     }
 }

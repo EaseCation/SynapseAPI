@@ -2,7 +2,7 @@ package org.itxtech.synapseapi.network.protocol.spp;
 
 public interface SynapseInfo {
 
-    int CURRENT_PROTOCOL = 11;
+    int CURRENT_PROTOCOL = 12;
 
     byte HEARTBEAT_PACKET = 0x01;
     byte CONNECT_PACKET = 0x02;
@@ -13,8 +13,9 @@ public interface SynapseInfo {
     byte INFORMATION_PACKET = 0x07;
     byte TRANSFER_PACKET = 0x08;
     byte BROADCAST_PACKET = 0x09;
-    byte FAST_PLAYER_LIST_PACKET = 0x0a;
+    byte CONNECTION_STATUS_PACKET = 0x0a;
     byte PLUGIN_MESSAGE_PACKET = 0x0b;
+    byte PLAYER_LATENCY_PACKET = 0x0c;
 
-    int COUNT = 0x0c;
+    int COUNT = 0x0d;
 }

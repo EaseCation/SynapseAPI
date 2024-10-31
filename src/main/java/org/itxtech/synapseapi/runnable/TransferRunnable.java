@@ -19,7 +19,7 @@ public class TransferRunnable implements Runnable {
     @Override
     public void run() {
         TransferPacket pk = new TransferPacket();
-        pk.uuid = this.player.getUniqueId();
+        pk.sessionId = this.player.getSessionId();
         pk.clientHash = hash;
 
         this.player.getSynapseEntry().sendDataPacket(pk);

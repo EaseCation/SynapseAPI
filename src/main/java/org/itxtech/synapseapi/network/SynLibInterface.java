@@ -18,7 +18,10 @@ public class SynLibInterface implements SourceInterface {
 
     @Override
     public int getNetworkLatency(Player player) {
-        return this.synapseInterface.getSynapse().getNetworkLatency(player.getUniqueId());
+        if (!(player instanceof SynapsePlayer synapsePlayer)) {
+            return 0;
+        }
+        return synapsePlayer.getRakNetLatency();
     }
 
     @Override
@@ -42,7 +45,7 @@ public class SynLibInterface implements SourceInterface {
 
     @Override
     public Integer putPacket(Player player, DataPacket packet, boolean needACK, boolean immediate) {
-        if (player instanceof SynapsePlayer) this.synapseInterface.getPutPacketThread().addMainToThread((SynapsePlayer) player, packet, needACK, immediate);
+        if (player instanceof SynapsePlayer) this.synapseInterface.getPutPacketThread().addMainToThread((SynapsePlayer) player, packet);
         else throw new RuntimeException("putPacket (not SynapsePlayer) to SynLibInterface");
         return 0;  //这个返回值在nk中并没有被用到
     }
