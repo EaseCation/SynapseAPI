@@ -79,13 +79,20 @@ public class SynapsePlayer16 extends SynapsePlayer14 {
 					this.isNetEaseClient = Optional.ofNullable(packet.extra.get("netease")).orElseGet(() -> new JsonPrimitive(false)).getAsBoolean();
 				}
 				if (pk == null) {
-					close();
+					close("", "disconnect.loginFailed");
 				} else {
 					this.handleDataPacket(pk);
+
+					if (cachedExtra != null) {
+						JsonElement blocksChecksum = cachedExtra.get("blocks_checksum");
+						if (blocksChecksum != null) {
+							checkBlockRegistryChecksum(blocksChecksum.getAsLong());
+						}
+					}
 				}
 			} catch (Exception e) {
 				MainLogger.getLogger().logException(e);
-				this.close();
+				this.close("", "disconnectionScreen.internalError.cantConnect");
 			}
 		}
 

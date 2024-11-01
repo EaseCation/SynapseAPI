@@ -128,9 +128,9 @@ public class BlockPalette {
     public ListTag<CompoundTag> toNBT(int version) {
         ListTag<CompoundTag> container = new ListTag<>();
         for (BlockData block : palette) {
-            CompoundTag tag = new CompoundTag()
+            CompoundTag tag = new CompoundTag(new LinkedHashMap<>())
                     .putString("name", block.name)
-                    .putCompound("states", block.states);
+                    .putCompound("states", new CompoundTag(new TreeMap<>(block.states.getTagsUnsafe())));
             if (version != 0) {
                 tag.putInt("version", version);
             }
@@ -146,9 +146,9 @@ public class BlockPalette {
     public CompoundTag toVanillaNBT(int version) {
         ListTag<CompoundTag> container = new ListTag<>();
         for (BlockData block : palette) {
-            CompoundTag tag = new CompoundTag()
+            CompoundTag tag = new CompoundTag(new LinkedHashMap<>())
                     .putString("name", block.name)
-                    .putCompound("states", block.states);
+                    .putCompound("states", new CompoundTag(new TreeMap<>(block.states.getTagsUnsafe())));
             if (version != 0) {
                 tag.putInt("version", version);
             }
@@ -238,6 +238,25 @@ public class BlockPalette {
 
         netease.sortHash();
         return netease;
+    }
+
+    public long calculateInternalChecksum() {
+        ListTag<CompoundTag> blocks = new ListTag<>();
+        for (BlockData block : palette) {
+            blocks.add(new CompoundTag(new LinkedHashMap<>())
+                    .putString("name", block.name)
+                    .putCompound("states", new CompoundTag(new TreeMap<>(block.states.getTagsUnsafe())))
+                    .putShort("id", block.id)
+                    .putShort("val", block.val));
+        }
+
+        byte[] bytes;
+        try {
+            bytes = NBTIO.write(blocks, ByteOrder.LITTLE_ENDIAN, true);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+        return Hash.xxh64(bytes);
     }
 
     @ToString

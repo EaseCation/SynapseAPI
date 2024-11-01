@@ -6,7 +6,9 @@ import cn.nukkit.level.GlobalBlockPaletteInterface.StaticVersion;
 import it.unimi.dsi.fastutil.ints.IntArrayList;
 import it.unimi.dsi.fastutil.ints.IntList;
 import lombok.extern.log4j.Log4j2;
+import org.itxtech.synapseapi.SynapseAPI;
 import org.itxtech.synapseapi.SynapseSharedConstants;
+import org.itxtech.synapseapi.event.server.BlockRegistryChecksumChangedEvent;
 import org.itxtech.synapseapi.multiprotocol.AbstractProtocol;
 import org.itxtech.synapseapi.multiprotocol.utils.block.BlockPalette;
 import org.itxtech.synapseapi.multiprotocol.utils.block.LegacyBlockSerializer;
@@ -25,6 +27,9 @@ public final class AdvancedGlobalBlockPalette {
 
     public static final Map<AbstractProtocol, AdvancedGlobalBlockPaletteInterface[]> palettes = new EnumMap<>(AbstractProtocol.class);
     public static final Map<StaticVersion, GlobalBlockPaletteInterface> staticPalettes = new EnumMap<>(StaticVersion.class);
+
+    private static long BLOCK_REGISTRY_CHECKSUM;
+    private static final AbstractProtocol BLOCK_REGISTRY_CHECKSUM_VERSION = AbstractProtocol.PROTOCOL_120_10;
 
     static {
         log.debug("Loading advanced global block palette...");
@@ -273,6 +278,20 @@ public final class AdvancedGlobalBlockPalette {
         }
 
         registerStaticPalettes();
+
+        recalculateBlockRegistryChecksum();
+    }
+
+    private static void recalculateBlockRegistryChecksum() {
+        long newChecksum = RuntimeBlockMapper.PALETTES.get(BLOCK_REGISTRY_CHECKSUM_VERSION)[1].calculateInternalChecksum();
+        if (BLOCK_REGISTRY_CHECKSUM == newChecksum) {
+            return;
+        }
+        BLOCK_REGISTRY_CHECKSUM = newChecksum;
+
+        new BlockRegistryChecksumChangedEvent(newChecksum).call();
+
+        SynapseAPI.getInstance().getLogger().debug("BlockRegistry checksum: {}", newChecksum);
     }
 
     public static int getOrCreateRuntimeId(AbstractProtocol protocol, boolean netease, int legacyId) {
@@ -361,6 +380,10 @@ public final class AdvancedGlobalBlockPalette {
 
     public static GlobalBlockPaletteInterface getStaticBlockPalette0(StaticVersion version) {
         return staticPalettes.get(version);
+    }
+
+    public static long getBlockRegistryChecksum() {
+        return BLOCK_REGISTRY_CHECKSUM;
     }
 
     public static void init() { //检查数据

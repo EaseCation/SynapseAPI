@@ -54,6 +54,7 @@ import org.itxtech.synapseapi.multiprotocol.protocol12120.protocol.ChangeDimensi
 import org.itxtech.synapseapi.multiprotocol.protocol14.protocol.PlayerActionPacket14;
 import org.itxtech.synapseapi.multiprotocol.protocol14.protocol.TextPacket14;
 import org.itxtech.synapseapi.multiprotocol.protocol17.protocol.TextPacket17;
+import org.itxtech.synapseapi.multiprotocol.utils.AdvancedGlobalBlockPalette;
 import org.itxtech.synapseapi.multiprotocol.utils.CraftingPacketManager;
 import org.itxtech.synapseapi.multiprotocol.utils.CreativeItemsPalette;
 import org.itxtech.synapseapi.network.protocol.mod.ServerSubPacketHandler;
@@ -187,7 +188,7 @@ public class SynapsePlayer extends Player {
             try {
                 DataPacket pk = packet.decodedLoginPacket;
                 if (pk == null) {
-                    close();
+                    close("", "disconnect.loginFailed");
                     return;
                 }
                 if (pk instanceof org.itxtech.synapseapi.multiprotocol.protocol12.protocol.LoginPacket) {
@@ -198,11 +199,50 @@ public class SynapsePlayer extends Player {
                     this.isNetEaseClient = Optional.ofNullable(packet.extra.get("netease")).orElseGet(() -> new JsonPrimitive(false)).getAsBoolean();
                 }
                 this.handleDataPacket(pk);
+
+                if (cachedExtra != null) {
+                    JsonElement blocksChecksum = cachedExtra.get("blocks_checksum");
+                    if (blocksChecksum != null) {
+                        checkBlockRegistryChecksum(blocksChecksum.getAsLong());
+                    }
+                }
             } catch (Exception e) {
                 MainLogger.getLogger().logException(e);
-                this.close();
+                this.close("", "disconnectionScreen.internalError.cantConnect");
             }
         }
+    }
+
+    protected void checkBlockRegistryChecksum(long previousChecksum) {
+        if (previousChecksum == 0) {
+            return;
+        }
+
+        long checksum = AdvancedGlobalBlockPalette.getBlockRegistryChecksum();
+        if (checksum == previousChecksum) {
+            return;
+        }
+
+        SynapseAPI.getInstance().getLogger().info("玩家 {} 触发原生跨服由于先前的方块注册表 {} 与本服 {} 不同", getName(), previousChecksum, checksum);
+        rejoinGame("disconnectionScreen.blockMismatch");
+    }
+
+    public void rejoinGame() {
+        rejoinGame("disconnectionScreen.restartClient");
+    }
+
+    public void rejoinGame(String reason) {
+        String address = getLoginChainData().getServerAddress();
+        if (address == null || !address.contains(":")) {
+            close("", reason);
+            return;
+        }
+
+        String[] split = address.split(":", 2);
+        TransferPacket packet = new TransferPacket();
+        packet.address = split[0];
+        packet.port = Integer.parseInt(split[1]);
+        dataPacket(packet);
     }
 
     public SynapseEntry getSynapseEntry() {
@@ -677,6 +717,7 @@ public class SynapsePlayer extends Player {
                     JsonArray behPacks = new JsonArray();
                     getResourcePacks().keySet().forEach(behPacks::add);
                     pk.extra.add("beh_packs", behPacks);
+                    pk.extra.addProperty("blocks_checksum", AdvancedGlobalBlockPalette.getBlockRegistryChecksum());
                     getSynapseEntry().sendDataPacket(pk);
                 }
             }, 1);
