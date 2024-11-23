@@ -118,6 +118,8 @@ public class SynapsePlayer extends Player {
     float lastAuthInputYaw;
     float lastAuthInputPitch;
 
+    public final List<byte[]> outboundQueue = new ArrayList<>();
+
     public SynapsePlayer(SourceInterface interfaz, SynapseEntry synapseEntry, Long clientID, InetSocketAddress socketAddress) {
         super(interfaz, clientID, socketAddress);
         this.synapseEntry = synapseEntry;
