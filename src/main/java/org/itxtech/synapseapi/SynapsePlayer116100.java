@@ -77,6 +77,7 @@ import org.itxtech.synapseapi.multiprotocol.protocol116200.protocol.ResourcePack
 import org.itxtech.synapseapi.multiprotocol.protocol116200.protocol.StartGamePacket116200;
 import org.itxtech.synapseapi.multiprotocol.protocol116210.protocol.CameraShakePacket116210;
 import org.itxtech.synapseapi.multiprotocol.protocol11710.protocol.NpcDialoguePacket11710;
+import org.itxtech.synapseapi.multiprotocol.protocol118.protocol.UpdateSubChunkBlocksPacket118;
 import org.itxtech.synapseapi.multiprotocol.protocol11830.protocol.ChangeMobPropertyPacket11830;
 import org.itxtech.synapseapi.multiprotocol.protocol117.protocol.StartGamePacket117;
 import org.itxtech.synapseapi.multiprotocol.protocol11710.protocol.NPCRequestPacket11710;
@@ -2502,6 +2503,23 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
             pk.animation = animation;
             this.dataPacket(pk);
         }
+    }
+
+    @Override
+    public void updateSubChunkBlocks(int subChunkBlockX, int subChunkBlockY, int subChunkBlockZ, BlockChangeEntry[] layer0, BlockChangeEntry[] layer1) {
+        if (getProtocol() < AbstractProtocol.PROTOCOL_118.getProtocolStart()) {
+            return;
+        }
+        AbstractProtocol protocol = getAbstractProtocol();
+        boolean netease = isNetEaseClient();
+
+        UpdateSubChunkBlocksPacket118 packet = new UpdateSubChunkBlocksPacket118();
+        packet.subChunkBlockX = subChunkBlockX;
+        packet.subChunkBlockY = subChunkBlockY;
+        packet.subChunkBlockZ = subChunkBlockZ;
+        packet.layer0 = UpdateSubChunkBlocksPacket118.convertBlocks(layer0, protocol, netease);
+        packet.layer1 = UpdateSubChunkBlocksPacket118.convertBlocks(layer1, protocol, netease);
+        dataPacket(packet);
     }
 
     @Override

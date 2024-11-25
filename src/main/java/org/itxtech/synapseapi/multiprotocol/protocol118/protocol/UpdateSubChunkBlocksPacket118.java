@@ -1,20 +1,24 @@
 package org.itxtech.synapseapi.multiprotocol.protocol118.protocol;
 
+import cn.nukkit.block.Block;
+import cn.nukkit.network.protocol.DataPacket;
 import cn.nukkit.network.protocol.ProtocolInfo;
-import cn.nukkit.network.protocol.UpdateBlockPacket;
-import cn.nukkit.utils.BinaryStream;
+import cn.nukkit.network.protocol.UpdateSubChunkBlocksPacket;
+import cn.nukkit.network.protocol.types.BlockChangeEntry;
 import lombok.ToString;
+import org.itxtech.synapseapi.multiprotocol.AbstractProtocol;
+import org.itxtech.synapseapi.multiprotocol.utils.AdvancedGlobalBlockPalette;
 
 @ToString
 public class UpdateSubChunkBlocksPacket118 extends Packet118 {
 
     public static final int NETWORK_ID = ProtocolInfo.UPDATE_SUB_CHUNK_BLOCKS_PACKET;
 
-    public int subChunkX;
-    public int subChunkY;
-    public int subChunkZ;
-    public Entry[] layer0 = new Entry[0];
-    public Entry[] layer1 = new Entry[0];
+    public int subChunkBlockX;
+    public int subChunkBlockY;
+    public int subChunkBlockZ;
+    public BlockChangeEntry[] layer0 = new BlockChangeEntry[0];
+    public BlockChangeEntry[] layer1 = new BlockChangeEntry[0];
 
     @Override
     public int pid() {
@@ -29,52 +33,61 @@ public class UpdateSubChunkBlocksPacket118 extends Packet118 {
     @Override
     public void encode() {
         this.reset();
-        this.putBlockVector3(this.subChunkX, this.subChunkY, this.subChunkZ);
+        this.putBlockVector3(this.subChunkBlockX, this.subChunkBlockY, this.subChunkBlockZ);
+
         this.putUnsignedVarInt(this.layer0.length);
-        for (Entry update : this.layer0) {
-            update.write(this);
+        for (BlockChangeEntry entry : this.layer0) {
+            writeEntry(entry);
         }
+
         this.putUnsignedVarInt(this.layer1.length);
-        for (Entry update : this.layer1) {
-            update.write(this);
+        for (BlockChangeEntry entry : this.layer1) {
+            writeEntry(entry);
         }
     }
 
-    @ToString
-    public static class Entry {
-        public final int x;
-        public final int y;
-        public final int z;
-        public final int blockRuntimeId;
-        public final int flags;
-        // These two fields are useless 99.9% of the time; they are here to allow this packet to provide UpdateBlockSyncedPacket functionality.
-        public final long syncedUpdateEntityUniqueId;
-        public final int syncedUpdateType;
+    private void writeEntry(BlockChangeEntry entry) {
+        this.putBlockVector3(entry.x(), entry.y(), entry.z());
+        this.putUnsignedVarInt(entry.block());
+        this.putUnsignedVarInt(entry.flags());
+        this.putUnsignedVarLong(entry.syncedUpdateEntityUniqueId());
+        this.putUnsignedVarInt(entry.syncedUpdateType());
+    }
 
-        public Entry(int x, int y, int z, int blockRuntimeId) {
-            this(x, y, z, blockRuntimeId, UpdateBlockPacket.FLAG_ALL_PRIORITY);
+    public static BlockChangeEntry[] convertBlocks(BlockChangeEntry[] entries, AbstractProtocol protocol, boolean netease) {
+        if (entries.length == 0) {
+            return entries;
         }
 
-        public Entry(int x, int y, int z, int blockRuntimeId, int flags) {
-            this(x, y, z, blockRuntimeId, flags, 0, 0);
+        BlockChangeEntry[] result = new BlockChangeEntry[entries.length];
+        for (int i = 0; i < entries.length; i++) {
+            BlockChangeEntry entry = entries[i];
+            int blockFullId = entry.block();
+            result[i] = new BlockChangeEntry(
+                    entry.x(),
+                    entry.y(),
+                    entry.z(),
+                    AdvancedGlobalBlockPalette.getOrCreateRuntimeId(protocol, netease, Block.getIdFromFullId(blockFullId), Block.getDamageFromFullId(blockFullId)),
+                    entry.flags(),
+                    entry.syncedUpdateEntityUniqueId(),
+                    entry.syncedUpdateType()
+            );
         }
+        return result;
+    }
 
-        public Entry(int x, int y, int z, int blockRuntimeId, int flags, long syncedUpdateEntityUniqueId, int syncedUpdateType) {
-            this.x = x;
-            this.y = y;
-            this.z = z;
-            this.blockRuntimeId = blockRuntimeId;
-            this.flags = flags;
-            this.syncedUpdateEntityUniqueId = syncedUpdateEntityUniqueId;
-            this.syncedUpdateType = syncedUpdateType;
-        }
+    @Override
+    public DataPacket fromDefault(DataPacket pk, AbstractProtocol protocol, boolean netease) {
+        UpdateSubChunkBlocksPacket packet = (UpdateSubChunkBlocksPacket) pk;
+        this.subChunkBlockX = packet.subChunkBlockX;
+        this.subChunkBlockY = packet.subChunkBlockY;
+        this.subChunkBlockZ = packet.subChunkBlockZ;
+        this.layer0 = convertBlocks(packet.layer0, protocol, netease);
+        this.layer1 = convertBlocks(packet.layer1, protocol, netease);
+        return this;
+    }
 
-        private void write(BinaryStream stream) {
-            stream.putBlockVector3(this.x, this.y, this.z);
-            stream.putUnsignedVarInt(this.blockRuntimeId);
-            stream.putUnsignedVarInt(this.flags);
-            stream.putUnsignedVarLong(this.syncedUpdateEntityUniqueId);
-            stream.putUnsignedVarInt(this.syncedUpdateType);
-        }
+    public static Class<? extends DataPacket> getDefaultPacket() {
+        return UpdateSubChunkBlocksPacket.class;
     }
 }
