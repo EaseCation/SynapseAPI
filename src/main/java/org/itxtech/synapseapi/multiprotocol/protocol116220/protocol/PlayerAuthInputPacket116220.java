@@ -101,7 +101,9 @@ public class PlayerAuthInputPacket116220 extends Packet116220 implements Invento
     public float headYaw;
     public float moveVecX;
     public float moveVecZ;
+//    public BitSet inputFlags;
     public long inputFlags;
+    public long inputFlags2;
     public int inputMode;
     public int playMode;
     /**
@@ -158,6 +160,14 @@ public class PlayerAuthInputPacket116220 extends Packet116220 implements Invento
      * @since 1.21.40
      */
     public float cameraOrientationZ;
+    /**
+     * @since 1.21.50
+     */
+    public float rawMoveVecX;
+    /**
+     * @since 1.21.50
+     */
+    public float rawMoveVecZ;
 
     public boolean hasNetworkIds;
     @Nullable
@@ -192,7 +202,58 @@ public class PlayerAuthInputPacket116220 extends Packet116220 implements Invento
         this.moveVecX = this.getLFloat();
         this.moveVecZ = this.getLFloat();
         this.headYaw = this.getLFloat();
-        this.inputFlags = this.getUnsignedVarLong();
+        if (false && protocol.getProtocolStart() >= AbstractProtocol.PROTOCOL_121_50.getProtocolStart()) {
+            int flagCount = PlayerAuthInputFlags.COUNT[protocol.ordinal()];
+/*
+            long[] bitSet = new long[Mth.ceil(flagCount / 64f)];
+            int index = 0;
+            int shift = 0;
+            while (true) {
+                if (shift >= flagCount) {
+                    throw new IllegalArgumentException("VarBitSet was too large");
+                }
+                int b = getSingedByte();
+                long bits = b & 0x7f;
+                bitSet[index] |= bits << shift; // extra bits will be discarded
+                int nextShift = shift + 7;
+                if (nextShift >= 64) {
+                    nextShift -= 64;
+                    bitSet[++index] = bits >> (7 - nextShift);
+                }
+                if ((b & 0x80) == 0) {
+                    break;
+                }
+                shift = nextShift;
+            }
+            inputFlags = BitSet.valueOf(bitSet);
+*/
+            boolean flag2 = false;
+            int shift = 0;
+            while (true) {
+                if (shift >= flagCount) {
+                    throw new IllegalArgumentException("VarBitSet was too large");
+                }
+                byte b = getSingedByte();
+                long bits = b & 0x7f;
+                int nextShift = shift + 7;
+                if (flag2) {
+                    inputFlags2 |= bits << shift;
+                } else {
+                    inputFlags |= bits << shift; // extra bits will be discarded
+                    if (nextShift >= 64) {
+                        nextShift -= 64;
+                        inputFlags2 = bits >> (7 - nextShift);
+                        flag2 = true;
+                    }
+                }
+                if ((b & 0x80) == 0) {
+                    break;
+                }
+                shift = nextShift;
+            }
+        } else {
+            this.inputFlags = this.getUnsignedVarLong();
+        }
         this.inputMode = (int) this.getUnsignedVarInt();
         this.playMode = (int) this.getUnsignedVarInt();
         if (protocol.getProtocolStart() >= AbstractProtocol.PROTOCOL_119.getProtocolStart()) {
@@ -225,7 +286,7 @@ public class PlayerAuthInputPacket116220 extends Packet116220 implements Invento
             debugFlags = new boolean[3];
         }
 
-        if ((this.inputFlags & (1L << FLAG_PERFORM_ITEM_INTERACTION)) != 0) {
+        if (hasFlag(PlayerAuthInputFlags.PERFORM_ITEM_INTERACTION)) {
             if (SynapseSharedConstants.MAC_DEBUG) debugFlags[0] = true;
 
             int legacyRequestId = this.getVarInt();
@@ -277,13 +338,13 @@ public class PlayerAuthInputPacket116220 extends Packet116220 implements Invento
             this.useItemData = itemData;
         }
 
-        if ((this.inputFlags & (1L << FLAG_PERFORM_ITEM_STACK_REQUEST)) != 0) {
+        if (hasFlag(PlayerAuthInputFlags.PERFORM_ITEM_STACK_REQUEST)) {
             if (SynapseSharedConstants.MAC_DEBUG) debugFlags[1] = true;
 
             itemStackRequest = helper.getItemStackRequest(this);
         }
 
-        if ((this.inputFlags & (1L << FLAG_PERFORM_BLOCK_ACTIONS)) != 0) {
+        if (hasFlag(PlayerAuthInputFlags.PERFORM_BLOCK_ACTIONS)) {
             if (SynapseSharedConstants.MAC_DEBUG) debugFlags[2] = true;
 
             int size = this.getVarInt();
@@ -320,7 +381,7 @@ public class PlayerAuthInputPacket116220 extends Packet116220 implements Invento
             this.blockActions = deque.toArray(new PlayerBlockAction[0]);
         }
 
-        if ((this.inputFlags & (1L << PlayerAuthInputFlags.IN_CLIENT_PREDICTED_IN_VEHICLE)) != 0) {
+        if (hasFlag(PlayerAuthInputFlags.IN_CLIENT_PREDICTED_IN_VEHICLE)) {
             if (protocol.getProtocolStart() >= AbstractProtocol.PROTOCOL_120_70.getProtocolStart()) {
                 vehiclePitch = getLFloat();
                 vehicleYaw = getLFloat();
@@ -343,6 +404,8 @@ public class PlayerAuthInputPacket116220 extends Packet116220 implements Invento
 
         if (protocol.getProtocolStart() >= AbstractProtocol.PROTOCOL_121_50.getProtocolStart()) {
             Vector2f vec = this.getVector2f();
+            this.rawMoveVecX = vec.x;
+            this.rawMoveVecZ = vec.y;
         }
 
         if (SynapseSharedConstants.MAC_DEBUG) {
@@ -474,6 +537,11 @@ public class PlayerAuthInputPacket116220 extends Packet116220 implements Invento
     }
 
     @Override
+    public long getInputFlags2() {
+        return this.inputFlags2;
+    }
+
+    @Override
     public int getInputMode() {
         return this.inputMode;
     }
@@ -573,15 +641,28 @@ public class PlayerAuthInputPacket116220 extends Packet116220 implements Invento
         return analogMoveVecZ;
     }
 
+    @Override
     public float getCameraOrientationX() {
         return cameraOrientationX;
     }
 
+    @Override
     public float getCameraOrientationY() {
         return cameraOrientationY;
     }
 
+    @Override
     public float getCameraOrientationZ() {
         return cameraOrientationZ;
+    }
+
+    @Override
+    public float getRawMoveVecX() {
+        return rawMoveVecX;
+    }
+
+    @Override
+    public float getRawMoveVecZ() {
+        return rawMoveVecZ;
     }
 }

@@ -803,7 +803,9 @@ public class SynapsePlayer116 extends SynapsePlayer113 {
 				}
 
 				long inputFlags = playerAuthInputPacket.getInputFlags();
-				if ((inputFlags & (1L << PlayerAuthInputPacket116.FLAG_START_SPRINTING)) != 0 && !this.isSprinting()) {
+				long inputFlags2 = playerAuthInputPacket.getInputFlags2();
+
+				if (playerAuthInputPacket.hasFlag(PlayerAuthInputFlags.START_SPRINTING) && !this.isSprinting()) {
 					PlayerToggleSprintEvent playerToggleSprintEvent = new PlayerToggleSprintEvent(this, true);
 					if (hasEffect(Effect.BLINDNESS)) {
 						playerToggleSprintEvent.setCancelled();
@@ -815,7 +817,7 @@ public class SynapsePlayer116 extends SynapsePlayer113 {
 						this.setSprinting(true);
 					}
 				}
-				if ((inputFlags & (1L << PlayerAuthInputPacket116.FLAG_STOP_SPRINTING)) != 0 && this.isSprinting()) {
+				if (playerAuthInputPacket.hasFlag(PlayerAuthInputFlags.STOP_SPRINTING) && this.isSprinting()) {
 					PlayerToggleSprintEvent playerToggleSprintEvent = new PlayerToggleSprintEvent(this, false);
 					this.server.getPluginManager().callEvent(playerToggleSprintEvent);
 					if (playerToggleSprintEvent.isCancelled()) {
@@ -824,7 +826,7 @@ public class SynapsePlayer116 extends SynapsePlayer113 {
 						this.setSprinting(false);
 					}
 				}
-				if ((inputFlags & (1L << PlayerAuthInputPacket116.FLAG_START_SNEAKING)) != 0 && !this.isSneaking()) {
+				if (playerAuthInputPacket.hasFlag(PlayerAuthInputFlags.START_SNEAKING) && !this.isSneaking()) {
 					PlayerToggleSneakEvent playerToggleSneakEvent = new PlayerToggleSneakEvent(this, true);
 					this.server.getPluginManager().callEvent(playerToggleSneakEvent);
 					if (playerToggleSneakEvent.isCancelled()) {
@@ -833,7 +835,7 @@ public class SynapsePlayer116 extends SynapsePlayer113 {
 						this.setSneaking(true);
 					}
 				}
-				if ((inputFlags & (1L << PlayerAuthInputPacket116.FLAG_STOP_SNEAKING)) != 0 && this.isSneaking()) {
+				if (playerAuthInputPacket.hasFlag(PlayerAuthInputFlags.STOP_SNEAKING) && this.isSneaking()) {
 					PlayerToggleSneakEvent playerToggleSneakEvent = new PlayerToggleSneakEvent(this, false);
 					this.server.getPluginManager().callEvent(playerToggleSneakEvent);
 					if (playerToggleSneakEvent.isCancelled()) {
@@ -842,7 +844,7 @@ public class SynapsePlayer116 extends SynapsePlayer113 {
 						this.setSneaking(false);
 					}
 				}
-				if ((inputFlags & (1L << PlayerAuthInputPacket116.FLAG_START_SWIMMING)) != 0 && !this.isSwimming()) {
+				if (playerAuthInputPacket.hasFlag(PlayerAuthInputFlags.START_SWIMMING) && !this.isSwimming()) {
 					PlayerToggleSwimEvent playerToggleSwimEvent = new PlayerToggleSwimEvent(this, true);
 					this.server.getPluginManager().callEvent(playerToggleSwimEvent);
 					if (playerToggleSwimEvent.isCancelled()) {
@@ -851,7 +853,7 @@ public class SynapsePlayer116 extends SynapsePlayer113 {
 						this.setSwimming(true);
 					}
 				}
-				if ((inputFlags & (1L << PlayerAuthInputPacket116.FLAG_STOP_SWIMMING)) != 0 && this.isSwimming()) {
+				if (playerAuthInputPacket.hasFlag(PlayerAuthInputFlags.STOP_SWIMMING) && this.isSwimming()) {
 					PlayerToggleSwimEvent playerToggleSwimEvent = new PlayerToggleSwimEvent(this, false);
 					this.server.getPluginManager().callEvent(playerToggleSwimEvent);
 					if (playerToggleSwimEvent.isCancelled()) {
@@ -860,7 +862,7 @@ public class SynapsePlayer116 extends SynapsePlayer113 {
 						this.setSwimming(false);
 					}
 				}
-				if ((inputFlags & (1L << PlayerAuthInputPacket116.FLAG_START_JUMPING)) != 0) {
+				if (playerAuthInputPacket.hasFlag(PlayerAuthInputFlags.START_JUMPING)) {
 					this.server.getPluginManager().callEvent(new PlayerJumpEvent(this));
 
 					if (EXPERIMENTAL_COMBAT_KNOCKBACK_TEST && this.isSprinting()) {
@@ -869,7 +871,7 @@ public class SynapsePlayer116 extends SynapsePlayer113 {
 						this.motionZ = playerAuthInputPacket.getDeltaZ();
 					}
 				}
-				if ((inputFlags & (1L << PlayerAuthInputPacket116.FLAG_START_GLIDING)) != 0 && !this.isGliding()) {
+				if (playerAuthInputPacket.hasFlag(PlayerAuthInputFlags.START_GLIDING) && !this.isGliding()) {
 					PlayerToggleGlideEvent playerToggleGlideEvent = new PlayerToggleGlideEvent(this, true);
 					Item chestplate = getArmorInventory().getChestplate();
 					if (chestplate.getId() != Item.ELYTRA || chestplate.getDamage() >= chestplate.getMaxDurability() - 1) {
@@ -882,7 +884,7 @@ public class SynapsePlayer116 extends SynapsePlayer113 {
 						this.setGliding(true);
 					}
 				}
-				if ((inputFlags & (1L << PlayerAuthInputPacket116.FLAG_STOP_GLIDING)) != 0 && this.isGliding()) {
+				if (playerAuthInputPacket.hasFlag(PlayerAuthInputFlags.STOP_GLIDING) && this.isGliding()) {
 					PlayerToggleGlideEvent playerToggleGlideEvent = new PlayerToggleGlideEvent(this, false);
 					this.server.getPluginManager().callEvent(playerToggleGlideEvent);
 					if (playerToggleGlideEvent.isCancelled()) {
@@ -891,7 +893,7 @@ public class SynapsePlayer116 extends SynapsePlayer113 {
 						this.setGliding(false);
 					}
 				}
-				if ((inputFlags & (1L << PlayerAuthInputFlags.START_CRAWLING)) != 0 && !this.isCrawling()) {
+				if (playerAuthInputPacket.hasFlag(PlayerAuthInputFlags.START_CRAWLING) && !this.isCrawling()) {
 					PlayerToggleCrawlEvent playerToggleCrawlEvent = new PlayerToggleCrawlEvent(this, true);
 					this.server.getPluginManager().callEvent(playerToggleCrawlEvent);
 					if (playerToggleCrawlEvent.isCancelled()) {
@@ -900,7 +902,7 @@ public class SynapsePlayer116 extends SynapsePlayer113 {
 						this.setCrawling(true);
 					}
 				}
-				if ((inputFlags & (1L << PlayerAuthInputFlags.STOP_CRAWLING)) != 0 && this.isCrawling()) {
+				if (playerAuthInputPacket.hasFlag(PlayerAuthInputFlags.STOP_CRAWLING) && this.isCrawling()) {
 					PlayerToggleCrawlEvent playerToggleCrawlEvent = new PlayerToggleCrawlEvent(this, false);
 					this.server.getPluginManager().callEvent(playerToggleCrawlEvent);
 					if (playerToggleCrawlEvent.isCancelled()) {
@@ -909,7 +911,7 @@ public class SynapsePlayer116 extends SynapsePlayer113 {
 						this.setCrawling(false);
 					}
 				}
-				if ((inputFlags & (1L << PlayerAuthInputFlags.START_FLYING)) != 0 && !getAdventureSettings().get(Type.FLYING)) {
+				if (playerAuthInputPacket.hasFlag(PlayerAuthInputFlags.START_FLYING) && !getAdventureSettings().get(Type.FLYING)) {
 					if (!server.getAllowFlight() && !getAdventureSettings().get(Type.ALLOW_FLIGHT)) {
 						kick(PlayerKickEvent.Reason.FLYING_DISABLED, "Flying is not enabled on this server", false);
 						break;
@@ -926,7 +928,7 @@ public class SynapsePlayer116 extends SynapsePlayer113 {
 						this.getAdventureSettings().set(Type.FLYING, playerToggleFlightEvent.isFlying());
 					}
 				}
-				if ((inputFlags & (1L << PlayerAuthInputFlags.STOP_FLYING)) != 0 && getAdventureSettings().get(Type.FLYING)) {
+				if (playerAuthInputPacket.hasFlag(PlayerAuthInputFlags.STOP_FLYING) && getAdventureSettings().get(Type.FLYING)) {
 					PlayerToggleFlightEvent playerToggleFlightEvent = new PlayerToggleFlightEvent(this, false);
 					if (isSpectator()) {
 						playerToggleFlightEvent.setCancelled();
@@ -938,7 +940,7 @@ public class SynapsePlayer116 extends SynapsePlayer113 {
 						this.getAdventureSettings().set(Type.FLYING, playerToggleFlightEvent.isFlying());
 					}
 				}
-				if ((inputFlags & (1L << PlayerAuthInputFlags.START_SPIN_ATTACK)) != 0) {
+				if (playerAuthInputPacket.hasFlag(PlayerAuthInputFlags.START_SPIN_ATTACK)) {
 					if (isSpectator()) {
 						setDataFlag(DATA_FLAG_SPIN_ATTACK, false);
 					} else {
@@ -959,18 +961,18 @@ public class SynapsePlayer116 extends SynapsePlayer113 {
 						}
 					}
 				}
-				if ((inputFlags & (1L << PlayerAuthInputFlags.STOP_SPIN_ATTACK)) != 0) {
+				if (playerAuthInputPacket.hasFlag(PlayerAuthInputFlags.STOP_SPIN_ATTACK)) {
 					damageNearbyMobsTick = 0;
 					setDataFlag(DATA_FLAG_SPIN_ATTACK, false);
 				}
 
-				emoting = (inputFlags & (1L << PlayerAuthInputFlags.EMOTING)) != 0;
+				emoting = playerAuthInputPacket.hasFlag(PlayerAuthInputFlags.EMOTING);
 
-				if ((inputFlags & (1L << PlayerAuthInputFlags.HANDLED_TELEPORT)) != 0) {
+				if (playerAuthInputPacket.hasFlag(PlayerAuthInputFlags.HANDLED_TELEPORT)) {
 					//TODO
 				}
 
-				if ((inputFlags & (1L << PlayerAuthInputFlags.MISSED_SWING)) != 0 && isServerAuthoritativeSoundEnabled() && !isSpectator()) {
+				if (playerAuthInputPacket.hasFlag(PlayerAuthInputFlags.MISSED_SWING) && isServerAuthoritativeSoundEnabled() && !isSpectator()) {
 					level.addLevelSoundEvent(this, LevelSoundEventPacket.SOUND_ATTACK_NODAMAGE, EntityFullNames.PLAYER);
 
 					// touch bug: https://bugs.mojang.com/browse/MCPE-107865
@@ -985,13 +987,13 @@ public class SynapsePlayer116 extends SynapsePlayer113 {
 
 				if (isRiding()) {
 					if (riding instanceof EntityAbstractHorse horse) {
-						horse.updatePlayerJump((inputFlags & (1L << PlayerAuthInputFlags.JUMPING)) != 0);
+						horse.updatePlayerJump(playerAuthInputPacket.hasFlag(PlayerAuthInputFlags.JUMPING));
 					} else if (riding instanceof EntityCamel camel && camel.isControlling(this)) {
-						camel.updatePlayerJump(this, (inputFlags & (1L << PlayerAuthInputFlags.JUMPING)) != 0);
+						camel.updatePlayerJump(this, playerAuthInputPacket.hasFlag(PlayerAuthInputFlags.JUMPING));
 					}
 				}
 
-				boolean predictedInVehicle = (inputFlags & (1L << PlayerAuthInputFlags.IN_CLIENT_PREDICTED_IN_VEHICLE)) != 0;
+				boolean predictedInVehicle = playerAuthInputPacket.hasFlag(PlayerAuthInputFlags.IN_CLIENT_PREDICTED_IN_VEHICLE);
 				boolean inPredictedVehicle = predictedInVehicle && riding != null && riding.getId() == playerAuthInputPacket.getPredictedVehicleEntityUniqueId();
 
 				Vector3 newPos = new Vector3(playerAuthInputPacket.getX(), playerAuthInputPacket.getY() - this.getBaseOffset(), playerAuthInputPacket.getZ());
@@ -1513,34 +1515,34 @@ public class SynapsePlayer116 extends SynapsePlayer113 {
 
 							float left = 0;
 							float right = 0;
-							if ((inputFlags & (1L << PlayerAuthInputFlags.UP)) != 0) {
+							if (playerAuthInputPacket.hasFlag(PlayerAuthInputFlags.UP)) {
 								left = 0.04f;
 								right = 0.04f;
 								if ((inputFlags & ((1L << PlayerAuthInputFlags.PADDLE_LEFT) | 1L << PlayerAuthInputFlags.PADDLE_RIGHT)) != ((1L << PlayerAuthInputFlags.PADDLE_LEFT) | 1L << PlayerAuthInputFlags.PADDLE_RIGHT)) {
-									if ((inputFlags & (1L << PlayerAuthInputFlags.PADDLE_LEFT)) != 0) {
+									if (playerAuthInputPacket.hasFlag(PlayerAuthInputFlags.PADDLE_LEFT)) {
 										left = 0.05f;
 										right = 0.02f;
-									} else if ((inputFlags & (1L << PlayerAuthInputFlags.PADDLE_RIGHT)) != 0) {
+									} else if (playerAuthInputPacket.hasFlag(PlayerAuthInputFlags.PADDLE_RIGHT)) {
 										left = 0.02f;
 										right = 0.05f;
 									}
 								}
-							} else if ((inputFlags & (1L << PlayerAuthInputFlags.DOWN)) != 0) {
+							} else if (playerAuthInputPacket.hasFlag(PlayerAuthInputFlags.DOWN)) {
 								left = -0.004f;
 								right = -0.004f;
 								if ((inputFlags & ((1L << PlayerAuthInputFlags.PADDLE_LEFT) | 1L << PlayerAuthInputFlags.PADDLE_RIGHT)) != ((1L << PlayerAuthInputFlags.PADDLE_LEFT) | 1L << PlayerAuthInputFlags.PADDLE_RIGHT)) {
-									if ((inputFlags & (1L << PlayerAuthInputFlags.PADDLE_LEFT)) != 0) {
+									if (playerAuthInputPacket.hasFlag(PlayerAuthInputFlags.PADDLE_LEFT)) {
 										left = -0.005f;
 										right = -0.002f;
-									} else if ((inputFlags & (1L << PlayerAuthInputFlags.PADDLE_RIGHT)) != 0) {
+									} else if (playerAuthInputPacket.hasFlag(PlayerAuthInputFlags.PADDLE_RIGHT)) {
 										left = -0.002f;
 										right = -0.005f;
 									}
 								}
 							} else if ((inputFlags & ((1L << PlayerAuthInputFlags.PADDLE_LEFT) | 1L << PlayerAuthInputFlags.PADDLE_RIGHT)) != ((1L << PlayerAuthInputFlags.PADDLE_LEFT) | 1L << PlayerAuthInputFlags.PADDLE_RIGHT)) {
-								if ((inputFlags & (1L << PlayerAuthInputFlags.PADDLE_LEFT)) != 0) {
+								if (playerAuthInputPacket.hasFlag(PlayerAuthInputFlags.PADDLE_LEFT)) {
 									left = 0.04f;
-								} else if ((inputFlags & (1L << PlayerAuthInputFlags.PADDLE_RIGHT)) != 0) {
+								} else if (playerAuthInputPacket.hasFlag(PlayerAuthInputFlags.PADDLE_RIGHT)) {
 									right = 0.04f;
 								}
 							}

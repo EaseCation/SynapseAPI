@@ -216,10 +216,6 @@ public class SynapsePlayer extends Player {
     }
 
     protected void checkBlockRegistryChecksum(long previousChecksum) {
-        if (previousChecksum == 0) {
-            return;
-        }
-
         long checksum = AdvancedGlobalBlockPalette.getBlockRegistryChecksum();
         if (checksum == previousChecksum) {
             return;

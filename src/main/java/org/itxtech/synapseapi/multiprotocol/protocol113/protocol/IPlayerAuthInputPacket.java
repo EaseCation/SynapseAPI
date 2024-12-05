@@ -18,6 +18,9 @@ public interface IPlayerAuthInputPacket extends InventoryTransactionPacketInterf
     float getMoveVecX();
     float getMoveVecZ();
     long getInputFlags();
+    default long getInputFlags2() {
+        return 0;
+    }
     int getInputMode();
     int getPlayMode();
     float getVrGazeDirectionX();
@@ -118,6 +121,24 @@ public interface IPlayerAuthInputPacket extends InventoryTransactionPacketInterf
      */
     default float getCameraOrientationZ() {
         return 0;
+    }
+
+    /**
+     * @since 1.21.50
+     */
+    default float getRawMoveVecX() {
+        return 0;
+    }
+
+    /**
+     * @since 1.21.50
+     */
+    default float getRawMoveVecZ() {
+        return 0;
+    }
+
+    default boolean hasFlag(int flagId) {
+        return ((flagId >= 64 ? getInputFlags2() : getInputFlags()) & (1L << flagId)) != 0;
     }
 
     @ToString

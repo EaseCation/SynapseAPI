@@ -225,6 +225,8 @@ public class DataFlagTranslator {
 
 	public static final int FLAG_12080_BODY_ROTATION_BLOCKED = 118;
 
+	public static final int FLAG_12160_RENDERS_WHEN_INVISIBLE = 119;
+
 	static {
 		Arrays.fill(v12ToV14Book, -1);
 		v12ToV14Book[Entity.DATA_FLAG_ONFIRE] = ONFIRE;
@@ -473,6 +475,8 @@ public class DataFlagTranslator {
 		v12ToV11950Book[Entity.DATA_FLAG_TIMER_FLAG_3] = FLAG_12040_TIMER_FLAG_3;
 
 		v12ToV11950Book[Entity.DATA_FLAG_BODY_ROTATION_BLOCKED] = FLAG_12080_BODY_ROTATION_BLOCKED;
+
+		v12ToV11950Book[Entity.DATA_FLAG_RENDERS_WHEN_INVISIBLE] = FLAG_12160_RENDERS_WHEN_INVISIBLE;
 	}
 
 	public static int translateTo14Id(int v12Id) {

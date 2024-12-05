@@ -30,6 +30,10 @@ import cn.nukkit.item.Item;
 import cn.nukkit.item.ItemBucket;
 import cn.nukkit.item.ItemEdible;
 import cn.nukkit.item.ItemMap;
+import cn.nukkit.item.armortrim.TrimMaterial;
+import cn.nukkit.item.armortrim.TrimMaterials;
+import cn.nukkit.item.armortrim.TrimPattern;
+import cn.nukkit.item.armortrim.TrimPatterns;
 import cn.nukkit.item.enchantment.Enchantment;
 import cn.nukkit.lang.TextContainer;
 import cn.nukkit.lang.TranslationContainer;
@@ -143,6 +147,7 @@ import org.itxtech.synapseapi.multiprotocol.protocol12140.protocol.CameraInstruc
 import org.itxtech.synapseapi.multiprotocol.protocol12140.protocol.CameraPresetsPacket12140;
 import org.itxtech.synapseapi.multiprotocol.protocol12140.protocol.MovementEffectPacket12140;
 import org.itxtech.synapseapi.multiprotocol.protocol12140.protocol.ResourcePacksInfoPacket12140;
+import org.itxtech.synapseapi.multiprotocol.protocol12150.protocol.CameraPresetsPacket12150;
 import org.itxtech.synapseapi.multiprotocol.protocol12150.protocol.ResourcePacksInfoPacket12150;
 import org.itxtech.synapseapi.multiprotocol.protocol14.protocol.PlayerActionPacket14;
 import org.itxtech.synapseapi.multiprotocol.protocol16.protocol.ResourcePackClientResponsePacket16;
@@ -3552,7 +3557,8 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
         }
 
         TrimDataPacket120 packet = new TrimDataPacket120();
-        //TODO: trim
+        packet.trimPatterns = TrimPatterns.getRegistry().values().toArray(new TrimPattern[0]);
+        packet.trimMaterials = TrimMaterials.getRegistry().values().toArray(new TrimMaterial[0]);
         this.dataPacket(packet);
     }
 
@@ -3610,6 +3616,13 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
 
     @Override
     protected void sendCameraPresets() {
+        if (getProtocol() >= AbstractProtocol.PROTOCOL_121_50.getProtocolStart()) {
+            CameraPresetsPacket12150 packet = new CameraPresetsPacket12150();
+            packet.presets = CameraManager.getInstance().getCameras();
+            dataPacket(packet);
+            return;
+        }
+
         if (getProtocol() >= AbstractProtocol.PROTOCOL_121_40.getProtocolStart()) {
             CameraPresetsPacket12140 packet = new CameraPresetsPacket12140();
             packet.presets = CameraManager.getInstance().getCameras();

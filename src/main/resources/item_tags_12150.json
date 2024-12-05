@@ -324,6 +324,9 @@
         "minecraft:stone_pickaxe",
         "minecraft:wooden_pickaxe"
     ],
+    "minecraft:is_shears": [
+        "minecraft:shears"
+    ],
     "minecraft:is_shovel": [
         "minecraft:diamond_shovel",
         "minecraft:golden_shovel",
@@ -694,7 +697,8 @@
         "minecraft:lapis_lazuli",
         "minecraft:netherite_ingot",
         "minecraft:quartz",
-        "minecraft:redstone"
+        "minecraft:redstone",
+        "minecraft:resin_brick"
     ],
     "minecraft:trim_templates": [
         "minecraft:bolt_armor_trim_smithing_template",

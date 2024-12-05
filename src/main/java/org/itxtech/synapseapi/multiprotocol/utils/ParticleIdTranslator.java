@@ -397,6 +397,9 @@ public final class ParticleIdTranslator {
     public static final int V121_OMINOUS_ITEM_SPAWNER = 93;
 
     public static final int V12150_CREAKING_CRUMBLE = 94;
+    public static final int V12150_PALE_OAK_LEAVES = 95;
+    public static final int V12150_EYEBLOSSOM_OPEN = 96;
+    public static final int V12150_EYEBLOSSOM_CLOSE = 97;
 
     static {
         Arrays.fill(v12ToV112Book, -1);
@@ -789,6 +792,9 @@ public final class ParticleIdTranslator {
         v12ToV12070Book[Particle.OMINOUS_ITEM_SPAWNER] = V121_OMINOUS_ITEM_SPAWNER;
 
         v12ToV12070Book[Particle.CREAKING_CRUMBLE] = V12150_CREAKING_CRUMBLE;
+        v12ToV12070Book[Particle.PALE_OAK_LEAVES] = V12150_PALE_OAK_LEAVES;
+        v12ToV12070Book[Particle.EYEBLOSSOM_OPEN] = V12150_EYEBLOSSOM_OPEN;
+        v12ToV12070Book[Particle.EYEBLOSSOM_CLOSE] = V12150_EYEBLOSSOM_CLOSE;
     }
 
     public static int translateTo112(int particleId) {

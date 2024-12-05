@@ -1,9 +1,9 @@
 package org.itxtech.synapseapi.multiprotocol.protocol120.protocol;
 
+import cn.nukkit.item.armortrim.TrimMaterial;
+import cn.nukkit.item.armortrim.TrimPattern;
 import cn.nukkit.network.protocol.ProtocolInfo;
-import lombok.RequiredArgsConstructor;
 import lombok.ToString;
-import lombok.Value;
 
 @ToString
 public class TrimDataPacket120 extends Packet120 {
@@ -27,30 +27,15 @@ public class TrimDataPacket120 extends Packet120 {
 
         putUnsignedVarInt(trimPatterns.length);
         for (TrimPattern pattern : trimPatterns) {
-            putString(pattern.itemId);
-            putString(pattern.patternId);
+            putString(pattern.itemName());
+            putString(pattern.name());
         }
 
         putUnsignedVarInt(trimMaterials.length);
         for (TrimMaterial material : trimMaterials) {
-            putString(material.materialId);
-            putString(material.color);
-            putString(material.itemId);
+            putString(material.name());
+            putString(material.color().toString());
+            putString(material.itemName());
         }
-    }
-
-    @RequiredArgsConstructor
-    @Value
-    public static class TrimPattern {
-        String itemId;
-        String patternId;
-    }
-
-    @RequiredArgsConstructor
-    @Value
-    public static class TrimMaterial {
-        String materialId;
-        String color;
-        String itemId;
     }
 }

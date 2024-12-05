@@ -105,6 +105,11 @@ public class CameraPreset {
     @Nullable
     public Boolean continueTargeting;
     /**
+     * @since 1.21.50
+     */
+    @Nullable
+    public Float blockListeningRadius;
+    /**
      * @since 1.21.20
      */
     @Nullable
@@ -129,4 +134,23 @@ public class CameraPreset {
      */
     @Nullable
     public Boolean alignTargetAndCameraForward;
+    /**
+     * @since 1.21.50
+     */
+    @Nullable
+    public AimAssist aimAssist;
+
+    @Builder
+    @NoArgsConstructor
+    @AllArgsConstructor
+    @ToString
+    public static class AimAssist {
+        public String presetId;
+        @Nullable
+        public Integer targetMode;
+        @Nullable
+        public Vector2f angle;
+        @Nullable
+        public Float distance;
+    }
 }

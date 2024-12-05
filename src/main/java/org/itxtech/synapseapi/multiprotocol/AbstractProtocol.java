@@ -176,7 +176,7 @@ public enum AbstractProtocol {
     PROTOCOL_121_20(712, Packet12120.class, SynapsePlayer116100.class, BinaryStreamHelper12120.create(), true),
     PROTOCOL_121_30(729, Packet12130.class, SynapsePlayer116100.class, BinaryStreamHelper12130.create(), true),
     PROTOCOL_121_40(748, Packet12140.class, SynapsePlayer116100.class, BinaryStreamHelper12140.create(), true),
-    PROTOCOL_121_50(761, Packet12150.class, SynapsePlayer116100.class, BinaryStreamHelper12150.create(), true),
+    PROTOCOL_121_50(766, Packet12150.class, SynapsePlayer116100.class, BinaryStreamHelper12150.create(), true),
     ;
 
     private static final AbstractProtocol[] VALUES = values();

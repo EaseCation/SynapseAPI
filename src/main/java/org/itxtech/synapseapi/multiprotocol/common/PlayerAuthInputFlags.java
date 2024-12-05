@@ -1,5 +1,10 @@
 package org.itxtech.synapseapi.multiprotocol.common;
 
+import cn.nukkit.utils.Utils;
+import org.itxtech.synapseapi.multiprotocol.AbstractProtocol;
+
+import java.util.Arrays;
+
 public interface PlayerAuthInputFlags {
     /**
      * Pressing the "fly up" key when using touch. (including while swimming)
@@ -201,4 +206,36 @@ public interface PlayerAuthInputFlags {
      * @since 1.21.40
      */
     int STOP_SPIN_ATTACK = 57;
+    /**
+     * @since 1.21.50
+     */
+    int JUMP_RELEASED_RAW = 58;
+    /**
+     * @since 1.21.50
+     */
+    int JUMP_PRESSED_RAW = 59;
+    /**
+     * @since 1.21.50
+     */
+    int JUMP_CURRENT_RAW = 60;
+    /**
+     * @since 1.21.50
+     */
+    int SNEAK_RELEASED_RAW = 61;
+    /**
+     * @since 1.21.50
+     */
+    int SNEAK_PRESSED_RAW = 62;
+    /**
+     * @since 1.21.50
+     */
+    int SNEAK_CURRENT_RAW = 63;
+
+
+    int[] COUNT = Utils.make(() -> {
+        int[] versions = new int[AbstractProtocol.getValues().length];
+        Arrays.fill(versions, 64);
+        versions[AbstractProtocol.PROTOCOL_121_50.ordinal()] = 64;
+        return versions;
+    });
 }

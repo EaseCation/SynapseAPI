@@ -48,7 +48,8 @@ public final class EntityPropertiesPalette {
                                 "hostile_unobserved",
                                 "twitching",
                                 "crumbling"
-                        )
+                        ),
+                        new EntityPropertyDataInt("minecraft:creaking_swaying_ticks", 6, 0)
                 )
         );
 
