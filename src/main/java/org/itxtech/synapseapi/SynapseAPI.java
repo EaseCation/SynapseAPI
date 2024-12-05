@@ -233,6 +233,7 @@ public class SynapseAPI extends PluginBase implements Listener {
 
         ChunkRequestTask.addPreloadVersion(StaticVersion.V1_18_30_NETEASE);
         ChunkRequestTask.addPreloadVersion(StaticVersion.V1_20_10_NETEASE);
+        ChunkRequestTask.addPreloadVersion(StaticVersion.V1_20_50_NETEASE);
 
         //仅用于开发测试
 /*

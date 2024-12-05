@@ -39,6 +39,11 @@ public class BinaryStreamHelper12050 extends BinaryStreamHelper12040 {
     }
 
     @Override
+    public boolean isNetEase() {
+        return true;
+    }
+
+    @Override
     protected Item getSlot(BinaryStream stream, boolean instanceItem) {
         int id = stream.getVarInt();
         if (id == 0) {
