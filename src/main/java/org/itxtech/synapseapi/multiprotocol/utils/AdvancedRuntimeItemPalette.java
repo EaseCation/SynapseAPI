@@ -54,7 +54,7 @@ public final class AdvancedRuntimeItemPalette {
         RuntimeItemPalette palette12030 = new RuntimeItemPalette(AbstractProtocol.PROTOCOL_120_30, "runtime_item_ids_12030.json");
         RuntimeItemPalette palette12050 = new RuntimeItemPalette(AbstractProtocol.PROTOCOL_120_50, "runtime_item_ids_12050.json");
 //        RuntimeItemPalette palette12050 = new RuntimeItemPalette(AbstractProtocol.PROTOCOL_120_50, "runtime_item_ids_12050_raw.json", "item_id_map_12050.json", "item_flatten_map_12050.json");
-        RuntimeItemPalette palette12050N = new RuntimeItemPalette(AbstractProtocol.PROTOCOL_120_50, "runtime_item_ids_12050.json", true); //TODO 12/05/2024
+        RuntimeItemPalette palette12050N = new RuntimeItemPalette(AbstractProtocol.PROTOCOL_120_50, "runtime_item_ids_12050NE.json");
         RuntimeItemPalette palette12060 = new RuntimeItemPalette(AbstractProtocol.PROTOCOL_120_60, "runtime_item_ids_12060.json");
         RuntimeItemPalette palette12070 = new RuntimeItemPalette(AbstractProtocol.PROTOCOL_120_70, "runtime_item_ids_12070.json");
         RuntimeItemPalette palette12080 = new RuntimeItemPalette(AbstractProtocol.PROTOCOL_120_80, "runtime_item_ids_12080.json");

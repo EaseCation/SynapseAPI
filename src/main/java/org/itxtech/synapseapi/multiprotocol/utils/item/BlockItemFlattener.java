@@ -16,6 +16,9 @@ public final class BlockItemFlattener {
     private static final Map<AbstractProtocol, Int2IntFunction> DOWNGRADERS = new EnumMap<>(AbstractProtocol.class);
     private static final Map<AbstractProtocol, AuxValueFixer> AUX_VALUE_FIXERS = new EnumMap<>(AbstractProtocol.class);
 
+    /**
+     * @return item id
+     */
     public static int downgrade(AbstractProtocol protocol, int id) {
         Int2IntFunction func = DOWNGRADERS.get(protocol);
         if (func == null) {
@@ -24,10 +27,13 @@ public final class BlockItemFlattener {
         return func.applyAsInt(id);
     }
 
+    /**
+     * @return item full id
+     */
     public static int fixMeta(AbstractProtocol protocol, int flattenedId, int id, int meta) {
         AuxValueFixer fixer = AUX_VALUE_FIXERS.get(protocol);
         if (fixer == null) {
-            return meta;
+            return Item.getFullId(id, meta);
         }
         return fixer.fix(flattenedId, id, meta);
     }
@@ -338,6 +344,9 @@ public final class BlockItemFlattener {
 
     @FunctionalInterface
     private interface AuxValueFixer {
+        /**
+         * @return item full id
+         */
         int fix(int flattenedId, int id, int meta);
     }
 
