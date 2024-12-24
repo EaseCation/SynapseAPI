@@ -18,6 +18,7 @@ import static cn.nukkit.GameVersion.*;
 
 public final class RecipeFlattener {
     public static void addFlattenedRecipes(AbstractProtocol protocol, Collection<Recipe> recipes) {
+/*
         if (protocol.getProtocolStart() < AbstractProtocol.PROTOCOL_119_70.getProtocolStart()) {
             return;
         }
@@ -71,7 +72,7 @@ public final class RecipeFlattener {
                         'B', cerateRecipeIngredient("minecraft:soul_fire_base_blocks"),
                         'C', cerateRecipeIngredient("minecraft:logs")
                 )));
-
+*/
         if (protocol.getProtocolStart() < AbstractProtocol.PROTOCOL_120_50.getProtocolStart()) {
             return;
         }
@@ -321,8 +322,7 @@ public final class RecipeFlattener {
                         "BBB"
                 },
                 Map.of(
-//                        'A', cerateRecipeIngredient(ItemBlockID.WHITE_WOOL),
-                        'A', cerateRecipeIngredient(ItemBlockID.WOOL, DyeColor.WHITE.getWoolData()),
+                        'A', cerateRecipeIngredient(ItemBlockID.WHITE_WOOL),
                         'B', cerateRecipeIngredient("minecraft:planks")
                 )));
         recipes.add(TodoCraftingRecipe.shaped(
@@ -332,8 +332,7 @@ public final class RecipeFlattener {
                         "BBB"
                 },
                 Map.of(
-//                        'A', cerateRecipeIngredient(ItemBlockID.ORANGE_WOOL),
-                        'A', cerateRecipeIngredient(ItemBlockID.WOOL, DyeColor.ORANGE.getWoolData()),
+                        'A', cerateRecipeIngredient(ItemBlockID.ORANGE_WOOL),
                         'B', cerateRecipeIngredient("minecraft:planks")
                 )));
         recipes.add(TodoCraftingRecipe.shaped(
@@ -343,8 +342,7 @@ public final class RecipeFlattener {
                         "BBB"
                 },
                 Map.of(
-//                        'A', cerateRecipeIngredient(ItemBlockID.MAGENTA_WOOL),
-                        'A', cerateRecipeIngredient(ItemBlockID.WOOL, DyeColor.MAGENTA.getWoolData()),
+                        'A', cerateRecipeIngredient(ItemBlockID.MAGENTA_WOOL),
                         'B', cerateRecipeIngredient("minecraft:planks")
                 )));
         recipes.add(TodoCraftingRecipe.shaped(
@@ -354,8 +352,7 @@ public final class RecipeFlattener {
                         "BBB"
                 },
                 Map.of(
-//                        'A', cerateRecipeIngredient(ItemBlockID.LIGHT_BLUE_WOOL),
-                        'A', cerateRecipeIngredient(ItemBlockID.WOOL, DyeColor.LIGHT_BLUE.getWoolData()),
+                        'A', cerateRecipeIngredient(ItemBlockID.LIGHT_BLUE_WOOL),
                         'B', cerateRecipeIngredient("minecraft:planks")
                 )));
         recipes.add(TodoCraftingRecipe.shaped(
@@ -365,8 +362,7 @@ public final class RecipeFlattener {
                         "BBB"
                 },
                 Map.of(
-//                        'A', cerateRecipeIngredient(ItemBlockID.YELLOW_WOOL),
-                        'A', cerateRecipeIngredient(ItemBlockID.WOOL, DyeColor.YELLOW.getWoolData()),
+                        'A', cerateRecipeIngredient(ItemBlockID.YELLOW_WOOL),
                         'B', cerateRecipeIngredient("minecraft:planks")
                 )));
         recipes.add(TodoCraftingRecipe.shaped(
@@ -376,8 +372,7 @@ public final class RecipeFlattener {
                         "BBB"
                 },
                 Map.of(
-//                        'A', cerateRecipeIngredient(ItemBlockID.LIME_WOOL),
-                        'A', cerateRecipeIngredient(ItemBlockID.WOOL, DyeColor.LIME.getWoolData()),
+                        'A', cerateRecipeIngredient(ItemBlockID.LIME_WOOL),
                         'B', cerateRecipeIngredient("minecraft:planks")
                 )));
         recipes.add(TodoCraftingRecipe.shaped(
@@ -387,8 +382,7 @@ public final class RecipeFlattener {
                         "BBB"
                 },
                 Map.of(
-//                        'A', cerateRecipeIngredient(ItemBlockID.PINK_WOOL),
-                        'A', cerateRecipeIngredient(ItemBlockID.WOOL, DyeColor.PINK.getWoolData()),
+                        'A', cerateRecipeIngredient(ItemBlockID.PINK_WOOL),
                         'B', cerateRecipeIngredient("minecraft:planks")
                 )));
         recipes.add(TodoCraftingRecipe.shaped(
@@ -398,8 +392,7 @@ public final class RecipeFlattener {
                         "BBB"
                 },
                 Map.of(
-//                        'A', cerateRecipeIngredient(ItemBlockID.GRAY_WOOL),
-                        'A', cerateRecipeIngredient(ItemBlockID.WOOL, DyeColor.GRAY.getWoolData()),
+                        'A', cerateRecipeIngredient(ItemBlockID.GRAY_WOOL),
                         'B', cerateRecipeIngredient("minecraft:planks")
                 )));
         recipes.add(TodoCraftingRecipe.shaped(
@@ -409,8 +402,7 @@ public final class RecipeFlattener {
                         "BBB"
                 },
                 Map.of(
-//                        'A', cerateRecipeIngredient(ItemBlockID.LIGHT_GRAY_WOOL),
-                        'A', cerateRecipeIngredient(ItemBlockID.WOOL, DyeColor.LIGHT_GRAY.getWoolData()),
+                        'A', cerateRecipeIngredient(ItemBlockID.LIGHT_GRAY_WOOL),
                         'B', cerateRecipeIngredient("minecraft:planks")
                 )));
         recipes.add(TodoCraftingRecipe.shaped(
@@ -420,8 +412,7 @@ public final class RecipeFlattener {
                         "BBB"
                 },
                 Map.of(
-//                        'A', cerateRecipeIngredient(ItemBlockID.CYAN_WOOL),
-                        'A', cerateRecipeIngredient(ItemBlockID.WOOL, DyeColor.CYAN.getWoolData()),
+                        'A', cerateRecipeIngredient(ItemBlockID.CYAN_WOOL),
                         'B', cerateRecipeIngredient("minecraft:planks")
                 )));
         recipes.add(TodoCraftingRecipe.shaped(
@@ -431,8 +422,7 @@ public final class RecipeFlattener {
                         "BBB"
                 },
                 Map.of(
-//                        'A', cerateRecipeIngredient(ItemBlockID.PURPLE_WOOL),
-                        'A', cerateRecipeIngredient(ItemBlockID.WOOL, DyeColor.PURPLE.getWoolData()),
+                        'A', cerateRecipeIngredient(ItemBlockID.PURPLE_WOOL),
                         'B', cerateRecipeIngredient("minecraft:planks")
                 )));
         recipes.add(TodoCraftingRecipe.shaped(
@@ -442,8 +432,7 @@ public final class RecipeFlattener {
                         "BBB"
                 },
                 Map.of(
-//                        'A', cerateRecipeIngredient(ItemBlockID.BLUE_WOOL),
-                        'A', cerateRecipeIngredient(ItemBlockID.WOOL, DyeColor.BLUE.getWoolData()),
+                        'A', cerateRecipeIngredient(ItemBlockID.BLUE_WOOL),
                         'B', cerateRecipeIngredient("minecraft:planks")
                 )));
         recipes.add(TodoCraftingRecipe.shaped(
@@ -453,8 +442,7 @@ public final class RecipeFlattener {
                         "BBB"
                 },
                 Map.of(
-//                        'A', cerateRecipeIngredient(ItemBlockID.BROWN_WOOL),
-                        'A', cerateRecipeIngredient(ItemBlockID.WOOL, DyeColor.BROWN.getWoolData()),
+                        'A', cerateRecipeIngredient(ItemBlockID.BROWN_WOOL),
                         'B', cerateRecipeIngredient("minecraft:planks")
                 )));
         recipes.add(TodoCraftingRecipe.shaped(
@@ -464,8 +452,7 @@ public final class RecipeFlattener {
                         "BBB"
                 },
                 Map.of(
-//                        'A', cerateRecipeIngredient(ItemBlockID.GREEN_WOOL),
-                        'A', cerateRecipeIngredient(ItemBlockID.WOOL, DyeColor.GREEN.getWoolData()),
+                        'A', cerateRecipeIngredient(ItemBlockID.GREEN_WOOL),
                         'B', cerateRecipeIngredient("minecraft:planks")
                 )));
         recipes.add(TodoCraftingRecipe.shaped(
@@ -475,8 +462,7 @@ public final class RecipeFlattener {
                         "BBB"
                 },
                 Map.of(
-//                        'A', cerateRecipeIngredient(ItemBlockID.RED_WOOL),
-                        'A', cerateRecipeIngredient(ItemBlockID.WOOL, DyeColor.RED.getWoolData()),
+                        'A', cerateRecipeIngredient(ItemBlockID.RED_WOOL),
                         'B', cerateRecipeIngredient("minecraft:planks")
                 )));
         recipes.add(TodoCraftingRecipe.shaped(
@@ -486,8 +472,7 @@ public final class RecipeFlattener {
                         "BBB"
                 },
                 Map.of(
-//                        'A', cerateRecipeIngredient(ItemBlockID.BLACK_WOOL),
-                        'A', cerateRecipeIngredient(ItemBlockID.WOOL, DyeColor.BLACK.getWoolData()),
+                        'A', cerateRecipeIngredient(ItemBlockID.BLACK_WOOL),
                         'B', cerateRecipeIngredient("minecraft:planks")
                 )));
 

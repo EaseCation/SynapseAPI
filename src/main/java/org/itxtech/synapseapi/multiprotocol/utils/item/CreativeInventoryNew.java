@@ -20,12 +20,12 @@ public final class CreativeInventoryNew {
     private static final List<Item> ITEMS = new ObjectArrayList<>();
 
     static {
-        log.info("Loading Creative Items from creative_items.json (new) 1.19.0");
+        log.info("Loading Creative Items from creative_items.json (new) 1.20.10");
 
         ITEMS.clear();
 
         JsonArray items;
-        try (InputStream stream = SynapseAPI.class.getClassLoader().getResourceAsStream("creativeitems_119.json");
+        try (InputStream stream = SynapseAPI.class.getClassLoader().getResourceAsStream("creativeitems_12010.json");
              InputStreamReader reader = new InputStreamReader(stream)) {
             items = new Gson().fromJson(reader, JsonArray.class);
         } catch (NullPointerException | IOException e) {

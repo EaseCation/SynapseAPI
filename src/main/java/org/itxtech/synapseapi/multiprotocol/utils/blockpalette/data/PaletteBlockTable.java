@@ -89,7 +89,7 @@ public class PaletteBlockTable extends ObjectArrayList<PaletteBlockData> {
                 String name = blockTag.getString("name");
                 int id;
                 try {
-                    id = newName ? GlobalBlockPalette.getBlockIdByNewName(name) : Blocks.getIdByBlockName(name);
+                    id = newName ? GlobalBlockPalette.getBlockIdByNewName(name) : Blocks.getIdByBlockName(name, true);
                 } catch (NoSuchElementException e) {
                     //table.add(air);
                     table.add(unknown);

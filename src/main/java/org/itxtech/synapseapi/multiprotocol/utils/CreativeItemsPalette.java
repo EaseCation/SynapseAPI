@@ -33,7 +33,7 @@ public class CreativeItemsPalette {
 
     public static void init() {
         log.debug("Loading creative items...");
-
+/*
         register(AbstractProtocol.PROTOCOL_19, load("creativeitems_19.json"), null);
         register(AbstractProtocol.PROTOCOL_110, load("creativeitems_19.json"), null);
         register(AbstractProtocol.PROTOCOL_111, load("creativeitems_111.json"), null);
@@ -64,8 +64,9 @@ public class CreativeItemsPalette {
             register(AbstractProtocol.PROTOCOL_118_30, CreativeInventoryLegacy.getItems(), null);
             register(AbstractProtocol.PROTOCOL_118_30_NE, CreativeInventoryLegacy.getItems(), null);
         }
-
+*/
         if (!V1_19_0.isAvailable()) {
+/*
             register(AbstractProtocol.PROTOCOL_119, CreativeInventoryLegacy.getItems(), null);
             register(AbstractProtocol.PROTOCOL_119_10, CreativeInventoryLegacy.getItems(), null);
             register(AbstractProtocol.PROTOCOL_119_20, CreativeInventoryLegacy.getItems(), null);
@@ -78,6 +79,7 @@ public class CreativeItemsPalette {
             register(AbstractProtocol.PROTOCOL_119_70, CreativeInventoryLegacy.getItems(), null);
             register(AbstractProtocol.PROTOCOL_119_80, CreativeInventoryLegacy.getItems(), null);
             register(AbstractProtocol.PROTOCOL_120, CreativeInventoryLegacy.getItems(), null);
+*/
             register(AbstractProtocol.PROTOCOL_120_10, CreativeInventoryLegacy.getItems(), null);
             register(AbstractProtocol.PROTOCOL_120_30, CreativeInventoryLegacy.getItems(), null);
             register(AbstractProtocol.PROTOCOL_120_40, CreativeInventoryLegacy.getItems(), null);
@@ -92,6 +94,7 @@ public class CreativeItemsPalette {
             register(AbstractProtocol.PROTOCOL_121_40, CreativeInventoryLegacy.getItems(), null);
             register(AbstractProtocol.PROTOCOL_121_50, CreativeInventoryLegacy.getItems(), null);
         } else {
+/*
             register(AbstractProtocol.PROTOCOL_119, CreativeInventoryNew.getItems(), null);
             register(AbstractProtocol.PROTOCOL_119_10, CreativeInventoryNew.getItems(), null);
             register(AbstractProtocol.PROTOCOL_119_20, CreativeInventoryNew.getItems(), null);
@@ -104,6 +107,7 @@ public class CreativeItemsPalette {
             register(AbstractProtocol.PROTOCOL_119_70, CreativeInventoryNew.getItems(), null);
             register(AbstractProtocol.PROTOCOL_119_80, CreativeInventoryNew.getItems(), null);
             register(AbstractProtocol.PROTOCOL_120, CreativeInventoryNew.getItems(), null);
+*/
             register(AbstractProtocol.PROTOCOL_120_10, CreativeInventoryNew.getItems(), null);
             register(AbstractProtocol.PROTOCOL_120_30, CreativeInventoryNew.getItems(), null);
             register(AbstractProtocol.PROTOCOL_120_40, CreativeInventoryNew.getItems(), null);
@@ -121,6 +125,9 @@ public class CreativeItemsPalette {
 
         for (AbstractProtocol protocol : AbstractProtocol.getValues()) {
             if (protocol.getProtocolStart() < AbstractProtocol.PROTOCOL_19.getProtocolStart()) {
+                continue;
+            }
+            if (protocol.getProtocolStart() < AbstractProtocol.FIRST_AVAILABLE_PROTOCOL.getProtocolStart()) {
                 continue;
             }
             if (palettes.get(protocol) == null) {

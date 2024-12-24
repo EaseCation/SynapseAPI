@@ -75,12 +75,7 @@ public class TodoCraftingRecipe implements CraftingRecipe {
 
     @Override
     public int getPriority() {
-        return 31;
-    }
-
-    @Override
-    public boolean matchItems(List<Item> inputList, List<Item> extraOutputList) {
-        return false;
+        return -1;
     }
 
     @Override

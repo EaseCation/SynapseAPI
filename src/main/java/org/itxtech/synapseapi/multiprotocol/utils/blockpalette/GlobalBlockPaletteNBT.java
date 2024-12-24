@@ -173,11 +173,13 @@ public class GlobalBlockPaletteNBT implements AdvancedGlobalBlockPaletteInterfac
         for (int id = 0; id < Block.BLOCK_ID_COUNT; id++) {
             IntList metaToRuntimeId = idMetaToRuntimeId[id];
             if (metaToRuntimeId == null) {
+/*
                 if (id == Block.LAVA_CAULDRON) {
                     final int toId = Block.BLOCK_CAULDRON;
                     log.debug("REMOVE ME IN THE FUTURE! (1.20.0) Manual mapping block ID: {} => {} ({})", id, toId, protocol);
                     this.idMetaToRuntimeId[id] = idMetaToRuntimeId[toId].toIntArray();
                 }
+*/
                 continue;
             }
             int firstRuntimeId = metaToRuntimeId.getInt(0);

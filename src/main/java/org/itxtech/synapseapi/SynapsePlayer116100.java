@@ -26,10 +26,7 @@ import cn.nukkit.inventory.AnvilInventory;
 import cn.nukkit.inventory.ArmorInventory;
 import cn.nukkit.inventory.ContainerInventory;
 import cn.nukkit.inventory.Inventory;
-import cn.nukkit.item.Item;
-import cn.nukkit.item.ItemBucket;
-import cn.nukkit.item.ItemEdible;
-import cn.nukkit.item.ItemMap;
+import cn.nukkit.item.*;
 import cn.nukkit.item.armortrim.TrimMaterial;
 import cn.nukkit.item.armortrim.TrimMaterials;
 import cn.nukkit.item.armortrim.TrimPattern;
@@ -2335,7 +2332,7 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
                             break;
                         }
                         Item held = inventory.getItemInHand();
-                        if (!(held instanceof ItemEdible) && !held.is(Item.POTION) && !held.is(Item.BUCKET, ItemBucket.MILK_BUCKET)) {
+                        if (!(held instanceof ItemEdible) && !held.is(Item.POTION) && !held.is(Item.BUCKET, ItemBucket.MILK_BUCKET) && (!(held instanceof ItemChemicalTickable tickable) || tickable.isActivated())) {
                             break;
                         }
 

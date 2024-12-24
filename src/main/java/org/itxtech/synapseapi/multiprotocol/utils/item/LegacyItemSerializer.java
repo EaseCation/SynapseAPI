@@ -29,11 +29,22 @@ public final class LegacyItemSerializer {
         return INTERNAL_MAPPING;
     }
 
-    public static CompoundTag serializeItem(Item item) {
+    public static CompoundTag serializeItem(@Nullable Item item) {
         CompoundTag tag = new CompoundTag();
+
+        if (item == null) {
+            ItemUtil.emptyItem(tag);
+            return tag;
+        }
 
         int id = item.getId();
         if (id == ItemID.AIR) {
+            ItemUtil.emptyItem(tag);
+            return tag;
+        }
+
+        int count = item.getCount();
+        if (count <= 0) {
             ItemUtil.emptyItem(tag);
             return tag;
         }
@@ -104,7 +115,7 @@ public final class LegacyItemSerializer {
 
         tag.putShort("Damage", damage);
 
-        tag.putByte("Count", item.getCount());
+        tag.putByte("Count", count);
 
         tag.putBoolean("WasPickedUp", item.wasPickedUp());
 
@@ -128,7 +139,7 @@ public final class LegacyItemSerializer {
         return tag;
     }
 
-    public static CompoundTag serializeItemStack(Item item, int slot) {
+    public static CompoundTag serializeItemStack(@Nullable Item item, int slot) {
         CompoundTag tag = serializeItem(item);
 
         tag.putByte("Slot", slot);
@@ -238,6 +249,24 @@ public final class LegacyItemSerializer {
         INTERNAL_MAPPING.putIfAbsent(identifier, internalId);
     }
 
+    private static void registerItemAux(String identifier, int id, int internalId) {
+        Objects.requireNonNull(identifier, "identifier");
+        if (id < 0) {
+            throw new IllegalArgumentException("Invalid non-block item ID: " + id);
+        }
+
+        if (ItemUtil.ITEM_ID_TO_NAME[id] == null) {
+            throw new IllegalArgumentException("Attempted to register '" + identifier + "', but ID '" + id + "' doesn't exists: " + ItemUtil.ITEM_ID_TO_NAME[id]);
+        }
+        if (ItemUtil.ITEM_NAME_TO_ID.containsKey(identifier)) {
+            throw new IllegalArgumentException(identifier + "' already exists: " + ItemUtil.ITEM_NAME_TO_ID.getInt(identifier));
+        }
+
+        ItemUtil.ITEM_NAME_TO_ID.put(identifier, id);
+
+        INTERNAL_MAPPING.putIfAbsent(identifier, internalId);
+    }
+
     private static void registerCustomBlockItem(String fullName, int itemId) {
         Objects.requireNonNull(fullName, "fullName");
         if (itemId >= 0) {
@@ -264,12 +293,12 @@ public final class LegacyItemSerializer {
 
         ItemSerializer.setSerializer(new RuntimeItemSerializer() {
             @Override
-            public CompoundTag serializeItem(Item item) {
+            public CompoundTag serializeItem(@Nullable Item item) {
                 return LegacyItemSerializer.serializeItem(item);
             }
 
             @Override
-            public CompoundTag serializeItemStack(Item item, int slot) {
+            public CompoundTag serializeItemStack(@Nullable Item item, int slot) {
                 return LegacyItemSerializer.serializeItemStack(item, slot);
             }
 
@@ -290,7 +319,7 @@ public final class LegacyItemSerializer {
 
             @Override
             public void registerItemAux(String identifier, int id, int meta) {
-                LegacyItemSerializer.registerItem(identifier, id, (id << 16) | meta);
+                LegacyItemSerializer.registerItemAux(identifier, id, (id << 16) | meta);
             }
 
             @Override

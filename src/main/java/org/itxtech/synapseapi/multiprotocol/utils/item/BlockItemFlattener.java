@@ -12,7 +12,7 @@ import java.util.EnumMap;
 import java.util.Map;
 
 public final class BlockItemFlattener {
-    private static final AbstractProtocol BASE_GAME_VERSION = AbstractProtocol.PROTOCOL_118;
+    private static final AbstractProtocol BASE_GAME_VERSION = AbstractProtocol.PROTOCOL_120_10;
     private static final Map<AbstractProtocol, Int2IntFunction> DOWNGRADERS = new EnumMap<>(AbstractProtocol.class);
     private static final Map<AbstractProtocol, AuxValueFixer> AUX_VALUE_FIXERS = new EnumMap<>(AbstractProtocol.class);
 
@@ -124,6 +124,9 @@ public final class BlockItemFlattener {
         }
         if (id <= ItemBlockID.ORANGE_STAINED_GLASS_PANE && id >= ItemBlockID.BLACK_STAINED_GLASS_PANE) {
             return ItemBlockID.STAINED_GLASS_PANE;
+        }
+        if (true) { // base-game-version: 1.20.10
+            return id;
         }
         return downgrader12010(id);
     }

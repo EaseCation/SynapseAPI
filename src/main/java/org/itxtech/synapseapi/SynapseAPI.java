@@ -231,7 +231,6 @@ public class SynapseAPI extends PluginBase implements Listener {
                 : new CraftingManagerLegacy());
         CraftingPacketManager.rebuildPacket();
 
-        ChunkRequestTask.addPreloadVersion(StaticVersion.V1_18_30_NETEASE);
         ChunkRequestTask.addPreloadVersion(StaticVersion.V1_20_10_NETEASE);
         ChunkRequestTask.addPreloadVersion(StaticVersion.V1_20_50_NETEASE);
 

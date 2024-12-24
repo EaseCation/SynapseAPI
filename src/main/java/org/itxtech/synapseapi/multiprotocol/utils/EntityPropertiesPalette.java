@@ -53,6 +53,7 @@ public final class EntityPropertiesPalette {
                 )
         );
 
+/*
         register(AbstractProtocol.PROTOCOL_117, palette117, null);
         register(AbstractProtocol.PROTOCOL_117_10, palette117, null);
         register(AbstractProtocol.PROTOCOL_117_30, palette117, null);
@@ -73,6 +74,7 @@ public final class EntityPropertiesPalette {
         register(AbstractProtocol.PROTOCOL_119_70, palette11970, null);
         register(AbstractProtocol.PROTOCOL_119_80, palette11970, null);
         register(AbstractProtocol.PROTOCOL_120, palette11970, null);
+*/
         register(AbstractProtocol.PROTOCOL_120_10, palette11970, null);
         register(AbstractProtocol.PROTOCOL_120_30, palette11970, null);
         register(AbstractProtocol.PROTOCOL_120_40, palette11970, null);

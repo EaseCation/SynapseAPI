@@ -52,13 +52,15 @@ public class BinaryStreamHelper19 extends BinaryStreamHelper18 {
                     // TODO: 05/02/2019 This hack is necessary because we keep the raw NBT tag. Try to remove it.
                     CompoundTag tag = NBTIO.read(inputStream, ByteOrder.LITTLE_ENDIAN, true);
                     // tool damage hack
-                    if (tag.contains("Damage")) {
-                        data = tag.getInt("Damage");
-                        tag.remove("Damage");
-                    }
-                    Tag nkDamageTag = tag.removeAndGet("__DamageConflict__");
-                    if (nkDamageTag != null) {
-                        tag.put("Damage", nkDamageTag);
+                    if (id != Item.GLOW_STICK && id != Item.SPARKLER) {
+                        if (tag.contains("Damage")) {
+                            data = tag.getInt("Damage");
+                            tag.remove("Damage");
+                        }
+                        Tag nkDamageTag = tag.removeAndGet("__DamageConflict__");
+                        if (nkDamageTag != null) {
+                            tag.put("Damage", nkDamageTag);
+                        }
                     }
                     if (!tag.isEmpty()) {
                         nbt = NBTIO.write(tag, ByteOrder.LITTLE_ENDIAN, false);
@@ -144,12 +146,14 @@ public class BinaryStreamHelper19 extends BinaryStreamHelper18 {
                 } else {
                     tag = NBTIO.read(nbt, ByteOrder.LITTLE_ENDIAN, false);
                 }
-                Tag damageTag = tag.removeAndGet("Damage");
-                if (damageTag != null) {
-                    tag.put("__DamageConflict__", damageTag);
-                }
-                if (isDurable) {
-                    tag.putInt("Damage", item.getDamage());
+                if (!item.keepDamageTag()) {
+                    Tag damageTag = tag.removeAndGet("Damage");
+                    if (damageTag != null) {
+                        tag.put("__DamageConflict__", damageTag);
+                    }
+                    if (isDurable) {
+                        tag.putInt("Damage", item.getDamage());
+                    }
                 }
 
                 stream.putLShort(0xffff);

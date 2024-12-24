@@ -43,7 +43,7 @@ public class CraftingManagerLegacy extends CraftingManager {
         RECIPE_COUNT = 1;
 
         root.getAsJsonArray("shapeless").forEach(element -> loadShapeless(element, ShapelessRecipe::new, RecipeType.SHAPELESS));
-//        root.getAsJsonArray("shapeless_shulker_box").forEach(element -> loadShapeless(element, ShapelessUserDataRecipe::new, RecipeType.SHAPELESS_USER_DATA)); //TODO: nbt
+        root.getAsJsonArray("shapeless_shulker_box").forEach(element -> loadShapeless(element, ShapelessUserDataRecipe::new, RecipeType.SHAPELESS_USER_DATA));
         if (ENABLE_CHEMISTRY_FEATURE) {
             root.getAsJsonArray("shapeless_chemistry").forEach(element -> loadShapeless(element, ShapelessChemistryRecipe::new, RecipeType.SHAPELESS_CHEMISTRY));
         }

@@ -48,6 +48,7 @@ public class LoginPacket14 extends Packet14 {
     public long clientId;
     public String deviceId;
     public String platformOfflineId;
+    public String platformOnlineId;
     public boolean editorMode;
     public boolean supportClientChunkGeneration;
     public int platformType;
@@ -61,6 +62,11 @@ public class LoginPacket14 extends Packet14 {
 
     public LoginChainData decodedLoginChainData;
     public boolean netEaseClient;
+
+    public boolean reconnect;
+    public String skinIID;
+    public int growthLevel;
+    public String bloomData;
 
     @Override
     public int pid() {
@@ -324,6 +330,11 @@ public class LoginPacket14 extends Packet14 {
             this.platformOfflineId = platformOfflineIdNode.asText();
         }
 
+        JsonNode platformOnlineIdNode = skinToken.get("PlatformOnlineId");
+        if (platformOnlineIdNode != null) {
+            this.platformOnlineId = platformOnlineIdNode.asText();
+        }
+
         JsonNode trustedSkinNode = skinToken.get("TrustedSkin");
         if (trustedSkinNode != null) {
             skin.setTrusted(trustedSkinNode.asBoolean());
@@ -357,6 +368,28 @@ public class LoginPacket14 extends Packet14 {
         JsonNode maxViewDistanceNode = skinToken.get("MaxViewDistance");
         if (maxViewDistanceNode != null) {
             this.maxViewDistance = maxViewDistanceNode.asInt();
+        }
+
+        // NetEase only:
+
+        JsonNode isReconnectNode = skinToken.get("IsReconnect");
+        if (isReconnectNode != null) {
+            this.reconnect = isReconnectNode.asBoolean();
+        }
+
+        JsonNode skinIIDNode = skinToken.get("SkinIID");
+        if (skinIIDNode != null) {
+            this.skinIID = skinIIDNode.asText();
+        }
+
+        JsonNode growthLevelNode = skinToken.get("GrowthLevel");
+        if (growthLevelNode != null) {
+            this.growthLevel = growthLevelNode.asInt();
+        }
+
+        JsonNode bloomDataNode = skinToken.get("BloomData");
+        if (bloomDataNode != null) {
+            this.bloomData = bloomDataNode.asText();
         }
     }
 

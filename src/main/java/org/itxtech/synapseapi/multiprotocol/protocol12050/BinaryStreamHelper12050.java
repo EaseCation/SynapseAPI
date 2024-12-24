@@ -73,7 +73,7 @@ public class BinaryStreamHelper12050 extends BinaryStreamHelper12040 {
         }
 
         int blockRuntimeId = stream.getVarInt();
-        if (id < 256 && id != 166) { // ItemBlock
+        if (id < 256 && id != Item.GLOW_STICK) { // ItemBlock
             int legacyId = AdvancedGlobalBlockPalette.getLegacyId(this.protocol, stream.neteaseMode, blockRuntimeId);
             if (legacyId != -1) {
                 damage = legacyId & 0x3fff;
@@ -105,13 +105,15 @@ public class BinaryStreamHelper12050 extends BinaryStreamHelper12040 {
             }
 
             if (compoundTag != null && !compoundTag.isEmpty()) {
-                if (compoundTag.contains("Damage")) {
-                    damage = compoundTag.getInt("Damage");
-                    compoundTag.remove("Damage");
-                }
-                Tag nkDamageTag = compoundTag.removeAndGet("__DamageConflict__");
-                if (nkDamageTag != null) {
-                    compoundTag.put("Damage", nkDamageTag);
+                if (id != Item.GLOW_STICK && id != Item.SPARKLER) {
+                    if (compoundTag.contains("Damage")) {
+                        damage = compoundTag.getInt("Damage");
+                        compoundTag.remove("Damage");
+                    }
+                    Tag nkDamageTag = compoundTag.removeAndGet("__DamageConflict__");
+                    if (nkDamageTag != null) {
+                        compoundTag.put("Damage", nkDamageTag);
+                    }
                 }
                 if (!compoundTag.isEmpty()) {
                     nbt = NBTIO.write(compoundTag, ByteOrder.LITTLE_ENDIAN);
@@ -159,6 +161,10 @@ public class BinaryStreamHelper12050 extends BinaryStreamHelper12040 {
 
         Item item = Item.get(id, damage, count, nbt);
 
+        if (item.isItemBlock()) {
+            item.setDamage(0);
+        }
+
         if (canPlace != null && !canPlace.isEmpty()) {
             item.setCanPlaceOnBlocks(canPlace);
         }
@@ -179,7 +185,7 @@ public class BinaryStreamHelper12050 extends BinaryStreamHelper12040 {
 
         int id = item.getId();
         int meta = item.getDamage();
-        boolean isBlock = id < 256 && id != 166;
+        boolean isBlock = id < 256 && id != Item.GLOW_STICK;
         boolean isDurable = item instanceof ItemDurable;
 
         int networkFullId = AdvancedRuntimeItemPalette.getNetworkFullId(this.protocol, stream.neteaseMode, item);
@@ -201,7 +207,7 @@ public class BinaryStreamHelper12050 extends BinaryStreamHelper12040 {
         }
 
         Block block = isBlock ? item.getBlockUnsafe() : null;
-        int runtimeId = block == null ? 0 : AdvancedGlobalBlockPalette.getOrCreateRuntimeId(this.protocol, stream.neteaseMode, block.getId(), block.getDamage());
+        int runtimeId = block == null || block.isBlockItem() ? 0 : AdvancedGlobalBlockPalette.getOrCreateRuntimeId(this.protocol, stream.neteaseMode, block.getId(), block.getDamage());
         stream.putVarInt(runtimeId);
 
         if (SynapseSharedConstants.ITEM_BLOCK_DEBUG) {

@@ -25,8 +25,9 @@ public final class ItemComponentDefinitions {
     static {
         log.debug("Loading item component definitions...");
 
-        // vanilla 在 1.18.10 前发的都是空的
         try {
+/*
+            // vanilla 在 1.18.10 前发的都是空的
             DEFINITIONS.put(AbstractProtocol.PROTOCOL_118_10, new Map[]{
                     load("item_components11810.nbt", AbstractProtocol.PROTOCOL_118_10, false),
                     null,
@@ -87,6 +88,7 @@ public final class ItemComponentDefinitions {
                     load("item_components120.nbt", AbstractProtocol.PROTOCOL_120, false),
                     null,
             });
+*/
             DEFINITIONS.put(AbstractProtocol.PROTOCOL_120_10, new Map[]{
                     load("item_components12010.nbt", AbstractProtocol.PROTOCOL_120_10, false),
                     load("item_components12010.nbt", AbstractProtocol.PROTOCOL_120_10, true),

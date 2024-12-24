@@ -34,6 +34,10 @@ public final class LevelSoundEventUtil {
             case SOUND_TRAPDOOR_CLOSE:
             case SOUND_FENCE_GATE_OPEN:
             case SOUND_FENCE_GATE_CLOSE:
+            case SOUND_BRUSH:
+            case SOUND_BRUSH_COMPLETED:
+            case SOUND_COPPER_BULB_ON:
+            case SOUND_COPPER_BULB_OFF:
                 return AdvancedGlobalBlockPalette.getOrCreateRuntimeId(protocol, netease, extraData >> Block.BLOCK_META_BITS, extraData & Block.BLOCK_META_MASK);
             case SOUND_NOTE:
                 return (extraData << 8) | (pitch & 0b11111111);
@@ -61,6 +65,10 @@ public final class LevelSoundEventUtil {
             case SOUND_TRAPDOOR_CLOSE:
             case SOUND_FENCE_GATE_OPEN:
             case SOUND_FENCE_GATE_CLOSE:
+            case SOUND_BRUSH:
+            case SOUND_BRUSH_COMPLETED:
+            case SOUND_COPPER_BULB_ON:
+            case SOUND_COPPER_BULB_OFF:
                 if (protocol.getProtocolStart() >= AbstractProtocol.PROTOCOL_114.getProtocolStart()) {
                     int legacyId = AdvancedGlobalBlockPalette.getLegacyId(protocol, netease, extraData);
                     if (legacyId == -1) {

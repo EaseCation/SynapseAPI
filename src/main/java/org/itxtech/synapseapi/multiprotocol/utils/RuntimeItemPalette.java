@@ -1,5 +1,6 @@
 package org.itxtech.synapseapi.multiprotocol.utils;
 
+import cn.nukkit.block.Blocks;
 import cn.nukkit.item.Item;
 import cn.nukkit.item.ItemRuntimeID;
 import cn.nukkit.item.RuntimeItemPaletteInterface.Entry;
@@ -174,6 +175,8 @@ public class RuntimeItemPalette implements AdvancedRuntimeItemPaletteInterface {
     @Override
     public void registerItem(Entry entry) {
         int oldId;
+        boolean hasData = entry.oldData != null;
+
         if (entry.oldId == null) {
             int fullId = LegacyItemSerializer.getInternalMapping().getInt(entry.name);
             if ((fullId & 0xffff) == 0xffff) {
@@ -190,12 +193,14 @@ public class RuntimeItemPalette implements AdvancedRuntimeItemPaletteInterface {
             }
 
             entry = new Entry(entry.name, entry.id, oldId, entry.oldData, entry.component);
+        } else if (Blocks.getDeprecatedLegacyAliasesMap().containsKey(entry.name.startsWith("minecraft:") ? entry.name.substring(10) : entry.name)) {
+            oldId = entry.id;
+            hasData = false;
         } else {
             oldId = entry.oldId;
         }
         entries.add(entry);
 
-        boolean hasData = entry.oldData != null;
         int fullId = getFullId(oldId, hasData ? entry.oldData : 0);
         legacyNetworkMap.put(fullId, (entry.id << 1) | (hasData ? 1 : 0));
         legacyStringMap.put(fullId, entry.name);
@@ -203,8 +208,7 @@ public class RuntimeItemPalette implements AdvancedRuntimeItemPaletteInterface {
         networkLegacyMap.put(entry.id, fullId | (hasData ? 1 : 0));
         nameToNetworkMap.put(entry.name, entry.id);
         if (oldId < 0 && oldId != entry.id) {
-            Integer meta = entry.oldData;
-            int legacyId = (oldId << 16) | (meta != null ? meta : 0);
+            int legacyId = (oldId << 16) | (hasData ? entry.oldData : 0);
             int newId = entry.id;
             blockLegacyToFlatten.put(legacyId, newId);
 //            blockFlattenToLegacy.put(newId, legacyId);
@@ -263,7 +267,11 @@ public class RuntimeItemPalette implements AdvancedRuntimeItemPaletteInterface {
 
     @Override
     public int getLegacyFullIdByName(String name) {
-        return nameToLegacy.getInt(name);
+        int fullId = nameToLegacy.getInt(name);
+        if (fullId < 0) {
+            return fullId >> 16;
+        }
+        return fullId;
     }
 
     @Override

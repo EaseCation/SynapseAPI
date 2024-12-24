@@ -44,7 +44,7 @@ public class CraftingManagerMedieval extends CraftingManagerLegacy {
                     loadShapeless(element, ShapelessRecipe::new, RecipeType.SHAPELESS);
                     break;
                 case 5:
-//                    loadShapeless(element, ShapelessUserDataRecipe::new, RecipeType.SHAPELESS_USER_DATA); //TODO: nbt
+                    loadShapeless(element, ShapelessUserDataRecipe::new, RecipeType.SHAPELESS_USER_DATA);
                     break;
                 case 6:
                     if (!ENABLE_CHEMISTRY_FEATURE) {

@@ -28,6 +28,7 @@ public final class BiomeDefinitions {
         log.debug("Loading biome definitions...");
 
         try {
+/*
             //TODO: 1.8-1.11
             CompoundTag data112 = NBTIO.read(ByteStreams.toByteArray(SynapseAPI.getInstance().getResource("biome_definitions112.dat")), ByteOrder.LITTLE_ENDIAN, true);
             CompoundTag data116 = NBTIO.read(ByteStreams.toByteArray(SynapseAPI.getInstance().getResource("biome_definitions116.dat")), ByteOrder.LITTLE_ENDIAN, true);
@@ -39,11 +40,13 @@ public final class BiomeDefinitions {
             CompoundTag data11920 = NBTIO.read(ByteStreams.toByteArray(SynapseAPI.getInstance().getResource("biome_definitions11920.nbt")), ByteOrder.LITTLE_ENDIAN, true);
             CompoundTag data11930 = NBTIO.read(ByteStreams.toByteArray(SynapseAPI.getInstance().getResource("biome_definitions11930.nbt")), ByteOrder.LITTLE_ENDIAN, true);
             CompoundTag data11940 = NBTIO.read(ByteStreams.toByteArray(SynapseAPI.getInstance().getResource("biome_definitions11940.nbt")), ByteOrder.LITTLE_ENDIAN, true);
+*/
             CompoundTag data11980 = NBTIO.read(ByteStreams.toByteArray(SynapseAPI.getInstance().getResource("biome_definitions11980.nbt")), ByteOrder.LITTLE_ENDIAN, true);
             CompoundTag data12120 = NBTIO.read(ByteStreams.toByteArray(SynapseAPI.getInstance().getResource("biome_definitions12120.nbt")), ByteOrder.LITTLE_ENDIAN, true);
             CompoundTag data12140 = NBTIO.read(ByteStreams.toByteArray(SynapseAPI.getInstance().getResource("biome_definitions12140.nbt")), ByteOrder.LITTLE_ENDIAN, true);
             CompoundTag data12150 = NBTIO.read(ByteStreams.toByteArray(SynapseAPI.getInstance().getResource("biome_definitions12150.nbt")), ByteOrder.LITTLE_ENDIAN, true);
 
+/*
             data.put(AbstractProtocol.PROTOCOL_112, data112);
             data.put(AbstractProtocol.PROTOCOL_113, data112);
             data.put(AbstractProtocol.PROTOCOL_114, data112);
@@ -75,6 +78,7 @@ public final class BiomeDefinitions {
             data.put(AbstractProtocol.PROTOCOL_119_70, data11940);
             data.put(AbstractProtocol.PROTOCOL_119_80, data11980);
             data.put(AbstractProtocol.PROTOCOL_120, data11980);
+*/
             data.put(AbstractProtocol.PROTOCOL_120_10, data11980);
             data.put(AbstractProtocol.PROTOCOL_120_30, data11980);
             data.put(AbstractProtocol.PROTOCOL_120_40, data11980);
