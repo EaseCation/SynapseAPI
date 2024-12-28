@@ -1,13 +1,13 @@
 package org.itxtech.synapseapi.multiprotocol.utils.block.state.enumeration;
 
-public enum BambooStalknessThickState {
+public enum BambooStalkThicknessState {
     THIN("thin"),
     THICK("thick"),
     ;
 
     private final String name;
 
-    BambooStalknessThickState(String name) {
+    BambooStalkThicknessState(String name) {
         this.name = name;
     }
 

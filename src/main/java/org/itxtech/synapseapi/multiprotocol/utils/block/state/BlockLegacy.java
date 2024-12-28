@@ -72,6 +72,9 @@ public class BlockLegacy {
 
     public BlockNew setState(BlockState state, int value, int meta) {
         BlockStateInstance instance = states[state.id];
+        if (instance == null) {
+            return getDefaultState();
+        }
         BlockNew block = instance.set(meta, value, permutations);
         if (block == null) {
             return getDefaultState();
