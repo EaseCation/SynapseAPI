@@ -11,8 +11,10 @@ import org.itxtech.synapseapi.multiprotocol.utils.item.LegacyItemSerializer;
 import javax.annotation.Nullable;
 import java.util.EnumMap;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Objects;
 import java.util.Set;
+import java.util.function.IntFunction;
 
 /*
  * 由于hardcode了物品调色板（目前应该只有中国版写死了2021.06.17）
@@ -120,24 +122,26 @@ public final class AdvancedRuntimeItemPalette {
         registerCustomItem(fullName, id, oldId, null);
     }
 
-    public static void registerCustomItem(String fullName, int id, @Nullable CompoundTag components) {
-        registerCustomItem(fullName, id, null, components);
+    public static void registerCustomItem(String fullName, int id, @Nullable IntFunction<CompoundTag> componentsSupplier) {
+        registerCustomItem(fullName, id, null, componentsSupplier);
     }
 
-    public static void registerCustomItem(String fullName, int id, @Nullable Integer oldId, @Nullable CompoundTag components) {
+    public static void registerCustomItem(String fullName, int id, @Nullable Integer oldId, @Nullable IntFunction<CompoundTag> componentsSupplier) {
         Set<AdvancedRuntimeItemPaletteInterface> finished = new ObjectOpenHashSet<>();
-        for (AdvancedRuntimeItemPaletteInterface[] interfaces : palettes.values()) {
+        for (Entry<AbstractProtocol, AdvancedRuntimeItemPaletteInterface[]> entry : palettes.entrySet()) {
+            AbstractProtocol protocol = entry.getKey();
+            AdvancedRuntimeItemPaletteInterface[] interfaces = entry.getValue();
             for (AdvancedRuntimeItemPaletteInterface palette : interfaces) {
                 if (!finished.add(palette)) {
                     continue;
                 }
 
-                palette.registerItem(new RuntimeItemPaletteInterface.Entry(fullName, id, oldId, null, components != null && components.contains("item_properties")));
+                palette.registerItem(new RuntimeItemPaletteInterface.Entry(fullName, id, oldId, null, componentsSupplier != null && componentsSupplier.apply(protocol.getProtocolStart()).contains("item_properties")));
             }
         }
 
-        if (components != null) {
-            ItemComponentDefinitions.registerCustomItemComponent(fullName, id, components);
+        if (componentsSupplier != null) {
+            ItemComponentDefinitions.registerCustomItemComponent(fullName, id, componentsSupplier);
         }
     }
 
