@@ -15,6 +15,7 @@ import org.itxtech.synapseapi.multiprotocol.utils.CreativeItemsPalette;
 import javax.annotation.Nullable;
 import java.util.Objects;
 import java.util.Set;
+import java.util.function.IntFunction;
 import java.util.stream.Collectors;
 
 @Log4j2
@@ -323,10 +324,10 @@ public final class LegacyItemSerializer {
             }
 
             @Override
-            public void registerCustomItem(String fullName, int id, @Nullable CompoundTag components) {
+            public void registerCustomItem(String fullName, int id, @Nullable IntFunction<CompoundTag> componentsSupplier) {
                 registerItem(fullName, id);
 
-                AdvancedRuntimeItemPalette.registerCustomItem(fullName, id, components);
+                AdvancedRuntimeItemPalette.registerCustomItem(fullName, id, componentsSupplier);
             }
 
             @Override

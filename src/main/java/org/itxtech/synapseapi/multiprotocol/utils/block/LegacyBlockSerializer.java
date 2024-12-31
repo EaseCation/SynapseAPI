@@ -10,6 +10,8 @@ import org.itxtech.synapseapi.multiprotocol.utils.AdvancedGlobalBlockPalette;
 import org.itxtech.synapseapi.multiprotocol.utils.CraftingPacketManager;
 import org.itxtech.synapseapi.multiprotocol.utils.CreativeItemsPalette;
 
+import java.util.function.IntFunction;
+
 import static cn.nukkit.block.BlockID.*;
 import static org.itxtech.synapseapi.multiprotocol.utils.block.BlockStateNames.*;
 import static org.itxtech.synapseapi.multiprotocol.utils.block.BlockStateStringValues.*;
@@ -2290,10 +2292,10 @@ public final class LegacyBlockSerializer {
             }
 
             @Override
-            public void registerCustomBlock(String name, int id, CompoundTag definition) {
+            public void registerCustomBlock(String name, int id, IntFunction<CompoundTag> definitionSupplier) {
                 registerDeserializer(id, LegacyBlockSerializer::deserializeSimple);
 
-                RuntimeBlockMapper.registerCustomBlock(name, id, definition);
+                RuntimeBlockMapper.registerCustomBlock(name, id, definitionSupplier);
             }
 
             @Override

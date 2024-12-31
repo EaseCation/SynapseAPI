@@ -15,6 +15,7 @@ import org.itxtech.synapseapi.multiprotocol.protocol116100.protocol.ItemComponen
 import javax.annotation.Nullable;
 import java.io.IOException;
 import java.util.*;
+import java.util.function.IntFunction;
 import java.util.zip.Deflater;
 
 @Log4j2
@@ -103,7 +104,7 @@ public final class ItemComponentDefinitions {
             });
             DEFINITIONS.put(AbstractProtocol.PROTOCOL_120_50, new Map[]{
                     load("item_components12050.nbt", AbstractProtocol.PROTOCOL_120_50, false),
-                    null,
+                    load("item_components12050.nbt", AbstractProtocol.PROTOCOL_120_50, true),
             });
             DEFINITIONS.put(AbstractProtocol.PROTOCOL_120_60, new Map[]{
                     load("item_components12060.nbt", AbstractProtocol.PROTOCOL_120_60, false),
@@ -244,15 +245,16 @@ public final class ItemComponentDefinitions {
     public static void init() {
     }
 
-    public static void registerCustomItemComponent(String name, int id, CompoundTag compoundTag) {
-        CompoundTag fullTag = new CompoundTag()
-            .putInt("id", id)
-            .putString("name", name)
-            .putCompound("components", compoundTag);
+    public static void registerCustomItemComponent(String name, int id, IntFunction<CompoundTag> componentsSupplier) {
         DEFINITIONS.forEach((protocol, map) -> {
             if (protocol.getProtocolStart() < AbstractProtocol.PROTOCOL_118_10.getProtocolStart()) {
                 return;
             }
+
+            CompoundTag fullTag = new CompoundTag()
+                    .putInt("id", id)
+                    .putString("name", name)
+                    .putCompound("components", componentsSupplier.apply(protocol.getProtocolStart()));
 
             for (int i = 0; i <= 1; i++) {
                 Map<String, CompoundTag> data = map[i];

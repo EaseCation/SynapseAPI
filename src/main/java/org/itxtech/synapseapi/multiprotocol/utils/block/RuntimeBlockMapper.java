@@ -12,9 +12,11 @@ import javax.annotation.Nullable;
 import java.util.EnumMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
+import java.util.function.IntFunction;
 
 import static cn.nukkit.GameVersion.*;
 
@@ -175,7 +177,7 @@ public final class RuntimeBlockMapper {
         return null;
     }
 
-    static void registerCustomBlock(String name, int id, CompoundTag definition) {
+    static void registerCustomBlock(String name, int id, IntFunction<CompoundTag> definitionSupplier) {
         RUNTIME_BLOCK_SERIALIZER.idMetaToTag[id] = new CompoundTag[]{
                 new CompoundTag()
                         .putString("name", name)
@@ -184,7 +186,9 @@ public final class RuntimeBlockMapper {
         };
 
         Set<BlockPalette> finished = new ObjectOpenHashSet<>();
-        for (BlockPalette[] pair : PALETTES.values()) {
+        for (Entry<AbstractProtocol, BlockPalette[]> entry : PALETTES.entrySet()) {
+            AbstractProtocol protocol = entry.getKey();
+            BlockPalette[] pair = entry.getValue();
             for (int i = 0; i < 2; i++) {
                 BlockPalette palette = pair[i];
                 if (!finished.add(palette)) {
@@ -192,7 +196,7 @@ public final class RuntimeBlockMapper {
                 }
 
                 palette.palette.add(new BlockData(name, id));
-                palette.properties.add(new BlockProperty(name, definition));
+                palette.properties.add(new BlockProperty(name, definitionSupplier.apply(protocol.getProtocolStart())));
             }
         }
     }
