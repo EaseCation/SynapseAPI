@@ -281,6 +281,10 @@ public class BlockPalette {
             this(name, new CompoundTag("states"), -1, id, 0);
         }
 
+        BlockData(String name, CompoundTag states, int id, int val) {
+            this(name, states, -1, id, val);
+        }
+
         private BlockData(BlockData other, int newRuntimeId) {
             this(other.name, other.states, newRuntimeId, other.id, other.val);
         }

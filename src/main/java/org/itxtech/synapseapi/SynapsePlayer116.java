@@ -155,11 +155,12 @@ public class SynapsePlayer116 extends SynapsePlayer113 {
 			case ProtocolInfo.INTERACT_PACKET:
 				InteractPacket113 interactPacket = (InteractPacket113) packet;
 				if (interactPacket.action == InteractPacket113.ACTION_OPEN_INVENTORY
-						&& (interactPacket.target == getLocalEntityId() || isRiding() && interactPacket.target == riding.getId() && (!riding.getDataFlag(DATA_FLAG_TAMED) || riding.getNetworkId() == EntityID.SKELETON_HORSE))
+						&& (interactPacket.target == getLocalEntityId() || isRiding() && interactPacket.target == riding.getId() && riding.getNetworkId() != EntityID.CHEST_BOAT && (!riding.getDataFlag(DATA_FLAG_TAMED) || riding.getNetworkId() == EntityID.SKELETON_HORSE))
 						&& !this.inventoryOpen && !isSpectator()) {
 //					this.openInventory();
 					this.inventory.open(this);
 					this.inventoryOpen = true;
+					break;
 				}
 				super.handleDataPacket(packet);
 				break;

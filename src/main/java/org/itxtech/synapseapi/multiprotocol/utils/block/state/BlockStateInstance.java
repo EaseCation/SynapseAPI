@@ -42,7 +42,7 @@ public class BlockStateInstance {
 
     @Nullable
     public BlockNew set(int meta, int value, BlockNew[] permutations) {
-        if (value >= variationCount) {
+        if (value < 0 || value >= variationCount) {
             return null;
         }
         int index = (value << endBit) | ~mask & meta;

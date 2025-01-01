@@ -387,9 +387,11 @@ public class SynapsePlayer16 extends SynapsePlayer14 {
 
 		this.noDamageTicks = 60;
 
-		this.sendCreativeContents();
-		//this.sendTrimRecipes(); //合并到sendRecipeList了
-		this.sendRecipeList();
+		if (this.isFirstTimeLogin) {
+			this.sendCreativeContents();
+			//this.sendTrimRecipes(); //合并到sendRecipeList了
+			this.sendRecipeList();
+		}
 
 		if (this.getHealth() < 1) {
 			this.respawn();

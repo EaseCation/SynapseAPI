@@ -91,7 +91,15 @@ public class BlockLegacy {
     }
 
     public int getState(BlockState state, int meta) {
-        return states[state.id].get(meta);
+        BlockStateInstance instance = states[state.id];
+        if (instance == null) {
+            return 0;
+        }
+        return instance.get(meta);
+    }
+
+    public boolean hasState(BlockState state) {
+        return states[state.id] != null;
     }
 
     /**

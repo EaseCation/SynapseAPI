@@ -41,7 +41,7 @@ public class DataExporter {
     public static void exportBlockPalettes(Path saveDir, boolean minify) throws IOException {
         Files.createDirectories(saveDir);
         for (AbstractProtocol protocol : AbstractProtocol.getValues()) {
-            if (protocol.getProtocolStart() < AbstractProtocol.PROTOCOL_118_30.getProtocolStart()) {
+            if (protocol.getProtocolStart() < AbstractProtocol.FIRST_AVAILABLE_PROTOCOL.getProtocolStart()) {
                 continue;
             }
             BlockPalette microsoft = null;
@@ -131,7 +131,7 @@ public class DataExporter {
     public static void exportBlockComponents(Path saveDir, boolean minify) throws IOException {
         Files.createDirectories(saveDir);
         for (AbstractProtocol protocol : AbstractProtocol.getValues()) {
-            if (protocol.getProtocolStart() < AbstractProtocol.PROTOCOL_117_40.getProtocolStart()) {
+            if (protocol.getProtocolStart() < AbstractProtocol.FIRST_AVAILABLE_PROTOCOL.getProtocolStart()) {
                 continue;
             }
             for (int v = 0; v <= 1; v++) {
@@ -167,7 +167,7 @@ public class DataExporter {
     public static void exportItemLists(Path saveDir, boolean minify) throws IOException {
         Files.createDirectories(saveDir);
         for (AbstractProtocol protocol : AbstractProtocol.getValues()) {
-            if (protocol.getProtocolStart() < AbstractProtocol.PROTOCOL_116_100.getProtocolStart()) {
+            if (protocol.getProtocolStart() < AbstractProtocol.FIRST_AVAILABLE_PROTOCOL.getProtocolStart()) {
                 continue;
             }
             for (int v = 0; v <= 1; v++) {
@@ -204,7 +204,7 @@ public class DataExporter {
     public static void exportItemComponents(Path saveDir, boolean minify) throws IOException {
         Files.createDirectories(saveDir);
         for (AbstractProtocol protocol : AbstractProtocol.getValues()) {
-            if (protocol.getProtocolStart() < AbstractProtocol.PROTOCOL_118_10.getProtocolStart()) {
+            if (protocol.getProtocolStart() < AbstractProtocol.FIRST_AVAILABLE_PROTOCOL.getProtocolStart()) {
                 continue;
             }
             for (int v = 0; v <= 1; v++) {

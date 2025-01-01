@@ -1,6 +1,8 @@
 package org.itxtech.synapseapi.multiprotocol.utils.block;
 
 import cn.nukkit.GameVersion;
+import cn.nukkit.block.state.BlockInstance;
+import cn.nukkit.block.state.BlockLegacy;
 import cn.nukkit.nbt.tag.CompoundTag;
 import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet;
 import lombok.extern.log4j.Log4j2;
@@ -178,12 +180,21 @@ public final class RuntimeBlockMapper {
     }
 
     static void registerCustomBlock(String name, int id, IntFunction<CompoundTag> definitionSupplier) {
-        RUNTIME_BLOCK_SERIALIZER.idMetaToTag[id] = new CompoundTag[]{
-                new CompoundTag()
-                        .putString("name", name)
-                        .putCompound("states", new CompoundTag("states"))
-                        .putInt("version", VanillaBlockUpgrader.getCurrentVersion())
-        };
+        BlockLegacy legacyBlock = cn.nukkit.block.state.BlockTypes.getBlockRegistry().getBlock(id);
+
+        int variantCount = legacyBlock.getVariantCount();
+        CompoundTag[] variants = new CompoundTag[variantCount];
+        for (int meta = 0; meta < variantCount; meta++) {
+            BlockInstance block = legacyBlock.getBlock(meta);
+            if (block == null) {
+                block = legacyBlock.getDefaultState();
+            }
+            variants[meta] = new CompoundTag()
+                    .putString("name", name)
+                    .putCompound("states", block.getStatesTag())
+                    .putInt("version", VanillaBlockUpgrader.getCurrentVersion());
+        }
+        RUNTIME_BLOCK_SERIALIZER.idMetaToTag[id] = variants;
 
         Set<BlockPalette> finished = new ObjectOpenHashSet<>();
         for (Entry<AbstractProtocol, BlockPalette[]> entry : PALETTES.entrySet()) {
@@ -195,7 +206,14 @@ public final class RuntimeBlockMapper {
                     continue;
                 }
 
-                palette.palette.add(new BlockData(name, id));
+                for (int meta = 0; meta < variantCount; meta++) {
+                    BlockInstance block = legacyBlock.getBlock(meta);
+                    if (block == null) {
+                        continue;
+                    }
+                    palette.palette.add(new BlockData(name, variants[meta].getCompound("states"), id, meta));
+                }
+
                 palette.properties.add(new BlockProperty(name, definitionSupplier.apply(protocol.getProtocolStart())));
             }
         }

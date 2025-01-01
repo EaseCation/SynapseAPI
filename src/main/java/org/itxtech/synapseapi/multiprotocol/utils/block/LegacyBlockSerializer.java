@@ -3,6 +3,8 @@ package org.itxtech.synapseapi.multiprotocol.utils.block;
 import cn.nukkit.block.*;
 import cn.nukkit.block.BlockSerializer.RuntimeBlockSerializer;
 import cn.nukkit.block.edu.*;
+import cn.nukkit.block.state.BlockLegacy;
+import cn.nukkit.block.state.BlockTypes;
 import cn.nukkit.nbt.tag.CompoundTag;
 import it.unimi.dsi.fastutil.ints.Int2ObjectFunction;
 import lombok.extern.log4j.Log4j2;
@@ -2293,7 +2295,8 @@ public final class LegacyBlockSerializer {
 
             @Override
             public void registerCustomBlock(String name, int id, IntFunction<CompoundTag> definitionSupplier) {
-                registerDeserializer(id, LegacyBlockSerializer::deserializeSimple);
+                BlockLegacy legacyBlock = BlockTypes.getBlockRegistry().getBlock(id);
+                registerDeserializer(id, legacyBlock.getVariantCount() == 1 ? LegacyBlockSerializer::deserializeSimple : legacyBlock::deserialize);
 
                 RuntimeBlockMapper.registerCustomBlock(name, id, definitionSupplier);
             }
