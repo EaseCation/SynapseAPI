@@ -2,8 +2,10 @@ package org.itxtech.synapseapi.multiprotocol.protocol113.protocol;
 
 import cn.nukkit.inventory.transaction.data.UseItemData;
 import cn.nukkit.network.protocol.types.InventoryTransactionPacketInterface;
+import cn.nukkit.network.protocol.types.ItemStackRequest;
 import cn.nukkit.network.protocol.types.NetworkInventoryAction;
 import lombok.ToString;
+import org.itxtech.synapseapi.multiprotocol.common.inventory.LegacySetItemSlotData;
 
 import javax.annotation.Nullable;
 
@@ -31,6 +33,10 @@ public interface IPlayerAuthInputPacket extends InventoryTransactionPacketInterf
     float getDeltaY();
     float getDeltaZ();
 
+    int getLegacyRequestId();
+
+    LegacySetItemSlotData[] getRequestChangedSlots();
+
     @Nullable
     default NetworkInventoryAction[] getInventoryActions() {
         return null;
@@ -40,6 +46,9 @@ public interface IPlayerAuthInputPacket extends InventoryTransactionPacketInterf
     default UseItemData getUseItemData() {
         return null;
     }
+
+    @Nullable
+    ItemStackRequest getItemStackRequest();
 
     @Nullable
     default PlayerBlockAction[] getBlockActions() {

@@ -4,6 +4,7 @@ import cn.nukkit.inventory.recipe.*;
 import cn.nukkit.item.Item;
 import cn.nukkit.item.ItemID;
 import cn.nukkit.network.protocol.types.ItemDescriptorType;
+import cn.nukkit.network.protocol.types.ItemStackRequest;
 import cn.nukkit.utils.BinaryStream;
 import org.itxtech.synapseapi.multiprotocol.protocol11921.BinaryStreamHelper11921;
 import org.itxtech.synapseapi.multiprotocol.utils.AdvancedRuntimeItemPalette;
@@ -224,10 +225,10 @@ public class BinaryStreamHelper11930 extends BinaryStreamHelper11921 {
     }
 
     @Override
-    public int getItemStackRequest(BinaryStream stream) {
-        int request = super.getItemStackRequest(stream);
+    public ItemStackRequest getItemStackRequest(BinaryStream stream) {
+        ItemStackRequest request = super.getItemStackRequest(stream);
 
-        int filterStringCause = stream.getLInt();
+        request.filterStringCause = stream.getLInt();
 
         return request;
     }

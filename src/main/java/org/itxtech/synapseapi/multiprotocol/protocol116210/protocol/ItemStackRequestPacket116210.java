@@ -10,6 +10,9 @@ public class ItemStackRequestPacket116210 {
     public static final int ACTION_CRAFTING_MARK_SECONDARY_RESULT_SLOT = 6;
     public static final int ACTION_LAB_TABLE_COMBINE = 7;
     public static final int ACTION_BEACON_PAYMENT = 8;
+    /**
+     * @since 1.16.210
+     */
     public static final int ACTION_MINE_BLOCK = 9;
     public static final int ACTION_CRAFTING_RECIPE = 10;
     public static final int ACTION_CRAFTING_RECIPE_AUTO = 11;

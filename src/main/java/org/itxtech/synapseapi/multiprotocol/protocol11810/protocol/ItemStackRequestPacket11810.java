@@ -8,7 +8,13 @@ public class ItemStackRequestPacket11810 {
     public static final int ACTION_DESTROY = 4;
     public static final int ACTION_CRAFTING_CONSUME_INPUT = 5;
     public static final int ACTION_CRAFTING_MARK_SECONDARY_RESULT_SLOT = 6;
+    /**
+     * @since 1.18.10
+     */
     public static final int ACTION_PLACE_IN_ITEM_CONTAINER = 7;
+    /**
+     * @since 1.18.10
+     */
     public static final int ACTION_TAKE_FROM_ITEM_CONTAINER = 8;
     public static final int ACTION_LAB_TABLE_COMBINE = 9;
     public static final int ACTION_BEACON_PAYMENT = 10;

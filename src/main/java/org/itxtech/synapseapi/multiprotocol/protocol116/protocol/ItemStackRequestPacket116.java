@@ -1,7 +1,13 @@
 package org.itxtech.synapseapi.multiprotocol.protocol116.protocol;
 
-//TODO
-public class ItemStackRequestPacket116 {
+import cn.nukkit.network.protocol.ProtocolInfo;
+import lombok.ToString;
+import cn.nukkit.network.protocol.types.ItemStackRequest;
+
+@ToString
+public class ItemStackRequestPacket116 extends Packet116 {
+    public static final int NETWORK_ID = ProtocolInfo.ITEM_STACK_REQUEST_PACKET;
+
     public static final int ACTION_TAKE = 0;
     public static final int ACTION_PLACE = 1;
     public static final int ACTION_SWAP = 2;
@@ -16,4 +22,27 @@ public class ItemStackRequestPacket116 {
     public static final int ACTION_CREATIVE_CREATE = 11;
     public static final int ACTION_CRAFTING_NON_IMPLEMENTED_DEPRECATED_ASK_TY_LAING = 12;
     public static final int ACTION_CRAFTING_RESULTS_DEPRECATED_ASK_TY_LAING = 13;
+
+    public ItemStackRequest[] requests;
+
+    @Override
+    public int pid() {
+        return NETWORK_ID;
+    }
+
+    @Override
+    public void decode() {
+        int count = (int) getUnsignedVarInt();
+        if (count > 80) {
+            throw new IndexOutOfBoundsException("Too many requests in ItemStackRequestPacket");
+        }
+        requests = new ItemStackRequest[count];
+        for (int i = 0; i < count; i++) {
+            requests[i] = helper.getItemStackRequest(this);
+        }
+    }
+
+    @Override
+    public void encode() {
+    }
 }

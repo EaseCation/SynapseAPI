@@ -15,7 +15,13 @@ public class ItemStackRequestPacket11740 {
     public static final int ACTION_CRAFTING_RECIPE_AUTO = 11;
     public static final int ACTION_CREATIVE_CREATE = 12;
     public static final int ACTION_CRAFTING_RECIPE_OPTIONAL = 13;
+    /**
+     * @since 1.17.40
+     */
     public static final int ACTION_CRAFTING_GRINDSTONE = 14;
+    /**
+     * @since 1.17.40
+     */
     public static final int ACTION_CRAFTING_LOOM = 15;
     public static final int ACTION_CRAFTING_NON_IMPLEMENTED_DEPRECATED_ASK_TY_LAING = 16;
     public static final int ACTION_CRAFTING_RESULTS_DEPRECATED_ASK_TY_LAING = 17;

@@ -13,6 +13,9 @@ public class ItemStackRequestPacket116200 {
     public static final int ACTION_CRAFTING_RECIPE = 9;
     public static final int ACTION_CRAFTING_RECIPE_AUTO = 10;
     public static final int ACTION_CREATIVE_CREATE = 11;
+    /**
+     * @since 1.16.200
+     */
     public static final int ACTION_CRAFTING_RECIPE_OPTIONAL = 12;
     public static final int ACTION_CRAFTING_NON_IMPLEMENTED_DEPRECATED_ASK_TY_LAING = 13;
     public static final int ACTION_CRAFTING_RESULTS_DEPRECATED_ASK_TY_LAING = 14;

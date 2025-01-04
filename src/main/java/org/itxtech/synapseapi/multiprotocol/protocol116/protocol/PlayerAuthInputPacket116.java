@@ -6,16 +6,16 @@ import cn.nukkit.math.Vector3f;
 import cn.nukkit.network.protocol.PlayerActionPacket;
 import cn.nukkit.network.protocol.ProtocolInfo;
 import cn.nukkit.network.protocol.types.InventoryTransactionPacketInterface;
+import cn.nukkit.network.protocol.types.ItemStackRequest;
 import cn.nukkit.network.protocol.types.NetworkInventoryAction;
 import lombok.ToString;
 import lombok.extern.log4j.Log4j2;
-import org.itxtech.synapseapi.SynapseSharedConstants;
 import org.itxtech.synapseapi.multiprotocol.AbstractProtocol;
+import org.itxtech.synapseapi.multiprotocol.common.inventory.LegacySetItemSlotData;
 import org.itxtech.synapseapi.multiprotocol.protocol113.protocol.IPlayerAuthInputPacket;
 import org.itxtech.synapseapi.multiprotocol.protocol116210.protocol.PlayerAuthInputPacket116210;
 
 import javax.annotation.Nullable;
-import java.util.Arrays;
 
 @Log4j2
 @ToString
@@ -93,12 +93,14 @@ public class PlayerAuthInputPacket116 extends Packet116 implements IPlayerAuthIn
     public float deltaZ;
 
     public boolean hasNetworkIds;
+    public int legacyRequestId;
+    public LegacySetItemSlotData[] requestChangedSlots;
     @Nullable
     public NetworkInventoryAction[] inventoryActions;
     @Nullable
     public UseItemData useItemData;
 
-    public int itemStackRequest = Integer.MIN_VALUE; //TODO
+    public ItemStackRequest itemStackRequest;
 
     @Nullable
     public PlayerBlockAction[] blockActions;
@@ -150,26 +152,26 @@ public class PlayerAuthInputPacket116 extends Packet116 implements IPlayerAuthIn
         // wtf
         this.getByte(); // 0
 
-        boolean[] debugFlags;
-        if (SynapseSharedConstants.MAC_DEBUG) {
-            debugFlags = new boolean[3];
-        }
-
         if ((this.inputFlags & (1L << PlayerAuthInputPacket116210.FLAG_PERFORM_ITEM_INTERACTION)) != 0) {
-            if (SynapseSharedConstants.MAC_DEBUG) debugFlags[0] = true;
+            this.legacyRequestId = this.getVarInt();
+            if (this.legacyRequestId != 0) {
+                int length = (int) this.getUnsignedVarInt();
+                if (length > 10) {
+                    throw new IndexOutOfBoundsException("Too many slot sync requests in inventory transaction (PlayerAuthInputPacket)");
+                }
+                this.requestChangedSlots = new LegacySetItemSlotData[length];
+                for (int i = 0; i < length; i++) {
+                    LegacySetItemSlotData requestChangedSlot = new LegacySetItemSlotData();
 
-            int legacyRequestId = this.getVarInt();
-            if (legacyRequestId < -1 && (legacyRequestId & 1) == 0) {
-                int size = (int) this.getUnsignedVarInt();
-                for (int i = 0; i < size; i++) {
-                    int containerId = this.getByte();
+                    requestChangedSlot.containerId = this.getByte();
 
-                    int length = (int) this.getUnsignedVarInt();
-                    if (!this.isReadable(length)) {
-                        throw new IndexOutOfBoundsException("array length mismatch");
+                    int slotCount = (int) this.getUnsignedVarInt();
+                    requestChangedSlot.changedSlotIndexes = this.get(slotCount);
+                    if (requestChangedSlot.changedSlotIndexes.length != slotCount) {
+                        throw new ArrayIndexOutOfBoundsException("array length mismatch");
                     }
-                    byte[] slots = this.get(length);
 
+                    this.requestChangedSlots[i] = requestChangedSlot;
                 }
             }
 
@@ -197,14 +199,10 @@ public class PlayerAuthInputPacket116 extends Packet116 implements IPlayerAuthIn
         }
 
         if ((this.inputFlags & (1L << PlayerAuthInputPacket116210.FLAG_PERFORM_ITEM_STACK_REQUEST)) != 0) {
-            if (SynapseSharedConstants.MAC_DEBUG) debugFlags[1] = true;
-
             itemStackRequest = helper.getItemStackRequest(this);
         }
 
         if ((this.inputFlags & (1L << PlayerAuthInputPacket116210.FLAG_PERFORM_BLOCK_ACTIONS)) != 0) {
-            if (SynapseSharedConstants.MAC_DEBUG) debugFlags[2] = true;
-
             int size = this.getVarInt();
             if (size > 100) {
                 throw new IndexOutOfBoundsException("Too many block actions in PlayerAuthInputPacket");
@@ -236,40 +234,11 @@ public class PlayerAuthInputPacket116 extends Packet116 implements IPlayerAuthIn
                 this.blockActions[i] = action;
             }
         }
-
-        // discard :(
-//        this.getExtraData();
-
-        if (SynapseSharedConstants.MAC_DEBUG) {
-            String debug = "";
-            if (debugFlags[0]) debug += "PERFORM_ITEM_INTERACTION | ";
-            if (debugFlags[1]) debug += "PERFORM_ITEM_STACK_REQUEST | ";
-            if (debugFlags[2]) debug += "PERFORM_BLOCK_ACTIONS | ";
-//            if (!this.feof()) {
-//                debug += "!feof | " + Arrays.toString(this.get());
-//            }
-            if (!debug.isEmpty()) log.debug("{} {}", debug, this);
-        }
     }
 
     @Override
     public void encode() {
 
-    }
-
-    //TODO
-    public Object getStackRequestSlotInfo() {
-
-        int type = this.getByte();
-        int slot = this.getByte();
-        int stackNetworkId = this.getVarInt();
-
-        return null;
-    }
-
-    public Object getExtraData() {
-        //TODO
-        return null;
     }
 
     @Override
@@ -398,6 +367,16 @@ public class PlayerAuthInputPacket116 extends Packet116 implements IPlayerAuthIn
     }
 
     @Override
+    public int getLegacyRequestId() {
+        return legacyRequestId;
+    }
+
+    @Override
+    public LegacySetItemSlotData[] getRequestChangedSlots() {
+        return requestChangedSlots;
+    }
+
+    @Override
     public NetworkInventoryAction[] getInventoryActions() {
         return this.inventoryActions;
     }
@@ -405,6 +384,11 @@ public class PlayerAuthInputPacket116 extends Packet116 implements IPlayerAuthIn
     @Override
     public UseItemData getUseItemData() {
         return useItemData;
+    }
+
+    @Override
+    public ItemStackRequest getItemStackRequest() {
+        return itemStackRequest;
     }
 
     @Override

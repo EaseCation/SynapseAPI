@@ -11,10 +11,14 @@ import cn.nukkit.network.protocol.types.InventoryTransactionPacketInterface;
 import cn.nukkit.network.protocol.types.NetworkInventoryAction;
 import lombok.ToString;
 import org.itxtech.synapseapi.multiprotocol.AbstractProtocol;
+import org.itxtech.synapseapi.multiprotocol.common.inventory.LegacySetItemSlotData;
 import org.itxtech.synapseapi.utils.ClassUtils;
+
+import static org.itxtech.synapseapi.SynapseSharedConstants.SERVER_AUTHORITATIVE_INVENTORY;
 
 @ToString
 public class InventoryTransactionPacket116 extends Packet116 implements InventoryTransactionPacketInterface {
+    private static final LegacySetItemSlotData[] EMPTY_LEGACY_DATA = new LegacySetItemSlotData[0];
 
     public static final int TYPE_NORMAL = 0;
     public static final int TYPE_MISMATCH = 1;
@@ -46,8 +50,10 @@ public class InventoryTransactionPacket116 extends Packet116 implements Inventor
     public int transactionType;
     public NetworkInventoryAction[] actions;
     public TransactionData transactionData;
+
     public boolean hasNetworkIds;
     public int legacyRequestId;
+    public LegacySetItemSlotData[] requestChangedSlots = EMPTY_LEGACY_DATA;
 
     /**
      * NOTE: THIS FIELD DOES NOT EXIST IN THE PROTOCOL, it's merely used for convenience for PocketMine-MP to easily
@@ -100,10 +106,22 @@ public class InventoryTransactionPacket116 extends Packet116 implements Inventor
         boolean field_hasNetworkIds = protocol.getProtocolStart() < AbstractProtocol.PROTOCOL_116_220.getProtocolStart();
 
         this.reset();
+
         this.putVarInt(this.legacyRequestId);
-        //TODO legacySlot array
+        if (this.legacyRequestId != 0) {
+            this.putUnsignedVarInt(this.requestChangedSlots.length);
+            for (LegacySetItemSlotData requestChangedSlot : this.requestChangedSlots) {
+                this.putByte(requestChangedSlot.containerId);
+
+                this.putUnsignedVarInt(requestChangedSlot.changedSlotIndexes.length);
+                this.put(requestChangedSlot.changedSlotIndexes);
+            }
+        }
+
         this.putUnsignedVarInt(this.transactionType);
+
         if (field_hasNetworkIds) this.putBoolean(this.hasNetworkIds);
+
         this.putUnsignedVarInt(this.actions.length);
         for (NetworkInventoryAction action : this.actions) {
             action.write(this, this);
@@ -160,14 +178,25 @@ public class InventoryTransactionPacket116 extends Packet116 implements Inventor
         boolean field_hasNetworkIds = protocol.getProtocolStart() < AbstractProtocol.PROTOCOL_116_220.getProtocolStart();
 
         this.legacyRequestId = this.getVarInt();
-        if (legacyRequestId < -1 && (legacyRequestId & 1) == 0) {
+        if (this.legacyRequestId != 0) {
             int length = (int) this.getUnsignedVarInt();
-            for (int i = 0; i < length; i++) {
-                this.getByte();
-                int bufLen = (int) this.getUnsignedVarInt();
-                this.get(bufLen);
+            if (length > 10) {
+                throw new IndexOutOfBoundsException("Too many slot sync requests in inventory transaction");
             }
+            this.requestChangedSlots = new LegacySetItemSlotData[length];
+            for (int i = 0; i < length; i++) {
+                LegacySetItemSlotData requestChangedSlot = new LegacySetItemSlotData();
 
+                requestChangedSlot.containerId = this.getByte();
+
+                int slotCount = (int) this.getUnsignedVarInt();
+                requestChangedSlot.changedSlotIndexes = this.get(slotCount);
+                if (requestChangedSlot.changedSlotIndexes.length != slotCount) {
+                    throw new ArrayIndexOutOfBoundsException("array length mismatch");
+                }
+
+                this.requestChangedSlots[i] = requestChangedSlot;
+            }
         }
 
         this.transactionType = (int) this.getUnsignedVarInt();
@@ -175,7 +204,7 @@ public class InventoryTransactionPacket116 extends Packet116 implements Inventor
         if (field_hasNetworkIds) this.hasNetworkIds = this.getBoolean();
 
         int count = (int) this.getUnsignedVarInt();
-        if (count > 100) {
+        if (count > (SERVER_AUTHORITATIVE_INVENTORY ? 50 : 100)) {
             throw new IndexOutOfBoundsException("Too many actions in inventory transaction");
         }
         this.actions = new NetworkInventoryAction[count];

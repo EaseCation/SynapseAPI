@@ -1,6 +1,8 @@
 package org.itxtech.synapseapi.multiprotocol.protocol116.protocol;
 
 import cn.nukkit.network.protocol.ProtocolInfo;
+import lombok.Data;
+import lombok.RequiredArgsConstructor;
 import lombok.ToString;
 import lombok.Value;
 
@@ -8,7 +10,9 @@ import lombok.Value;
 public class PlayerEnchantOptionsPacket116 extends Packet116 {
     public static final int NETWORK_ID = ProtocolInfo.PLAYER_ENCHANT_OPTIONS_PACKET;
 
-    public EnchantOption[] options = new EnchantOption[0];
+    public static final EnchantOption[] EMPTY_OPTIONS = new EnchantOption[0];
+
+    public EnchantOption[] options = EMPTY_OPTIONS;
 
     @Override
     public int pid() {
@@ -45,19 +49,30 @@ public class PlayerEnchantOptionsPacket116 extends Packet116 {
         }
     }
 
-    @Value
+    @RequiredArgsConstructor
+    @Data
     public static class EnchantOption {
-        int cost;
-        int slotFlags;
-        Enchant[] equipActivatedEnchantments;
-        Enchant[] heldActivatedEnchantments;
-        Enchant[] selfActivatedEnchantments;
-        String name;
+        final int cost;
+        final int slotFlags;
+        final Enchant[] equipActivatedEnchantments;
+        final Enchant[] heldActivatedEnchantments;
+        final Enchant[] selfActivatedEnchantments;
+        final String name;
         int optionId;
+
+        public EnchantOption(int cost, Enchant[] enchantments) {
+            this(cost, enchantments, "");
+        }
+
+        public EnchantOption(int cost, Enchant[] enchantments, String name) {
+            this(cost, 0, enchantments, Enchant.EMPTY_ENCHANTS, Enchant.EMPTY_ENCHANTS, name);
+        }
     }
 
     @Value
     public static class Enchant {
+        public static final Enchant[] EMPTY_ENCHANTS = new Enchant[0];
+
         int id;
         int level;
     }
