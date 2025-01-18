@@ -14,6 +14,7 @@ import org.itxtech.synapseapi.multiprotocol.utils.CreativeItemsPalette;
 
 import java.util.function.IntFunction;
 
+import static cn.nukkit.GameVersion.*;
 import static cn.nukkit.block.BlockID.*;
 import static org.itxtech.synapseapi.multiprotocol.utils.block.BlockStateNames.*;
 import static org.itxtech.synapseapi.multiprotocol.utils.block.BlockStateStringValues.*;
@@ -1181,9 +1182,9 @@ public final class LegacyBlockSerializer {
         registerDeserializer(ACACIA_FENCE, LegacyBlockSerializer::deserializeSimple);
         registerDeserializer(DARK_OAK_FENCE, LegacyBlockSerializer::deserializeSimple);
 
-        registerDeserializer(PUMPKIN, LegacyBlockSerializer::deserializeDirection);
-        registerDeserializer(LIT_PUMPKIN, LegacyBlockSerializer::deserializeDirection);
-        registerDeserializer(CARVED_PUMPKIN, LegacyBlockSerializer::deserializeDirection);
+        registerDeserializer(PUMPKIN, LegacyBlockSerializer::deserializeCardinalDirection);
+        registerDeserializer(LIT_PUMPKIN, LegacyBlockSerializer::deserializeCardinalDirection);
+        registerDeserializer(CARVED_PUMPKIN, LegacyBlockSerializer::deserializeCardinalDirection);
 
         registerDeserializer(PORTAL, states -> {
             String axis = states.getString(PORTAL_AXIS);
@@ -1937,10 +1938,17 @@ public final class LegacyBlockSerializer {
             return meta;
         });
 
-        registerDeserializer(AMETHYST_CLUSTER, LegacyBlockSerializer::deserializeFacingDirection);
-        registerDeserializer(LARGE_AMETHYST_BUD, LegacyBlockSerializer::deserializeFacingDirection);
-        registerDeserializer(MEDIUM_AMETHYST_BUD, LegacyBlockSerializer::deserializeFacingDirection);
-        registerDeserializer(SMALL_AMETHYST_BUD, LegacyBlockSerializer::deserializeFacingDirection);
+        if (V1_20_30.isAvailable()) {
+            registerDeserializer(AMETHYST_CLUSTER, LegacyBlockSerializer::deserializeBlockFace);
+            registerDeserializer(LARGE_AMETHYST_BUD, LegacyBlockSerializer::deserializeBlockFace);
+            registerDeserializer(MEDIUM_AMETHYST_BUD, LegacyBlockSerializer::deserializeBlockFace);
+            registerDeserializer(SMALL_AMETHYST_BUD, LegacyBlockSerializer::deserializeBlockFace);
+        } else {
+            registerDeserializer(AMETHYST_CLUSTER, LegacyBlockSerializer::deserializeFacingDirection);
+            registerDeserializer(LARGE_AMETHYST_BUD, LegacyBlockSerializer::deserializeFacingDirection);
+            registerDeserializer(MEDIUM_AMETHYST_BUD, LegacyBlockSerializer::deserializeFacingDirection);
+            registerDeserializer(SMALL_AMETHYST_BUD, LegacyBlockSerializer::deserializeFacingDirection);
+        }
 
         registerDeserializer(DEEPSLATE, LegacyBlockSerializer::deserializePillarAxis);
         registerDeserializer(INFESTED_DEEPSLATE, LegacyBlockSerializer::deserializePillarAxis);
