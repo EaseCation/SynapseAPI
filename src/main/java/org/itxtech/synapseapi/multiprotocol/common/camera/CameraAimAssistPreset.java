@@ -14,6 +14,9 @@ import javax.annotation.Nullable;
 @ToString
 public class CameraAimAssistPreset {
     public String identifier;
+    /**
+     * @deprecated 1.21.60
+     */
     @Default
     public String categories = "";
     @Default

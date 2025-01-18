@@ -329,6 +329,9 @@ public class EntityDataItemIDTranslator {
 
 	public static final int V121_VISIBLE_MOB_EFFECTS = 131;
 
+	public static final int V12160_FILTERED_NAME = 132;
+	public static final int V12160_ENTER_BED_POSITION = 133;
+
 	static {
 		Arrays.fill(v12ToV14Book, -1);
 		v12ToV14Book[Entity.DATA_ENDERMAN_HELD_BLOCK_DAMAGE] = -1;
@@ -619,6 +622,10 @@ public class EntityDataItemIDTranslator {
 		// 1.21.0
 		System.arraycopy(v12ToV11940Book, 0, v12ToV121Book, 0, DATA_UNDEFINED);
 		v12ToV121Book[DATA_VISIBLE_MOB_EFFECTS] = V121_VISIBLE_MOB_EFFECTS;
+
+		// 1.21.60
+		v12ToV121Book[DATA_FILTERED_NAME] = V12160_FILTERED_NAME;
+		v12ToV121Book[DATA_ENTER_BED_POSITION] = V12160_ENTER_BED_POSITION;
 	}
 
 	public static int translateTo14Id(int v12Id) {

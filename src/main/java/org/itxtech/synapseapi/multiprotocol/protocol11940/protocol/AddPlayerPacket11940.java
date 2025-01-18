@@ -1,12 +1,17 @@
 package org.itxtech.synapseapi.multiprotocol.protocol11940.protocol;
 
+import cn.nukkit.Player;
+import cn.nukkit.command.data.CommandPermission;
 import cn.nukkit.entity.EntityFullNames;
 import cn.nukkit.entity.data.EntityMetadata;
 import cn.nukkit.item.Item;
 import cn.nukkit.network.protocol.AddPlayerPacket;
 import cn.nukkit.network.protocol.DataPacket;
 import cn.nukkit.network.protocol.ProtocolInfo;
+import cn.nukkit.network.protocol.types.AbilityLayer;
 import cn.nukkit.network.protocol.types.EntityLink;
+import cn.nukkit.network.protocol.types.PlayerAbility;
+import cn.nukkit.utils.Utils;
 import it.unimi.dsi.fastutil.ints.Int2FloatMap;
 import it.unimi.dsi.fastutil.ints.Int2FloatOpenHashMap;
 import it.unimi.dsi.fastutil.ints.Int2IntMap;
@@ -27,6 +32,19 @@ import static org.itxtech.synapseapi.SynapsePlayer116100.GAME_TYPE_SURVIVAL;
 @ToString
 public class AddPlayerPacket11940 extends Packet11940 {
     public static final int NETWORK_ID = ProtocolInfo.ADD_PLAYER_PACKET;
+
+    private static final AbilityLayer[] SURVIVAL_ABILITY_LAYERS = new AbilityLayer[]{
+            Utils.make(() -> {
+                AbilityLayer layer = new AbilityLayer();
+                layer.abilityValues.add(PlayerAbility.BUILD);
+                layer.abilityValues.add(PlayerAbility.MINE);
+                layer.abilityValues.add(PlayerAbility.DOORS_AND_SWITCHES);
+                layer.abilityValues.add(PlayerAbility.OPEN_CONTAINERS);
+                layer.abilityValues.add(PlayerAbility.ATTACK_PLAYERS);
+                layer.abilityValues.add(PlayerAbility.ATTACK_MOBS);
+                return layer;
+            }),
+    };
 
     @Override
     public int pid() {
@@ -57,11 +75,9 @@ public class AddPlayerPacket11940 extends Packet11940 {
     public String deviceId = "";
     public int buildPlatform = -1;
 
-    public int flags = 8;
-    public int userCommandPermissions = 4;
-    public int permissionFlags = 256;
-    public int playerPermissions = 1;
-    public int storedCustomAbilities = 1;
+    public int playerPermission = Player.PERMISSION_MEMBER;
+    public CommandPermission commandPermission = CommandPermission.ALL;
+    public AbilityLayer[] abilityLayers = SURVIVAL_ABILITY_LAYERS;
 
     @Override
     public void decode() {
@@ -95,14 +111,12 @@ public class AddPlayerPacket11940 extends Packet11940 {
 
         // UpdateAbilitiesPacket
         this.putLLong(entityUniqueId);
-        this.putUnsignedVarInt(0); // playerPermission
-        this.putUnsignedVarInt(0); // commandPermission
-        this.putUnsignedVarInt(1); // abilitiesLayer size
-        this.putLShort(1); // BASE layer type
-        this.putLInt(262143); // abilitiesSet - all abilities
-        this.putLInt(63); // abilityValues - survival abilities
-        this.putLFloat(0.1f); // flySpeed
-        this.putLFloat(0.05f); // walkSpeed
+        this.putByte(playerPermission);
+        this.putByte(commandPermission.ordinal());
+        this.putUnsignedVarInt(abilityLayers.length);
+        for (AbilityLayer layer : abilityLayers) {
+            helper.putAbilityLayer(this, layer);
+        }
 
         this.putUnsignedVarInt(links.length);
         for (EntityLink link : links) {

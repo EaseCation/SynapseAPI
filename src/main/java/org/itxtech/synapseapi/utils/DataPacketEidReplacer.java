@@ -24,6 +24,7 @@ import org.itxtech.synapseapi.multiprotocol.protocol12120.protocol.MobArmorEquip
 import org.itxtech.synapseapi.multiprotocol.protocol12140.protocol.CameraInstructionPacket12140;
 import org.itxtech.synapseapi.multiprotocol.protocol12140.protocol.MobEffectPacket12140;
 import org.itxtech.synapseapi.multiprotocol.protocol12140.protocol.MovementEffectPacket12140;
+import org.itxtech.synapseapi.multiprotocol.protocol12160.protocol.BossEventPacket12160;
 import org.itxtech.synapseapi.multiprotocol.protocol14.protocol.PlayerActionPacket14;
 import org.itxtech.synapseapi.multiprotocol.protocol15.protocol.MoveEntityDeltaPacket;
 import org.itxtech.synapseapi.multiprotocol.protocol18.protocol.SpawnParticleEffectPacket18;
@@ -141,7 +142,15 @@ public class DataPacketEidReplacer {
                 }
                 break;
             case ProtocolInfo.BOSS_EVENT_PACKET:
-                if (((BossEventPacket) packet).bossEid == from) ((BossEventPacket) packet).bossEid = to;
+                if (packet instanceof BossEventPacket12160 dp) {
+                    if (dp.bossEid == from) {
+                        dp.bossEid = to;
+                    }
+                } else if (packet instanceof BossEventPacket dp) {
+                    if (dp.bossEid == from) {
+                        dp.bossEid = to;
+                    }
+                }
                 break;
             case ProtocolInfo.ADVENTURE_SETTINGS_PACKET:
                 if (((AdventureSettingsPacket) packet).entityUniqueId == from) ((AdventureSettingsPacket) packet).entityUniqueId = to;

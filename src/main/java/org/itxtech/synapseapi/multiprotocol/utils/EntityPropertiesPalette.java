@@ -52,6 +52,15 @@ public final class EntityPropertiesPalette {
                         new EntityPropertyDataInt("minecraft:creaking_swaying_ticks", 6, 0)
                 )
         );
+        EntityPropertiesPaletteInterface palette12170 = new EntityPropertiesPaletteBase(palette12150,
+                new EntityPropertiesTable(EntityFullNames.PIG,
+                        new EntityPropertyDataEnum("minecraft:climate_variant",
+                                "temperate",
+                                "warm",
+                                "cold"
+                        )
+                )
+        );
 
         register(AbstractProtocol.PROTOCOL_117, palette117, null);
         register(AbstractProtocol.PROTOCOL_117_10, palette117, null);
@@ -86,6 +95,7 @@ public final class EntityPropertiesPalette {
         register(AbstractProtocol.PROTOCOL_121_30, palette12080, null);
         register(AbstractProtocol.PROTOCOL_121_40, palette12080, null);
         register(AbstractProtocol.PROTOCOL_121_50, palette12150, null);
+        register(AbstractProtocol.PROTOCOL_121_60, palette12150, null);
 
         cachePackets();
     }

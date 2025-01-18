@@ -3,6 +3,9 @@ package org.itxtech.synapseapi.multiprotocol.utils;
 import cn.nukkit.item.Item;
 import cn.nukkit.item.ItemRuntimeID;
 import cn.nukkit.item.RuntimeItemPaletteInterface.Entry;
+import cn.nukkit.nbt.NBTIO;
+import cn.nukkit.nbt.tag.CompoundTag;
+import cn.nukkit.network.protocol.DataPacket;
 import cn.nukkit.utils.BinaryStream;
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
@@ -16,6 +19,8 @@ import lombok.extern.log4j.Log4j2;
 import org.itxtech.synapseapi.SynapseAPI;
 import org.itxtech.synapseapi.multiprotocol.AbstractProtocol;
 import org.itxtech.synapseapi.multiprotocol.protocol116100.BinaryStreamHelper116100;
+import org.itxtech.synapseapi.multiprotocol.protocol12160.protocol.ItemRegistryPacket12160;
+import org.itxtech.synapseapi.multiprotocol.protocol12160.protocol.ItemRegistryPacket12160.ItemData;
 import org.itxtech.synapseapi.multiprotocol.utils.item.LegacyItemSerializer;
 
 import java.io.IOException;
@@ -189,7 +194,7 @@ public class RuntimeItemPalette implements AdvancedRuntimeItemPaletteInterface {
                 return;
             }
 
-            entry = new Entry(entry.name, entry.id, oldId, entry.oldData, entry.component);
+            entry = new Entry(entry.name, entry.id, oldId, entry.oldData, entry.component, entry.version);
         } else {
             oldId = entry.oldId;
         }
@@ -213,6 +218,11 @@ public class RuntimeItemPalette implements AdvancedRuntimeItemPaletteInterface {
 
     @Override
     public void buildNetworkCache() {
+        if (protocol.getProtocolStart() >= AbstractProtocol.PROTOCOL_121_60.getProtocolStart()) {
+            itemDataPalette = new byte[0];
+            return;
+        }
+
         BinaryStream stream = new BinaryStream();
         stream.putUnsignedVarInt(entries.size());
         if (protocol.getProtocolStart() >= AbstractProtocol.PROTOCOL_120_50.getProtocolStart()) {
@@ -229,6 +239,28 @@ public class RuntimeItemPalette implements AdvancedRuntimeItemPaletteInterface {
             }
         }
         itemDataPalette = stream.getBuffer();
+    }
+
+    @Override
+    public DataPacket createItemRegistryPacket(Map<String, CompoundTag> componentDefinitions) {
+        ItemRegistryPacket12160 packet = new ItemRegistryPacket12160();
+        List<ItemData> entries = new ArrayList<>();
+        for (Entry entry : this.entries) {
+            byte[] data;
+            CompoundTag components = componentDefinitions.get(entry.name);
+            if (components != null) {
+                try {
+                    data = NBTIO.writeNetwork(components);
+                } catch (IOException e) {
+                    throw new RuntimeException(e);
+                }
+            } else {
+                data = CompoundTag.EMPTY;
+            }
+            entries.add(new ItemData(entry.name, entry.id, entry.component, entry.version, data));
+        }
+        packet.entries = entries.toArray(new ItemData[0]);
+        return packet;
     }
 
     @Override

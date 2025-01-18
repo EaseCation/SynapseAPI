@@ -2,6 +2,10 @@ package org.itxtech.synapseapi.multiprotocol.utils;
 
 import cn.nukkit.item.Item;
 import cn.nukkit.item.RuntimeItemPaletteInterface.Entry;
+import cn.nukkit.nbt.tag.CompoundTag;
+import cn.nukkit.network.protocol.DataPacket;
+
+import java.util.Map;
 
 public interface AdvancedRuntimeItemPaletteInterface {
 
@@ -28,6 +32,8 @@ public interface AdvancedRuntimeItemPaletteInterface {
     byte[] getCompiledData();
 
     void buildNetworkCache();
+
+    DataPacket createItemRegistryPacket(Map<String, CompoundTag> componentDefinitions);
 
     void registerItem(Entry entry);
 }

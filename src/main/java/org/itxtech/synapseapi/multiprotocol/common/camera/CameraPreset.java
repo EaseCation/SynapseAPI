@@ -125,6 +125,16 @@ public class CameraPreset {
      */
     @Nullable
     public Float radius;
+    /**
+     * @since 1.21.60
+     */
+    @Nullable
+    public Float yawLimitMin;
+    /**
+     * @since 1.21.60
+     */
+    @Nullable
+    public Float yawLimitMax;
     @Nullable
     public Byte audioListener;
     @Nullable
