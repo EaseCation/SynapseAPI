@@ -208,27 +208,7 @@ public class PlayerAuthInputPacket116220 extends Packet116220 implements Invento
         if (false && protocol.getProtocolStart() >= AbstractProtocol.PROTOCOL_121_50.getProtocolStart()) {
             int flagCount = PlayerAuthInputFlags.COUNT[protocol.ordinal()];
 /*
-            long[] bitSet = new long[Mth.ceil(flagCount / 64f)];
-            int index = 0;
-            int shift = 0;
-            while (true) {
-                if (shift >= flagCount) {
-                    throw new IllegalArgumentException("VarBitSet was too large");
-                }
-                int b = getSingedByte();
-                long bits = b & 0x7f;
-                bitSet[index] |= bits << shift; // extra bits will be discarded
-                int nextShift = shift + 7;
-                if (nextShift >= 64) {
-                    nextShift -= 64;
-                    bitSet[++index] = bits >> (7 - nextShift);
-                }
-                if ((b & 0x80) == 0) {
-                    break;
-                }
-                shift = nextShift;
-            }
-            inputFlags = BitSet.valueOf(bitSet);
+            inputFlags = getBitSet(flagCount);
 */
             boolean flag2 = false;
             int shift = 0;

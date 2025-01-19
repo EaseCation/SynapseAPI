@@ -95,6 +95,10 @@ public final class BlockStates {
             CRACKED_STATE_CRACKED,
             CRACKED_STATE_MAX_CRACKED));
     public static final BooleanBlockState CRAFTING = register(new BooleanBlockState(BlockStateNames.CRAFTING));
+    public static final StringBlockState CREAKING_HEART_STATE = register(new StringBlockState(BlockStateNames.CREAKING_HEART_STATE,
+            CREAKING_HEART_STATE_UPROOTED,
+            CREAKING_HEART_STATE_DORMANT,
+            CREAKING_HEART_STATE_AWAKE));
     public static final StringBlockState DAMAGE = register(new StringBlockState(BlockStateNames.DAMAGE,
             DAMAGE_UNDAMAGED,
             DAMAGE_SLIGHTLY_DAMAGED,

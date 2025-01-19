@@ -35,6 +35,16 @@ public class BlockRegistry {
         return block;
     }
 
+    public BlockLegacy replace(BlockLegacy oldBlock, BlockState oldState, BlockState newState) {
+        return replace(oldBlock, oldState, newState, newState.variationCount);
+    }
+
+    public BlockLegacy replace(BlockLegacy oldBlock, BlockState oldState, BlockState newState, int variationCount) {
+        BlockLegacy newBlock = oldBlock.replace(oldState, newState, variationCount);
+        blocks.put(newBlock.name, newBlock);
+        return newBlock;
+    }
+
     public BlockLegacy rename(BlockLegacy oldBlock, String newName) {
         blocks.remove(oldBlock.name);
 

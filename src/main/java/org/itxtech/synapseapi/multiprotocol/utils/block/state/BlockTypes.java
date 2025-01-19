@@ -2598,4 +2598,84 @@ public class BlockTypes {
             return REGISTRY;
         }
     }
+
+    public static class V1_21_60 extends V1_21_50 {
+        private static final BlockRegistry REGISTRY = new BlockRegistry((1 << 24) | (21 << 16) | (60 << 8) | 33, V1_21_50.REGISTRY);
+
+        public static final BlockLegacy ACACIA_DOOR = REGISTRY.replace(V1_21_50.ACACIA_DOOR, BlockStates.DIRECTION, BlockStates.MINECRAFT_CARDINAL_DIRECTION);
+
+        public static final BlockLegacy ACACIA_FENCE_GATE = REGISTRY.replace(V1_21_50.ACACIA_FENCE_GATE, BlockStates.DIRECTION, BlockStates.MINECRAFT_CARDINAL_DIRECTION);
+
+        public static final BlockLegacy BAMBOO_DOOR = REGISTRY.replace(V1_21_50.BAMBOO_DOOR, BlockStates.DIRECTION, BlockStates.MINECRAFT_CARDINAL_DIRECTION);
+
+        public static final BlockLegacy BAMBOO_FENCE_GATE = REGISTRY.replace(V1_21_50.BAMBOO_FENCE_GATE, BlockStates.DIRECTION, BlockStates.MINECRAFT_CARDINAL_DIRECTION);
+
+        public static final BlockLegacy BIRCH_DOOR = REGISTRY.replace(V1_21_50.BIRCH_DOOR, BlockStates.DIRECTION, BlockStates.MINECRAFT_CARDINAL_DIRECTION);
+
+        public static final BlockLegacy BIRCH_FENCE_GATE = REGISTRY.replace(V1_21_50.BIRCH_FENCE_GATE, BlockStates.DIRECTION, BlockStates.MINECRAFT_CARDINAL_DIRECTION);
+
+        public static final BlockLegacy CHERRY_DOOR = REGISTRY.replace(V1_21_50.CHERRY_DOOR, BlockStates.DIRECTION, BlockStates.MINECRAFT_CARDINAL_DIRECTION);
+
+        public static final BlockLegacy CHERRY_FENCE_GATE = REGISTRY.replace(V1_21_50.CHERRY_FENCE_GATE, BlockStates.DIRECTION, BlockStates.MINECRAFT_CARDINAL_DIRECTION);
+
+        public static final BlockLegacy COPPER_DOOR = REGISTRY.replace(V1_21_50.COPPER_DOOR, BlockStates.DIRECTION, BlockStates.MINECRAFT_CARDINAL_DIRECTION);
+
+        public static final BlockLegacy CREAKING_HEART = REGISTRY.replace(V1_21_50.CREAKING_HEART, BlockStates.ACTIVE, BlockStates.CREAKING_HEART_STATE);
+
+        public static final BlockLegacy CRIMSON_DOOR = REGISTRY.replace(V1_21_50.CRIMSON_DOOR, BlockStates.DIRECTION, BlockStates.MINECRAFT_CARDINAL_DIRECTION);
+
+        public static final BlockLegacy CRIMSON_FENCE_GATE = REGISTRY.replace(V1_21_50.CRIMSON_FENCE_GATE, BlockStates.DIRECTION, BlockStates.MINECRAFT_CARDINAL_DIRECTION);
+
+        public static final BlockLegacy DARK_OAK_DOOR = REGISTRY.replace(V1_21_50.DARK_OAK_DOOR, BlockStates.DIRECTION, BlockStates.MINECRAFT_CARDINAL_DIRECTION);
+
+        public static final BlockLegacy DARK_OAK_FENCE_GATE = REGISTRY.replace(V1_21_50.DARK_OAK_FENCE_GATE, BlockStates.DIRECTION, BlockStates.MINECRAFT_CARDINAL_DIRECTION);
+
+        public static final BlockLegacy EXPOSED_COPPER_DOOR = REGISTRY.replace(V1_21_50.EXPOSED_COPPER_DOOR, BlockStates.DIRECTION, BlockStates.MINECRAFT_CARDINAL_DIRECTION);
+
+        public static final BlockLegacy FENCE_GATE = REGISTRY.replace(V1_21_50.FENCE_GATE, BlockStates.DIRECTION, BlockStates.MINECRAFT_CARDINAL_DIRECTION);
+
+        public static final BlockLegacy IRON_DOOR = REGISTRY.replace(V1_21_50.IRON_DOOR, BlockStates.DIRECTION, BlockStates.MINECRAFT_CARDINAL_DIRECTION);
+
+        public static final BlockLegacy JUNGLE_DOOR = REGISTRY.replace(V1_21_50.JUNGLE_DOOR, BlockStates.DIRECTION, BlockStates.MINECRAFT_CARDINAL_DIRECTION);
+
+        public static final BlockLegacy JUNGLE_FENCE_GATE = REGISTRY.replace(V1_21_50.JUNGLE_FENCE_GATE, BlockStates.DIRECTION, BlockStates.MINECRAFT_CARDINAL_DIRECTION);
+
+        public static final BlockLegacy MANGROVE_DOOR = REGISTRY.replace(V1_21_50.MANGROVE_DOOR, BlockStates.DIRECTION, BlockStates.MINECRAFT_CARDINAL_DIRECTION);
+
+        public static final BlockLegacy MANGROVE_FENCE_GATE = REGISTRY.replace(V1_21_50.MANGROVE_FENCE_GATE, BlockStates.DIRECTION, BlockStates.MINECRAFT_CARDINAL_DIRECTION);
+
+        public static final BlockLegacy OXIDIZED_COPPER_DOOR = REGISTRY.replace(V1_21_50.OXIDIZED_COPPER_DOOR, BlockStates.DIRECTION, BlockStates.MINECRAFT_CARDINAL_DIRECTION);
+
+        public static final BlockLegacy PALE_OAK_DOOR = REGISTRY.replace(V1_21_50.PALE_OAK_DOOR, BlockStates.DIRECTION, BlockStates.MINECRAFT_CARDINAL_DIRECTION);
+
+        public static final BlockLegacy PALE_OAK_FENCE_GATE = REGISTRY.replace(V1_21_50.PALE_OAK_FENCE_GATE, BlockStates.DIRECTION, BlockStates.MINECRAFT_CARDINAL_DIRECTION);
+
+        public static final BlockLegacy SPRUCE_DOOR = REGISTRY.replace(V1_21_50.SPRUCE_DOOR, BlockStates.DIRECTION, BlockStates.MINECRAFT_CARDINAL_DIRECTION);
+
+        public static final BlockLegacy SPRUCE_FENCE_GATE = REGISTRY.replace(V1_21_50.SPRUCE_FENCE_GATE, BlockStates.DIRECTION, BlockStates.MINECRAFT_CARDINAL_DIRECTION);
+
+        public static final BlockLegacy WARPED_DOOR = REGISTRY.replace(V1_21_50.WARPED_DOOR, BlockStates.DIRECTION, BlockStates.MINECRAFT_CARDINAL_DIRECTION);
+
+        public static final BlockLegacy WARPED_FENCE_GATE = REGISTRY.replace(V1_21_50.WARPED_FENCE_GATE, BlockStates.DIRECTION, BlockStates.MINECRAFT_CARDINAL_DIRECTION);
+
+        public static final BlockLegacy WAXED_COPPER_DOOR = REGISTRY.replace(V1_21_50.WAXED_COPPER_DOOR, BlockStates.DIRECTION, BlockStates.MINECRAFT_CARDINAL_DIRECTION);
+
+        public static final BlockLegacy WAXED_EXPOSED_COPPER_DOOR = REGISTRY.replace(V1_21_50.WAXED_EXPOSED_COPPER_DOOR, BlockStates.DIRECTION, BlockStates.MINECRAFT_CARDINAL_DIRECTION);
+
+        public static final BlockLegacy WAXED_OXIDIZED_COPPER_DOOR = REGISTRY.replace(V1_21_50.WAXED_OXIDIZED_COPPER_DOOR, BlockStates.DIRECTION, BlockStates.MINECRAFT_CARDINAL_DIRECTION);
+
+        public static final BlockLegacy WAXED_WEATHERED_COPPER_DOOR = REGISTRY.replace(V1_21_50.WAXED_WEATHERED_COPPER_DOOR, BlockStates.DIRECTION, BlockStates.MINECRAFT_CARDINAL_DIRECTION);
+
+        public static final BlockLegacy WEATHERED_COPPER_DOOR = REGISTRY.replace(V1_21_50.WEATHERED_COPPER_DOOR, BlockStates.DIRECTION, BlockStates.MINECRAFT_CARDINAL_DIRECTION);
+
+        public static final BlockLegacy WOODEN_DOOR = REGISTRY.replace(V1_21_50.WOODEN_DOOR, BlockStates.DIRECTION, BlockStates.MINECRAFT_CARDINAL_DIRECTION);
+
+        static {
+            REGISTRY.createBlockPermutations();
+        }
+
+        public static BlockRegistry getBlockRegistry() {
+            return REGISTRY;
+        }
+    }
 }

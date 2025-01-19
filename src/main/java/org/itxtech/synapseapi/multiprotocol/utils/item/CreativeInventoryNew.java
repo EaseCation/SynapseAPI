@@ -7,6 +7,7 @@ import com.google.gson.JsonElement;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import lombok.extern.log4j.Log4j2;
 import org.itxtech.synapseapi.SynapseAPI;
+import org.itxtech.synapseapi.multiprotocol.protocol12160.protocol.CreativeContentPacket12160.Entry;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -17,7 +18,7 @@ import static org.itxtech.synapseapi.SynapseSharedConstants.*;
 
 @Log4j2
 public final class CreativeInventoryNew {
-    private static final List<Item> ITEMS = new ObjectArrayList<>();
+    private static final List<Entry> ITEMS = new ObjectArrayList<>();
 
     static {
         log.info("Loading Creative Items from creative_items.json (new) 1.20.10");
@@ -44,14 +45,14 @@ public final class CreativeInventoryNew {
                     continue;
                 }
 
-                ITEMS.add(item);
+                ITEMS.add(new Entry(item, CreativeInventoryGrouped.getGroupIndex(item)));
             } catch (Exception e) {
                 log.error("Failed to parse creative item", e);
             }
         }
     }
 
-    public static List<Item> getItems() {
+    public static List<Entry> getItems() {
         return ITEMS;
     }
 

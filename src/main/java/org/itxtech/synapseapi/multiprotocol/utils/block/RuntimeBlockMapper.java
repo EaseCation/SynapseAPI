@@ -65,6 +65,7 @@ public final class RuntimeBlockMapper {
         BlockPalette palette12130 = BlockTypes.V1_21_30.getBlockRegistry().createBlockPalette();
         BlockPalette palette12140 = BlockTypes.V1_21_40.getBlockRegistry().createBlockPalette();
         BlockPalette palette12150 = BlockTypes.V1_21_50.getBlockRegistry().createBlockPalette();
+        BlockPalette palette12160 = BlockTypes.V1_21_60.getBlockRegistry().createBlockPalette();
 
 /*
         PALETTES.put(AbstractProtocol.PROTOCOL_117_40, new BlockPalette[]{palette11740, palette118N});
@@ -98,6 +99,7 @@ public final class RuntimeBlockMapper {
         PALETTES.put(AbstractProtocol.PROTOCOL_121_30, new BlockPalette[]{palette12130, palette12130});
         PALETTES.put(AbstractProtocol.PROTOCOL_121_40, new BlockPalette[]{palette12140, palette12140});
         PALETTES.put(AbstractProtocol.PROTOCOL_121_50, new BlockPalette[]{palette12150, palette12150});
+        PALETTES.put(AbstractProtocol.PROTOCOL_121_60, new BlockPalette[]{palette12160, palette12160});
 
         GameVersion baseVersion = V1_20_10;
         BlockPalette basePalette = palette12010;
@@ -131,7 +133,8 @@ public final class RuntimeBlockMapper {
                 CompletableFuture.runAsync(() -> map(V1_21_20, palette12120, basePalette)),
                 CompletableFuture.runAsync(() -> map(V1_21_30, palette12130, basePalette)),
                 CompletableFuture.runAsync(() -> map(V1_21_40, palette12140, basePalette)),
-                CompletableFuture.runAsync(() -> map(V1_21_50, palette12150, basePalette))
+                CompletableFuture.runAsync(() -> map(V1_21_50, palette12150, basePalette)),
+                CompletableFuture.runAsync(() -> map(V1_21_60, palette12160, basePalette))
         ).join();
 
         RUNTIME_BLOCK_SERIALIZER = new RuntimeBlockSerializer(basePalette);

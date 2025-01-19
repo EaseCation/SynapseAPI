@@ -3,6 +3,7 @@ package org.itxtech.synapseapi.multiprotocol.utils;
 import cn.nukkit.item.Item;
 import cn.nukkit.item.RuntimeItemPaletteInterface;
 import cn.nukkit.nbt.tag.CompoundTag;
+import cn.nukkit.network.protocol.DataPacket;
 import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet;
 import lombok.extern.log4j.Log4j2;
 import org.itxtech.synapseapi.multiprotocol.AbstractProtocol;
@@ -67,6 +68,7 @@ public final class AdvancedRuntimeItemPalette {
         RuntimeItemPalette palette12130 = new RuntimeItemPalette(AbstractProtocol.PROTOCOL_121_30, "runtime_item_ids_12130.json");
         RuntimeItemPalette palette12140 = new RuntimeItemPalette(AbstractProtocol.PROTOCOL_121_40, "runtime_item_ids_12140.json");
         RuntimeItemPalette palette12150 = new RuntimeItemPalette(AbstractProtocol.PROTOCOL_121_50, "runtime_item_ids_12150.json");
+        RuntimeItemPalette palette12160 = new RuntimeItemPalette(AbstractProtocol.PROTOCOL_121_60, "runtime_item_ids_12160.json");
 
 /*
         register(AbstractProtocol.PROTOCOL_116_100, palette116100, null);
@@ -107,6 +109,7 @@ public final class AdvancedRuntimeItemPalette {
         register(AbstractProtocol.PROTOCOL_121_30, palette12130, null);
         register(AbstractProtocol.PROTOCOL_121_40, palette12140, null);
         register(AbstractProtocol.PROTOCOL_121_50, palette12150, null);
+        register(AbstractProtocol.PROTOCOL_121_60, palette12160, null);
     }
 
     private static void register(AbstractProtocol protocol, RuntimeItemPalette palette, RuntimeItemPalette paletteNetEase) {
@@ -140,7 +143,9 @@ public final class AdvancedRuntimeItemPalette {
                     continue;
                 }
 
-                palette.registerItem(new RuntimeItemPaletteInterface.Entry(fullName, id, oldId, null, componentsSupplier != null && componentsSupplier.apply(protocol.getProtocolStart()).contains("item_properties")));
+                boolean componentBased = componentsSupplier != null && componentsSupplier.apply(protocol.getProtocolStart()).contains("item_properties");
+                int version = componentBased ? 1 : componentsSupplier != null ? 0 : 2;
+                palette.registerItem(new RuntimeItemPaletteInterface.Entry(fullName, id, oldId, null, componentBased, version));
             }
         }
 
@@ -216,6 +221,10 @@ public final class AdvancedRuntimeItemPalette {
 
     public static int getNetworkIdByNameTodo(AbstractProtocol protocol, boolean netease, String name) {
         return getPalette(protocol, netease).getNetworkIdByNameTodo(name);
+    }
+
+    public static DataPacket createItemRegistryPacket(AbstractProtocol protocol, boolean netease, Map<String, CompoundTag> componentDefinitions) {
+        return getPalette(protocol, netease).createItemRegistryPacket(componentDefinitions);
     }
 
     public static void init() {

@@ -2159,6 +2159,7 @@ public final class LegacyBlockSerializer {
 
         registerDeserializer(CREAKING_HEART, states -> {
             int meta = deserializePillarAxis(states);
+            //TODO: 1.21.60 CREAKING_HEART_STATE
             if (states.getBoolean(ACTIVE)) {
                 meta |= 0b100;
             }

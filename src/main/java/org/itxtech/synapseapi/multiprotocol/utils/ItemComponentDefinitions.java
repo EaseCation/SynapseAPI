@@ -142,6 +142,10 @@ public final class ItemComponentDefinitions {
                     load("item_components12150.nbt", AbstractProtocol.PROTOCOL_121_50, false),
                     null,
             });
+            DEFINITIONS.put(AbstractProtocol.PROTOCOL_121_60, new Map[]{
+                    load("item_components12160.nbt", AbstractProtocol.PROTOCOL_121_60, false),
+                    null,
+            });
         } catch (NullPointerException | IOException e) {
             throw new AssertionError("Unable to load item_components.nbt", e);
         }
@@ -166,16 +170,28 @@ public final class ItemComponentDefinitions {
                 throw new AssertionError("Missing item_components.nbt: " + protocol);
             }
 
-            ItemComponentPacket116100 packet = new ItemComponentPacket116100();
-            packet.entries = mapToEntries(definition[0], protocol, false);
+            DataPacket packet;
+            DataPacket packetNe;
+            if (protocol.getProtocolStart() >= AbstractProtocol.PROTOCOL_121_60.getProtocolStart()) {
+                packet = AdvancedRuntimeItemPalette.createItemRegistryPacket(protocol, false, definition[0]);
+
+                packetNe = AdvancedRuntimeItemPalette.createItemRegistryPacket(protocol, true, definition[0]);
+            } else {
+                ItemComponentPacket116100 itemComponentPacket = new ItemComponentPacket116100();
+                itemComponentPacket.entries = mapToEntries(definition[0], protocol, false);
+                packet = itemComponentPacket;
+
+                ItemComponentPacket116100 itemComponentPacketNe = new ItemComponentPacket116100();
+                itemComponentPacketNe.entries = mapToEntries(definition[1], protocol, true);
+                packetNe = itemComponentPacketNe;
+            }
+
             packet.setHelper(protocol.getHelper());
             packet.tryEncode();
 
             BatchPacket batch = packet.compress(Deflater.BEST_COMPRESSION, true);
             batch.tracks = new Track[]{new Track(packet.pid(), packet.getCount())};
 
-            ItemComponentPacket116100 packetNe = new ItemComponentPacket116100();
-            packetNe.entries = mapToEntries(definition[1], protocol, true);
             packetNe.setHelper(protocol.getHelper());
             packetNe.neteaseMode = true;
             packetNe.tryEncode();
@@ -252,9 +268,12 @@ public final class ItemComponentDefinitions {
             }
 
             CompoundTag fullTag = new CompoundTag()
-                    .putInt("id", id)
-                    .putString("name", name)
                     .putCompound("components", componentsSupplier.apply(protocol.getProtocolStart()));
+
+            if (protocol.getProtocolStart() < AbstractProtocol.PROTOCOL_121_60.getProtocolStart()) {
+                fullTag.putInt("id", id);
+                fullTag.putString("name", name);
+            }
 
             for (int i = 0; i <= 1; i++) {
                 Map<String, CompoundTag> data = map[i];

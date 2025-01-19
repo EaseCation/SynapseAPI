@@ -209,33 +209,38 @@ public interface PlayerAuthInputFlags {
     /**
      * @since 1.21.50
      */
-    int JUMP_RELEASED_RAW = 58;
+    int IS_HOTBAR_ONLY_TOUCH = 58;
     /**
      * @since 1.21.50
      */
-    int JUMP_PRESSED_RAW = 59;
+    int JUMP_RELEASED_RAW = 59;
     /**
      * @since 1.21.50
      */
-    int JUMP_CURRENT_RAW = 60;
+    int JUMP_PRESSED_RAW = 60;
     /**
      * @since 1.21.50
      */
-    int SNEAK_RELEASED_RAW = 61;
+    int JUMP_CURRENT_RAW = 61;
     /**
      * @since 1.21.50
      */
-    int SNEAK_PRESSED_RAW = 62;
+    int SNEAK_RELEASED_RAW = 62;
     /**
      * @since 1.21.50
      */
-    int SNEAK_CURRENT_RAW = 63;
+    int SNEAK_PRESSED_RAW = 63;
+    /**
+     * @since 1.21.50
+     */
+    int SNEAK_CURRENT_RAW = 64;
 
 
     int[] COUNT = Utils.make(() -> {
         int[] versions = new int[AbstractProtocol.getValues().length];
-        Arrays.fill(versions, 64);
-        versions[AbstractProtocol.PROTOCOL_121_50.ordinal()] = 64;
+        Arrays.fill(versions, 65);
+        versions[AbstractProtocol.PROTOCOL_121_50.ordinal()] = 65;
+        versions[AbstractProtocol.PROTOCOL_121_60.ordinal()] = 65;
         return versions;
     });
 }

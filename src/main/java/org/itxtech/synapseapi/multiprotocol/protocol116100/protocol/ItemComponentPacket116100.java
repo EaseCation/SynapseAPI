@@ -6,7 +6,7 @@ import lombok.ToString;
 
 @ToString
 public class ItemComponentPacket116100 extends Packet116100 {
-    public static final int NETWORK_ID = ProtocolInfo.ITEM_COMPONENT_PACKET;
+    public static final int NETWORK_ID = ProtocolInfo.ITEM_REGISTRY_PACKET;
 
     public Entry[] entries = new Entry[0];
 

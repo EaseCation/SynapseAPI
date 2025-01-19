@@ -115,6 +115,9 @@ import org.itxtech.synapseapi.multiprotocol.protocol12120.protocol.*;
 import org.itxtech.synapseapi.multiprotocol.protocol12130.protocol.*;
 import org.itxtech.synapseapi.multiprotocol.protocol12140.protocol.*;
 import org.itxtech.synapseapi.multiprotocol.protocol12150.protocol.ResourcePacksInfoPacket12150;
+import org.itxtech.synapseapi.multiprotocol.protocol12160.protocol.BossEventPacket12160;
+import org.itxtech.synapseapi.multiprotocol.protocol12160.protocol.ClientMovementPredictionSyncPacket12160;
+import org.itxtech.synapseapi.multiprotocol.protocol12160.protocol.StartGamePacket12160;
 import org.itxtech.synapseapi.multiprotocol.protocol15.protocol.AddEntityPacket15;
 import org.itxtech.synapseapi.multiprotocol.protocol15.protocol.ClientboundMapItemDataPacket15;
 import org.itxtech.synapseapi.multiprotocol.protocol15.protocol.MoveEntityAbsolutePacket15;
@@ -291,7 +294,7 @@ public class PacketRegister {
         registerPacket(AbstractProtocol.PROTOCOL_116_100, ProtocolInfo.LEVEL_EVENT_PACKET, LevelEventPacket116100.class);
         registerPacket(AbstractProtocol.PROTOCOL_116_100, ProtocolInfo.ACTOR_EVENT_PACKET, EntityEventPacket116100.class);
         registerPacket(AbstractProtocol.PROTOCOL_116_100, ProtocolInfo.ANIMATE_ENTITY_PACKET, AnimateEntityPacket116100.class);
-        registerPacket(AbstractProtocol.PROTOCOL_116_100, ProtocolInfo.ITEM_COMPONENT_PACKET, ItemComponentPacket116100.class);
+        registerPacket(AbstractProtocol.PROTOCOL_116_100, ProtocolInfo.ITEM_REGISTRY_PACKET, ItemComponentPacket116100.class);
         registerPacket(AbstractProtocol.PROTOCOL_116_100, ProtocolInfo.PLAYER_FOG_PACKET, PlayerFogPacket116100.class);
         registerPacket(AbstractProtocol.PROTOCOL_116_100, ProtocolInfo.CAMERA_SHAKE_PACKET, CameraShakePacket116100.class);
 
@@ -443,6 +446,10 @@ public class PacketRegister {
         registerPacket(AbstractProtocol.PROTOCOL_121_40, ProtocolInfo.INVENTORY_SLOT_PACKET, InventorySlotPacket12140.class);
 
         registerPacket(AbstractProtocol.PROTOCOL_121_50, ProtocolInfo.RESOURCE_PACKS_INFO_PACKET, ResourcePacksInfoPacket12150.class);
+
+        registerPacket(AbstractProtocol.PROTOCOL_121_60, ProtocolInfo.START_GAME_PACKET, StartGamePacket12160.class);
+        registerPacket(AbstractProtocol.PROTOCOL_121_60, ProtocolInfo.BOSS_EVENT_PACKET, BossEventPacket12160.class);
+        registerPacket(AbstractProtocol.PROTOCOL_121_60, ProtocolInfo.CLIENT_MOVEMENT_PREDICTION_SYNC_PACKET, ClientMovementPredictionSyncPacket12160.class);
 
         checkNeteaseSpecialExtend();
     }

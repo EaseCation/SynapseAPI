@@ -1,7 +1,9 @@
 package org.itxtech.synapseapi.multiprotocol.utils;
 
 import cn.nukkit.entity.Entity;
+import cn.nukkit.utils.Utils;
 import it.unimi.dsi.fastutil.ints.Int2IntFunction;
+import org.itxtech.synapseapi.multiprotocol.AbstractProtocol;
 
 import java.util.Arrays;
 
@@ -226,6 +228,13 @@ public class DataFlagTranslator {
 	public static final int FLAG_12080_BODY_ROTATION_BLOCKED = 118;
 
 	public static final int FLAG_12160_RENDERS_WHEN_INVISIBLE = 119;
+
+	public static final int[] COUNT = Utils.make(() -> {
+		int[] versions = new int[AbstractProtocol.getValues().length];
+		Arrays.fill(versions, 120);
+		versions[AbstractProtocol.PROTOCOL_121_60.ordinal()] = 120;
+		return versions;
+	});
 
 	static {
 		Arrays.fill(v12ToV14Book, -1);

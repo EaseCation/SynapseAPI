@@ -105,6 +105,40 @@ public class BlockLegacy {
     /**
      * @return new block
      */
+    public BlockLegacy replace(BlockState oldState, BlockState newState) {
+        return replace(oldState, newState, newState.variationCount);
+    }
+
+    /**
+     * @return new block
+     */
+    public BlockLegacy replace(BlockState oldState, BlockState newState, int variationCount) {
+        BlockLegacy newBlock = new BlockLegacy(id, name);
+        Int2ObjectMap<BlockStateInstance> permutations = new Int2ObjectRBTreeMap<>();
+        boolean found = false;
+        for (BlockStateInstance instance : states) {
+            if (instance == null) {
+                continue;
+            }
+            if (oldState == instance.state) {
+                found = true;
+                permutations.put(instance.startBit, new BlockStateInstance(0, Mth.ceillog2(variationCount), variationCount, newState));
+                continue;
+            }
+            permutations.put(instance.startBit, instance);
+        }
+        if (!found) {
+            throw new IllegalArgumentException("old state not found");
+        }
+        for (BlockStateInstance instance : permutations.values()) {
+            newBlock.addState(instance.state, instance.variationCount);
+        }
+        return newBlock;
+    }
+
+    /**
+     * @return new block
+     */
     public BlockLegacy flatten(String name, int id, BlockState... flattenedStates) {
         BlockLegacy newBlock = new BlockLegacy(id, name);
         Int2ObjectMap<BlockStateInstance> permutations = new Int2ObjectRBTreeMap<>();

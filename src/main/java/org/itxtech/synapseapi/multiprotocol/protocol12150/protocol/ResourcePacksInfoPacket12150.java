@@ -50,7 +50,7 @@ public class ResourcePacksInfoPacket12150 extends Packet12150 {
             this.putBoolean(false); // scripting
             this.putBoolean(false); // addon: Indicates this pack is part of an Add-On. Helps clients determine if the pack must be downloaded to join the server as Add-On packs are required to play without issues.
             this.putBoolean(entry.getCapabilities().contains("raytraced"));
-            this.putString(entry.getCdnUrl() != null ? entry.getCdnUrl() : "");
+            this.putString(entry.getCdnUrl());
         }
     }
 

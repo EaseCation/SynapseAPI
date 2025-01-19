@@ -2,6 +2,11 @@ package org.itxtech.synapseapi.multiprotocol.utils;
 
 import cn.nukkit.item.Item;
 import cn.nukkit.item.RuntimeItemPaletteInterface.Entry;
+import cn.nukkit.nbt.tag.CompoundTag;
+import cn.nukkit.network.protocol.DataPacket;
+import org.itxtech.synapseapi.multiprotocol.protocol12160.protocol.ItemRegistryPacket12160;
+
+import java.util.Map;
 
 public class RuntimeItemPaletteLegacy implements AdvancedRuntimeItemPaletteInterface {
 
@@ -68,6 +73,11 @@ public class RuntimeItemPaletteLegacy implements AdvancedRuntimeItemPaletteInter
 
     @Override
     public void buildNetworkCache() {
+    }
+
+    @Override
+    public DataPacket createItemRegistryPacket(Map<String, CompoundTag> componentDefinitions) {
+        return new ItemRegistryPacket12160();
     }
 
     @Override
