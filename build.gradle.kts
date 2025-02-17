@@ -1,0 +1,21 @@
+plugins {
+    id("ecbuild.java-conventions")
+    id("ecbuild.copy-conventions")
+}
+
+extra.set("copyTo", listOf("{server}/plugins", "{login}/plugins", "{server1}/plugins"))
+
+dependencies {
+    api(libs.org.msgpack.msgpack.core)
+    compileOnly(libs.netty.all)
+    compileOnly("cn.nukkit:nukkit")
+    val authLibPkg = findProject(":AuthLibPackage")
+    if (authLibPkg == null) {
+        implementation(files(File(rootProject.projectDir, "lib/AuthLibPackage.jar")))
+    } else {
+        implementation(project(":AuthLibPackage"))
+    }
+}
+
+group = "org.itxtech.synapse"
+description = "Synapse API"
