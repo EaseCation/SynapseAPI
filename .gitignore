@@ -13,3 +13,6 @@ rebel.xml
 # Maven template
 target/
 /dependency-reduced-pom.xml
+
+#Gradle
+build
