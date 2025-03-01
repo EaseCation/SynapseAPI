@@ -4,8 +4,8 @@ import cn.nukkit.network.protocol.ProtocolInfo;
 import lombok.ToString;
 
 @ToString
-public class ClientCameraAimAssistPacket12160 extends Packet12160 {
-    public static final int NETWORK_ID = ProtocolInfo.CLIENT_CAMERA_AIM_ASSIST_PACKET;
+public class CameraAimAssistInstructionPacket12160 extends Packet12160 {
+    public static final int NETWORK_ID = ProtocolInfo.CAMERA_AIM_ASSIST_INSTRUCTION_PACKET;
 
     public static final int ACTION_SET_FROM_CAMERA_PRESET = 0;
     public static final int ACTION_CLEAR = 1;
@@ -21,13 +21,12 @@ public class ClientCameraAimAssistPacket12160 extends Packet12160 {
 
     @Override
     public void decode() {
+        cameraPresetId = getString();
+        action = getByte();
+        allowAimAssist = getBoolean();
     }
 
     @Override
     public void encode() {
-        reset();
-        putString(cameraPresetId);
-        putByte(action);
-        putBoolean(allowAimAssist);
     }
 }

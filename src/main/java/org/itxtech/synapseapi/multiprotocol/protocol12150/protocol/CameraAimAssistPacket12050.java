@@ -13,15 +13,24 @@ public class CameraAimAssistPacket12050 extends Packet12150 {
     public static final int ACTION_SET = 0;
     public static final int ACTION_CLEAR = 1;
 
-    public float pitch;
-    public float yaw;
+    /**
+     * 10~90
+     */
+    public float pitch = 50;
+    /**
+     * 10~90
+     */
+    public float yaw = 50;
 
-    public float distance;
+    /**
+     * 1~16
+     */
+    public float distance = 8.5f;
 
     public int mode = MODE_ANGLE;
     public int action = ACTION_SET;
 
-    public String presetId;
+    public String presetId = "minecraft:aim_assist_default";
 
     @Override
     public int pid() {

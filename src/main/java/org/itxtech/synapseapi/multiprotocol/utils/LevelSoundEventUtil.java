@@ -41,7 +41,70 @@ public final class LevelSoundEventUtil {
                 return AdvancedGlobalBlockPalette.getOrCreateRuntimeId(protocol, netease, extraData >> Block.BLOCK_META_BITS, extraData & Block.BLOCK_META_MASK);
             case SOUND_NOTE:
                 if (extraData < 0) {
-                    return -extraData;
+                    extraData = -extraData;
+                    if (protocol.getProtocolStart() >= AbstractProtocol.PROTOCOL_121_50.getProtocolStart()) {
+                        switch (extraData >> 8) {
+                            case 5: // bell
+                                extraData = (6 << 8) | (extraData & 0xff);
+                                break;
+                            case 6: // flute
+                                extraData = (5 << 8) | (extraData & 0xff);
+                                break;
+                            case 7: // chime
+                                extraData = (8 << 8) | (extraData & 0xff);
+                                break;
+                            case 8: // guitar
+                                extraData = (7 << 8) | (extraData & 0xff);
+                                break;
+                            case 16: // skeleton
+                                extraData = (17 << 8) | (extraData & 0xff);
+                                break;
+                            case 17: // wither skeleton
+                                extraData = (20 << 8) | (extraData & 0xff);
+                                break;
+                            case 18: // zombie
+                                extraData = (16 << 8) | (extraData & 0xff);
+                                break;
+                            case 19: // creeper
+                                extraData = (18 << 8) | (extraData & 0xff);
+                                break;
+                            case 20: // ender dragon
+                                extraData = (19 << 8) | (extraData & 0xff);
+                                break;
+                        }
+                    }
+                    return extraData;
+                }
+                if (protocol.getProtocolStart() >= AbstractProtocol.PROTOCOL_121_50.getProtocolStart()) {
+                    switch (extraData) {
+                        case 5: // bell
+                            extraData = 6;
+                            break;
+                        case 6: // flute
+                            extraData = 5;
+                            break;
+                        case 7: // chime
+                            extraData = 8;
+                            break;
+                        case 8: // guitar
+                            extraData = 7;
+                            break;
+                        case 16: // skeleton
+                            extraData = 17;
+                            break;
+                        case 17: // wither skeleton
+                            extraData = 20;
+                            break;
+                        case 18: // zombie
+                            extraData = 16;
+                            break;
+                        case 19: // creeper
+                            extraData = 18;
+                            break;
+                        case 20: // ender dragon
+                            extraData = 19;
+                            break;
+                    }
                 }
                 return (extraData << 8) | (pitch & 0b11111111);
         }

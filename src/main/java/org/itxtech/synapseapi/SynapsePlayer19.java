@@ -60,7 +60,8 @@ public class SynapsePlayer19 extends SynapsePlayer18 {
 						0,
 						levelSoundEventPacket.entityIdentifier,
 						levelSoundEventPacket.isBabyMob,
-						levelSoundEventPacket.isGlobal);
+						levelSoundEventPacket.isGlobal,
+						-1);
 				if (this.isSpectator()) {
 					event.setCancelled();
 				}
@@ -266,7 +267,7 @@ public class SynapsePlayer19 extends SynapsePlayer18 {
 	}
 
 	@Override
-	public void sendLevelSoundEvent(int levelSound, Vector3 pos, int extraData, int pitch, String entityIdentifier, boolean isBabyMob, boolean isGlobal) {
+	public void sendLevelSoundEvent(int levelSound, Vector3 pos, int extraData, int pitch, String entityIdentifier, boolean isBabyMob, boolean isGlobal, long entityUniqueId) {
 //		if (levelSound == null || levelSound.getV18() == -1) return;
 		LevelSoundEventPacketV319 pk = new LevelSoundEventPacketV319();
 		pk.sound = levelSound;

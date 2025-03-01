@@ -2678,4 +2678,34 @@ public class BlockTypes {
             return REGISTRY;
         }
     }
+
+    public static class V1_21_70 extends V1_21_60 {
+        private static final BlockRegistry REGISTRY = new BlockRegistry((1 << 24) | (21 << 16) | (60 << 8) | 33, V1_21_60.REGISTRY);
+
+        public static final BlockLegacy BUSH = REGISTRY.registerBlock("minecraft:bush", BlockID.BUSH);
+
+        public static final BlockLegacy CACTUS_FLOWER = REGISTRY.registerBlock("minecraft:cactus_flower", BlockID.CACTUS_FLOWER);
+
+        public static final BlockLegacy FIREFLY_BUSH = REGISTRY.registerBlock("minecraft:firefly_bush", BlockID.FIREFLY_BUSH);
+
+        public static final BlockLegacy LEAF_LITTER = REGISTRY.registerBlock("minecraft:leaf_litter", BlockID.LEAF_LITTER)
+                .addState(BlockStates.GROWTH)
+                .addState(BlockStates.MINECRAFT_CARDINAL_DIRECTION);
+
+        public static final BlockLegacy SHORT_DRY_GRASS = REGISTRY.registerBlock("minecraft:short_dry_grass", BlockID.SHORT_DRY_GRASS);
+
+        public static final BlockLegacy TALL_DRY_GRASS = REGISTRY.registerBlock("minecraft:tall_dry_grass", BlockID.TALL_DRY_GRASS);
+
+        public static final BlockLegacy WILDFLOWERS = REGISTRY.registerBlock("minecraft:wildflowers", BlockID.WILDFLOWERS)
+                .addState(BlockStates.GROWTH)
+                .addState(BlockStates.MINECRAFT_CARDINAL_DIRECTION);
+
+        static {
+            REGISTRY.createBlockPermutations();
+        }
+
+        public static BlockRegistry getBlockRegistry() {
+            return REGISTRY;
+        }
+    }
 }

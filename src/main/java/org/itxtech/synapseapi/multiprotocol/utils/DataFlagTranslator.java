@@ -229,10 +229,15 @@ public class DataFlagTranslator {
 
 	public static final int FLAG_12160_RENDERS_WHEN_INVISIBLE = 119;
 
+	public static final int FLAG_12170_BODY_ROTATION_AXIS_ALIGNED = 120;
+	public static final int FLAG_12170_COLLIDABLE = 121;
+	public static final int FLAG_12170_WASD_AIR_CONTROLLED = 122;
+
 	public static final int[] COUNT = Utils.make(() -> {
 		int[] versions = new int[AbstractProtocol.getValues().length];
 		Arrays.fill(versions, 120);
 		versions[AbstractProtocol.PROTOCOL_121_60.ordinal()] = 120;
+		versions[AbstractProtocol.PROTOCOL_121_70.ordinal()] = 123;
 		return versions;
 	});
 
@@ -486,6 +491,10 @@ public class DataFlagTranslator {
 		v12ToV11950Book[Entity.DATA_FLAG_BODY_ROTATION_BLOCKED] = FLAG_12080_BODY_ROTATION_BLOCKED;
 
 		v12ToV11950Book[Entity.DATA_FLAG_RENDERS_WHEN_INVISIBLE] = FLAG_12160_RENDERS_WHEN_INVISIBLE;
+
+		v12ToV11950Book[Entity.DATA_FLAG_BODY_ROTATION_AXIS_ALIGNED] = FLAG_12170_BODY_ROTATION_AXIS_ALIGNED;
+		v12ToV11950Book[Entity.DATA_FLAG_COLLIDABLE] = FLAG_12170_COLLIDABLE;
+		v12ToV11950Book[Entity.DATA_FLAG_WASD_AIR_CONTROLLED] = FLAG_12170_WASD_AIR_CONTROLLED;
 	}
 
 	public static int translateTo14Id(int v12Id) {

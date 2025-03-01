@@ -17,6 +17,7 @@ public class CameraAimAssistPreset {
     /**
      * @deprecated 1.21.60
      */
+    @Deprecated
     @Default
     public String categories = "";
     @Default

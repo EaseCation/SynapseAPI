@@ -7,12 +7,14 @@ import cn.nukkit.entity.item.*;
 import cn.nukkit.entity.mob.*;
 import cn.nukkit.entity.passive.*;
 import cn.nukkit.entity.projectile.*;
+import cn.nukkit.entity.property.EntityPropertyRegistry;
 import cn.nukkit.entity.weather.EntityLightning;
 import cn.nukkit.network.protocol.AddEntityPacket;
 import cn.nukkit.network.protocol.DataPacket;
 import cn.nukkit.network.protocol.ProtocolInfo;
 import cn.nukkit.network.protocol.types.EntityLink;
 import com.google.common.collect.ImmutableMap;
+import it.unimi.dsi.fastutil.Pair;
 import it.unimi.dsi.fastutil.ints.Int2FloatMap;
 import it.unimi.dsi.fastutil.ints.Int2FloatOpenHashMap;
 import it.unimi.dsi.fastutil.ints.Int2IntMap;
@@ -20,10 +22,6 @@ import it.unimi.dsi.fastutil.ints.Int2IntOpenHashMap;
 import lombok.ToString;
 import org.itxtech.synapseapi.multiprotocol.AbstractProtocol;
 import org.itxtech.synapseapi.multiprotocol.utils.EntityMetadataGenerator;
-import org.itxtech.synapseapi.multiprotocol.utils.EntityPropertiesPalette;
-import org.itxtech.synapseapi.multiprotocol.utils.entityproperty.data.EntityPropertiesTable;
-import org.itxtech.synapseapi.multiprotocol.utils.entityproperty.data.EntityPropertyData;
-import org.itxtech.synapseapi.multiprotocol.utils.entityproperty.data.EntityPropertyType;
 import org.itxtech.synapseapi.utils.ClassUtils;
 
 @ToString
@@ -219,6 +217,8 @@ public class AddEntityPacket11940 extends Packet11940 {
         this.yaw = packet.yaw;
         this.headYaw = packet.headYaw;
         this.metadata = EntityMetadataGenerator.generateFrom(packet.metadata, protocol, netease);
+        this.intProperties = packet.intProperties;
+        this.floatProperties = packet.floatProperties;
         this.attributes = packet.attributes;
         this.links = packet.links;
 
@@ -226,6 +226,7 @@ public class AddEntityPacket11940 extends Packet11940 {
             this.id = Entities.getIdentifierByType(this.type);
         }
 
+/*
         EntityPropertiesTable properties = EntityPropertiesPalette.getPalette(protocol, netease).getProperties(this.id);
         if (properties != null) {
             for (int i = 0; i < properties.size(); i++) {
@@ -235,6 +236,14 @@ public class AddEntityPacket11940 extends Packet11940 {
                 } else {
                     this.intProperties.put(i, property.getDefaultIntValue());
                 }
+            }
+        }
+*/
+        if (intProperties.isEmpty() && floatProperties.isEmpty()) {
+            Pair<Int2IntMap, Int2FloatMap> propertyValues = EntityPropertyRegistry.getProperties(this.id).getDefaultValues();
+            if (propertyValues != null) {
+                this.intProperties = propertyValues.left();
+                this.floatProperties = propertyValues.right();
             }
         }
 

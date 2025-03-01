@@ -30,7 +30,7 @@ import org.itxtech.synapseapi.multiprotocol.utils.AvailableEntityIdentifiersPale
 import org.itxtech.synapseapi.multiprotocol.utils.BiomeDefinitions;
 import org.itxtech.synapseapi.multiprotocol.utils.CraftingPacketManager;
 import org.itxtech.synapseapi.multiprotocol.utils.CreativeItemsPalette;
-import org.itxtech.synapseapi.multiprotocol.utils.EntityPropertiesPalette;
+import org.itxtech.synapseapi.multiprotocol.utils.EntityPropertiesCache;
 import org.itxtech.synapseapi.multiprotocol.utils.ItemComponentDefinitions;
 import org.itxtech.synapseapi.multiprotocol.utils.item.CraftingManagerLegacy;
 import org.itxtech.synapseapi.multiprotocol.utils.item.CraftingManagerMedieval;
@@ -223,7 +223,7 @@ public class SynapseAPI extends PluginBase implements Listener {
         AvailableEntityIdentifiersPalette.init();
         BiomeDefinitions.init();
         ItemComponentDefinitions.init();
-        EntityPropertiesPalette.init();
+        EntityPropertiesCache.init();
         CameraManager.init();
 
         getServer().setCraftingManager(V1_19_0.isAvailable() ? new CraftingManagerNew()

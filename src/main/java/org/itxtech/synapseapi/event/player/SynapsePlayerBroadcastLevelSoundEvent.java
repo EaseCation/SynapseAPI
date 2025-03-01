@@ -18,8 +18,9 @@ public class SynapsePlayerBroadcastLevelSoundEvent extends SynapsePlayerEvent im
     private String entityIdentifier;
     private boolean isBabyMob;
     private boolean isGlobal;
+    private long entityUniqueId;
 
-    public SynapsePlayerBroadcastLevelSoundEvent(SynapsePlayer player, int levelSound, Vector3 pos, int extraData, int pitch, String entityIdentifier, boolean isBabyMob, boolean isGlobal) {
+    public SynapsePlayerBroadcastLevelSoundEvent(SynapsePlayer player, int levelSound, Vector3 pos, int extraData, int pitch, String entityIdentifier, boolean isBabyMob, boolean isGlobal, long entityUniqueId) {
         super(player);
         this.levelSound = levelSound;
         this.pos = pos;
@@ -28,6 +29,7 @@ public class SynapsePlayerBroadcastLevelSoundEvent extends SynapsePlayerEvent im
         this.entityIdentifier = entityIdentifier;
         this.isBabyMob = isBabyMob;
         this.isGlobal = isGlobal;
+        this.entityUniqueId = entityUniqueId;
     }
 
     public static HandlerList getHandlers() {
@@ -62,6 +64,10 @@ public class SynapsePlayerBroadcastLevelSoundEvent extends SynapsePlayerEvent im
         return isGlobal;
     }
 
+    public long getEntityUniqueId() {
+        return entityUniqueId;
+    }
+
     public void setLevelSound(int levelSound) {
         this.levelSound = levelSound;
     }
@@ -88,5 +94,9 @@ public class SynapsePlayerBroadcastLevelSoundEvent extends SynapsePlayerEvent im
 
     public void setGlobal(boolean global) {
         isGlobal = global;
+    }
+
+    public void setEntityUniqueId(long entityUniqueId) {
+        this.entityUniqueId = entityUniqueId;
     }
 }

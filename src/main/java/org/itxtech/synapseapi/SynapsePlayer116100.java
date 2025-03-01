@@ -14,10 +14,11 @@ import cn.nukkit.blockentity.BlockEntityItemFrame;
 import cn.nukkit.blockentity.BlockEntityLectern;
 import cn.nukkit.blockentity.BlockEntitySpawnable;
 import cn.nukkit.command.data.CommandPermission;
-import cn.nukkit.entity.Entities;
 import cn.nukkit.entity.Entity;
 import cn.nukkit.entity.EntityFullNames;
 import cn.nukkit.entity.data.EntityMetadata;
+import cn.nukkit.entity.property.EntityProperty;
+import cn.nukkit.entity.property.EnumEntityProperty;
 import cn.nukkit.event.inventory.InventoryCloseEvent;
 import cn.nukkit.event.player.*;
 import cn.nukkit.form.window.FormWindow;
@@ -43,7 +44,6 @@ import cn.nukkit.level.format.generic.ChunkPacketCache;
 import cn.nukkit.level.generator.Generator;
 import cn.nukkit.level.particle.PunchBlockParticle;
 import cn.nukkit.math.*;
-import cn.nukkit.nbt.tag.CompoundTag;
 import cn.nukkit.network.PacketViolationReason;
 import cn.nukkit.network.SourceInterface;
 import cn.nukkit.network.protocol.*;
@@ -54,15 +54,15 @@ import cn.nukkit.resourcepacks.ResourcePack;
 import cn.nukkit.scheduler.AsyncTask;
 import cn.nukkit.utils.LoginChainData;
 import cn.nukkit.utils.TextFormat;
-import it.unimi.dsi.fastutil.ints.IntIterator;
-import it.unimi.dsi.fastutil.ints.IntOpenHashSet;
-import it.unimi.dsi.fastutil.ints.IntSet;
+import it.unimi.dsi.fastutil.Pair;
+import it.unimi.dsi.fastutil.ints.*;
 import it.unimi.dsi.fastutil.longs.*;
 import it.unimi.dsi.fastutil.objects.ObjectIterator;
 import lombok.extern.log4j.Log4j2;
 import org.apache.commons.lang3.ArrayUtils;
 import org.itxtech.synapseapi.camera.CameraManager;
 import org.itxtech.synapseapi.dialogue.NPCDialoguePlayerHandler;
+import org.itxtech.synapseapi.event.player.SynapsePlayerBroadcastLevelSoundEvent;
 import org.itxtech.synapseapi.multiprotocol.AbstractProtocol;
 import org.itxtech.synapseapi.multiprotocol.common.Experiments;
 import org.itxtech.synapseapi.multiprotocol.common.Experiments.Experiment;
@@ -144,21 +144,15 @@ import org.itxtech.synapseapi.multiprotocol.protocol12140.protocol.CameraInstruc
 import org.itxtech.synapseapi.multiprotocol.protocol12140.protocol.CameraPresetsPacket12140;
 import org.itxtech.synapseapi.multiprotocol.protocol12140.protocol.MovementEffectPacket12140;
 import org.itxtech.synapseapi.multiprotocol.protocol12140.protocol.ResourcePacksInfoPacket12140;
+import org.itxtech.synapseapi.multiprotocol.protocol12150.protocol.CameraAimAssistPacket12050;
+import org.itxtech.synapseapi.multiprotocol.protocol12150.protocol.CameraAimAssistPresetsPacket12150;
 import org.itxtech.synapseapi.multiprotocol.protocol12150.protocol.CameraPresetsPacket12150;
 import org.itxtech.synapseapi.multiprotocol.protocol12150.protocol.ResourcePacksInfoPacket12150;
-import org.itxtech.synapseapi.multiprotocol.protocol12160.protocol.CameraPresetsPacket12160;
-import org.itxtech.synapseapi.multiprotocol.protocol12160.protocol.CreativeContentPacket12160;
-import org.itxtech.synapseapi.multiprotocol.protocol12160.protocol.StartGamePacket12160;
+import org.itxtech.synapseapi.multiprotocol.protocol12160.protocol.*;
+import org.itxtech.synapseapi.multiprotocol.protocol12170.protocol.LevelSoundEventPacketV312170;
 import org.itxtech.synapseapi.multiprotocol.protocol14.protocol.PlayerActionPacket14;
 import org.itxtech.synapseapi.multiprotocol.protocol16.protocol.ResourcePackClientResponsePacket16;
-import org.itxtech.synapseapi.multiprotocol.utils.CreativeItemsPalette;
-import org.itxtech.synapseapi.multiprotocol.utils.EntityPropertiesPalette;
-import org.itxtech.synapseapi.multiprotocol.utils.ItemComponentDefinitions;
-import org.itxtech.synapseapi.multiprotocol.utils.VanillaExperiments;
-import org.itxtech.synapseapi.multiprotocol.utils.entityproperty.data.EntityPropertiesTable;
-import org.itxtech.synapseapi.multiprotocol.utils.entityproperty.data.EntityPropertyData;
-import org.itxtech.synapseapi.multiprotocol.utils.entityproperty.data.EntityPropertyDataEnum;
-import org.itxtech.synapseapi.multiprotocol.utils.entityproperty.data.EntityPropertyType;
+import org.itxtech.synapseapi.multiprotocol.utils.*;
 import org.itxtech.synapseapi.network.protocol.spp.PlayerLoginPacket;
 import org.itxtech.synapseapi.utils.BlobTrack;
 import org.itxtech.synapseapi.utils.PacketUtil;
@@ -201,6 +195,13 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
     private byte skinHack; // 1.19.62
 
     protected int clientMaxViewDistance = -1;
+
+    protected boolean allowAimAssist;
+    protected String aimAssistPresetId = "";
+    protected float aimAssistViewAngleX = 30;
+    protected float aimAssistViewAngleY = 45;
+    protected float aimAssistDistance = 5.7f;
+    protected int aimAssistMode = CameraAimAssistPacket12050.MODE_ANGLE;
 
     public SynapsePlayer116100(SourceInterface interfaz, SynapseEntry synapseEntry, Long clientID, InetSocketAddress socketAddress) {
         super(interfaz, synapseEntry, clientID, socketAddress);
@@ -988,6 +989,53 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
             case ProtocolInfo.LEVEL_SOUND_EVENT_PACKET_V3:
                 if (isServerAuthoritativeSoundEnabled()) {
                     onPacketViolation(PacketViolationReason.IMPOSSIBLE_BEHAVIOR, "sound3");
+                    break;
+                }
+                if (getProtocol() >= AbstractProtocol.PROTOCOL_121_70.getProtocolStart()) {
+                    if (!callPacketReceiveEvent(packet)) {
+                        break;
+                    }
+                    LevelSoundEventPacketV312170 levelSoundEventPacket = (LevelSoundEventPacketV312170) packet;
+                    int sound = levelSoundEventPacket.sound;
+                    SynapsePlayerBroadcastLevelSoundEvent event = new SynapsePlayerBroadcastLevelSoundEvent(this,
+                            sound,
+                            new Vector3(levelSoundEventPacket.x, levelSoundEventPacket.y, levelSoundEventPacket.z),
+                            LevelSoundEventUtil.translateExtraDataFromClient(sound, levelSoundEventPacket.extraData, AbstractProtocol.fromRealProtocol(getProtocol()), isNetEaseClient()),
+                            0,
+                            levelSoundEventPacket.entityIdentifier,
+                            levelSoundEventPacket.isBabyMob,
+                            levelSoundEventPacket.isGlobal,
+                            levelSoundEventPacket.entityUniqueId);
+                    if (this.isSpectator()) {
+                        event.setCancelled();
+                    }
+                    this.getServer().getPluginManager().callEvent(event);
+                    // 接入服务端权威音效后不再转发旧版本的C2S包.
+                    // 如有音效缺失, 查看客户端代码在相关位置补上即可
+                    if (false && !event.isCancelled()) {
+                        this.sendLevelSoundEvent(
+                                event.getLevelSound(),
+                                event.getPos(),
+                                event.getExtraData(),
+                                event.getPitch(),
+                                event.getEntityIdentifier(),
+                                event.isBabyMob(),
+                                event.isGlobal(),
+                                event.getEntityUniqueId()
+                        );
+                        this.getViewers().values().stream()
+                                .filter(p -> p instanceof SynapsePlayer)
+                                .forEach(p -> ((SynapsePlayer) p).sendLevelSoundEvent(
+                                        event.getLevelSound(),
+                                        event.getPos(),
+                                        event.getExtraData(),
+                                        event.getPitch(),
+                                        event.getEntityIdentifier(),
+                                        event.isBabyMob(),
+                                        event.isGlobal(),
+                                        event.getEntityUniqueId()
+                                ));
+                    }
                     break;
                 }
                 super.handleDataPacket(packet);
@@ -2413,6 +2461,23 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
                         break;
                 }
                 break;
+            case ProtocolInfo.CAMERA_AIM_ASSIST_INSTRUCTION_PACKET:
+                CameraAimAssistInstructionPacket12160 cameraAimAssistInstructionPacket = (CameraAimAssistInstructionPacket12160) packet;
+                allowAimAssist = cameraAimAssistInstructionPacket.allowAimAssist;
+                switch (cameraAimAssistInstructionPacket.action) {
+                    case CameraAimAssistInstructionPacket12160.ACTION_SET_FROM_CAMERA_PRESET -> {
+                        String cameraPresetId = cameraAimAssistInstructionPacket.cameraPresetId;
+                        //TODO: setAimAssist(getAimAssistFromCameraPreset(cameraPresetId));
+                    }
+                    case CameraAimAssistInstructionPacket12160.ACTION_CLEAR -> {
+                        if (allowAimAssist && !aimAssistPresetId.isEmpty()) {
+                            sendAimAssist(CameraAimAssistPacket12050.ACTION_SET, aimAssistMode, aimAssistViewAngleX, aimAssistViewAngleY, aimAssistDistance, aimAssistPresetId);
+                        } else {
+                            sendAimAssist(CameraAimAssistPacket12050.ACTION_CLEAR, CameraAimAssistPacket12050.MODE_ANGLE, 30, 45, 5.7f, "");
+                        }
+                    }
+                }
+                break;
             default:
                 super.handleDataPacket(packet);
                 break;
@@ -3498,7 +3563,7 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
 
     @Override
     public void syncEntityProperties() {
-        DataPacket packet = EntityPropertiesPalette.getPacket(AbstractProtocol.fromRealProtocol(protocol));
+        DataPacket packet = EntityPropertiesCache.getPacket(AbstractProtocol.fromRealProtocol(protocol), isNetEaseClient());
         if (packet == null) {
             return;
         }
@@ -3506,11 +3571,11 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
     }
 
     protected byte[] getCompiledPlayerProperties() {
-        return EntityPropertiesPalette.getCompiledPalette(AbstractProtocol.fromRealProtocol(protocol), isNetEaseClient())
-                .getOrDefault(EntityFullNames.PLAYER, CompoundTag.EMPTY);
+        return EntityPropertiesCache.getCompiledPlayerProperties(AbstractProtocol.fromRealProtocol(protocol), isNetEaseClient());
     }
 
     protected int lookupEntityPropertyIndex(Entity entity, String propertyName) {
+/*
         String identifier;
         int type = entity.getNetworkId();
         if (type > 0) {
@@ -3532,6 +3597,12 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
             throw new IllegalArgumentException("Unknown property <" + propertyName + "> for " + identifier + " (" + entity.getClass() + ")");
         }
         return index;
+*/
+        EntityProperty property = entity.getProperties().getProperty(propertyName);
+        if (property == null) {
+            throw new IllegalArgumentException("Unknown entity property: " + propertyName);
+        }
+        return property.getIndex();
     }
 
     @Override
@@ -3603,6 +3674,7 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
     @Override
     public void sendEntityPropertyEnum(Entity entity, String propertyName, String value) {
         if (getProtocol() >= AbstractProtocol.PROTOCOL_119_40.getProtocolStart()) {
+/*
             String identifier;
             int type = entity.getNetworkId();
             if (type > 0) {
@@ -3630,6 +3702,19 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
             if (valueIndex == -1) {
                 throw new IllegalArgumentException("Unknown property value <" + propertyName + " = " + value + "> for " + identifier + " (" + entity.getClass() + ")");
             }
+*/
+            EntityProperty property = entity.getProperties().getProperty(propertyName);
+            if (property == null) {
+                throw new IllegalArgumentException("unknown entity property: " + propertyName);
+            }
+            if (!(property instanceof EnumEntityProperty enumProperty)) {
+                throw new IllegalArgumentException("entity property type mismatch: " + propertyName);
+            }
+            int valueIndex = enumProperty.getValues().indexOf(value);
+            if (valueIndex == -1) {
+                throw new IllegalArgumentException("unknown entity property value " + value);
+            }
+            int index = property.getIndex();
 
             SetEntityDataPacket packet = new SetEntityDataPacket();
             packet.eid = entity.getId();
@@ -3972,6 +4057,7 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
         pk.eid = getId();
         pk.metadata = dataProperties;
 
+/*
         EntityPropertiesTable properties = EntityPropertiesPalette.getPalette(AbstractProtocol.fromRealProtocol(protocol), isNetEaseClient()).getProperties(EntityFullNames.PLAYER);
         if (properties != null) {
             for (int i = 0; i < properties.size(); i++) {
@@ -3982,6 +4068,12 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
                     pk.intProperties.put(i, property.getDefaultIntValue());
                 }
             }
+        }
+*/
+        Pair<Int2IntMap, Int2FloatMap> propertyValues = getProperties().getValues();
+        if (propertyValues != null) {
+            pk.intProperties = propertyValues.left();
+            pk.floatProperties = propertyValues.right();
         }
 
         dataPacket(pk);
@@ -4009,7 +4101,7 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
     }
 
     @Override
-    public void tryDisruptIllegalClientBeforeStartGame() {
+    protected void tryDisruptIllegalClientBeforeStartGame() {
         InventorySlotPacket packet = new InventorySlotPacket();
         packet.inventoryId = ContainerIds.ARMOR;
         packet.slot = ArmorInventory.SLOT_FEET;
@@ -4046,5 +4138,120 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
         CreativeContentPacket116 pk = new CreativeContentPacket116();
         pk.entries = this.getCreativeItems().toArray(new Item[0]);
         this.dataPacket(pk);
+    }
+
+    @Override
+    public void sendLevelSoundEvent(int levelSound, Vector3 pos, int extraData, int pitch, String entityIdentifier, boolean isBabyMob, boolean isGlobal, long entityUniqueId) {
+        if (getProtocol() < AbstractProtocol.PROTOCOL_121_70.getProtocolStart()) {
+            super.sendLevelSoundEvent(levelSound, pos, extraData, pitch, entityIdentifier, isBabyMob, isGlobal, entityUniqueId);
+            return;
+        }
+
+        LevelSoundEventPacketV312170 pk = new LevelSoundEventPacketV312170();
+        pk.sound = levelSound;
+        pk.x = (float) pos.x;
+        pk.y = (float) pos.y;
+        pk.z = (float) pos.z;
+        pk.extraData = LevelSoundEventUtil.translateTo18ExtraData(levelSound, extraData, pitch, AbstractProtocol.fromRealProtocol(protocol), isNetEaseClient());
+        pk.entityIdentifier = entityIdentifier;
+        pk.isBabyMob = isBabyMob;
+        pk.isGlobal = isGlobal;
+        pk.entityUniqueId = entityUniqueId;
+        dataPacket(pk);
+    }
+
+    @Override
+    protected void sendAimAssistPresets() {
+        if (getProtocol() >= AbstractProtocol.PROTOCOL_121_60.getProtocolStart()) {
+            CameraAimAssistPresetsPacket12160 packet = new CameraAimAssistPresetsPacket12160();
+            packet.categories = CameraAimAssistPresetsPacket12160.DEFAULT_CATEGORIES;
+            packet.presets = CameraAimAssistPresetsPacket12160.DEFAULT_PRESETS;
+            packet.operation = CameraAimAssistPresetsPacket12160.OPERATION_ADD_TO_EXISTING;
+            dataPacket(packet);
+            return;
+        }
+
+        if (getProtocol() < AbstractProtocol.PROTOCOL_121_50.getProtocolStart()) {
+            return;
+        }
+        CameraAimAssistPresetsPacket12150 packet = new CameraAimAssistPresetsPacket12150();
+        packet.categories = CameraAimAssistPresetsPacket12150.DEFAULT_CATEGORIES;
+        packet.presets = CameraAimAssistPresetsPacket12150.DEFAULT_PRESETS;
+        dataPacket(packet);
+    }
+
+    @Override
+    public void setAimAssist(float viewAngleX, float viewAngleZ) {
+        setAimAssist(CameraAimAssistPacket12050.MODE_ANGLE, viewAngleX, viewAngleZ, 8.5f, "minecraft:aim_assist_default");
+    }
+
+    @Override
+    public void setAimAssist(float viewAngleX, float viewAngleZ, String presetId) {
+        setAimAssist(CameraAimAssistPacket12050.MODE_ANGLE, viewAngleX, viewAngleZ, 8.5f, presetId);
+    }
+
+    @Override
+    public void setAimAssist(float distance) {
+        setAimAssist(CameraAimAssistPacket12050.MODE_DISTANCE, 50, 50, distance, "minecraft:aim_assist_default");
+    }
+
+    @Override
+    public void setAimAssist(float distance, String presetId) {
+        setAimAssist(CameraAimAssistPacket12050.MODE_DISTANCE, 50, 50, distance, presetId);
+    }
+
+    @Override
+    public void setAimAssist(int mode, float viewAngleX, float viewAngleZ, float distance) {
+        setAimAssist(mode, viewAngleX, viewAngleZ, distance, "minecraft:aim_assist_default");
+    }
+
+    @Override
+    public void setAimAssist(int mode, float viewAngleX, float viewAngleZ, float distance, String presetId) {
+        aimAssistPresetId = presetId;
+        aimAssistViewAngleX = viewAngleX;
+        aimAssistViewAngleY = viewAngleZ;
+        aimAssistDistance = distance;
+        aimAssistMode = mode;
+        if (allowAimAssist) {
+            sendAimAssist(CameraAimAssistPacket12050.ACTION_SET, aimAssistMode, aimAssistViewAngleX, aimAssistViewAngleY, aimAssistDistance, aimAssistPresetId);
+        } else {
+            sendAimAssist(CameraAimAssistPacket12050.ACTION_CLEAR, CameraAimAssistPacket12050.MODE_ANGLE, 30, 45, 5.7f, "");
+        }
+    }
+
+    @Override
+    public void setAimAssist(String presetId) {
+        if (presetId.isEmpty()) {
+            setAimAssist(CameraAimAssistPacket12050.MODE_ANGLE, 30, 45, 5.7f, presetId);
+        } else if ("minecraft:aim_assist_default".equals(presetId)) {
+            setAimAssist(CameraAimAssistPacket12050.MODE_ANGLE, 50, 50, 8.5f, presetId);
+        } else {
+            //TODO: custom preset
+        }
+    }
+
+    @Override
+    public void clearAimAssist() {
+        aimAssistPresetId = "";
+        aimAssistViewAngleX = 30;
+        aimAssistViewAngleY = 45;
+        aimAssistDistance = 5.7f;
+        aimAssistMode = CameraAimAssistPacket12050.MODE_ANGLE;
+        sendAimAssist(CameraAimAssistPacket12050.ACTION_CLEAR, aimAssistMode, aimAssistViewAngleX, aimAssistViewAngleY, aimAssistDistance, aimAssistPresetId);
+    }
+
+    protected void sendAimAssist(int action, int mode, float viewAngleX, float viewAngleZ, float distance, String presetId) {
+        if (getProtocol() < AbstractProtocol.PROTOCOL_121_50.getProtocolStart()) {
+            return;
+        }
+
+        CameraAimAssistPacket12050 cameraAimAssistPacket = new CameraAimAssistPacket12050();
+        cameraAimAssistPacket.presetId = presetId;
+        cameraAimAssistPacket.pitch = viewAngleX;
+        cameraAimAssistPacket.yaw = viewAngleZ;
+        cameraAimAssistPacket.distance = distance;
+        cameraAimAssistPacket.mode = mode;
+        cameraAimAssistPacket.action = action;
+        dataPacket(cameraAimAssistPacket);
     }
 }

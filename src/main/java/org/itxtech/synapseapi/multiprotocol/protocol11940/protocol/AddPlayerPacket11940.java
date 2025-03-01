@@ -4,6 +4,7 @@ import cn.nukkit.Player;
 import cn.nukkit.command.data.CommandPermission;
 import cn.nukkit.entity.EntityFullNames;
 import cn.nukkit.entity.data.EntityMetadata;
+import cn.nukkit.entity.property.EntityPropertyRegistry;
 import cn.nukkit.item.Item;
 import cn.nukkit.network.protocol.AddPlayerPacket;
 import cn.nukkit.network.protocol.DataPacket;
@@ -12,6 +13,7 @@ import cn.nukkit.network.protocol.types.AbilityLayer;
 import cn.nukkit.network.protocol.types.EntityLink;
 import cn.nukkit.network.protocol.types.PlayerAbility;
 import cn.nukkit.utils.Utils;
+import it.unimi.dsi.fastutil.Pair;
 import it.unimi.dsi.fastutil.ints.Int2FloatMap;
 import it.unimi.dsi.fastutil.ints.Int2FloatOpenHashMap;
 import it.unimi.dsi.fastutil.ints.Int2IntMap;
@@ -19,10 +21,6 @@ import it.unimi.dsi.fastutil.ints.Int2IntOpenHashMap;
 import lombok.ToString;
 import org.itxtech.synapseapi.multiprotocol.AbstractProtocol;
 import org.itxtech.synapseapi.multiprotocol.utils.EntityMetadataGenerator;
-import org.itxtech.synapseapi.multiprotocol.utils.EntityPropertiesPalette;
-import org.itxtech.synapseapi.multiprotocol.utils.entityproperty.data.EntityPropertiesTable;
-import org.itxtech.synapseapi.multiprotocol.utils.entityproperty.data.EntityPropertyData;
-import org.itxtech.synapseapi.multiprotocol.utils.entityproperty.data.EntityPropertyType;
 import org.itxtech.synapseapi.utils.ClassUtils;
 
 import java.util.UUID;
@@ -148,8 +146,11 @@ public class AddPlayerPacket11940 extends Packet11940 {
         this.headYaw = packet.headYaw;
         this.item = packet.item;
         this.metadata = EntityMetadataGenerator.generateFrom(packet.metadata, protocol, netease);
+        this.intProperties = packet.intProperties;
+        this.floatProperties = packet.floatProperties;
         this.links = packet.links;
 
+/*
         EntityPropertiesTable properties = EntityPropertiesPalette.getPalette(protocol, netease).getProperties(EntityFullNames.PLAYER);
         if (properties != null) {
             for (int i = 0; i < properties.size(); i++) {
@@ -159,6 +160,14 @@ public class AddPlayerPacket11940 extends Packet11940 {
                 } else {
                     this.intProperties.put(i, property.getDefaultIntValue());
                 }
+            }
+        }
+*/
+        if (intProperties.isEmpty() && floatProperties.isEmpty()) {
+            Pair<Int2IntMap, Int2FloatMap> propertyValues = EntityPropertyRegistry.getProperties(EntityFullNames.PLAYER).getDefaultValues();
+            if (propertyValues != null) {
+                this.intProperties = propertyValues.left();
+                this.floatProperties = propertyValues.right();
             }
         }
 

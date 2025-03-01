@@ -12,6 +12,10 @@ import javax.annotation.Nullable;
 @NoArgsConstructor
 @ToString
 public class CameraAimAssistCategories {
+    /**
+     * @deprecated 1.21.60
+     */
+    @Deprecated
     public String identifier;
     @Default
     public Category[] categories = new Category[0];
@@ -41,6 +45,8 @@ public class CameraAimAssistCategories {
         @AllArgsConstructor
         @ToString
         public static class Priority {
+            public static final Priority[] EMPTY = new Priority[0];
+
             public String identifier;
             public int priority;
         }

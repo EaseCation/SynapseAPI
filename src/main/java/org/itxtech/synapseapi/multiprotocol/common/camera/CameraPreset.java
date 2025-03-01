@@ -16,6 +16,15 @@ public class CameraPreset {
             .name("minecraft:first_person")
             .build();
     /**
+     * @since 1.21.70
+     */
+    public static final CameraPreset FIXED_BOOM_PRESET = CameraPreset.builder()
+            .name("minecraft:fixed_boom")
+            .viewOffset(new Vector2f(0, 0))
+            .entityOffset(new Vector3f(-0, 0, 0))
+            .alignTargetAndCameraForward(false)
+            .build();
+    /**
      * @since 1.21.40
      */
     public static final CameraPreset FOLLOW_ORBIT_PRESET = CameraPreset.builder()

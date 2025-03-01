@@ -54,6 +54,7 @@ public class LoginPacket14 extends Packet14 {
     public int platformType;
     public int memoryTier;
     public int maxViewDistance;
+    public int graphicsMode;
     public String xuid;
     public String titleId;
     public String sandboxId;// = "RETAIL"
@@ -368,6 +369,11 @@ public class LoginPacket14 extends Packet14 {
         JsonNode maxViewDistanceNode = skinToken.get("MaxViewDistance");
         if (maxViewDistanceNode != null) {
             this.maxViewDistance = maxViewDistanceNode.asInt();
+        }
+
+        JsonNode graphicsModeNode = skinToken.get("GraphicsMode");
+        if (graphicsModeNode != null) {
+            this.graphicsMode = graphicsModeNode.asInt();
         }
 
         // NetEase only:

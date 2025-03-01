@@ -43,6 +43,7 @@ public final class VanillaExperiments {
      * Experimental Cameras.
      * deprecated 1.20.30
      * @since 1.20.0
+     * @deprecated 1.21.0
      */
     public static final Experiment CAMERAS = new Experiment("cameras", true);
     /**
@@ -53,18 +54,31 @@ public final class VanillaExperiments {
     /**
      * Contains new third person over the shoulder follow_orbit camera preset. (Creator Cameras: New Third Person Presets)
      * @since 1.21.20
+     * @deprecated 1.21.70
      */
     public static final Experiment THIRD_PERSON_CAMERAS = new Experiment("third_person_cameras", true);
     /**
      * Enables behavior for the existing free camera to target an entity. (Creator Cameras: Focus Target Camera)
      * @since 1.21.20
+     * @deprecated 1.21.60
      */
     public static final Experiment FOCUS_TARGET_CAMERA = new Experiment("focus_target_camera", true);
     /**
      * Player's aim assist system to interact with elements in the world while using custom cameras. (Aim Assist)
      * @since 1.21.50
+     * @deprecated 1.21.70
      */
     public static final Experiment CAMERA_AIM_ASSIST = new Experiment("camera_aim_assist", true);
+    /**
+     * Loads Jigsaw Structures from the behavior pack worldgen folder. (Data-Driven Jigsaw Structures)
+     * @since 1.21.50
+     */
+    public static final Experiment JIGSAW_STRUCTURES = new Experiment("jigsaw_structures", true);
+    /**
+     * Enables the use of the latest custom camera features. (Experimental Creator Camera Features)
+     * @since 1.21.70
+     */
+    public static final Experiment EXPERIMENTAL_CREATOR_CAMERAS = new Experiment("experimental_creator_cameras", true);
 
     // Gameplay Experiments
 

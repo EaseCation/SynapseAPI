@@ -14,6 +14,10 @@ import javax.annotation.Nullable;
 import java.util.*;
 import java.util.zip.Deflater;
 
+/**
+ * @deprecated use {@link cn.nukkit.entity.property.EntityPropertyRegistry} and {@link EntityPropertiesCache}
+ */
+@Deprecated
 @Log4j2
 public final class EntityPropertiesPalette {
 
@@ -53,11 +57,43 @@ public final class EntityPropertiesPalette {
                 )
         );
         EntityPropertiesPaletteInterface palette12170 = new EntityPropertiesPaletteBase(palette12150,
+                new EntityPropertiesTable(EntityFullNames.CHICKEN,
+                        new EntityPropertyDataEnum("minecraft:climate_variant",
+                                "temperate",
+                                "warm",
+                                "cold"
+                        )
+                ),
+                new EntityPropertiesTable(EntityFullNames.COW,
+                        new EntityPropertyDataEnum("minecraft:climate_variant",
+                                "temperate",
+                                "warm",
+                                "cold"
+                        )
+                ),
+                new EntityPropertiesTable(EntityFullNames.EGG,
+                        new EntityPropertyDataEnum("minecraft:climate_variant",
+                                "temperate",
+                                "warm",
+                                "cold"
+                        )
+                ),
                 new EntityPropertiesTable(EntityFullNames.PIG,
                         new EntityPropertyDataEnum("minecraft:climate_variant",
                                 "temperate",
                                 "warm",
                                 "cold"
+                        )
+                ),
+                new EntityPropertiesTable(EntityFullNames.WOLF,
+                        new EntityPropertyDataEnum("minecraft:sound_variant",
+                                "default",
+                                "big",
+                                "cute",
+                                "grumpy",
+                                "mad",
+                                "puglin",
+                                "sad"
                         )
                 )
         );
@@ -98,6 +134,7 @@ public final class EntityPropertiesPalette {
         register(AbstractProtocol.PROTOCOL_121_40, palette12080, null);
         register(AbstractProtocol.PROTOCOL_121_50, palette12150, null);
         register(AbstractProtocol.PROTOCOL_121_60, palette12150, null);
+        register(AbstractProtocol.PROTOCOL_121_70, palette12170, null);
 
         cachePackets();
     }

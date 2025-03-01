@@ -45,6 +45,8 @@ public final class BiomeDefinitions {
             CompoundTag data12120 = NBTIO.read(ByteStreams.toByteArray(SynapseAPI.getInstance().getResource("biome_definitions12120.nbt")), ByteOrder.LITTLE_ENDIAN, true);
             CompoundTag data12140 = NBTIO.read(ByteStreams.toByteArray(SynapseAPI.getInstance().getResource("biome_definitions12140.nbt")), ByteOrder.LITTLE_ENDIAN, true);
             CompoundTag data12150 = NBTIO.read(ByteStreams.toByteArray(SynapseAPI.getInstance().getResource("biome_definitions12150.nbt")), ByteOrder.LITTLE_ENDIAN, true);
+            CompoundTag data12160 = NBTIO.read(ByteStreams.toByteArray(SynapseAPI.getInstance().getResource("biome_definitions12160.nbt")), ByteOrder.LITTLE_ENDIAN, true);
+            CompoundTag data12170 = NBTIO.read(ByteStreams.toByteArray(SynapseAPI.getInstance().getResource("biome_definitions12170.nbt")), ByteOrder.LITTLE_ENDIAN, true);
 
 /*
             data.put(AbstractProtocol.PROTOCOL_112, data112);
@@ -92,7 +94,8 @@ public final class BiomeDefinitions {
             data.put(AbstractProtocol.PROTOCOL_121_30, data12120);
             data.put(AbstractProtocol.PROTOCOL_121_40, data12140);
             data.put(AbstractProtocol.PROTOCOL_121_50, data12150);
-            data.put(AbstractProtocol.PROTOCOL_121_60, data12150);
+            data.put(AbstractProtocol.PROTOCOL_121_60, data12160);
+            data.put(AbstractProtocol.PROTOCOL_121_70, data12170);
         } catch (NullPointerException | IOException e) {
             throw new AssertionError("Unable to load biome_definitions.dat");
         }

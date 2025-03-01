@@ -104,6 +104,7 @@ public class CreativeItemsPalette {
             register(AbstractProtocol.PROTOCOL_121_40, CreativeInventoryLegacy.getItems(), null);
             register(AbstractProtocol.PROTOCOL_121_50, CreativeInventoryLegacy.getItems(), null);
             register(AbstractProtocol.PROTOCOL_121_60, CreativeInventoryLegacy.getItems(), null);
+            register(AbstractProtocol.PROTOCOL_121_70, CreativeInventoryLegacy.getItems(), null);
         } else {
 /*
             register(AbstractProtocol.PROTOCOL_119, CreativeInventoryNew.getItems(), null);
@@ -133,6 +134,7 @@ public class CreativeItemsPalette {
             register(AbstractProtocol.PROTOCOL_121_40, CreativeInventoryNew.getItems(), null);
             register(AbstractProtocol.PROTOCOL_121_50, CreativeInventoryNew.getItems(), null);
             register(AbstractProtocol.PROTOCOL_121_60, CreativeInventoryNew.getItems(), null);
+            register(AbstractProtocol.PROTOCOL_121_70, CreativeInventoryNew.getItems(), null);
         }
 
         for (AbstractProtocol protocol : AbstractProtocol.getValues()) {

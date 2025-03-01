@@ -25,6 +25,7 @@ import org.itxtech.synapseapi.multiprotocol.protocol12140.protocol.CameraInstruc
 import org.itxtech.synapseapi.multiprotocol.protocol12140.protocol.MobEffectPacket12140;
 import org.itxtech.synapseapi.multiprotocol.protocol12140.protocol.MovementEffectPacket12140;
 import org.itxtech.synapseapi.multiprotocol.protocol12160.protocol.BossEventPacket12160;
+import org.itxtech.synapseapi.multiprotocol.protocol12170.protocol.LevelSoundEventPacketV312170;
 import org.itxtech.synapseapi.multiprotocol.protocol14.protocol.PlayerActionPacket14;
 import org.itxtech.synapseapi.multiprotocol.protocol15.protocol.MoveEntityDeltaPacket;
 import org.itxtech.synapseapi.multiprotocol.protocol18.protocol.SpawnParticleEffectPacket18;
@@ -302,6 +303,17 @@ public class DataPacketEidReplacer {
                 if (packet instanceof MovementEffectPacket12140 dp) {
                     if (dp.entityRuntimeId == from) {
                         dp.entityRuntimeId = to;
+                    }
+                }
+                break;
+            case ProtocolInfo.LEVEL_SOUND_EVENT_PACKET:
+                if (packet instanceof LevelSoundEventPacketV312170 dp) {
+                    if (dp.entityUniqueId == from) {
+                        dp.entityUniqueId = to;
+                    }
+                } else if (packet instanceof LevelSoundEventPacket dp) {
+                    if (dp.entityUniqueId == from) {
+                        dp.entityUniqueId = to;
                     }
                 }
                 break;

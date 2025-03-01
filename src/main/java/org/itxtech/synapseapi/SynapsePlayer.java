@@ -34,6 +34,9 @@ import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonPrimitive;
+import it.unimi.dsi.fastutil.Pair;
+import it.unimi.dsi.fastutil.ints.Int2FloatMap;
+import it.unimi.dsi.fastutil.ints.Int2IntMap;
 import it.unimi.dsi.fastutil.longs.Long2ObjectMap;
 import org.itxtech.synapseapi.dialogue.NPCDialoguePlayerHandler;
 import org.itxtech.synapseapi.event.player.SynapsePlayerConnectEvent;
@@ -480,6 +483,7 @@ public class SynapsePlayer extends Player {
             this.sendAvailableEntityIdentifiers();
             this.syncFeatureRegistry();
             this.sendCameraPresets();
+            this.sendAimAssistPresets();
         } else {
             GameRulesChangedPacket packet = new GameRulesChangedPacket();
             packet.gameRules = this.level.getGameRules();
@@ -909,6 +913,11 @@ public class SynapsePlayer extends Player {
         pk.pitch = (float)this.pitch;
         pk.item = this.getInventory().getItemInHand();
         pk.metadata = this.dataProperties;
+        Pair<Int2IntMap, Int2FloatMap> propertyValues = getProperties().getValues();
+        if (propertyValues != null) {
+            pk.intProperties = propertyValues.left();
+            pk.floatProperties = propertyValues.right();
+        }
         Server.broadcastPacket(this.getViewers().values(), pk);
 
         this.armorInventory.sendContents(this.getViewers().values());
@@ -949,6 +958,11 @@ public class SynapsePlayer extends Player {
         pk.pitch = (float)this.pitch;
         pk.item = this.getInventory().getItemInHand();
         pk.metadata = this.dataProperties;
+        Pair<Int2IntMap, Int2FloatMap> propertyValues = getProperties().getValues();
+        if (propertyValues != null) {
+            pk.intProperties = propertyValues.left();
+            pk.floatProperties = propertyValues.right();
+        }
         player.dataPacket(pk);
 
         this.armorInventory.sendContents(player);
@@ -1269,6 +1283,10 @@ public class SynapsePlayer extends Player {
     }
 
     public void sendLevelSoundEvent(int levelSound, Vector3 pos, int extraData, int pitch, String entityIdentifier, boolean isBabyMob, boolean isGlobal) {
+        sendLevelSoundEvent(levelSound, pos, extraData, pitch, entityIdentifier, isBabyMob, isGlobal, -1);
+    }
+
+    public void sendLevelSoundEvent(int levelSound, Vector3 pos, int extraData, int pitch, String entityIdentifier, boolean isBabyMob, boolean isGlobal, long entityUniqueId) {
 //        if (levelSound == null || levelSound.getV12() == -1) return;
         LevelSoundEventPacket pk = new LevelSoundEventPacket();
         pk.sound = levelSound;
@@ -1484,6 +1502,60 @@ public class SynapsePlayer extends Player {
         return betaClient;
     }
 
-    public void tryDisruptIllegalClientBeforeStartGame() {
+    protected void tryDisruptIllegalClientBeforeStartGame() {
+    }
+
+    /**
+     * @since 1.21.50
+     */
+    protected void sendAimAssistPresets() {
+    }
+
+    /**
+     * @since 1.21.50
+     */
+    public void setAimAssist(float viewAngleX, float viewAngleZ) {
+    }
+
+    /**
+     * @since 1.21.50
+     */
+    public void setAimAssist(float viewAngleX, float viewAngleZ, String presetId) {
+    }
+
+    /**
+     * @since 1.21.50
+     */
+    public void setAimAssist(float distance) {
+    }
+
+    /**
+     * @since 1.21.50
+     */
+    public void setAimAssist(float distance, String presetId) {
+    }
+
+    /**
+     * @since 1.21.50
+     */
+    public void setAimAssist(int mode, float viewAngleX, float viewAngleZ, float distance) {
+    }
+
+    /**
+     * @since 1.21.50
+     */
+    public void setAimAssist(int mode, float viewAngleX, float viewAngleZ, float distance, String presetId) {
+    }
+
+    /**
+     * @since 1.21.50
+     */
+    public void setAimAssist(String presetId) {
+    }
+
+    /**
+     * @since 1.21.50
+     */
+    public void clearAimAssist() {
     }
 }

@@ -294,6 +294,11 @@ public final class LegacyBlockSerializer {
         registerDeserializer(CHISELED_RESIN_BRICKS, LegacyBlockSerializer::deserializeSimple);
         registerDeserializer(OPEN_EYEBLOSSOM, LegacyBlockSerializer::deserializeSimple);
         registerDeserializer(CLOSED_EYEBLOSSOM, LegacyBlockSerializer::deserializeSimple);
+        registerDeserializer(BUSH, LegacyBlockSerializer::deserializeSimple);
+        registerDeserializer(FIREFLY_BUSH, LegacyBlockSerializer::deserializeSimple);
+        registerDeserializer(SHORT_DRY_GRASS, LegacyBlockSerializer::deserializeSimple);
+        registerDeserializer(TALL_DRY_GRASS, LegacyBlockSerializer::deserializeSimple);
+        registerDeserializer(CACTUS_FLOWER, LegacyBlockSerializer::deserializeSimple);
 
         registerDeserializer(STONE, states -> {
             String type = states.getString(STONE_TYPE);
@@ -2034,6 +2039,8 @@ public final class LegacyBlockSerializer {
         registerDeserializer(CHERRY_SAPLING, LegacyBlockSerializer::deserializeSapling);
 
         registerDeserializer(PINK_PETALS, states -> (states.getInt(GROWTH) & 0b111) | deserializeDirection(states) << 3);
+        registerDeserializer(WILDFLOWERS, states -> (states.getInt(GROWTH) & 0b111) | deserializeCardinalDirection(states) << 3);
+        registerDeserializer(LEAF_LITTER, states -> (states.getInt(GROWTH) & 0b111) | deserializeCardinalDirection(states) << 3);
 
         registerDeserializer(TORCHFLOWER_CROP, states -> states.getInt(GROWTH) & 0b111);
 

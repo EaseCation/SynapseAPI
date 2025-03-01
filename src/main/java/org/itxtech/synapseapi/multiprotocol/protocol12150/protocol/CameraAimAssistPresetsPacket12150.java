@@ -13,6 +13,69 @@ import org.itxtech.synapseapi.multiprotocol.common.camera.CameraAimAssistPreset.
 public class CameraAimAssistPresetsPacket12150 extends Packet12150 {
     public static final int NETWORK_ID = ProtocolInfo.CAMERA_AIM_ASSIST_PRESETS_PACKET;
 
+    public static final CameraAimAssistCategories[] DEFAULT_CATEGORIES = new CameraAimAssistCategories[]{
+            new CameraAimAssistCategories("minecraft:aim_assist_categories_1",
+                    new Category("minecraft:bucket", Priority.EMPTY, new Priority[]{
+                            new Priority("minecraft:cauldron", 60),
+                            new Priority("minecraft:water", 60),
+                            new Priority("minecraft:lava", 60),
+                    }, null, null),
+                    new Category("minecraft:empty_hand", Priority.EMPTY, new Priority[]{
+                            new Priority("minecraft:oak_log", 60),
+                            new Priority("minecraft:birch_log", 60),
+                            new Priority("minecraft:spruce_log", 60),
+                            new Priority("minecraft:jungle_log", 60),
+                            new Priority("minecraft:acacia_log", 60),
+                            new Priority("minecraft:dark_oak_log", 60),
+                            new Priority("minecraft:mangrove_log", 60),
+                            new Priority("minecraft:cherry_log", 60),
+                    }, null, null),
+                    new Category("minecraft:default", Priority.EMPTY, new Priority[]{
+                            new Priority("minecraft:lever", 60),
+                            new Priority("minecraft:oak_button", 60),
+                            new Priority("minecraft:birch_button", 60),
+                            new Priority("minecraft:spruce_button", 60),
+                            new Priority("minecraft:dark_oak_button", 60),
+                    }, null, null)
+            ),
+    };
+    public static final CameraAimAssistPreset[] DEFAULT_PRESETS = new CameraAimAssistPreset[]{
+            CameraAimAssistPreset.builder()
+                    .identifier("minecraft:aim_assist_default")
+                    .categories("minecraft:aim_assist_categories_1")
+                    .exclusions(new String[]{
+                            "minecraft:bedrock",
+                            "minecraft:arrow",
+                    })
+                    .liquidTargetingList(new String[]{
+                            "minecraft:bucket",
+                            "minecraft:oak_boat",
+                            "minecraft:birch_boat",
+                            "minecraft:spruce_boat",
+                            "minecraft:jungle_boat",
+                            "minecraft:acacia_boat",
+                            "minecraft:dark_oak_boat",
+                            "minecraft:mangrove_boat",
+                            "minecraft:cherry_boat",
+                            "minecraft:bamboo_boat",
+                            "minecraft:oak_chest_boat",
+                            "minecraft:birch_chest_boat",
+                            "minecraft:spruce_chest_boat",
+                            "minecraft:jungle_chest_boat",
+                            "minecraft:acacia_chest_boat",
+                            "minecraft:dark_oak_chest_boat",
+                            "minecraft:mangrove_chest_boat",
+                            "minecraft:cherry_chest_boat",
+                            "minecraft:bamboo_chest_boat",
+                    })
+                    .itemSettings(new ItemSetting[]{
+                            new ItemSetting("minecraft:bucket", "minecraft:bucket"),
+                    })
+                    .defaultItemSettings("minecraft:default")
+                    .handSettings("minecraft:empty_hand")
+                    .build()
+    };
+
     public CameraAimAssistCategories[] categories = new CameraAimAssistCategories[0];
     public CameraAimAssistPreset[] presets = new CameraAimAssistPreset[0];
 

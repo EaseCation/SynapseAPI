@@ -19,6 +19,7 @@ public class CameraManager {
     private CameraManager() {
         // register builtin cameras
         registerCamera(CameraPreset.FIRST_PERSON_PRESET);
+        registerCamera(CameraPreset.FIXED_BOOM_PRESET, AbstractProtocol.PROTOCOL_121_70);
         registerCamera(CameraPreset.FOLLOW_ORBIT_PRESET, AbstractProtocol.PROTOCOL_121_40);
         registerCamera(CameraPreset.FREE_PRESET);
         registerCamera(CameraPreset.THIRD_PERSON_PRESET);
