@@ -11,9 +11,9 @@ dependencies {
     compileOnly("cn.nukkit:nukkit")
     val authLibPkg = findProject(":AuthLibPackage")
     if (authLibPkg == null) {
-        implementation(files(File(rootProject.projectDir, "lib/AuthLibPackage.jar")))
+        compileOnly(files(File(rootProject.projectDir, "lib/AuthLibPackage.jar")))
     } else {
-        implementation(project(":AuthLibPackage"))
+        compileOnly(project(":AuthLibPackage"))
     }
 }
 
