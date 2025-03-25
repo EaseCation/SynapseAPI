@@ -150,6 +150,7 @@ import org.itxtech.synapseapi.multiprotocol.protocol12150.protocol.CameraPresets
 import org.itxtech.synapseapi.multiprotocol.protocol12150.protocol.ResourcePacksInfoPacket12150;
 import org.itxtech.synapseapi.multiprotocol.protocol12160.protocol.*;
 import org.itxtech.synapseapi.multiprotocol.protocol12170.protocol.LevelSoundEventPacketV312170;
+import org.itxtech.synapseapi.multiprotocol.protocol12170.protocol.SetHudPacket12170;
 import org.itxtech.synapseapi.multiprotocol.protocol14.protocol.PlayerActionPacket14;
 import org.itxtech.synapseapi.multiprotocol.protocol16.protocol.ResourcePackClientResponsePacket16;
 import org.itxtech.synapseapi.multiprotocol.utils.*;
@@ -3998,10 +3999,17 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
 
     @Override
     public void hideHudElements(int... elements) {
-        if (getProtocol() < AbstractProtocol.PROTOCOL_120_60.getProtocolStart()) {
+        if (getProtocol() >= AbstractProtocol.PROTOCOL_121_70.getProtocolStart()) {
+            SetHudPacket12170 packet = new SetHudPacket12170();
+            packet.elements = elements;
+            packet.visibility = SetHudPacket12170.VISIBILITY_HIDE;
+            dataPacket(packet);
             return;
         }
 
+        if (getProtocol() < AbstractProtocol.PROTOCOL_120_60.getProtocolStart()) {
+            return;
+        }
         SetHudPacket12060 packet = new SetHudPacket12060();
         packet.elements = elements;
         packet.visibility = SetHudPacket12060.VISIBILITY_HIDE;
@@ -4015,10 +4023,17 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
 
     @Override
     public void showHudElements(int... elements) {
-        if (getProtocol() < AbstractProtocol.PROTOCOL_120_60.getProtocolStart()) {
+        if (getProtocol() >= AbstractProtocol.PROTOCOL_121_70.getProtocolStart()) {
+            SetHudPacket12170 packet = new SetHudPacket12170();
+            packet.elements = elements;
+            packet.visibility = SetHudPacket12170.VISIBILITY_RESET;
+            dataPacket(packet);
             return;
         }
 
+        if (getProtocol() < AbstractProtocol.PROTOCOL_120_60.getProtocolStart()) {
+            return;
+        }
         SetHudPacket12060 packet = new SetHudPacket12060();
         packet.elements = elements;
         packet.visibility = SetHudPacket12060.VISIBILITY_RESET;
