@@ -41,7 +41,7 @@ public class NPCDialogueScene {
 
     @Nullable
     public NPCDialogueButton getButton(int index) {
-        if (index >= buttons.size()) {
+        if (index < 0 || index >= buttons.size()) {
             return null;
         }
         return buttons.get(index);
