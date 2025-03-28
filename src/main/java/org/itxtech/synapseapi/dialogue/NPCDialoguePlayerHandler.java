@@ -113,6 +113,18 @@ public class NPCDialoguePlayerHandler {
                 }
                 if (button.isForceCloseOnClick()) {
                     closeDialogue();
+                } else {
+                    // 如果下一tick仍未打开新对话框，则自动关闭
+                    SynapseAPI.getInstance().getServer().getScheduler().scheduleTask(SynapseAPI.getInstance(), () -> {
+                        switch (this.state) {
+                            case NPCDialogueState.Responded responded -> {
+                                if (responded.currentScene().getSceneName().equals(sceneName)) {
+                                    closeDialogue();
+                                }
+                            }
+                            case null, default -> {}
+                        }
+                    });
                 }
                 return true;
             }
