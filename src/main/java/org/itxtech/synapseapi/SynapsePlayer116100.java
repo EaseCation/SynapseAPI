@@ -2029,7 +2029,7 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
 
                 FormWindow window = formWindows.get(modalFormPacket.formId);
                 if (window != null) {
-                    window.setResponse(modalFormPacket.data.trim());
+                    window.setResponse(modalFormPacket.data.trim(), getProtocol());
 
                     PlayerFormRespondedEvent event = new PlayerFormRespondedEvent(this, modalFormPacket.formId, window);
                     getServer().getPluginManager().callEvent(event);
@@ -2040,7 +2040,7 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
 
                 window = serverSettings.get(modalFormPacket.formId);
                 if (window != null) {
-                    window.setResponse(modalFormPacket.data.trim());
+                    window.setResponse(modalFormPacket.data.trim(), getProtocol());
 
                     PlayerSettingsRespondedEvent event = new PlayerSettingsRespondedEvent(this, modalFormPacket.formId, window);
                     getServer().getPluginManager().callEvent(event);
@@ -3422,7 +3422,7 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
         AbilityLayer[] layers;
         if (!noClip) {
             layers = new AbilityLayer[]{
-                    new AbilityLayer(AbilityLayer.TYPE_BASE, baseAbilities, baseAbilityValues, 0.05f, 1, 0.1f),
+                    new AbilityLayer(AbilityLayer.TYPE_BASE, baseAbilities, baseAbilityValues, flySpeed, verticalFlySpeed, walkSpeed),
             };
         } else {
             Set<PlayerAbility> spectatorAbilities = EnumSet.allOf(PlayerAbility.class);
@@ -3434,8 +3434,8 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
             spectatorAbilityValues.add(PlayerAbility.NO_CLIP);
 
             layers = new AbilityLayer[]{
-                    new AbilityLayer(AbilityLayer.TYPE_BASE, baseAbilities, baseAbilityValues, 0.05f, 1, 0.1f),
-                    new AbilityLayer(AbilityLayer.TYPE_SPECTATOR, spectatorAbilities, spectatorAbilityValues, 0.05f, 1, 0.1f),
+                    new AbilityLayer(AbilityLayer.TYPE_BASE, baseAbilities, baseAbilityValues, flySpeed, verticalFlySpeed, walkSpeed),
+                    new AbilityLayer(AbilityLayer.TYPE_SPECTATOR, spectatorAbilities, spectatorAbilityValues, flySpeed, verticalFlySpeed, walkSpeed),
             };
         }
 
