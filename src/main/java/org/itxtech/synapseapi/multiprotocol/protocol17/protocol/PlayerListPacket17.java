@@ -55,7 +55,7 @@ public class PlayerListPacket17 extends Packet17 {
     public static class Entry {
 
         public final UUID uuid;
-        public long entityId = 0;
+        public long entityId;
         public String name = "";
         public Skin skin;
         public String xboxUserId = ""; //TODO
@@ -86,6 +86,7 @@ public class PlayerListPacket17 extends Packet17 {
         List<Entry> entries = new ArrayList<>();
         for (cn.nukkit.network.protocol.PlayerListPacket.Entry entry: packet.entries) {
             Entry e = new Entry(entry.uuid, entry.entityId, entry.name, entry.skin, entry.xboxUserId);
+            e.platformChatId = entry.platformChatId;
             entries.add(e);
         }
         this.entries = entries.toArray(Entry[]::new);

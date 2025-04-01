@@ -102,6 +102,11 @@ public final class VanillaExperiments {
      * @since 1.20.30
      */
     public static final Experiment VILLAGER_TRADES_REBALANCE = new Experiment("villager_trades_rebalance", true);
+    /**
+     * Show the direction of other players in multiplayer. (Locator Bar)
+     * @since 1.21.80
+     */
+    public static final Experiment LOCATOR_BAR = new Experiment("locator_bar", true);
 
     private VanillaExperiments() {
     }

@@ -151,6 +151,7 @@ import org.itxtech.synapseapi.multiprotocol.protocol12150.protocol.ResourcePacks
 import org.itxtech.synapseapi.multiprotocol.protocol12160.protocol.*;
 import org.itxtech.synapseapi.multiprotocol.protocol12170.protocol.LevelSoundEventPacketV312170;
 import org.itxtech.synapseapi.multiprotocol.protocol12170.protocol.SetHudPacket12170;
+import org.itxtech.synapseapi.multiprotocol.protocol12180.protocol.PlayerLocationPacket12180;
 import org.itxtech.synapseapi.multiprotocol.protocol14.protocol.PlayerActionPacket14;
 import org.itxtech.synapseapi.multiprotocol.protocol16.protocol.ResourcePackClientResponsePacket16;
 import org.itxtech.synapseapi.multiprotocol.utils.*;
@@ -264,6 +265,9 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
             experiments.add(VanillaExperiments.UPCOMING_CREATOR_FEATURES);
             if (isBetaClient()) {
                 experiments.add(VanillaExperiments.DEFERRED_TECHNICAL_PREVIEW);
+            }
+            if (ENABLE_LOCATOR_BAR && getProtocol() >= AbstractProtocol.PROTOCOL_121_80.getProtocolStart()) {
+                experiments.add(VanillaExperiments.LOCATOR_BAR);
             }
             startGamePacket.experiments = new Experiments(experiments.toArray(new Experiment[0]));
             return startGamePacket;
@@ -4268,5 +4272,38 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
         cameraAimAssistPacket.mode = mode;
         cameraAimAssistPacket.action = action;
         dataPacket(cameraAimAssistPacket);
+    }
+
+    @Override
+    public void updateLocator(long entityUniqueId, float x, float y, float z) {
+        if (!isLocatorBarEnabled()) {
+            return;
+        }
+
+        if (getProtocol() < AbstractProtocol.PROTOCOL_121_80.getProtocolStart()) {
+            return;
+        }
+        PlayerLocationPacket12180 packet = new PlayerLocationPacket12180();
+        packet.hide = false;
+        packet.entityUniqueId = entityUniqueId;
+        packet.x = x;
+        packet.y = y;
+        packet.z = z;
+        dataPacket(packet);
+    }
+
+    @Override
+    public void hideLocator(long entityUniqueId) {
+        if (!isLocatorBarEnabled()) {
+            return;
+        }
+
+        if (getProtocol() < AbstractProtocol.PROTOCOL_121_80.getProtocolStart()) {
+            return;
+        }
+        PlayerLocationPacket12180 packet = new PlayerLocationPacket12180();
+        packet.hide = true;
+        packet.entityUniqueId = entityUniqueId;
+        dataPacket(packet);
     }
 }

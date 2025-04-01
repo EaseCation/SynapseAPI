@@ -135,6 +135,7 @@ public final class EntityPropertiesPalette {
         register(AbstractProtocol.PROTOCOL_121_50, palette12150, null);
         register(AbstractProtocol.PROTOCOL_121_60, palette12150, null);
         register(AbstractProtocol.PROTOCOL_121_70, palette12170, null);
+        register(AbstractProtocol.PROTOCOL_121_80, palette12170, null);
 
         cachePackets();
     }

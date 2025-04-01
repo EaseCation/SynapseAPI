@@ -5,7 +5,6 @@ import cn.nukkit.network.protocol.DataPacket;
 import cn.nukkit.network.protocol.PlayerListPacket;
 import cn.nukkit.network.protocol.ProtocolInfo;
 import lombok.ToString;
-import org.itxtech.synapseapi.multiprotocol.protocol116100.protocol.Packet116100;
 import org.itxtech.synapseapi.utils.ClassUtils;
 
 import java.util.ArrayList;
@@ -13,7 +12,7 @@ import java.util.List;
 import java.util.UUID;
 
 @ToString
-public class PlayerListPacket12060 extends Packet116100 {
+public class PlayerListPacket12060 extends Packet12060 {
     public static final int NETWORK_ID = ProtocolInfo.PLAYER_LIST_PACKET;
 
     public static final byte TYPE_ADD = 0;
@@ -60,7 +59,7 @@ public class PlayerListPacket12060 extends Packet116100 {
     @ToString
     public static class Entry {
         public final UUID uuid;
-        public long entityId = 0;
+        public long entityId;
         public String name = "";
         public String xboxUserId = ""; //TODO
         public String platformChatId = ""; //TODO
@@ -95,6 +94,11 @@ public class PlayerListPacket12060 extends Packet116100 {
         List<Entry> entries = new ArrayList<>();
         for (PlayerListPacket.Entry entry: packet.entries) {
             Entry e = new Entry(entry.uuid, entry.entityId, entry.name, entry.skin, entry.xboxUserId);
+            e.platformChatId = entry.platformChatId;
+            e.buildPlatform = entry.buildPlatform;
+            e.isTeacher = entry.isTeacher;
+            e.isHost = entry.isHost;
+            e.isSubClient = entry.isSubClient;
             entries.add(e);
         }
         this.entries = entries.toArray(new Entry[0]);

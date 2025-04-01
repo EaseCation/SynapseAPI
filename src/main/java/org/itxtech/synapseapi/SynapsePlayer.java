@@ -74,6 +74,7 @@ import java.net.InetSocketAddress;
 import java.util.*;
 import java.util.function.Function;
 
+import static org.itxtech.synapseapi.SynapseSharedConstants.ENABLE_LOCATOR_BAR;
 import static org.itxtech.synapseapi.SynapseSharedConstants.NETWORK_STACK_LATENCY_TELEMETRY;
 
 /**
@@ -1557,5 +1558,10 @@ public class SynapsePlayer extends Player {
      * @since 1.21.50
      */
     public void clearAimAssist() {
+    }
+
+    @Override
+    public boolean isLocatorBarEnabled() {
+        return ENABLE_LOCATOR_BAR;
     }
 }
