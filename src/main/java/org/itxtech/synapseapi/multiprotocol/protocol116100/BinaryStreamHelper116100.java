@@ -6,6 +6,7 @@ import cn.nukkit.inventory.RecipeType;
 import cn.nukkit.item.Item;
 import cn.nukkit.item.ItemDurable;
 import cn.nukkit.item.ItemID;
+import cn.nukkit.item.Items;
 import cn.nukkit.nbt.NBTIO;
 import cn.nukkit.nbt.tag.CompoundTag;
 import cn.nukkit.nbt.tag.Tag;
@@ -31,7 +32,7 @@ public class BinaryStreamHelper116100 extends BinaryStreamHelper116100NE {
     public Item getSlot(BinaryStream stream) {
         int networkId = stream.getVarInt();
         if (networkId == ItemID.AIR) {
-            return Item.get(ItemID.AIR, 0, 0);
+            return Items.air();
         }
 
         if (networkId < Short.MIN_VALUE || networkId >= Short.MAX_VALUE) {
@@ -220,7 +221,7 @@ public class BinaryStreamHelper116100 extends BinaryStreamHelper116100NE {
     public Item getCraftingRecipeIngredient(BinaryStream stream) {
         int networkId = stream.getVarInt();
         if (networkId == ItemID.AIR) {
-            return Item.get(ItemID.AIR, 0, 0);
+            return Items.air();
         }
 
         networkId = convertCustomBlockItemClientIdToServerId(networkId);

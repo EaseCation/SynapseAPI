@@ -3,6 +3,7 @@ package org.itxtech.synapseapi.multiprotocol.protocol19;
 import cn.nukkit.item.Item;
 import cn.nukkit.item.ItemDurable;
 import cn.nukkit.item.ItemID;
+import cn.nukkit.item.Items;
 import cn.nukkit.nbt.NBTIO;
 import cn.nukkit.nbt.tag.CompoundTag;
 import cn.nukkit.nbt.tag.Tag;
@@ -25,7 +26,7 @@ public class BinaryStreamHelper19 extends BinaryStreamHelper18 {
     public Item getSlot(BinaryStream stream) {
         int id = stream.getVarInt();
         if (id == ItemID.AIR) {
-            return Item.get(ItemID.AIR, 0, 0);
+            return Items.air();
         }
 
         if (id < Short.MIN_VALUE || id >= Short.MAX_VALUE) {

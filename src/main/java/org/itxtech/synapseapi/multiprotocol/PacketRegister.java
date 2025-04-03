@@ -281,6 +281,7 @@ public class PacketRegister {
         registerPacket(AbstractProtocol.PROTOCOL_116, ProtocolInfo.PLAYER_AUTH_INPUT_PACKET, PlayerAuthInputPacket116.class);
         registerPacket(AbstractProtocol.PROTOCOL_116, ProtocolInfo.UPDATE_PLAYER_GAME_TYPE_PACKET, UpdatePlayerGameTypePacket116.class);
         registerPacket(AbstractProtocol.PROTOCOL_116, ProtocolInfo.POSITION_TRACKING_DB_CLIENT_REQUEST_PACKET, PositionTrackingDBClientRequestPacket116.class);
+        registerPacket(AbstractProtocol.PROTOCOL_116, ProtocolInfo.ITEM_STACK_REQUEST_PACKET, ItemStackRequestPacket116.class);
 
         registerPacket(AbstractProtocol.PROTOCOL_116_20, ProtocolInfo.START_GAME_PACKET, StartGamePacket11620.class);
 

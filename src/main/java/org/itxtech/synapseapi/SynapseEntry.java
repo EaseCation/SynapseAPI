@@ -780,6 +780,11 @@ public class SynapseEntry {
                 }
 
                 byte[] buf = stream.getByteArray();
+                if (buf.length == 0) {
+                    // empty packet
+                    return null;
+                }
+
                 AbstractProtocol.PacketHeadData head = apl.tryDecodePacketHead(buf, false);
                 if (head != null) {
                     int pid = head.getPid();

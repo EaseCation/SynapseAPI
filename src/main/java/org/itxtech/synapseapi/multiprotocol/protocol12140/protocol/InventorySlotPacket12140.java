@@ -14,6 +14,8 @@ import javax.annotation.Nullable;
 public class InventorySlotPacket12140 extends Packet12140 {
     public static final int NETWORK_ID = ProtocolInfo.INVENTORY_SLOT_PACKET;
 
+    private static final Item EMPTY_ITEM_STACK = Items.air();
+
     public int inventoryId;
     public int slot;
     /**
@@ -59,7 +61,7 @@ public class InventorySlotPacket12140 extends Packet12140 {
         this.item = packet.item;
 
         if (storageItem == null) {
-            storageItem = Items.air();
+            storageItem = EMPTY_ITEM_STACK;
         }
 
         return this;

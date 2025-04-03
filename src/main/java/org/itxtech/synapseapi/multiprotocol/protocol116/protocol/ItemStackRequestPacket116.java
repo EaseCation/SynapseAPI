@@ -34,6 +34,7 @@ public class ItemStackRequestPacket116 extends Packet116 {
     public void decode() {
         int count = (int) getUnsignedVarInt();
         if (count > 80) {
+            //TODO: we can probably lower this limit, but this will do for now
             throw new IndexOutOfBoundsException("Too many requests in ItemStackRequestPacket");
         }
         requests = new ItemStackRequest[count];

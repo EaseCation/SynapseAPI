@@ -167,6 +167,7 @@ public class BinaryStreamHelper12120 extends BinaryStreamHelper1212 {
         stream.putByte(container.containerId);
         Integer dynamicContainerId = container.dynamicContainerId;
         stream.putLInt(dynamicContainerId == null ? 0 : dynamicContainerId);
+        stream.putUnsignedVarInt(container.slots.length);
         for (ItemStackResponseSlotInfo slot : container.slots) {
             putItemStackResponseSlotInfo(stream, slot);
         }

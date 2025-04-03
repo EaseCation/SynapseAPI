@@ -4,12 +4,14 @@ import cn.nukkit.level.GameRules;
 import cn.nukkit.nbt.tag.CompoundTag;
 import cn.nukkit.network.protocol.ProtocolInfo;
 import cn.nukkit.utils.BinaryStream;
+import lombok.ToString;
 import org.itxtech.synapseapi.multiprotocol.AbstractProtocol;
 import org.itxtech.synapseapi.multiprotocol.common.Experiments;
 import org.itxtech.synapseapi.multiprotocol.utils.AdvancedGlobalBlockPalette;
 
 import java.util.UUID;
 
+@ToString
 public class StartGamePacket12160 extends Packet12160 {
     public static final int NETWORK_ID = ProtocolInfo.START_GAME_PACKET;
 
