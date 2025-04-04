@@ -139,6 +139,7 @@ public class BinaryStreamHelper12120 extends BinaryStreamHelper1212 {
             case ItemStackRequestPacket11810.ACTION_CRAFTING_LOOM: {
                 LoomStackRequestAction action = new LoomStackRequestAction();
                 action.patternId = stream.getString();
+                action.repetitions = stream.getByte();
                 return action;
             }
             case ItemStackRequestPacket11810.ACTION_CRAFTING_NON_IMPLEMENTED_DEPRECATED_ASK_TY_LAING: {

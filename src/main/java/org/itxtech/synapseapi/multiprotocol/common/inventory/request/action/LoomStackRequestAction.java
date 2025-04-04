@@ -11,6 +11,10 @@ import lombok.ToString;
 @ToString
 public class LoomStackRequestAction implements ItemStackRequestAction {
     public String patternId;
+    /**
+     * @since 1.21.20
+     */
+    public int repetitions = 1;
 
     @Override
     public ItemStackRequestActionType getType() {
