@@ -2167,6 +2167,23 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
                         pk.sceneName = sceneName;
                         dataPacket(pk);
                     }
+                } else if (npcRequestPacket.type == NPCRequestPacket11710.TYPE_EXECUTE_OPENING_COMMANDS) {
+                    if (!this.getNpcDialoguePlayerHandler().onDialogueOpening(sceneName)) {
+                        NpcDialoguePacket11710 pk = new NpcDialoguePacket11710();
+                        pk.npcEntityUniqueId = npcRequestPacket.entityRuntimeId;
+                        pk.actionType = NpcDialoguePacket11710.ACTION_CLOSE;
+                        pk.sceneName = sceneName;
+                        dataPacket(pk);
+                    }
+                } else if (npcRequestPacket.type == NPCRequestPacket11710.TYPE_EXECUTE_CLOSING_COMMANDS) {
+                    if (!this.getNpcDialoguePlayerHandler().onDialogueClosing(sceneName)) {
+                        NpcDialoguePacket11710 pk = new NpcDialoguePacket11710();
+                        pk.npcEntityUniqueId = npcRequestPacket.entityRuntimeId;
+                        pk.actionType = NpcDialoguePacket11710.ACTION_CLOSE;
+                        pk.sceneName = sceneName;
+                        dataPacket(pk);
+                    }
+
                 }
                 break;
             case ProtocolInfo.COMMAND_REQUEST_PACKET:
