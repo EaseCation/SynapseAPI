@@ -74,7 +74,6 @@ import java.net.InetSocketAddress;
 import java.util.*;
 import java.util.function.Function;
 
-import static org.itxtech.synapseapi.SynapseSharedConstants.ENABLE_LOCATOR_BAR;
 import static org.itxtech.synapseapi.SynapseSharedConstants.NETWORK_STACK_LATENCY_TELEMETRY;
 
 /**
@@ -474,6 +473,7 @@ public class SynapsePlayer extends Player {
             tryDisruptIllegalClientBeforeStartGame();
 
             sendDimensionData();
+            sendJigsawStructureData();
 
             DataPacket startGamePacket = generateStartGamePacket(spawnPosition);
             this.dataPacket(startGamePacket);
@@ -1560,8 +1560,6 @@ public class SynapsePlayer extends Player {
     public void clearAimAssist() {
     }
 
-    @Override
-    public boolean isLocatorBarEnabled() {
-        return ENABLE_LOCATOR_BAR;
+    public void sendJigsawStructureData() {
     }
 }

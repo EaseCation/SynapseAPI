@@ -2708,4 +2708,20 @@ public class BlockTypes {
             return REGISTRY;
         }
     }
+
+    public static class V1_21_80 extends V1_21_70 {
+        private static final BlockRegistry REGISTRY = new BlockRegistry((1 << 24) | (21 << 16) | (60 << 8) | 33, V1_21_70.REGISTRY);
+
+        public static final BlockLegacy DRIED_GHAST = REGISTRY.registerBlock("minecraft:dried_ghast", BlockID.DRIED_GHAST)
+                .addState(BlockStates.MINECRAFT_CARDINAL_DIRECTION)
+                .addState(BlockStates.REHYDRATION_LEVEL);
+
+        static {
+            REGISTRY.createBlockPermutations();
+        }
+
+        public static BlockRegistry getBlockRegistry() {
+            return REGISTRY;
+        }
+    }
 }

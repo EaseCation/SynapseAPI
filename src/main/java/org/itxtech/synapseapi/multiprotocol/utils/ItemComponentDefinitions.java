@@ -151,7 +151,7 @@ public final class ItemComponentDefinitions {
                     null,
             });
             DEFINITIONS.put(AbstractProtocol.PROTOCOL_121_80, new Map[]{
-                    load("item_components12160.nbt", AbstractProtocol.PROTOCOL_121_80, false),
+                    load("item_components12180.nbt", AbstractProtocol.PROTOCOL_121_80, false),
                     null,
             });
         } catch (NullPointerException | IOException e) {

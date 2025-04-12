@@ -33,6 +33,14 @@ public class CameraPreset {
             .entityOffset(new Vector3f(-0, 0, 0))
             .radius(10f)
             .build();
+    /**
+     * @since 1.22.
+     */
+    public static final CameraPreset CONTROL_SCHEME_CAMERA_PRESET = CameraPreset.builder()
+            .name("minecraft:control_scheme_camera")
+            .parent(FOLLOW_ORBIT_PRESET.name)
+            .controlScheme(ControlScheme.CAMERA_RELATIVE)
+            .build();
     public static final CameraPreset FREE_PRESET = CameraPreset.builder()
             .name("minecraft:free")
             .x(0f)
@@ -158,6 +166,12 @@ public class CameraPreset {
      */
     @Nullable
     public AimAssist aimAssist;
+    /**
+     * @see ControlScheme
+     * @since 1.21.80
+     */
+    @Nullable
+    public Integer controlScheme;
 
     @Builder
     @NoArgsConstructor

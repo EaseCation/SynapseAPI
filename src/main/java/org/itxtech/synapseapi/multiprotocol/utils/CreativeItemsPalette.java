@@ -235,19 +235,25 @@ public class CreativeItemsPalette {
                 CreativeContentPacket12160 creativeContentPacket = new CreativeContentPacket12160();
                 creativeContentPacket.groups = groups;
                 creativeContentPacket.entries = getCreativeEntries(protocol, false).toArray(new Entry[0]);
+                creativeContentPacket.setHelper(protocol.getHelper());
                 packet = creativeContentPacket;
 
                 CreativeContentPacket12160 creativeContentPacketNe = new CreativeContentPacket12160();
                 creativeContentPacket.groups = groups;
                 creativeContentPacketNe.entries = getCreativeEntries(protocol, true).toArray(new Entry[0]);
+                creativeContentPacketNe.setHelper(protocol.getHelper());
+                creativeContentPacketNe.neteaseMode = true;
                 packetNe = creativeContentPacketNe;
             } else {
                 CreativeContentPacket116 creativeContentPacket = new CreativeContentPacket116();
                 creativeContentPacket.entries = getCreativeItems(protocol, false).toArray(new Item[0]);
+                creativeContentPacket.setHelper(protocol.getHelper());
                 packet = creativeContentPacket;
 
                 CreativeContentPacket116 creativeContentPacketNe = new CreativeContentPacket116();
                 creativeContentPacketNe.entries = getCreativeItems(protocol, true).toArray(new Item[0]);
+                creativeContentPacketNe.setHelper(protocol.getHelper());
+                creativeContentPacketNe.neteaseMode = true;
                 packetNe = creativeContentPacketNe;
             }
 

@@ -9,6 +9,7 @@ import cn.nukkit.nbt.tag.CompoundTag;
 import it.unimi.dsi.fastutil.ints.Int2ObjectFunction;
 import lombok.extern.log4j.Log4j2;
 import org.itxtech.synapseapi.multiprotocol.utils.AdvancedGlobalBlockPalette;
+import org.itxtech.synapseapi.multiprotocol.utils.BiomeDefinitions;
 import org.itxtech.synapseapi.multiprotocol.utils.CraftingPacketManager;
 import org.itxtech.synapseapi.multiprotocol.utils.CreativeItemsPalette;
 
@@ -2176,6 +2177,8 @@ public final class LegacyBlockSerializer {
             return meta;
         });
 
+        registerDeserializer(DRIED_GHAST, states -> deserializeCardinalDirection(states) | (states.getInt(REHYDRATION_LEVEL) & 0b11) << 2);
+
         registerDeserializer(CHALKBOARD, states -> states.getInt(DIRECTION) & 0b1111);
 
         registerDeserializer(ELEMENT_0, LegacyBlockSerializer::deserializeSimple);
@@ -2323,6 +2326,7 @@ public final class LegacyBlockSerializer {
 
                 CraftingPacketManager.rebuildPacket();
                 CreativeItemsPalette.cachePackets();
+                BiomeDefinitions.rebuildPackets();
             }
         });
     }

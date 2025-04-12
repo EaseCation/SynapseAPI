@@ -85,7 +85,7 @@ public class SynapsePlayer112 extends SynapsePlayer19 {
 
 	@Override
 	protected void sendBiomeDefinitionList() {
-		DataPacket pk = BiomeDefinitions.getPacket(AbstractProtocol.fromRealProtocol(this.getProtocol()));
+		DataPacket pk = BiomeDefinitions.getPacket(AbstractProtocol.fromRealProtocol(this.getProtocol()), isNetEaseClient());
 		if (pk == null) {
 			return;
 		}

@@ -97,11 +97,6 @@ public final class SynapseSharedConstants {
 
     public static final boolean MUTE_EMOTE_CHAT = true;
 
-    /**
-     * 是否启用实验性定位栏.
-     */
-    public static final boolean ENABLE_LOCATOR_BAR = false;
-
     private SynapseSharedConstants() {
 
     }

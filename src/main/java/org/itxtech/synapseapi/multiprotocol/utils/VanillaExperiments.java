@@ -72,13 +72,25 @@ public final class VanillaExperiments {
     /**
      * Loads Jigsaw Structures from the behavior pack worldgen folder. (Data-Driven Jigsaw Structures)
      * @since 1.21.50
+     * @deprecated 1.21.80
      */
     public static final Experiment JIGSAW_STRUCTURES = new Experiment("jigsaw_structures", true);
     /**
      * Enables the use of the latest custom camera features. (Experimental Creator Camera Features)
+     * since 1.21.80 control scheme
      * @since 1.21.70
      */
     public static final Experiment EXPERIMENTAL_CREATOR_CAMERAS = new Experiment("experimental_creator_cameras", true);
+    /**
+     * Enables custom components v2 for scripting (V2.0.0-beta and higher) and json (V1.21.80 and higher) APIs. (Custom Components V2)
+     * @since 1.21.80
+     */
+    public static final Experiment CUSTOM_COMPONENTS_V2 = new Experiment("custom_components_v2", true);
+    /**
+     * Enabling this will enhance the visuals of your game. (Vibrant Visuals)
+     * @since 1.21.80
+     */
+    public static final Experiment EXPERIMENTAL_GRAPHICS = new Experiment("experimental_graphics", true);
 
     // Gameplay Experiments
 
