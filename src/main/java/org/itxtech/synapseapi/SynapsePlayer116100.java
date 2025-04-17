@@ -4306,7 +4306,7 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
 
     @Override
     public void sendJigsawStructureData() {
-        if (getProtocol() < AbstractProtocol.PROTOCOL_121_80.getProtocolStart()) {
+        if (true || getProtocol() < AbstractProtocol.PROTOCOL_121_80.getProtocolStart()) {
             return;
         }
 

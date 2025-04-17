@@ -72,7 +72,6 @@ public final class VanillaExperiments {
     /**
      * Loads Jigsaw Structures from the behavior pack worldgen folder. (Data-Driven Jigsaw Structures)
      * @since 1.21.50
-     * @deprecated 1.21.80
      */
     public static final Experiment JIGSAW_STRUCTURES = new Experiment("jigsaw_structures", true);
     /**
