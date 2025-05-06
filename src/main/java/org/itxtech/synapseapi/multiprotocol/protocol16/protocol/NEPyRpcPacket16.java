@@ -31,9 +31,8 @@ public class NEPyRpcPacket16 extends Packet16 {
 
     public static final int NETWORK_ID = ProtocolInfo.PACKET_PY_RPC;
 
-    private static final byte[] UNKNOWN_BYTES_SENDING = new byte[]{8, -44, -108, 0};
-
     public Value data;
+    public int msgId = 9753608;
 
     public List<SubPacket<? extends SubPacketHandler<?>>> subPackets = List.of();
     public boolean encrypt;
@@ -59,6 +58,7 @@ public class NEPyRpcPacket16 extends Packet16 {
         } catch (IOException e) {
             throw new RuntimeException("MsgPack decode failed: " + e.getMessage(), e);
         }
+        msgId = this.getLInt();
 
         try {
             decodeContent();
@@ -166,7 +166,7 @@ public class NEPyRpcPacket16 extends Packet16 {
         } catch (IOException e) {
             throw new RuntimeException("MsgPack encode failed: " + e.getMessage(), e);
         }
-        this.put(UNKNOWN_BYTES_SENDING);
+        this.putLInt(msgId);
     }
 
     @FunctionalInterface

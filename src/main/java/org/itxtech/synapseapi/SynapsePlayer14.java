@@ -198,7 +198,7 @@ public class SynapsePlayer14 extends SynapsePlayer {
 					break;
 				}
 
-				if (!loginPacket.skin.isValid()) {
+				if (!loginPacket.validSkin) {
 					this.close("", "disconnectionScreen.invalidSkin");
 					break;
 				} else {

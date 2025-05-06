@@ -60,6 +60,7 @@ public class LoginPacket14 extends Packet14 {
     public String sandboxId;// = "RETAIL"
 
     public Skin skin;
+    public boolean validSkin;
 
     public LoginChainData decodedLoginChainData;
     public boolean netEaseClient;
@@ -397,6 +398,8 @@ public class LoginPacket14 extends Packet14 {
         if (bloomDataNode != null) {
             this.bloomData = bloomDataNode.asText();
         }
+
+        validSkin = skin.isValidStrict();
     }
 
     private JsonNode decodeToken(String token) throws JsonProcessingException {
