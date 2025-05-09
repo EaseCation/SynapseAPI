@@ -5,11 +5,14 @@ import cn.nukkit.nbt.NBTIO;
 import cn.nukkit.nbt.tag.CompoundTag;
 import cn.nukkit.nbt.tag.ListTag;
 import cn.nukkit.nbt.tag.Tag;
+import cn.nukkit.network.protocol.DataPacket;
 import cn.nukkit.utils.BinaryStream;
 import cn.nukkit.utils.JsonUtil;
 import it.unimi.dsi.fastutil.objects.Object2IntLinkedOpenHashMap;
 import it.unimi.dsi.fastutil.objects.Object2IntMap;
 import org.itxtech.synapseapi.multiprotocol.AbstractProtocol;
+import org.itxtech.synapseapi.multiprotocol.protocol12160.protocol.ItemRegistryPacket12160;
+import org.itxtech.synapseapi.multiprotocol.protocol12160.protocol.ItemRegistryPacket12160.ItemData;
 import org.itxtech.synapseapi.multiprotocol.utils.AdvancedGlobalBlockPalette;
 import org.itxtech.synapseapi.multiprotocol.utils.AdvancedRuntimeItemPalette;
 import org.itxtech.synapseapi.multiprotocol.utils.ItemComponentDefinitions;
@@ -22,12 +25,8 @@ import java.io.IOException;
 import java.nio.ByteOrder;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.ArrayList;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.Map.Entry;
-import java.util.TreeMap;
 
 public class DataExporter {
     public static void exportAll(Path saveDir, boolean minify) throws IOException {
@@ -171,25 +170,48 @@ public class DataExporter {
                 continue;
             }
             for (int v = 0; v <= 1; v++) {
-                boolean netease = v == 1;
-                byte[] bytes = AdvancedRuntimeItemPalette.getCompiledData(protocol, netease);
-                BinaryStream stream = new BinaryStream(bytes);
-                int count = (int) stream.getUnsignedVarInt();
                 Object2IntMap<String> container = new Object2IntLinkedOpenHashMap<>();
                 List<Map<String, Object>> containerFull = new ArrayList<>();
-                for (int i = 0; i < count; i++) {
-                    String name = stream.getString();
-                    short id = (short) stream.getLShort();
-                    boolean component = stream.getBoolean();
 
-                    container.put(name, id);
+                boolean netease = v == 1;
+                byte[] bytes = AdvancedRuntimeItemPalette.getCompiledData(protocol, netease);
+                if (bytes.length == 0) {
+                    DataPacket packet = AdvancedRuntimeItemPalette.createItemRegistryPacket(protocol, netease, Collections.emptyMap());
+                    if (packet instanceof ItemRegistryPacket12160 itemRegistry) {
+                        for (ItemData data : itemRegistry.entries) {
+                            String name = data.name;
+                            short id = (short) data.id;
+                            boolean component = data.componentBased;
+                            int version = data.version;
 
-                    Map<String, Object> entry = new LinkedHashMap<>();
-                    entry.put("name", name);
-                    entry.put("runtime_id", id);
-                    entry.put("component", component);
-                    containerFull.add(entry);
+                            container.put(name, id);
+
+                            Map<String, Object> entry = new LinkedHashMap<>();
+                            entry.put("name", name);
+                            entry.put("runtime_id", id);
+                            entry.put("component", component);
+                            entry.put("version", version);
+                            containerFull.add(entry);
+                        }
+                    }
+                } else {
+                    BinaryStream stream = new BinaryStream(bytes);
+                    int count = (int) stream.getUnsignedVarInt();
+                    for (int i = 0; i < count; i++) {
+                        String name = stream.getString();
+                        short id = (short) stream.getLShort();
+                        boolean component = stream.getBoolean();
+
+                        container.put(name, id);
+
+                        Map<String, Object> entry = new LinkedHashMap<>();
+                        entry.put("name", name);
+                        entry.put("runtime_id", id);
+                        entry.put("component", component);
+                        containerFull.add(entry);
+                    }
                 }
+
                 String fileName = getFileName(protocol, netease);
                 Files.writeString(saveDir.resolve(fileName + ".json"), JsonUtil.PRETTY_JSON_MAPPER.writeValueAsString(container));
                 Files.writeString(saveDir.resolve(fileName + "_full.json"), JsonUtil.PRETTY_JSON_MAPPER.writeValueAsString(containerFull));
