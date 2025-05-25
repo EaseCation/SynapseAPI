@@ -64,6 +64,7 @@ public final class AdvancedRuntimeItemPalette {
         RuntimeItemPalette palette12070 = new RuntimeItemPalette(AbstractProtocol.PROTOCOL_120_70, "runtime_item_ids_12070.json");
         RuntimeItemPalette palette12080 = new RuntimeItemPalette(AbstractProtocol.PROTOCOL_120_80, "runtime_item_ids_12080.json");
         RuntimeItemPalette palette121 = new RuntimeItemPalette(AbstractProtocol.PROTOCOL_121, "runtime_item_ids_121.json");
+        RuntimeItemPalette palette121N = new RuntimeItemPalette(AbstractProtocol.PROTOCOL_121, "runtime_item_ids_121NE.json");
         RuntimeItemPalette palette12120 = new RuntimeItemPalette(AbstractProtocol.PROTOCOL_121_20, "runtime_item_ids_12120.json");
         RuntimeItemPalette palette12130 = new RuntimeItemPalette(AbstractProtocol.PROTOCOL_121_30, "runtime_item_ids_12130.json");
         RuntimeItemPalette palette12140 = new RuntimeItemPalette(AbstractProtocol.PROTOCOL_121_40, "runtime_item_ids_12140.json");
@@ -106,8 +107,8 @@ public final class AdvancedRuntimeItemPalette {
         register(AbstractProtocol.PROTOCOL_120_60, palette12060, null);
         register(AbstractProtocol.PROTOCOL_120_70, palette12070, null);
         register(AbstractProtocol.PROTOCOL_120_80, palette12080, null);
-        register(AbstractProtocol.PROTOCOL_121, palette121, null);
-        register(AbstractProtocol.PROTOCOL_121_2, palette121, null);
+        register(AbstractProtocol.PROTOCOL_121, palette121, palette121N);
+        register(AbstractProtocol.PROTOCOL_121_2, palette121, palette121N);
         register(AbstractProtocol.PROTOCOL_121_20, palette12120, null);
         register(AbstractProtocol.PROTOCOL_121_30, palette12130, null);
         register(AbstractProtocol.PROTOCOL_121_40, palette12140, null);

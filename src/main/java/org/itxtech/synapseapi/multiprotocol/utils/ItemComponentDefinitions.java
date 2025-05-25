@@ -124,6 +124,7 @@ public final class ItemComponentDefinitions {
             });
             DEFINITIONS.put(AbstractProtocol.PROTOCOL_121_2, new Map[]{
                     load("item_components121.nbt", AbstractProtocol.PROTOCOL_121_2, false),
+                    load("item_components121.nbt", AbstractProtocol.PROTOCOL_121_2, true),
                     null,
             });
             DEFINITIONS.put(AbstractProtocol.PROTOCOL_121_20, new Map[]{

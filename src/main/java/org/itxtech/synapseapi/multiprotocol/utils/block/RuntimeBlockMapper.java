@@ -60,6 +60,7 @@ public final class RuntimeBlockMapper {
         BlockPalette palette12070 = BlockPalette.fromNBT("block_state_list_12070.nbt");
         BlockPalette palette12080 = BlockPalette.fromNBT("block_state_list_12080.nbt");
         BlockPalette palette121 = BlockPalette.fromNBT("block_state_list_121.nbt");
+        BlockPalette palette121N = BlockPalette.fromNBT("block_state_list_121.nbt").toNetease();
 //        BlockPalette palette12120 = BlockPalette.fromNBT("block_state_list_12120.nbt");
         BlockPalette palette12120 = BlockTypes.V1_21_20.getBlockRegistry().createBlockPalette();
         BlockPalette palette12130 = BlockTypes.V1_21_30.getBlockRegistry().createBlockPalette();
@@ -95,8 +96,8 @@ public final class RuntimeBlockMapper {
         PALETTES.put(AbstractProtocol.PROTOCOL_120_60, new BlockPalette[]{palette12060, palette12060});
         PALETTES.put(AbstractProtocol.PROTOCOL_120_70, new BlockPalette[]{palette12070, palette12070});
         PALETTES.put(AbstractProtocol.PROTOCOL_120_80, new BlockPalette[]{palette12080, palette12080});
-        PALETTES.put(AbstractProtocol.PROTOCOL_121, new BlockPalette[]{palette121, palette121});
-        PALETTES.put(AbstractProtocol.PROTOCOL_121_2, new BlockPalette[]{palette121, palette121});
+        PALETTES.put(AbstractProtocol.PROTOCOL_121, new BlockPalette[]{palette121, palette121N});
+        PALETTES.put(AbstractProtocol.PROTOCOL_121_2, new BlockPalette[]{palette121, palette121N});
         PALETTES.put(AbstractProtocol.PROTOCOL_121_20, new BlockPalette[]{palette12120, palette12120});
         PALETTES.put(AbstractProtocol.PROTOCOL_121_30, new BlockPalette[]{palette12130, palette12130});
         PALETTES.put(AbstractProtocol.PROTOCOL_121_40, new BlockPalette[]{palette12140, palette12140});
@@ -135,6 +136,7 @@ public final class RuntimeBlockMapper {
                 CompletableFuture.runAsync(() -> map(V1_20_70, palette12070, basePalette)),
                 CompletableFuture.runAsync(() -> map(V1_20_80, palette12080, basePalette)),
                 CompletableFuture.runAsync(() -> map(V1_21_0, palette121, basePalette)),
+                CompletableFuture.runAsync(() -> map(V1_21_0, palette121N, basePalette)),
                 CompletableFuture.runAsync(() -> map(V1_21_20, palette12120, basePalette)),
                 CompletableFuture.runAsync(() -> map(V1_21_30, palette12130, basePalette)),
                 CompletableFuture.runAsync(() -> map(V1_21_40, palette12140, basePalette)),

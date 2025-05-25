@@ -24,6 +24,11 @@ public class BinaryStreamHelper12120 extends BinaryStreamHelper1212 {
     }
 
     @Override
+    public boolean isNetEase() {
+        return false;
+    }
+
+    @Override
     public void putEntityLink(BinaryStream stream, EntityLink link) {
         stream.putEntityUniqueId(link.fromEntityUniquieId);
         stream.putEntityUniqueId(link.toEntityUniquieId);
