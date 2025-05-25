@@ -20,10 +20,10 @@ public class BiomeDefinitionData {
     public Integer id;
     public float temperature;
     public float downfall;
-    public float redSporeDesnity;
-    public float blueSporeDesnity;
-    public float ashDesnity;
-    public float whiteAshDesnity;
+    public float redSporeDensity;
+    public float blueSporeDensity;
+    public float ashDensity;
+    public float whiteAshDensity;
     public float depth;
     public float scale;
     public int mapWaterColorARGB;

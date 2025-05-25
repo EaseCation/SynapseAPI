@@ -123,6 +123,8 @@ import org.itxtech.synapseapi.multiprotocol.protocol12170.protocol.ClientMovemen
 import org.itxtech.synapseapi.multiprotocol.protocol12170.protocol.LevelSoundEventPacketV312170;
 import org.itxtech.synapseapi.multiprotocol.protocol12170.protocol.UpdateClientOptionsPacket12170;
 import org.itxtech.synapseapi.multiprotocol.protocol12180.protocol.PlayerListPacket12180;
+import org.itxtech.synapseapi.multiprotocol.protocol12190.protocol.ResourcePacksInfoPacket12190;
+import org.itxtech.synapseapi.multiprotocol.protocol12190.protocol.StartGamePacket12190;
 import org.itxtech.synapseapi.multiprotocol.protocol15.protocol.AddEntityPacket15;
 import org.itxtech.synapseapi.multiprotocol.protocol15.protocol.ClientboundMapItemDataPacket15;
 import org.itxtech.synapseapi.multiprotocol.protocol15.protocol.MoveEntityAbsolutePacket15;
@@ -463,6 +465,9 @@ public class PacketRegister {
         registerPacket(AbstractProtocol.PROTOCOL_121_70, ProtocolInfo.UPDATE_CLIENT_OPTIONS_PACKET, UpdateClientOptionsPacket12170.class);
 
         registerPacket(AbstractProtocol.PROTOCOL_121_80, ProtocolInfo.PLAYER_LIST_PACKET, PlayerListPacket12180.class);
+
+        registerPacket(AbstractProtocol.PROTOCOL_121_90, ProtocolInfo.RESOURCE_PACKS_INFO_PACKET, ResourcePacksInfoPacket12190.class);
+        registerPacket(AbstractProtocol.PROTOCOL_121_90, ProtocolInfo.START_GAME_PACKET, StartGamePacket12190.class);
 
         checkNeteaseSpecialExtend();
     }

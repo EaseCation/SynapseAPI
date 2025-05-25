@@ -40,10 +40,10 @@ public class BiomeDefinitionListPacket12180 extends Packet12180 {
             this.putOptional(definition.id, BinaryStream::putLShort);
             this.putLFloat(definition.temperature);
             this.putLFloat(definition.downfall);
-            this.putLFloat(definition.redSporeDesnity);
-            this.putLFloat(definition.blueSporeDesnity);
-            this.putLFloat(definition.ashDesnity);
-            this.putLFloat(definition.whiteAshDesnity);
+            this.putLFloat(definition.redSporeDensity);
+            this.putLFloat(definition.blueSporeDensity);
+            this.putLFloat(definition.ashDensity);
+            this.putLFloat(definition.whiteAshDensity);
             this.putLFloat(definition.depth);
             this.putLFloat(definition.scale);
             this.putLInt(definition.mapWaterColorARGB);

@@ -19,6 +19,7 @@ import com.netease.mc.authlib.TokenChainEC;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import lombok.ToString;
 import lombok.extern.log4j.Log4j2;
+import org.itxtech.synapseapi.multiprotocol.AbstractProtocol;
 import org.itxtech.synapseapi.multiprotocol.protocol12.utils.ClientChainData12;
 import org.itxtech.synapseapi.multiprotocol.protocol12.utils.ClientChainData12NetEase;
 import org.itxtech.synapseapi.multiprotocol.protocol12.utils.ClientChainData12Urgency;
@@ -35,6 +36,8 @@ import java.util.*;
 public class LoginPacket14 extends Packet14 {
     private static final boolean DEBUG_ENVIRONMENT = Boolean.getBoolean("easecation.debugging");
 
+    private static final TypeReference<Map<String, ?>> CERTIFICATE_DATA_TYPE_REFERENCE = new TypeReference<>() {
+    };
     private static final TypeReference<Map<String, List<String>>> CHAIN_DATA_TYPE_REFERENCE = new TypeReference<Map<String, List<String>>>() {
     };
 
@@ -93,14 +96,14 @@ public class LoginPacket14 extends Packet14 {
         try {
             byte[] buffer = getBuffer();
 
-            decodedLoginChainData = ClientChainData12NetEase.of(buffer);
+            decodedLoginChainData = ClientChainData12NetEase.of(buffer, protocol);
             if (decodedLoginChainData.getClientUUID() != null) { // 网易认证通过！
                 this.netEaseClient = true;
                 log.info("[Login] " + this.username + TextFormat.RED + " 中国版验证通过！" + protocol);
                 return;
             }
 
-            if (DEBUG_ENVIRONMENT && !ClientChainDataXbox.of(buffer).isXboxAuthed() && username.startsWith("netease")) { // 国际版验证失败, 特定前缀玩家名解析为中国版 (仅限调试环境)
+            if (DEBUG_ENVIRONMENT && !ClientChainDataXbox.of(buffer, protocol).isXboxAuthed() && username.startsWith("netease")) { // 国际版验证失败, 特定前缀玩家名解析为中国版 (仅限调试环境)
                 this.netEaseClient = true;
                 log.info("[Login] " + this.username + TextFormat.BLUE + " Xbox验证未通过！" + protocol);
                 return;
@@ -108,7 +111,7 @@ public class LoginPacket14 extends Packet14 {
 
             try { // 国际版普通认证
                 log.info("[Login] " + this.username + TextFormat.GREEN + " 正在解析为国际版！" + protocol);
-                decodedLoginChainData = ClientChainData12.of(buffer);
+                decodedLoginChainData = ClientChainData12.of(buffer, protocol);
             } catch (Exception e) {
                 log.info("[Login] " + this.username + TextFormat.YELLOW + " 解析时出现问题，采用紧急解析方案！", e);
                 decodedLoginChainData = ClientChainData12Urgency.of(buffer);
@@ -134,12 +137,37 @@ public class LoginPacket14 extends Packet14 {
             throw new IndexOutOfBoundsException("array length mismatch");
         }
         byte[] bytes = this.get(length);
-        Map<String, List<String>> map = JsonUtil.COMMON_JSON_MAPPER.readValue(new String(bytes, StandardCharsets.UTF_8), CHAIN_DATA_TYPE_REFERENCE);
+        Map<String, ?> root = JsonUtil.COMMON_JSON_MAPPER.readValue(new String(bytes, StandardCharsets.UTF_8), CERTIFICATE_DATA_TYPE_REFERENCE);
+        if (root.isEmpty()) {
+            return;
+        }
+        List<String> chains;
         try {
-            if (map.isEmpty() || !map.containsKey("chain") || map.get("chain").isEmpty()) {
-                return;
+            Map<String, List<String>> map;
+            if (protocol >= AbstractProtocol.PROTOCOL_121_90.getProtocolStart()) {
+                Object authenticationType = root.get("AuthenticationType");
+                if (!(authenticationType instanceof Number)) { //integer 0
+                    return;
+                }
+                Object token = root.get("Token");
+                if (!(token instanceof String)) { //empty ""
+                    return;
+                }
+                Object certificate = root.get("Certificate");
+                if (!(certificate instanceof String cert)) {
+                    return;
+                }
+                map = JsonUtil.COMMON_JSON_MAPPER.readValue(cert, CHAIN_DATA_TYPE_REFERENCE);
+                if (map.isEmpty() || (chains = map.get("chain")) == null || chains.isEmpty()) {
+                    return;
+                }
+            } else {
+                Object chain = root.get("chain");
+                if (!(chain instanceof List list) || list.isEmpty()) {
+                    return;
+                }
+                chains = (List<String>) chain;
             }
-            List<String> chains = map.get("chain");
             for (String c : chains) {
                 JsonNode chainMap = decodeToken(c);
                 if (chainMap == null || !chainMap.isObject()) {
@@ -188,11 +216,35 @@ public class LoginPacket14 extends Packet14 {
             throw new IndexOutOfBoundsException("array length mismatch");
         }
         byte[] bytes = this.get(length);
-        Map<String, List<String>> map = JsonUtil.COMMON_JSON_MAPPER.readValue(new String(bytes, StandardCharsets.UTF_8), CHAIN_DATA_TYPE_REFERENCE);
-        if (map.isEmpty() || !map.containsKey("chain") || map.get("chain").isEmpty()) {
+        Map<String, ?> root = JsonUtil.COMMON_JSON_MAPPER.readValue(new String(bytes, StandardCharsets.UTF_8), CERTIFICATE_DATA_TYPE_REFERENCE);
+        if (root.isEmpty()) {
             return;
         }
-        List<String> chains = map.get("chain");
+        List<String> chains;
+        if (protocol >= AbstractProtocol.PROTOCOL_121_90.getProtocolStart()) {
+            Object authenticationType = root.get("AuthenticationType");
+            if (!(authenticationType instanceof Number)) { //integer 0
+                return;
+            }
+            Object token = root.get("Token");
+            if (!(token instanceof String)) { //empty ""
+                return;
+            }
+            Object certificate = root.get("Certificate");
+            if (!(certificate instanceof String cert)) {
+                return;
+            }
+            Map<String, List<String>> map = JsonUtil.COMMON_JSON_MAPPER.readValue(cert, CHAIN_DATA_TYPE_REFERENCE);
+            if (map.isEmpty() || (chains = map.get("chain")) == null || chains.isEmpty()) {
+                return;
+            }
+        } else {
+            Object chain = root.get("chain");
+            if (!(chain instanceof List list) || list.isEmpty()) {
+                return;
+            }
+            chains = (List<String>) chain;
+        }
         int chainSize = chains.size();
         if (chainSize < 2) {//最少2个字符串。
             //Server.getInstance().getLogger().alert("过短 chainSize");

@@ -103,6 +103,7 @@ public final class BiomeDefinitions {
             data.put(AbstractProtocol.PROTOCOL_121_60, data12160);
             data.put(AbstractProtocol.PROTOCOL_121_70, data12170);
             data.put(AbstractProtocol.PROTOCOL_121_80, data12180);
+            data.put(AbstractProtocol.PROTOCOL_121_90, data12180);
         } catch (NullPointerException | IOException e) {
             throw new AssertionError("Unable to load biome_definitions.dat");
         }
@@ -121,10 +122,10 @@ public final class BiomeDefinitions {
             BiomeDefinitionData definition = new BiomeDefinitionData();
             definition.temperature = nbt.getFloat("temperature");
             definition.downfall = nbt.getFloat("downfall");
-            definition.redSporeDesnity = nbt.getFloat("red_spores");
-            definition.blueSporeDesnity = nbt.getFloat("blue_spores");
-            definition.ashDesnity = nbt.getFloat("ash");
-            definition.whiteAshDesnity = nbt.getFloat("white_ash");
+            definition.redSporeDensity = nbt.getFloat("red_spores");
+            definition.blueSporeDensity = nbt.getFloat("blue_spores");
+            definition.ashDensity = nbt.getFloat("ash");
+            definition.whiteAshDensity = nbt.getFloat("white_ash");
             definition.depth = nbt.getFloat("depth");
             definition.scale = nbt.getFloat("height");
             definition.mapWaterColorARGB = nbt.getInt("waterColorARGB");

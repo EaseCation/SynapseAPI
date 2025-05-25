@@ -9,6 +9,7 @@ import com.nimbusds.jose.JOSEException;
 import com.nimbusds.jose.JWSObject;
 import com.nimbusds.jose.crypto.ECDSAVerifier;
 import lombok.extern.log4j.Log4j2;
+import org.itxtech.synapseapi.multiprotocol.AbstractProtocol;
 import org.itxtech.synapseapi.multiprotocol.protocol12.protocol.LoginPacket;
 
 import java.net.URI;
@@ -60,12 +61,12 @@ public final class ClientChainDataXbox implements LoginChainData {
         xboxAuth = !notAvailable;
     }
 
-    public static ClientChainDataXbox of(byte[] buffer) {
-        return new ClientChainDataXbox(buffer);
+    public static ClientChainDataXbox of(byte[] buffer, int protocol) {
+        return new ClientChainDataXbox(buffer, protocol);
     }
 
     public static ClientChainDataXbox read(LoginPacket pk) {
-        return of(pk.getBuffer());
+        return of(pk.getBuffer(), pk.protocol);
     }
 
     @Override
@@ -256,19 +257,44 @@ public final class ClientChainDataXbox implements LoginChainData {
 
     private transient final BinaryStream bs = new BinaryStream();
 
-    private ClientChainDataXbox(byte[] buffer) {
+    private ClientChainDataXbox(byte[] buffer, int protocol) {
         bs.setBuffer(buffer, 0);
-        decodeChainData();
+        decodeChainData(protocol);
         decodeSkinData();
     }
 
-    private void decodeChainData() {
-        Map<String, List<String>> map = GSON.fromJson(new String(bs.get(bs.getLInt()), StandardCharsets.UTF_8),
-            new TypeToken<Map<String, List<String>>>() {
-            }.getType());
-        List<String> chains = map.get("chain");
-        if (chains == null || chains.isEmpty()) {
+    private void decodeChainData(int protocol) {
+        Map<String, ?> root = GSON.fromJson(new String(bs.get(bs.getLInt()), StandardCharsets.UTF_8),
+                new TypeToken<Map<String, ?>>() {
+                }.getType());
+        if (root.isEmpty()) {
             return;
+        }
+        List<String> chains;
+        if (protocol >= AbstractProtocol.PROTOCOL_121_90.getProtocolStart()) {
+            Object authenticationType = root.get("AuthenticationType");
+            if (!(authenticationType instanceof Number)) { //integer 0
+                return;
+            }
+            Object token = root.get("Token");
+            if (!(token instanceof String)) { //empty ""
+                return;
+            }
+            Object certificate = root.get("Certificate");
+            if (!(certificate instanceof String cert)) {
+                return;
+            }
+            Map<String, List<String>> map = GSON.fromJson(cert, new TypeToken<Map<String, List<String>>>() {
+            }.getType());
+            if (map.isEmpty() || (chains = map.get("chain")) == null || chains.isEmpty()) {
+                return;
+            }
+        } else {
+            Object chain = root.get("chain");
+            if (!(chain instanceof List list) || list.isEmpty()) {
+                return;
+            }
+            chains = (List<String>) chain;
         }
 
         if (xboxAuth) {

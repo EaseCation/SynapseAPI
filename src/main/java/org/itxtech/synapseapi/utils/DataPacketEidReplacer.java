@@ -26,6 +26,7 @@ import org.itxtech.synapseapi.multiprotocol.protocol12140.protocol.MobEffectPack
 import org.itxtech.synapseapi.multiprotocol.protocol12140.protocol.MovementEffectPacket12140;
 import org.itxtech.synapseapi.multiprotocol.protocol12160.protocol.BossEventPacket12160;
 import org.itxtech.synapseapi.multiprotocol.protocol12170.protocol.LevelSoundEventPacketV312170;
+import org.itxtech.synapseapi.multiprotocol.protocol12190.protocol.CameraInstructionPacket12190;
 import org.itxtech.synapseapi.multiprotocol.protocol14.protocol.PlayerActionPacket14;
 import org.itxtech.synapseapi.multiprotocol.protocol15.protocol.MoveEntityDeltaPacket;
 import org.itxtech.synapseapi.multiprotocol.protocol18.protocol.SpawnParticleEffectPacket18;
@@ -283,7 +284,14 @@ public class DataPacketEidReplacer {
                 }
                 break;
             case ProtocolInfo.CAMERA_INSTRUCTION_PACKET:
-                if (packet instanceof CameraInstructionPacket12140 dp) {
+                if (packet instanceof CameraInstructionPacket12190 dp) {
+                    CameraTargetInstruction target = dp.target;
+                    if (target != null && target.entityId == from) {
+                        CameraTargetInstruction copy = target.clone();
+                        copy.entityId = to;
+                        dp.target = copy;
+                    }
+                } else if (packet instanceof CameraInstructionPacket12140 dp) {
                     CameraTargetInstruction target = dp.target;
                     if (target != null && target.entityId == from) {
                         CameraTargetInstruction copy = target.clone();

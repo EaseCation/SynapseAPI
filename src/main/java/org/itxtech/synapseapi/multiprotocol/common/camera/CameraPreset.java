@@ -158,6 +158,7 @@ public class CameraPreset {
     public Boolean playerEffects;
     /**
      * @since 1.21.40
+     * @deprecated 1.21.90 - use ControlScheme to switch between control schemes instead
      */
     @Nullable
     public Boolean alignTargetAndCameraForward;

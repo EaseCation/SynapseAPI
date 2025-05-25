@@ -153,6 +153,10 @@ import org.itxtech.synapseapi.multiprotocol.protocol12170.protocol.LevelSoundEve
 import org.itxtech.synapseapi.multiprotocol.protocol12170.protocol.SetHudPacket12170;
 import org.itxtech.synapseapi.multiprotocol.protocol12180.protocol.CameraPresetsPacket12180;
 import org.itxtech.synapseapi.multiprotocol.protocol12180.protocol.PlayerLocationPacket12180;
+import org.itxtech.synapseapi.multiprotocol.protocol12190.protocol.CameraInstructionPacket12190;
+import org.itxtech.synapseapi.multiprotocol.protocol12190.protocol.CameraPresetsPacket12190;
+import org.itxtech.synapseapi.multiprotocol.protocol12190.protocol.ResourcePacksInfoPacket12190;
+import org.itxtech.synapseapi.multiprotocol.protocol12190.protocol.StartGamePacket12190;
 import org.itxtech.synapseapi.multiprotocol.protocol14.protocol.PlayerActionPacket14;
 import org.itxtech.synapseapi.multiprotocol.protocol16.protocol.ResourcePackClientResponsePacket16;
 import org.itxtech.synapseapi.multiprotocol.utils.*;
@@ -224,7 +228,55 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
 
     @Override
     protected DataPacket generateStartGamePacket(Position spawnPosition) {
-        if (this.getProtocol() >= AbstractProtocol.PROTOCOL_121_60.getProtocolStart()) {
+        if (this.getProtocol() >= AbstractProtocol.PROTOCOL_121_90.getProtocolStart()) {
+            StartGamePacket12190 startGamePacket = new StartGamePacket12190();
+            startGamePacket.protocol = AbstractProtocol.fromRealProtocol(this.protocol);
+            startGamePacket.netease = this.isNetEaseClient();
+            startGamePacket.entityUniqueId = SYNAPSE_PLAYER_ENTITY_ID;
+            startGamePacket.entityRuntimeId = SYNAPSE_PLAYER_ENTITY_ID;
+            startGamePacket.playerGamemode = getClientFriendlyGamemode(this.gamemode);
+            startGamePacket.x = (float) this.x;
+            startGamePacket.y = (float) this.y;
+            startGamePacket.z = (float) this.z;
+            startGamePacket.yaw = (float) this.yaw;
+            startGamePacket.pitch = (float) this.pitch;
+            startGamePacket.seed = -1;
+            startGamePacket.dimension = (byte) (this.level.getDimension().ordinal() & 0xff);
+            startGamePacket.worldGamemode = getClientFriendlyGamemode(this.gamemode);
+            startGamePacket.difficulty = this.server.getDifficulty();
+            startGamePacket.spawnX = (int) spawnPosition.x;
+            startGamePacket.spawnY = (int) spawnPosition.y;
+            startGamePacket.spawnZ = (int) spawnPosition.z;
+            startGamePacket.hasAchievementsDisabled = true;
+            startGamePacket.dayCycleStopTime = -1;
+            startGamePacket.rainLevel = 0;
+            startGamePacket.lightningLevel = 0;
+            startGamePacket.commandsEnabled = this.isEnableClientCommand();
+            startGamePacket.levelId = "";
+            startGamePacket.worldName = this.getServer().getNetwork().getName();
+            startGamePacket.generator = 1; // 0 old, 1 infinite, 2 flat
+            startGamePacket.gameRules = getSupportedRules();
+            startGamePacket.isInventoryServerAuthoritative = SERVER_AUTHORITATIVE_INVENTORY;
+            startGamePacket.isBlockBreakingServerAuthoritative = this.serverAuthoritativeBlockBreaking;
+            startGamePacket.currentTick = 0;//this.server.getTick();
+            startGamePacket.enchantmentSeed = ThreadLocalRandom.current().nextInt();
+            startGamePacket.playerPropertyData = getCompiledPlayerProperties();
+            startGamePacket.isSoundServerAuthoritative = isServerAuthoritativeSoundEnabled();
+            List<Experiment> experiments = new ArrayList<>(4);
+            if (getProtocol() < AbstractProtocol.PROTOCOL_121_20.getProtocolStart()) {
+                experiments.add(VanillaExperiments.DATA_DRIVEN_ITEMS);
+            }
+            experiments.add(VanillaExperiments.UPCOMING_CREATOR_FEATURES);
+            if (isBetaClient()) {
+                experiments.add(VanillaExperiments.DEFERRED_TECHNICAL_PREVIEW);
+            }
+            if (getProtocol() >= AbstractProtocol.PROTOCOL_121_80.getProtocolStart()) {
+                experiments.add(VanillaExperiments.EXPERIMENTAL_GRAPHICS);
+                experiments.add(VanillaExperiments.LOCATOR_BAR);
+            }
+            startGamePacket.experiments = new Experiments(experiments.toArray(new Experiment[0]));
+            return startGamePacket;
+        } else if (this.getProtocol() >= AbstractProtocol.PROTOCOL_121_60.getProtocolStart()) {
             StartGamePacket12160 startGamePacket = new StartGamePacket12160();
             startGamePacket.protocol = AbstractProtocol.fromRealProtocol(this.protocol);
             startGamePacket.netease = this.isNetEaseClient();
@@ -253,7 +305,7 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
             startGamePacket.generator = 1; // 0 old, 1 infinite, 2 flat
             startGamePacket.gameRules = getSupportedRules();
             startGamePacket.isInventoryServerAuthoritative = SERVER_AUTHORITATIVE_INVENTORY;
-            startGamePacket.movementType = serverAuthoritativeMovement ? StartGamePacket121.MOVEMENT_SERVER_AUTHORITATIVE : StartGamePacket121.MOVEMENT_CLIENT_AUTHORITATIVE;
+            startGamePacket.movementType = serverAuthoritativeMovement ? StartGamePacket12160.MOVEMENT_SERVER_AUTHORITATIVE : StartGamePacket12160.MOVEMENT_CLIENT_AUTHORITATIVE;
             startGamePacket.isBlockBreakingServerAuthoritative = this.serverAuthoritativeBlockBreaking;
             startGamePacket.currentTick = 0;//this.server.getTick();
             startGamePacket.enchantmentSeed = ThreadLocalRandom.current().nextInt();
@@ -2564,6 +2616,15 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
 
     @Override
     protected DataPacket generateResourcePackInfoPacket() {
+        if (getProtocol() >= AbstractProtocol.PROTOCOL_121_90.getProtocolStart()) {
+            ResourcePacksInfoPacket12190 resourcePacket = new ResourcePacksInfoPacket12190();
+            resourcePacket.resourcePackEntries = resourcePacks.values().toArray(new ResourcePack[0]);
+            if (isNetEaseClient()) {
+                resourcePacket.resourcePackEntries = ArrayUtils.addAll(resourcePacket.resourcePackEntries, behaviourPacks.values().toArray(new ResourcePack[0]));
+            }
+            resourcePacket.mustAccept = forceResources;
+            return resourcePacket;
+        }
         if (getProtocol() >= AbstractProtocol.PROTOCOL_121_50.getProtocolStart()) {
             ResourcePacksInfoPacket12150 resourcePacket = new ResourcePacksInfoPacket12150();
             resourcePacket.resourcePackEntries = resourcePacks.values().toArray(new ResourcePack[0]);
@@ -3247,7 +3308,8 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
     }
 
     protected SubChunkPacket createSubChunkPacket() {
-        return /*this.protocol < AbstractProtocol.PROTOCOL_118_10.getProtocolStart() ? new SubChunkPacket() :*/ new SubChunkPacket11810();
+        return /*this.protocol < AbstractProtocol.PROTOCOL_118_10.getProtocolStart() ? new SubChunkPacket() :*/
+                this.protocol >= AbstractProtocol.PROTOCOL_121_90.getProtocolStart() ? new SubChunkPacket12190() : new SubChunkPacket11810();
     }
 
     protected LevelChunkPacket createLevelChunkPacket() {
@@ -3829,6 +3891,13 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
 
     @Override
     protected void sendCameraPresets() {
+        if (getProtocol() >= AbstractProtocol.PROTOCOL_121_90.getProtocolStart()) {
+            CameraPresetsPacket12190 packet = new CameraPresetsPacket12190();
+            packet.presets = CameraManager.getInstance().getCameras();
+            dataPacket(packet);
+            return;
+        }
+
         if (getProtocol() >= AbstractProtocol.PROTOCOL_121_80.getProtocolStart()) {
             CameraPresetsPacket12180 packet = new CameraPresetsPacket12180();
             packet.presets = CameraManager.getInstance().getCameras();
@@ -3888,6 +3957,14 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
 
     @Override
     public void startCameraInstruction(CameraSetInstruction set, CameraFadeInstruction fade) {
+        if (getProtocol() >= AbstractProtocol.PROTOCOL_121_90.getProtocolStart()) {
+            CameraInstructionPacket12190 pk = new CameraInstructionPacket12190();
+            pk.set = set;
+            pk.fade = fade;
+            this.dataPacket(pk);
+            return;
+        }
+
         if (getProtocol() >= AbstractProtocol.PROTOCOL_121_40.getProtocolStart()) {
             CameraInstructionPacket12140 pk = new CameraInstructionPacket12140();
             pk.set = set;
@@ -3933,6 +4010,13 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
 
     @Override
     public void clearCameraInstruction() {
+        if (getProtocol() >= AbstractProtocol.PROTOCOL_121_90.getProtocolStart()) {
+            CameraInstructionPacket12190 pk = new CameraInstructionPacket12190();
+            pk.clear = true;
+            this.dataPacket(pk);
+            return;
+        }
+
         if (getProtocol() >= AbstractProtocol.PROTOCOL_121_40.getProtocolStart()) {
             CameraInstructionPacket12140 pk = new CameraInstructionPacket12140();
             pk.clear = true;

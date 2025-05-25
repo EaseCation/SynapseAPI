@@ -37,6 +37,10 @@ public class CameraSetInstruction {
     public Vector3f entityOffset;
     @Nullable
     public Boolean defaultPreset;
+    /**
+     * @since 1.21.90
+     */
+    public boolean removeIgnoreStartingValuesComponent;
 
     /**
      * @see <a href="https://easings.net/">Easing Functions Cheat Sheet</a>

@@ -1,4 +1,4 @@
-package org.itxtech.synapseapi.multiprotocol.protocol12160.protocol;
+package org.itxtech.synapseapi.multiprotocol.protocol12190.protocol;
 
 import cn.nukkit.level.GameRules;
 import cn.nukkit.nbt.tag.CompoundTag;
@@ -7,12 +7,13 @@ import cn.nukkit.utils.BinaryStream;
 import lombok.ToString;
 import org.itxtech.synapseapi.multiprotocol.AbstractProtocol;
 import org.itxtech.synapseapi.multiprotocol.common.Experiments;
+import org.itxtech.synapseapi.multiprotocol.protocol12160.protocol.Packet12160;
 import org.itxtech.synapseapi.multiprotocol.utils.AdvancedGlobalBlockPalette;
 
 import java.util.UUID;
 
 @ToString
-public class StartGamePacket12160 extends Packet12160 {
+public class StartGamePacket12190 extends Packet12160 {
     public static final int NETWORK_ID = ProtocolInfo.START_GAME_PACKET;
 
     public static final int GAME_PUBLISH_SETTING_NO_MULTI_PLAY = 0;
@@ -23,10 +24,6 @@ public class StartGamePacket12160 extends Packet12160 {
 
     public static final int BIOME_TYPE_DEFAULT = 0;
     public static final int BIOME_TYPE_USER_DEFINED = 1;
-
-    public static final int MOVEMENT_CLIENT_AUTHORITATIVE = 0;
-    public static final int MOVEMENT_SERVER_AUTHORITATIVE = 1;
-    public static final int MOVEMENT_SERVER_AUTHORITATIVE_WITH_REWIND = 2;
 
     public static final int EDITOR_WORLD_TYPE_NON_EDITOR = 0;
     public static final int EDITOR_WORLD_TYPE_PROJECT = 1;
@@ -94,7 +91,7 @@ public class StartGamePacket12160 extends Packet12160 {
     public boolean isOnlySpawningV1Villagers = false;
     public boolean isDisablingPersonas;
     public boolean isDisablingCustomSkins;
-    public String vanillaVersion = "1.21.60";
+    public String vanillaVersion = "1.21.90";
     public boolean muteEmoteAnnouncements;
     public int limitedWorldWidth = 16;
     public int limitedWorldLength = 16;
@@ -111,12 +108,12 @@ public class StartGamePacket12160 extends Packet12160 {
     public String serverIdentifier = "";
     public String worldIdentifier = "";
     public String scenarioIdentifier = "";
+    public String ownerIdentifier = "";
 
     public String levelId = ""; //base64 string, usually the same as world folder name in vanilla
     public String worldName = "";
     public String premiumWorldTemplateId = "00000000-0000-0000-0000-000000000000";
     public boolean isTrial = false;
-    public int movementType;
     public int rewindHistorySize = 40;
     /**
      * If true, the server will compute block mining operations in sync with the client so it can verify that the client should be able to break blocks when it thinks it can.
@@ -127,7 +124,7 @@ public class StartGamePacket12160 extends Packet12160 {
     public byte[] blockProperties;
     public String multiplayerCorrelationId = "";
     public boolean isInventoryServerAuthoritative;
-    public String serverEngine = "1.21.60";
+    public String serverEngine = "1.21.90";
     public byte[] playerPropertyData = CompoundTag.EMPTY;
     /**
      * A XXHash64 of all block states by their compound tag.
@@ -219,12 +216,12 @@ public class StartGamePacket12160 extends Packet12160 {
         this.putString(this.serverIdentifier);
         this.putString(this.worldIdentifier);
         this.putString(this.scenarioIdentifier);
+        this.putString(this.ownerIdentifier);
 
         this.putString(this.levelId);
         this.putString(this.worldName);
         this.putString(this.premiumWorldTemplateId);
         this.putBoolean(this.isTrial);
-        this.putVarInt(this.movementType);
         this.putVarInt(this.rewindHistorySize);
         this.putBoolean(this.isBlockBreakingServerAuthoritative);
         this.putLLong(this.currentTick);

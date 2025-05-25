@@ -7,6 +7,7 @@ import com.google.gson.Gson;
 import com.google.gson.JsonObject;
 import com.google.gson.reflect.TypeToken;
 import com.netease.mc.authlib.TokenChainEC;
+import org.itxtech.synapseapi.multiprotocol.AbstractProtocol;
 import org.itxtech.synapseapi.multiprotocol.protocol12.protocol.LoginPacket;
 
 import java.nio.charset.StandardCharsets;
@@ -28,12 +29,12 @@ import java.util.*;
 public final class ClientChainData12NetEase implements LoginChainData {
     private static final Gson GSON = new Gson();
 
-    public static ClientChainData12NetEase of(byte[] buffer) {
-        return new ClientChainData12NetEase(buffer);
+    public static ClientChainData12NetEase of(byte[] buffer, int protocol) {
+        return new ClientChainData12NetEase(buffer, protocol);
     }
 
     public static ClientChainData12NetEase read(LoginPacket pk) {
-        return of(pk.getBuffer());
+        return of(pk.getBuffer(), pk.protocol);
     }
 
     @Override
@@ -212,10 +213,10 @@ public final class ClientChainData12NetEase implements LoginChainData {
 
     private final transient BinaryStream bs = new BinaryStream();
 
-    private ClientChainData12NetEase(byte[] buffer) {
+    private ClientChainData12NetEase(byte[] buffer, int protocol) {
         bs.setBuffer(buffer, 0);
         //decodeChainData();
-        neteaseDecode();
+        neteaseDecode(protocol);
         decodeSkinData();
     }
 
@@ -247,16 +248,44 @@ public final class ClientChainData12NetEase implements LoginChainData {
     }
 
     //netease解析客户端信息。
-    private void neteaseDecode() {
+    private void neteaseDecode(int protocol) {
         this.xuid = null;
         this.clientUUID = null;
         this.username = null;
-        Map<String, List<String>> map = GSON.fromJson(new String(bs.get(bs.getLInt()), StandardCharsets.UTF_8),
-                new TypeToken<Map<String, List<String>>>() {
+
+        Map<String, ?> root = GSON.fromJson(new String(bs.get(bs.getLInt()), StandardCharsets.UTF_8),
+                new TypeToken<Map<String, ?>>() {
                 }.getType());
-        if (map.isEmpty() || !map.containsKey("chain") || map.get("chain").isEmpty())
+        if (root.isEmpty()) {
             return;
-        List<String> chains = map.get("chain");
+        }
+        List<String> chains;
+        if (protocol >= AbstractProtocol.PROTOCOL_121_90.getProtocolStart()) {
+            Object authenticationType = root.get("AuthenticationType");
+            if (!(authenticationType instanceof Number)) { //integer 0
+                return;
+            }
+            Object token = root.get("Token");
+            if (!(token instanceof String)) { //empty ""
+                return;
+            }
+            Object certificate = root.get("Certificate");
+            if (!(certificate instanceof String cert)) {
+                return;
+            }
+            Map<String, List<String>> map = GSON.fromJson(cert, new TypeToken<Map<String, List<String>>>() {
+            }.getType());
+            if (map.isEmpty() || (chains = map.get("chain")) == null || chains.isEmpty()) {
+                return;
+            }
+        } else {
+            Object chain = root.get("chain");
+            if (!(chain instanceof List list) || list.isEmpty()) {
+                return;
+            }
+            chains = (List<String>) chain;
+        }
+
         int chainSize = chains.size();
         if (chainSize < 2)//最少2个字符串。
         {
