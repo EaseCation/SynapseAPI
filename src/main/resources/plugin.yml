@@ -28,3 +28,6 @@ permissions:
   synapseapi.command.communitytool:
     description: /communitytool
     default: op
+  synapseapi.command.draw:
+    description: /draw
+    default: op

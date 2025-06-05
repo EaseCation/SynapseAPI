@@ -45,6 +45,7 @@ import org.itxtech.synapseapi.event.player.SynapsePlayerUnexpectedBehaviorEvent;
 import org.itxtech.synapseapi.multiprotocol.AbstractProtocol;
 import org.itxtech.synapseapi.multiprotocol.common.camera.CameraFadeInstruction;
 import org.itxtech.synapseapi.multiprotocol.common.camera.CameraSetInstruction;
+import org.itxtech.synapseapi.multiprotocol.common.drawer.Shape;
 import org.itxtech.synapseapi.multiprotocol.protocol116100.protocol.TextPacket116100;
 import org.itxtech.synapseapi.multiprotocol.protocol116100ne.protocol.TextPacket116100NE;
 import org.itxtech.synapseapi.multiprotocol.protocol119.protocol.PlayerActionPacket119;
@@ -637,6 +638,8 @@ public class SynapsePlayer extends Player {
             this.clearSubChunkQueues();
 
             this.removeAllChunks();
+
+            this.removeAllShapes();
 
             if (!this.sentSkins.isEmpty()) {  // 跨服时，移除所有已发送的PlayerList（皮肤）
                 PlayerListPacket pk = new PlayerListPacket();
@@ -1561,5 +1564,28 @@ public class SynapsePlayer extends Player {
     }
 
     public void sendJigsawStructureData() {
+    }
+
+    /**
+     * Adds a new shape to the world.
+     * @param shape the shape to be added
+     * @since 1.21.90
+     */
+    public void addShape(Shape shape) {
+    }
+
+    /**
+     * Removes an instance of a shape from the world.
+     * @param shape the shape to be removed
+     * @since 1.21.90
+     */
+    public void removeShape(Shape shape) {
+    }
+
+    /**
+     * Removes all shapes from the world.
+     * @since 1.21.90
+     */
+    public void removeAllShapes() {
     }
 }

@@ -285,6 +285,7 @@ public class SynapseAPI extends PluginBase implements Listener {
         this.getServer().getCommandMap().register("synapse", new NetDataCommand(this));
         this.getServer().getCommandMap().register("synapse", new DebugExportCommand(this));
         this.getServer().getCommandMap().register("synapse", new CommunityToolCommand(this));
+        this.getServer().getCommandMap().register("synapse", new DrawCommand(this));
     }
 
     public boolean isUseLoadingScreen() {

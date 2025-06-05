@@ -68,6 +68,7 @@ import org.itxtech.synapseapi.multiprotocol.common.Experiments;
 import org.itxtech.synapseapi.multiprotocol.common.Experiments.Experiment;
 import org.itxtech.synapseapi.multiprotocol.common.camera.CameraFadeInstruction;
 import org.itxtech.synapseapi.multiprotocol.common.camera.CameraSetInstruction;
+import org.itxtech.synapseapi.multiprotocol.common.drawer.Shape;
 import org.itxtech.synapseapi.multiprotocol.protocol113.protocol.ResourcePackStackPacket113;
 import org.itxtech.synapseapi.multiprotocol.protocol116.protocol.CreativeContentPacket116;
 import org.itxtech.synapseapi.multiprotocol.protocol116100.protocol.*;
@@ -153,10 +154,8 @@ import org.itxtech.synapseapi.multiprotocol.protocol12170.protocol.LevelSoundEve
 import org.itxtech.synapseapi.multiprotocol.protocol12170.protocol.SetHudPacket12170;
 import org.itxtech.synapseapi.multiprotocol.protocol12180.protocol.CameraPresetsPacket12180;
 import org.itxtech.synapseapi.multiprotocol.protocol12180.protocol.PlayerLocationPacket12180;
-import org.itxtech.synapseapi.multiprotocol.protocol12190.protocol.CameraInstructionPacket12190;
-import org.itxtech.synapseapi.multiprotocol.protocol12190.protocol.CameraPresetsPacket12190;
-import org.itxtech.synapseapi.multiprotocol.protocol12190.protocol.ResourcePacksInfoPacket12190;
-import org.itxtech.synapseapi.multiprotocol.protocol12190.protocol.StartGamePacket12190;
+import org.itxtech.synapseapi.multiprotocol.protocol12190.protocol.*;
+import org.itxtech.synapseapi.multiprotocol.protocol12190.protocol.ServerScriptDebugDrawerPacket12190.Entry;
 import org.itxtech.synapseapi.multiprotocol.protocol14.protocol.PlayerActionPacket14;
 import org.itxtech.synapseapi.multiprotocol.protocol16.protocol.ResourcePackClientResponsePacket16;
 import org.itxtech.synapseapi.multiprotocol.utils.*;
@@ -209,6 +208,8 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
     protected float aimAssistViewAngleY = 45;
     protected float aimAssistDistance = 5.7f;
     protected int aimAssistMode = CameraAimAssistPacket12050.MODE_ANGLE;
+
+    private final Long2ObjectMap<ShapeInstance> shapes = new Long2ObjectOpenHashMap<>();
 
     public SynapsePlayer116100(SourceInterface interfaz, SynapseEntry synapseEntry, Long clientID, InetSocketAddress socketAddress) {
         super(interfaz, synapseEntry, clientID, socketAddress);
@@ -3330,6 +3331,8 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
                     setGliding(false);
                 }
             }
+
+            removeExpiredShapes();
         }
         return super.onUpdate(currentTick);
     }
@@ -4428,5 +4431,70 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
         packet.hide = true;
         packet.entityUniqueId = entityUniqueId;
         dataPacket(packet);
+    }
+
+    @Override
+    public void addShape(Shape shape) {
+        if (getProtocol() < AbstractProtocol.PROTOCOL_121_90.getProtocolStart()) {
+            return;
+        }
+
+        shapes.put(shape.id, new ShapeInstance(shape, shape.totalTimeLeft > 0 ? (int) (shape.totalTimeLeft * 20) + getServer().getTick() : Integer.MAX_VALUE));
+
+        ServerScriptDebugDrawerPacket12190 packet = new ServerScriptDebugDrawerPacket12190();
+        packet.entries = new Entry[]{shape.createPacketEntry()};
+        dataPacket(packet);
+    }
+
+    @Override
+    public void removeShape(Shape shape) {
+        if (shapes.remove(shape.id) == null) {
+            return;
+        }
+
+        ServerScriptDebugDrawerPacket12190 packet = new ServerScriptDebugDrawerPacket12190();
+        packet.entries = new Entry[]{new Entry(shape.id)};
+        dataPacket(packet);
+    }
+
+    @Override
+    public void removeAllShapes() {
+        if (shapes.isEmpty()) {
+            return;
+        }
+
+        ServerScriptDebugDrawerPacket12190 packet = new ServerScriptDebugDrawerPacket12190();
+        packet.entries = shapes.keySet().longStream().mapToObj(Entry::new).toArray(Entry[]::new);
+        dataPacket(packet);
+
+        shapes.clear();
+    }
+
+    private void removeExpiredShapes() {
+        int now = getServer().getTick();
+        List<Entry> entries = new ArrayList<>();
+        Iterator<ShapeInstance> iterator = shapes.values().iterator();
+        while (iterator.hasNext()) {
+            ShapeInstance instance = iterator.next();
+            if (instance.expirationTick > now) {
+                continue;
+            }
+
+            entries.add(new Entry(instance.shape.id));
+            iterator.remove();
+        }
+        if (entries.isEmpty()) {
+            return;
+        }
+
+        if (getProtocol() < AbstractProtocol.PROTOCOL_121_90.getProtocolStart()) {
+            return;
+        }
+        ServerScriptDebugDrawerPacket12190 packet = new ServerScriptDebugDrawerPacket12190();
+        packet.entries = entries.toArray(new Entry[0]);
+        dataPacket(packet);
+    }
+
+    private record ShapeInstance(Shape shape, int expirationTick) {
     }
 }

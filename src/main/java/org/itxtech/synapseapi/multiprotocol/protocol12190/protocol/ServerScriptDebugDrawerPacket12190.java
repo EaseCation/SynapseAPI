@@ -33,7 +33,7 @@ public class ServerScriptDebugDrawerPacket12190 extends Packet12180 {
         putUnsignedVarInt(entries.length);
         for (Entry entry : entries) {
             putUnsignedVarLong(entry.id);
-            putOptional(entry.type, (stream, type) -> stream.putLInt(type.ordinal()));
+            putOptional(entry.type, (stream, type) -> stream.putByte(type.ordinal()));
             putOptional(entry.location, BinaryStream::putVector3f);
             putOptional(entry.scale, BinaryStream::putLFloat);
             putOptional(entry.rotation, BinaryStream::putVector3f);
@@ -65,7 +65,11 @@ public class ServerScriptDebugDrawerPacket12190 extends Packet12180 {
         public Vector3f lineEndLocation;
         public Float arrowHeadLength;
         public Float arrowHeadRadius;
-        public Character numSegments;
+        public Byte numSegments;
+
+        public Entry(long id) {
+            this.id = id;
+        }
     }
 
     public enum Type {
