@@ -4,10 +4,9 @@ import cn.nukkit.network.protocol.ProtocolInfo;
 import cn.nukkit.utils.BinaryStream;
 import lombok.ToString;
 import org.itxtech.synapseapi.multiprotocol.common.camera.CameraPreset;
-import org.itxtech.synapseapi.multiprotocol.protocol12180.protocol.Packet12180;
 
 @ToString
-public class CameraPresetsPacket12190 extends Packet12180 {
+public class CameraPresetsPacket12190 extends Packet12190 {
     public static final int NETWORK_ID = ProtocolInfo.CAMERA_PRESETS_PACKET;
 
     public CameraPreset[] presets = CameraPreset.EMPTY_PRESETS;

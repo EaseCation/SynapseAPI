@@ -32,7 +32,7 @@ public class DrawCommand extends Command implements PluginIdentifiableCommand {
                 CommandParameter.newType("rotation", true, CommandParamType.POSITION),
                 CommandParameter.newType("scale", true, CommandParamType.FLOAT),
                 CommandParameter.newType("timeLeft", true, CommandParamType.FLOAT),
-                CommandParameter.newType("color", true, CommandParamType.TEXT),
+                CommandParameter.newType("color", true, CommandParamType.STRING),
                 CommandParameter.newType("endLocation", true, CommandParamType.POSITION),
         });
         commandParameters.put("box", new CommandParameter[]{
@@ -42,7 +42,7 @@ public class DrawCommand extends Command implements PluginIdentifiableCommand {
                 CommandParameter.newType("rotation", true, CommandParamType.POSITION),
                 CommandParameter.newType("scale", true, CommandParamType.FLOAT),
                 CommandParameter.newType("timeLeft", true, CommandParamType.FLOAT),
-                CommandParameter.newType("color", true, CommandParamType.TEXT),
+                CommandParameter.newType("color", true, CommandParamType.STRING),
                 CommandParameter.newType("bound", true, CommandParamType.POSITION),
         });
         commandParameters.put("shape", new CommandParameter[]{
@@ -52,7 +52,7 @@ public class DrawCommand extends Command implements PluginIdentifiableCommand {
                 CommandParameter.newType("rotation", true, CommandParamType.POSITION),
                 CommandParameter.newType("scale", true, CommandParamType.FLOAT),
                 CommandParameter.newType("timeLeft", true, CommandParamType.FLOAT),
-                CommandParameter.newType("color", true, CommandParamType.TEXT),
+                CommandParameter.newType("color", true, CommandParamType.STRING),
         });
         commandParameters.put("text", new CommandParameter[]{
                 CommandParameter.newType("player", CommandParamType.TARGET),
@@ -61,8 +61,8 @@ public class DrawCommand extends Command implements PluginIdentifiableCommand {
                 CommandParameter.newType("rotation", true, CommandParamType.POSITION),
                 CommandParameter.newType("scale", true, CommandParamType.FLOAT),
                 CommandParameter.newType("timeLeft", true, CommandParamType.FLOAT),
-                CommandParameter.newType("color", true, CommandParamType.TEXT),
-                CommandParameter.newType("text", true, CommandParamType.TEXT),
+                CommandParameter.newType("color", true, CommandParamType.STRING),
+                CommandParameter.newType("text", true, CommandParamType.MESSAGE),
         });
         commandParameters.put("arrow", new CommandParameter[]{
                 CommandParameter.newType("player", CommandParamType.TARGET),
@@ -71,7 +71,7 @@ public class DrawCommand extends Command implements PluginIdentifiableCommand {
                 CommandParameter.newType("rotation", true, CommandParamType.POSITION),
                 CommandParameter.newType("scale", true, CommandParamType.FLOAT),
                 CommandParameter.newType("timeLeft", true, CommandParamType.FLOAT),
-                CommandParameter.newType("color", true, CommandParamType.TEXT),
+                CommandParameter.newType("color", true, CommandParamType.STRING),
                 CommandParameter.newType("endLocation", true, CommandParamType.POSITION),
                 CommandParameter.newType("headLength", true, CommandParamType.FLOAT),
                 CommandParameter.newType("headRadius", true, CommandParamType.FLOAT),

@@ -7,13 +7,12 @@ import cn.nukkit.utils.BinaryStream;
 import lombok.ToString;
 import org.itxtech.synapseapi.multiprotocol.AbstractProtocol;
 import org.itxtech.synapseapi.multiprotocol.common.Experiments;
-import org.itxtech.synapseapi.multiprotocol.protocol12160.protocol.Packet12160;
 import org.itxtech.synapseapi.multiprotocol.utils.AdvancedGlobalBlockPalette;
 
 import java.util.UUID;
 
 @ToString
-public class StartGamePacket12190 extends Packet12160 {
+public class StartGamePacket12190 extends Packet12190 {
     public static final int NETWORK_ID = ProtocolInfo.START_GAME_PACKET;
 
     public static final int GAME_PUBLISH_SETTING_NO_MULTI_PLAY = 0;

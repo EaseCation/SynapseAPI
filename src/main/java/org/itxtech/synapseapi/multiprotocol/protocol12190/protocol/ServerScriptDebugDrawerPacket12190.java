@@ -7,13 +7,12 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.NoArgsConstructor;
 import lombok.ToString;
-import org.itxtech.synapseapi.multiprotocol.protocol12180.protocol.Packet12180;
 
 /**
  * Used by Scripting to send new, removed or modified debug shapes information to the client to be used for rendering.
  */
 @ToString
-public class ServerScriptDebugDrawerPacket12190 extends Packet12180 {
+public class ServerScriptDebugDrawerPacket12190 extends Packet12190 {
     public static final int NETWORK_ID = ProtocolInfo.SERVER_SCRIPT_DEBUG_DRAWER_PACKET;
 
     public Entry[] entries = new Entry[0];

@@ -6,12 +6,11 @@ import lombok.ToString;
 import org.itxtech.synapseapi.multiprotocol.common.camera.CameraFadeInstruction;
 import org.itxtech.synapseapi.multiprotocol.common.camera.CameraSetInstruction;
 import org.itxtech.synapseapi.multiprotocol.common.camera.CameraTargetInstruction;
-import org.itxtech.synapseapi.multiprotocol.protocol12140.protocol.Packet12140;
 
 import javax.annotation.Nullable;
 
 @ToString
-public class CameraInstructionPacket12190 extends Packet12140 {
+public class CameraInstructionPacket12190 extends Packet12190 {
     public static final int NETWORK_ID = ProtocolInfo.CAMERA_INSTRUCTION_PACKET;
 
     @Nullable
