@@ -8,7 +8,7 @@ extra.set("copyTo", listOf("{server}/plugins", "{login}/plugins", "{server1}/plu
 dependencies {
     api(libs.org.msgpack.msgpack.core)
     compileOnly(libs.netty.all)
-    compileOnly(project(":Nukkit"))
+    compileOnly(project(":nukkit"))
     val authLibPkg = findProject(":AuthLibPackage")
     if (authLibPkg == null) {
         compileOnly(files(File(rootProject.projectDir, "lib/AuthLibPackage.jar")))
