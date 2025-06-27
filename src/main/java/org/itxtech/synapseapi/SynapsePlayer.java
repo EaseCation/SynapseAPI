@@ -529,6 +529,7 @@ public class SynapsePlayer extends Player {
         //this.setNameTagVisible(true);
         this.setDataFlag(DATA_FLAG_CAN_SHOW_NAMETAG, true, false);
         //this.setNameTagAlwaysVisible(true);
+        this.dataProperties.putBoolean(DATA_ALWAYS_SHOW_NAMETAG, true);
         this.setDataFlag(DATA_FLAG_ALWAYS_SHOW_NAMETAG, true, false);
         //this.setCanClimb(true);
         this.setDataFlag(DATA_FLAG_CAN_CLIMB, true, false);
