@@ -37,6 +37,7 @@ import cn.nukkit.math.BlockVector3;
 import cn.nukkit.math.Mth;
 import cn.nukkit.math.Vector3;
 import cn.nukkit.math.Vector3f;
+import cn.nukkit.network.PacketViolationReason;
 import cn.nukkit.network.SourceInterface;
 import cn.nukkit.network.protocol.*;
 import cn.nukkit.network.protocol.types.ContainerIds;
@@ -651,6 +652,11 @@ public class SynapsePlayer113 extends SynapsePlayer112 {
 				break;
 			case ProtocolInfo.SETTINGS_COMMAND_PACKET:
 				SettingsCommandPacket113 settingsCommandPacket = (SettingsCommandPacket113) packet;
+
+				if (!settingsCommandPacket.command.startsWith("/")) {
+					onPacketViolation(PacketViolationReason.IMPOSSIBLE_BEHAVIOR, "cmd_pf_menu");
+					break;
+				}
 
 				int extra;
 				int length = settingsCommandPacket.command.length();
