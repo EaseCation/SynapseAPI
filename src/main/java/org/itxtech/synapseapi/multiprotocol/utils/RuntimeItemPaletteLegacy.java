@@ -83,4 +83,9 @@ public class RuntimeItemPaletteLegacy implements AdvancedRuntimeItemPaletteInter
     @Override
     public void registerItem(Entry entry) {
     }
+
+    @Override
+    public long calculateInternalChecksum() {
+        return 0;
+    }
 }

@@ -6,6 +6,8 @@ import cn.nukkit.nbt.tag.CompoundTag;
 import cn.nukkit.network.protocol.DataPacket;
 import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet;
 import lombok.extern.log4j.Log4j2;
+import org.itxtech.synapseapi.SynapseAPI;
+import org.itxtech.synapseapi.event.server.ItemRegistryChecksumChangedEvent;
 import org.itxtech.synapseapi.multiprotocol.AbstractProtocol;
 import org.itxtech.synapseapi.multiprotocol.utils.item.LegacyItemSerializer;
 
@@ -27,6 +29,9 @@ import java.util.function.IntFunction;
 public final class AdvancedRuntimeItemPalette {
 
     public static final Map<AbstractProtocol, AdvancedRuntimeItemPaletteInterface[]> palettes = new EnumMap<>(AbstractProtocol.class);
+
+    private static long ITEM_REGISTRY_CHECKSUM;
+    private static final AbstractProtocol ITEM_REGISTRY_CHECKSUM_VERSION = AbstractProtocol.FIRST_AVAILABLE_PROTOCOL;
 
     static {
         log.debug("Loading advanced runtime item palette...");
@@ -117,6 +122,8 @@ public final class AdvancedRuntimeItemPalette {
         register(AbstractProtocol.PROTOCOL_121_70, palette12170, null);
         register(AbstractProtocol.PROTOCOL_121_80, palette12180, null);
         register(AbstractProtocol.PROTOCOL_121_90, palette12190, null);
+
+        recalculateItemRegistryChecksum();
     }
 
     private static void register(AbstractProtocol protocol, RuntimeItemPalette palette, RuntimeItemPalette paletteNetEase) {
@@ -172,6 +179,24 @@ public final class AdvancedRuntimeItemPalette {
                 palette.buildNetworkCache();
             }
         }
+
+        recalculateItemRegistryChecksum();
+    }
+
+    private static void recalculateItemRegistryChecksum() {
+        long newChecksum = getPalette(ITEM_REGISTRY_CHECKSUM_VERSION, true).calculateInternalChecksum();
+        if (ITEM_REGISTRY_CHECKSUM == newChecksum) {
+            return;
+        }
+        ITEM_REGISTRY_CHECKSUM = newChecksum;
+
+        new ItemRegistryChecksumChangedEvent(newChecksum).call();
+
+        SynapseAPI.getInstance().getLogger().debug("ItemRegistry checksum: {}", newChecksum);
+    }
+
+    public static long getItemRegistryChecksum() {
+        return ITEM_REGISTRY_CHECKSUM;
     }
 
     private static AdvancedRuntimeItemPaletteInterface getPalette(AbstractProtocol protocol, boolean netease) {

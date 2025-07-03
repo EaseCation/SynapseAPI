@@ -2253,7 +2253,7 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
                 CommandRequestPacket11960 commandRequestPacket = (CommandRequestPacket11960) packet;
 
                 if (!commandRequestPacket.command.startsWith("/")) {
-                    onPacketViolation(PacketViolationReason.IMPOSSIBLE_BEHAVIOR, "cmd_pf_chat");
+                    onPacketViolation(PacketViolationReason.IMPOSSIBLE_BEHAVIOR, "cmd_pf_chat", commandRequestPacket.command);
                     break;
                 }
 

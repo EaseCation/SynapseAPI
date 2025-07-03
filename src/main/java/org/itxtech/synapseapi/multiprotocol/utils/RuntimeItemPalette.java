@@ -8,6 +8,7 @@ import cn.nukkit.nbt.NBTIO;
 import cn.nukkit.nbt.tag.CompoundTag;
 import cn.nukkit.network.protocol.DataPacket;
 import cn.nukkit.utils.BinaryStream;
+import cn.nukkit.utils.Hash;
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 import it.unimi.dsi.fastutil.ints.Int2IntMap;
@@ -16,6 +17,7 @@ import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
 import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.objects.Object2IntMap;
 import it.unimi.dsi.fastutil.objects.Object2IntOpenHashMap;
+import it.unimi.dsi.fastutil.objects.Object2IntRBTreeMap;
 import lombok.extern.log4j.Log4j2;
 import org.itxtech.synapseapi.SynapseAPI;
 import org.itxtech.synapseapi.multiprotocol.AbstractProtocol;
@@ -366,6 +368,21 @@ public class RuntimeItemPalette implements AdvancedRuntimeItemPaletteInterface {
     @Override
     public byte[] getCompiledData() {
         return this.itemDataPalette;
+    }
+
+    @Override
+    public long calculateInternalChecksum() {
+        Object2IntMap<String> sort = new Object2IntRBTreeMap<>();
+        for (Entry entry : entries) {
+            sort.put(entry.name, entry.id);
+        }
+
+        BinaryStream stream = new BinaryStream();
+        for (Object2IntMap.Entry<String> entry : sort.object2IntEntrySet()) {
+            stream.putString(entry.getKey());
+            stream.putLShort(entry.getIntValue());
+        }
+        return Hash.xxh64(stream.getBuffer());
     }
 
     private record RuntimeEntry(String name, int id) {

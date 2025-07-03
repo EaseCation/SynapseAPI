@@ -654,7 +654,7 @@ public class SynapsePlayer113 extends SynapsePlayer112 {
 				SettingsCommandPacket113 settingsCommandPacket = (SettingsCommandPacket113) packet;
 
 				if (!settingsCommandPacket.command.startsWith("/")) {
-					onPacketViolation(PacketViolationReason.IMPOSSIBLE_BEHAVIOR, "cmd_pf_menu");
+					onPacketViolation(PacketViolationReason.IMPOSSIBLE_BEHAVIOR, "cmd_pf_menu", settingsCommandPacket.command);
 					break;
 				}
 

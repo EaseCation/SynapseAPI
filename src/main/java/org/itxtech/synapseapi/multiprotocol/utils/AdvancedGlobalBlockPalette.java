@@ -29,7 +29,7 @@ public final class AdvancedGlobalBlockPalette {
     public static final Map<StaticVersion, GlobalBlockPaletteInterface> staticPalettes = new EnumMap<>(StaticVersion.class);
 
     private static long BLOCK_REGISTRY_CHECKSUM;
-    private static final AbstractProtocol BLOCK_REGISTRY_CHECKSUM_VERSION = AbstractProtocol.PROTOCOL_120_10;
+    private static final AbstractProtocol BLOCK_REGISTRY_CHECKSUM_VERSION = AbstractProtocol.FIRST_AVAILABLE_PROTOCOL;
 
     static {
         log.debug("Loading advanced global block palette...");

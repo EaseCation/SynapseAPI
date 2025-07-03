@@ -36,4 +36,6 @@ public interface AdvancedRuntimeItemPaletteInterface {
     DataPacket createItemRegistryPacket(Map<String, CompoundTag> componentDefinitions);
 
     void registerItem(Entry entry);
+
+    long calculateInternalChecksum();
 }

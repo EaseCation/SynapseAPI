@@ -59,6 +59,7 @@ import org.itxtech.synapseapi.multiprotocol.protocol14.protocol.PlayerActionPack
 import org.itxtech.synapseapi.multiprotocol.protocol14.protocol.TextPacket14;
 import org.itxtech.synapseapi.multiprotocol.protocol17.protocol.TextPacket17;
 import org.itxtech.synapseapi.multiprotocol.utils.AdvancedGlobalBlockPalette;
+import org.itxtech.synapseapi.multiprotocol.utils.AdvancedRuntimeItemPalette;
 import org.itxtech.synapseapi.multiprotocol.utils.CraftingPacketManager;
 import org.itxtech.synapseapi.multiprotocol.utils.CreativeItemsPalette;
 import org.itxtech.synapseapi.network.protocol.mod.ServerSubPacketHandler;
@@ -211,6 +212,10 @@ public class SynapsePlayer extends Player {
                     if (blocksChecksum != null) {
                         checkBlockRegistryChecksum(blocksChecksum.getAsLong());
                     }
+                    JsonElement itemsChecksum = cachedExtra.get("items_checksum");
+                    if (itemsChecksum != null) {
+                        checkItemRegistryChecksum(itemsChecksum.getAsLong());
+                    }
                 }
             } catch (Exception e) {
                 MainLogger.getLogger().logException(e);
@@ -226,6 +231,16 @@ public class SynapsePlayer extends Player {
         }
 
         SynapseAPI.getInstance().getLogger().info("玩家 {} 触发原生跨服由于先前的方块注册表 {} 与本服 {} 不同", getName(), previousChecksum, checksum);
+        rejoinGame("disconnectionScreen.blockMismatch");
+    }
+
+    protected void checkItemRegistryChecksum(long previousChecksum) {
+        long checksum = AdvancedRuntimeItemPalette.getItemRegistryChecksum();
+        if (checksum == previousChecksum) {
+            return;
+        }
+
+        SynapseAPI.getInstance().getLogger().info("玩家 {} 触发原生跨服由于先前的物品注册表 {} 与本服 {} 不同", getName(), previousChecksum, checksum);
         rejoinGame("disconnectionScreen.blockMismatch");
     }
 
@@ -725,6 +740,7 @@ public class SynapsePlayer extends Player {
                     getResourcePacks().keySet().forEach(behPacks::add);
                     pk.extra.add("beh_packs", behPacks);
                     pk.extra.addProperty("blocks_checksum", AdvancedGlobalBlockPalette.getBlockRegistryChecksum());
+                    pk.extra.addProperty("items_checksum", AdvancedRuntimeItemPalette.getItemRegistryChecksum());
                     getSynapseEntry().sendDataPacket(pk);
                 }
             }, 1);
