@@ -244,6 +244,7 @@ public class DataFlagTranslator {
 		versions[AbstractProtocol.PROTOCOL_121_70.ordinal()] = 123;
 		versions[AbstractProtocol.PROTOCOL_121_80.ordinal()] = 124;
 		versions[AbstractProtocol.PROTOCOL_121_90.ordinal()] = 125;
+		versions[AbstractProtocol.PROTOCOL_121_93.ordinal()] = 125;
 		return versions;
 	});
 

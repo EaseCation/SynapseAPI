@@ -476,7 +476,7 @@
     },
     {
         "name": "minecraft:banner_pattern",
-        "id": 813,
+        "id": 814,
         "version": 2,
         "oldId": 434
     },
@@ -983,7 +983,7 @@
     },
     {
         "name": "minecraft:boat",
-        "id": 811,
+        "id": 812,
         "version": 2,
         "oldId": 333
     },
@@ -1526,7 +1526,7 @@
     },
     {
         "name": "minecraft:chemistry_table",
-        "id": 805,
+        "id": 806,
         "version": 2
     },
     {
@@ -1940,7 +1940,7 @@
     },
     {
         "name": "minecraft:colored_torch_bp",
-        "id": 809,
+        "id": 810,
         "version": 2
     },
     {
@@ -1966,7 +1966,7 @@
     },
     {
         "name": "minecraft:colored_torch_rg",
-        "id": 808,
+        "id": 809,
         "version": 2
     },
     {
@@ -3241,7 +3241,7 @@
     },
     {
         "name": "minecraft:dye",
-        "id": 812,
+        "id": 813,
         "version": 2,
         "oldId": 351
     },
@@ -4047,7 +4047,7 @@
     },
     {
         "name": "minecraft:end_crystal",
-        "id": 815,
+        "id": 816,
         "version": 2,
         "oldId": 426
     },
@@ -4499,7 +4499,7 @@
     },
     {
         "name": "minecraft:glow_berries",
-        "id": 816,
+        "id": 817,
         "version": 0
     },
     {
@@ -5153,12 +5153,12 @@
     },
     {
         "name": "minecraft:hard_stained_glass",
-        "id": 806,
+        "id": 807,
         "version": 2
     },
     {
         "name": "minecraft:hard_stained_glass_pane",
-        "id": 807,
+        "id": 808,
         "version": 2
     },
     {
@@ -5971,7 +5971,7 @@
     },
     {
         "name": "minecraft:light_block",
-        "id": 810,
+        "id": 811,
         "version": 2
     },
     {
@@ -7007,6 +7007,13 @@
         "version": 2,
         "component": true,
         "oldId": 504
+    },
+    {
+        "name": "minecraft:music_disc_lava_chicken",
+        "id": 805,
+        "version": 2,
+        "component": true,
+        "oldId": 787
     },
     {
         "name": "minecraft:music_disc_mall",
@@ -9549,7 +9556,7 @@
     },
     {
         "name": "minecraft:spawn_egg",
-        "id": 814,
+        "id": 815,
         "version": 2,
         "oldId": 383
     },
