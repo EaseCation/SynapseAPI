@@ -516,6 +516,11 @@ public class SynapsePlayer extends Player {
             ChunkRadiusUpdatedPacket dp = new ChunkRadiusUpdatedPacket();
             dp.radius = viewDistance;
             dataPacket(dp);
+
+            unlockInput();
+//            clearCameraInstruction();
+            showHud();
+            clearAimAssist();
         }
         this.sendFogStack();
 
