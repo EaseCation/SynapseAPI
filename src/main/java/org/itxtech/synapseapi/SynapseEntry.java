@@ -69,7 +69,7 @@ public class SynapseEntry {
         Arrays.fill(PACKET_COUNT_LIMIT, 10);
         PACKET_COUNT_LIMIT[ProtocolInfo.INVENTORY_TRANSACTION_PACKET] = 64 * 9 + 64 * 9 + 64; // extreme case (shift-click crafting): 64x9 (inputs) + 64x9 (output on crafting grid) + 64 (outputs to main slot)
         PACKET_COUNT_LIMIT[ProtocolInfo.CRAFTING_EVENT_PACKET] = 64;
-        PACKET_COUNT_LIMIT[ProtocolInfo.PACKET_PY_RPC] = 50;
+        PACKET_COUNT_LIMIT[ProtocolInfo.PACKET_PY_RPC] = 50; //TODO: batch rpc
         PACKET_COUNT_LIMIT[ProtocolInfo.SUB_CHUNK_REQUEST_PACKET] = 15000; // 1.18.0 facepalm
         PACKET_COUNT_LIMIT[ProtocolInfo.PLAYER_ACTION_PACKET] = 50;
         PACKET_COUNT_LIMIT[ProtocolInfo.ANIMATE_PACKET] = 50;
@@ -82,6 +82,7 @@ public class SynapseEntry {
         PACKET_COUNT_LIMIT[ProtocolInfo.SETTINGS_COMMAND_PACKET] = 5;
         PACKET_COUNT_LIMIT[ProtocolInfo.NETWORK_STACK_LATENCY_PACKET] = 50;
         PACKET_COUNT_LIMIT[ProtocolInfo.SET_ACTOR_LINK_PACKET] = 50;
+        PACKET_COUNT_LIMIT[ProtocolInfo.MAP_INFO_REQUEST_PACKET] = 64;
     }
 
     private final SynapseAPI synapse;
