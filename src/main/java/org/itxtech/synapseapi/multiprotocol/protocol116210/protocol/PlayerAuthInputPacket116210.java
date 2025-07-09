@@ -94,6 +94,10 @@ public class PlayerAuthInputPacket116210 extends Packet116210 implements Invento
     public float deltaX;
     public float deltaY;
     public float deltaZ;
+    /**
+     * NetEase only
+     */
+    public boolean cameraDeparted;
 
     public boolean hasNetworkIds;
     public int legacyRequestId;
@@ -142,6 +146,10 @@ public class PlayerAuthInputPacket116210 extends Packet116210 implements Invento
         this.deltaX = delta.x;
         this.deltaY = delta.y;
         this.deltaZ = delta.z;
+
+        if (this.neteaseMode) {
+            this.cameraDeparted = this.getBoolean();
+        }
 
         if ((this.inputFlags & (1L << FLAG_PERFORM_ITEM_INTERACTION)) != 0) {
             this.legacyRequestId = this.getVarInt();
@@ -379,6 +387,11 @@ public class PlayerAuthInputPacket116210 extends Packet116210 implements Invento
     @Override
     public float getDeltaZ() {
         return this.deltaZ;
+    }
+
+    @Override
+    public boolean isCameraDeparted() {
+        return this.cameraDeparted;
     }
 
     @Override

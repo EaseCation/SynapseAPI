@@ -10,6 +10,9 @@ import cn.nukkit.network.protocol.ProtocolInfo;
 import cn.nukkit.network.protocol.types.InventoryTransactionPacketInterface;
 import cn.nukkit.network.protocol.types.ItemStackRequest;
 import cn.nukkit.network.protocol.types.NetworkInventoryAction;
+import io.netty.buffer.ByteBuf;
+import io.netty.buffer.ByteBufUtil;
+import io.netty.buffer.Unpooled;
 import lombok.ToString;
 import lombok.extern.log4j.Log4j2;
 import org.apache.commons.lang3.mutable.MutableInt;
@@ -21,6 +24,8 @@ import org.itxtech.synapseapi.multiprotocol.protocol116.protocol.PlayerAuthInput
 
 import javax.annotation.Nullable;
 import java.util.ArrayDeque;
+
+import static org.itxtech.synapseapi.SynapseSharedConstants.*;
 
 @Log4j2
 @ToString
@@ -136,6 +141,10 @@ public class PlayerAuthInputPacket116220 extends Packet116220 implements Invento
     public float deltaY;
     public float deltaZ;
     /**
+     * NetEase only
+     */
+    public boolean cameraDeparted;
+    /**
      * @since 1.20.70
      */
     public float vehiclePitch;
@@ -187,6 +196,8 @@ public class PlayerAuthInputPacket116220 extends Packet116220 implements Invento
     public boolean isEnchantingPart = false;
     public boolean isRepairItemPart = false;
 
+    private boolean neteaseFlags1212;
+
     @Override
     public int pid() {
         return NETWORK_ID;
@@ -194,7 +205,19 @@ public class PlayerAuthInputPacket116220 extends Packet116220 implements Invento
 
     @Override
     public void decode() {
+        if (MAC_DEBUG) {
+            ByteBuf buf = Unpooled.wrappedBuffer(getBuffer());
+            try {
+                log.info(ByteBufUtil.prettyHexDump(buf));
+            } finally {
+                buf.release();
+            }
+        }
+
         AbstractProtocol protocol = (AbstractProtocol) helper.getProtocol();
+        if (neteaseMode && protocol.getProtocolStart() >= AbstractProtocol.PROTOCOL_121_2.getProtocolStart()) {
+            neteaseFlags1212 = true;
+        }
 
         this.pitch = this.getLFloat();
         this.yaw = this.getLFloat();
@@ -205,8 +228,11 @@ public class PlayerAuthInputPacket116220 extends Packet116220 implements Invento
         this.moveVecX = this.getLFloat();
         this.moveVecZ = this.getLFloat();
         this.headYaw = this.getLFloat();
-        if (false && protocol.getProtocolStart() >= AbstractProtocol.PROTOCOL_121_50.getProtocolStart()) {
+        if (protocol.getProtocolStart() >= AbstractProtocol.PROTOCOL_121_50.getProtocolStart()) {
             int flagCount = PlayerAuthInputFlags.COUNT[protocol.ordinal()];
+            if (neteaseMode) {
+                ++flagCount;
+            }
 /*
             inputFlags = getBitSet(flagCount);
 */
@@ -260,8 +286,7 @@ public class PlayerAuthInputPacket116220 extends Packet116220 implements Invento
         this.deltaZ = delta.z;
 
         if (this.neteaseMode) {
-            // wtf
-            this.getByte(); // 0
+            this.cameraDeparted = this.getBoolean();
         }
 
         if (hasFlag(PlayerAuthInputFlags.PERFORM_ITEM_INTERACTION)) {
@@ -366,7 +391,12 @@ public class PlayerAuthInputPacket116220 extends Packet116220 implements Invento
                 vehicleYaw = getLFloat();
             }
 
-            predictedVehicleEntityUniqueId = getVarLong();
+            predictedVehicleEntityUniqueId = getEntityUniqueId();
+        }
+
+        if (this.neteaseMode && protocol.getProtocolStart() >= AbstractProtocol.PROTOCOL_121_2.getProtocolStart()) {
+            // wtf?
+            this.getBoolean(); // 0
         }
 
         if (protocol.getProtocolStart() >= AbstractProtocol.PROTOCOL_119_70.getProtocolStart()) {
@@ -563,6 +593,11 @@ public class PlayerAuthInputPacket116220 extends Packet116220 implements Invento
     }
 
     @Override
+    public boolean isCameraDeparted() {
+        return cameraDeparted;
+    }
+
+    @Override
     public int getLegacyRequestId() {
         return legacyRequestId;
     }
@@ -640,5 +675,10 @@ public class PlayerAuthInputPacket116220 extends Packet116220 implements Invento
     @Override
     public float getRawMoveVecZ() {
         return rawMoveVecZ;
+    }
+
+    @Override
+    public boolean isNeteaseFlags1212() {
+        return neteaseFlags1212;
     }
 }

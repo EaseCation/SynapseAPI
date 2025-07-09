@@ -16,22 +16,18 @@ import org.itxtech.synapseapi.multiprotocol.protocol12160.protocol.CreativeConte
 import org.itxtech.synapseapi.multiprotocol.protocol12160.protocol.CreativeContentPacket12160.Entry;
 import org.itxtech.synapseapi.multiprotocol.protocol12160.protocol.CreativeContentPacket12160.Group;
 import org.itxtech.synapseapi.multiprotocol.utils.item.CreativeInventoryGrouped;
-import org.itxtech.synapseapi.multiprotocol.utils.item.CreativeInventoryLegacy;
 import org.itxtech.synapseapi.multiprotocol.utils.item.CreativeInventoryNew;
 
 import javax.annotation.Nullable;
 import java.util.*;
-import java.util.stream.Stream;
 import java.util.zip.Deflater;
 
-import static cn.nukkit.GameVersion.*;
 import static org.itxtech.synapseapi.SynapseSharedConstants.*;
 
 @Log4j2
 public class CreativeItemsPalette {
 
     private static final Map<AbstractProtocol, List<Entry>[]> palettes = new EnumMap<>(AbstractProtocol.class);
-    private static final List<Entry> customItems = new ObjectArrayList<>();
 
     private static final Map<AbstractProtocol, BatchPacket[]> PACKETS = new EnumMap<>(AbstractProtocol.class);
     private static final BatchPacket[] NULL_PACKET = new BatchPacket[2];
@@ -75,7 +71,7 @@ public class CreativeItemsPalette {
             register(AbstractProtocol.PROTOCOL_118_30_NE, CreativeInventoryLegacy.getItems(), null);
         }
 */
-        if (!V1_19_0.isAvailable()) {
+//        if (!V1_19_0.isAvailable()) {
 /*
             register(AbstractProtocol.PROTOCOL_119, CreativeInventoryLegacy.getItems(), null);
             register(AbstractProtocol.PROTOCOL_119_10, CreativeInventoryLegacy.getItems(), null);
@@ -89,7 +85,7 @@ public class CreativeItemsPalette {
             register(AbstractProtocol.PROTOCOL_119_70, CreativeInventoryLegacy.getItems(), null);
             register(AbstractProtocol.PROTOCOL_119_80, CreativeInventoryLegacy.getItems(), null);
             register(AbstractProtocol.PROTOCOL_120, CreativeInventoryLegacy.getItems(), null);
-*/
+*//*
             register(AbstractProtocol.PROTOCOL_120_10, CreativeInventoryLegacy.getItems(), null);
             register(AbstractProtocol.PROTOCOL_120_30, CreativeInventoryLegacy.getItems(), null);
             register(AbstractProtocol.PROTOCOL_120_40, CreativeInventoryLegacy.getItems(), null);
@@ -108,7 +104,7 @@ public class CreativeItemsPalette {
             register(AbstractProtocol.PROTOCOL_121_80, CreativeInventoryLegacy.getItems(), null);
             register(AbstractProtocol.PROTOCOL_121_90, CreativeInventoryLegacy.getItems(), null);
             register(AbstractProtocol.PROTOCOL_121_93, CreativeInventoryLegacy.getItems(), null);
-        } else {
+        } else*/{
 /*
             register(AbstractProtocol.PROTOCOL_119, CreativeInventoryNew.getItems(), null);
             register(AbstractProtocol.PROTOCOL_119_10, CreativeInventoryNew.getItems(), null);
@@ -168,7 +164,7 @@ public class CreativeItemsPalette {
     }
 
     public static void registerCustomItem(Item item) {
-        customItems.add(new Entry(item, item.isBlockItem() ? CreativeInventoryGrouped.CUSTOM_BLOCK_GROUP.leftInt() : CreativeInventoryGrouped.CUSTOM_ITEM_GROUP.leftInt()));
+        CreativeInventoryNew.getItems().add(new Entry(item, item.isBlockItem() ? CreativeInventoryGrouped.CUSTOM_BLOCK_GROUP.leftInt() : CreativeInventoryGrouped.CUSTOM_ITEM_GROUP.leftInt()));
     }
 
     private static List<Entry> load(String file) {
@@ -207,18 +203,19 @@ public class CreativeItemsPalette {
             return Collections.emptyList();
         }
         if (netease && lists.length > 1) {
-            if (customItems.isEmpty()) {
-                return lists[1];
-            } else {
-                return Stream.concat(lists[1].stream(), customItems.stream()).toList();
-            }
+            return lists[1];
         } else {
-            if (customItems.isEmpty()) {
-                return lists[0];
-            } else {
-                return Stream.concat(lists[0].stream(), customItems.stream()).toList();
-            }
+            return lists[0];
         }
+    }
+
+    @Nullable
+    public static Item getItem(int index, AbstractProtocol protocol, boolean netease) {
+        List<Entry> items = getCreativeEntries(protocol, netease);
+        if (index < 0 || index >= items.size()) {
+            return null;
+        }
+        return items.get(index).item.clone();
     }
 
     public static void cachePackets() {

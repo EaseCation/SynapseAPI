@@ -36,8 +36,12 @@ public class PlayerEnchantOptionsPacket116 extends Packet116 {
             putEnchantList(option.heldActivatedEnchantments);
             putEnchantList(option.selfActivatedEnchantments);
 
+            if (neteaseMode) {
+                putEnchantList(Enchant.EMPTY_ENCHANTS); // neteaseEnchantments
+            }
+
             putString(option.name);
-            putVarInt(option.optionId);
+            putUnsignedVarInt(option.optionId);
         }
     }
 
@@ -46,6 +50,10 @@ public class PlayerEnchantOptionsPacket116 extends Packet116 {
         for (Enchant enchant : enchants) {
             putByte((byte) enchant.id);
             putByte((byte) enchant.level);
+
+            if (neteaseMode) {
+                putString(""); // modEnchantIdentifier
+            }
         }
     }
 

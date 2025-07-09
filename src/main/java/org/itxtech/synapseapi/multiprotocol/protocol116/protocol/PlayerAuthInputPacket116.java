@@ -91,6 +91,10 @@ public class PlayerAuthInputPacket116 extends Packet116 implements IPlayerAuthIn
     public float deltaX;
     public float deltaY;
     public float deltaZ;
+    /**
+     * NetEase only
+     */
+    public boolean cameraDeparted;
 
     public boolean hasNetworkIds;
     public int legacyRequestId;
@@ -108,9 +112,6 @@ public class PlayerAuthInputPacket116 extends Packet116 implements IPlayerAuthIn
     public boolean isCraftingPart = false;
     public boolean isEnchantingPart = false;
     public boolean isRepairItemPart = false;
-
-    // facepalm
-    public boolean netease;
 
     @Override
     public int pid() {
@@ -147,10 +148,7 @@ public class PlayerAuthInputPacket116 extends Packet116 implements IPlayerAuthIn
         if (this.feof() || ((AbstractProtocol) this.helper.getProtocol()).getProtocolStart() != AbstractProtocol.PROTOCOL_116_200.getProtocolStart()) {
             return;
         }
-        this.netease = true;
-
-        // wtf
-        this.getByte(); // 0
+        this.cameraDeparted = this.getBoolean();
 
         if ((this.inputFlags & (1L << PlayerAuthInputPacket116210.FLAG_PERFORM_ITEM_INTERACTION)) != 0) {
             this.legacyRequestId = this.getVarInt();
@@ -364,6 +362,11 @@ public class PlayerAuthInputPacket116 extends Packet116 implements IPlayerAuthIn
     @Override
     public float getDeltaZ() {
         return this.deltaZ;
+    }
+
+    @Override
+    public boolean isCameraDeparted() {
+        return this.cameraDeparted;
     }
 
     @Override

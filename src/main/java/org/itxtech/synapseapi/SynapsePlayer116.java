@@ -1514,16 +1514,18 @@ public class SynapsePlayer116 extends SynapsePlayer113 {
 						if (riding instanceof EntityBoat) {
 							EntityBoat boat = (EntityBoat) rideable;
 
+							boolean paddleLeft = playerAuthInputPacket.hasFlag(PlayerAuthInputFlags.PADDLE_LEFT);
+							boolean paddleRight = playerAuthInputPacket.hasFlag(PlayerAuthInputFlags.PADDLE_RIGHT);
 							float left = 0;
 							float right = 0;
 							if (playerAuthInputPacket.hasFlag(PlayerAuthInputFlags.UP)) {
 								left = 0.04f;
 								right = 0.04f;
-								if ((inputFlags & ((1L << PlayerAuthInputFlags.PADDLE_LEFT) | 1L << PlayerAuthInputFlags.PADDLE_RIGHT)) != ((1L << PlayerAuthInputFlags.PADDLE_LEFT) | 1L << PlayerAuthInputFlags.PADDLE_RIGHT)) {
-									if (playerAuthInputPacket.hasFlag(PlayerAuthInputFlags.PADDLE_LEFT)) {
+								if (!paddleLeft || !paddleRight) {
+									if (paddleLeft) {
 										left = 0.05f;
 										right = 0.02f;
-									} else if (playerAuthInputPacket.hasFlag(PlayerAuthInputFlags.PADDLE_RIGHT)) {
+									} else if (paddleRight) {
 										left = 0.02f;
 										right = 0.05f;
 									}
@@ -1531,19 +1533,19 @@ public class SynapsePlayer116 extends SynapsePlayer113 {
 							} else if (playerAuthInputPacket.hasFlag(PlayerAuthInputFlags.DOWN)) {
 								left = -0.004f;
 								right = -0.004f;
-								if ((inputFlags & ((1L << PlayerAuthInputFlags.PADDLE_LEFT) | 1L << PlayerAuthInputFlags.PADDLE_RIGHT)) != ((1L << PlayerAuthInputFlags.PADDLE_LEFT) | 1L << PlayerAuthInputFlags.PADDLE_RIGHT)) {
-									if (playerAuthInputPacket.hasFlag(PlayerAuthInputFlags.PADDLE_LEFT)) {
+								if (!paddleLeft || !paddleRight) {
+									if (paddleLeft) {
 										left = -0.005f;
 										right = -0.002f;
-									} else if (playerAuthInputPacket.hasFlag(PlayerAuthInputFlags.PADDLE_RIGHT)) {
+									} else if (paddleRight) {
 										left = -0.002f;
 										right = -0.005f;
 									}
 								}
-							} else if ((inputFlags & ((1L << PlayerAuthInputFlags.PADDLE_LEFT) | 1L << PlayerAuthInputFlags.PADDLE_RIGHT)) != ((1L << PlayerAuthInputFlags.PADDLE_LEFT) | 1L << PlayerAuthInputFlags.PADDLE_RIGHT)) {
-								if (playerAuthInputPacket.hasFlag(PlayerAuthInputFlags.PADDLE_LEFT)) {
+							} else if (!paddleLeft || !paddleRight) {
+								if (paddleLeft) {
 									left = 0.04f;
-								} else if (playerAuthInputPacket.hasFlag(PlayerAuthInputFlags.PADDLE_RIGHT)) {
+								} else if (paddleRight) {
 									right = 0.04f;
 								}
 							}

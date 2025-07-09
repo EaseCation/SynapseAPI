@@ -4243,6 +4243,10 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
 
     @Override
     protected void tryDisruptIllegalClientBeforeStartGame() {
+        if (SERVER_AUTHORITATIVE_INVENTORY) {
+            return;
+        }
+
         InventorySlotPacket packet = new InventorySlotPacket();
         packet.inventoryId = ContainerIds.ARMOR;
         packet.slot = ArmorInventory.SLOT_FEET;

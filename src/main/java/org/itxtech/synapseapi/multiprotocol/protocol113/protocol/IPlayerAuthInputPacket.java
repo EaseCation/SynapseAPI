@@ -5,6 +5,7 @@ import cn.nukkit.network.protocol.types.InventoryTransactionPacketInterface;
 import cn.nukkit.network.protocol.types.ItemStackRequest;
 import cn.nukkit.network.protocol.types.NetworkInventoryAction;
 import lombok.ToString;
+import org.itxtech.synapseapi.multiprotocol.common.PlayerAuthInputFlags;
 import org.itxtech.synapseapi.multiprotocol.common.inventory.LegacySetItemSlotData;
 
 import javax.annotation.Nullable;
@@ -32,6 +33,8 @@ public interface IPlayerAuthInputPacket extends InventoryTransactionPacketInterf
     float getDeltaX();
     float getDeltaY();
     float getDeltaZ();
+
+    boolean isCameraDeparted(); //netease
 
     int getLegacyRequestId();
 
@@ -147,7 +150,14 @@ public interface IPlayerAuthInputPacket extends InventoryTransactionPacketInterf
     }
 
     default boolean hasFlag(int flagId) {
+        if (isNeteaseFlags1212() && flagId >= PlayerAuthInputFlags.IN_CLIENT_PREDICTED_IN_VEHICLE) {
+            ++flagId;
+        }
         return ((flagId >= 64 ? getInputFlags2() : getInputFlags()) & (1L << flagId)) != 0;
+    }
+
+    default boolean isNeteaseFlags1212() {
+        return false;
     }
 
     @ToString
