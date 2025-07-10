@@ -782,7 +782,10 @@ public class SynapsePlayer116 extends SynapsePlayer113 {
 						|| !validateFloat(playerAuthInputPacket.getPitch()) || !validateFloat(playerAuthInputPacket.getYaw()) || !validateFloat(playerAuthInputPacket.getHeadYaw())
 						|| !validateFloat(playerAuthInputPacket.getDeltaX()) || !validateFloat(playerAuthInputPacket.getDeltaY()) || !validateFloat(playerAuthInputPacket.getDeltaZ())
 						|| !validateFloat(playerAuthInputPacket.getVrGazeDirectionX()) || !validateFloat(playerAuthInputPacket.getVrGazeDirectionY()) || !validateFloat(playerAuthInputPacket.getVrGazeDirectionZ())
-						|| !validateFloat(playerAuthInputPacket.getAnalogMoveVecX()) || !validateFloat(playerAuthInputPacket.getAnalogMoveVecZ())) {
+						/*|| !validateFloat(playerAuthInputPacket.getAnalogMoveVecX()) || !validateFloat(playerAuthInputPacket.getAnalogMoveVecZ())*/
+						|| !validateFloat(playerAuthInputPacket.getCameraOrientationX()) || !validateFloat(playerAuthInputPacket.getCameraOrientationY()) || !validateFloat(playerAuthInputPacket.getCameraOrientationZ())
+						|| !validateFloat(playerAuthInputPacket.getInteractRotationX()) || !validateFloat(playerAuthInputPacket.getInteractRotationY())
+						|| !validateFloat(playerAuthInputPacket.getRawMoveVecX()) || !validateFloat(playerAuthInputPacket.getRawMoveVecZ())) {
 					this.getServer().getLogger().warning("Invalid movement received: " + this.getName());
 					this.close("", "Invalid movement");
 					return;
