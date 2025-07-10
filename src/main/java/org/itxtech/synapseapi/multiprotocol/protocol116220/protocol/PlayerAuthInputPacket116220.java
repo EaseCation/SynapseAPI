@@ -394,11 +394,6 @@ public class PlayerAuthInputPacket116220 extends Packet116220 implements Invento
             predictedVehicleEntityUniqueId = getEntityUniqueId();
         }
 
-        if (this.neteaseMode && protocol.getProtocolStart() >= AbstractProtocol.PROTOCOL_121_2.getProtocolStart()) {
-            // wtf?
-            this.getBoolean(); // 0
-        }
-
         if (protocol.getProtocolStart() >= AbstractProtocol.PROTOCOL_119_70.getProtocolStart()) {
             analogMoveVecX = getLFloat();
             analogMoveVecZ = getLFloat();
