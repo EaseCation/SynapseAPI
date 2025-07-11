@@ -306,7 +306,7 @@ public class SynapsePlayer extends Player {
             }
         }
 
-        CompoundTag nbt = this.server.getOfflinePlayerData(this.username);
+        CompoundTag nbt = offlinePlayerData != null ? offlinePlayerData : this.server.getOfflinePlayerData(this.username);
         if (nbt == null) {
             this.close("", "disconnectionScreen.worldCorruption");
 
