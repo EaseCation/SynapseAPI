@@ -4941,7 +4941,9 @@
     {
         "name": "minecraft:happy_ghast_spawn_egg",
         "id": 751,
-        "version": 2
+        "version": 2,
+        "oldId": 383,
+        "oldData": 147
     },
     {
         "name": "minecraft:hard_black_stained_glass",

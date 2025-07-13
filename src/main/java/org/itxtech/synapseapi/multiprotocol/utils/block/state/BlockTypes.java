@@ -2724,4 +2724,40 @@ public class BlockTypes {
             return REGISTRY;
         }
     }
+
+    public static class V1_21_100 extends V1_21_80 {
+        private static final BlockRegistry REGISTRY = new BlockRegistry((1 << 24) | (21 << 16) | (60 << 8) | 33, V1_21_80.REGISTRY);
+
+        public static final BlockLegacy COPPER_CHEST = REGISTRY.registerBlock("minecraft:copper_chest", BlockID.COPPER_CHEST)
+                .addState(BlockStates.MINECRAFT_CARDINAL_DIRECTION);
+
+        public static final BlockLegacy EXPOSED_COPPER_CHEST = REGISTRY.registerBlock("minecraft:exposed_copper_chest", BlockID.EXPOSED_COPPER_CHEST)
+                .addState(BlockStates.MINECRAFT_CARDINAL_DIRECTION);
+
+        public static final BlockLegacy OXIDIZED_COPPER_CHEST = REGISTRY.registerBlock("minecraft:oxidized_copper_chest", BlockID.OXIDIZED_COPPER_CHEST)
+                .addState(BlockStates.MINECRAFT_CARDINAL_DIRECTION);
+
+        public static final BlockLegacy WAXED_COPPER_CHEST = REGISTRY.registerBlock("minecraft:waxed_copper_chest", BlockID.WAXED_COPPER_CHEST)
+                .addState(BlockStates.MINECRAFT_CARDINAL_DIRECTION);
+
+        public static final BlockLegacy WAXED_EXPOSED_COPPER_CHEST = REGISTRY.registerBlock("minecraft:waxed_exposed_copper_chest", BlockID.WAXED_EXPOSED_COPPER_CHEST)
+                .addState(BlockStates.MINECRAFT_CARDINAL_DIRECTION);
+
+        public static final BlockLegacy WAXED_OXIDIZED_COPPER_CHEST = REGISTRY.registerBlock("minecraft:waxed_oxidized_copper_chest", BlockID.WAXED_OXIDIZED_COPPER_CHEST)
+                .addState(BlockStates.MINECRAFT_CARDINAL_DIRECTION);
+
+        public static final BlockLegacy WAXED_WEATHERED_COPPER_CHEST = REGISTRY.registerBlock("minecraft:waxed_weathered_copper_chest", BlockID.WAXED_WEATHERED_COPPER_CHEST)
+                .addState(BlockStates.MINECRAFT_CARDINAL_DIRECTION);
+
+        public static final BlockLegacy WEATHERED_COPPER_CHEST = REGISTRY.registerBlock("minecraft:weathered_copper_chest", BlockID.WEATHERED_COPPER_CHEST)
+                .addState(BlockStates.MINECRAFT_CARDINAL_DIRECTION);
+
+        static {
+            REGISTRY.createBlockPermutations();
+        }
+
+        public static BlockRegistry getBlockRegistry() {
+            return REGISTRY;
+        }
+    }
 }

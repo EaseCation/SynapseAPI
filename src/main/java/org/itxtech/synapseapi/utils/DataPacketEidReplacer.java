@@ -8,6 +8,7 @@ import cn.nukkit.network.protocol.*;
 import cn.nukkit.network.protocol.PlayerListPacket.Entry;
 import org.itxtech.synapseapi.multiprotocol.common.camera.CameraTargetInstruction;
 import org.itxtech.synapseapi.multiprotocol.protocol113.protocol.MoveEntityDeltaPacket113;
+import org.itxtech.synapseapi.multiprotocol.protocol116.protocol.UpdatePlayerGameTypePacket116;
 import org.itxtech.synapseapi.multiprotocol.protocol116100.protocol.AnimateEntityPacket116100;
 import org.itxtech.synapseapi.multiprotocol.protocol116100.protocol.EntityEventPacket116100;
 import org.itxtech.synapseapi.multiprotocol.protocol116100.protocol.MotionPredictionHintsPacket116100;
@@ -19,6 +20,8 @@ import org.itxtech.synapseapi.multiprotocol.protocol119.protocol.PlayerActionPac
 import org.itxtech.synapseapi.multiprotocol.protocol11910.protocol.UpdateAbilitiesPacket11910;
 import org.itxtech.synapseapi.multiprotocol.protocol12070.protocol.MobEffectPacket12070;
 import org.itxtech.synapseapi.multiprotocol.protocol12070.protocol.SetEntityMotionPacket12070;
+import org.itxtech.synapseapi.multiprotocol.protocol12080.protocol.UpdatePlayerGameTypePacket12080;
+import org.itxtech.synapseapi.multiprotocol.protocol121100.protocol.CameraInstructionPacket121100;
 import org.itxtech.synapseapi.multiprotocol.protocol12120.protocol.CameraInstructionPacket12120;
 import org.itxtech.synapseapi.multiprotocol.protocol12120.protocol.MobArmorEquipmentPacket12120;
 import org.itxtech.synapseapi.multiprotocol.protocol12140.protocol.CameraInstructionPacket12140;
@@ -26,6 +29,8 @@ import org.itxtech.synapseapi.multiprotocol.protocol12140.protocol.MobEffectPack
 import org.itxtech.synapseapi.multiprotocol.protocol12140.protocol.MovementEffectPacket12140;
 import org.itxtech.synapseapi.multiprotocol.protocol12160.protocol.BossEventPacket12160;
 import org.itxtech.synapseapi.multiprotocol.protocol12170.protocol.LevelSoundEventPacketV312170;
+import org.itxtech.synapseapi.multiprotocol.protocol12170.protocol.PlayerUpdateEntityOverridesPacket12170;
+import org.itxtech.synapseapi.multiprotocol.protocol12180.protocol.PlayerLocationPacket12180;
 import org.itxtech.synapseapi.multiprotocol.protocol12190.protocol.CameraInstructionPacket12190;
 import org.itxtech.synapseapi.multiprotocol.protocol14.protocol.PlayerActionPacket14;
 import org.itxtech.synapseapi.multiprotocol.protocol15.protocol.MoveEntityDeltaPacket;
@@ -284,7 +289,14 @@ public class DataPacketEidReplacer {
                 }
                 break;
             case ProtocolInfo.CAMERA_INSTRUCTION_PACKET:
-                if (packet instanceof CameraInstructionPacket12190 dp) {
+                if (packet instanceof CameraInstructionPacket121100 dp) {
+                    CameraTargetInstruction target = dp.target;
+                    if (target != null && target.entityId == from) {
+                        CameraTargetInstruction copy = target.clone();
+                        copy.entityId = to;
+                        dp.target = copy;
+                    }
+                } else if (packet instanceof CameraInstructionPacket12190 dp) {
                     CameraTargetInstruction target = dp.target;
                     if (target != null && target.entityId == from) {
                         CameraTargetInstruction copy = target.clone();
@@ -320,6 +332,31 @@ public class DataPacketEidReplacer {
                         dp.entityUniqueId = to;
                     }
                 } else if (packet instanceof LevelSoundEventPacket dp) {
+                    if (dp.entityUniqueId == from) {
+                        dp.entityUniqueId = to;
+                    }
+                }
+                break;
+            case ProtocolInfo.UPDATE_PLAYER_GAME_TYPE_PACKET:
+                if (packet instanceof UpdatePlayerGameTypePacket12080 dp) {
+                    if (dp.playerEntityUniqueId == from) {
+                        dp.playerEntityUniqueId = to;
+                    }
+                } else if (packet instanceof UpdatePlayerGameTypePacket116 dp) {
+                    if (dp.playerEntityUniqueId == from) {
+                        dp.playerEntityUniqueId = to;
+                    }
+                }
+                break;
+            case ProtocolInfo.PLAYER_UPDATE_ENTITY_OVERRIDES_PACKET:
+                if (packet instanceof PlayerUpdateEntityOverridesPacket12170 dp) {
+                    if (dp.entityUniqueId == from) {
+                        dp.entityUniqueId = to;
+                    }
+                }
+                break;
+            case ProtocolInfo.PLAYER_LOCATION_PACKET:
+                if (packet instanceof PlayerLocationPacket12180 dp) {
                     if (dp.entityUniqueId == from) {
                         dp.entityUniqueId = to;
                     }

@@ -10,7 +10,7 @@ import lombok.ToString;
 import org.itxtech.synapseapi.multiprotocol.common.camera.CameraFadeInstruction;
 import org.itxtech.synapseapi.multiprotocol.common.camera.CameraFadeInstruction.TimeData;
 import org.itxtech.synapseapi.multiprotocol.common.camera.CameraSetInstruction;
-import org.itxtech.synapseapi.multiprotocol.common.camera.CameraSetInstruction.Ease;
+import org.itxtech.synapseapi.multiprotocol.common.camera.CameraEase;
 
 import javax.annotation.Nullable;
 import java.io.IOException;
@@ -45,7 +45,7 @@ public class CameraInstructionPacket11970 extends Packet11970 {
             CompoundTag tag = new CompoundTag()
                     .putInt("preset", set.preset.runtimeId);
 
-            Ease ease = set.ease;
+            CameraEase ease = set.ease;
             if (ease != null) {
                 tag.putCompound("ease", new CompoundTag()
                         .putString("type", lookupEaseName(ease.type))
@@ -116,7 +116,7 @@ public class CameraInstructionPacket11970 extends Packet11970 {
 
     private static String lookupEaseName(int type) {
         if (type < 0 || type >= EASE_TYPE_NAMES.length) {
-            type = Ease.LINEAR;
+            type = CameraEase.LINEAR;
         }
         return EASE_TYPE_NAMES[type];
     }
@@ -124,37 +124,37 @@ public class CameraInstructionPacket11970 extends Packet11970 {
     private static final String[] EASE_TYPE_NAMES = new String[32];
 
     static {
-        EASE_TYPE_NAMES[Ease.LINEAR] = "linear";
-        EASE_TYPE_NAMES[Ease.SPRING] = "spring";
-        EASE_TYPE_NAMES[Ease.IN_QUAD] = "in_quad";
-        EASE_TYPE_NAMES[Ease.OUT_QUAD] = "out_quad";
-        EASE_TYPE_NAMES[Ease.IN_OUT_QUAD] = "in_out_quad";
-        EASE_TYPE_NAMES[Ease.IN_CUBIC] = "in_cubic";
-        EASE_TYPE_NAMES[Ease.OUT_CUBIC] = "out_cubic";
-        EASE_TYPE_NAMES[Ease.IN_OUT_CUBIC] = "in_out_cubic";
-        EASE_TYPE_NAMES[Ease.IN_QUART] = "in_quart";
-        EASE_TYPE_NAMES[Ease.OUT_QUART] = "out_quart";
-        EASE_TYPE_NAMES[Ease.IN_OUT_QUART] = "in_out_quart";
-        EASE_TYPE_NAMES[Ease.IN_QUINT] = "in_quint";
-        EASE_TYPE_NAMES[Ease.OUT_QUINT] = "out_quint";
-        EASE_TYPE_NAMES[Ease.IN_OUT_QUINT] = "in_out_quint";
-        EASE_TYPE_NAMES[Ease.IN_SINE] = "in_sine";
-        EASE_TYPE_NAMES[Ease.OUT_SINE] = "out_sine";
-        EASE_TYPE_NAMES[Ease.IN_OUT_SINE] = "in_out_sine";
-        EASE_TYPE_NAMES[Ease.IN_EXPO] = "in_expo";
-        EASE_TYPE_NAMES[Ease.OUT_EXPO] = "out_expo";
-        EASE_TYPE_NAMES[Ease.IN_OUT_EXPO] = "in_out_expo";
-        EASE_TYPE_NAMES[Ease.IN_CIRC] = "in_circ";
-        EASE_TYPE_NAMES[Ease.OUT_CIRC] = "out_circ";
-        EASE_TYPE_NAMES[Ease.IN_OUT_CIRC] = "in_out_circ";
-        EASE_TYPE_NAMES[Ease.IN_BOUNCE] = "in_bounce";
-        EASE_TYPE_NAMES[Ease.OUT_BOUNCE] = "out_bounce";
-        EASE_TYPE_NAMES[Ease.IN_OUT_BOUNCE] = "in_out_bounce";
-        EASE_TYPE_NAMES[Ease.IN_BACK] = "in_back";
-        EASE_TYPE_NAMES[Ease.OUT_BACK] = "out_back";
-        EASE_TYPE_NAMES[Ease.IN_OUT_BACK] = "in_out_back";
-        EASE_TYPE_NAMES[Ease.IN_ELASTIC] = "in_elastic";
-        EASE_TYPE_NAMES[Ease.OUT_ELASTIC] = "out_elastic";
-        EASE_TYPE_NAMES[Ease.IN_OUT_ELASTIC] = "in_out_elastic";
+        EASE_TYPE_NAMES[CameraEase.LINEAR] = "linear";
+        EASE_TYPE_NAMES[CameraEase.SPRING] = "spring";
+        EASE_TYPE_NAMES[CameraEase.IN_QUAD] = "in_quad";
+        EASE_TYPE_NAMES[CameraEase.OUT_QUAD] = "out_quad";
+        EASE_TYPE_NAMES[CameraEase.IN_OUT_QUAD] = "in_out_quad";
+        EASE_TYPE_NAMES[CameraEase.IN_CUBIC] = "in_cubic";
+        EASE_TYPE_NAMES[CameraEase.OUT_CUBIC] = "out_cubic";
+        EASE_TYPE_NAMES[CameraEase.IN_OUT_CUBIC] = "in_out_cubic";
+        EASE_TYPE_NAMES[CameraEase.IN_QUART] = "in_quart";
+        EASE_TYPE_NAMES[CameraEase.OUT_QUART] = "out_quart";
+        EASE_TYPE_NAMES[CameraEase.IN_OUT_QUART] = "in_out_quart";
+        EASE_TYPE_NAMES[CameraEase.IN_QUINT] = "in_quint";
+        EASE_TYPE_NAMES[CameraEase.OUT_QUINT] = "out_quint";
+        EASE_TYPE_NAMES[CameraEase.IN_OUT_QUINT] = "in_out_quint";
+        EASE_TYPE_NAMES[CameraEase.IN_SINE] = "in_sine";
+        EASE_TYPE_NAMES[CameraEase.OUT_SINE] = "out_sine";
+        EASE_TYPE_NAMES[CameraEase.IN_OUT_SINE] = "in_out_sine";
+        EASE_TYPE_NAMES[CameraEase.IN_EXPO] = "in_expo";
+        EASE_TYPE_NAMES[CameraEase.OUT_EXPO] = "out_expo";
+        EASE_TYPE_NAMES[CameraEase.IN_OUT_EXPO] = "in_out_expo";
+        EASE_TYPE_NAMES[CameraEase.IN_CIRC] = "in_circ";
+        EASE_TYPE_NAMES[CameraEase.OUT_CIRC] = "out_circ";
+        EASE_TYPE_NAMES[CameraEase.IN_OUT_CIRC] = "in_out_circ";
+        EASE_TYPE_NAMES[CameraEase.IN_BOUNCE] = "in_bounce";
+        EASE_TYPE_NAMES[CameraEase.OUT_BOUNCE] = "out_bounce";
+        EASE_TYPE_NAMES[CameraEase.IN_OUT_BOUNCE] = "in_out_bounce";
+        EASE_TYPE_NAMES[CameraEase.IN_BACK] = "in_back";
+        EASE_TYPE_NAMES[CameraEase.OUT_BACK] = "out_back";
+        EASE_TYPE_NAMES[CameraEase.IN_OUT_BACK] = "in_out_back";
+        EASE_TYPE_NAMES[CameraEase.IN_ELASTIC] = "in_elastic";
+        EASE_TYPE_NAMES[CameraEase.OUT_ELASTIC] = "out_elastic";
+        EASE_TYPE_NAMES[CameraEase.IN_OUT_ELASTIC] = "in_out_elastic";
     }
 }

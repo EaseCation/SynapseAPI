@@ -111,12 +111,13 @@ import org.itxtech.synapseapi.multiprotocol.protocol121.protocol.ContainerCloseP
 import org.itxtech.synapseapi.multiprotocol.protocol121.protocol.CraftingDataPacket121;
 import org.itxtech.synapseapi.multiprotocol.protocol121.protocol.StartGamePacket121;
 import org.itxtech.synapseapi.multiprotocol.protocol121.protocol.TextPacket121;
+import org.itxtech.synapseapi.multiprotocol.protocol121100.protocol.StartGamePacket121100;
 import org.itxtech.synapseapi.multiprotocol.protocol12120.protocol.*;
 import org.itxtech.synapseapi.multiprotocol.protocol12130.protocol.*;
 import org.itxtech.synapseapi.multiprotocol.protocol12140.protocol.*;
 import org.itxtech.synapseapi.multiprotocol.protocol12150.protocol.ResourcePacksInfoPacket12150;
 import org.itxtech.synapseapi.multiprotocol.protocol12160.protocol.BossEventPacket12160;
-import org.itxtech.synapseapi.multiprotocol.protocol12160.protocol.CameraAimAssistInstructionPacket12160;
+import org.itxtech.synapseapi.multiprotocol.protocol12160.protocol.ClientCameraAimAssistPacket12160;
 import org.itxtech.synapseapi.multiprotocol.protocol12160.protocol.ClientMovementPredictionSyncPacket12160;
 import org.itxtech.synapseapi.multiprotocol.protocol12160.protocol.StartGamePacket12160;
 import org.itxtech.synapseapi.multiprotocol.protocol12170.protocol.ClientMovementPredictionSyncPacket12170;
@@ -458,7 +459,7 @@ public class PacketRegister {
         registerPacket(AbstractProtocol.PROTOCOL_121_60, ProtocolInfo.START_GAME_PACKET, StartGamePacket12160.class);
         registerPacket(AbstractProtocol.PROTOCOL_121_60, ProtocolInfo.BOSS_EVENT_PACKET, BossEventPacket12160.class);
         registerPacket(AbstractProtocol.PROTOCOL_121_60, ProtocolInfo.CLIENT_MOVEMENT_PREDICTION_SYNC_PACKET, ClientMovementPredictionSyncPacket12160.class);
-        registerPacket(AbstractProtocol.PROTOCOL_121_60, ProtocolInfo.CAMERA_AIM_ASSIST_INSTRUCTION_PACKET, CameraAimAssistInstructionPacket12160.class);
+        registerPacket(AbstractProtocol.PROTOCOL_121_60, ProtocolInfo.CLIENT_CAMERA_AIM_ASSIST_PACKET, ClientCameraAimAssistPacket12160.class);
 
         registerPacket(AbstractProtocol.PROTOCOL_121_70, ProtocolInfo.LEVEL_SOUND_EVENT_PACKET_V3, LevelSoundEventPacketV312170.class);
         registerPacket(AbstractProtocol.PROTOCOL_121_70, ProtocolInfo.CLIENT_MOVEMENT_PREDICTION_SYNC_PACKET, ClientMovementPredictionSyncPacket12170.class);
@@ -468,6 +469,8 @@ public class PacketRegister {
 
         registerPacket(AbstractProtocol.PROTOCOL_121_90, ProtocolInfo.RESOURCE_PACKS_INFO_PACKET, ResourcePacksInfoPacket12190.class);
         registerPacket(AbstractProtocol.PROTOCOL_121_90, ProtocolInfo.START_GAME_PACKET, StartGamePacket12190.class);
+
+        registerPacket(AbstractProtocol.PROTOCOL_121_100, ProtocolInfo.START_GAME_PACKET, StartGamePacket121100.class);
 
         checkNeteaseSpecialExtend();
     }

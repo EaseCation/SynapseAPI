@@ -13,6 +13,7 @@ import cn.nukkit.blockentity.BlockEntity;
 import cn.nukkit.blockentity.BlockEntityItemFrame;
 import cn.nukkit.blockentity.BlockEntityLectern;
 import cn.nukkit.blockentity.BlockEntitySpawnable;
+import cn.nukkit.command.Command;
 import cn.nukkit.command.data.CommandPermission;
 import cn.nukkit.entity.Entity;
 import cn.nukkit.entity.EntityFullNames;
@@ -67,7 +68,9 @@ import org.itxtech.synapseapi.multiprotocol.AbstractProtocol;
 import org.itxtech.synapseapi.multiprotocol.common.Experiments;
 import org.itxtech.synapseapi.multiprotocol.common.Experiments.Experiment;
 import org.itxtech.synapseapi.multiprotocol.common.camera.CameraFadeInstruction;
+import org.itxtech.synapseapi.multiprotocol.common.camera.CameraFovInstruction;
 import org.itxtech.synapseapi.multiprotocol.common.camera.CameraSetInstruction;
+import org.itxtech.synapseapi.multiprotocol.common.camera.CameraTargetInstruction;
 import org.itxtech.synapseapi.multiprotocol.common.drawer.Shape;
 import org.itxtech.synapseapi.multiprotocol.protocol113.protocol.ResourcePackStackPacket113;
 import org.itxtech.synapseapi.multiprotocol.protocol116.protocol.CreativeContentPacket116;
@@ -133,9 +136,13 @@ import org.itxtech.synapseapi.multiprotocol.protocol12070.protocol.LecternUpdate
 import org.itxtech.synapseapi.multiprotocol.protocol12070.protocol.ResourcePacksInfoPacket12070;
 import org.itxtech.synapseapi.multiprotocol.protocol12080.protocol.ResourcePackStackPacket12080;
 import org.itxtech.synapseapi.multiprotocol.protocol12080.protocol.StartGamePacket12080;
+import org.itxtech.synapseapi.multiprotocol.protocol12080.protocol.UpdatePlayerGameTypePacket12080;
 import org.itxtech.synapseapi.multiprotocol.protocol121.protocol.ContainerClosePacket121;
 import org.itxtech.synapseapi.multiprotocol.protocol121.protocol.StartGamePacket121;
 import org.itxtech.synapseapi.multiprotocol.protocol121.protocol.TextPacket121;
+import org.itxtech.synapseapi.multiprotocol.protocol121100.protocol.CameraAimAssistPacket120100;
+import org.itxtech.synapseapi.multiprotocol.protocol121100.protocol.CameraInstructionPacket121100;
+import org.itxtech.synapseapi.multiprotocol.protocol121100.protocol.StartGamePacket121100;
 import org.itxtech.synapseapi.multiprotocol.protocol1212.protocol.ClientboundCloseFormPacket1212;
 import org.itxtech.synapseapi.multiprotocol.protocol12120.protocol.*;
 import org.itxtech.synapseapi.multiprotocol.protocol12130.protocol.CameraPresetsPacket12130;
@@ -229,8 +236,8 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
 
     @Override
     protected DataPacket generateStartGamePacket(Position spawnPosition) {
-        if (this.getProtocol() >= AbstractProtocol.PROTOCOL_121_90.getProtocolStart()) {
-            StartGamePacket12190 startGamePacket = new StartGamePacket12190();
+        if (this.getProtocol() >= AbstractProtocol.PROTOCOL_121_100.getProtocolStart()) {
+            StartGamePacket121100 startGamePacket = new StartGamePacket121100();
             startGamePacket.protocol = AbstractProtocol.fromRealProtocol(this.protocol);
             startGamePacket.netease = this.isNetEaseClient();
             startGamePacket.entityUniqueId = SYNAPSE_PLAYER_ENTITY_ID;
@@ -271,9 +278,49 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
             if (isBetaClient()) {
                 experiments.add(VanillaExperiments.DEFERRED_TECHNICAL_PREVIEW);
             }
-            if (getProtocol() >= AbstractProtocol.PROTOCOL_121_80.getProtocolStart()) {
-                experiments.add(VanillaExperiments.EXPERIMENTAL_GRAPHICS);
-                experiments.add(VanillaExperiments.LOCATOR_BAR);
+            startGamePacket.experiments = new Experiments(experiments.toArray(new Experiment[0]));
+            return startGamePacket;
+        } else if (this.getProtocol() >= AbstractProtocol.PROTOCOL_121_90.getProtocolStart()) {
+            StartGamePacket12190 startGamePacket = new StartGamePacket12190();
+            startGamePacket.protocol = AbstractProtocol.fromRealProtocol(this.protocol);
+            startGamePacket.netease = this.isNetEaseClient();
+            startGamePacket.entityUniqueId = SYNAPSE_PLAYER_ENTITY_ID;
+            startGamePacket.entityRuntimeId = SYNAPSE_PLAYER_ENTITY_ID;
+            startGamePacket.playerGamemode = getClientFriendlyGamemode(this.gamemode);
+            startGamePacket.x = (float) this.x;
+            startGamePacket.y = (float) this.y;
+            startGamePacket.z = (float) this.z;
+            startGamePacket.yaw = (float) this.yaw;
+            startGamePacket.pitch = (float) this.pitch;
+            startGamePacket.seed = -1;
+            startGamePacket.dimension = (byte) (this.level.getDimension().ordinal() & 0xff);
+            startGamePacket.worldGamemode = getClientFriendlyGamemode(this.gamemode);
+            startGamePacket.difficulty = this.server.getDifficulty();
+            startGamePacket.spawnX = (int) spawnPosition.x;
+            startGamePacket.spawnY = (int) spawnPosition.y;
+            startGamePacket.spawnZ = (int) spawnPosition.z;
+            startGamePacket.hasAchievementsDisabled = true;
+            startGamePacket.dayCycleStopTime = -1;
+            startGamePacket.rainLevel = 0;
+            startGamePacket.lightningLevel = 0;
+            startGamePacket.commandsEnabled = this.isEnableClientCommand();
+            startGamePacket.levelId = "";
+            startGamePacket.worldName = this.getServer().getNetwork().getName();
+            startGamePacket.generator = 1; // 0 old, 1 infinite, 2 flat
+            startGamePacket.gameRules = getSupportedRules();
+            startGamePacket.isInventoryServerAuthoritative = SERVER_AUTHORITATIVE_INVENTORY;
+            startGamePacket.isBlockBreakingServerAuthoritative = this.serverAuthoritativeBlockBreaking;
+            startGamePacket.currentTick = 0;//this.server.getTick();
+            startGamePacket.enchantmentSeed = ThreadLocalRandom.current().nextInt();
+            startGamePacket.playerPropertyData = getCompiledPlayerProperties();
+            startGamePacket.isSoundServerAuthoritative = isServerAuthoritativeSoundEnabled();
+            List<Experiment> experiments = new ArrayList<>(4);
+            if (getProtocol() < AbstractProtocol.PROTOCOL_121_20.getProtocolStart()) {
+                experiments.add(VanillaExperiments.DATA_DRIVEN_ITEMS);
+            }
+            experiments.add(VanillaExperiments.UPCOMING_CREATOR_FEATURES);
+            if (isBetaClient()) {
+                experiments.add(VanillaExperiments.DEFERRED_TECHNICAL_PREVIEW);
             }
             startGamePacket.experiments = new Experiments(experiments.toArray(new Experiment[0]));
             return startGamePacket;
@@ -1143,7 +1190,7 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
                             if (isBetaClient()) {
                                 experiments.add(VanillaExperiments.DEFERRED_TECHNICAL_PREVIEW);
                             }
-                            if (getProtocol() >= AbstractProtocol.PROTOCOL_121_80.getProtocolStart()) {
+                            if (getProtocol() == AbstractProtocol.PROTOCOL_121_80.getProtocolStart()) {
                                 experiments.add(VanillaExperiments.EXPERIMENTAL_GRAPHICS);
                                 experiments.add(VanillaExperiments.LOCATOR_BAR);
                             }
@@ -1443,7 +1490,7 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
                     }
 
                     playerActionPacket.entityId = this.id;
-                    Vector3 pos = new Vector3(playerActionPacket.x, playerActionPacket.y, playerActionPacket.z);
+                    BlockVector3 pos = new BlockVector3(playerActionPacket.x, playerActionPacket.y, playerActionPacket.z);
 
                     actionswitch:
                     switch (playerActionPacket.action) {
@@ -1528,7 +1575,7 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
                                     pk.y = (float) pos.y;
                                     pk.z = (float) pos.z;
                                     pk.data = (int) (65535 / breakTime);
-                                    this.getLevel().addChunkPacket(pos.getFloorX() >> 4, pos.getFloorZ() >> 4, pk);
+                                    this.getLevel().addChunkPacket(pos.getChunkX(), pos.getChunkZ(), pk);
                                 }
                             } else if (held.isSword() || held.is(Item.TRIDENT) || held.is(Item.MACE)) {
                                 break;
@@ -1556,10 +1603,6 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
                             }
                             this.breakingBlock = null;
                             break;
-                        case PlayerActionPacket119.ACTION_GET_UPDATED_BLOCK:
-                            break; //TODO
-                        case PlayerActionPacket119.ACTION_DROP_ITEM:
-                            break; //TODO
                         case PlayerActionPacket119.ACTION_STOP_SLEEPING:
                             this.stopSleep();
                             break;
@@ -1691,6 +1734,15 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
                                 this.setGliding(false);
                             }
                             break packetswitch;
+                        case PlayerActionPacket119.ACTION_BUILD_DENIED:
+//                            level.addLevelEvent(pos.blockCenter(), LevelEventPacket.EVENT_PARTICLE_BLOCK_FORCE_FIELD);
+                            LevelEventPacket pk = new LevelEventPacket();
+                            pk.evid = LevelEventPacket.EVENT_PARTICLE_BLOCK_FORCE_FIELD;
+                            pk.x = pos.x + 0.5f;
+                            pk.y = pos.y + 0.5f;
+                            pk.z = pos.z + 0.5f;
+                            dataPacket(pk);
+                            break packetswitch;
                         case PlayerActionPacket119.ACTION_CONTINUE_BREAK:
                             if (isServerAuthoritativeBlockBreakingEnabled()) {
                                 onPacketViolation(PacketViolationReason.IMPOSSIBLE_BEHAVIOR, "action18");
@@ -1705,7 +1757,7 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
                                 level.addLevelEvent(blockCenter, LevelEventPacket.EVENT_PARTICLE_PUNCH_BLOCK_DOWN + face.getIndex(), block.getFullId());
 
                                 int breakTime = Mth.ceil(block.getBreakTime(inventory.getItemInHand(), this) * 20);
-                                level.addLevelEvent(pos, LevelEventPacket.EVENT_BLOCK_UPDATE_BREAK, breakTime <= 0 ? 0 : 65535 / breakTime);
+                                level.addLevelEvent(pos.asVector3(), LevelEventPacket.EVENT_BLOCK_UPDATE_BREAK, breakTime <= 0 ? 0 : 65535 / breakTime);
                             }
                             break;
                         case PlayerActionPacket119.ACTION_START_SWIMMING:
@@ -1942,6 +1994,12 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
                         case PlayerActionPacket.ACTION_ACK_ENTITY_DATA:
                             if (isServerAuthoritativeMovementEnabled()) {
                                 onPacketViolation(PacketViolationReason.IMPOSSIBLE_BEHAVIOR, "action36");
+                                return;
+                            }
+                            break;
+                        case PlayerActionPacket.ACTION_START_USING_ITEM:
+                            if (isServerAuthoritativeMovementEnabled()) {
+                                onPacketViolation(PacketViolationReason.IMPOSSIBLE_BEHAVIOR, "action37");
                                 return;
                             }
                             break;
@@ -2297,6 +2355,35 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
 
                 this.server.dispatchCommand(playerCommandPreprocessEvent.getPlayer(), playerCommandPreprocessEvent.getMessage().substring(1));
                 break;
+            case ProtocolInfo.SET_PLAYER_GAME_TYPE_PACKET:
+                if (getProtocol() < AbstractProtocol.PROTOCOL_120_80.getProtocolStart()) {
+                    super.handleDataPacket(packet);
+                    break;
+                }
+                SetPlayerGameTypePacket setPlayerGameTypePacket = (SetPlayerGameTypePacket) packet;
+                int gamemode = vanillaGamemodeToNukkitGamemode(setPlayerGameTypePacket.gamemode);
+                if (gamemode == this.gamemode) {
+                    break;
+                }
+
+                if (!this.hasPermission("nukkit.command.gamemode") || gamemode == -1) {
+                    UpdatePlayerGameTypePacket12080 updatePlayerGameTypePacket = new UpdatePlayerGameTypePacket12080();
+                    updatePlayerGameTypePacket.gamemode = getClientFriendlyGamemode(this.gamemode);
+                    updatePlayerGameTypePacket.playerEntityUniqueId = getId();
+                    this.dataPacket(updatePlayerGameTypePacket);
+
+                    this.sendAbilities(this, this.getAdventureSettings());
+                    break;
+                }
+
+                this.setGamemode(gamemode, true);
+                Command.broadcastCommandMessage(this, new TranslationContainer("commands.gamemode.success.self", Server.getGamemodeString(this.gamemode)));
+
+                UpdatePlayerGameTypePacket12080 updatePlayerGameTypePacket = new UpdatePlayerGameTypePacket12080();
+                updatePlayerGameTypePacket.gamemode = getClientFriendlyGamemode(this.gamemode);
+                updatePlayerGameTypePacket.playerEntityUniqueId = getId();
+                this.dataPacket(updatePlayerGameTypePacket);
+                break;
             case ProtocolInfo.PLAYER_SKIN_PACKET:
                 if (getProtocol() >= AbstractProtocol.PROTOCOL_119_63.getProtocolStart()) {
                     PlayerSkinPacket11963 playerSkinPacket = (PlayerSkinPacket11963) packet;
@@ -2547,15 +2634,15 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
                         break;
                 }
                 break;
-            case ProtocolInfo.CAMERA_AIM_ASSIST_INSTRUCTION_PACKET:
-                CameraAimAssistInstructionPacket12160 cameraAimAssistInstructionPacket = (CameraAimAssistInstructionPacket12160) packet;
+            case ProtocolInfo.CLIENT_CAMERA_AIM_ASSIST_PACKET:
+                ClientCameraAimAssistPacket12160 cameraAimAssistInstructionPacket = (ClientCameraAimAssistPacket12160) packet;
                 allowAimAssist = cameraAimAssistInstructionPacket.allowAimAssist;
                 switch (cameraAimAssistInstructionPacket.action) {
-                    case CameraAimAssistInstructionPacket12160.ACTION_SET_FROM_CAMERA_PRESET -> {
+                    case ClientCameraAimAssistPacket12160.ACTION_SET_FROM_CAMERA_PRESET -> {
                         String cameraPresetId = cameraAimAssistInstructionPacket.cameraPresetId;
                         //TODO: setAimAssist(getAimAssistFromCameraPreset(cameraPresetId));
                     }
-                    case CameraAimAssistInstructionPacket12160.ACTION_CLEAR -> {
+                    case ClientCameraAimAssistPacket12160.ACTION_CLEAR -> {
                         if (allowAimAssist && !aimAssistPresetId.isEmpty()) {
                             sendAimAssist(CameraAimAssistPacket12050.ACTION_SET, aimAssistMode, aimAssistViewAngleX, aimAssistViewAngleY, aimAssistDistance, aimAssistPresetId);
                         } else {
@@ -3964,7 +4051,23 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
     }
 
     @Override
-    public void startCameraInstruction(CameraSetInstruction set, CameraFadeInstruction fade) {
+    public void startCameraInstruction(CameraSetInstruction set, CameraFovInstruction fov, CameraTargetInstruction target, CameraFadeInstruction fade) {
+        if (getProtocol() >= AbstractProtocol.PROTOCOL_121_100.getProtocolStart()) {
+            CameraInstructionPacket121100 pk = new CameraInstructionPacket121100();
+            pk.set = set;
+            pk.fade = fade;
+            if (target != null) {
+                if (target.remove) {
+                    pk.removeTarget = true;
+                } else {
+                    pk.target = target;
+                }
+            }
+            pk.fieldOfView = fov;
+            this.dataPacket(pk);
+            return;
+        }
+
         if (getProtocol() >= AbstractProtocol.PROTOCOL_121_90.getProtocolStart()) {
             CameraInstructionPacket12190 pk = new CameraInstructionPacket12190();
             pk.set = set;
@@ -4007,17 +4110,59 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
     }
 
     @Override
+    public void startCameraInstruction(CameraSetInstruction set, CameraFovInstruction fov, CameraFadeInstruction fade) {
+        this.startCameraInstruction(set, fov, null, fade);
+    }
+
+    @Override
+    public void startCameraInstruction(CameraSetInstruction set, CameraTargetInstruction target, CameraFadeInstruction fade) {
+        this.startCameraInstruction(set, null, target, fade);
+    }
+
+    @Override
+    public void startCameraInstruction(CameraSetInstruction set, CameraFadeInstruction fade) {
+        this.startCameraInstruction(set, null, null, fade);
+    }
+
+    @Override
+    public void startCameraInstruction(CameraSetInstruction set, CameraFovInstruction fov) {
+        this.startCameraInstruction(set, fov, null, null);
+    }
+
+    @Override
+    public void startCameraInstruction(CameraSetInstruction set, CameraTargetInstruction target) {
+        this.startCameraInstruction(set, null, target, null);
+    }
+
+    @Override
     public void startCameraInstruction(CameraSetInstruction set) {
-        this.startCameraInstruction(set, null);
+        this.startCameraInstruction(set, null, null, null);
+    }
+
+    @Override
+    public void startCameraInstruction(CameraFovInstruction fov) {
+        this.startCameraInstruction(null, fov, null, null);
+    }
+
+    @Override
+    public void startCameraInstruction(CameraTargetInstruction target) {
+        this.startCameraInstruction(null, null, target, null);
     }
 
     @Override
     public void startCameraInstruction(CameraFadeInstruction fade) {
-        this.startCameraInstruction(null, fade);
+        this.startCameraInstruction(null, null, null, fade);
     }
 
     @Override
     public void clearCameraInstruction() {
+        if (getProtocol() >= AbstractProtocol.PROTOCOL_121_100.getProtocolStart()) {
+            CameraInstructionPacket121100 pk = new CameraInstructionPacket121100();
+            pk.clear = true;
+            this.dataPacket(pk);
+            return;
+        }
+
         if (getProtocol() >= AbstractProtocol.PROTOCOL_121_90.getProtocolStart()) {
             CameraInstructionPacket12190 pk = new CameraInstructionPacket12190();
             pk.clear = true;
@@ -4386,10 +4531,21 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
     }
 
     protected void sendAimAssist(int action, int mode, float viewAngleX, float viewAngleZ, float distance, String presetId) {
-        if (getProtocol() < AbstractProtocol.PROTOCOL_121_50.getProtocolStart()) {
+        if (getProtocol() >= AbstractProtocol.PROTOCOL_121_100.getProtocolStart()) {
+            CameraAimAssistPacket120100 cameraAimAssistPacket = new CameraAimAssistPacket120100();
+            cameraAimAssistPacket.presetId = presetId;
+            cameraAimAssistPacket.pitch = viewAngleX;
+            cameraAimAssistPacket.yaw = viewAngleZ;
+            cameraAimAssistPacket.distance = distance;
+            cameraAimAssistPacket.mode = mode;
+            cameraAimAssistPacket.action = action;
+            dataPacket(cameraAimAssistPacket);
             return;
         }
 
+        if (getProtocol() < AbstractProtocol.PROTOCOL_121_50.getProtocolStart()) {
+            return;
+        }
         CameraAimAssistPacket12050 cameraAimAssistPacket = new CameraAimAssistPacket12050();
         cameraAimAssistPacket.presetId = presetId;
         cameraAimAssistPacket.pitch = viewAngleX;

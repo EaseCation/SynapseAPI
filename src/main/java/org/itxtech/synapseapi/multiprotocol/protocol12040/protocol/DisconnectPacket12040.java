@@ -102,7 +102,7 @@ public class DisconnectPacket12040 extends Packet12040 {
     public static final int REASON_REALMS_SESSION_NOT_FOUND = 89;
     public static final int REASON_BAD_PACKET = 90;
 
-    public int reason = REASON_UNKNOWN;
+    public int reason = REASON_DISCONNECTED;
     public boolean hideDisconnectionScreen;
     public String message = "";
 

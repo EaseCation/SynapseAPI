@@ -1016,6 +1016,14 @@ public final class LegacyBlockSerializer {
         registerDeserializer(CHEST, LegacyBlockSerializer::deserializeFacingDirection);
         registerDeserializer(TRAPPED_CHEST, LegacyBlockSerializer::deserializeFacingDirection);
         registerDeserializer(ENDER_CHEST, LegacyBlockSerializer::deserializeFacingDirection);
+        registerDeserializer(COPPER_CHEST, LegacyBlockSerializer::deserializeCardinalDirection);
+        registerDeserializer(EXPOSED_COPPER_CHEST, LegacyBlockSerializer::deserializeCardinalDirection);
+        registerDeserializer(WEATHERED_COPPER_CHEST, LegacyBlockSerializer::deserializeCardinalDirection);
+        registerDeserializer(OXIDIZED_COPPER_CHEST, LegacyBlockSerializer::deserializeCardinalDirection);
+        registerDeserializer(WAXED_COPPER_CHEST, LegacyBlockSerializer::deserializeCardinalDirection);
+        registerDeserializer(WAXED_EXPOSED_COPPER_CHEST, LegacyBlockSerializer::deserializeCardinalDirection);
+        registerDeserializer(WAXED_WEATHERED_COPPER_CHEST, LegacyBlockSerializer::deserializeCardinalDirection);
+        registerDeserializer(WAXED_OXIDIZED_COPPER_CHEST, LegacyBlockSerializer::deserializeCardinalDirection);
 
         registerDeserializer(REDSTONE_WIRE, LegacyBlockSerializer::deserializeRedstoneSignal);
 

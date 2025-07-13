@@ -233,6 +233,9 @@ public final class AdvancedGlobalBlockPalette {
         palettes.put(AbstractProtocol.PROTOCOL_121_93, new AdvancedGlobalBlockPaletteInterface[]{
                 new GlobalBlockPaletteNBT(AbstractProtocol.PROTOCOL_121_93, RuntimeBlockMapper.PALETTES.get(AbstractProtocol.PROTOCOL_121_93)[0].palette),
         });
+        palettes.put(AbstractProtocol.PROTOCOL_121_100, new AdvancedGlobalBlockPaletteInterface[]{
+                new GlobalBlockPaletteNBT(AbstractProtocol.PROTOCOL_121_100, RuntimeBlockMapper.PALETTES.get(AbstractProtocol.PROTOCOL_121_100)[0].palette),
+        });
 
         registerStaticPalettes();
     }
@@ -278,7 +281,8 @@ public final class AdvancedGlobalBlockPalette {
         staticPalettes.put(StaticVersion.V1_21_60, new GlobalBlockPaletteStatic(palettes.get(AbstractProtocol.PROTOCOL_121_60)[0]));
         staticPalettes.put(StaticVersion.V1_21_70, new GlobalBlockPaletteStatic(palettes.get(AbstractProtocol.PROTOCOL_121_70)[0]));
         staticPalettes.put(StaticVersion.V1_21_80, new GlobalBlockPaletteStatic(palettes.get(AbstractProtocol.PROTOCOL_121_80)[0]));
-        staticPalettes.put(StaticVersion.V1_21_90, new GlobalBlockPaletteStatic(palettes.get(AbstractProtocol.PROTOCOL_121_80)[0]));
+        staticPalettes.put(StaticVersion.V1_21_90, new GlobalBlockPaletteStatic(palettes.get(AbstractProtocol.PROTOCOL_121_90)[0]));
+        staticPalettes.put(StaticVersion.V1_21_100, new GlobalBlockPaletteStatic(palettes.get(AbstractProtocol.PROTOCOL_121_100)[0]));
     }
 
     public static void rebuildStaticPalettes() {

@@ -12,6 +12,7 @@ import lombok.extern.log4j.Log4j2;
 import org.itxtech.synapseapi.SynapseAPI;
 import org.itxtech.synapseapi.multiprotocol.AbstractProtocol;
 import org.itxtech.synapseapi.multiprotocol.common.biome.BiomeDefinitionData;
+import org.itxtech.synapseapi.multiprotocol.protocol121100.protocol.BiomeDefinitionListPacket121100;
 import org.itxtech.synapseapi.multiprotocol.protocol12180.protocol.BiomeDefinitionListPacket12180;
 import org.itxtech.synapseapi.multiprotocol.protocol18.protocol.BiomeDefinitionListPacket18;
 
@@ -53,6 +54,7 @@ public final class BiomeDefinitions {
             CompoundTag data12160 = NBTIO.read(ByteStreams.toByteArray(SynapseAPI.getInstance().getResource("biome_definitions12160.nbt")), ByteOrder.LITTLE_ENDIAN, true);
             CompoundTag data12170 = NBTIO.read(ByteStreams.toByteArray(SynapseAPI.getInstance().getResource("biome_definitions12170.nbt")), ByteOrder.LITTLE_ENDIAN, true);
             CompoundTag data12180 = NBTIO.read(ByteStreams.toByteArray(SynapseAPI.getInstance().getResource("biome_definitions12180.nbt")), ByteOrder.LITTLE_ENDIAN, true);
+            CompoundTag data121100 = NBTIO.read(ByteStreams.toByteArray(SynapseAPI.getInstance().getResource("biome_definitions121100.nbt")), ByteOrder.LITTLE_ENDIAN, true);
 
 /*
             data.put(AbstractProtocol.PROTOCOL_112, data112);
@@ -105,6 +107,7 @@ public final class BiomeDefinitions {
             data.put(AbstractProtocol.PROTOCOL_121_80, data12180);
             data.put(AbstractProtocol.PROTOCOL_121_90, data12180);
             data.put(AbstractProtocol.PROTOCOL_121_93, data12180);
+            data.put(AbstractProtocol.PROTOCOL_121_100, data121100);
         } catch (NullPointerException | IOException e) {
             throw new AssertionError("Unable to load biome_definitions.dat");
         }
@@ -159,16 +162,35 @@ public final class BiomeDefinitions {
     }
 
     private static void cacheNewPacket(AbstractProtocol protocol) {
-        BiomeDefinitionListPacket12180 packet = new BiomeDefinitionListPacket12180();
-        packet.biomes = loadNewPacket(protocol);
-        packet.setHelper(protocol.getHelper());
-        packet.tryEncode();
+        DataPacket packet;
+        DataPacket packetNe;
+        if (protocol.getProtocolStart() >= AbstractProtocol.PROTOCOL_121_100.getProtocolStart()) {
+            BiomeDefinitionListPacket121100 biomePacket = new BiomeDefinitionListPacket121100();
+            biomePacket.biomes = loadNewPacket(protocol);
+            biomePacket.setHelper(protocol.getHelper());
+            biomePacket.tryEncode();
+            packet = biomePacket;
 
-        BiomeDefinitionListPacket12180 packetNe = new BiomeDefinitionListPacket12180();
-        packetNe.biomes = packet.biomes;
-        packetNe.setHelper(protocol.getHelper());
-        packetNe.neteaseMode = true;
-        packetNe.tryEncode();
+            BiomeDefinitionListPacket121100 biomePacketNe = new BiomeDefinitionListPacket121100();
+            biomePacketNe.biomes = biomePacket.biomes;
+            biomePacketNe.setHelper(protocol.getHelper());
+            biomePacketNe.neteaseMode = true;
+            biomePacketNe.tryEncode();
+            packetNe = biomePacketNe;
+        } else {
+            BiomeDefinitionListPacket12180 biomePacket = new BiomeDefinitionListPacket12180();
+            biomePacket.biomes = loadNewPacket(protocol);
+            biomePacket.setHelper(protocol.getHelper());
+            biomePacket.tryEncode();
+            packet = biomePacket;
+
+            BiomeDefinitionListPacket12180 biomePacketNe = new BiomeDefinitionListPacket12180();
+            biomePacketNe.biomes = biomePacket.biomes;
+            biomePacketNe.setHelper(protocol.getHelper());
+            biomePacketNe.neteaseMode = true;
+            biomePacketNe.tryEncode();
+            packetNe = biomePacketNe;
+        }
 
         BatchPacket batch = packet.compress(Deflater.BEST_COMPRESSION, true);
         batch.tracks = new Track[]{new Track(packet.pid(), packet.getCount())};

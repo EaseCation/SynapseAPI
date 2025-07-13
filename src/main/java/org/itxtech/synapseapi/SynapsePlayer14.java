@@ -247,7 +247,7 @@ public class SynapsePlayer14 extends SynapsePlayer {
 				}
 
 				playerActionPacket.entityId = this.id;
-				Vector3 pos = new Vector3(playerActionPacket.x, playerActionPacket.y, playerActionPacket.z);
+				BlockVector3 pos = new BlockVector3(playerActionPacket.x, playerActionPacket.y, playerActionPacket.z);
 
 				actionswitch:
 				switch (playerActionPacket.action) {
@@ -313,7 +313,7 @@ public class SynapsePlayer14 extends SynapsePlayer {
 								pk.y = (float) pos.y;
 								pk.z = (float) pos.z;
 								pk.data = (int) (65535 / breakTime);
-								this.getLevel().addChunkPacket(pos.getFloorX() >> 4, pos.getFloorZ() >> 4, pk);
+								this.getLevel().addChunkPacket(pos.getChunkX(), pos.getChunkZ(), pk);
 							}
 						} else if (held.isSword() || held.is(Item.TRIDENT) || held.is(Item.MACE)) {
 							break;
@@ -341,10 +341,6 @@ public class SynapsePlayer14 extends SynapsePlayer {
 						}
 						this.breakingBlock = null;
 						break;
-					case PlayerActionPacket14.ACTION_GET_UPDATED_BLOCK:
-						break; //TODO
-					case PlayerActionPacket14.ACTION_DROP_ITEM:
-						break; //TODO
 					case PlayerActionPacket14.ACTION_STOP_SLEEPING:
 						this.stopSleep();
 						break;
@@ -482,6 +478,15 @@ public class SynapsePlayer14 extends SynapsePlayer {
 							this.setGliding(false);
 						}
 						break packetswitch;
+					case PlayerActionPacket14.ACTION_BUILD_DENIED:
+//						level.addLevelEvent(pos.blockCenter(), LevelEventPacket.EVENT_PARTICLE_BLOCK_FORCE_FIELD);
+						LevelEventPacket pk = new LevelEventPacket();
+						pk.evid = LevelEventPacket.EVENT_PARTICLE_BLOCK_FORCE_FIELD;
+						pk.x = pos.x + 0.5f;
+						pk.y = pos.y + 0.5f;
+						pk.z = pos.z + 0.5f;
+						dataPacket(pk);
+						break packetswitch;
 					case PlayerActionPacket14.ACTION_CONTINUE_BREAK:
 						if (isServerAuthoritativeBlockBreakingEnabled()) {
 							onPacketViolation(PacketViolationReason.IMPOSSIBLE_BEHAVIOR, "action18");
@@ -496,7 +501,7 @@ public class SynapsePlayer14 extends SynapsePlayer {
 							level.addLevelEvent(blockCenter, LevelEventPacket.EVENT_PARTICLE_PUNCH_BLOCK_DOWN + face.getIndex(), block.getFullId());
 
 							int breakTime = Mth.ceil(block.getBreakTime(inventory.getItemInHand(), this) * 20);
-							level.addLevelEvent(pos, LevelEventPacket.EVENT_BLOCK_UPDATE_BREAK, breakTime <= 0 ? 0 : 65535 / breakTime);
+							level.addLevelEvent(pos.asVector3(), LevelEventPacket.EVENT_BLOCK_UPDATE_BREAK, breakTime <= 0 ? 0 : 65535 / breakTime);
 						}
 						break;
 					case PlayerActionPacket14.ACTION_START_SWIMMING:

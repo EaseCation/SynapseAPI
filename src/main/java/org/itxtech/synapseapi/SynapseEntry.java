@@ -18,7 +18,6 @@ import cn.nukkit.plugin.Plugin;
 import cn.nukkit.utils.BinaryStream;
 import cn.nukkit.utils.MainLogger;
 import cn.nukkit.utils.Zlib;
-import com.fasterxml.jackson.core.type.TypeReference;
 import it.unimi.dsi.fastutil.Pair;
 import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
 import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
@@ -56,9 +55,6 @@ import static org.itxtech.synapseapi.SynapseSharedConstants.SERVERBOUND_PACKET_L
  */
 @Log4j2
 public class SynapseEntry {
-    private static final TypeReference<Map<UUID, Integer>> NETWORK_LATENCY_TYPE_REFERENCE = new TypeReference<Map<UUID, Integer>>() {
-    };
-
     public static final int MAX_SIZE = 12 * 1024 * 1024; // 12MB
 
     public static final int[] PACKET_COUNT_LIMIT = new int[ProtocolInfo.COUNT];
@@ -75,8 +71,8 @@ public class SynapseEntry {
         PACKET_COUNT_LIMIT[ProtocolInfo.ANIMATE_PACKET] = 50;
         PACKET_COUNT_LIMIT[ProtocolInfo.INTERACT_PACKET] = 50;
         PACKET_COUNT_LIMIT[ProtocolInfo.RESOURCE_PACK_CHUNK_REQUEST_PACKET] = 1000;
-        PACKET_COUNT_LIMIT[ProtocolInfo.LEVEL_SOUND_EVENT_PACKET] = 0;
-        PACKET_COUNT_LIMIT[ProtocolInfo.LEVEL_SOUND_EVENT_PACKET_V2] = 0;
+        PACKET_COUNT_LIMIT[ProtocolInfo.LEVEL_SOUND_EVENT_PACKET] = 1;
+        PACKET_COUNT_LIMIT[ProtocolInfo.LEVEL_SOUND_EVENT_PACKET_V2] = 1;
         PACKET_COUNT_LIMIT[ProtocolInfo.LEVEL_SOUND_EVENT_PACKET_V3] = 30;
         PACKET_COUNT_LIMIT[ProtocolInfo.COMMAND_REQUEST_PACKET] = 5;
         PACKET_COUNT_LIMIT[ProtocolInfo.SETTINGS_COMMAND_PACKET] = 5;

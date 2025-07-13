@@ -44,7 +44,9 @@ import org.itxtech.synapseapi.event.player.SynapsePlayerTransferEvent;
 import org.itxtech.synapseapi.event.player.SynapsePlayerUnexpectedBehaviorEvent;
 import org.itxtech.synapseapi.multiprotocol.AbstractProtocol;
 import org.itxtech.synapseapi.multiprotocol.common.camera.CameraFadeInstruction;
+import org.itxtech.synapseapi.multiprotocol.common.camera.CameraFovInstruction;
 import org.itxtech.synapseapi.multiprotocol.common.camera.CameraSetInstruction;
+import org.itxtech.synapseapi.multiprotocol.common.camera.CameraTargetInstruction;
 import org.itxtech.synapseapi.multiprotocol.common.drawer.Shape;
 import org.itxtech.synapseapi.multiprotocol.protocol116100.protocol.TextPacket116100;
 import org.itxtech.synapseapi.multiprotocol.protocol116100ne.protocol.TextPacket116100NE;
@@ -1499,12 +1501,33 @@ public class SynapsePlayer extends Player {
         // 1.19.70+
     }
 
+    public void startCameraInstruction(CameraSetInstruction set, CameraFovInstruction fov, CameraTargetInstruction target, CameraFadeInstruction fade) {
+    }
+
+    public void startCameraInstruction(CameraSetInstruction set, CameraFovInstruction fov, CameraFadeInstruction fade) {
+    }
+
+    public void startCameraInstruction(CameraSetInstruction set, CameraTargetInstruction target, CameraFadeInstruction fade) {
+    }
+
     public void startCameraInstruction(CameraSetInstruction set, CameraFadeInstruction fade) {
         // 1.20.30+
     }
 
+    public void startCameraInstruction(CameraSetInstruction set, CameraFovInstruction fov) {
+    }
+
+    public void startCameraInstruction(CameraSetInstruction set, CameraTargetInstruction target) {
+    }
+
     public void startCameraInstruction(CameraSetInstruction set) {
         // 1.20.30+
+    }
+
+    public void startCameraInstruction(CameraFovInstruction fov) {
+    }
+
+    public void startCameraInstruction(CameraTargetInstruction target) {
     }
 
     public void startCameraInstruction(CameraFadeInstruction fade) {

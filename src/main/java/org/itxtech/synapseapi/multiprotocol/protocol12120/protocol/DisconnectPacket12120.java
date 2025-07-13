@@ -127,7 +127,7 @@ public class DisconnectPacket12120 extends Packet12120 {
     public static final int REASON_CONN_NOT_LOGGED_IN = 114;
     public static final int REASON_CONN_CLIENT_SIGNALING_ERROR = 115;
 
-    public int reason = REASON_UNKNOWN;
+    public int reason = REASON_DISCONNECTED;
     public boolean hideDisconnectionScreen;
     public String message = "";
     public String filteredMessage = "";

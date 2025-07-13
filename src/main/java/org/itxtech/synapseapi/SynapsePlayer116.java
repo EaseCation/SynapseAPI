@@ -11,6 +11,7 @@ import cn.nukkit.blockentity.BlockEntity;
 import cn.nukkit.blockentity.BlockEntityItemFrame;
 import cn.nukkit.blockentity.BlockEntityLectern;
 import cn.nukkit.blockentity.BlockEntitySpawnable;
+import cn.nukkit.command.Command;
 import cn.nukkit.entity.Entity;
 import cn.nukkit.entity.EntityFullNames;
 import cn.nukkit.entity.EntityID;
@@ -38,6 +39,7 @@ import cn.nukkit.inventory.transaction.data.UseItemOnEntityData;
 import cn.nukkit.item.Item;
 import cn.nukkit.item.Items;
 import cn.nukkit.item.enchantment.Enchantment;
+import cn.nukkit.lang.TranslationContainer;
 import cn.nukkit.level.Position;
 import cn.nukkit.level.particle.PunchBlockParticle;
 import cn.nukkit.math.*;
@@ -728,6 +730,31 @@ public class SynapsePlayer116 extends SynapsePlayer113 {
 				this.getServer().getLogger().warning("severity=" + packetViolationWarningPacket.severity.name());
 				this.getServer().getLogger().warning("packetId=0x" + Integer.toHexString(packetViolationWarningPacket.packetId) + " (" + packetViolationWarningPacket.packetId + ")");
 				this.getServer().getLogger().warning("context=" + packetViolationWarningPacket.context);
+				break;
+			case ProtocolInfo.SET_PLAYER_GAME_TYPE_PACKET:
+				SetPlayerGameTypePacket setPlayerGameTypePacket = (SetPlayerGameTypePacket) packet;
+				int gamemode = vanillaGamemodeToNukkitGamemode(setPlayerGameTypePacket.gamemode);
+				if (gamemode == this.gamemode) {
+					break;
+				}
+
+				if (!this.hasPermission("nukkit.command.gamemode") || gamemode == -1) {
+					UpdatePlayerGameTypePacket116 updatePlayerGameTypePacket = new UpdatePlayerGameTypePacket116();
+					updatePlayerGameTypePacket.gamemode = getClientFriendlyGamemode(this.gamemode);
+					updatePlayerGameTypePacket.playerEntityUniqueId = getId();
+					this.dataPacket(updatePlayerGameTypePacket);
+
+					this.sendAbilities(this, this.getAdventureSettings());
+					break;
+				}
+
+				this.setGamemode(gamemode, true);
+				Command.broadcastCommandMessage(this, new TranslationContainer("commands.gamemode.success.self", Server.getGamemodeString(this.gamemode)));
+
+				UpdatePlayerGameTypePacket116 updatePlayerGameTypePacket = new UpdatePlayerGameTypePacket116();
+				updatePlayerGameTypePacket.gamemode = getClientFriendlyGamemode(this.gamemode);
+				updatePlayerGameTypePacket.playerEntityUniqueId = getId();
+				this.dataPacket(updatePlayerGameTypePacket);
 				break;
 			case ProtocolInfo.EMOTE_PACKET:
 				if (!callPacketReceiveEvent(packet)) break;

@@ -542,7 +542,7 @@ public class SynapsePlayer113 extends SynapsePlayer112 {
 
 								Enchantment[] enchantments = item.getId() != Item.ENCHANTED_BOOK ? item.getEnchantments() : Enchantment.EMPTY;
 
-								float itemDamage = item.getAttackDamage();
+								float itemDamage = 1 + item.getAttackDamage();
 
 								float damageBonus = 0;
 								for (Enchantment enchantment : enchantments) {

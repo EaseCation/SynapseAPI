@@ -14,6 +14,16 @@ import static cn.nukkit.network.protocol.LevelSoundEventPacket.*;
 public final class LevelSoundEventUtil {
     private static final boolean[] C2S_SOUNDS = new boolean[2048];
 
+    public static int translateIdToClient(int sound, AbstractProtocol protocol, boolean netease) {
+        switch (sound) {
+            case SOUND_RECORD_LAVA_CHICKEN:
+                if (protocol == AbstractProtocol.PROTOCOL_121_93) {
+                    return 561;
+                }
+        }
+        return sound;
+    }
+
     public static int translateTo18ExtraData(int sound, int extraData, int pitch, AbstractProtocol protocol, boolean netease) {
         switch (sound) {
             case SOUND_PLACE:

@@ -88,6 +88,7 @@ public final class VanillaExperiments {
     /**
      * Enabling this will enhance the visuals of your game. (Vibrant Visuals)
      * @since 1.21.80
+     * @deprecated 1.21.90
      */
     public static final Experiment EXPERIMENTAL_GRAPHICS = new Experiment("experimental_graphics", true);
 
@@ -116,6 +117,7 @@ public final class VanillaExperiments {
     /**
      * Show the direction of other players in multiplayer. (Locator Bar)
      * @since 1.21.80
+     * @deprecated 1.21.90
      */
     public static final Experiment LOCATOR_BAR = new Experiment("locator_bar", true);
 

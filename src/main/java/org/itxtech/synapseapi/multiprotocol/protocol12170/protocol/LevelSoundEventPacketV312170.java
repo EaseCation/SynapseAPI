@@ -59,7 +59,7 @@ public class LevelSoundEventPacketV312170 extends Packet12170 {
     @Override
     public DataPacket fromDefault(DataPacket pk, AbstractProtocol protocol, boolean netease) {
         LevelSoundEventPacket packet = (LevelSoundEventPacket) pk;
-        this.sound = packet.sound;
+        this.sound = LevelSoundEventUtil.translateIdToClient(packet.sound, protocol, netease);
         this.extraData = LevelSoundEventUtil.translateTo18ExtraData(packet.sound, packet.extraData, packet.pitch, protocol, netease);
         this.x = packet.x;
         this.y = packet.y;

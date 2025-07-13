@@ -15,6 +15,7 @@ dependencies {
     } else {
         compileOnly(project(":AuthLibPackage"))
     }
+    testImplementation(project(":nukkit"))
 }
 
 group = "org.itxtech.synapse"
