@@ -1,5 +1,6 @@
 package org.itxtech.synapseapi.multiprotocol.utils;
 
+import cn.nukkit.command.data.CommandEnum;
 import cn.nukkit.nbt.NBTIO;
 import cn.nukkit.nbt.tag.CompoundTag;
 import cn.nukkit.nbt.tag.ListTag;
@@ -15,6 +16,7 @@ import org.itxtech.synapseapi.multiprotocol.protocol18.protocol.AvailableEntityI
 import javax.annotation.Nullable;
 import java.io.IOException;
 import java.nio.ByteOrder;
+import java.util.Collections;
 import java.util.EnumMap;
 import java.util.Map;
 import java.util.zip.Deflater;
@@ -198,6 +200,8 @@ public final class AvailableEntityIdentifiersPalette {
                     .putBoolean("summonable", false)
                     .putBoolean("experimental", false));
         });
+
+        CommandEnum.ENUM_ENTITY_TYPE.getValues().put(id, Collections.emptySet());
     }
 
     public static void init() {

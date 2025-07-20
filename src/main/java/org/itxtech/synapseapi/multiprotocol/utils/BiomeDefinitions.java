@@ -1,15 +1,24 @@
 package org.itxtech.synapseapi.multiprotocol.utils;
 
+import cn.nukkit.level.biome.*;
 import cn.nukkit.nbt.NBTIO;
 import cn.nukkit.nbt.tag.CompoundTag;
+import cn.nukkit.nbt.tag.ListTag;
 import cn.nukkit.nbt.tag.StringTag;
 import cn.nukkit.nbt.tag.Tag;
 import cn.nukkit.network.protocol.BatchPacket;
 import cn.nukkit.network.protocol.BatchPacket.Track;
 import cn.nukkit.network.protocol.DataPacket;
+import cn.nukkit.utils.BinaryStream;
+import cn.nukkit.utils.Hash;
 import com.google.common.io.ByteStreams;
+import it.unimi.dsi.fastutil.ints.IntArrayList;
+import it.unimi.dsi.fastutil.ints.IntList;
+import it.unimi.dsi.fastutil.objects.Object2IntMap;
+import it.unimi.dsi.fastutil.objects.Object2IntRBTreeMap;
 import lombok.extern.log4j.Log4j2;
 import org.itxtech.synapseapi.SynapseAPI;
+import org.itxtech.synapseapi.event.server.BiomeRegistryChecksumChangedEvent;
 import org.itxtech.synapseapi.multiprotocol.AbstractProtocol;
 import org.itxtech.synapseapi.multiprotocol.common.biome.BiomeDefinitionData;
 import org.itxtech.synapseapi.multiprotocol.protocol121100.protocol.BiomeDefinitionListPacket121100;
@@ -30,8 +39,30 @@ public final class BiomeDefinitions {
     private static final Map<AbstractProtocol, CompoundTag> data = new EnumMap<>(AbstractProtocol.class);
     private static final Map<AbstractProtocol, BatchPacket[]> PACKETS = new EnumMap<>(AbstractProtocol.class);
 
+    private static long BIOME_REGISTRY_CHECKSUM;
+    private static final AbstractProtocol BIOME_REGISTRY_CHECKSUM_VERSION = AbstractProtocol.FIRST_AVAILABLE_PROTOCOL;
+
+    private static final IntList CUSTOM_BIOME_RUNTIME_TO_LEGACY_CLIENT = new IntArrayList();
+
     static {
         log.debug("Loading biome definitions...");
+
+        Biomes.setNetworkManager(new BiomeNetworkManager() {
+            @Override
+            public void registerCustomBiome(int id, String name, String fullName, CustomBiome biome) {
+                BiomeDefinitions.registerCustomBiome(id, name, fullName, biome);
+            }
+
+            @Override
+            public void rebuildCache() {
+                BiomeDefinitions.cachePackets();
+            }
+
+            @Override
+            public int toClientId(int id, boolean legacy) {
+                return BiomeDefinitions.toClientId(id, legacy);
+            }
+        });
 
         try {
 /*
@@ -124,6 +155,9 @@ public final class BiomeDefinitions {
         for (Entry<String, Tag> entry : tag.entrySet()) {
             CompoundTag nbt = (CompoundTag) entry.getValue();
             BiomeDefinitionData definition = new BiomeDefinitionData();
+            if (nbt.contains("id")) {
+                definition.id = nbt.getShort("id");
+            }
             definition.temperature = nbt.getFloat("temperature");
             definition.downfall = nbt.getFloat("downfall");
             definition.redSporeDensity = nbt.getFloat("red_spores");
@@ -240,6 +274,35 @@ public final class BiomeDefinitions {
 
             PACKETS.put(protocol, new BatchPacket[]{batch, batch});
         }
+
+        recalculateBiomeRegistryChecksum();
+    }
+
+    private static void recalculateBiomeRegistryChecksum() {
+        Object2IntMap<String> sort = new Object2IntRBTreeMap<>();
+        for (String name : getData(BIOME_REGISTRY_CHECKSUM_VERSION).keySet()) {
+            sort.put(name, Biomes.getIdByName(name));
+        }
+
+        BinaryStream stream = new BinaryStream();
+        for (Object2IntMap.Entry<String> entry : sort.object2IntEntrySet()) {
+            stream.putString(entry.getKey());
+            stream.putLShort(entry.getIntValue());
+        }
+
+        long newChecksum = Hash.xxh64(stream.getBuffer());
+        if (BIOME_REGISTRY_CHECKSUM == newChecksum) {
+            return;
+        }
+        BIOME_REGISTRY_CHECKSUM = newChecksum;
+
+        new BiomeRegistryChecksumChangedEvent(newChecksum).call();
+
+        SynapseAPI.getInstance().getLogger().debug("BiomeRegistry checksum: {}", newChecksum);
+    }
+
+    public static long getBiomeRegistryChecksum() {
+        return BIOME_REGISTRY_CHECKSUM;
     }
 
     @Nullable
@@ -250,6 +313,106 @@ public final class BiomeDefinitions {
     @Nullable
     public static DataPacket getPacket(AbstractProtocol protocol, boolean netease) {
         return PACKETS.get(protocol)[netease ? 1 : 0];
+    }
+
+    private static void registerCustomBiome(int id, String name, String fullName, CustomBiome biome) {
+        Object2IntMap<String> sort = new Object2IntRBTreeMap<>();
+        sort.put(name, id);
+        for (Biome customBiome : Biomes.getCustomBiomes()) {
+            sort.put(customBiome.getIdentifier(), customBiome.getId());
+        }
+        IntList converter = CUSTOM_BIOME_RUNTIME_TO_LEGACY_CLIENT;
+        converter.clear();
+        int clientIndex = 0;
+        for (int runtimeId : sort.values()) {
+            int runtimeIndex = runtimeId - 30000;
+            while (converter.size() <= runtimeIndex) {
+                converter.add(-1);
+            }
+            converter.set(runtimeIndex, 193 + clientIndex++); // 1.20.0-1.21.30: 193+
+        }
+
+        for (Entry<AbstractProtocol, CompoundTag> entry : data.entrySet()) {
+            AbstractProtocol protocol = entry.getKey();
+            if (protocol.getProtocolStart() < AbstractProtocol.FIRST_AVAILABLE_PROTOCOL.getProtocolStart()) {
+                continue;
+            }
+
+            CompoundTag nbt = new CompoundTag()
+                    .putFloat("temperature", biome.getTemperature())
+                    .putFloat("downfall", biome.getDownfall());
+
+            if (protocol.getProtocolStart() >= AbstractProtocol.PROTOCOL_116.getProtocolStart()) {
+                nbt.putFloat("ash", biome.getAsh());
+                nbt.putFloat("white_ash", biome.getWhiteAsh());
+                nbt.putFloat("blue_spores", biome.getBlueSpores());
+                nbt.putFloat("red_spores", biome.getRedSpores());
+
+                ListTag<StringTag> tags = new ListTag<>();
+                biome.getTags().forEach(tags::addString);
+                nbt.putList("tags", tags);
+
+                if (protocol.getProtocolStart() < AbstractProtocol.PROTOCOL_119_40.getProtocolStart()) {
+                    CompoundTag climate = new CompoundTag()
+                            .putFloat("temperature", biome.getTemperature())
+                            .putFloat("downfall", biome.getDownfall())
+                            .putFloat("ash", biome.getAsh())
+                            .putFloat("white_ash", biome.getWhiteAsh())
+                            .putFloat("blue_spores", biome.getBlueSpores())
+                            .putFloat("red_spores", biome.getRedSpores());
+
+                    if (protocol.getProtocolStart() >= AbstractProtocol.PROTOCOL_119_30.getProtocolStart()) {
+                        climate.putFloat("snow_accumulation_min", biome.getMinSnowAccumulation());
+                        climate.putFloat("snow_accumulation_max", biome.getMaxSnowAccumulation());
+                    }
+
+                    nbt.putCompound("minecraft:climate", climate);
+                }
+
+                if (protocol.getProtocolStart() >= AbstractProtocol.PROTOCOL_119_20.getProtocolStart()) {
+                    nbt.putFloat("depth", biome.getBaseHeight());
+                    nbt.putFloat("height", biome.getHeightVariation());
+
+                    nbt.putBoolean("rain", biome.canRain());
+
+                    if (protocol.getProtocolStart() < AbstractProtocol.PROTOCOL_121_40.getProtocolStart()) {
+                        nbt.putFloat("waterTransparency", biome.getWaterColor().getAlpha() / 255f);
+
+                        if (protocol.getProtocolStart() >= AbstractProtocol.PROTOCOL_119_30.getProtocolStart()) {
+                            nbt.putString("name_hash", name);
+                        }
+                    } else {
+                        nbt.putShort("id", id);
+
+                        if (protocol.getProtocolStart() < AbstractProtocol.PROTOCOL_121_80.getProtocolStart()) {
+                            nbt.putFloat("waterColorA", biome.getWaterColor().getAlpha() / 255f);
+                            nbt.putFloat("waterColorR", biome.getWaterColor().getRed() / 255f);
+                            nbt.putFloat("waterColorG", biome.getWaterColor().getGreen() / 255f);
+                            nbt.putFloat("waterColorB", biome.getWaterColor().getBlue() / 255f);
+                        } else {
+                            nbt.putInt("waterColorARGB", biome.getWaterColor().getRGB());
+                        }
+                    }
+                }
+            }
+
+            entry.getValue().putCompound(protocol.getProtocolStart() >= AbstractProtocol.PROTOCOL_121_40.getProtocolStart() ? fullName : name, nbt);
+        }
+    }
+
+    private static int toClientId(int runtimeId, boolean legacy) {
+        if (legacy && runtimeId >= 30000) {
+            int runtimeIndex = runtimeId - 30000;
+            if (runtimeIndex >= CUSTOM_BIOME_RUNTIME_TO_LEGACY_CLIENT.size()) {
+                return BiomeID.OCEAN;
+            }
+            int clientId = CUSTOM_BIOME_RUNTIME_TO_LEGACY_CLIENT.getInt(runtimeIndex);
+            if (clientId == -1) {
+                return BiomeID.OCEAN;
+            }
+            return clientId;
+        }
+        return runtimeId;
     }
 
     public static void init() {

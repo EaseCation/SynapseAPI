@@ -270,10 +270,8 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
             startGamePacket.enchantmentSeed = ThreadLocalRandom.current().nextInt();
             startGamePacket.playerPropertyData = getCompiledPlayerProperties();
             startGamePacket.isSoundServerAuthoritative = isServerAuthoritativeSoundEnabled();
-            List<Experiment> experiments = new ArrayList<>(4);
-            if (getProtocol() < AbstractProtocol.PROTOCOL_121_20.getProtocolStart()) {
-                experiments.add(VanillaExperiments.DATA_DRIVEN_ITEMS);
-            }
+            List<Experiment> experiments = new ArrayList<>();
+            experiments.add(VanillaExperiments.DATA_DRIVEN_BIOMES);
             experiments.add(VanillaExperiments.UPCOMING_CREATOR_FEATURES);
             if (isBetaClient()) {
                 experiments.add(VanillaExperiments.DEFERRED_TECHNICAL_PREVIEW);
@@ -314,10 +312,8 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
             startGamePacket.enchantmentSeed = ThreadLocalRandom.current().nextInt();
             startGamePacket.playerPropertyData = getCompiledPlayerProperties();
             startGamePacket.isSoundServerAuthoritative = isServerAuthoritativeSoundEnabled();
-            List<Experiment> experiments = new ArrayList<>(4);
-            if (getProtocol() < AbstractProtocol.PROTOCOL_121_20.getProtocolStart()) {
-                experiments.add(VanillaExperiments.DATA_DRIVEN_ITEMS);
-            }
+            List<Experiment> experiments = new ArrayList<>();
+            experiments.add(VanillaExperiments.DATA_DRIVEN_BIOMES);
             experiments.add(VanillaExperiments.UPCOMING_CREATOR_FEATURES);
             if (isBetaClient()) {
                 experiments.add(VanillaExperiments.DEFERRED_TECHNICAL_PREVIEW);
@@ -359,10 +355,8 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
             startGamePacket.enchantmentSeed = ThreadLocalRandom.current().nextInt();
             startGamePacket.playerPropertyData = getCompiledPlayerProperties();
             startGamePacket.isSoundServerAuthoritative = isServerAuthoritativeSoundEnabled();
-            List<Experiment> experiments = new ArrayList<>(4);
-            if (getProtocol() < AbstractProtocol.PROTOCOL_121_20.getProtocolStart()) {
-                experiments.add(VanillaExperiments.DATA_DRIVEN_ITEMS);
-            }
+            List<Experiment> experiments = new ArrayList<>();
+            experiments.add(VanillaExperiments.DATA_DRIVEN_BIOMES);
             experiments.add(VanillaExperiments.UPCOMING_CREATOR_FEATURES);
             if (isBetaClient()) {
                 experiments.add(VanillaExperiments.DEFERRED_TECHNICAL_PREVIEW);
@@ -408,7 +402,8 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
             startGamePacket.enchantmentSeed = ThreadLocalRandom.current().nextInt();
             startGamePacket.playerPropertyData = getCompiledPlayerProperties();
             startGamePacket.isSoundServerAuthoritative = isServerAuthoritativeSoundEnabled();
-            List<Experiment> experiments = new ArrayList<>(3);
+            List<Experiment> experiments = new ArrayList<>();
+            experiments.add(VanillaExperiments.DATA_DRIVEN_BIOMES);
             if (getProtocol() < AbstractProtocol.PROTOCOL_121_20.getProtocolStart()) {
                 experiments.add(VanillaExperiments.DATA_DRIVEN_ITEMS);
             }
@@ -453,7 +448,8 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
             startGamePacket.enchantmentSeed = ThreadLocalRandom.current().nextInt();
             startGamePacket.playerPropertyData = getCompiledPlayerProperties();
             startGamePacket.isSoundServerAuthoritative = isServerAuthoritativeSoundEnabled();
-            List<Experiment> experiments = new ArrayList<>(3);
+            List<Experiment> experiments = new ArrayList<>();
+            experiments.add(VanillaExperiments.DATA_DRIVEN_BIOMES);
             experiments.add(VanillaExperiments.DATA_DRIVEN_ITEMS);
             experiments.add(VanillaExperiments.UPCOMING_CREATOR_FEATURES);
             if (isBetaClient()) {
@@ -496,7 +492,8 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
             startGamePacket.enchantmentSeed = ThreadLocalRandom.current().nextInt();
             startGamePacket.playerPropertyData = getCompiledPlayerProperties();
             startGamePacket.isSoundServerAuthoritative = isServerAuthoritativeSoundEnabled();
-            List<Experiment> experiments = new ArrayList<>(4);
+            List<Experiment> experiments = new ArrayList<>();
+            experiments.add(VanillaExperiments.DATA_DRIVEN_BIOMES);
             experiments.add(VanillaExperiments.DATA_DRIVEN_ITEMS);
             experiments.add(VanillaExperiments.UPCOMING_CREATOR_FEATURES);
             if (getProtocol() < AbstractProtocol.PROTOCOL_120_70.getProtocolStart()) {
@@ -543,6 +540,7 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
             startGamePacket.playerPropertyData = getCompiledPlayerProperties();
             startGamePacket.isSoundServerAuthoritative = isServerAuthoritativeSoundEnabled();
             startGamePacket.experiments = new Experiments(
+                    VanillaExperiments.DATA_DRIVEN_BIOMES,
                     VanillaExperiments.DATA_DRIVEN_ITEMS,
                     VanillaExperiments.UPCOMING_CREATOR_FEATURES,
                     VanillaExperiments.EXPERIMENTAL_MOLANG_FEATURES,
@@ -584,6 +582,7 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
             startGamePacket.enchantmentSeed = ThreadLocalRandom.current().nextInt();
             startGamePacket.playerPropertyData = getCompiledPlayerProperties();
             startGamePacket.experiments = new Experiments(
+                    VanillaExperiments.DATA_DRIVEN_BIOMES,
                     VanillaExperiments.DATA_DRIVEN_ITEMS,
                     VanillaExperiments.UPCOMING_CREATOR_FEATURES,
                     VanillaExperiments.EXPERIMENTAL_MOLANG_FEATURES
@@ -624,6 +623,7 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
             startGamePacket.enchantmentSeed = ThreadLocalRandom.current().nextInt();
             startGamePacket.playerPropertyData = getCompiledPlayerProperties();
             startGamePacket.experiments = new Experiments(
+                    VanillaExperiments.DATA_DRIVEN_BIOMES,
                     VanillaExperiments.DATA_DRIVEN_ITEMS,
                     VanillaExperiments.UPCOMING_CREATOR_FEATURES,
                     VanillaExperiments.EXPERIMENTAL_MOLANG_FEATURES
@@ -664,6 +664,7 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
             startGamePacket.enchantmentSeed = ThreadLocalRandom.current().nextInt();
             startGamePacket.playerPropertyData = getCompiledPlayerProperties();
             startGamePacket.experiments = new Experiments(
+                    VanillaExperiments.DATA_DRIVEN_BIOMES,
                     VanillaExperiments.DATA_DRIVEN_ITEMS,
                     VanillaExperiments.UPCOMING_CREATOR_FEATURES,
                     VanillaExperiments.EXPERIMENTAL_MOLANG_FEATURES
@@ -704,6 +705,7 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
             startGamePacket.enchantmentSeed = ThreadLocalRandom.current().nextInt();
             startGamePacket.playerPropertyData = getCompiledPlayerProperties();
             startGamePacket.experiments = new Experiments(
+                    VanillaExperiments.DATA_DRIVEN_BIOMES,
                     VanillaExperiments.DATA_DRIVEN_ITEMS,
                     VanillaExperiments.UPCOMING_CREATOR_FEATURES,
                     VanillaExperiments.EXPERIMENTAL_MOLANG_FEATURES
@@ -744,6 +746,7 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
             startGamePacket.enchantmentSeed = ThreadLocalRandom.current().nextInt();
             startGamePacket.playerPropertyData = getCompiledPlayerProperties();
             startGamePacket.experiments = new Experiments(
+                    VanillaExperiments.DATA_DRIVEN_BIOMES,
                     VanillaExperiments.DATA_DRIVEN_ITEMS,
                     VanillaExperiments.UPCOMING_CREATOR_FEATURES,
                     VanillaExperiments.EXPERIMENTAL_MOLANG_FEATURES
@@ -783,6 +786,7 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
             startGamePacket.currentTick = 0;//this.server.getTick();
             startGamePacket.enchantmentSeed = ThreadLocalRandom.current().nextInt();
             startGamePacket.experiments = new Experiments(
+                    VanillaExperiments.DATA_DRIVEN_BIOMES,
                     VanillaExperiments.DATA_DRIVEN_ITEMS,
                     VanillaExperiments.UPCOMING_CREATOR_FEATURES,
                     VanillaExperiments.EXPERIMENTAL_MOLANG_FEATURES
@@ -822,6 +826,7 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
             startGamePacket.currentTick = 0;//this.server.getTick();
             startGamePacket.enchantmentSeed = ThreadLocalRandom.current().nextInt();
             startGamePacket.experiments = new Experiments(
+                    VanillaExperiments.DATA_DRIVEN_BIOMES,
                     VanillaExperiments.DATA_DRIVEN_ITEMS,
                     VanillaExperiments.UPCOMING_CREATOR_FEATURES,
                     VanillaExperiments.EXPERIMENTAL_MOLANG_FEATURES
@@ -861,6 +866,7 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
             startGamePacket.currentTick = 0;//this.server.getTick();
             startGamePacket.enchantmentSeed = ThreadLocalRandom.current().nextInt();
             startGamePacket.experiments = new Experiments(
+                    VanillaExperiments.DATA_DRIVEN_BIOMES,
                     VanillaExperiments.DATA_DRIVEN_ITEMS,
                     VanillaExperiments.UPCOMING_CREATOR_FEATURES,
                     VanillaExperiments.EXPERIMENTAL_MOLANG_FEATURES
@@ -900,6 +906,7 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
             startGamePacket.currentTick = 0;//this.server.getTick();
             startGamePacket.enchantmentSeed = ThreadLocalRandom.current().nextInt();
             startGamePacket.experiments = new Experiments(
+                    VanillaExperiments.DATA_DRIVEN_BIOMES,
                     VanillaExperiments.DATA_DRIVEN_ITEMS,
                     VanillaExperiments.UPCOMING_CREATOR_FEATURES,
                     VanillaExperiments.EXPERIMENTAL_MOLANG_FEATURES
@@ -939,6 +946,7 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
             startGamePacket.currentTick = 0;//this.server.getTick();
             startGamePacket.enchantmentSeed = ThreadLocalRandom.current().nextInt();
             startGamePacket.experiments = new Experiments(
+                    VanillaExperiments.DATA_DRIVEN_BIOMES,
                     VanillaExperiments.DATA_DRIVEN_ITEMS,
                     VanillaExperiments.UPCOMING_CREATOR_FEATURES
             );
@@ -980,6 +988,7 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
             startGamePacket.currentTick = 0;//this.server.getTick();
             startGamePacket.enchantmentSeed = ThreadLocalRandom.current().nextInt();
             startGamePacket.experiments = new Experiments(
+                    VanillaExperiments.DATA_DRIVEN_BIOMES,
                     VanillaExperiments.DATA_DRIVEN_ITEMS
             );
             return startGamePacket;
@@ -1049,6 +1058,7 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
         startGamePacket.currentTick = 0;//this.server.getTick();
         startGamePacket.enchantmentSeed = ThreadLocalRandom.current().nextInt();
         startGamePacket.experiments = new Experiments(
+                VanillaExperiments.DATA_DRIVEN_BIOMES,
                 VanillaExperiments.DATA_DRIVEN_ITEMS
         );
         return startGamePacket;
@@ -1182,7 +1192,8 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
                             stackPacket.mustAccept = this.forceResources;
                             stackPacket.resourcePackStack = this.resourcePacks.values().toArray(new ResourcePack[0]);
                             stackPacket.behaviourPackStack = this.behaviourPacks.values().toArray(new ResourcePack[0]);
-                            List<Experiment> experiments = new ArrayList<>(4);
+                            List<Experiment> experiments = new ArrayList<>();
+                            experiments.add(VanillaExperiments.DATA_DRIVEN_BIOMES);
                             if (getProtocol() < AbstractProtocol.PROTOCOL_121_20.getProtocolStart()) {
                                 experiments.add(VanillaExperiments.DATA_DRIVEN_ITEMS);
                             }
@@ -1207,7 +1218,8 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
                             stackPacket.mustAccept = this.forceResources;
                             stackPacket.resourcePackStack = this.resourcePacks.values().toArray(new ResourcePack[0]);
                             stackPacket.behaviourPackStack = this.behaviourPacks.values().toArray(new ResourcePack[0]);
-                            List<Experiment> experiments = new ArrayList<>(5);
+                            List<Experiment> experiments = new ArrayList<>();
+                            experiments.add(VanillaExperiments.DATA_DRIVEN_BIOMES);
                             experiments.add(VanillaExperiments.DATA_DRIVEN_ITEMS);
                             if (getProtocol() >= AbstractProtocol.PROTOCOL_117.getProtocolStart()) {
                                 experiments.add(VanillaExperiments.UPCOMING_CREATOR_FEATURES);
@@ -1527,7 +1539,7 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
                                 break;
                             }
 
-                            if (/*!isAdventure()*/true) {
+                            if (!isAdventure()) {
                                 switch (target.getId()) {
                                     case Block.NOTEBLOCK:
                                         ((BlockNoteblock) target).emitSound();
@@ -2892,11 +2904,18 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
 
         if (this.isBlobCacheAvailable() && this.isSubModeLevelChunkBlobCacheEnabled() && !centerChunk) {
             ChunkBlobCache blobCache = cachedData.getBlobCache();
-            long[] ids = blobCache.getBlobIds();
-            Long2ObjectMap<byte[]> extendedClientBlobs = blobCache.getBlobs();
+            long[] ids;
+            Long2ObjectMap<byte[]> blobs;
+            if (getProtocol() >= AbstractProtocol.PROTOCOL_121_40.getProtocolStart()) {
+                ids = blobCache.getBlobIds();
+                blobs = blobCache.getBlobs();
+            } else {
+                ids = blobCache.getBlobIdsLegacy();
+                blobs = blobCache.getBlobsLegacy();
+            }
 
             long hash = ids[ids.length - 1]; // biome
-            this.clientCacheTrack.put(hash, new BlobTrack(hash, extendedClientBlobs.get(hash)));
+            this.clientCacheTrack.put(hash, new BlobTrack(hash, blobs.get(hash)));
 
             LevelChunkPacket pk = createLevelChunkPacket();
             pk.chunkX = x;
@@ -2961,11 +2980,18 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
         pk.subChunkRequestLimit = subChunkCount;
         if (this.isBlobCacheAvailable() && this.isSubModeLevelChunkBlobCacheEnabled() && !centerChunk) {
             ChunkBlobCache blobCache = cachedData.getBlobCache();
-            long[] ids = blobCache.getBlobIds();
-            Long2ObjectMap<byte[]> extendedClientBlobs = blobCache.getBlobs();
+            long[] ids;
+            Long2ObjectMap<byte[]> blobs;
+            if (getProtocol() >= AbstractProtocol.PROTOCOL_121_40.getProtocolStart()) {
+                ids = blobCache.getBlobIds();
+                blobs = blobCache.getBlobs();
+            } else {
+                ids = blobCache.getBlobIdsLegacy();
+                blobs = blobCache.getBlobsLegacy();
+            }
 
             long hash = ids[ids.length - 1]; // biome
-            this.clientCacheTrack.put(hash, new BlobTrack(hash, extendedClientBlobs.get(hash)));
+            this.clientCacheTrack.put(hash, new BlobTrack(hash, blobs.get(hash)));
 
             pk.blobIds = new long[]{hash};
             pk.cacheEnabled = true;
@@ -3053,10 +3079,18 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
             if (index >= cachedData.getEmptySection().length || cachedData.getEmptySection()[index]) {
                 pk.requestResult = SubChunkPacket.REQUEST_RESULT_SUCCESS_ALL_AIR;
             } else if (this.isBlobCacheAvailable() && this.isSubChunkBlobCacheEnabled() && !centerChunk) {
-                long[] ids = blobCache.getBlobIds();
-                Long2ObjectMap<byte[]> extendedClientBlobs = blobCache.getBlobs();
+                long[] ids;
+                Long2ObjectMap<byte[]> blobs;
+                if (getProtocol() >= AbstractProtocol.PROTOCOL_121_40.getProtocolStart()) {
+                    ids = blobCache.getBlobIds();
+                    blobs = blobCache.getBlobs();
+                } else {
+                    ids = blobCache.getBlobIdsLegacy();
+                    blobs = blobCache.getBlobsLegacy();
+                }
+
                 long hash = ids[index];
-                this.clientCacheTrack.put(hash, new BlobTrack(hash, extendedClientBlobs.get(hash)));
+                this.clientCacheTrack.put(hash, new BlobTrack(hash, blobs.get(hash)));
 
                 pk.data = blobCache.getSubChunkPayloads()[index];
                 pk.blobId = hash;
@@ -3150,10 +3184,18 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
                 pk.heightMap = heightMap[index];
                 this.dataPacket(pk);
             } else if (this.isBlobCacheAvailable() && this.isSubChunkBlobCacheEnabled() && !centerChunk) {
-                long[] ids = blobCache.getBlobIds();
-                Long2ObjectMap<byte[]> extendedClientBlobs = blobCache.getBlobs();
+                long[] ids;
+                Long2ObjectMap<byte[]> blobs;
+                if (getProtocol() >= AbstractProtocol.PROTOCOL_121_40.getProtocolStart()) {
+                    ids = blobCache.getBlobIds();
+                    blobs = blobCache.getBlobs();
+                } else {
+                    ids = blobCache.getBlobIdsLegacy();
+                    blobs = blobCache.getBlobsLegacy();
+                }
+
                 long hash = ids[index];
-                this.clientCacheTrack.put(hash, new BlobTrack(hash, extendedClientBlobs.get(hash)));
+                this.clientCacheTrack.put(hash, new BlobTrack(hash, blobs.get(hash)));
 
                 SubChunkPacket pk = this.createSubChunkPacket();
 //                pk.dimension = dimension;

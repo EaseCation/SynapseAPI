@@ -278,7 +278,7 @@ public class SynapsePlayer14 extends SynapsePlayer {
 							break;
 						}
 
-						if (/*!isAdventure()*/true) {
+						if (!isAdventure()) {
 							switch (target.getId()) {
 								case Block.NOTEBLOCK:
 									((BlockNoteblock) target).emitSound();

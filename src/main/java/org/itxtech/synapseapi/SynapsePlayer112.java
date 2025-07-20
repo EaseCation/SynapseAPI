@@ -119,8 +119,8 @@ public class SynapsePlayer112 extends SynapsePlayer19 {
 			long chunkHash = Level.chunkHash(x, z);
 
 			ChunkBlobCache blobCache = cachedData.getBlobCache();
-			long[] blobIds = blobCache.getBlobIds();
-			Long2ObjectMap<byte[]> blobs = blobCache.getBlobs();
+			long[] blobIds = blobCache.getBlobIdsLegacy();
+			Long2ObjectMap<byte[]> blobs = blobCache.getBlobsLegacy();
 
 			this.usedChunks.put(chunkHash, true);
 			this.chunkLoadCount++;
@@ -190,8 +190,8 @@ public class SynapsePlayer112 extends SynapsePlayer19 {
 
 		if (this.isBlobCacheAvailable() && (!centerChunk || !CENTER_CHUNK_WITHOUT_CACHE) && !this.isBlobCacheDisabled()) {
 			ChunkBlobCache blobCache = cachedData.getBlobCache();
-			long[] blobIds = blobCache.getBlobIds();
-			Long2ObjectMap<byte[]> blobs = blobCache.getBlobs();
+			long[] blobIds = blobCache.getBlobIdsLegacy();
+			Long2ObjectMap<byte[]> blobs = blobCache.getBlobsLegacy();
 
 			ObjectIterator<Long2ObjectMap.Entry<byte[]>> iter = Long2ObjectMaps.fastIterator(blobs);
 			while (iter.hasNext()) {

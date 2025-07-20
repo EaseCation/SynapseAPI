@@ -60,10 +60,7 @@ import org.itxtech.synapseapi.multiprotocol.protocol12120.protocol.ChangeDimensi
 import org.itxtech.synapseapi.multiprotocol.protocol14.protocol.PlayerActionPacket14;
 import org.itxtech.synapseapi.multiprotocol.protocol14.protocol.TextPacket14;
 import org.itxtech.synapseapi.multiprotocol.protocol17.protocol.TextPacket17;
-import org.itxtech.synapseapi.multiprotocol.utils.AdvancedGlobalBlockPalette;
-import org.itxtech.synapseapi.multiprotocol.utils.AdvancedRuntimeItemPalette;
-import org.itxtech.synapseapi.multiprotocol.utils.CraftingPacketManager;
-import org.itxtech.synapseapi.multiprotocol.utils.CreativeItemsPalette;
+import org.itxtech.synapseapi.multiprotocol.utils.*;
 import org.itxtech.synapseapi.network.protocol.mod.ServerSubPacketHandler;
 import org.itxtech.synapseapi.network.protocol.spp.PlayerLoginPacket;
 import org.itxtech.synapseapi.network.protocol.spp.PlayerLogoutPacket;
@@ -218,6 +215,10 @@ public class SynapsePlayer extends Player {
                     if (itemsChecksum != null) {
                         checkItemRegistryChecksum(itemsChecksum.getAsLong());
                     }
+                    JsonElement biomesChecksum = cachedExtra.get("biomes_checksum");
+                    if (biomesChecksum != null) {
+                        checkBiomeRegistryChecksum(biomesChecksum.getAsLong());
+                    }
                 }
             } catch (Exception e) {
                 MainLogger.getLogger().logException(e);
@@ -243,6 +244,16 @@ public class SynapsePlayer extends Player {
         }
 
         SynapseAPI.getInstance().getLogger().info("玩家 {} 触发原生跨服由于先前的物品注册表 {} 与本服 {} 不同", getName(), previousChecksum, checksum);
+        rejoinGame("disconnectionScreen.blockMismatch");
+    }
+
+    protected void checkBiomeRegistryChecksum(long previousChecksum) {
+        long checksum = BiomeDefinitions.getBiomeRegistryChecksum();
+        if (checksum == previousChecksum) {
+            return;
+        }
+
+        SynapseAPI.getInstance().getLogger().info("玩家 {} 触发原生跨服由于先前的生物群系注册表 {} 与本服 {} 不同", getName(), previousChecksum, checksum);
         rejoinGame("disconnectionScreen.blockMismatch");
     }
 
@@ -748,6 +759,7 @@ public class SynapsePlayer extends Player {
                     pk.extra.add("beh_packs", behPacks);
                     pk.extra.addProperty("blocks_checksum", AdvancedGlobalBlockPalette.getBlockRegistryChecksum());
                     pk.extra.addProperty("items_checksum", AdvancedRuntimeItemPalette.getItemRegistryChecksum());
+                    pk.extra.addProperty("biomes_checksum", BiomeDefinitions.getBiomeRegistryChecksum());
                     getSynapseEntry().sendDataPacket(pk);
                 }
             }, 1);

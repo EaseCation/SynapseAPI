@@ -1101,7 +1101,7 @@ public class SynapsePlayer116 extends SynapsePlayer113 {
 									this.inventory.sendHeldItem(this);
 									break;
 								}
-								if (/*!isAdventure()*/true) {
+								if (!isAdventure()) {
 									switch (target.getId()) {
 										case Block.NOTEBLOCK:
 											((BlockNoteblock) target).emitSound();
