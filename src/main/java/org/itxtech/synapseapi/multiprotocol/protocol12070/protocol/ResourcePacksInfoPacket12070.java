@@ -13,7 +13,7 @@ public class ResourcePacksInfoPacket12070 extends Packet12070 {
     public boolean mustAccept;
     public boolean hasAddonPacks;
     public boolean scripting;
-    public boolean forceServerPacks = true;
+    public boolean forceServerPacks = false;
     public ResourcePack[] behaviourPackEntries = new ResourcePack[0];
     public ResourcePack[] resourcePackEntries = new ResourcePack[0];
     public CDNEntry[] cdnEntries = new CDNEntry[0];

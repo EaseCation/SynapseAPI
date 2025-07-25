@@ -14,7 +14,7 @@ public class ResourcePacksInfoPacket11710 extends Packet11710 {
 
     public boolean mustAccept = false;
     public boolean scripting = false;
-    public boolean forceServerPacks = true;
+    public boolean forceServerPacks = false;
     public ResourcePack[] behaviourPackEntries = new ResourcePack[0];
     public ResourcePack[] resourcePackEntries = new ResourcePack[0];
 
