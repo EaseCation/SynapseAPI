@@ -15,23 +15,17 @@ import cn.nukkit.level.format.generic.ChunkRequestTask;
 import cn.nukkit.network.RakNetInterface;
 import cn.nukkit.network.SourceInterface;
 import cn.nukkit.network.protocol.DataPacket;
+import cn.nukkit.plugin.PluginBase;
+import cn.nukkit.utils.ConfigSection;
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
 import org.itxtech.synapseapi.camera.CameraManager;
 import org.itxtech.synapseapi.command.*;
-import org.itxtech.synapseapi.multiprotocol.AbstractProtocol;
-import org.itxtech.synapseapi.multiprotocol.PacketRegister;
-import cn.nukkit.plugin.PluginBase;
-import cn.nukkit.utils.ConfigSection;
+import org.itxtech.synapseapi.filtertext.FilterTextService;
 import org.itxtech.synapseapi.messaging.Messenger;
 import org.itxtech.synapseapi.messaging.StandardMessenger;
-import org.itxtech.synapseapi.multiprotocol.utils.AdvancedGlobalBlockPalette;
-import org.itxtech.synapseapi.multiprotocol.utils.AdvancedRuntimeItemPalette;
-import org.itxtech.synapseapi.multiprotocol.utils.AvailableEntityIdentifiersPalette;
-import org.itxtech.synapseapi.multiprotocol.utils.BiomeDefinitions;
-import org.itxtech.synapseapi.multiprotocol.utils.CraftingPacketManager;
-import org.itxtech.synapseapi.multiprotocol.utils.CreativeItemsPalette;
-import org.itxtech.synapseapi.multiprotocol.utils.EntityPropertiesCache;
-import org.itxtech.synapseapi.multiprotocol.utils.ItemComponentDefinitions;
+import org.itxtech.synapseapi.multiprotocol.AbstractProtocol;
+import org.itxtech.synapseapi.multiprotocol.PacketRegister;
+import org.itxtech.synapseapi.multiprotocol.utils.*;
 import org.itxtech.synapseapi.multiprotocol.utils.item.CraftingManagerLegacy;
 import org.itxtech.synapseapi.multiprotocol.utils.item.CraftingManagerMedieval;
 import org.itxtech.synapseapi.multiprotocol.utils.item.CraftingManagerNew;
@@ -286,6 +280,9 @@ public class SynapseAPI extends PluginBase implements Listener {
         this.getServer().getCommandMap().register("synapse", new DebugExportCommand(this));
         this.getServer().getCommandMap().register("synapse", new CommunityToolCommand(this));
         this.getServer().getCommandMap().register("synapse", new DrawCommand(this));
+
+        FilterTextService filterTextService = FilterTextService.getInstance();
+        getServer().getScheduler().scheduleRepeatingTask(this, filterTextService::tick, 1);
     }
 
     public boolean isUseLoadingScreen() {

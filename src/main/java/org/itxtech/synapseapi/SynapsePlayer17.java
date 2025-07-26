@@ -8,6 +8,7 @@ import cn.nukkit.network.SourceInterface;
 import cn.nukkit.network.protocol.DataPacket;
 import cn.nukkit.network.protocol.ProtocolInfo;
 import org.itxtech.synapseapi.event.player.netease.SynapsePlayerNetEaseStoreBuySuccEvent;
+import org.itxtech.synapseapi.filtertext.FilterTextService;
 import org.itxtech.synapseapi.multiprotocol.protocol17.protocol.StartGamePacket17;
 import org.itxtech.synapseapi.multiprotocol.protocol17.protocol.TextPacket17;
 
@@ -37,7 +38,7 @@ public class SynapsePlayer17 extends SynapsePlayer16 {
 				TextPacket17 textPacket = (TextPacket17) packet;
 
 				if (textPacket.type == TextPacket17.TYPE_CHAT) {
-					this.chat(textPacket.message);
+					FilterTextService.filter(textPacket.message, this, true, this::preChat);
 				}
 				break;
 			case ProtocolInfo.PACKET_STORE_BUY_SUCC:

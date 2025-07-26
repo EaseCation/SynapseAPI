@@ -64,6 +64,7 @@ import org.apache.commons.lang3.ArrayUtils;
 import org.itxtech.synapseapi.camera.CameraManager;
 import org.itxtech.synapseapi.dialogue.NPCDialoguePlayerHandler;
 import org.itxtech.synapseapi.event.player.SynapsePlayerBroadcastLevelSoundEvent;
+import org.itxtech.synapseapi.filtertext.FilterTextService;
 import org.itxtech.synapseapi.multiprotocol.AbstractProtocol;
 import org.itxtech.synapseapi.multiprotocol.common.Experiments;
 import org.itxtech.synapseapi.multiprotocol.common.Experiments.Experiment;
@@ -1382,19 +1383,19 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
                     TextPacket121 textPacket = (TextPacket121) packet;
 
                     if (textPacket.type == TextPacket121.TYPE_CHAT) {
-                        this.chat(textPacket.message);
+                        FilterTextService.filter(textPacket.message, this, true, this::preChat);
                     }
                 } else if (this.getProtocol() < AbstractProtocol.PROTOCOL_116_100.getProtocolStart()) {
                     TextPacket116100NE textPacket = (TextPacket116100NE) packet;
 
                     if (textPacket.type == TextPacket116100NE.TYPE_CHAT) {
-                        this.chat(textPacket.message);
+                        FilterTextService.filter(textPacket.message, this, true, this::preChat);
                     }
                 } else {
                     TextPacket116100 textPacket = (TextPacket116100) packet;
 
                     if (textPacket.type == TextPacket116100.TYPE_CHAT) {
-                        this.chat(textPacket.message);
+                        FilterTextService.filter(textPacket.message, this, true, this::preChat);
                     }
                 }
                 break;

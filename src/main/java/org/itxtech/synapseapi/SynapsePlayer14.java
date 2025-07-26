@@ -31,6 +31,7 @@ import cn.nukkit.utils.MainLogger;
 import cn.nukkit.utils.TextFormat;
 import com.google.gson.JsonPrimitive;
 import org.itxtech.synapseapi.event.player.SynapsePlayerConnectEvent;
+import org.itxtech.synapseapi.filtertext.FilterTextService;
 import org.itxtech.synapseapi.multiprotocol.AbstractProtocol;
 import org.itxtech.synapseapi.multiprotocol.common.BuildPlatform;
 import org.itxtech.synapseapi.multiprotocol.protocol14.protocol.*;
@@ -579,7 +580,7 @@ public class SynapsePlayer14 extends SynapsePlayer {
                 TextPacket14 textPacket = (TextPacket14) packet;
 
                 if (textPacket.type == TextPacket.TYPE_CHAT) {
-                    this.chat(textPacket.message);
+					FilterTextService.filter(textPacket.message, this, true, this::preChat);
                 }
                 break;
 			/*case ProtocolInfo.LEVEL_SOUND_EVENT_PACKET:

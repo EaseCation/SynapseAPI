@@ -40,6 +40,7 @@ import it.unimi.dsi.fastutil.ints.Int2IntMap;
 import it.unimi.dsi.fastutil.longs.Long2ObjectMap;
 import org.itxtech.synapseapi.dialogue.NPCDialoguePlayerHandler;
 import org.itxtech.synapseapi.event.player.SynapsePlayerConnectEvent;
+import org.itxtech.synapseapi.event.player.SynapsePlayerPreChatEvent;
 import org.itxtech.synapseapi.event.player.SynapsePlayerTransferEvent;
 import org.itxtech.synapseapi.event.player.SynapsePlayerUnexpectedBehaviorEvent;
 import org.itxtech.synapseapi.multiprotocol.AbstractProtocol;
@@ -1645,5 +1646,15 @@ public class SynapsePlayer extends Player {
      * @since 1.21.90
      */
     public void removeAllShapes() {
+    }
+
+    @Override
+    public void preChat(String message) {
+        SynapsePlayerPreChatEvent event = new SynapsePlayerPreChatEvent(this, message);
+        event.call();
+        if (event.isCancelled()) {
+            return;
+        }
+        chat(event.getMessage());
     }
 }
