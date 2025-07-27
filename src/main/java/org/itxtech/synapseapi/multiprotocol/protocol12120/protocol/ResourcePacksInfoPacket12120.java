@@ -6,6 +6,9 @@ import cn.nukkit.network.protocol.ResourcePacksInfoPacket;
 import cn.nukkit.resourcepacks.ResourcePack;
 import lombok.ToString;
 
+import java.util.Arrays;
+import java.util.stream.Stream;
+
 @ToString
 public class ResourcePacksInfoPacket12120 extends Packet12120 {
     public static final int NETWORK_ID = ProtocolInfo.RESOURCE_PACKS_INFO_PACKET;
@@ -68,6 +71,10 @@ public class ResourcePacksInfoPacket12120 extends Packet12120 {
         this.mustAccept = packet.mustAccept;
         this.behaviourPackEntries = packet.behaviourPackEntries;
         this.resourcePackEntries = packet.resourcePackEntries;
+        this.cdnEntries = Stream.concat(Arrays.stream(behaviourPackEntries), Arrays.stream(resourcePackEntries))
+            .filter(e -> e.getCdnUrl() != null && !e.getCdnUrl().isEmpty())
+            .map(e -> new CDNEntry(e.getPackId(), e.getCdnUrl()))
+            .toArray(CDNEntry[]::new);
         return this;
     }
 

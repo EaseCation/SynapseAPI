@@ -8,6 +8,8 @@ import lombok.ToString;
 import org.apache.commons.lang3.ArrayUtils;
 import org.itxtech.synapseapi.multiprotocol.AbstractProtocol;
 
+import java.util.Arrays;
+
 @ToString
 public class ResourcePacksInfoPacket12130 extends Packet12130 {
     public static final int NETWORK_ID = ProtocolInfo.RESOURCE_PACKS_INFO_PACKET;
@@ -59,6 +61,10 @@ public class ResourcePacksInfoPacket12130 extends Packet12130 {
         ResourcePacksInfoPacket packet = (ResourcePacksInfoPacket) pk;
         this.mustAccept = packet.mustAccept;
         this.resourcePackEntries = netease ? ArrayUtils.addAll(packet.resourcePackEntries, packet.behaviourPackEntries) : packet.resourcePackEntries;
+        this.cdnEntries = Arrays.stream(resourcePackEntries)
+            .filter(e -> e.getCdnUrl() != null && !e.getCdnUrl().isEmpty())
+            .map(e -> new CDNEntry(e.getPackId(), e.getCdnUrl()))
+            .toArray(CDNEntry[]::new);
         return this;
     }
 
