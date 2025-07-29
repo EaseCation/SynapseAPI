@@ -204,6 +204,7 @@ public enum AbstractProtocol {
     public static final AbstractProtocol FIRST_AVAILABLE_PROTOCOL = AbstractProtocol.PROTOCOL_120_10;
     public static final AbstractProtocol FIRST_ALLOW_LOGIN_PROTOCOL = AbstractProtocol.PROTOCOL_120_10;
     public static final AbstractProtocol LAST_ALLOW_LOGIN_PROTOCOL = LAST_PROTOCOL;
+    public static final AbstractProtocol LAST_NETEASE_PROTOCOL = PROTOCOL_121_2;
 
     static {
         BY_PROTOCOL = new AbstractProtocol[LAST_PROTOCOL.protocolStart + 1];
