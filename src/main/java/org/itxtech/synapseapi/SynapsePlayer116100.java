@@ -55,6 +55,7 @@ import cn.nukkit.resourcepacks.ResourcePack;
 import cn.nukkit.scheduler.AsyncTask;
 import cn.nukkit.utils.LoginChainData;
 import cn.nukkit.utils.TextFormat;
+import com.google.gson.JsonElement;
 import it.unimi.dsi.fastutil.Pair;
 import it.unimi.dsi.fastutil.ints.*;
 import it.unimi.dsi.fastutil.longs.*;
@@ -233,6 +234,16 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
         blockVersion = StaticVersion.fromProtocol(protocol, isNetEaseClient());
 
         level.onPlayerAdd(this);
+
+        if (cachedExtra != null) {
+            JsonElement maxViewDistance = cachedExtra.get("viewDistanceMax");
+            if (maxViewDistance != null) {
+                int viewDistance = maxViewDistance.getAsInt();
+                if (viewDistance >= 4 && viewDistance <= 96) {
+                    this.clientMaxViewDistance = viewDistance;
+                }
+            }
+        }
     }
 
     @Override
@@ -4701,6 +4712,11 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
         ServerScriptDebugDrawerPacket12190 packet = new ServerScriptDebugDrawerPacket12190();
         packet.entries = entries.toArray(new Entry[0]);
         dataPacket(packet);
+    }
+
+    @Override
+    int getClientMaxViewDistance() {
+        return clientMaxViewDistance;
     }
 
     private record ShapeInstance(Shape shape, int expirationTick) {

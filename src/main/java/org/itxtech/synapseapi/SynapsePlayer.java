@@ -208,6 +208,15 @@ public class SynapsePlayer extends Player {
                 this.handleDataPacket(pk);
 
                 if (cachedExtra != null) {
+                    JsonElement viewDistance = cachedExtra.get("viewDistance");
+                    if (viewDistance != null) {
+                        int distance = viewDistance.getAsInt();
+                        if (distance >= 4 && distance <= 96) {
+                            this.viewDistance = distance;
+                            this.chunkRadius = Math.min(this.viewDistance, this.getMaxViewDistance());
+                        }
+                    }
+
                     JsonElement blocksChecksum = cachedExtra.get("blocks_checksum");
                     if (blocksChecksum != null) {
                         checkBlockRegistryChecksum(blocksChecksum.getAsLong());
@@ -758,6 +767,8 @@ public class SynapsePlayer extends Player {
                     JsonArray behPacks = new JsonArray();
                     getResourcePacks().keySet().forEach(behPacks::add);
                     pk.extra.add("beh_packs", behPacks);
+                    pk.extra.addProperty("viewDistance", viewDistance);
+                    pk.extra.addProperty("viewDistanceMax", getClientMaxViewDistance());
                     pk.extra.addProperty("blocks_checksum", AdvancedGlobalBlockPalette.getBlockRegistryChecksum());
                     pk.extra.addProperty("items_checksum", AdvancedRuntimeItemPalette.getItemRegistryChecksum());
                     pk.extra.addProperty("biomes_checksum", BiomeDefinitions.getBiomeRegistryChecksum());
@@ -1656,5 +1667,9 @@ public class SynapsePlayer extends Player {
             return;
         }
         chat(event.getMessage());
+    }
+
+    int getClientMaxViewDistance() {
+        return -1;
     }
 }

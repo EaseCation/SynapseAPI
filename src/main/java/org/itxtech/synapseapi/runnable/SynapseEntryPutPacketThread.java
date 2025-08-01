@@ -102,6 +102,7 @@ public class SynapseEntryPutPacketThread extends Thread {
     public void run() {
         Long2ObjectMap<SynapsePlayer> queuedPlayers = new Long2ObjectOpenHashMap<>();
 
+        Network network = Server.getInstance().getNetwork();
         while (this.isRunning) {
 //            long start = System.currentTimeMillis();
 
@@ -138,8 +139,10 @@ public class SynapseEntryPutPacketThread extends Thread {
                                 pk.mcpeBuffer = batchPackets(outboundQueue, entry.player.getProtocol() >= 407);
                                 outboundQueue.clear();
 
+                                int bytes = pk.mcpeBuffer.length;
+                                network.addUploadStatistic(bytes);
                                 if (hasMetrics) {
-                                    metrics.bytesOut(pk.mcpeBuffer.length);
+                                    metrics.bytesOut(bytes);
                                 }
 
                                 this.synapseInterface.putPacket(pk);
@@ -161,8 +164,10 @@ public class SynapseEntryPutPacketThread extends Thread {
 
                             pk.mcpeBuffer = Binary.appendBytes((byte) ProtocolInfo.BATCH_PACKET, batch.payload);
 
+                            int bytes = pk.mcpeBuffer.length;
+                            network.addUploadStatistic(bytes);
                             if (hasMetrics) {
-                                metrics.bytesOut(pk.mcpeBuffer.length);
+                                metrics.bytesOut(bytes);
                             }
 
                             this.synapseInterface.putPacket(pk);
@@ -185,9 +190,11 @@ public class SynapseEntryPutPacketThread extends Thread {
                             pk.sessionId = entry.player.getSessionId();
                             pk.mcpeBuffer = entry.packet.getBuffer();
 
+                            int bytes = pk.mcpeBuffer.length;
+                            network.addUploadStatistic(bytes);
                             if (hasMetrics) {
-                                metrics.packetOut(entry.packet instanceof CompatibilityPacket16 ? ((CompatibilityPacket16) entry.packet).origin.pid() : entry.packet.pid(), pk.mcpeBuffer.length);
-                                metrics.bytesOut(pk.mcpeBuffer.length);
+                                metrics.packetOut(entry.packet instanceof CompatibilityPacket16 ? ((CompatibilityPacket16) entry.packet).origin.pid() : entry.packet.pid(), bytes);
+                                metrics.bytesOut(bytes);
                             }
 
                             this.synapseInterface.putPacket(pk);
@@ -222,8 +229,10 @@ public class SynapseEntryPutPacketThread extends Thread {
                 pk.sessionId = player.getSessionId();
                 this.synapseInterface.putPacket(pk);
 
+                int bytes = buffer.length;
+                network.addUploadStatistic(bytes);
                 if (hasMetrics) {
-                    metrics.bytesOut(buffer.length);
+                    metrics.bytesOut(bytes);
                 }
             }
             queuedPlayers.clear();
@@ -316,7 +325,9 @@ public class SynapseEntryPutPacketThread extends Thread {
                                     metrics.packetOut(track.packetId, track.size);
                                 }
 
-                                metrics.bytesOut(pk.mcpeBuffer.length);
+                                int bytes = pk.mcpeBuffer.length;
+                                network.addUploadStatistic(bytes);
+                                metrics.bytesOut(bytes);
                             }
 
                             this.synapseInterface.putPacket(pk);

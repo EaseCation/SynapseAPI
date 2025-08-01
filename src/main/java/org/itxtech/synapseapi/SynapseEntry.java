@@ -282,7 +282,7 @@ public class SynapseEntry {
                 }
                 tickUseTime = System.currentTimeMillis() - startTime;
                 if (tickUseTime < 10) {
-                    try{
+                    try {
                         Thread.sleep(10 - tickUseTime);
                     } catch (InterruptedException ignore) {}
                 } else if (System.currentTimeMillis() - lastWarning >= 5000) {
@@ -504,10 +504,13 @@ public class SynapseEntry {
                 }
                 break;
             case SynapseInfo.PLAYER_LOGIN_PACKET:
-                this.playerLoginQueue.offer((PlayerLoginPacket)pk);
+                PlayerLoginPacket loginPacket = (PlayerLoginPacket) pk;
+                synapse.getServer().getNetwork().addDownloadStatistic(loginPacket.cachedLoginPacket.length);
+                this.playerLoginQueue.offer(loginPacket);
                 break;
             case SynapseInfo.REDIRECT_PACKET:
                 RedirectPacket redirectPacket = (RedirectPacket) pk;
+                synapse.getServer().getNetwork().addDownloadStatistic(redirectPacket.mcpeBuffer.length);
 
                 SynapsePlayer player = this.players.get(redirectPacket.sessionId);
                 if (player != null && !player.isViolated()) {
@@ -717,7 +720,7 @@ public class SynapseEntry {
                 }
                 break;
             case SynapseInfo.PLAYER_LOGOUT_PACKET:
-                this.playerLogoutQueue.offer((PlayerLogoutPacket)pk);
+                this.playerLogoutQueue.offer((PlayerLogoutPacket) pk);
                 break;
             case SynapseInfo.PLUGIN_MESSAGE_PACKET:
                 PluginMessagePacket messagePacket = (PluginMessagePacket) pk;
