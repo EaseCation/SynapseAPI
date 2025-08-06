@@ -72,6 +72,7 @@ import org.itxtech.synapseapi.utils.DataPacketEidReplacer;
 import org.msgpack.value.MapValue;
 import org.msgpack.value.Value;
 
+import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.util.*;
 import java.util.function.Function;
@@ -785,7 +786,12 @@ public class SynapsePlayer extends Player {
 
     @Override
     public void transfer(InetSocketAddress address) {
-        String hostName = address.getAddress().getHostAddress();
+        InetAddress addr = address.getAddress();
+        if (addr == null) {
+            SynapseAPI.getInstance().getLogger().warn("Invalid transfer address {}", address);
+            return;
+        }
+        String hostName = addr.getHostAddress();
         int port = address.getPort();
         TransferPacket pk = new TransferPacket();
         pk.address = hostName;
