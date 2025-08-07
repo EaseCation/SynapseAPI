@@ -2029,7 +2029,7 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
                             break;
                     }
 
-                    this.setUsingItem(false);
+                    this.setUsingItem(playerActionPacket.action == PlayerActionPacket.ACTION_ITEM_USE_ON_START);
                     break;
                 }
 

@@ -385,7 +385,10 @@ public class SynapsePlayer116 extends SynapsePlayer113 {
 								lastRightClickData = useItemData;
 								lastRightClickTime = System.currentTimeMillis();
 
-								this.setDataFlag(DATA_FLAG_ACTION, false);
+                                Item i = inventory.getItemInHand();
+								if (!i.is(Item.BRUSH)) {
+                                    this.setDataFlag(DATA_FLAG_ACTION, false);
+                                }
 
 								// 从useItemData中设置玩家坐标，用于最精准的碰撞箱判断
 								this.newPosition = useItemData.playerPos.subtract(0, this.getBaseOffset(), 0);
@@ -393,12 +396,10 @@ public class SynapsePlayer116 extends SynapsePlayer113 {
 
 								if (this.canInteract(blockVector.add(0.5, 0.5, 0.5), this.isCreative() ? MAX_REACH_DISTANCE_CREATIVE : MAX_REACH_DISTANCE_SURVIVAL)) {
 									if (this.isCreative()) {
-										Item i = inventory.getItemInHand();
 										if (this.level.useItemOn(blockVector.asVector3(), i, face, clickPos.x, clickPos.y, clickPos.z, this) != null) {
 											break packetswitch;
 										}
-									} else if (inventory.getItemInHand().equals(useItemData.itemInHand)) {
-										Item i = inventory.getItemInHand();
+									} else if (i.equals(useItemData.itemInHand)) {
 										Item oldItem = i.clone();
 										//TODO: Implement adventure mode checks
 										if ((i = this.level.useItemOn(blockVector.asVector3(), i, face, clickPos.x, clickPos.y, clickPos.z, this)) != null) {
@@ -462,7 +463,7 @@ public class SynapsePlayer116 extends SynapsePlayer113 {
 
 								this.resetCraftingGridType();
 
-								Item i = this.getInventory().getItemInHand();
+								i = this.getInventory().getItemInHand();
 
 								Item oldItem = i.clone();
 
@@ -1386,14 +1387,17 @@ public class SynapsePlayer116 extends SynapsePlayer113 {
 									break;
 								}
 
+                                Item i = inventory.getItemInHand();
+                                if (!i.is(Item.BRUSH)) {
+                                    this.setDataFlag(DATA_FLAG_ACTION, false);
+                                }
+
 								if (this.canInteract(blockVector.add(0.5, 0.5, 0.5), this.isCreative() ? MAX_REACH_DISTANCE_CREATIVE : MAX_REACH_DISTANCE_SURVIVAL)) {
 									if (this.isCreative()) {
-										Item i = inventory.getItemInHand();
 										if (this.level.useItemOn(blockVector.asVector3(), i, face, clickPos.x, clickPos.y, clickPos.z, this) != null) {
 											break;
 										}
-									} else if (inventory.getItemInHand().equals(useItemData.itemInHand)) {
-										Item i = inventory.getItemInHand();
+									} else if (i.equals(useItemData.itemInHand)) {
 										Item oldItem = i.clone();
 										//TODO: Implement adventure mode checks
 										if ((i = this.level.useItemOn(blockVector.asVector3(), i, face, clickPos.x, clickPos.y, clickPos.z, this)) != null) {
@@ -1439,7 +1443,7 @@ public class SynapsePlayer116 extends SynapsePlayer113 {
 									break;
 								}
 
-								Item i = this.getInventory().getItemInHand();
+								i = this.getInventory().getItemInHand();
 								Item oldItem = i.clone();
 
 								if (this.canInteract(blockVector.add(0.5, 0.5, 0.5), this.isCreative() ? MAX_REACH_DISTANCE_CREATIVE : MAX_REACH_DISTANCE_SURVIVAL)
