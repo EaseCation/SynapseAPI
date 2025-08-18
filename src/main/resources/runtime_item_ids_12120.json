@@ -1963,7 +1963,7 @@
         "name": "minecraft:damaged_anvil",
         "id": -960,
         "oldId": 145,
-        "oldData": 12
+        "oldData": 8
     },
     {
         "name": "minecraft:dandelion",
@@ -2350,7 +2350,7 @@
         "name": "minecraft:deprecated_anvil",
         "id": -961,
         "oldId": 145,
-        "oldData": 8
+        "oldData": 12
     },
     {
         "name": "minecraft:detector_rail",

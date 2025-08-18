@@ -2575,7 +2575,7 @@
         "id": -960,
         "version": 2,
         "oldId": 145,
-        "oldData": 12
+        "oldData": 8
     },
     {
         "name": "minecraft:dandelion",
@@ -3033,7 +3033,7 @@
         "id": -961,
         "version": 2,
         "oldId": 145,
-        "oldData": 8
+        "oldData": 12
     },
     {
         "name": "minecraft:deprecated_purpur_block_1",
