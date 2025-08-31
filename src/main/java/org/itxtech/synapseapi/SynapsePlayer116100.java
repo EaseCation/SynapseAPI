@@ -283,7 +283,9 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
             startGamePacket.playerPropertyData = getCompiledPlayerProperties();
             startGamePacket.isSoundServerAuthoritative = isServerAuthoritativeSoundEnabled();
             List<Experiment> experiments = new ArrayList<>();
-            experiments.add(VanillaExperiments.DATA_DRIVEN_BIOMES);
+            if (getProtocol() < AbstractProtocol.PROTOCOL_121_110.getProtocolStart()) {
+                experiments.add(VanillaExperiments.DATA_DRIVEN_BIOMES);
+            }
             experiments.add(VanillaExperiments.UPCOMING_CREATOR_FEATURES);
             if (isBetaClient()) {
                 experiments.add(VanillaExperiments.DEFERRED_TECHNICAL_PREVIEW);
@@ -1083,7 +1085,7 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
      * <p>
      * TODO: remove this when Spectator Mode gets added properly to MCPE
      */
-    private int getClientFriendlyGamemode(int gamemode) {
+    private static int getClientFriendlyGamemode(int gamemode) {
         gamemode &= 0x03;
         if (gamemode == Player.SPECTATOR) {
 //            if (this.getProtocol() >= AbstractProtocol.PROTOCOL_118_30.getProtocolStart()) {
@@ -1205,7 +1207,9 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
                             stackPacket.resourcePackStack = this.resourcePacks.values().toArray(new ResourcePack[0]);
                             stackPacket.behaviourPackStack = this.behaviourPacks.values().toArray(new ResourcePack[0]);
                             List<Experiment> experiments = new ArrayList<>();
-                            experiments.add(VanillaExperiments.DATA_DRIVEN_BIOMES);
+                            if (getProtocol() < AbstractProtocol.PROTOCOL_121_110.getProtocolStart()) {
+                                experiments.add(VanillaExperiments.DATA_DRIVEN_BIOMES);
+                            }
                             if (getProtocol() < AbstractProtocol.PROTOCOL_121_20.getProtocolStart()) {
                                 experiments.add(VanillaExperiments.DATA_DRIVEN_ITEMS);
                             }

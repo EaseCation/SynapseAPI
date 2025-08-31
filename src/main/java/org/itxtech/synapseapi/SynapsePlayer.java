@@ -371,7 +371,7 @@ public class SynapsePlayer extends Player {
                 .set(Type.OPEN_CONTAINERS, !isSpectator())
                 .set(Type.ATTACK_PLAYERS, !isSpectator())
                 .set(Type.ATTACK_MOBS, !isSpectator())
-                .set(Type.INSTABUILD, gamemode == CREATIVE)
+                .set(Type.INSTABUILD, isCreative() || isSpectator())
                 .set(Type.INVULNERABLE, isCreative() || isSpectator())
                 .set(Type.OPERATOR, isOp())
                 .set(Type.TELEPORT, hasPermission("nukkit.command.teleport"));
@@ -580,9 +580,11 @@ public class SynapsePlayer extends Player {
         if (this.isSpectator()) {
             this.setDataFlag(DATA_FLAG_SILENT, true, false);
             this.setDataFlag(DATA_FLAG_HAS_COLLISION, false, false);
+            this.setDataFlag(DATA_FLAG_PUSH_TOWARDS_CLOSEST_SPACE, false, false);
         } else {
             this.setDataFlag(DATA_FLAG_SILENT, false, false);
             this.setDataFlag(DATA_FLAG_HAS_COLLISION, true, false);
+            this.setDataFlag(DATA_FLAG_PUSH_TOWARDS_CLOSEST_SPACE, true, false);
         }
 
         this.server.getLogger().info(this.getServer().getLanguage().translate("nukkit.player.logIn",

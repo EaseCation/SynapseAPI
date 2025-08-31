@@ -331,7 +331,7 @@ public class SynapsePlayer113 extends SynapsePlayer112 {
 						switch (type) {
 							case InventoryTransactionPacket.USE_ITEM_ACTION_CLICK_BLOCK:
 								// Remove if client bug is ever fixed
-								boolean spamBug = lastRightClickData != null && System.currentTimeMillis() - lastRightClickTime < 100.0 &&
+								boolean spamBug = lastRightClickData != null && System.currentTimeMillis() - lastRightClickTime < 100 &&
 										lastRightClickData.face == face &&
 										lastRightClickData.playerPos.distanceSquared(useItemData.playerPos) < Mth.EPSILON &&
 										lastRightClickData.blockPos.equalsVec(blockVector) &&
@@ -441,9 +441,10 @@ public class SynapsePlayer113 extends SynapsePlayer112 {
 								}
 
 								PlayerInteractEvent interactEvent = new PlayerInteractEvent(this, item, directionVector, face, PlayerInteractEvent.Action.RIGHT_CLICK_AIR);
-
+                                if (isSpectator()) {
+                                    interactEvent.setCancelled();
+                                }
 								this.server.getPluginManager().callEvent(interactEvent);
-
 								if (interactEvent.isCancelled()) {
 									this.inventory.sendHeldItem(this);
 									break packetswitch;
@@ -487,6 +488,9 @@ public class SynapsePlayer113 extends SynapsePlayer112 {
 						if (target == null) {
 							item = this.inventory.getItemInHand();
 							PlayerInteractEvent interactEvent = new PlayerInteractEvent(this, item, this.getDirectionVector(), BlockFace.UP, PlayerInteractEvent.Action.CLICK_UNKNOWN_ENTITY).setUnkownEntityId(useItemOnEntityData.entityRuntimeId);
+                            if (isSpectator()) {
+                                interactEvent.setCancelled();
+                            }
 							this.server.getPluginManager().callEvent(interactEvent);
 							return;
 						}
@@ -553,13 +557,15 @@ public class SynapsePlayer113 extends SynapsePlayer112 {
 								Map<EntityDamageEvent.DamageModifier, Float> damage = new EnumMap<>(EntityDamageEvent.DamageModifier.class);
 								damage.put(EntityDamageEvent.DamageModifier.BASE, itemDamage);
 
-								float knockBack = 0.29f;
-								Enchantment knockBackEnchantment = !item.is(Item.ENCHANTED_BOOK) ? item.getEnchantment(Enchantment.KNOCKBACK) : null;
-								if (knockBackEnchantment != null) {
-									knockBack += knockBackEnchantment.getLevel() * 0.1f;
+                                float knockBackH = EntityDamageByEntityEvent.GLOBAL_KNOCKBACK_H;
+                                float knockBackV = EntityDamageByEntityEvent.GLOBAL_KNOCKBACK_V;
+                                int knockBackEnchantment = !item.is(Item.ENCHANTED_BOOK) ? item.getEnchantmentLevel(Enchantment.KNOCKBACK) : 0;
+								if (knockBackEnchantment > 0) {
+                                    knockBackH += knockBackEnchantment * 0.1f;
+                                    knockBackV += knockBackEnchantment * 0.1f;
 								}
 
-								EntityDamageByEntityEvent entityDamageByEntityEvent = new EntityDamageByEntityEvent(this, target, EntityDamageEvent.DamageCause.ENTITY_ATTACK, damage, knockBack, knockBack, enchantments);
+								EntityDamageByEntityEvent entityDamageByEntityEvent = new EntityDamageByEntityEvent(this, target, EntityDamageEvent.DamageCause.ENTITY_ATTACK, damage, knockBackH, knockBackV, enchantments);
 								if (this.isSpectator()) entityDamageByEntityEvent.setCancelled();
 								if ((target instanceof Player) && !this.level.getGameRules().getBoolean(GameRule.PVP)) {
 									entityDamageByEntityEvent.setCancelled();

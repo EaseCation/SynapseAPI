@@ -32,7 +32,7 @@ public class BinaryStreamHelper12 extends BinaryStreamHelper implements Advanced
     }
 
     @Override
-    public void putGameRules(BinaryStream stream, GameRules gameRules) {
+    public void putGameRules(BinaryStream stream, GameRules gameRules, boolean network) {
         if (gameRules == null) {
             stream.putUnsignedVarInt(0);
             return;
@@ -44,7 +44,7 @@ public class BinaryStreamHelper12 extends BinaryStreamHelper implements Advanced
         stream.putUnsignedVarInt(rules.size());
         rules.forEach(entry -> {
             stream.putString(entry.getKey().getBedrockName());
-            entry.getValue().write(stream);
+            entry.getValue().write(stream, network);
         });
     }
 }

@@ -48,6 +48,9 @@ public final class LevelSoundEventUtil {
             case SOUND_BRUSH_COMPLETED:
             case SOUND_COPPER_BULB_ON:
             case SOUND_COPPER_BULB_OFF:
+            case SOUND_PLACE_ITEM:
+            case SOUND_SINGLE_ITEM_SWAP:
+            case SOUND_MULTI_ITEM_SWAP:
                 return AdvancedGlobalBlockPalette.getOrCreateRuntimeId(protocol, netease, extraData >> Block.BLOCK_META_BITS, extraData & Block.BLOCK_META_MASK);
             case SOUND_NOTE:
                 if (extraData < 0) {

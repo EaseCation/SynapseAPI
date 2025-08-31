@@ -22,6 +22,7 @@ import org.itxtech.synapseapi.event.server.BiomeRegistryChecksumChangedEvent;
 import org.itxtech.synapseapi.multiprotocol.AbstractProtocol;
 import org.itxtech.synapseapi.multiprotocol.common.biome.BiomeDefinitionData;
 import org.itxtech.synapseapi.multiprotocol.protocol121100.protocol.BiomeDefinitionListPacket121100;
+import org.itxtech.synapseapi.multiprotocol.protocol121110.protocol.BiomeDefinitionListPacket121110;
 import org.itxtech.synapseapi.multiprotocol.protocol12180.protocol.BiomeDefinitionListPacket12180;
 import org.itxtech.synapseapi.multiprotocol.protocol18.protocol.BiomeDefinitionListPacket18;
 
@@ -86,6 +87,7 @@ public final class BiomeDefinitions {
             CompoundTag data12170 = NBTIO.read(ByteStreams.toByteArray(SynapseAPI.getInstance().getResource("biome_definitions12170.nbt")), ByteOrder.LITTLE_ENDIAN, true);
             CompoundTag data12180 = NBTIO.read(ByteStreams.toByteArray(SynapseAPI.getInstance().getResource("biome_definitions12180.nbt")), ByteOrder.LITTLE_ENDIAN, true);
             CompoundTag data121100 = NBTIO.read(ByteStreams.toByteArray(SynapseAPI.getInstance().getResource("biome_definitions121100.nbt")), ByteOrder.LITTLE_ENDIAN, true);
+            CompoundTag data121110 = NBTIO.read(ByteStreams.toByteArray(SynapseAPI.getInstance().getResource("biome_definitions121110.nbt")), ByteOrder.LITTLE_ENDIAN, true);
 
 /*
             data.put(AbstractProtocol.PROTOCOL_112, data112);
@@ -139,6 +141,7 @@ public final class BiomeDefinitions {
             data.put(AbstractProtocol.PROTOCOL_121_90, data12180);
             data.put(AbstractProtocol.PROTOCOL_121_93, data12180);
             data.put(AbstractProtocol.PROTOCOL_121_100, data121100);
+            data.put(AbstractProtocol.PROTOCOL_121_110, data121110);
         } catch (NullPointerException | IOException e) {
             throw new AssertionError("Unable to load biome_definitions.dat");
         }
@@ -160,6 +163,7 @@ public final class BiomeDefinitions {
             }
             definition.temperature = nbt.getFloat("temperature");
             definition.downfall = nbt.getFloat("downfall");
+            definition.foliageSnow = nbt.getFloat("foliage_snow");
             definition.redSporeDensity = nbt.getFloat("red_spores");
             definition.blueSporeDensity = nbt.getFloat("blue_spores");
             definition.ashDensity = nbt.getFloat("ash");
@@ -198,7 +202,20 @@ public final class BiomeDefinitions {
     private static void cacheNewPacket(AbstractProtocol protocol) {
         DataPacket packet;
         DataPacket packetNe;
-        if (protocol.getProtocolStart() >= AbstractProtocol.PROTOCOL_121_100.getProtocolStart()) {
+        if (protocol.getProtocolStart() >= AbstractProtocol.PROTOCOL_121_110.getProtocolStart()) {
+            BiomeDefinitionListPacket121110 biomePacket = new BiomeDefinitionListPacket121110();
+            biomePacket.biomes = loadNewPacket(protocol);
+            biomePacket.setHelper(protocol.getHelper());
+            biomePacket.tryEncode();
+            packet = biomePacket;
+
+            BiomeDefinitionListPacket121110 biomePacketNe = new BiomeDefinitionListPacket121110();
+            biomePacketNe.biomes = biomePacket.biomes;
+            biomePacketNe.setHelper(protocol.getHelper());
+            biomePacketNe.neteaseMode = true;
+            biomePacketNe.tryEncode();
+            packetNe = biomePacketNe;
+        } else if (protocol.getProtocolStart() >= AbstractProtocol.PROTOCOL_121_100.getProtocolStart()) {
             BiomeDefinitionListPacket121100 biomePacket = new BiomeDefinitionListPacket121100();
             biomePacket.biomes = loadNewPacket(protocol);
             biomePacket.setHelper(protocol.getHelper());

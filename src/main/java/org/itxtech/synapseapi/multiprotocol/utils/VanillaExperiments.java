@@ -8,6 +8,7 @@ public final class VanillaExperiments {
     /**
      * Create custom biomes and change world generation. (Custom Biomes)
      * @since 1.16.100
+     * @deprecated 1.21.110
      */
     public static final Experiment DATA_DRIVEN_BIOMES = new Experiment("data_driven_biomes", true);
     /**

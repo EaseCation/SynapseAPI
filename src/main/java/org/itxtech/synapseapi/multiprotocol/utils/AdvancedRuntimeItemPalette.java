@@ -19,6 +19,8 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.function.IntFunction;
 
+import static cn.nukkit.item.RuntimeItemPaletteInterface.Entry.*;
+
 /*
  * 由于hardcode了物品调色板（目前应该只有中国版写死了2021.06.17）
  * 以及slot相关编码使用NetworkId
@@ -80,6 +82,7 @@ public final class AdvancedRuntimeItemPalette {
         RuntimeItemPalette palette12190 = new RuntimeItemPalette(AbstractProtocol.PROTOCOL_121_90, "runtime_item_ids_12190.json");
         RuntimeItemPalette palette12193 = new RuntimeItemPalette(AbstractProtocol.PROTOCOL_121_93, "runtime_item_ids_12193.json");
         RuntimeItemPalette palette121100 = new RuntimeItemPalette(AbstractProtocol.PROTOCOL_121_100, "runtime_item_ids_121100.json");
+        RuntimeItemPalette palette121110 = new RuntimeItemPalette(AbstractProtocol.PROTOCOL_121_110, "runtime_item_ids_121110.json");
 
 /*
         register(AbstractProtocol.PROTOCOL_116_100, palette116100, null);
@@ -126,6 +129,7 @@ public final class AdvancedRuntimeItemPalette {
         register(AbstractProtocol.PROTOCOL_121_90, palette12190, null);
         register(AbstractProtocol.PROTOCOL_121_93, palette12193, null);
         register(AbstractProtocol.PROTOCOL_121_100, palette121100, null);
+        register(AbstractProtocol.PROTOCOL_121_110, palette121110, null);
 
         recalculateItemRegistryChecksum();
     }
@@ -162,7 +166,7 @@ public final class AdvancedRuntimeItemPalette {
                 }
 
                 boolean componentBased = componentsSupplier != null && componentsSupplier.apply(protocol.getProtocolStart()).contains("item_properties");
-                int version = componentBased ? 1 : componentsSupplier != null ? 0 : 2;
+                int version = componentBased ? VERSION_DATA_DRIVEN : componentsSupplier != null ? VERSION_LEGACY : VERSION_NONE;
                 palette.registerItem(new RuntimeItemPaletteInterface.Entry(fullName, id, oldId, null, componentBased, version));
             }
         }

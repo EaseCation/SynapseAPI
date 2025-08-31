@@ -374,7 +374,7 @@ public class SynapsePlayer116 extends SynapsePlayer113 {
 						switch (type) {
 							case InventoryTransactionPacket116.USE_ITEM_ACTION_CLICK_BLOCK:
 								// Remove if client bug is ever fixed
-								boolean spamBug = lastRightClickData != null && System.currentTimeMillis() - lastRightClickTime < 100.0 &&
+								boolean spamBug = lastRightClickData != null && System.currentTimeMillis() - lastRightClickTime < 100 &&
 										lastRightClickData.face == face &&
 										lastRightClickData.playerPos.distanceSquared(useItemData.playerPos) < Mth.EPSILON &&
 										lastRightClickData.blockPos.equalsVec(blockVector) &&
@@ -506,9 +506,10 @@ public class SynapsePlayer116 extends SynapsePlayer113 {
 								}
 
 								PlayerInteractEvent interactEvent = new PlayerInteractEvent(this, item, directionVector, face, PlayerInteractEvent.Action.RIGHT_CLICK_AIR);
-
+                                if (isSpectator()) {
+                                    interactEvent.setCancelled();
+                                }
 								this.server.getPluginManager().callEvent(interactEvent);
-
 								if (interactEvent.isCancelled()) {
 									this.inventory.sendHeldItem(this);
 									break packetswitch;
@@ -552,6 +553,9 @@ public class SynapsePlayer116 extends SynapsePlayer113 {
 						if (target == null) {
 							item = this.inventory.getItemInHand();
 							PlayerInteractEvent interactEvent = new PlayerInteractEvent(this, item, this.getDirectionVector(), BlockFace.UP, PlayerInteractEvent.Action.CLICK_UNKNOWN_ENTITY).setUnkownEntityId(useItemOnEntityData.entityRuntimeId);
+                            if (isSpectator()) {
+                                interactEvent.setCancelled();
+                            }
 							this.server.getPluginManager().callEvent(interactEvent);
 							return;
 						}
@@ -631,10 +635,10 @@ public class SynapsePlayer116 extends SynapsePlayer113 {
 
 								float knockBackH = EntityDamageByEntityEvent.GLOBAL_KNOCKBACK_H;
 								float knockBackV = EntityDamageByEntityEvent.GLOBAL_KNOCKBACK_V;
-								Enchantment knockBackEnchantment = !item.is(Item.ENCHANTED_BOOK) ? item.getEnchantment(Enchantment.KNOCKBACK) : null;
-								if (knockBackEnchantment != null) {
-									knockBackH += knockBackEnchantment.getLevel() * 0.1f;
-									knockBackV += knockBackEnchantment.getLevel() * 0.1f;
+                                int knockBackEnchantment = !item.is(Item.ENCHANTED_BOOK) ? item.getEnchantmentLevel(Enchantment.KNOCKBACK) : 0;
+                                if (knockBackEnchantment > 0) {
+									knockBackH += knockBackEnchantment * 0.1f;
+									knockBackV += knockBackEnchantment * 0.1f;
 								}
 
 								if (target instanceof Player) {
@@ -1377,7 +1381,7 @@ public class SynapsePlayer116 extends SynapsePlayer113 {
 						switch (type) {
 							case InventoryTransactionPacket116.USE_ITEM_ACTION_CLICK_BLOCK:
 								// Remove if client bug is ever fixed
-								boolean spamBug = lastRightClickData != null && System.currentTimeMillis() - lastRightClickTime < 100.0 &&
+								boolean spamBug = lastRightClickData != null && System.currentTimeMillis() - lastRightClickTime < 100 &&
 										lastRightClickData.playerPos.distanceSquared(useItemData.playerPos) < 0.00001 &&
 										lastRightClickData.blockPos.equalsVec(blockVector) &&
 										lastRightClickData.clickPos.distanceSquared(clickPos) < 0.00001;
@@ -1486,6 +1490,9 @@ public class SynapsePlayer116 extends SynapsePlayer113 {
 								}
 
 								PlayerInteractEvent interactEvent = new PlayerInteractEvent(this, item, directionVector, face, PlayerInteractEvent.Action.RIGHT_CLICK_AIR);
+                                if (isSpectator()) {
+                                    interactEvent.setCancelled();
+                                }
 								this.server.getPluginManager().callEvent(interactEvent);
 								if (interactEvent.isCancelled()) {
 									this.inventory.sendHeldItem(this);

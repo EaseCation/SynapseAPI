@@ -20,9 +20,26 @@ public class BiomeDefinitionData {
     public Integer id;
     public float temperature;
     public float downfall;
+    /**
+     * 0-1 how frozen the leaves look.
+     * @since 1.21.110
+     */
+    public float foliageSnow;
+    /**
+     * @deprecated 1.21.110
+     */
     public float redSporeDensity;
+    /**
+     * @deprecated 1.21.110
+     */
     public float blueSporeDensity;
+    /**
+     * @deprecated 1.21.110
+     */
     public float ashDensity;
+    /**
+     * @deprecated 1.21.110
+     */
     public float whiteAshDensity;
     public float depth;
     public float scale;

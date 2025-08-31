@@ -260,6 +260,7 @@ public final class BlockStates {
             PORTAL_AXIS_X,
             PORTAL_AXIS_Z));
     public static final BooleanBlockState POWERED_BIT = register(new BooleanBlockState(BlockStateNames.POWERED_BIT));
+    public static final IntegerBlockState POWERED_SHELF_TYPE = register(new IntegerBlockState(BlockStateNames.POWERED_SHELF_TYPE, MAX_POWERED_SHELF_TYPE + 1));
     public static final StringBlockState PRISMARINE_BLOCK_TYPE = register(new StringBlockState(BlockStateNames.PRISMARINE_BLOCK_TYPE,
             PRISMARINE_BLOCK_TYPE_DEFAULT,
             PRISMARINE_BLOCK_TYPE_DARK,

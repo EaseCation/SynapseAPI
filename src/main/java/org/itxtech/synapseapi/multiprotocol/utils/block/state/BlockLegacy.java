@@ -105,6 +105,32 @@ public class BlockLegacy {
     /**
      * @return new block
      */
+    public BlockLegacy patch(BlockState newState) {
+        return patch(newState, newState.variationCount);
+    }
+
+    /**
+     * @return new block
+     */
+    public BlockLegacy patch(BlockState newState, int variationCount) {
+        BlockLegacy newBlock = new BlockLegacy(id, name);
+        Int2ObjectMap<BlockStateInstance> permutations = new Int2ObjectRBTreeMap<>();
+        for (BlockStateInstance instance : states) {
+            if (instance == null) {
+                continue;
+            }
+            permutations.put(instance.startBit, instance);
+        }
+        for (BlockStateInstance instance : permutations.values()) {
+            newBlock.addState(instance.state, instance.variationCount);
+        }
+        newBlock.addState(newState, variationCount);
+        return newBlock;
+    }
+
+    /**
+     * @return new block
+     */
     public BlockLegacy replace(BlockState oldState, BlockState newState) {
         return replace(oldState, newState, newState.variationCount);
     }

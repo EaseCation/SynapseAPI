@@ -35,6 +35,16 @@ public class BlockRegistry {
         return block;
     }
 
+    public BlockLegacy patch(BlockLegacy oldBlock, BlockState newState) {
+        return patch(oldBlock, newState, newState.variationCount);
+    }
+
+    public BlockLegacy patch(BlockLegacy oldBlock, BlockState newState, int variationCount) {
+        BlockLegacy newBlock = oldBlock.patch(newState, variationCount);
+        blocks.put(newBlock.name, newBlock);
+        return newBlock;
+    }
+
     public BlockLegacy replace(BlockLegacy oldBlock, BlockState oldState, BlockState newState) {
         return replace(oldBlock, oldState, newState, newState.variationCount);
     }

@@ -112,6 +112,8 @@ import org.itxtech.synapseapi.multiprotocol.protocol121.protocol.CraftingDataPac
 import org.itxtech.synapseapi.multiprotocol.protocol121.protocol.StartGamePacket121;
 import org.itxtech.synapseapi.multiprotocol.protocol121.protocol.TextPacket121;
 import org.itxtech.synapseapi.multiprotocol.protocol121100.protocol.StartGamePacket121100;
+import org.itxtech.synapseapi.multiprotocol.protocol121110.protocol.GameRulesChangedPacket121110;
+import org.itxtech.synapseapi.multiprotocol.protocol1212.protocol.AddPlayerPacket1212NE1;
 import org.itxtech.synapseapi.multiprotocol.protocol12120.protocol.*;
 import org.itxtech.synapseapi.multiprotocol.protocol12130.protocol.*;
 import org.itxtech.synapseapi.multiprotocol.protocol12140.protocol.*;
@@ -429,6 +431,8 @@ public class PacketRegister {
         registerPacket(AbstractProtocol.PROTOCOL_121, ProtocolInfo.TEXT_PACKET, TextPacket121.class);
         registerPacket(AbstractProtocol.PROTOCOL_121, ProtocolInfo.CONTAINER_CLOSE_PACKET, ContainerClosePacket121.class);
 
+        registerPacket(AbstractProtocol.PROTOCOL_121_2, ProtocolInfo.ADD_PLAYER_PACKET, AddPlayerPacket1212NE1.class);
+
         registerPacket(AbstractProtocol.PROTOCOL_121_20, ProtocolInfo.DISCONNECT_PACKET, DisconnectPacket12120.class);
         registerPacket(AbstractProtocol.PROTOCOL_121_20, ProtocolInfo.MOB_ARMOR_EQUIPMENT_PACKET, MobArmorEquipmentPacket12120.class);
         registerPacket(AbstractProtocol.PROTOCOL_121_20, ProtocolInfo.SET_ACTOR_LINK_PACKET, SetEntityLinkPacket12120.class);
@@ -471,6 +475,8 @@ public class PacketRegister {
         registerPacket(AbstractProtocol.PROTOCOL_121_90, ProtocolInfo.START_GAME_PACKET, StartGamePacket12190.class);
 
         registerPacket(AbstractProtocol.PROTOCOL_121_100, ProtocolInfo.START_GAME_PACKET, StartGamePacket121100.class);
+
+        registerPacket(AbstractProtocol.PROTOCOL_121_110, ProtocolInfo.GAME_RULES_CHANGED_PACKET, GameRulesChangedPacket121110.class);
 
         checkNeteaseSpecialExtend();
     }

@@ -7,7 +7,6 @@ import org.itxtech.synapseapi.multiprotocol.protocol116220.BinaryStreamHelper116
 
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
 
 public class BinaryStreamHelper117 extends BinaryStreamHelper116220 {
 
@@ -21,7 +20,7 @@ public class BinaryStreamHelper117 extends BinaryStreamHelper116220 {
     }
 
     @Override
-    public void putGameRules(BinaryStream stream, GameRules gameRules) {
+    public void putGameRules(BinaryStream stream, GameRules gameRules, boolean network) {
         if (gameRules == null) {
             stream.putUnsignedVarInt(0);
             return;
@@ -34,7 +33,7 @@ public class BinaryStreamHelper117 extends BinaryStreamHelper116220 {
         rules.forEach(entry -> {
             stream.putString(entry.getKey().getBedrockName());
             stream.putBoolean(false); // isEditable
-            entry.getValue().write(stream);
+            entry.getValue().write(stream, network);
         });
     }
 }

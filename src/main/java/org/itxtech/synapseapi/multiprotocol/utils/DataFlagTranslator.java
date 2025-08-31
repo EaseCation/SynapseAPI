@@ -237,6 +237,8 @@ public class DataFlagTranslator {
 
 	public static final int FLAG_12190_BODY_ROTATION_ALWAYS_FOLLOWS_HEAD = 124;
 
+    public static final int FLAG_121110_CAN_USE_VERTICAL_MOVEMENT_ACTION = 125;
+
 	public static final int[] COUNT = Utils.make(() -> {
 		int[] versions = new int[AbstractProtocol.getValues().length];
 		Arrays.fill(versions, 120);
@@ -246,6 +248,7 @@ public class DataFlagTranslator {
 		versions[AbstractProtocol.PROTOCOL_121_90.ordinal()] = 125;
 		versions[AbstractProtocol.PROTOCOL_121_93.ordinal()] = 125;
 		versions[AbstractProtocol.PROTOCOL_121_100.ordinal()] = 125;
+        versions[AbstractProtocol.PROTOCOL_121_110.ordinal()] = 126;
 		return versions;
 	});
 
@@ -507,6 +510,8 @@ public class DataFlagTranslator {
 		v12ToV11950Book[Entity.DATA_FLAG_DOES_SERVER_AUTH_ONLY_DISMOUNT] = FLAG_12180_DOES_SERVER_AUTH_ONLY_DISMOUNT;
 
 		v12ToV11950Book[Entity.DATA_FLAG_BODY_ROTATION_ALWAYS_FOLLOWS_HEAD] = FLAG_12190_BODY_ROTATION_ALWAYS_FOLLOWS_HEAD;
+
+        v12ToV11950Book[Entity.DATA_FLAG_CAN_USE_VERTICAL_MOVEMENT_ACTION] = FLAG_121110_CAN_USE_VERTICAL_MOVEMENT_ACTION;
 	}
 
 	public static int translateTo14Id(int v12Id) {

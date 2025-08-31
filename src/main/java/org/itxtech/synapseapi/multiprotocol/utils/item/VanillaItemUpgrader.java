@@ -191,14 +191,14 @@ public final class VanillaItemUpgrader {
 
         addSchema("0001_1.6_beta_to_1.6.0.json", V1_6_0);
         addSchema("0011_1.11.4_to_1.12.0.json", V1_12_0);
-        addSchema("0015_1.16.0.57_beta_to_1.16.0.59_beta.json", V1_16_100); // beta only
-        addSchema("0016_1.16.0.59_beta_to_1.16.0.68_beta.json", V1_16_100); // beta only
+//        addSchema("0015_1.16.0.57_beta_to_1.16.0.59_beta.json", V1_16_100); // beta only
+//        addSchema("0016_1.16.0.59_beta_to_1.16.0.68_beta.json", V1_16_100); // beta only
         addSchema("0021_1.16.0_to_1.16.100.json", V1_16_100);
         addSchema("0031_1.16.100_to_1.16.200.json", V1_16_200);
         addSchema("0041_1.16.200_to_1.17.30.json", V1_17_30);
         addSchema("0051_1.17.40_to_1.18.0.json", V1_18_0);
         addSchema("0061_1.18.0_to_1.18.10.json", V1_18_10);
-        addSchema("0065_1.18.10_to_1.18.20.27_beta.json", V1_18_30); // experiment only
+//        addSchema("0065_1.18.10_to_1.18.20.27_beta.json", V1_18_30); // experiment only
         addSchema("0071_1.18.20_to_1.18.30.json", V1_18_30);
         addSchema("0081_1.18.30_to_1.19.0.json", V1_19_0);
         addSchema("0091_1.19.60_to_1.19.70.26_beta.json", V1_19_70);
@@ -220,6 +220,7 @@ public final class VanillaItemUpgrader {
         addSchema("0251_1.21.80.27_beta_to_1.21.90.26_beta.json", V1_21_90);
         addSchema("0261_1.21.90.26_beta_to_1.21.93.json", V1_21_93);
         addSchema("0271_1.21.93_to_1.21.100.23_beta.json", V1_21_100);
+        addSchema("0281_1.21.100.23_beta_to_1.21.110.25_beta.json", V1_21_110);
 
         ItemUpgrader.setUpgrader(VanillaItemUpgrader::upgrade);
     }

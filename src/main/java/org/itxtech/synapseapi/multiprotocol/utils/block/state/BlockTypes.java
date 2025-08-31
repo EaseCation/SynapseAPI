@@ -2760,4 +2760,200 @@ public class BlockTypes {
             return REGISTRY;
         }
     }
+
+    public static class V1_21_110 extends V1_21_100 {
+        private static final BlockRegistry REGISTRY = new BlockRegistry((1 << 24) | (21 << 16) | (60 << 8) | 33, V1_21_100.REGISTRY);
+
+        public static final BlockLegacy ACACIA_SHELF = REGISTRY.registerBlock("minecraft:acacia_shelf", BlockID.ACACIA_SHELF)
+                .addState(BlockStates.POWERED_SHELF_TYPE)
+                .addState(BlockStates.POWERED_BIT)
+                .addState(BlockStates.MINECRAFT_CARDINAL_DIRECTION);
+
+        public static final BlockLegacy BAMBOO_SHELF = REGISTRY.registerBlock("minecraft:bamboo_shelf", BlockID.BAMBOO_SHELF)
+                .addState(BlockStates.POWERED_SHELF_TYPE)
+                .addState(BlockStates.POWERED_BIT)
+                .addState(BlockStates.MINECRAFT_CARDINAL_DIRECTION);
+
+        public static final BlockLegacy BIRCH_SHELF = REGISTRY.registerBlock("minecraft:birch_shelf", BlockID.BIRCH_SHELF)
+                .addState(BlockStates.POWERED_SHELF_TYPE)
+                .addState(BlockStates.POWERED_BIT)
+                .addState(BlockStates.MINECRAFT_CARDINAL_DIRECTION);
+
+        public static final BlockLegacy CHERRY_SHELF = REGISTRY.registerBlock("minecraft:cherry_shelf", BlockID.CHERRY_SHELF)
+                .addState(BlockStates.POWERED_SHELF_TYPE)
+                .addState(BlockStates.POWERED_BIT)
+                .addState(BlockStates.MINECRAFT_CARDINAL_DIRECTION);
+
+        public static final BlockLegacy CRIMSON_SHELF = REGISTRY.registerBlock("minecraft:crimson_shelf", BlockID.CRIMSON_SHELF)
+                .addState(BlockStates.POWERED_SHELF_TYPE)
+                .addState(BlockStates.POWERED_BIT)
+                .addState(BlockStates.MINECRAFT_CARDINAL_DIRECTION);
+
+        public static final BlockLegacy COPPER_BARS = REGISTRY.registerBlock("minecraft:copper_bars", BlockID.COPPER_BARS);
+
+        public static final BlockLegacy COPPER_CHAIN = REGISTRY.registerBlock("minecraft:copper_chain", BlockID.COPPER_CHAIN)
+                .addState(BlockStates.PILLAR_AXIS);
+
+        public static final BlockLegacy COPPER_GOLEM_STATUE = REGISTRY.registerBlock("minecraft:copper_golem_statue", BlockID.COPPER_GOLEM_STATUE)
+                .addState(BlockStates.MINECRAFT_CARDINAL_DIRECTION);
+
+        public static final BlockLegacy COPPER_TORCH = REGISTRY.registerBlock("minecraft:copper_torch", BlockID.COPPER_TORCH)
+                .addState(BlockStates.TORCH_FACING_DIRECTION);
+
+        public static final BlockLegacy COPPER_LANTERN = REGISTRY.registerBlock("minecraft:copper_lantern", BlockID.COPPER_LANTERN)
+                .addState(BlockStates.HANGING);
+
+        public static final BlockLegacy DARK_OAK_SHELF = REGISTRY.registerBlock("minecraft:dark_oak_shelf", BlockID.DARK_OAK_SHELF)
+                .addState(BlockStates.POWERED_SHELF_TYPE)
+                .addState(BlockStates.POWERED_BIT)
+                .addState(BlockStates.MINECRAFT_CARDINAL_DIRECTION);
+
+        public static final BlockLegacy EXPOSED_COPPER_BARS = REGISTRY.registerBlock("minecraft:exposed_copper_bars", BlockID.EXPOSED_COPPER_BARS);
+
+        public static final BlockLegacy EXPOSED_COPPER_CHAIN = REGISTRY.registerBlock("minecraft:exposed_copper_chain", BlockID.EXPOSED_COPPER_CHAIN)
+                .addState(BlockStates.PILLAR_AXIS);
+
+        public static final BlockLegacy EXPOSED_COPPER_GOLEM_STATUE = REGISTRY.registerBlock("minecraft:exposed_copper_golem_statue", BlockID.EXPOSED_COPPER_GOLEM_STATUE)
+                .addState(BlockStates.MINECRAFT_CARDINAL_DIRECTION);
+
+        public static final BlockLegacy EXPOSED_COPPER_LANTERN = REGISTRY.registerBlock("minecraft:exposed_copper_lantern", BlockID.EXPOSED_COPPER_LANTERN)
+                .addState(BlockStates.HANGING);
+
+        public static final BlockLegacy EXPOSED_LIGHTNING_ROD = REGISTRY.registerBlock("minecraft:exposed_lightning_rod", BlockID.EXPOSED_LIGHTNING_ROD)
+                .addState(BlockStates.FACING_DIRECTION)
+                .addState(BlockStates.POWERED_BIT);
+
+        public static final BlockLegacy IRON_CHAIN = REGISTRY.rename(V1_21_100.CHAIN, "minecraft:iron_chain");
+        public static final BlockLegacy CHAIN = IRON_CHAIN;
+
+        public static final BlockLegacy JUNGLE_SHELF = REGISTRY.registerBlock("minecraft:jungle_shelf", BlockID.JUNGLE_SHELF)
+                .addState(BlockStates.POWERED_SHELF_TYPE)
+                .addState(BlockStates.POWERED_BIT)
+                .addState(BlockStates.MINECRAFT_CARDINAL_DIRECTION);
+
+        public static final BlockLegacy LIGHTNING_ROD = REGISTRY.patch(V1_21_100.LIGHTNING_ROD, BlockStates.POWERED_BIT);
+
+        public static final BlockLegacy MANGROVE_SHELF = REGISTRY.registerBlock("minecraft:mangrove_shelf", BlockID.MANGROVE_SHELF)
+                .addState(BlockStates.POWERED_SHELF_TYPE)
+                .addState(BlockStates.POWERED_BIT)
+                .addState(BlockStates.MINECRAFT_CARDINAL_DIRECTION);
+
+        public static final BlockLegacy OAK_SHELF = REGISTRY.registerBlock("minecraft:oak_shelf", BlockID.OAK_SHELF)
+                .addState(BlockStates.POWERED_SHELF_TYPE)
+                .addState(BlockStates.POWERED_BIT)
+                .addState(BlockStates.MINECRAFT_CARDINAL_DIRECTION);
+
+        public static final BlockLegacy OXIDIZED_COPPER_BARS = REGISTRY.registerBlock("minecraft:oxidized_copper_bars", BlockID.OXIDIZED_COPPER_BARS);
+
+        public static final BlockLegacy OXIDIZED_COPPER_CHAIN = REGISTRY.registerBlock("minecraft:oxidized_copper_chain", BlockID.OXIDIZED_COPPER_CHAIN)
+                .addState(BlockStates.PILLAR_AXIS);
+
+        public static final BlockLegacy OXIDIZED_COPPER_GOLEM_STATUE = REGISTRY.registerBlock("minecraft:oxidized_copper_golem_statue", BlockID.OXIDIZED_COPPER_GOLEM_STATUE)
+                .addState(BlockStates.MINECRAFT_CARDINAL_DIRECTION);
+
+        public static final BlockLegacy OXIDIZED_COPPER_LANTERN = REGISTRY.registerBlock("minecraft:oxidized_copper_lantern", BlockID.OXIDIZED_COPPER_LANTERN)
+                .addState(BlockStates.HANGING);
+
+        public static final BlockLegacy OXIDIZED_LIGHTNING_ROD = REGISTRY.registerBlock("minecraft:oxidized_lightning_rod", BlockID.OXIDIZED_LIGHTNING_ROD)
+                .addState(BlockStates.FACING_DIRECTION)
+                .addState(BlockStates.POWERED_BIT);
+
+        public static final BlockLegacy PALE_OAK_SHELF = REGISTRY.registerBlock("minecraft:pale_oak_shelf", BlockID.PALE_OAK_SHELF)
+                .addState(BlockStates.POWERED_SHELF_TYPE)
+                .addState(BlockStates.POWERED_BIT)
+                .addState(BlockStates.MINECRAFT_CARDINAL_DIRECTION);
+
+        public static final BlockLegacy SPRUCE_SHELF = REGISTRY.registerBlock("minecraft:spruce_shelf", BlockID.SPRUCE_SHELF)
+                .addState(BlockStates.POWERED_SHELF_TYPE)
+                .addState(BlockStates.POWERED_BIT)
+                .addState(BlockStates.MINECRAFT_CARDINAL_DIRECTION);
+
+        public static final BlockLegacy WARPED_SHELF = REGISTRY.registerBlock("minecraft:warped_shelf", BlockID.WARPED_SHELF)
+                .addState(BlockStates.POWERED_SHELF_TYPE)
+                .addState(BlockStates.POWERED_BIT)
+                .addState(BlockStates.MINECRAFT_CARDINAL_DIRECTION);
+
+        public static final BlockLegacy WAXED_COPPER_BARS = REGISTRY.registerBlock("minecraft:waxed_copper_bars", BlockID.WAXED_COPPER_BARS);
+
+        public static final BlockLegacy WAXED_COPPER_CHAIN = REGISTRY.registerBlock("minecraft:waxed_copper_chain", BlockID.WAXED_COPPER_CHAIN)
+                .addState(BlockStates.PILLAR_AXIS);
+
+        public static final BlockLegacy WAXED_COPPER_GOLEM_STATUE = REGISTRY.registerBlock("minecraft:waxed_copper_golem_statue", BlockID.WAXED_COPPER_GOLEM_STATUE)
+                .addState(BlockStates.MINECRAFT_CARDINAL_DIRECTION);
+
+        public static final BlockLegacy WAXED_COPPER_LANTERN = REGISTRY.registerBlock("minecraft:waxed_copper_lantern", BlockID.WAXED_COPPER_LANTERN)
+                .addState(BlockStates.HANGING);
+
+        public static final BlockLegacy WAXED_EXPOSED_COPPER_BARS = REGISTRY.registerBlock("minecraft:waxed_exposed_copper_bars", BlockID.EXPOSED_COPPER_BARS);
+
+        public static final BlockLegacy WAXED_EXPOSED_COPPER_CHAIN = REGISTRY.registerBlock("minecraft:waxed_exposed_copper_chain", BlockID.EXPOSED_COPPER_CHAIN)
+                .addState(BlockStates.PILLAR_AXIS);
+
+        public static final BlockLegacy WAXED_EXPOSED_COPPER_GOLEM_STATUE = REGISTRY.registerBlock("minecraft:waxed_exposed_copper_golem_statue", BlockID.EXPOSED_COPPER_GOLEM_STATUE)
+                .addState(BlockStates.MINECRAFT_CARDINAL_DIRECTION);
+
+        public static final BlockLegacy WAXED_EXPOSED_COPPER_LANTERN = REGISTRY.registerBlock("minecraft:waxed_exposed_copper_lantern", BlockID.EXPOSED_COPPER_LANTERN)
+                .addState(BlockStates.HANGING);
+
+        public static final BlockLegacy WAXED_EXPOSED_LIGHTNING_ROD = REGISTRY.registerBlock("minecraft:waxed_exposed_lightning_rod", BlockID.EXPOSED_LIGHTNING_ROD)
+                .addState(BlockStates.FACING_DIRECTION)
+                .addState(BlockStates.POWERED_BIT);
+
+        public static final BlockLegacy WAXED_LIGHTNING_ROD = REGISTRY.registerBlock("minecraft:waxed_lightning_rod", BlockID.WAXED_LIGHTNING_ROD)
+                .addState(BlockStates.FACING_DIRECTION)
+                .addState(BlockStates.POWERED_BIT);
+
+        public static final BlockLegacy WAXED_OXIDIZED_COPPER_BARS = REGISTRY.registerBlock("minecraft:waxed_oxidized_copper_bars", BlockID.OXIDIZED_COPPER_BARS);
+
+        public static final BlockLegacy WAXED_OXIDIZED_COPPER_CHAIN = REGISTRY.registerBlock("minecraft:waxed_oxidized_copper_chain", BlockID.OXIDIZED_COPPER_CHAIN)
+                .addState(BlockStates.PILLAR_AXIS);
+
+        public static final BlockLegacy WAXED_OXIDIZED_COPPER_GOLEM_STATUE = REGISTRY.registerBlock("minecraft:waxed_oxidized_copper_golem_statue", BlockID.OXIDIZED_COPPER_GOLEM_STATUE)
+                .addState(BlockStates.MINECRAFT_CARDINAL_DIRECTION);
+
+        public static final BlockLegacy WAXED_OXIDIZED_COPPER_LANTERN = REGISTRY.registerBlock("minecraft:waxed_oxidized_copper_lantern", BlockID.OXIDIZED_COPPER_LANTERN)
+                .addState(BlockStates.HANGING);
+
+        public static final BlockLegacy WAXED_OXIDIZED_LIGHTNING_ROD = REGISTRY.registerBlock("minecraft:waxed_oxidized_lightning_rod", BlockID.OXIDIZED_LIGHTNING_ROD)
+                .addState(BlockStates.FACING_DIRECTION)
+                .addState(BlockStates.POWERED_BIT);
+
+        public static final BlockLegacy WAXED_WEATHERED_COPPER_BARS = REGISTRY.registerBlock("minecraft:waxed_weathered_copper_bars", BlockID.WEATHERED_COPPER_BARS);
+
+        public static final BlockLegacy WAXED_WEATHERED_COPPER_CHAIN = REGISTRY.registerBlock("minecraft:waxed_weathered_copper_chain", BlockID.WEATHERED_COPPER_CHAIN)
+                .addState(BlockStates.PILLAR_AXIS);
+
+        public static final BlockLegacy WAXED_WEATHERED_COPPER_GOLEM_STATUE = REGISTRY.registerBlock("minecraft:waxed_weathered_copper_golem_statue", BlockID.WEATHERED_COPPER_GOLEM_STATUE)
+                .addState(BlockStates.MINECRAFT_CARDINAL_DIRECTION);
+
+        public static final BlockLegacy WAXED_WEATHERED_COPPER_LANTERN = REGISTRY.registerBlock("minecraft:waxed_weathered_copper_lantern", BlockID.WEATHERED_COPPER_LANTERN)
+                .addState(BlockStates.HANGING);
+
+        public static final BlockLegacy WAXED_WEATHERED_LIGHTNING_ROD = REGISTRY.registerBlock("minecraft:waxed_weathered_lightning_rod", BlockID.WEATHERED_LIGHTNING_ROD)
+                .addState(BlockStates.FACING_DIRECTION)
+                .addState(BlockStates.POWERED_BIT);
+
+        public static final BlockLegacy WEATHERED_COPPER_BARS = REGISTRY.registerBlock("minecraft:weathered_copper_bars", BlockID.WEATHERED_COPPER_BARS);
+
+        public static final BlockLegacy WEATHERED_COPPER_CHAIN = REGISTRY.registerBlock("minecraft:weathered_copper_chain", BlockID.WEATHERED_COPPER_CHAIN)
+                .addState(BlockStates.PILLAR_AXIS);
+
+        public static final BlockLegacy WEATHERED_COPPER_GOLEM_STATUE = REGISTRY.registerBlock("minecraft:weathered_copper_golem_statue", BlockID.WEATHERED_COPPER_GOLEM_STATUE)
+                .addState(BlockStates.MINECRAFT_CARDINAL_DIRECTION);
+
+        public static final BlockLegacy WEATHERED_COPPER_LANTERN = REGISTRY.registerBlock("minecraft:weathered_copper_lantern", BlockID.WEATHERED_COPPER_LANTERN)
+                .addState(BlockStates.HANGING);
+
+        public static final BlockLegacy WEATHERED_LIGHTNING_ROD = REGISTRY.registerBlock("minecraft:weathered_lightning_rod", BlockID.WEATHERED_LIGHTNING_ROD)
+                .addState(BlockStates.FACING_DIRECTION)
+                .addState(BlockStates.POWERED_BIT);
+
+        static {
+            REGISTRY.createBlockPermutations();
+        }
+
+        public static BlockRegistry getBlockRegistry() {
+            return REGISTRY;
+        }
+    }
 }
