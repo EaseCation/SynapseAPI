@@ -4,6 +4,8 @@ import cn.nukkit.Player;
 import cn.nukkit.network.protocol.DataPacket;
 import cn.nukkit.network.protocol.ProtocolInfo;
 import lombok.extern.log4j.Log4j2;
+import org.itxtech.synapseapi.multiprotocol.common.PlayerAuthInputFlags;
+import org.itxtech.synapseapi.multiprotocol.protocol113.protocol.IPlayerAuthInputPacket;
 import org.itxtech.synapseapi.multiprotocol.protocol16.protocol.CompatibilityPacket16;
 
 import java.util.Arrays;
@@ -35,7 +37,13 @@ public final class PacketLogger {
         int id = packet.pid();
 
         if (id > 0 && id < ProtocolInfo.COUNT && SERVERBOUND_FILTER[id]) {
-            return;
+            if (id == ProtocolInfo.PLAYER_AUTH_INPUT_PACKET && packet instanceof IPlayerAuthInputPacket inputPacket
+                    && (inputPacket.hasFlag(PlayerAuthInputFlags.PERFORM_ITEM_INTERACTION)
+                    || inputPacket.hasFlag(PlayerAuthInputFlags.PERFORM_BLOCK_ACTIONS)
+                    || inputPacket.hasFlag(PlayerAuthInputFlags.PERFORM_ITEM_STACK_REQUEST))) {
+            } else {
+                return;
+            }
         }
 
         log.trace("[Serverbound] {} - {} {}", player.getName(), packet, player.getServer().getTick());

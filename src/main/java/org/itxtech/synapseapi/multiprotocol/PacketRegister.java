@@ -431,7 +431,7 @@ public class PacketRegister {
         registerPacket(AbstractProtocol.PROTOCOL_121, ProtocolInfo.TEXT_PACKET, TextPacket121.class);
         registerPacket(AbstractProtocol.PROTOCOL_121, ProtocolInfo.CONTAINER_CLOSE_PACKET, ContainerClosePacket121.class);
 
-        registerPacket(AbstractProtocol.PROTOCOL_121_2, ProtocolInfo.ADD_PLAYER_PACKET, AddPlayerPacket1212NE1.class);
+        //registerPacket(AbstractProtocol.PROTOCOL_121_2, ProtocolInfo.ADD_PLAYER_PACKET, AddPlayerPacket1212NE1.class); // fixed in r21u0n1b2
 
         registerPacket(AbstractProtocol.PROTOCOL_121_20, ProtocolInfo.DISCONNECT_PACKET, DisconnectPacket12120.class);
         registerPacket(AbstractProtocol.PROTOCOL_121_20, ProtocolInfo.MOB_ARMOR_EQUIPMENT_PACKET, MobArmorEquipmentPacket12120.class);

@@ -1075,6 +1075,22 @@ public class SynapsePlayer116 extends SynapsePlayer113 {
 
 				PlayerBlockAction[] blockActions = playerAuthInputPacket.getBlockActions();
 				if (blockActions != null && blockActions.length != 0) {
+                    if (isNetEaseClient() && blockActions.length > 1) {
+                        // damn netease r21u0n1
+                        int startDestroyIndex = -1;
+                        int predictDestroyIndex = -1;
+                        for (int i = 0; i < blockActions.length; i++) {
+                            switch (blockActions[i].action) {
+                                case PlayerActionPacket.ACTION_START_BREAK -> startDestroyIndex = i;
+                                case PlayerActionPacket.ACTION_BLOCK_PREDICT_DESTROY -> predictDestroyIndex = i;
+                            }
+                        }
+                        if (startDestroyIndex != -1 && predictDestroyIndex != -1 && predictDestroyIndex < startDestroyIndex) {
+                            PlayerBlockAction startAction = blockActions[startDestroyIndex];
+                            blockActions[startDestroyIndex] = blockActions[predictDestroyIndex];
+                            blockActions[predictDestroyIndex] = startAction;
+                        }
+                    }
 					for (PlayerBlockAction blockAction : blockActions) {
 						Vector3 pos = new Vector3(blockAction.x, blockAction.y, blockAction.z);
 						BlockFace face = null;
