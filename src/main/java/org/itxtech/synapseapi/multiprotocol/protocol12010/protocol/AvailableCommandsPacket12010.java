@@ -129,9 +129,9 @@ public class AvailableCommandsPacket12010 extends Packet12010 {
         enumValues.addAll(commandNames);
 
         ObjIntConsumer<BinaryStream> indexWriter;
-        if (enumValues.size() < 256) {
+        if (enumValues.size() <= 256) {
             indexWriter = WRITE_BYTE;
-        } else if (enumValues.size() < 65536) {
+        } else if (enumValues.size() <= 65536) {
             indexWriter = WRITE_SHORT;
         } else {
             indexWriter = WRITE_INT;

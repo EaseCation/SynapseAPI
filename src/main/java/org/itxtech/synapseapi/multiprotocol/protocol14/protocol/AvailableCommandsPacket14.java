@@ -8,7 +8,6 @@ import org.itxtech.synapseapi.multiprotocol.protocol16.protocol.Packet16;
 import org.itxtech.synapseapi.utils.ClassUtils;
 
 import java.util.*;
-import java.util.stream.Collectors;
 
 /**
  * author: MagicDroidX
@@ -137,9 +136,9 @@ public class AvailableCommandsPacket14 extends Packet16 {
                     throw new IllegalStateException("Enum value '" + val + "' not found");
                 }
 
-                if (enums.size() < 256) {
+                if (enums.size() <= 256) {
                     putByte((byte) i);
-                } else if (enums.size() < 65536) {
+                } else if (enums.size() <= 65536) {
                     putShort(i);
                 } else {
                     putLInt(i);
