@@ -1,13 +1,6 @@
 package org.itxtech.synapseapi.multiprotocol.protocol113;
 
-import cn.nukkit.command.data.CommandData;
-import cn.nukkit.command.data.CommandDataVersions;
-import cn.nukkit.command.data.CommandEnum;
-import cn.nukkit.command.data.CommandFlag;
-import cn.nukkit.command.data.CommandOverload;
-import cn.nukkit.command.data.CommandParamOption;
-import cn.nukkit.command.data.CommandParamType;
-import cn.nukkit.command.data.CommandParameter;
+import cn.nukkit.command.data.*;
 import cn.nukkit.utils.BinaryStream;
 import org.itxtech.synapseapi.multiprotocol.protocol112.BinaryStreamHelper112;
 import org.itxtech.synapseapi.multiprotocol.protocol113.protocol.AvailableCommandsPacket113;
@@ -68,7 +61,7 @@ public class BinaryStreamHelper113 extends BinaryStreamHelper112 {
     }
 
     @Override
-    public void putCommandData(BinaryStream stream, Map<String, CommandDataVersions> commands, List<CommandEnum> enums, List<String> postFixes, List<CommandEnum> softEnums) {
+    public void putCommandData(BinaryStream stream, Map<String, CommandDataVersions> commands, List<CommandEnum> enums, List<String> postFixes, List<CommandEnum> softEnums, List<ChainedSubCommandData> chainedSubCommands) {
         stream.putUnsignedVarInt(commands.size());
 
         commands.forEach((name, cmdData) -> {
@@ -93,7 +86,6 @@ public class BinaryStreamHelper113 extends BinaryStreamHelper112 {
                     stream.putString(parameter.name);
 
                     int type = 0;
-                    int translatedType = this.getCommandParameterTypeId(parameter.type, AvailableCommandsPacket113.ARG_TYPE_INT);
                     if (parameter.postFix != null) {
                         int i = postFixes.indexOf(parameter.postFix);
                         if (i < 0) {
@@ -109,7 +101,7 @@ public class BinaryStreamHelper113 extends BinaryStreamHelper112 {
                                 type |= AvailableCommandsPacket113.ARG_FLAG_ENUM | enums.indexOf(parameter.enumData);
                             }
                         } else {
-                            type |= translatedType;
+                            type |= this.getCommandParameterTypeId(parameter.type, AvailableCommandsPacket113.ARG_TYPE_INT);
                         }
                     }
 

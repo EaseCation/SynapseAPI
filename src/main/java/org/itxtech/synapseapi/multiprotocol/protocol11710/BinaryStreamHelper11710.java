@@ -1,12 +1,6 @@
 package org.itxtech.synapseapi.multiprotocol.protocol11710;
 
-import cn.nukkit.command.data.CommandData;
-import cn.nukkit.command.data.CommandDataVersions;
-import cn.nukkit.command.data.CommandEnum;
-import cn.nukkit.command.data.CommandFlag;
-import cn.nukkit.command.data.CommandOverload;
-import cn.nukkit.command.data.CommandParamOption;
-import cn.nukkit.command.data.CommandParameter;
+import cn.nukkit.command.data.*;
 import cn.nukkit.item.Item;
 import cn.nukkit.network.protocol.types.ItemStackRequestAction;
 import cn.nukkit.utils.BinaryStream;
@@ -30,7 +24,7 @@ public class BinaryStreamHelper11710 extends BinaryStreamHelper117 {
     }
 
     @Override
-    public void putCommandData(BinaryStream stream, Map<String, CommandDataVersions> commands, List<CommandEnum> enums, List<String> postFixes, List<CommandEnum> softEnums) {
+    public void putCommandData(BinaryStream stream, Map<String, CommandDataVersions> commands, List<CommandEnum> enums, List<String> postFixes, List<CommandEnum> softEnums, List<ChainedSubCommandData> chainedSubCommands) {
         stream.putUnsignedVarInt(commands.size());
 
         commands.forEach((name, cmdData) -> {
@@ -55,7 +49,6 @@ public class BinaryStreamHelper11710 extends BinaryStreamHelper117 {
                     stream.putString(parameter.name);
 
                     int type = 0;
-                    int translatedType = this.getCommandParameterTypeId(parameter.type, AvailableCommandsPacket113.ARG_TYPE_INT);
                     if (parameter.postFix != null) {
                         int i = postFixes.indexOf(parameter.postFix);
                         if (i < 0) {
@@ -71,7 +64,7 @@ public class BinaryStreamHelper11710 extends BinaryStreamHelper117 {
                                 type |= AvailableCommandsPacket113.ARG_FLAG_ENUM | enums.indexOf(parameter.enumData);
                             }
                         } else {
-                            type |= translatedType;
+                            type |= this.getCommandParameterTypeId(parameter.type, AvailableCommandsPacket113.ARG_TYPE_INT);
                         }
                     }
 

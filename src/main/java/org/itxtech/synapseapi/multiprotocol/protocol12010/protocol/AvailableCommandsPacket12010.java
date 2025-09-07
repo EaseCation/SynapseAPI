@@ -1,11 +1,6 @@
 package org.itxtech.synapseapi.multiprotocol.protocol12010.protocol;
 
-import cn.nukkit.command.data.CommandData;
-import cn.nukkit.command.data.CommandDataVersions;
-import cn.nukkit.command.data.CommandEnum;
-import cn.nukkit.command.data.CommandEnumConstraint;
-import cn.nukkit.command.data.CommandOverload;
-import cn.nukkit.command.data.CommandParameter;
+import cn.nukkit.command.data.*;
 import cn.nukkit.network.protocol.AvailableCommandsPacket;
 import cn.nukkit.network.protocol.DataPacket;
 import cn.nukkit.network.protocol.ProtocolInfo;
@@ -77,8 +72,10 @@ public class AvailableCommandsPacket12010 extends Packet12010 {
         this.reset();
 
         List<String> enumValues = new SequencedHashSet<>();
+        List<String> chainedSubCommandValues = new SequencedHashSet<>();
         List<String> postFixes = new SequencedHashSet<>();
         List<CommandEnum> enums = new SequencedHashSet<>();
+        List<ChainedSubCommandData> chainedSubCommands = new SequencedHashSet<>();
         List<CommandEnum> softEnums = new SequencedHashSet<>();
         List<LongObjectPair<Set<CommandEnumConstraint>>> enumConstraints = new SequencedHashSet<>();
 
@@ -97,6 +94,12 @@ public class AvailableCommandsPacket12010 extends Packet12010 {
                 enumValues.addAll(cmdData.aliases.getValues().keySet());
 
                 commandNames.addAll(cmdData.aliases.getValues().keySet());
+            }
+
+            for (ChainedSubCommandData subCommand : cmdData.chainedSubCommandData.values()) {
+                chainedSubCommands.add(subCommand);
+
+                subCommand.values.forEach(value -> chainedSubCommandValues.add(value.left()));
             }
 
             for (CommandOverload overload : cmdData.overloads.values()) {
@@ -140,7 +143,8 @@ public class AvailableCommandsPacket12010 extends Packet12010 {
         this.putUnsignedVarInt(enumValues.size());
         enumValues.forEach(this::putString);
 
-        this.putUnsignedVarInt(0); //TODO: chainedSubCommandValueNames
+        this.putUnsignedVarInt(chainedSubCommandValues.size());
+        chainedSubCommandValues.forEach(this::putString);
 
         this.putUnsignedVarInt(postFixes.size());
         postFixes.forEach(this::putString);
@@ -162,9 +166,18 @@ public class AvailableCommandsPacket12010 extends Packet12010 {
             }
         });
 
-        this.putUnsignedVarInt(0); //TODO: chainedSubCommandData
+        this.putUnsignedVarInt(chainedSubCommands.size());
+        chainedSubCommands.forEach((chainedSubCommand) -> {
+            this.putString(chainedSubCommand.name);
 
-        this.helper.putCommandData(this, this.commands, enums, postFixes, softEnums);
+            this.putUnsignedVarInt(chainedSubCommand.values.size());
+            chainedSubCommand.values.forEach(value -> {
+                this.putLShort(chainedSubCommandValues.indexOf(value.left()));
+                this.putLShort(value.rightInt());
+            });
+        });
+
+        this.helper.putCommandData(this, this.commands, enums, postFixes, softEnums, chainedSubCommands);
 
         this.putUnsignedVarInt(softEnums.size());
         softEnums.forEach(cmdEnum -> {

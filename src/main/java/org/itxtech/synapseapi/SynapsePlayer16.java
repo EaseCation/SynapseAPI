@@ -18,6 +18,7 @@ import com.google.gson.JsonPrimitive;
 import org.itxtech.synapseapi.event.player.SynapsePlayerConnectEvent;
 import org.itxtech.synapseapi.multiprotocol.protocol14.protocol.LoginPacket14;
 import org.itxtech.synapseapi.multiprotocol.protocol16.protocol.*;
+import org.itxtech.synapseapi.multiprotocol.protocol16.protocol.UpdateSoftEnumPacket16.Type;
 import org.itxtech.synapseapi.network.protocol.mod.*;
 import org.itxtech.synapseapi.network.protocol.spp.PlayerLoginPacket;
 import org.msgpack.value.ArrayValue;
@@ -505,4 +506,28 @@ public class SynapsePlayer16 extends SynapsePlayer14 {
 	protected void firstSyncLocalPlayerEntityData() {
 		this.sendData(this);
 	}
+
+    @Override
+    public void setSoftEnum(String enumName, String... values) {
+        UpdateSoftEnumPacket16 packet = new UpdateSoftEnumPacket16();
+        packet.type = Type.SET;
+        packet.values = values;
+        dataPacket(packet);
+    }
+
+    @Override
+    public void addSoftEnum(String enumName, String... values) {
+        UpdateSoftEnumPacket16 packet = new UpdateSoftEnumPacket16();
+        packet.type = Type.ADD;
+        packet.values = values;
+        dataPacket(packet);
+    }
+
+    @Override
+    public void removeSoftEnum(String enumName, String... values) {
+        UpdateSoftEnumPacket16 packet = new UpdateSoftEnumPacket16();
+        packet.type = Type.REMOVE;
+        packet.values = values;
+        dataPacket(packet);
+    }
 }

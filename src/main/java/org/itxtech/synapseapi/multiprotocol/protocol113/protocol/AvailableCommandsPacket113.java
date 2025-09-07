@@ -157,7 +157,7 @@ public class AvailableCommandsPacket113 extends Packet113 {
             }
         });
 
-        this.helper.putCommandData(this, this.commands, enums, postFixes, softEnums);
+        this.helper.putCommandData(this, this.commands, enums, postFixes, softEnums, Collections.emptyList());
 
         this.putUnsignedVarInt(softEnums.size());
         softEnums.forEach(cmdEnum -> {

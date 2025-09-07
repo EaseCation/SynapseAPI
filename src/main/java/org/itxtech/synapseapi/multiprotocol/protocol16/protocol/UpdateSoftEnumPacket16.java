@@ -6,7 +6,7 @@ import lombok.ToString;
 @ToString
 public class UpdateSoftEnumPacket16 extends Packet16 {
 
-    public final String[] values = new String[0];
+    public String[] values = new String[0];
     public String name = "";
     public Type type = Type.SET;
 
