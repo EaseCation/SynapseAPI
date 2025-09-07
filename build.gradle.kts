@@ -6,8 +6,9 @@ plugins {
 extra.set("copyTo", listOf("{server}/plugins", "{login}/plugins", "{server1}/plugins"))
 
 dependencies {
-    api(libs.org.msgpack.msgpack.core)
-    compileOnly(libs.netty.all)
+    api(libs.org.msgpack.msgpack.core) {
+        exclude("com.fasterxml.jackson.core", module = "jackson-databind")
+    }
     compileOnly(project(":nukkit"))
     val authLibPkg = findProject(":AuthLibPackage")
     if (authLibPkg == null) {
