@@ -3817,44 +3817,27 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
         return EntityPropertiesCache.getCompiledPlayerProperties(AbstractProtocol.fromRealProtocol(protocol), isNetEaseClient());
     }
 
-    protected int lookupEntityPropertyIndex(Entity entity, String propertyName) {
-/*
-        String identifier;
-        int type = entity.getNetworkId();
-        if (type > 0) {
-            identifier = Entities.getIdentifierByType(type);
-            if (identifier == null) {
-                identifier = entity.getIdentifier();
-            }
-        } else if (type == -1) {
-            identifier = EntityFullNames.PLAYER;
-        } else {
-            identifier = entity.getIdentifier();
-        }
-        EntityPropertiesTable properties = EntityPropertiesPalette.getPalette(AbstractProtocol.fromRealProtocol(protocol), isNetEaseClient()).getProperties(identifier);
-        if (properties == null) {
-            throw new IllegalArgumentException("No properties for " + identifier + " (" + entity.getClass() + ")");
-        }
-        int index = properties.getPropertyIndex(propertyName);
-        if (index == -1) {
-            throw new IllegalArgumentException("Unknown property <" + propertyName + "> for " + identifier + " (" + entity.getClass() + ")");
-        }
-        return index;
-*/
+    protected OptionalInt lookupEntityPropertyIndex(Entity entity, String propertyName) {
         EntityProperty property = entity.getProperties().getProperty(propertyName);
         if (property == null) {
-            throw new IllegalArgumentException("Unknown entity property: " + propertyName);
+            return OptionalInt.empty();
         }
-        return property.getIndex();
+        return OptionalInt.of(property.getIndex());
     }
 
     @Override
     public void sendEntityPropertyInt(Entity entity, String propertyName, int value) {
         if (getProtocol() >= AbstractProtocol.PROTOCOL_119_40.getProtocolStart()) {
+            int index = lookupEntityPropertyIndex(entity, propertyName).orElse(-1);
+            if (index < 0) {
+                this.getServer().getLogger().warning("Unknown entity property: " + propertyName);
+                return;
+            }
+
             SetEntityDataPacket packet = new SetEntityDataPacket();
             packet.eid = entity.getId();
             packet.metadata = new EntityMetadata();
-            packet.intProperties.put(lookupEntityPropertyIndex(entity, propertyName), value);
+            packet.intProperties.put(index, value);
             dataPacket(packet);
             return;
         }
@@ -3873,10 +3856,16 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
     @Override
     public void sendEntityPropertyFloat(Entity entity, String propertyName, float value) {
         if (getProtocol() >= AbstractProtocol.PROTOCOL_119_40.getProtocolStart()) {
+            int index = lookupEntityPropertyIndex(entity, propertyName).orElse(-1);
+            if (index < 0) {
+                this.getServer().getLogger().warning("Unknown entity property: " + propertyName);
+                return;
+            }
+
             SetEntityDataPacket packet = new SetEntityDataPacket();
             packet.eid = entity.getId();
             packet.metadata = new EntityMetadata();
-            packet.floatProperties.put(lookupEntityPropertyIndex(entity, propertyName), value);
+            packet.floatProperties.put(index, value);
             dataPacket(packet);
             return;
         }
@@ -3895,10 +3884,16 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
     @Override
     public void sendEntityPropertyBool(Entity entity, String propertyName, boolean value) {
         if (getProtocol() >= AbstractProtocol.PROTOCOL_119_40.getProtocolStart()) {
+            int index = lookupEntityPropertyIndex(entity, propertyName).orElse(-1);
+            if (index < 0) {
+                this.getServer().getLogger().warning("Unknown entity property: " + propertyName);
+                return;
+            }
+
             SetEntityDataPacket packet = new SetEntityDataPacket();
             packet.eid = entity.getId();
             packet.metadata = new EntityMetadata();
-            packet.intProperties.put(lookupEntityPropertyIndex(entity, propertyName), value ? 1 : 0);
+            packet.intProperties.put(index, value ? 1 : 0);
             dataPacket(packet);
             return;
         }
@@ -3917,45 +3912,19 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
     @Override
     public void sendEntityPropertyEnum(Entity entity, String propertyName, String value) {
         if (getProtocol() >= AbstractProtocol.PROTOCOL_119_40.getProtocolStart()) {
-/*
-            String identifier;
-            int type = entity.getNetworkId();
-            if (type > 0) {
-                identifier = Entities.getIdentifierByType(type);
-                if (identifier == null) {
-                    identifier = entity.getIdentifier();
-                }
-            } else if (type == -1) {
-                identifier = EntityFullNames.PLAYER;
-            }  else {
-                identifier = entity.getIdentifier();
-            }
-            EntityPropertiesTable properties = EntityPropertiesPalette.getPalette(AbstractProtocol.fromRealProtocol(protocol), isNetEaseClient()).getProperties(identifier);
-            if (properties == null) {
-                throw new IllegalArgumentException("No properties for " + identifier + " (" + entity.getClass() + ")");
-            }
-            int index = properties.getPropertyIndex(propertyName);
-            if (index == -1) {
-                throw new IllegalArgumentException("Unknown property <" + propertyName + "> for " + identifier + " (" + entity.getClass() + ")");
-            }
-            if (!(properties.get(index) instanceof EntityPropertyDataEnum property)) {
-                throw new IllegalStateException(identifier + "'s property <" + propertyName + "> is not a string " + " (" + entity.getClass() + ")");
-            }
-            int valueIndex = property.getValues().indexOf(value);
-            if (valueIndex == -1) {
-                throw new IllegalArgumentException("Unknown property value <" + propertyName + " = " + value + "> for " + identifier + " (" + entity.getClass() + ")");
-            }
-*/
             EntityProperty property = entity.getProperties().getProperty(propertyName);
             if (property == null) {
-                throw new IllegalArgumentException("unknown entity property: " + propertyName);
+                this.getServer().getLogger().warning("Unknown entity property: " + propertyName);
+                return;
             }
             if (!(property instanceof EnumEntityProperty enumProperty)) {
-                throw new IllegalArgumentException("entity property type mismatch: " + propertyName);
+                this.getServer().getLogger().warning("Entity property type mismatch: " + propertyName);
+                return;
             }
             int valueIndex = enumProperty.getValues().indexOf(value);
             if (valueIndex == -1) {
-                throw new IllegalArgumentException("unknown entity property value " + value);
+                this.getServer().getLogger().warning("Unknown entity property value: " + propertyName);
+                return;
             }
             int index = property.getIndex();
 
