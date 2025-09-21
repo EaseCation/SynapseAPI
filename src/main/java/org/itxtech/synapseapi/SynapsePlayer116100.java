@@ -42,7 +42,7 @@ import cn.nukkit.level.Position;
 import cn.nukkit.level.format.generic.ChunkBlobCache;
 import cn.nukkit.level.format.generic.ChunkCachedData;
 import cn.nukkit.level.format.generic.ChunkPacketCache;
-import cn.nukkit.level.generator.Generator;
+import cn.nukkit.level.generator.GeneratorID;
 import cn.nukkit.level.particle.PunchBlockParticle;
 import cn.nukkit.math.*;
 import cn.nukkit.network.PacketViolationReason;
@@ -261,7 +261,7 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
             startGamePacket.yaw = (float) this.yaw;
             startGamePacket.pitch = (float) this.pitch;
             startGamePacket.seed = -1;
-            startGamePacket.dimension = (byte) (this.level.getDimension().ordinal() & 0xff);
+            startGamePacket.dimension = (byte) (this.level.getDimension().getId() & 0xff);
             startGamePacket.worldGamemode = getClientFriendlyGamemode(this.gamemode);
             startGamePacket.difficulty = this.server.getDifficulty();
             startGamePacket.spawnX = (int) spawnPosition.x;
@@ -305,7 +305,7 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
             startGamePacket.yaw = (float) this.yaw;
             startGamePacket.pitch = (float) this.pitch;
             startGamePacket.seed = -1;
-            startGamePacket.dimension = (byte) (this.level.getDimension().ordinal() & 0xff);
+            startGamePacket.dimension = (byte) (this.level.getDimension().getId() & 0xff);
             startGamePacket.worldGamemode = getClientFriendlyGamemode(this.gamemode);
             startGamePacket.difficulty = this.server.getDifficulty();
             startGamePacket.spawnX = (int) spawnPosition.x;
@@ -347,7 +347,7 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
             startGamePacket.yaw = (float) this.yaw;
             startGamePacket.pitch = (float) this.pitch;
             startGamePacket.seed = -1;
-            startGamePacket.dimension = (byte) (this.level.getDimension().ordinal() & 0xff);
+            startGamePacket.dimension = (byte) (this.level.getDimension().getId() & 0xff);
             startGamePacket.worldGamemode = getClientFriendlyGamemode(this.gamemode);
             startGamePacket.difficulty = this.server.getDifficulty();
             startGamePacket.spawnX = (int) spawnPosition.x;
@@ -394,7 +394,7 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
             startGamePacket.yaw = (float) this.yaw;
             startGamePacket.pitch = (float) this.pitch;
             startGamePacket.seed = -1;
-            startGamePacket.dimension = (byte) (this.level.getDimension().ordinal() & 0xff);
+            startGamePacket.dimension = (byte) (this.level.getDimension().getId() & 0xff);
             startGamePacket.worldGamemode = getClientFriendlyGamemode(this.gamemode);
             startGamePacket.difficulty = this.server.getDifficulty();
             startGamePacket.spawnX = (int) spawnPosition.x;
@@ -440,7 +440,7 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
             startGamePacket.yaw = (float) this.yaw;
             startGamePacket.pitch = (float) this.pitch;
             startGamePacket.seed = -1;
-            startGamePacket.dimension = (byte) (this.level.getDimension().ordinal() & 0xff);
+            startGamePacket.dimension = (byte) (this.level.getDimension().getId() & 0xff);
             startGamePacket.worldGamemode = getClientFriendlyGamemode(this.gamemode);
             startGamePacket.difficulty = this.server.getDifficulty();
             startGamePacket.spawnX = (int) spawnPosition.x;
@@ -484,7 +484,7 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
             startGamePacket.yaw = (float) this.yaw;
             startGamePacket.pitch = (float) this.pitch;
             startGamePacket.seed = -1;
-            startGamePacket.dimension = (byte) (this.level.getDimension().ordinal() & 0xff);
+            startGamePacket.dimension = (byte) (this.level.getDimension().getId() & 0xff);
             startGamePacket.worldGamemode = getClientFriendlyGamemode(this.gamemode);
             startGamePacket.difficulty = this.server.getDifficulty();
             startGamePacket.spawnX = (int) spawnPosition.x;
@@ -531,7 +531,7 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
             startGamePacket.yaw = (float) this.yaw;
             startGamePacket.pitch = (float) this.pitch;
             startGamePacket.seed = -1;
-            startGamePacket.dimension = (byte) (this.level.getDimension().ordinal() & 0xff);
+            startGamePacket.dimension = (byte) (this.level.getDimension().getId() & 0xff);
             startGamePacket.worldGamemode = getClientFriendlyGamemode(this.gamemode);
             startGamePacket.difficulty = this.server.getDifficulty();
             startGamePacket.spawnX = (int) spawnPosition.x;
@@ -574,7 +574,7 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
             startGamePacket.yaw = (float) this.yaw;
             startGamePacket.pitch = (float) this.pitch;
             startGamePacket.seed = -1;
-            startGamePacket.dimension = (byte) (this.level.getDimension().ordinal() & 0xff);
+            startGamePacket.dimension = (byte) (this.level.getDimension().getId() & 0xff);
             startGamePacket.worldGamemode = getClientFriendlyGamemode(this.gamemode);
             startGamePacket.difficulty = this.server.getDifficulty();
             startGamePacket.spawnX = (int) spawnPosition.x;
@@ -615,7 +615,7 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
             startGamePacket.yaw = (float) this.yaw;
             startGamePacket.pitch = (float) this.pitch;
             startGamePacket.seed = -1;
-            startGamePacket.dimension = (byte) (this.level.getDimension().ordinal() & 0xff);
+            startGamePacket.dimension = (byte) (this.level.getDimension().getId() & 0xff);
             startGamePacket.worldGamemode = getClientFriendlyGamemode(this.gamemode);
             startGamePacket.difficulty = this.server.getDifficulty();
             startGamePacket.spawnX = (int) spawnPosition.x;
@@ -656,7 +656,7 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
             startGamePacket.yaw = (float) this.yaw;
             startGamePacket.pitch = (float) this.pitch;
             startGamePacket.seed = -1;
-            startGamePacket.dimension = (byte) (this.level.getDimension().ordinal() & 0xff);
+            startGamePacket.dimension = (byte) (this.level.getDimension().getId() & 0xff);
             startGamePacket.worldGamemode = getClientFriendlyGamemode(this.gamemode);
             startGamePacket.difficulty = this.server.getDifficulty();
             startGamePacket.spawnX = (int) spawnPosition.x;
@@ -697,7 +697,7 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
             startGamePacket.yaw = (float) this.yaw;
             startGamePacket.pitch = (float) this.pitch;
             startGamePacket.seed = -1;
-            startGamePacket.dimension = (byte) (this.level.getDimension().ordinal() & 0xff);
+            startGamePacket.dimension = (byte) (this.level.getDimension().getId() & 0xff);
             startGamePacket.worldGamemode = getClientFriendlyGamemode(this.gamemode);
             startGamePacket.difficulty = this.server.getDifficulty();
             startGamePacket.spawnX = (int) spawnPosition.x;
@@ -738,7 +738,7 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
             startGamePacket.yaw = (float) this.yaw;
             startGamePacket.pitch = (float) this.pitch;
             startGamePacket.seed = -1;
-            startGamePacket.dimension = (byte) (this.level.getDimension().ordinal() & 0xff);
+            startGamePacket.dimension = (byte) (this.level.getDimension().getId() & 0xff);
             startGamePacket.worldGamemode = getClientFriendlyGamemode(this.gamemode);
             startGamePacket.difficulty = this.server.getDifficulty();
             startGamePacket.spawnX = (int) spawnPosition.x;
@@ -779,7 +779,7 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
             startGamePacket.yaw = (float) this.yaw;
             startGamePacket.pitch = (float) this.pitch;
             startGamePacket.seed = -1;
-            startGamePacket.dimension = (byte) (this.level.getDimension().ordinal() & 0xff);
+            startGamePacket.dimension = (byte) (this.level.getDimension().getId() & 0xff);
             startGamePacket.worldGamemode = getClientFriendlyGamemode(this.gamemode);
             startGamePacket.difficulty = this.server.getDifficulty();
             startGamePacket.spawnX = (int) spawnPosition.x;
@@ -819,7 +819,7 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
             startGamePacket.yaw = (float) this.yaw;
             startGamePacket.pitch = (float) this.pitch;
             startGamePacket.seed = -1;
-            startGamePacket.dimension = (byte) (this.level.getDimension().ordinal() & 0xff);
+            startGamePacket.dimension = (byte) (this.level.getDimension().getId() & 0xff);
             startGamePacket.worldGamemode = getClientFriendlyGamemode(this.gamemode);
             startGamePacket.difficulty = this.server.getDifficulty();
             startGamePacket.spawnX = (int) spawnPosition.x;
@@ -859,7 +859,7 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
             startGamePacket.yaw = (float) this.yaw;
             startGamePacket.pitch = (float) this.pitch;
             startGamePacket.seed = -1;
-            startGamePacket.dimension = (byte) (this.level.getDimension().ordinal() & 0xff);
+            startGamePacket.dimension = (byte) (this.level.getDimension().getId() & 0xff);
             startGamePacket.worldGamemode = getClientFriendlyGamemode(this.gamemode);
             startGamePacket.difficulty = this.server.getDifficulty();
             startGamePacket.spawnX = (int) spawnPosition.x;
@@ -899,7 +899,7 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
             startGamePacket.yaw = (float) this.yaw;
             startGamePacket.pitch = (float) this.pitch;
             startGamePacket.seed = -1;
-            startGamePacket.dimension = (byte) (this.level.getDimension().ordinal() & 0xff);
+            startGamePacket.dimension = (byte) (this.level.getDimension().getId() & 0xff);
             startGamePacket.worldGamemode = getClientFriendlyGamemode(this.gamemode);
             startGamePacket.difficulty = this.server.getDifficulty();
             startGamePacket.spawnX = (int) spawnPosition.x;
@@ -939,7 +939,7 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
             startGamePacket.yaw = (float) this.yaw;
             startGamePacket.pitch = (float) this.pitch;
             startGamePacket.seed = -1;
-            startGamePacket.dimension = (byte) (this.level.getDimension().ordinal() & 0xff);
+            startGamePacket.dimension = (byte) (this.level.getDimension().getId() & 0xff);
             startGamePacket.worldGamemode = getClientFriendlyGamemode(this.gamemode);
             startGamePacket.difficulty = this.server.getDifficulty();
             startGamePacket.spawnX = (int) spawnPosition.x;
@@ -978,7 +978,7 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
             startGamePacket.yaw = (float) this.yaw;
             startGamePacket.pitch = (float) this.pitch;
             startGamePacket.seed = -1;
-            startGamePacket.dimension = (byte) (this.level.getDimension().ordinal() & 0xff);
+            startGamePacket.dimension = (byte) (this.level.getDimension().getId() & 0xff);
             startGamePacket.worldGamemode = getClientFriendlyGamemode(this.gamemode);
             startGamePacket.difficulty = this.server.getDifficulty();
             startGamePacket.spawnX = (int) spawnPosition.x;
@@ -1019,7 +1019,7 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
             startGamePacket.yaw = (float) this.yaw;
             startGamePacket.pitch = (float) this.pitch;
             startGamePacket.seed = -1;
-            startGamePacket.dimension = (byte) (this.level.getDimension().ordinal() & 0xff);
+            startGamePacket.dimension = (byte) (this.level.getDimension().getId() & 0xff);
             startGamePacket.worldGamemode = getClientFriendlyGamemode(this.gamemode);
             startGamePacket.difficulty = this.server.getDifficulty();
             startGamePacket.spawnX = (int) spawnPosition.x;
@@ -1052,7 +1052,7 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
         startGamePacket.yaw = (float) this.yaw;
         startGamePacket.pitch = (float) this.pitch;
         startGamePacket.seed = -1;
-        startGamePacket.dimension = (byte) (this.level.getDimension().ordinal() & 0xff);
+        startGamePacket.dimension = (byte) (this.level.getDimension().getId() & 0xff);
         startGamePacket.worldGamemode = getClientFriendlyGamemode(this.gamemode);
         startGamePacket.difficulty = this.server.getDifficulty();
         startGamePacket.spawnX = (int) spawnPosition.x;
@@ -2904,9 +2904,12 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
     }
 
     @Override
-    public void sendChunk(int x, int z, int subChunkCount, ChunkCachedData cachedData, DataPacket packet) {
+    public void sendChunk(int dimension, int x, int z, int subChunkCount, ChunkCachedData cachedData, DataPacket packet) {
+        if (dimension == transferDimension) {
+            return;
+        }
         if (protocol < AbstractProtocol.PROTOCOL_120_60.getProtocolStart() && !this.isSubChunkRequestAvailable()) {
-            super.sendChunk(x, z, subChunkCount, cachedData, packet);
+            super.sendChunk(dimension, x, z, subChunkCount, cachedData, packet);
             return;
         }
         if (!this.connected) {
@@ -2936,7 +2939,7 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
             LevelChunkPacket pk = createLevelChunkPacket();
             pk.chunkX = x;
             pk.chunkZ = z;
-            pk.dimension = getDummyDimension();
+            pk.dimension = dimension;
             pk.subChunkCount = LevelChunkPacket.CLIENT_REQUEST_TRUNCATED_COLUMN_FAKE_COUNT;
             pk.subChunkRequestLimit = subChunkCount;
             pk.blobIds = new long[]{hash};
@@ -2947,7 +2950,7 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
             LevelChunkPacket pk = createLevelChunkPacket();
             pk.chunkX = x;
             pk.chunkZ = z;
-            pk.dimension = getDummyDimension();
+            pk.dimension = dimension;
             pk.subChunkCount = LevelChunkPacket.CLIENT_REQUEST_TRUNCATED_COLUMN_FAKE_COUNT;
             pk.subChunkRequestLimit = subChunkCount;
             pk.data = ((LevelChunkPacket12060) packet).data;
@@ -2974,9 +2977,12 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
     }
 
     @Override
-    public void sendChunk(int x, int z, int subChunkCount, ChunkCachedData cachedData, byte[] payload, byte[] subModePayload) {
+    public void sendChunk(int dimension, int x, int z, int subChunkCount, ChunkCachedData cachedData, byte[] payload, byte[] subModePayload) {
+        if (dimension == transferDimension) {
+            return;
+        }
         if (protocol < AbstractProtocol.PROTOCOL_120_60.getProtocolStart() && (!this.isSubChunkRequestAvailable() || this.getChunkX() == x && this.getChunkZ() == z)) {
-            super.sendChunk(x, z, subChunkCount, cachedData, payload, subModePayload);
+            super.sendChunk(dimension, x, z, subChunkCount, cachedData, payload, subModePayload);
             return;
         }
         if (!this.connected) {
@@ -2991,7 +2997,7 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
         LevelChunkPacket pk = createLevelChunkPacket();
         pk.chunkX = x;
         pk.chunkZ = z;
-        pk.dimension = getDummyDimension();
+        pk.dimension = dimension;
         pk.subChunkCount = LevelChunkPacket.CLIENT_REQUEST_TRUNCATED_COLUMN_FAKE_COUNT;
         pk.subChunkRequestLimit = subChunkCount;
         if (this.isBlobCacheAvailable() && this.isSubModeLevelChunkBlobCacheEnabled() && !centerChunk) {
@@ -3065,8 +3071,7 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
             int index = Level.yToIndex(y, chunkYIndexOffset);
 
             SubChunkPacket pk = this.createSubChunkPacket();
-//            pk.dimension = dimension;
-            pk.dimension = this.dummyDimension;  // Level.DIMENSION_OVERWORLD;
+            pk.dimension = dimension;
             pk.subChunkX = x;
             pk.subChunkY = y;
             pk.subChunkZ = z;
@@ -3092,7 +3097,7 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
                 continue;
             }
 
-            if (index >= cachedData.getEmptySection().length || cachedData.getEmptySection()[index]) {
+            if (index < 0 || index >= cachedData.getEmptySection().length || cachedData.getEmptySection()[index]) {
                 pk.requestResult = SubChunkPacket.REQUEST_RESULT_SUCCESS_ALL_AIR;
             } else if (this.isBlobCacheAvailable() && this.isSubChunkBlobCacheEnabled() && !centerChunk) {
                 long[] ids;
@@ -3115,8 +3120,12 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
                 pk.data = payloads[index];
             }
 
-            pk.heightMapType = heightMapType[index];
-            pk.heightMap = heightMap[index];
+            if (index < 0) {
+                pk.heightMapType = SubChunkPacket.HEIGHT_MAP_TYPE_ALL_TOO_HIGH;
+            } else {
+                pk.heightMapType = heightMapType[index];
+                pk.heightMap = heightMap[index];
+            }
             this.dataPacket(pk);
             iter.remove();
         }
@@ -3157,8 +3166,7 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
 
             if (subChunkCount == 0) {
                 SubChunkPacket pk = this.createSubChunkPacket();
-//                pk.dimension = dimension;
-                pk.dimension = this.dummyDimension;  // Level.DIMENSION_OVERWORLD;
+                pk.dimension = dimension;
                 pk.subChunkX = x;
                 pk.subChunkY = y;
                 pk.subChunkZ = z;
@@ -3175,8 +3183,7 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
                 continue;
             } else if (index >= subChunkCount) {
                 SubChunkPacket pk = this.createSubChunkPacket();
-//                pk.dimension = dimension;
-                pk.dimension = this.dummyDimension;  // Level.DIMENSION_OVERWORLD;
+                pk.dimension = dimension;
                 pk.subChunkX = x;
                 pk.subChunkY = y;
                 pk.subChunkZ = z;
@@ -3188,16 +3195,19 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
                 continue;
             }
 
-            if (index >= cachedData.getEmptySection().length || cachedData.getEmptySection()[index]) {
+            if (index < 0 || index >= cachedData.getEmptySection().length || cachedData.getEmptySection()[index]) {
                 SubChunkPacket pk = this.createSubChunkPacket();
-//                pk.dimension = dimension;
-                pk.dimension = this.dummyDimension;  // Level.DIMENSION_OVERWORLD;
+                pk.dimension = dimension;
                 pk.subChunkX = x;
                 pk.subChunkY = y;
                 pk.subChunkZ = z;
                 pk.requestResult = SubChunkPacket.REQUEST_RESULT_SUCCESS_ALL_AIR;
-                pk.heightMapType = heightMapType[index];
-                pk.heightMap = heightMap[index];
+                if (index < 0) {
+                    pk.heightMapType = SubChunkPacket.HEIGHT_MAP_TYPE_ALL_TOO_HIGH;
+                } else {
+                    pk.heightMapType = heightMapType[index];
+                    pk.heightMap = heightMap[index];
+                }
                 this.dataPacket(pk);
             } else if (this.isBlobCacheAvailable() && this.isSubChunkBlobCacheEnabled() && !centerChunk) {
                 long[] ids;
@@ -3214,8 +3224,7 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
                 this.clientCacheTrack.put(hash, new BlobTrack(hash, blobs.get(hash)));
 
                 SubChunkPacket pk = this.createSubChunkPacket();
-//                pk.dimension = dimension;
-                pk.dimension = this.dummyDimension;  // Level.DIMENSION_OVERWORLD;
+                pk.dimension = dimension;
                 pk.subChunkX = x;
                 pk.subChunkY = y;
                 pk.subChunkZ = z;
@@ -3229,7 +3238,7 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
                 SubChunkPacket uncompressed = packetsUncompressed[index];
 
                 SubChunkPacket pk = this.createSubChunkPacket();
-                pk.dimension = this.dummyDimension;
+                pk.dimension = dimension;
                 pk.subChunkX = uncompressed.subChunkX;
                 pk.subChunkY = uncompressed.subChunkY;
                 pk.subChunkZ = uncompressed.subChunkZ;
@@ -3339,7 +3348,7 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
             int chunkZ = Level.getHashZ(index);
             IntSet newRequests = entry.getValue();
 
-            if (this.level.requestSubChunks(chunkX, chunkZ, this)) {
+            if (this.level.requestSubChunks(chunkX, chunkZ, this, dummyDimension)) {
                 IntSet requests = this.subChunkSendQueue.get(index);
                 if (requests == null) {
                     requests = newRequests;
@@ -3397,6 +3406,17 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
     }
 
     protected boolean handleSubChunkRequest(int dimension, int subChunkX, int subChunkY, int subChunkZ) {
+        if (this.getLoaderId() <= 0 || dimension == this.transferDimension) {
+            SubChunkPacket pk = this.createSubChunkPacket();
+            pk.dimension = dimension;
+            pk.subChunkX = subChunkX;
+            pk.subChunkY = subChunkY;
+            pk.subChunkZ = subChunkZ;
+            pk.requestResult = SubChunkPacket.REQUEST_RESULT_PLAYER_NOT_FOUND;
+            this.dataPacket(pk);
+            return false;
+        }
+
         if (!level.getHeightRange().isValidSubChunkY(subChunkY)) {
             SubChunkPacket pk = this.createSubChunkPacket();
             pk.dimension = dimension;
@@ -3416,17 +3436,6 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
             pk.subChunkY = subChunkY;
             pk.subChunkZ = subChunkZ;
             pk.requestResult = SubChunkPacket.REQUEST_RESULT_WRONG_DIMENSION;
-            this.dataPacket(pk);
-            return false;
-        }
-
-        if (this.getLoaderId() <= 0) {
-            SubChunkPacket pk = this.createSubChunkPacket();
-            pk.dimension = dimension;
-            pk.subChunkX = subChunkX;
-            pk.subChunkY = subChunkY;
-            pk.subChunkZ = subChunkZ;
-            pk.requestResult = SubChunkPacket.REQUEST_RESULT_PLAYER_NOT_FOUND;
             this.dataPacket(pk);
             return false;
         }
@@ -3463,6 +3472,7 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
                 this.protocol >= AbstractProtocol.PROTOCOL_121_90.getProtocolStart() ? new SubChunkPacket12190() : new SubChunkPacket11810();
     }
 
+    @Override
     protected LevelChunkPacket createLevelChunkPacket() {
         return this.protocol < AbstractProtocol.PROTOCOL_120_60.getProtocolStart() ? new LevelChunkPacket() : new LevelChunkPacket12060();
     }
@@ -3599,12 +3609,6 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
         pk.message = message.getText();
         pk.parameters = Arrays.stream(message.getParameters()).map(String::valueOf).toArray(String[]::new);
         this.dataPacket(pk);
-    }
-
-    private static int distance(int centerX, int centerZ, int x, int z) {
-        int dx = centerX - x;
-        int dz = centerZ - z;
-        return dx * dx + dz * dz;
     }
 
     @Override
@@ -3751,9 +3755,9 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
 
         DimensionDataPacket11830 packet = new DimensionDataPacket11830();
         packet.definitions = new DimensionDefinition[]{
-                new DimensionDefinition(DimensionDataPacket11830.VANILLA_OVERWORLD.identifier, 320, -64, Generator.TYPE_VOID),
-                new DimensionDefinition(DimensionDataPacket11830.VANILLA_NETHER.identifier, 0, 0, Generator.TYPE_VOID),
-                new DimensionDefinition(DimensionDataPacket11830.VANILLA_THE_END.identifier, 0, 0, Generator.TYPE_VOID),
+                new DimensionDefinition(DimensionDataPacket11830.VANILLA_OVERWORLD.identifier, 320, -64, GeneratorID.VOID),
+                new DimensionDefinition(DimensionDataPacket11830.VANILLA_NETHER.identifier, 0, 0, GeneratorID.VOID),
+                new DimensionDefinition(DimensionDataPacket11830.VANILLA_THE_END.identifier, 0, 0, GeneratorID.VOID),
         };
         dataPacket(packet);
 
@@ -4370,19 +4374,6 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
         pk.eid = getId();
         pk.metadata = dataProperties;
 
-/*
-        EntityPropertiesTable properties = EntityPropertiesPalette.getPalette(AbstractProtocol.fromRealProtocol(protocol), isNetEaseClient()).getProperties(EntityFullNames.PLAYER);
-        if (properties != null) {
-            for (int i = 0; i < properties.size(); i++) {
-                EntityPropertyData property = properties.get(i);
-                if (property.getType() == EntityPropertyType.FLOAT) {
-                    pk.floatProperties.put(i, property.getDefaultFloatValue());
-                } else {
-                    pk.intProperties.put(i, property.getDefaultIntValue());
-                }
-            }
-        }
-*/
         Pair<Int2IntMap, Int2FloatMap> propertyValues = getProperties().getValues();
         if (propertyValues != null) {
             pk.intProperties = propertyValues.left();

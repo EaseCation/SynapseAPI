@@ -15,9 +15,7 @@ import cn.nukkit.event.server.DataPacketReceiveEvent;
 import cn.nukkit.event.server.DataPacketSendEvent;
 import cn.nukkit.item.Item;
 import cn.nukkit.item.ItemMap;
-import cn.nukkit.level.Level;
-import cn.nukkit.level.Location;
-import cn.nukkit.level.Position;
+import cn.nukkit.level.*;
 import cn.nukkit.math.NukkitMath;
 import cn.nukkit.math.Vector3;
 import cn.nukkit.nbt.tag.CompoundTag;
@@ -101,6 +99,7 @@ public class SynapsePlayer extends Player {
     protected JsonObject cachedExtra = new JsonObject();
     protected final JsonObject transferExtra = new JsonObject();
     protected int dummyDimension = 0;
+    protected int transferDimension = -1;
 
     protected boolean emoting;
 
@@ -377,10 +376,14 @@ public class SynapsePlayer extends Player {
                 .set(Type.TELEPORT, hasPermission("nukkit.command.teleport"));
 
         Level oldLevel = this.level;
-        Level level;
-        if ((level = this.server.getLevelByName(nbt.getString("Level"))) == null || !alive) {
+        Level level = this.server.getLevelByName(nbt.getString("Level"));
+        if (level != null) {
+            level = level.getDimension(Dimension.byIdOrDefault(nbt.getInt("DimensionId", DimensionID.OVERWORLD))) ;
+        }
+        if (level == null || !alive) {
             this.setLevel(this.server.getDefaultLevel());
             nbt.putString("Level", this.level.getName());
+            nbt.putInt("DimensionId", this.level.getDimension().getId());
             nbt.getList("Pos", DoubleTag.class)
                     .add(new DoubleTag("", this.level.getSpawnLocation().x))
                     .add(new DoubleTag("", this.level.getSpawnLocation().y))
@@ -499,6 +502,7 @@ public class SynapsePlayer extends Player {
 
         Level level;
         if (this.spawnPosition == null && this.namedTag.contains("SpawnLevel") && (level = this.server.getLevelByName(this.namedTag.getString("SpawnLevel"))) != null) {
+            level = level.getDimension(Dimension.byIdOrDefault(this.namedTag.getInt("SpawnDimension", DimensionID.OVERWORLD))) ;
             this.spawnPosition = new Position(this.namedTag.getInt("SpawnX"), this.namedTag.getInt("SpawnY"), this.namedTag.getInt("SpawnZ"), level);
         }
         if (this.spawnBlockPosition == null && this.namedTag.contains("SpawnBlockPositionLevel")) {
@@ -509,7 +513,10 @@ public class SynapsePlayer extends Player {
         }
 
         Position spawnPosition = this.getSpawn();
+        int dimension = this.level.getDimension().getId();
         if (this.isFirstTimeLogin) {
+            dummyDimension = dimension;
+
             tryDisruptIllegalClientBeforeStartGame();
 
             sendDimensionData();
@@ -526,6 +533,49 @@ public class SynapsePlayer extends Player {
             this.sendCameraPresets();
             this.sendAimAssistPresets();
         } else {
+            if (dimension != DimensionID.OVERWORLD && dummyDimension != DimensionID.OVERWORLD) {
+                forceSendEmptyChunks(chunkRadius, 0, 0, dummyDimension);
+
+                dummyDimension = dimension;
+
+                if (getProtocol() >= AbstractProtocol.PROTOCOL_121_20.getProtocolStart()) {
+                    ChangeDimensionPacket12120 changeDimensionPacket = new ChangeDimensionPacket12120();
+                    changeDimensionPacket.dimension = dummyDimension;
+                    changeDimensionPacket.x = (float) getX();
+                    changeDimensionPacket.y = (float) getY();
+                    changeDimensionPacket.z = (float) getZ();
+                    dataPacket(changeDimensionPacket);
+                } else {
+                    ChangeDimensionPacket changeDimensionPacket = new ChangeDimensionPacket();
+                    changeDimensionPacket.dimension = dummyDimension;
+                    changeDimensionPacket.x = (float) getX();
+                    changeDimensionPacket.y = (float) getY();
+                    changeDimensionPacket.z = (float) getZ();
+                    dataPacket(changeDimensionPacket);
+                }
+
+                if (getProtocol() >= AbstractProtocol.PROTOCOL_119_50.getProtocolStart()) {
+                    PlayerActionPacket119 ackPacket = new PlayerActionPacket119();
+                    ackPacket.action = PlayerActionPacket.ACTION_DIMENSION_CHANGE_ACK;
+                    ackPacket.entityId = getId();
+                    ackPacket.x = getFloorX();
+                    ackPacket.y = getFloorY();
+                    ackPacket.z = getFloorZ();
+                    ackPacket.resultX = ackPacket.x;
+                    ackPacket.resultY = ackPacket.y;
+                    ackPacket.resultZ = ackPacket.z;
+                    dataPacket(ackPacket);
+                } else if (isNetEaseClient() && getProtocol() >= AbstractProtocol.PROTOCOL_118.getProtocolStart()) {
+                    PlayerActionPacket14 ackPacket = new PlayerActionPacket14();
+                    ackPacket.action = PlayerActionPacket14.ACTION_DIMENSION_CHANGE_ACK;
+                    ackPacket.entityId = getId();
+                    ackPacket.x = getFloorX();
+                    ackPacket.y = getFloorY();
+                    ackPacket.z = getFloorZ();
+                    dataPacket(ackPacket);
+                }
+            }
+
             GameRulesChangedPacket packet = new GameRulesChangedPacket();
             packet.gameRules = this.level.getGameRules();
             this.dataPacket(packet);
@@ -622,7 +672,7 @@ public class SynapsePlayer extends Player {
 		startGamePacket.yaw = (float) this.yaw;
 		startGamePacket.pitch = (float) this.pitch;
 		startGamePacket.seed = -1;
-		startGamePacket.dimension = (byte) (this.level.getDimension().ordinal() & 0xff);
+		startGamePacket.dimension = (byte) (this.level.getDimension().getId() & 0xff);
 		startGamePacket.worldGamemode = getClientFriendlyGamemode(this.gamemode);
 		startGamePacket.difficulty = this.server.getDifficulty();
 		startGamePacket.spawnX = (int) spawnPosition.x;
@@ -708,7 +758,7 @@ public class SynapsePlayer extends Player {
 
             if (this.isNeedLevelChangeLoadScreen()) {
                 if (!isLevelChanging) {
-                    this.nextDummyDimension();
+                    transferDimension = this.nextDummyDimension();
                 }
 
                 if (getProtocol() >= AbstractProtocol.PROTOCOL_121_20.getProtocolStart()) {
@@ -729,6 +779,45 @@ public class SynapsePlayer extends Player {
 
                 // 传递给下一个服务器玩家的虚拟维度信息
                 this.transferExtra.addProperty("dummyDimension", this.dummyDimension);
+
+                if (getProtocol() >= AbstractProtocol.PROTOCOL_119_50.getProtocolStart()) {
+                    PlayerActionPacket119 ackPacket = new PlayerActionPacket119();
+                    ackPacket.action = PlayerActionPacket.ACTION_DIMENSION_CHANGE_ACK;
+                    ackPacket.entityId = getId();
+                    ackPacket.x = getFloorX();
+                    ackPacket.y = getFloorY();
+                    ackPacket.z = getFloorZ();
+                    ackPacket.resultX = ackPacket.x;
+                    ackPacket.resultY = ackPacket.y;
+                    ackPacket.resultZ = ackPacket.z;
+                    dataPacket(ackPacket);
+                } else if (isNetEaseClient() && getProtocol() >= AbstractProtocol.PROTOCOL_118.getProtocolStart()) {
+                    PlayerActionPacket14 ackPacket = new PlayerActionPacket14();
+                    ackPacket.action = PlayerActionPacket14.ACTION_DIMENSION_CHANGE_ACK;
+                    ackPacket.entityId = getId();
+                    ackPacket.x = getFloorX();
+                    ackPacket.y = getFloorY();
+                    ackPacket.z = getFloorZ();
+                    dataPacket(ackPacket);
+                }
+            } else if (this.dummyDimension != DimensionID.OVERWORLD) {
+                this.dummyDimension = DimensionID.OVERWORLD;
+
+                if (getProtocol() >= AbstractProtocol.PROTOCOL_121_20.getProtocolStart()) {
+                    ChangeDimensionPacket12120 changeDimensionPacket1 = new ChangeDimensionPacket12120();
+                    changeDimensionPacket1.dimension = this.dummyDimension;
+                    changeDimensionPacket1.x = 0;
+                    changeDimensionPacket1.y = 32767;
+                    changeDimensionPacket1.z = 0;
+                    dataPacket(changeDimensionPacket1);
+                } else {
+                    ChangeDimensionPacket changeDimensionPacket1 = new ChangeDimensionPacket();
+                    changeDimensionPacket1.dimension = this.dummyDimension;
+                    changeDimensionPacket1.x = 0;
+                    changeDimensionPacket1.y = 32767;
+                    changeDimensionPacket1.z = 0;
+                    dataPacket(changeDimensionPacket1);
+                }
 
                 if (getProtocol() >= AbstractProtocol.PROTOCOL_119_50.getProtocolStart()) {
                     PlayerActionPacket119 ackPacket = new PlayerActionPacket119();
@@ -857,6 +946,11 @@ public class SynapsePlayer extends Player {
         return false;
     }
 
+    @Override
+    protected void forceSendEmptyChunks(int chunkRadius, int centerChunkX, int centerChunkZ) {
+        this.forceSendEmptyChunks(this.chunkRadius, centerChunkX, centerChunkZ, getDummyDimension());
+    }
+
     protected boolean isLevelChange = false;
     protected boolean allowOrderChunks = true;
 
@@ -886,7 +980,48 @@ public class SynapsePlayer extends Player {
             if (location.level != null && from.getLevel() != location.level && this.spawned) {
                 preChangeDimensionScreen(false);
 
-                if (!this.isNeedLevelChangeLoadScreen()) {
+                Dimension newDimension = location.level.getDimension();
+                if (!this.isNeedLevelChangeLoadScreen() || newDimension != Dimension.OVERWORLD) {
+                    if (from.getLevel().getDimension() != newDimension) {
+                        this.dummyDimension = newDimension.getId();
+
+                        if (getProtocol() >= AbstractProtocol.PROTOCOL_121_20.getProtocolStart()) {
+                            ChangeDimensionPacket12120 changeDimensionPacket = new ChangeDimensionPacket12120();
+                            changeDimensionPacket.dimension = this.dummyDimension;
+                            changeDimensionPacket.x = (float) this.getX();
+                            changeDimensionPacket.y = (float) this.getY();
+                            changeDimensionPacket.z = (float) this.getZ();
+                            this.dataPacket(changeDimensionPacket);
+                        } else {
+                            ChangeDimensionPacket changeDimensionPacket = new ChangeDimensionPacket();
+                            changeDimensionPacket.dimension = this.dummyDimension;
+                            changeDimensionPacket.x = (float) this.getX();
+                            changeDimensionPacket.y = (float) this.getY();
+                            changeDimensionPacket.z = (float) this.getZ();
+                            this.dataPacket(changeDimensionPacket);
+                        }
+
+                        if (getProtocol() >= AbstractProtocol.PROTOCOL_119_50.getProtocolStart()) {
+                            PlayerActionPacket119 ackPacket = new PlayerActionPacket119();
+                            ackPacket.action = PlayerActionPacket.ACTION_DIMENSION_CHANGE_ACK;
+                            ackPacket.entityId = getId();
+                            ackPacket.x = getFloorX();
+                            ackPacket.y = getFloorY();
+                            ackPacket.z = getFloorZ();
+                            ackPacket.resultX = ackPacket.x;
+                            ackPacket.resultY = ackPacket.y;
+                            ackPacket.resultZ = ackPacket.z;
+                            dataPacket(ackPacket);
+                        } else if (isNetEaseClient() && getProtocol() >= AbstractProtocol.PROTOCOL_118.getProtocolStart()) {
+                            PlayerActionPacket14 ackPacket = new PlayerActionPacket14();
+                            ackPacket.action = PlayerActionPacket14.ACTION_DIMENSION_CHANGE_ACK;
+                            ackPacket.entityId = getId();
+                            ackPacket.x = getFloorX();
+                            ackPacket.y = getFloorY();
+                            ackPacket.z = getFloorZ();
+                            dataPacket(ackPacket);
+                        }
+                    }
                     return true;
                 }
 
@@ -1500,6 +1635,7 @@ public class SynapsePlayer extends Player {
         // 1.18.30+
     }
 
+    @Override
     public int getDummyDimension() {
         return dummyDimension;
     }

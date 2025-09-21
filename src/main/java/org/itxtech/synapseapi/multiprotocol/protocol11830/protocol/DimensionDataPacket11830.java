@@ -1,6 +1,6 @@
 package org.itxtech.synapseapi.multiprotocol.protocol11830.protocol;
 
-import cn.nukkit.level.generator.Generator;
+import cn.nukkit.level.generator.GeneratorID;
 import cn.nukkit.network.protocol.ProtocolInfo;
 import lombok.RequiredArgsConstructor;
 
@@ -12,15 +12,15 @@ import lombok.RequiredArgsConstructor;
 public class DimensionDataPacket11830 extends Packet11830 {
     public static final int NETWORK_ID = ProtocolInfo.DIMENSION_DATA_PACKET;
 
-    public static final DimensionDefinition VANILLA_OVERWORLD = new DimensionDefinition("minecraft:overworld", 320, -64, Generator.TYPE_INFINITE);
+    public static final DimensionDefinition VANILLA_OVERWORLD = new DimensionDefinition("minecraft:overworld", 320, -64, GeneratorID.OVERWORLD);
     /**
      * 暂不支持修改高度, 高低边界需全设为0.
      */
-    public static final DimensionDefinition VANILLA_NETHER = new DimensionDefinition("minecraft:nether", 128, 0, Generator.TYPE_NETHER);
+    public static final DimensionDefinition VANILLA_NETHER = new DimensionDefinition("minecraft:nether", 128, 0, GeneratorID.NETHER);
     /**
      * 暂不支持修改高度, 高低边界需全设为0.
      */
-    public static final DimensionDefinition VANILLA_THE_END = new DimensionDefinition("minecraft:the_end", 256, 0, Generator.TYPE_END);
+    public static final DimensionDefinition VANILLA_THE_END = new DimensionDefinition("minecraft:the_end", 256, 0, GeneratorID.THE_END);
 
     /**
      * 暂不支持添加自定义维度.

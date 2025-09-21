@@ -31,6 +31,8 @@ public class ChunkNetVerCommand extends Command implements PluginIdentifiableCom
         for (Level level : sender.getServer().getLevels().values()) {
             result.append('\n');
             result.append(level.getFolderName());
+            result.append(' ');
+            result.append(level.getDimension().getId());
             result.append(": ");
             result.append(level.getRequestChunkVersions().keySet());
         }
