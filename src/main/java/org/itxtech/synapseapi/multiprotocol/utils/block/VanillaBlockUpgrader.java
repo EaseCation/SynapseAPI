@@ -45,6 +45,9 @@ public final class VanillaBlockUpgrader {
     private static final List<BlockUpgradeSchema> UPGRADE_SCHEMAS = new ObjectArrayList<>();
     private static int CURRENT_VERSION;
 
+    /**
+     * 1.12.0 to 1.18.0 (block version 1.16.210.3)
+     */
     private static final Map<String, BlockData[]> LEGACY_TO_CURRENT = new Object2ObjectOpenHashMap<>();
 
     private static final Gson GSON = new Gson();
@@ -102,11 +105,12 @@ public final class VanillaBlockUpgrader {
             }
 
             BlockData block = metaMapping[meta];
+            version = block.version; // 1.16.210.3 (1.18.0)
             tag.putString("name", block.name);
             tag.putCompound("states", block.states.clone());
-            tag.putInt("version", block.version);
+            tag.putInt("version", version);
             tag.remove("val");
-            return;
+//            return;
         }
 
         if (!tag.getString("name").startsWith("minecraft:")) {
