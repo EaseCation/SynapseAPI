@@ -746,7 +746,8 @@ public class SynapseEntry {
 
         byte[] data;
         try {
-            if (protocol >= 649) {
+            if (protocol >= 554) {
+//            if (protocol >= 649) {
                 Compressor compressor = Compressor.get(compressionAlgorithm);
                 if (compressor == null) {
                     compressor = Compressor.NONE;

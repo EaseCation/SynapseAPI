@@ -5,6 +5,7 @@ import cn.nukkit.entity.property.EntityProperties;
 import cn.nukkit.entity.property.EntityPropertyRegistry;
 import cn.nukkit.nbt.NBTIO;
 import cn.nukkit.nbt.tag.CompoundTag;
+import cn.nukkit.network.Compressor;
 import cn.nukkit.network.protocol.BatchPacket;
 import cn.nukkit.network.protocol.DataPacket;
 import lombok.extern.log4j.Log4j2;
@@ -22,6 +23,7 @@ import java.util.zip.Deflater;
 @Log4j2
 public class EntityPropertiesCache {
     private static BatchPacket PACKETS;
+    private static BatchPacket PACKETS_SNAPPY;
     private static byte[] PLAYER_PROPERTIES = CompoundTag.EMPTY;
 
     static {
@@ -57,7 +59,8 @@ public class EntityPropertiesCache {
             packet.nbt = nbt;
             packets.add(packet);
         }
-        PACKETS = BatchPacket.compress(Deflater.BEST_COMPRESSION, true, packets.toArray(new DataPacket[0]));
+        PACKETS = BatchPacket.compress(Compressor.ZLIB_RAW, Deflater.BEST_COMPRESSION, packets.toArray(new DataPacket[0]));
+        PACKETS_SNAPPY = BatchPacket.compress(Compressor.SNAPPY, Deflater.BEST_COMPRESSION, packets.toArray(new DataPacket[0]));
     }
 
     /**
@@ -65,7 +68,7 @@ public class EntityPropertiesCache {
      */
     @Nullable
     public static DataPacket getPacket(AbstractProtocol protocol, boolean netease) {
-        return PACKETS;
+        return protocol.getProtocolStart() >= AbstractProtocol.PROTOCOL_119_30.getProtocolStart() ? PACKETS_SNAPPY : PACKETS;
     }
 
     public static byte[] getCompiledPlayerProperties(AbstractProtocol protocol, boolean netease) {

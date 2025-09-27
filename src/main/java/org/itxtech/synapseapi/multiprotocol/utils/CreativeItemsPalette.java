@@ -263,14 +263,14 @@ public class CreativeItemsPalette {
             packet.setHelper(protocol.getHelper());
             packet.tryEncode();
 
-            BatchPacket batch = packet.compress(Deflater.BEST_COMPRESSION, true);
+            BatchPacket batch = packet.compress(protocol.getCompressor(), Deflater.BEST_COMPRESSION);
             batch.tracks = new Track[]{new Track(packet.pid(), packet.getCount())};
 
             packetNe.setHelper(protocol.getHelper());
             packetNe.neteaseMode = true;
             packetNe.tryEncode();
 
-            BatchPacket batchNe = packetNe.compress(Deflater.BEST_COMPRESSION, true);
+            BatchPacket batchNe = packetNe.compress(protocol.getCompressor(), Deflater.BEST_COMPRESSION);
             batchNe.tracks = new Track[]{new Track(packetNe.pid(), packetNe.getCount())};
 
             PACKETS.put(protocol, new BatchPacket[]{batch, batchNe});
