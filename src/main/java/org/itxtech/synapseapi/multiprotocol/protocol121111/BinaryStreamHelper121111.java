@@ -1,4 +1,4 @@
-package org.itxtech.synapseapi.multiprotocol.protocol121110;
+package org.itxtech.synapseapi.multiprotocol.protocol121111;
 
 import cn.nukkit.block.Block;
 import cn.nukkit.inventory.RecipeType;
@@ -29,14 +29,14 @@ import java.nio.ByteOrder;
 import java.util.Set;
 
 @Log4j2
-public class BinaryStreamHelper121110 extends BinaryStreamHelper121100 {
-    public static BinaryStreamHelper121110 create() {
-        return new BinaryStreamHelper121110();
+public class BinaryStreamHelper121111 extends BinaryStreamHelper121100 {
+    public static BinaryStreamHelper121111 create() {
+        return new BinaryStreamHelper121111();
     }
 
     @Override
     public String getGameVersion() {
-        return "1.21.110";
+        return "1.21.111";
     }
 
     @Override

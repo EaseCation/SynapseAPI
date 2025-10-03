@@ -1940,7 +1940,7 @@ public final class LegacyBlockSerializer {
             return meta;
         });
 
-        if (V1_21_110.isAvailable()) {
+        if (V1_21_111.isAvailable()) {
             registerDeserializer(LIGHTNING_ROD, LegacyBlockSerializer::deserializeLightningRod);
         } else {
             registerDeserializer(LIGHTNING_ROD, LegacyBlockSerializer::deserializeFacingDirection);

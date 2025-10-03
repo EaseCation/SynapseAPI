@@ -23,6 +23,10 @@ public class BiomeDefinitionChunkGenData {
     public Collection<BiomeSurfaceMaterialAdjustmentData> surfaceMaterialAdjustments;
     @Nullable
     public BiomeSurfaceMaterialData surfaceMaterials;
+    /**
+     * @since 1.21.111
+     */
+    public boolean hasDefaultOverworldSurface;
     public boolean hasSwampSurface;
     public boolean hasFrozenOceanSurface;
     public boolean hasTheEndSurface;

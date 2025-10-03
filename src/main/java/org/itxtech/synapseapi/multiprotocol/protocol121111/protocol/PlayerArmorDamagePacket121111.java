@@ -1,11 +1,11 @@
-package org.itxtech.synapseapi.multiprotocol.protocol121110.protocol;
+package org.itxtech.synapseapi.multiprotocol.protocol121111.protocol;
 
 import cn.nukkit.network.protocol.ProtocolInfo;
 import it.unimi.dsi.fastutil.ints.IntIntPair;
 import lombok.ToString;
 
 @ToString
-public class PlayerArmorDamagePacket121110 extends Packet121110 {
+public class PlayerArmorDamagePacket121111 extends Packet121111 {
     public static final int NETWORK_ID = ProtocolInfo.PLAYER_ARMOR_DAMAGE_PACKET;
 
     public static final int SLOT_HEAD = 0;

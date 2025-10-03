@@ -1,4 +1,4 @@
-package org.itxtech.synapseapi.multiprotocol.protocol121110.protocol;
+package org.itxtech.synapseapi.multiprotocol.protocol121111.protocol;
 
 import cn.nukkit.block.Block;
 import cn.nukkit.network.protocol.ProtocolInfo;
@@ -12,7 +12,7 @@ import java.util.Map;
 import java.util.Map.Entry;
 
 @ToString
-public class BiomeDefinitionListPacket121110 extends Packet121110 {
+public class BiomeDefinitionListPacket121111 extends Packet121111 {
     public static final int NETWORK_ID = ProtocolInfo.BIOME_DEFINITION_LIST_PACKET;
 
     public Map<String, BiomeDefinitionData> biomes;
@@ -114,6 +114,7 @@ public class BiomeDefinitionListPacket121110 extends Packet121110 {
 
                 stream.putOptional(chunkGenData.surfaceMaterials, (bs, surfaceMaterials) -> putBiomeSurfaceMaterialData(surfaceMaterials));
 
+                stream.putBoolean(chunkGenData.hasDefaultOverworldSurface);
                 stream.putBoolean(chunkGenData.hasSwampSurface);
                 stream.putBoolean(chunkGenData.hasFrozenOceanSurface);
                 stream.putBoolean(chunkGenData.hasTheEndSurface);

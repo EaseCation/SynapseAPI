@@ -22,7 +22,7 @@ import org.itxtech.synapseapi.event.server.BiomeRegistryChecksumChangedEvent;
 import org.itxtech.synapseapi.multiprotocol.AbstractProtocol;
 import org.itxtech.synapseapi.multiprotocol.common.biome.BiomeDefinitionData;
 import org.itxtech.synapseapi.multiprotocol.protocol121100.protocol.BiomeDefinitionListPacket121100;
-import org.itxtech.synapseapi.multiprotocol.protocol121110.protocol.BiomeDefinitionListPacket121110;
+import org.itxtech.synapseapi.multiprotocol.protocol121111.protocol.BiomeDefinitionListPacket121111;
 import org.itxtech.synapseapi.multiprotocol.protocol12180.protocol.BiomeDefinitionListPacket12180;
 import org.itxtech.synapseapi.multiprotocol.protocol18.protocol.BiomeDefinitionListPacket18;
 
@@ -141,7 +141,7 @@ public final class BiomeDefinitions {
             data.put(AbstractProtocol.PROTOCOL_121_90, data12180);
             data.put(AbstractProtocol.PROTOCOL_121_93, data12180);
             data.put(AbstractProtocol.PROTOCOL_121_100, data121100);
-            data.put(AbstractProtocol.PROTOCOL_121_110, data121110);
+            data.put(AbstractProtocol.PROTOCOL_121_111, data121110);
         } catch (NullPointerException | IOException e) {
             throw new AssertionError("Unable to load biome_definitions.dat");
         }
@@ -202,14 +202,14 @@ public final class BiomeDefinitions {
     private static void cacheNewPacket(AbstractProtocol protocol) {
         DataPacket packet;
         DataPacket packetNe;
-        if (protocol.getProtocolStart() >= AbstractProtocol.PROTOCOL_121_110.getProtocolStart()) {
-            BiomeDefinitionListPacket121110 biomePacket = new BiomeDefinitionListPacket121110();
+        if (protocol.getProtocolStart() >= AbstractProtocol.PROTOCOL_121_111.getProtocolStart()) {
+            BiomeDefinitionListPacket121111 biomePacket = new BiomeDefinitionListPacket121111();
             biomePacket.biomes = loadNewPacket(protocol);
             biomePacket.setHelper(protocol.getHelper());
             biomePacket.tryEncode();
             packet = biomePacket;
 
-            BiomeDefinitionListPacket121110 biomePacketNe = new BiomeDefinitionListPacket121110();
+            BiomeDefinitionListPacket121111 biomePacketNe = new BiomeDefinitionListPacket121111();
             biomePacketNe.biomes = biomePacket.biomes;
             biomePacketNe.setHelper(protocol.getHelper());
             biomePacketNe.neteaseMode = true;

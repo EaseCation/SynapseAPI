@@ -1,4 +1,4 @@
-package org.itxtech.synapseapi.multiprotocol.protocol121110.protocol;
+package org.itxtech.synapseapi.multiprotocol.protocol121111.protocol;
 
 import cn.nukkit.level.GameRules;
 import cn.nukkit.network.protocol.DataPacket;
@@ -7,7 +7,7 @@ import cn.nukkit.network.protocol.ProtocolInfo;
 import lombok.ToString;
 
 @ToString
-public class GameRulesChangedPacket121110 extends Packet121110 {
+public class GameRulesChangedPacket121111 extends Packet121111 {
     public static final int NETWORK_ID = ProtocolInfo.GAME_RULES_CHANGED_PACKET;
 
     public GameRules gameRules;

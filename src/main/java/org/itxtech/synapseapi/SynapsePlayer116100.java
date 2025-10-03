@@ -283,7 +283,7 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
             startGamePacket.playerPropertyData = getCompiledPlayerProperties();
             startGamePacket.isSoundServerAuthoritative = isServerAuthoritativeSoundEnabled();
             List<Experiment> experiments = new ArrayList<>();
-            if (getProtocol() < AbstractProtocol.PROTOCOL_121_110.getProtocolStart()) {
+            if (getProtocol() < AbstractProtocol.PROTOCOL_121_111.getProtocolStart()) {
                 experiments.add(VanillaExperiments.DATA_DRIVEN_BIOMES);
             }
             experiments.add(VanillaExperiments.UPCOMING_CREATOR_FEATURES);
@@ -1207,7 +1207,7 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
                             stackPacket.resourcePackStack = this.resourcePacks.values().toArray(new ResourcePack[0]);
                             stackPacket.behaviourPackStack = this.behaviourPacks.values().toArray(new ResourcePack[0]);
                             List<Experiment> experiments = new ArrayList<>();
-                            if (getProtocol() < AbstractProtocol.PROTOCOL_121_110.getProtocolStart()) {
+                            if (getProtocol() < AbstractProtocol.PROTOCOL_121_111.getProtocolStart()) {
                                 experiments.add(VanillaExperiments.DATA_DRIVEN_BIOMES);
                             }
                             if (getProtocol() < AbstractProtocol.PROTOCOL_121_20.getProtocolStart()) {
