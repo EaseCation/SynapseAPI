@@ -155,7 +155,7 @@ public final class AvailableEntityIdentifiersPalette {
             packet.setHelper(protocol.getHelper());
             packet.tryEncode();
 
-            BatchPacket batch = packet.compress(Deflater.BEST_COMPRESSION, protocol.getProtocolStart() >= AbstractProtocol.PROTOCOL_116.getProtocolStart());
+            BatchPacket batch = packet.compress(protocol.getCompressor(), Deflater.BEST_COMPRESSION);
             batch.tracks = new Track[]{new Track(packet.pid(), packet.getCount())};
 
             PACKETS.put(protocol, batch);

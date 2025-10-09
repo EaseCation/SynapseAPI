@@ -6,6 +6,7 @@ import cn.nukkit.item.armortrim.TrimMaterial;
 import cn.nukkit.item.armortrim.TrimMaterials;
 import cn.nukkit.item.armortrim.TrimPattern;
 import cn.nukkit.item.armortrim.TrimPatterns;
+import cn.nukkit.network.Compressor;
 import cn.nukkit.network.protocol.BatchPacket;
 import cn.nukkit.network.protocol.BatchPacket.Track;
 import cn.nukkit.network.protocol.CraftingDataPacket;
@@ -81,7 +82,7 @@ public final class CraftingPacketManager {
         }
 
         pk.tryEncode();
-        BatchPacket origin = pk.compress(Deflater.BEST_COMPRESSION);
+        BatchPacket origin = pk.compress(Compressor.ZLIB, Deflater.BEST_COMPRESSION);
         originPacket[0] = origin;
         originPacket[1] = origin;
 
@@ -96,24 +97,19 @@ public final class CraftingPacketManager {
                 if (pk0 != null) {
                     pk0.setHelper(protocol.getHelper());
                     pk0.tryEncode();
-                    if (protocol.ordinal() >= AbstractProtocol.PROTOCOL_116.ordinal()) {
-                        BatchPacket batch;
-                        if (protocol.ordinal() >= AbstractProtocol.PROTOCOL_120.ordinal()) {
-                            batch = BatchPacket.compress(Deflater.BEST_COMPRESSION, true, trimDataPacket, pk0);
-                            batch.tracks = new Track[]{
-                                    new Track(trimDataPacket.pid(), trimDataPacket.getCount()),
-                                    new Track(pk0 instanceof CompatibilityPacket16 ? ((CompatibilityPacket16) pk0).origin.pid() : pk0.pid(), pk0.getCount())
-                            };
-                        } else {
-                            batch = BatchPacket.compress(Deflater.BEST_COMPRESSION, true, pk0);
-                            batch.tracks = new Track[]{new Track(pk0 instanceof CompatibilityPacket16 ? ((CompatibilityPacket16) pk0).origin.pid() : pk0.pid(), pk0.getCount())};
-                        }
-                        pk0 = batch;
+
+                    BatchPacket batch;
+                    if (protocol.ordinal() >= AbstractProtocol.PROTOCOL_120.ordinal()) {
+                        batch = BatchPacket.compress(protocol.getCompressor(), Deflater.BEST_COMPRESSION, trimDataPacket, pk0);
+                        batch.tracks = new Track[]{
+                                new Track(trimDataPacket.pid(), trimDataPacket.getCount()),
+                                new Track(pk0 instanceof CompatibilityPacket16 ? ((CompatibilityPacket16) pk0).origin.pid() : pk0.pid(), pk0.getCount())
+                        };
                     } else {
-                        BatchPacket batch = pk0.compress(Deflater.BEST_COMPRESSION);
+                        batch = pk0.compress(protocol.getCompressor(), Deflater.BEST_COMPRESSION);
                         batch.tracks = new Track[]{new Track(pk0 instanceof CompatibilityPacket16 ? ((CompatibilityPacket16) pk0).origin.pid() : pk0.pid(), pk0.getCount())};
-                        pk0 = batch;
                     }
+                    pk0 = batch;
                 } else {
                     log.warn("CraftingDataPacket for version " + protocol.name() + " with null compatible packet!");
                 }
@@ -126,18 +122,18 @@ public final class CraftingPacketManager {
                     if (protocol.ordinal() >= AbstractProtocol.PROTOCOL_116.ordinal()) {
                         BatchPacket batch;
                         if (protocol.ordinal() >= AbstractProtocol.PROTOCOL_120.ordinal()) {
-                            batch = BatchPacket.compress(Deflater.BEST_COMPRESSION, true, trimDataPacket, pkNE);
+                            batch = BatchPacket.compress(protocol.getCompressor(), Deflater.BEST_COMPRESSION, trimDataPacket, pkNE);
                             batch.tracks = new Track[]{
                                     new Track(trimDataPacket.pid(), trimDataPacket.getCount()),
                                     new Track(pkNE instanceof CompatibilityPacket16 ? ((CompatibilityPacket16) pkNE).origin.pid() : pkNE.pid(), pkNE.getCount())
                             };
                         } else {
-                            batch = pkNE.compress(Deflater.BEST_COMPRESSION, true);
+                            batch = pkNE.compress(protocol.getCompressor(), Deflater.BEST_COMPRESSION);
                             batch.tracks = new Track[]{new Track(pkNE instanceof CompatibilityPacket16 ? ((CompatibilityPacket16) pkNE).origin.pid() : pkNE.pid(), pkNE.getCount())};
                         }
                         pkNE = batch;
                     } else {
-                        BatchPacket batch = pkNE.compress(Deflater.BEST_COMPRESSION);
+                        BatchPacket batch = pkNE.compress(protocol.getCompressor(), Deflater.BEST_COMPRESSION);
                         batch.tracks = new Track[]{new Track(pkNE instanceof CompatibilityPacket16 ? ((CompatibilityPacket16) pkNE).origin.pid() : pkNE.pid(), pkNE.getCount())};
                         pkNE = batch;
                     }

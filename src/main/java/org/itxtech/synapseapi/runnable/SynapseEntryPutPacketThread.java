@@ -2,12 +2,13 @@ package org.itxtech.synapseapi.runnable;
 
 import cn.nukkit.Server;
 import cn.nukkit.math.NukkitMath;
+import cn.nukkit.network.CompressionAlgorithm;
+import cn.nukkit.network.Compressor;
 import cn.nukkit.network.Network;
 import cn.nukkit.network.protocol.*;
 import cn.nukkit.network.protocol.BatchPacket.Track;
 import cn.nukkit.utils.Binary;
 import cn.nukkit.utils.MainLogger;
-import cn.nukkit.utils.Zlib;
 import it.unimi.dsi.fastutil.longs.Long2ObjectMap;
 import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
@@ -134,9 +135,11 @@ public class SynapseEntryPutPacketThread extends Thread {
                         if (entry.packet instanceof BatchPacket batch) {
                             List<byte[]> outboundQueue = entry.player.outboundQueue;
                             if (!outboundQueue.isEmpty()) {
+                                Compressor compressor = Compressor.byProtocol(entry.player.getProtocol());
                                 RedirectPacket pk = new RedirectPacket();
+                                pk.compressionAlgorithm = compressor.getAlgorithm();
                                 pk.sessionId = entry.player.getSessionId();
-                                pk.mcpeBuffer = batchPackets(outboundQueue, entry.player.getProtocol() >= 407);
+                                pk.mcpeBuffer = batchPackets(outboundQueue, compressor);
                                 outboundQueue.clear();
 
                                 int bytes = pk.mcpeBuffer.length;
@@ -149,6 +152,7 @@ public class SynapseEntryPutPacketThread extends Thread {
                             }
 
                             RedirectPacket pk = new RedirectPacket();
+                            pk.compressionAlgorithm = CompressionAlgorithm.SNAPPY;
                             pk.sessionId = entry.player.getSessionId();
 
                             if (hasMetrics) {
@@ -187,6 +191,7 @@ public class SynapseEntryPutPacketThread extends Thread {
                             queuedPlayers.put(entry.player.getId(), entry.player);
                         } else {
                             RedirectPacket pk = new RedirectPacket();
+                            pk.compressionAlgorithm = CompressionAlgorithm.SNAPPY;
                             pk.sessionId = entry.player.getSessionId();
                             pk.mcpeBuffer = entry.packet.getBuffer();
 
@@ -215,9 +220,10 @@ public class SynapseEntryPutPacketThread extends Thread {
                     continue;
                 }
 
+                Compressor compressor = Compressor.byProtocol(player.getProtocol());
                 byte[] buffer;
                 try {
-                    buffer = batchPackets(outboundQueue, player.getProtocol() >= 407);
+                    buffer = batchPackets(outboundQueue, compressor);
                 } catch (IOException e) {
                     log.throwing(e);
                     continue;
@@ -225,6 +231,7 @@ public class SynapseEntryPutPacketThread extends Thread {
                 outboundQueue.clear();
 
                 RedirectPacket pk = new RedirectPacket();
+                pk.compressionAlgorithm = compressor.getAlgorithm();
                 pk.mcpeBuffer = buffer;
                 pk.sessionId = player.getSessionId();
                 this.synapseInterface.putPacket(pk);
@@ -306,6 +313,7 @@ public class SynapseEntryPutPacketThread extends Thread {
                         Pair<byte[][], Track[][]> pair = finalData.get(protocol);
                         if (pair != null) {
                             RedirectPacket pk = new RedirectPacket();
+                            pk.compressionAlgorithm = CompressionAlgorithm.SNAPPY;
                             pk.protocol = player.getProtocol();
                             pk.sessionId = player.getSessionId();
 
@@ -399,15 +407,9 @@ public class SynapseEntryPutPacketThread extends Thread {
 
                 tracks[i] = new Track(p instanceof CompatibilityPacket16 ? ((CompatibilityPacket16) p).origin.pid() : p.pid(), p.getCount());
             }
-            byte[] data;
-            data = Binary.appendBytes(payload);
 
             BatchPacket packet = new BatchPacket();
-            if (protocol.isZlibRaw()) {
-                packet.payload = Network.deflateRaw(data, Server.getInstance().networkCompressionLevel);
-            } else {
-                packet.payload = Zlib.deflate(data, Server.getInstance().networkCompressionLevel);
-            }
+            packet.payload = protocol.getCompressor().compress(payload, Server.getInstance().networkCompressionLevel);
             packet.tracks = tracks;
             return packet;
         } catch (Exception e) {
@@ -417,7 +419,7 @@ public class SynapseEntryPutPacketThread extends Thread {
         return null;
     }
 
-    private static byte[] batchPackets(List<byte[]> packets, boolean zlibRaw) throws IOException {
+    private static byte[] batchPackets(List<byte[]> packets, Compressor compressor) throws IOException {
         int count = packets.size();
         byte[][] payload = new byte[count * 2][];
         for (int i = 0; i < count; i++) {
@@ -426,13 +428,7 @@ public class SynapseEntryPutPacketThread extends Thread {
             payload[idx] = Binary.writeUnsignedVarInt(buffer.length);
             payload[idx + 1] = buffer;
         }
-        byte[] data = Binary.appendBytes(payload);
-        byte[] result;
-        if (zlibRaw) {
-            result = Network.deflateRaw(data, Server.getInstance().networkCompressionLevel);
-        } else {
-            result = Zlib.deflate(data, Server.getInstance().networkCompressionLevel);
-        }
+        byte[] result = compressor.compress(payload, Server.getInstance().networkCompressionLevel);
         return Binary.appendBytes((byte) ProtocolInfo.BATCH_PACKET, result);
     }
 

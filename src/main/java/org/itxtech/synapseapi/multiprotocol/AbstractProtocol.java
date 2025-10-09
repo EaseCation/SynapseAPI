@@ -1,6 +1,7 @@
 package org.itxtech.synapseapi.multiprotocol;
 
 import cn.nukkit.Server;
+import cn.nukkit.network.Compressor;
 import cn.nukkit.network.protocol.BatchPacket;
 import cn.nukkit.network.protocol.DataPacket;
 import cn.nukkit.network.protocol.ProtocolInfo;
@@ -137,67 +138,67 @@ import java.util.Arrays;
  * ===============
  */
 public enum AbstractProtocol {
-    PROTOCOL_11(0, null, null, BinaryStreamHelper.getInstance()),
-    PROTOCOL_12(114, DataPacket.class, SynapsePlayer.class, BinaryStreamHelper12.create()),
-    PROTOCOL_14(261, Packet14.class, SynapsePlayer14.class, BinaryStreamHelper14.create()),
-    PROTOCOL_15(270, Packet15.class, SynapsePlayer14.class, BinaryStreamHelper15.create()),
-    PROTOCOL_16(282, Packet16.class, SynapsePlayer16.class, BinaryStreamHelper16.create()),
-    PROTOCOL_17(290, Packet17.class, SynapsePlayer17.class, BinaryStreamHelper17.create()),
-    PROTOCOL_18(312, Packet18.class, SynapsePlayer18.class, BinaryStreamHelper18.create()),
-    PROTOCOL_19(332, Packet19.class, SynapsePlayer19.class, BinaryStreamHelper19.create()),
-    PROTOCOL_110(340, Packet110.class, SynapsePlayer19.class, BinaryStreamHelper110.create()),
-    PROTOCOL_111(354, Packet111.class, SynapsePlayer19.class, BinaryStreamHelper111.create()),
-    PROTOCOL_112(361, Packet112.class, SynapsePlayer112.class, BinaryStreamHelper112.create()),
-    PROTOCOL_113(388, Packet113.class, SynapsePlayer113.class, BinaryStreamHelper113.create()),
-    PROTOCOL_114(389, Packet113.class, SynapsePlayer113.class, BinaryStreamHelper114.create()),
-    PROTOCOL_114_60(390, Packet11460.class, SynapsePlayer113.class, BinaryStreamHelper11460.create()),
-    PROTOCOL_116(407, Packet116.class, SynapsePlayer116.class, BinaryStreamHelper116.create(), true),
-    PROTOCOL_116_20(408, Packet11620.class, SynapsePlayer116.class, BinaryStreamHelper11620.create(), true),
-    PROTOCOL_116_100_NE(410, Packet116100NE.class, SynapsePlayer116100.class, BinaryStreamHelper116100NE.create(), true), // 1.16.100.51 beta (使用407的数据)
-    PROTOCOL_116_100(419, Packet116100.class, SynapsePlayer116100.class, BinaryStreamHelper116100.create(), true),
-    PROTOCOL_116_200(422, Packet116200.class, SynapsePlayer116100.class, BinaryStreamHelper116200.create(), true), // 事实上网易用的是后一个版本的 beta
-    PROTOCOL_116_210(428, Packet116210.class, SynapsePlayer116100.class, BinaryStreamHelper116210.create(), true),
-    PROTOCOL_116_220(431, Packet116220.class, SynapsePlayer116100.class, BinaryStreamHelper116220.create(), true),
-    PROTOCOL_117(440, Packet117.class, SynapsePlayer116100.class, BinaryStreamHelper117.create(), true),
-    PROTOCOL_117_10(448, Packet11710.class, SynapsePlayer116100.class, BinaryStreamHelper11710.create(), true),
-    PROTOCOL_117_30(465, Packet11730.class, SynapsePlayer116100.class, BinaryStreamHelper11730.create(), true),
-    PROTOCOL_117_40(471, Packet11730.class, SynapsePlayer116100.class, BinaryStreamHelper11740.create(), true),
-    PROTOCOL_118(475, Packet118.class, SynapsePlayer116100.class, BinaryStreamHelper118.create(), true),
-    PROTOCOL_118_10(486, Packet11810.class, SynapsePlayer116100.class, BinaryStreamHelper11810.create(), true),
-    PROTOCOL_118_30(503, Packet11830.class, SynapsePlayer116100.class, BinaryStreamHelper11830.create(), true),
-    PROTOCOL_118_30_NE(504, Packet11830NE.class, SynapsePlayer116100.class, BinaryStreamHelper11830NE.create(), true),
-    PROTOCOL_119(527, Packet119.class, SynapsePlayer116100.class, BinaryStreamHelper119.create(), true),
-    PROTOCOL_119_10(534, Packet11910.class, SynapsePlayer116100.class, BinaryStreamHelper11910.create(), true),
-    PROTOCOL_119_20(544, Packet11920.class, SynapsePlayer116100.class, BinaryStreamHelper11920.create(), true),
-    PROTOCOL_119_21(545, Packet11921.class, SynapsePlayer116100.class, BinaryStreamHelper11921.create(), true),
-    PROTOCOL_119_30(554, Packet11930.class, SynapsePlayer116100.class, BinaryStreamHelper11930.create(), true),
-    PROTOCOL_119_40(557, Packet11940.class, SynapsePlayer116100.class, BinaryStreamHelper11940.create(), true),
-    PROTOCOL_119_50(560, Packet11950.class, SynapsePlayer116100.class, BinaryStreamHelper11950.create(), true),
-    PROTOCOL_119_60(567, Packet11960.class, SynapsePlayer116100.class, BinaryStreamHelper11960.create(), true),
-    PROTOCOL_119_63(568, Packet11963.class, SynapsePlayer116100.class, BinaryStreamHelper11963.create(), true),
-    PROTOCOL_119_70(575, Packet11970.class, SynapsePlayer116100.class, BinaryStreamHelper11970.create(), true),
-    PROTOCOL_119_80(582, Packet11980.class, SynapsePlayer116100.class, BinaryStreamHelper11980.create(), true),
-    PROTOCOL_120(589, Packet120.class, SynapsePlayer116100.class, BinaryStreamHelper120.create(), true),
-    PROTOCOL_120_10(594, Packet12010.class, SynapsePlayer116100.class, BinaryStreamHelper12010.create(), true),
-    PROTOCOL_120_30(618, Packet12030.class, SynapsePlayer116100.class, BinaryStreamHelper12030.create(), true),
-    PROTOCOL_120_40(622, Packet12040.class, SynapsePlayer116100.class, BinaryStreamHelper12040.create(), true),
-    PROTOCOL_120_50(630, Packet12050.class, SynapsePlayer116100.class, BinaryStreamHelper12050.create(), true),
-    PROTOCOL_120_60(649, Packet12060.class, SynapsePlayer116100.class, BinaryStreamHelper12060.create(), true),
-    PROTOCOL_120_70(662, Packet12070.class, SynapsePlayer116100.class, BinaryStreamHelper12070.create(), true),
-    PROTOCOL_120_80(671, Packet12080.class, SynapsePlayer116100.class, BinaryStreamHelper12080.create(), true),
-    PROTOCOL_121(685, Packet121.class, SynapsePlayer116100.class, BinaryStreamHelper121.create(), true),
-    PROTOCOL_121_2(686, Packet1212.class, SynapsePlayer116100.class, BinaryStreamHelper1212.create(), true),
-    PROTOCOL_121_20(712, Packet12120.class, SynapsePlayer116100.class, BinaryStreamHelper12120.create(), true),
-    PROTOCOL_121_30(729, Packet12130.class, SynapsePlayer116100.class, BinaryStreamHelper12130.create(), true),
-    PROTOCOL_121_40(748, Packet12140.class, SynapsePlayer116100.class, BinaryStreamHelper12140.create(), true),
-    PROTOCOL_121_50(766, Packet12150.class, SynapsePlayer116100.class, BinaryStreamHelper12150.create(), true),
-    PROTOCOL_121_60(776, Packet12160.class, SynapsePlayer116100.class, BinaryStreamHelper12160.create(), true),
-    PROTOCOL_121_70(786, Packet12170.class, SynapsePlayer116100.class, BinaryStreamHelper12170.create(), true),
-    PROTOCOL_121_80(800, Packet12180.class, SynapsePlayer116100.class, BinaryStreamHelper12180.create(), true),
-    PROTOCOL_121_90(818, Packet12190.class, SynapsePlayer116100.class, BinaryStreamHelper12190.create(), true),
-    PROTOCOL_121_93(819, Packet12193.class, SynapsePlayer116100.class, BinaryStreamHelper12193.create(), true),
-    PROTOCOL_121_100(827, Packet121100.class, SynapsePlayer116100.class, BinaryStreamHelper121100.create(), true),
-    PROTOCOL_121_111(844, Packet121111.class, SynapsePlayer116100.class, BinaryStreamHelper121111.create(), true),
+    PROTOCOL_11(0, null, null, BinaryStreamHelper.getInstance(), Compressor.ZLIB),
+    PROTOCOL_12(114, DataPacket.class, SynapsePlayer.class, BinaryStreamHelper12.create(), Compressor.ZLIB),
+    PROTOCOL_14(261, Packet14.class, SynapsePlayer14.class, BinaryStreamHelper14.create(), Compressor.ZLIB),
+    PROTOCOL_15(270, Packet15.class, SynapsePlayer14.class, BinaryStreamHelper15.create(), Compressor.ZLIB),
+    PROTOCOL_16(282, Packet16.class, SynapsePlayer16.class, BinaryStreamHelper16.create(), Compressor.ZLIB),
+    PROTOCOL_17(290, Packet17.class, SynapsePlayer17.class, BinaryStreamHelper17.create(), Compressor.ZLIB),
+    PROTOCOL_18(312, Packet18.class, SynapsePlayer18.class, BinaryStreamHelper18.create(), Compressor.ZLIB),
+    PROTOCOL_19(332, Packet19.class, SynapsePlayer19.class, BinaryStreamHelper19.create(), Compressor.ZLIB),
+    PROTOCOL_110(340, Packet110.class, SynapsePlayer19.class, BinaryStreamHelper110.create(), Compressor.ZLIB),
+    PROTOCOL_111(354, Packet111.class, SynapsePlayer19.class, BinaryStreamHelper111.create(), Compressor.ZLIB),
+    PROTOCOL_112(361, Packet112.class, SynapsePlayer112.class, BinaryStreamHelper112.create(), Compressor.ZLIB),
+    PROTOCOL_113(388, Packet113.class, SynapsePlayer113.class, BinaryStreamHelper113.create(), Compressor.ZLIB),
+    PROTOCOL_114(389, Packet113.class, SynapsePlayer113.class, BinaryStreamHelper114.create(), Compressor.ZLIB),
+    PROTOCOL_114_60(390, Packet11460.class, SynapsePlayer113.class, BinaryStreamHelper11460.create(), Compressor.ZLIB),
+    PROTOCOL_116(407, Packet116.class, SynapsePlayer116.class, BinaryStreamHelper116.create(), Compressor.ZLIB_RAW),
+    PROTOCOL_116_20(408, Packet11620.class, SynapsePlayer116.class, BinaryStreamHelper11620.create(), Compressor.ZLIB_RAW),
+    PROTOCOL_116_100_NE(410, Packet116100NE.class, SynapsePlayer116100.class, BinaryStreamHelper116100NE.create(), Compressor.ZLIB_RAW), // 1.16.100.51 beta (使用407的数据)
+    PROTOCOL_116_100(419, Packet116100.class, SynapsePlayer116100.class, BinaryStreamHelper116100.create(), Compressor.ZLIB_RAW),
+    PROTOCOL_116_200(422, Packet116200.class, SynapsePlayer116100.class, BinaryStreamHelper116200.create(), Compressor.ZLIB_RAW), // 事实上网易用的是后一个版本的 beta
+    PROTOCOL_116_210(428, Packet116210.class, SynapsePlayer116100.class, BinaryStreamHelper116210.create(), Compressor.ZLIB_RAW),
+    PROTOCOL_116_220(431, Packet116220.class, SynapsePlayer116100.class, BinaryStreamHelper116220.create(), Compressor.ZLIB_RAW),
+    PROTOCOL_117(440, Packet117.class, SynapsePlayer116100.class, BinaryStreamHelper117.create(), Compressor.ZLIB_RAW),
+    PROTOCOL_117_10(448, Packet11710.class, SynapsePlayer116100.class, BinaryStreamHelper11710.create(), Compressor.ZLIB_RAW),
+    PROTOCOL_117_30(465, Packet11730.class, SynapsePlayer116100.class, BinaryStreamHelper11730.create(), Compressor.ZLIB_RAW),
+    PROTOCOL_117_40(471, Packet11730.class, SynapsePlayer116100.class, BinaryStreamHelper11740.create(), Compressor.ZLIB_RAW),
+    PROTOCOL_118(475, Packet118.class, SynapsePlayer116100.class, BinaryStreamHelper118.create(), Compressor.ZLIB_RAW),
+    PROTOCOL_118_10(486, Packet11810.class, SynapsePlayer116100.class, BinaryStreamHelper11810.create(), Compressor.ZLIB_RAW),
+    PROTOCOL_118_30(503, Packet11830.class, SynapsePlayer116100.class, BinaryStreamHelper11830.create(), Compressor.ZLIB_RAW),
+    PROTOCOL_118_30_NE(504, Packet11830NE.class, SynapsePlayer116100.class, BinaryStreamHelper11830NE.create(), Compressor.ZLIB_RAW),
+    PROTOCOL_119(527, Packet119.class, SynapsePlayer116100.class, BinaryStreamHelper119.create(), Compressor.ZLIB_RAW),
+    PROTOCOL_119_10(534, Packet11910.class, SynapsePlayer116100.class, BinaryStreamHelper11910.create(), Compressor.ZLIB_RAW),
+    PROTOCOL_119_20(544, Packet11920.class, SynapsePlayer116100.class, BinaryStreamHelper11920.create(), Compressor.ZLIB_RAW),
+    PROTOCOL_119_21(545, Packet11921.class, SynapsePlayer116100.class, BinaryStreamHelper11921.create(), Compressor.ZLIB_RAW),
+    PROTOCOL_119_30(554, Packet11930.class, SynapsePlayer116100.class, BinaryStreamHelper11930.create(), Compressor.SNAPPY),
+    PROTOCOL_119_40(557, Packet11940.class, SynapsePlayer116100.class, BinaryStreamHelper11940.create(), Compressor.SNAPPY),
+    PROTOCOL_119_50(560, Packet11950.class, SynapsePlayer116100.class, BinaryStreamHelper11950.create(), Compressor.SNAPPY),
+    PROTOCOL_119_60(567, Packet11960.class, SynapsePlayer116100.class, BinaryStreamHelper11960.create(), Compressor.SNAPPY),
+    PROTOCOL_119_63(568, Packet11963.class, SynapsePlayer116100.class, BinaryStreamHelper11963.create(), Compressor.SNAPPY),
+    PROTOCOL_119_70(575, Packet11970.class, SynapsePlayer116100.class, BinaryStreamHelper11970.create(), Compressor.SNAPPY),
+    PROTOCOL_119_80(582, Packet11980.class, SynapsePlayer116100.class, BinaryStreamHelper11980.create(), Compressor.SNAPPY),
+    PROTOCOL_120(589, Packet120.class, SynapsePlayer116100.class, BinaryStreamHelper120.create(), Compressor.SNAPPY),
+    PROTOCOL_120_10(594, Packet12010.class, SynapsePlayer116100.class, BinaryStreamHelper12010.create(), Compressor.SNAPPY),
+    PROTOCOL_120_30(618, Packet12030.class, SynapsePlayer116100.class, BinaryStreamHelper12030.create(), Compressor.SNAPPY),
+    PROTOCOL_120_40(622, Packet12040.class, SynapsePlayer116100.class, BinaryStreamHelper12040.create(), Compressor.SNAPPY),
+    PROTOCOL_120_50(630, Packet12050.class, SynapsePlayer116100.class, BinaryStreamHelper12050.create(), Compressor.SNAPPY),
+    PROTOCOL_120_60(649, Packet12060.class, SynapsePlayer116100.class, BinaryStreamHelper12060.create(), Compressor.SNAPPY),
+    PROTOCOL_120_70(662, Packet12070.class, SynapsePlayer116100.class, BinaryStreamHelper12070.create(), Compressor.SNAPPY),
+    PROTOCOL_120_80(671, Packet12080.class, SynapsePlayer116100.class, BinaryStreamHelper12080.create(), Compressor.SNAPPY),
+    PROTOCOL_121(685, Packet121.class, SynapsePlayer116100.class, BinaryStreamHelper121.create(), Compressor.SNAPPY),
+    PROTOCOL_121_2(686, Packet1212.class, SynapsePlayer116100.class, BinaryStreamHelper1212.create(), Compressor.SNAPPY),
+    PROTOCOL_121_20(712, Packet12120.class, SynapsePlayer116100.class, BinaryStreamHelper12120.create(), Compressor.SNAPPY),
+    PROTOCOL_121_30(729, Packet12130.class, SynapsePlayer116100.class, BinaryStreamHelper12130.create(), Compressor.SNAPPY),
+    PROTOCOL_121_40(748, Packet12140.class, SynapsePlayer116100.class, BinaryStreamHelper12140.create(), Compressor.SNAPPY),
+    PROTOCOL_121_50(766, Packet12150.class, SynapsePlayer116100.class, BinaryStreamHelper12150.create(), Compressor.SNAPPY),
+    PROTOCOL_121_60(776, Packet12160.class, SynapsePlayer116100.class, BinaryStreamHelper12160.create(), Compressor.SNAPPY),
+    PROTOCOL_121_70(786, Packet12170.class, SynapsePlayer116100.class, BinaryStreamHelper12170.create(), Compressor.SNAPPY),
+    PROTOCOL_121_80(800, Packet12180.class, SynapsePlayer116100.class, BinaryStreamHelper12180.create(), Compressor.SNAPPY),
+    PROTOCOL_121_90(818, Packet12190.class, SynapsePlayer116100.class, BinaryStreamHelper12190.create(), Compressor.SNAPPY),
+    PROTOCOL_121_93(819, Packet12193.class, SynapsePlayer116100.class, BinaryStreamHelper12193.create(), Compressor.SNAPPY),
+    PROTOCOL_121_100(827, Packet121100.class, SynapsePlayer116100.class, BinaryStreamHelper121100.create(), Compressor.SNAPPY),
+    PROTOCOL_121_111(844, Packet121111.class, SynapsePlayer116100.class, BinaryStreamHelper121111.create(), Compressor.SNAPPY),
     ;
 
     private static final AbstractProtocol[] VALUES = values();
@@ -229,18 +230,14 @@ public enum AbstractProtocol {
     private final Class<? extends DataPacket> packetClass;
     private final Class<? extends SynapsePlayer> playerClass;
     private final BinaryStreamHelper helper;
-    private final boolean zlibRaw;
+    private final Compressor compressor;
 
-    AbstractProtocol(int protocolStart, Class<? extends DataPacket> packetClass, Class<? extends SynapsePlayer> playerClass, BinaryStreamHelper helper) {
-        this(protocolStart, packetClass, playerClass, helper, false);
-    }
-
-    AbstractProtocol(int protocolStart, Class<? extends DataPacket> packetClass, Class<? extends SynapsePlayer> playerClass, BinaryStreamHelper helper, boolean zlibRaw) {
+    AbstractProtocol(int protocolStart, Class<? extends DataPacket> packetClass, Class<? extends SynapsePlayer> playerClass, BinaryStreamHelper helper, Compressor compressor) {
         this.protocolStart = protocolStart;
         this.packetClass = packetClass;
         this.playerClass = playerClass;
         this.helper = helper;
-        this.zlibRaw = zlibRaw;
+        this.compressor = compressor;
 
         if (helper instanceof AdvancedBinaryStreamHelper) {
             ((AdvancedBinaryStreamHelper) helper).setProtocol(this);
@@ -265,8 +262,8 @@ public enum AbstractProtocol {
         return this.helper;
     }
 
-    public boolean isZlibRaw() {
-        return zlibRaw;
+    public Compressor getCompressor() {
+        return compressor;
     }
 
     /**
