@@ -247,6 +247,7 @@ public interface PlayerAuthInputFlags {
         versions[AbstractProtocol.PROTOCOL_121_93.ordinal()] = 65;
         versions[AbstractProtocol.PROTOCOL_121_100.ordinal()] = 65;
         versions[AbstractProtocol.PROTOCOL_121_111.ordinal()] = 65;
+        versions[AbstractProtocol.PROTOCOL_121_120.ordinal()] = 65;
         return versions;
     });
 }

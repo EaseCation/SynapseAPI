@@ -79,6 +79,8 @@ public class SynapseAPI extends PluginBase implements Listener {
 
     @Override
     public void onEnable() {
+        getLogger().info("Current data version: {}", DATA_VERSION);
+
         Player.setViolationListener(new SynapsePlayerViolationListener());
 
         this.messenger = new StandardMessenger();

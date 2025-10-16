@@ -4,11 +4,7 @@ import cn.nukkit.AdventureSettings;
 import cn.nukkit.AdventureSettings.Type;
 import cn.nukkit.Player;
 import cn.nukkit.Server;
-import cn.nukkit.block.Block;
-import cn.nukkit.block.BlockDragonEgg;
-import cn.nukkit.block.BlockID;
-import cn.nukkit.block.BlockLectern;
-import cn.nukkit.block.BlockNoteblock;
+import cn.nukkit.block.*;
 import cn.nukkit.blockentity.BlockEntity;
 import cn.nukkit.blockentity.BlockEntityItemFrame;
 import cn.nukkit.blockentity.BlockEntityLectern;
@@ -18,6 +14,7 @@ import cn.nukkit.command.data.CommandPermission;
 import cn.nukkit.entity.Entity;
 import cn.nukkit.entity.EntityFullNames;
 import cn.nukkit.entity.data.EntityMetadata;
+import cn.nukkit.entity.item.EntityBoat;
 import cn.nukkit.entity.property.EntityProperty;
 import cn.nukkit.entity.property.EnumEntityProperty;
 import cn.nukkit.event.inventory.InventoryCloseEvent;
@@ -58,7 +55,8 @@ import cn.nukkit.utils.TextFormat;
 import com.google.gson.JsonElement;
 import it.unimi.dsi.fastutil.Pair;
 import it.unimi.dsi.fastutil.ints.*;
-import it.unimi.dsi.fastutil.longs.*;
+import it.unimi.dsi.fastutil.longs.Long2ObjectMap;
+import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.objects.ObjectIterator;
 import lombok.extern.log4j.Log4j2;
 import org.apache.commons.lang3.ArrayUtils;
@@ -69,10 +67,8 @@ import org.itxtech.synapseapi.filtertext.FilterTextService;
 import org.itxtech.synapseapi.multiprotocol.AbstractProtocol;
 import org.itxtech.synapseapi.multiprotocol.common.Experiments;
 import org.itxtech.synapseapi.multiprotocol.common.Experiments.Experiment;
-import org.itxtech.synapseapi.multiprotocol.common.camera.CameraFadeInstruction;
-import org.itxtech.synapseapi.multiprotocol.common.camera.CameraFovInstruction;
-import org.itxtech.synapseapi.multiprotocol.common.camera.CameraSetInstruction;
-import org.itxtech.synapseapi.multiprotocol.common.camera.CameraTargetInstruction;
+import org.itxtech.synapseapi.multiprotocol.common.camera.CameraInstruction;
+import org.itxtech.synapseapi.multiprotocol.common.camera.ControlScheme;
 import org.itxtech.synapseapi.multiprotocol.common.drawer.Shape;
 import org.itxtech.synapseapi.multiprotocol.protocol113.protocol.ResourcePackStackPacket113;
 import org.itxtech.synapseapi.multiprotocol.protocol116.protocol.CreativeContentPacket116;
@@ -84,18 +80,18 @@ import org.itxtech.synapseapi.multiprotocol.protocol116200.protocol.FilterTextPa
 import org.itxtech.synapseapi.multiprotocol.protocol116200.protocol.ResourcePacksInfoPacket116200;
 import org.itxtech.synapseapi.multiprotocol.protocol116200.protocol.StartGamePacket116200;
 import org.itxtech.synapseapi.multiprotocol.protocol116210.protocol.CameraShakePacket116210;
-import org.itxtech.synapseapi.multiprotocol.protocol11710.protocol.NpcDialoguePacket11710;
-import org.itxtech.synapseapi.multiprotocol.protocol118.protocol.UpdateSubChunkBlocksPacket118;
-import org.itxtech.synapseapi.multiprotocol.protocol11830.protocol.ChangeMobPropertyPacket11830;
 import org.itxtech.synapseapi.multiprotocol.protocol117.protocol.StartGamePacket117;
 import org.itxtech.synapseapi.multiprotocol.protocol11710.protocol.NPCRequestPacket11710;
+import org.itxtech.synapseapi.multiprotocol.protocol11710.protocol.NpcDialoguePacket11710;
 import org.itxtech.synapseapi.multiprotocol.protocol11710.protocol.ResourcePacksInfoPacket11710;
 import org.itxtech.synapseapi.multiprotocol.protocol11730.protocol.AnimateEntityPacket11730;
 import org.itxtech.synapseapi.multiprotocol.protocol11730.protocol.StartGamePacket11730;
 import org.itxtech.synapseapi.multiprotocol.protocol118.protocol.StartGamePacket118;
 import org.itxtech.synapseapi.multiprotocol.protocol118.protocol.SubChunkRequestPacket118;
+import org.itxtech.synapseapi.multiprotocol.protocol118.protocol.UpdateSubChunkBlocksPacket118;
 import org.itxtech.synapseapi.multiprotocol.protocol11810.protocol.PlayerStartItemCooldownPacket11810;
 import org.itxtech.synapseapi.multiprotocol.protocol11810.protocol.SubChunkRequestPacket11810;
+import org.itxtech.synapseapi.multiprotocol.protocol11830.protocol.ChangeMobPropertyPacket11830;
 import org.itxtech.synapseapi.multiprotocol.protocol11830.protocol.DimensionDataPacket11830;
 import org.itxtech.synapseapi.multiprotocol.protocol11830.protocol.DimensionDataPacket11830.DimensionDefinition;
 import org.itxtech.synapseapi.multiprotocol.protocol11830.protocol.SpawnParticleEffectPacket11830;
@@ -110,18 +106,13 @@ import org.itxtech.synapseapi.multiprotocol.protocol11910.protocol.DeathInfoPack
 import org.itxtech.synapseapi.multiprotocol.protocol11910.protocol.StartGamePacket11910;
 import org.itxtech.synapseapi.multiprotocol.protocol11910.protocol.UpdateAbilitiesPacket11910;
 import org.itxtech.synapseapi.multiprotocol.protocol11910.protocol.UpdateAdventureSettingsPacket11910;
-import org.itxtech.synapseapi.multiprotocol.protocol11920.protocol.FeatureRegistryPacket11920;
-import org.itxtech.synapseapi.multiprotocol.protocol11920.protocol.MapInfoRequestPacket11920;
-import org.itxtech.synapseapi.multiprotocol.protocol11920.protocol.ModalFormResponsePacket11920;
-import org.itxtech.synapseapi.multiprotocol.protocol11920.protocol.NetworkChunkPublisherUpdatePacket11920;
-import org.itxtech.synapseapi.multiprotocol.protocol11920.protocol.StartGamePacket11920;
+import org.itxtech.synapseapi.multiprotocol.protocol11920.protocol.*;
 import org.itxtech.synapseapi.multiprotocol.protocol11950.protocol.UpdateClientInputLocksPacket11950;
 import org.itxtech.synapseapi.multiprotocol.protocol11960.protocol.CommandRequestPacket11960;
 import org.itxtech.synapseapi.multiprotocol.protocol11960.protocol.PlayerSkinPacket11960;
 import org.itxtech.synapseapi.multiprotocol.protocol11960.protocol.StartGamePacket11960;
 import org.itxtech.synapseapi.multiprotocol.protocol11963.protocol.PlayerSkinPacket11963;
 import org.itxtech.synapseapi.multiprotocol.protocol11970.protocol.CameraInstructionPacket11970;
-import org.itxtech.synapseapi.multiprotocol.protocol11970.protocol.CameraPresetsPacket11970;
 import org.itxtech.synapseapi.multiprotocol.protocol11980.protocol.OpenSignPacket11980;
 import org.itxtech.synapseapi.multiprotocol.protocol11980.protocol.RequestChunkRadiusPacket11980;
 import org.itxtech.synapseapi.multiprotocol.protocol11980.protocol.StartGamePacket11980;
@@ -129,7 +120,6 @@ import org.itxtech.synapseapi.multiprotocol.protocol120.protocol.EmotePacket120;
 import org.itxtech.synapseapi.multiprotocol.protocol120.protocol.StartGamePacket120;
 import org.itxtech.synapseapi.multiprotocol.protocol120.protocol.TrimDataPacket120;
 import org.itxtech.synapseapi.multiprotocol.protocol12030.protocol.CameraInstructionPacket12030;
-import org.itxtech.synapseapi.multiprotocol.protocol12030.protocol.CameraPresetsPacket12030;
 import org.itxtech.synapseapi.multiprotocol.protocol12030.protocol.ResourcePacksInfoPacket12030;
 import org.itxtech.synapseapi.multiprotocol.protocol12030.protocol.StartGamePacket12030;
 import org.itxtech.synapseapi.multiprotocol.protocol12040.protocol.DisconnectPacket12040;
@@ -145,26 +135,29 @@ import org.itxtech.synapseapi.multiprotocol.protocol121.protocol.TextPacket121;
 import org.itxtech.synapseapi.multiprotocol.protocol121100.protocol.CameraAimAssistPacket120100;
 import org.itxtech.synapseapi.multiprotocol.protocol121100.protocol.CameraInstructionPacket121100;
 import org.itxtech.synapseapi.multiprotocol.protocol121100.protocol.StartGamePacket121100;
+import org.itxtech.synapseapi.multiprotocol.protocol121120.protocol.AnimatePacket121120;
+import org.itxtech.synapseapi.multiprotocol.protocol121120.protocol.CameraInstructionPacket121120;
 import org.itxtech.synapseapi.multiprotocol.protocol1212.protocol.ClientboundCloseFormPacket1212;
 import org.itxtech.synapseapi.multiprotocol.protocol12120.protocol.*;
-import org.itxtech.synapseapi.multiprotocol.protocol12130.protocol.CameraPresetsPacket12130;
 import org.itxtech.synapseapi.multiprotocol.protocol12130.protocol.EmotePacket12130;
 import org.itxtech.synapseapi.multiprotocol.protocol12130.protocol.ResourcePacksInfoPacket12130;
 import org.itxtech.synapseapi.multiprotocol.protocol12140.protocol.CameraInstructionPacket12140;
-import org.itxtech.synapseapi.multiprotocol.protocol12140.protocol.CameraPresetsPacket12140;
 import org.itxtech.synapseapi.multiprotocol.protocol12140.protocol.MovementEffectPacket12140;
 import org.itxtech.synapseapi.multiprotocol.protocol12140.protocol.ResourcePacksInfoPacket12140;
 import org.itxtech.synapseapi.multiprotocol.protocol12150.protocol.CameraAimAssistPacket12050;
-import org.itxtech.synapseapi.multiprotocol.protocol12150.protocol.CameraAimAssistPresetsPacket12150;
-import org.itxtech.synapseapi.multiprotocol.protocol12150.protocol.CameraPresetsPacket12150;
 import org.itxtech.synapseapi.multiprotocol.protocol12150.protocol.ResourcePacksInfoPacket12150;
-import org.itxtech.synapseapi.multiprotocol.protocol12160.protocol.*;
+import org.itxtech.synapseapi.multiprotocol.protocol12160.protocol.ClientCameraAimAssistPacket12160;
+import org.itxtech.synapseapi.multiprotocol.protocol12160.protocol.CreativeContentPacket12160;
+import org.itxtech.synapseapi.multiprotocol.protocol12160.protocol.StartGamePacket12160;
 import org.itxtech.synapseapi.multiprotocol.protocol12170.protocol.LevelSoundEventPacketV312170;
 import org.itxtech.synapseapi.multiprotocol.protocol12170.protocol.SetHudPacket12170;
-import org.itxtech.synapseapi.multiprotocol.protocol12180.protocol.CameraPresetsPacket12180;
+import org.itxtech.synapseapi.multiprotocol.protocol12180.protocol.ClientboundControlSchemeSetPacket12180;
 import org.itxtech.synapseapi.multiprotocol.protocol12180.protocol.PlayerLocationPacket12180;
-import org.itxtech.synapseapi.multiprotocol.protocol12190.protocol.*;
+import org.itxtech.synapseapi.multiprotocol.protocol12190.protocol.CameraInstructionPacket12190;
+import org.itxtech.synapseapi.multiprotocol.protocol12190.protocol.ResourcePacksInfoPacket12190;
+import org.itxtech.synapseapi.multiprotocol.protocol12190.protocol.ServerScriptDebugDrawerPacket12190;
 import org.itxtech.synapseapi.multiprotocol.protocol12190.protocol.ServerScriptDebugDrawerPacket12190.Entry;
+import org.itxtech.synapseapi.multiprotocol.protocol12190.protocol.StartGamePacket12190;
 import org.itxtech.synapseapi.multiprotocol.protocol14.protocol.PlayerActionPacket14;
 import org.itxtech.synapseapi.multiprotocol.protocol16.protocol.ResourcePackClientResponsePacket16;
 import org.itxtech.synapseapi.multiprotocol.utils.*;
@@ -286,10 +279,12 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
             if (getProtocol() < AbstractProtocol.PROTOCOL_121_111.getProtocolStart()) {
                 experiments.add(VanillaExperiments.DATA_DRIVEN_BIOMES);
             }
+            experiments.add(VanillaExperiments.GAMETEST);
             experiments.add(VanillaExperiments.UPCOMING_CREATOR_FEATURES);
             if (isBetaClient()) {
                 experiments.add(VanillaExperiments.DEFERRED_TECHNICAL_PREVIEW);
             }
+            experiments.add(VanillaExperiments.EXPERIMENTAL_CREATOR_CAMERAS);
             startGamePacket.experiments = new Experiments(experiments.toArray(new Experiment[0]));
             return startGamePacket;
         } else if (this.getProtocol() >= AbstractProtocol.PROTOCOL_121_90.getProtocolStart()) {
@@ -328,10 +323,12 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
             startGamePacket.isSoundServerAuthoritative = isServerAuthoritativeSoundEnabled();
             List<Experiment> experiments = new ArrayList<>();
             experiments.add(VanillaExperiments.DATA_DRIVEN_BIOMES);
+            experiments.add(VanillaExperiments.GAMETEST);
             experiments.add(VanillaExperiments.UPCOMING_CREATOR_FEATURES);
             if (isBetaClient()) {
                 experiments.add(VanillaExperiments.DEFERRED_TECHNICAL_PREVIEW);
             }
+            experiments.add(VanillaExperiments.EXPERIMENTAL_CREATOR_CAMERAS);
             startGamePacket.experiments = new Experiments(experiments.toArray(new Experiment[0]));
             return startGamePacket;
         } else if (this.getProtocol() >= AbstractProtocol.PROTOCOL_121_60.getProtocolStart()) {
@@ -371,6 +368,7 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
             startGamePacket.isSoundServerAuthoritative = isServerAuthoritativeSoundEnabled();
             List<Experiment> experiments = new ArrayList<>();
             experiments.add(VanillaExperiments.DATA_DRIVEN_BIOMES);
+            experiments.add(VanillaExperiments.GAMETEST);
             experiments.add(VanillaExperiments.UPCOMING_CREATOR_FEATURES);
             if (isBetaClient()) {
                 experiments.add(VanillaExperiments.DEFERRED_TECHNICAL_PREVIEW);
@@ -378,6 +376,12 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
             if (getProtocol() >= AbstractProtocol.PROTOCOL_121_80.getProtocolStart()) {
                 experiments.add(VanillaExperiments.EXPERIMENTAL_GRAPHICS);
                 experiments.add(VanillaExperiments.LOCATOR_BAR);
+            }
+            if (getProtocol() < AbstractProtocol.PROTOCOL_121_70.getProtocolStart()) {
+                experiments.add(VanillaExperiments.THIRD_PERSON_CAMERAS);
+                experiments.add(VanillaExperiments.CAMERA_AIM_ASSIST);
+            } else {
+                experiments.add(VanillaExperiments.EXPERIMENTAL_CREATOR_CAMERAS);
             }
             startGamePacket.experiments = new Experiments(experiments.toArray(new Experiment[0]));
             return startGamePacket;
@@ -421,9 +425,17 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
             if (getProtocol() < AbstractProtocol.PROTOCOL_121_20.getProtocolStart()) {
                 experiments.add(VanillaExperiments.DATA_DRIVEN_ITEMS);
             }
+            experiments.add(VanillaExperiments.GAMETEST);
             experiments.add(VanillaExperiments.UPCOMING_CREATOR_FEATURES);
             if (isBetaClient()) {
                 experiments.add(VanillaExperiments.DEFERRED_TECHNICAL_PREVIEW);
+            }
+            if (getProtocol() >= AbstractProtocol.PROTOCOL_121_20.getProtocolStart()) {
+                experiments.add(VanillaExperiments.THIRD_PERSON_CAMERAS);
+                experiments.add(VanillaExperiments.FOCUS_TARGET_CAMERA);
+                if (getProtocol() >= AbstractProtocol.PROTOCOL_121_50.getProtocolStart()) {
+                    experiments.add(VanillaExperiments.CAMERA_AIM_ASSIST);
+                }
             }
             startGamePacket.experiments = new Experiments(experiments.toArray(new Experiment[0]));
             return startGamePacket;
@@ -465,6 +477,7 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
             List<Experiment> experiments = new ArrayList<>();
             experiments.add(VanillaExperiments.DATA_DRIVEN_BIOMES);
             experiments.add(VanillaExperiments.DATA_DRIVEN_ITEMS);
+            experiments.add(VanillaExperiments.GAMETEST);
             experiments.add(VanillaExperiments.UPCOMING_CREATOR_FEATURES);
             if (isBetaClient()) {
                 experiments.add(VanillaExperiments.DEFERRED_TECHNICAL_PREVIEW);
@@ -509,6 +522,7 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
             List<Experiment> experiments = new ArrayList<>();
             experiments.add(VanillaExperiments.DATA_DRIVEN_BIOMES);
             experiments.add(VanillaExperiments.DATA_DRIVEN_ITEMS);
+            experiments.add(VanillaExperiments.GAMETEST);
             experiments.add(VanillaExperiments.UPCOMING_CREATOR_FEATURES);
             if (getProtocol() < AbstractProtocol.PROTOCOL_120_70.getProtocolStart()) {
                 experiments.add(VanillaExperiments.EXPERIMENTAL_MOLANG_FEATURES);
@@ -556,6 +570,7 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
             startGamePacket.experiments = new Experiments(
                     VanillaExperiments.DATA_DRIVEN_BIOMES,
                     VanillaExperiments.DATA_DRIVEN_ITEMS,
+                    VanillaExperiments.GAMETEST,
                     VanillaExperiments.UPCOMING_CREATOR_FEATURES,
                     VanillaExperiments.EXPERIMENTAL_MOLANG_FEATURES,
                     VanillaExperiments.CAMERAS
@@ -598,6 +613,7 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
             startGamePacket.experiments = new Experiments(
                     VanillaExperiments.DATA_DRIVEN_BIOMES,
                     VanillaExperiments.DATA_DRIVEN_ITEMS,
+                    VanillaExperiments.GAMETEST,
                     VanillaExperiments.UPCOMING_CREATOR_FEATURES,
                     VanillaExperiments.EXPERIMENTAL_MOLANG_FEATURES
             );
@@ -639,6 +655,7 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
             startGamePacket.experiments = new Experiments(
                     VanillaExperiments.DATA_DRIVEN_BIOMES,
                     VanillaExperiments.DATA_DRIVEN_ITEMS,
+                    VanillaExperiments.GAMETEST,
                     VanillaExperiments.UPCOMING_CREATOR_FEATURES,
                     VanillaExperiments.EXPERIMENTAL_MOLANG_FEATURES
             );
@@ -680,6 +697,7 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
             startGamePacket.experiments = new Experiments(
                     VanillaExperiments.DATA_DRIVEN_BIOMES,
                     VanillaExperiments.DATA_DRIVEN_ITEMS,
+                    VanillaExperiments.GAMETEST,
                     VanillaExperiments.UPCOMING_CREATOR_FEATURES,
                     VanillaExperiments.EXPERIMENTAL_MOLANG_FEATURES
             );
@@ -721,6 +739,7 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
             startGamePacket.experiments = new Experiments(
                     VanillaExperiments.DATA_DRIVEN_BIOMES,
                     VanillaExperiments.DATA_DRIVEN_ITEMS,
+                    VanillaExperiments.GAMETEST,
                     VanillaExperiments.UPCOMING_CREATOR_FEATURES,
                     VanillaExperiments.EXPERIMENTAL_MOLANG_FEATURES
             );
@@ -762,6 +781,7 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
             startGamePacket.experiments = new Experiments(
                     VanillaExperiments.DATA_DRIVEN_BIOMES,
                     VanillaExperiments.DATA_DRIVEN_ITEMS,
+                    VanillaExperiments.GAMETEST,
                     VanillaExperiments.UPCOMING_CREATOR_FEATURES,
                     VanillaExperiments.EXPERIMENTAL_MOLANG_FEATURES
             );
@@ -802,6 +822,7 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
             startGamePacket.experiments = new Experiments(
                     VanillaExperiments.DATA_DRIVEN_BIOMES,
                     VanillaExperiments.DATA_DRIVEN_ITEMS,
+                    VanillaExperiments.GAMETEST,
                     VanillaExperiments.UPCOMING_CREATOR_FEATURES,
                     VanillaExperiments.EXPERIMENTAL_MOLANG_FEATURES
             );
@@ -842,6 +863,7 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
             startGamePacket.experiments = new Experiments(
                     VanillaExperiments.DATA_DRIVEN_BIOMES,
                     VanillaExperiments.DATA_DRIVEN_ITEMS,
+                    VanillaExperiments.GAMETEST,
                     VanillaExperiments.UPCOMING_CREATOR_FEATURES,
                     VanillaExperiments.EXPERIMENTAL_MOLANG_FEATURES
             );
@@ -882,6 +904,7 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
             startGamePacket.experiments = new Experiments(
                     VanillaExperiments.DATA_DRIVEN_BIOMES,
                     VanillaExperiments.DATA_DRIVEN_ITEMS,
+                    VanillaExperiments.GAMETEST,
                     VanillaExperiments.UPCOMING_CREATOR_FEATURES,
                     VanillaExperiments.EXPERIMENTAL_MOLANG_FEATURES
             );
@@ -922,6 +945,7 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
             startGamePacket.experiments = new Experiments(
                     VanillaExperiments.DATA_DRIVEN_BIOMES,
                     VanillaExperiments.DATA_DRIVEN_ITEMS,
+                    VanillaExperiments.GAMETEST,
                     VanillaExperiments.UPCOMING_CREATOR_FEATURES,
                     VanillaExperiments.EXPERIMENTAL_MOLANG_FEATURES
             );
@@ -962,6 +986,7 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
             startGamePacket.experiments = new Experiments(
                     VanillaExperiments.DATA_DRIVEN_BIOMES,
                     VanillaExperiments.DATA_DRIVEN_ITEMS,
+                    VanillaExperiments.GAMETEST,
                     VanillaExperiments.UPCOMING_CREATOR_FEATURES
             );
             return startGamePacket;
@@ -1213,9 +1238,23 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
                             if (getProtocol() < AbstractProtocol.PROTOCOL_121_20.getProtocolStart()) {
                                 experiments.add(VanillaExperiments.DATA_DRIVEN_ITEMS);
                             }
+                            experiments.add(VanillaExperiments.GAMETEST);
                             experiments.add(VanillaExperiments.UPCOMING_CREATOR_FEATURES);
                             if (isBetaClient()) {
                                 experiments.add(VanillaExperiments.DEFERRED_TECHNICAL_PREVIEW);
+                            }
+                            if (getProtocol() < AbstractProtocol.PROTOCOL_121_70.getProtocolStart()) {
+                                if (getProtocol() >= AbstractProtocol.PROTOCOL_121_20.getProtocolStart()) {
+                                    experiments.add(VanillaExperiments.THIRD_PERSON_CAMERAS);
+                                    if (getProtocol() < AbstractProtocol.PROTOCOL_121_60.getProtocolStart()) {
+                                        experiments.add(VanillaExperiments.FOCUS_TARGET_CAMERA);
+                                    }
+                                }
+                                if (getProtocol() >= AbstractProtocol.PROTOCOL_121_50.getProtocolStart()) {
+                                    experiments.add(VanillaExperiments.CAMERA_AIM_ASSIST);
+                                }
+                            } else {
+                                experiments.add(VanillaExperiments.EXPERIMENTAL_CREATOR_CAMERAS);
                             }
                             if (getProtocol() == AbstractProtocol.PROTOCOL_121_80.getProtocolStart()) {
                                 experiments.add(VanillaExperiments.EXPERIMENTAL_GRAPHICS);
@@ -1237,6 +1276,7 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
                             List<Experiment> experiments = new ArrayList<>();
                             experiments.add(VanillaExperiments.DATA_DRIVEN_BIOMES);
                             experiments.add(VanillaExperiments.DATA_DRIVEN_ITEMS);
+                            experiments.add(VanillaExperiments.GAMETEST);
                             if (getProtocol() >= AbstractProtocol.PROTOCOL_117.getProtocolStart()) {
                                 experiments.add(VanillaExperiments.UPCOMING_CREATOR_FEATURES);
                             }
@@ -1927,7 +1967,7 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
                             }
 
                             if (isServerAuthoritativeSoundEnabled()) {
-                                level.addLevelSoundEvent(this, LevelSoundEventPacket.SOUND_ATTACK_NODAMAGE, EntityFullNames.PLAYER);
+                                level.addLevelSoundEvent(this, inventory.getItemInHand().getAttackMissSound(), EntityFullNames.PLAYER);
                             }
                             break;
                         case PlayerActionPacket.ACTION_START_CRAWLING:
@@ -2569,6 +2609,67 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
                 super.handleDataPacket(packet);
                 break;
             case ProtocolInfo.ANIMATE_PACKET:
+                if (getProtocol() >= AbstractProtocol.PROTOCOL_121_120.getProtocolStart()) {
+                    AnimatePacket121120 animatePk = (AnimatePacket121120) packet;
+
+                    if (!validateFloat(animatePk.data)) {
+                        onPacketViolation(PacketViolationReason.IMPOSSIBLE_BEHAVIOR, "anim_data_nan");
+                        break;
+                    }
+
+                    if (isServerAuthoritativeMovementEnabled() && (animatePk.action == Action.ROW_LEFT || animatePk.action == Action.ROW_RIGHT)) {
+                        onPacketViolation(PacketViolationReason.IMPOSSIBLE_BEHAVIOR, "anim_paddle");
+                        break;
+                    }
+
+                    if (!callPacketReceiveEvent(animatePk.toDefault())) break;
+                    if (!this.spawned || !this.isAlive()) {
+                        break;
+                    }
+
+                    PlayerAnimationEvent animationEvent = new PlayerAnimationEvent(this, animatePk.action);
+                    this.server.getPluginManager().callEvent(animationEvent);
+                    if (animationEvent.isCancelled()) {
+                        break;
+                    }
+
+                    AnimatePacket.Action animation = animationEvent.getAnimationType();
+                    switch (animation) {
+                        case SWING_ARM:
+                            this.swingTime = -1;
+                            this.swinging = true;
+
+                            if (false && !isBreakingBlock()) {
+                                level.addLevelSoundEvent(this, LevelSoundEventPacket.SOUND_ATTACK_NODAMAGE, EntityFullNames.PLAYER, this);
+                            }
+                            break;
+                        case ROW_RIGHT:
+                        case ROW_LEFT:
+                            if (this.riding instanceof EntityBoat boat) {
+                                float paddleTime = animatePk.rowingTime;
+                                if (!validateFloat(paddleTime)) {
+                                    onPacketViolation(PacketViolationReason.IMPOSSIBLE_BEHAVIOR, "anim_nan");
+                                    return;
+                                }
+
+                                boat.onPaddle(animation, paddleTime);
+                            }
+                            return;
+                        case WAKE_UP:
+                            break;
+                        default:
+                            onPacketViolation(PacketViolationReason.IMPOSSIBLE_BEHAVIOR, "anim");
+                            return;
+                    }
+
+                    AnimatePacket animatePacket = new AnimatePacket();
+                    animatePacket.eid = this.getId();
+                    animatePacket.action = animationEvent.getAnimationType();
+                    animatePacket.rowingTime = animatePk.rowingTime;
+                    Server.broadcastPacket(this.getViewers().values(), animatePacket);
+                    break;
+                }
+
                 if (isServerAuthoritativeMovementEnabled() && getProtocol() >= AbstractProtocol.PROTOCOL_120_70.getProtocolStart()) {
                     AnimatePacket animatePacket = (AnimatePacket) packet;
                     if (animatePacket.action == Action.ROW_LEFT || animatePacket.action == Action.ROW_RIGHT) {
@@ -4017,116 +4118,53 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
 
     @Override
     protected void sendCameraPresets() {
-        if (getProtocol() >= AbstractProtocol.PROTOCOL_121_90.getProtocolStart()) {
-            CameraPresetsPacket12190 packet = new CameraPresetsPacket12190();
-            packet.presets = CameraManager.getInstance().getCameras();
-            dataPacket(packet);
+        DataPacket batch = CameraManager.getInstance().getPresetPackets(getAbstractProtocol());
+        if (batch == null) {
             return;
         }
-
-        if (getProtocol() >= AbstractProtocol.PROTOCOL_121_80.getProtocolStart()) {
-            CameraPresetsPacket12180 packet = new CameraPresetsPacket12180();
-            packet.presets = CameraManager.getInstance().getCameras();
-            dataPacket(packet);
-            return;
-        }
-
-        if (getProtocol() >= AbstractProtocol.PROTOCOL_121_60.getProtocolStart()) {
-            CameraPresetsPacket12160 packet = new CameraPresetsPacket12160();
-            packet.presets = CameraManager.getInstance().getCameras();
-            dataPacket(packet);
-            return;
-        }
-
-        if (getProtocol() >= AbstractProtocol.PROTOCOL_121_50.getProtocolStart()) {
-            CameraPresetsPacket12150 packet = new CameraPresetsPacket12150();
-            packet.presets = CameraManager.getInstance().getCameras();
-            dataPacket(packet);
-            return;
-        }
-
-        if (getProtocol() >= AbstractProtocol.PROTOCOL_121_40.getProtocolStart()) {
-            CameraPresetsPacket12140 packet = new CameraPresetsPacket12140();
-            packet.presets = CameraManager.getInstance().getCameras();
-            dataPacket(packet);
-            return;
-        }
-
-        if (getProtocol() >= AbstractProtocol.PROTOCOL_121_30.getProtocolStart()) {
-            CameraPresetsPacket12130 packet = new CameraPresetsPacket12130();
-            packet.presets = CameraManager.getInstance().getCameras();
-            dataPacket(packet);
-            return;
-        }
-
-        if (getProtocol() >= AbstractProtocol.PROTOCOL_121_20.getProtocolStart()) {
-            CameraPresetsPacket12120 packet = new CameraPresetsPacket12120();
-            packet.presets = CameraManager.getInstance().getCameras();
-            this.dataPacket(packet);
-            return;
-        }
-
-        if (getProtocol() >= AbstractProtocol.PROTOCOL_120_30.getProtocolStart()) {
-            CameraPresetsPacket12030 packet = new CameraPresetsPacket12030();
-            packet.presets = CameraManager.getInstance().getCameras();
-            this.dataPacket(packet);
-            return;
-        }
-
-        if (getProtocol() < AbstractProtocol.PROTOCOL_120.getProtocolStart()) {
-            return;
-        }
-        CameraPresetsPacket11970 packet = new CameraPresetsPacket11970();
-        packet.presets = CameraManager.getInstance().getCameras();
-        this.dataPacket(packet);
+        dataPacket(batch);
     }
 
     @Override
-    public void startCameraInstruction(CameraSetInstruction set, CameraFovInstruction fov, CameraTargetInstruction target, CameraFadeInstruction fade) {
+    public void startCameraInstruction(CameraInstruction instruction) {
+        if (getProtocol() >= AbstractProtocol.PROTOCOL_121_120.getProtocolStart()) {
+            CameraInstructionPacket121120 pk = new CameraInstructionPacket121120();
+            pk.instruction = instruction;
+            this.dataPacket(pk);
+            return;
+        }
+
         if (getProtocol() >= AbstractProtocol.PROTOCOL_121_100.getProtocolStart()) {
             CameraInstructionPacket121100 pk = new CameraInstructionPacket121100();
-            pk.set = set;
-            pk.fade = fade;
-            if (target != null) {
-                if (target.remove) {
-                    pk.removeTarget = true;
-                } else {
-                    pk.target = target;
-                }
-            }
-            pk.fieldOfView = fov;
+            pk.instruction = instruction;
             this.dataPacket(pk);
             return;
         }
 
         if (getProtocol() >= AbstractProtocol.PROTOCOL_121_90.getProtocolStart()) {
             CameraInstructionPacket12190 pk = new CameraInstructionPacket12190();
-            pk.set = set;
-            pk.fade = fade;
+            pk.instruction = instruction;
             this.dataPacket(pk);
             return;
         }
 
         if (getProtocol() >= AbstractProtocol.PROTOCOL_121_40.getProtocolStart()) {
             CameraInstructionPacket12140 pk = new CameraInstructionPacket12140();
-            pk.set = set;
-            pk.fade = fade;
+            pk.instruction = instruction;
             this.dataPacket(pk);
             return;
         }
 
         if (getProtocol() >= AbstractProtocol.PROTOCOL_121_20.getProtocolStart()) {
             CameraInstructionPacket12120 pk = new CameraInstructionPacket12120();
-            pk.set = set;
-            pk.fade = fade;
+            pk.instruction = instruction;
             this.dataPacket(pk);
             return;
         }
 
         if (getProtocol() >= AbstractProtocol.PROTOCOL_120_30.getProtocolStart()) {
             CameraInstructionPacket12030 pk = new CameraInstructionPacket12030();
-            pk.set = set;
-            pk.fade = fade;
+            pk.instruction = instruction;
             this.dataPacket(pk);
             return;
         }
@@ -4135,99 +4173,13 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
             return;
         }
         CameraInstructionPacket11970 pk = new CameraInstructionPacket11970();
-        pk.set = set;
-        pk.fade = fade;
+        pk.instruction = instruction;
         this.dataPacket(pk);
-    }
-
-    @Override
-    public void startCameraInstruction(CameraSetInstruction set, CameraFovInstruction fov, CameraFadeInstruction fade) {
-        this.startCameraInstruction(set, fov, null, fade);
-    }
-
-    @Override
-    public void startCameraInstruction(CameraSetInstruction set, CameraTargetInstruction target, CameraFadeInstruction fade) {
-        this.startCameraInstruction(set, null, target, fade);
-    }
-
-    @Override
-    public void startCameraInstruction(CameraSetInstruction set, CameraFadeInstruction fade) {
-        this.startCameraInstruction(set, null, null, fade);
-    }
-
-    @Override
-    public void startCameraInstruction(CameraSetInstruction set, CameraFovInstruction fov) {
-        this.startCameraInstruction(set, fov, null, null);
-    }
-
-    @Override
-    public void startCameraInstruction(CameraSetInstruction set, CameraTargetInstruction target) {
-        this.startCameraInstruction(set, null, target, null);
-    }
-
-    @Override
-    public void startCameraInstruction(CameraSetInstruction set) {
-        this.startCameraInstruction(set, null, null, null);
-    }
-
-    @Override
-    public void startCameraInstruction(CameraFovInstruction fov) {
-        this.startCameraInstruction(null, fov, null, null);
-    }
-
-    @Override
-    public void startCameraInstruction(CameraTargetInstruction target) {
-        this.startCameraInstruction(null, null, target, null);
-    }
-
-    @Override
-    public void startCameraInstruction(CameraFadeInstruction fade) {
-        this.startCameraInstruction(null, null, null, fade);
     }
 
     @Override
     public void clearCameraInstruction() {
-        if (getProtocol() >= AbstractProtocol.PROTOCOL_121_100.getProtocolStart()) {
-            CameraInstructionPacket121100 pk = new CameraInstructionPacket121100();
-            pk.clear = true;
-            this.dataPacket(pk);
-            return;
-        }
-
-        if (getProtocol() >= AbstractProtocol.PROTOCOL_121_90.getProtocolStart()) {
-            CameraInstructionPacket12190 pk = new CameraInstructionPacket12190();
-            pk.clear = true;
-            this.dataPacket(pk);
-            return;
-        }
-
-        if (getProtocol() >= AbstractProtocol.PROTOCOL_121_40.getProtocolStart()) {
-            CameraInstructionPacket12140 pk = new CameraInstructionPacket12140();
-            pk.clear = true;
-            this.dataPacket(pk);
-            return;
-        }
-
-        if (getProtocol() >= AbstractProtocol.PROTOCOL_121_20.getProtocolStart()) {
-            CameraInstructionPacket12120 pk = new CameraInstructionPacket12120();
-            pk.clear = true;
-            this.dataPacket(pk);
-            return;
-        }
-
-        if (getProtocol() >= AbstractProtocol.PROTOCOL_120_30.getProtocolStart()) {
-            CameraInstructionPacket12030 pk = new CameraInstructionPacket12030();
-            pk.clear = true;
-            this.dataPacket(pk);
-            return;
-        }
-
-        if (getProtocol() < AbstractProtocol.PROTOCOL_120.getProtocolStart()) {
-            return;
-        }
-        CameraInstructionPacket11970 pk = new CameraInstructionPacket11970();
-        pk.clear = true;
-        this.dataPacket(pk);
+        startCameraInstruction(CameraInstruction.clear());
     }
 
     @Override
@@ -4469,26 +4421,6 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
     }
 
     @Override
-    protected void sendAimAssistPresets() {
-        if (getProtocol() >= AbstractProtocol.PROTOCOL_121_60.getProtocolStart()) {
-            CameraAimAssistPresetsPacket12160 packet = new CameraAimAssistPresetsPacket12160();
-            packet.categories = CameraAimAssistPresetsPacket12160.DEFAULT_CATEGORIES;
-            packet.presets = CameraAimAssistPresetsPacket12160.DEFAULT_PRESETS;
-            packet.operation = CameraAimAssistPresetsPacket12160.OPERATION_ADD_TO_EXISTING;
-            dataPacket(packet);
-            return;
-        }
-
-        if (getProtocol() < AbstractProtocol.PROTOCOL_121_50.getProtocolStart()) {
-            return;
-        }
-        CameraAimAssistPresetsPacket12150 packet = new CameraAimAssistPresetsPacket12150();
-        packet.categories = CameraAimAssistPresetsPacket12150.DEFAULT_CATEGORIES;
-        packet.presets = CameraAimAssistPresetsPacket12150.DEFAULT_PRESETS;
-        dataPacket(packet);
-    }
-
-    @Override
     public void setAimAssist(float viewAngleX, float viewAngleZ) {
         setAimAssist(CameraAimAssistPacket12050.MODE_ANGLE, viewAngleX, viewAngleZ, 8.5f, "minecraft:aim_assist_default");
     }
@@ -4576,7 +4508,7 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
 
     @Override
     public void sendJigsawStructureData() {
-        if (true || getProtocol() < AbstractProtocol.PROTOCOL_121_80.getProtocolStart()) {
+        if (getProtocol() < AbstractProtocol.PROTOCOL_121_120.getProtocolStart()) {
             return;
         }
 
@@ -4681,6 +4613,21 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
     @Override
     int getClientMaxViewDistance() {
         return clientMaxViewDistance;
+    }
+
+    @Override
+    public void setControlScheme(int scheme) {
+        if (getProtocol() < AbstractProtocol.PROTOCOL_121_80.getProtocolStart()) {
+            return;
+        }
+        ClientboundControlSchemeSetPacket12180 packet = new ClientboundControlSchemeSetPacket12180();
+        packet.scheme = scheme;
+        dataPacket(packet);
+    }
+
+    @Override
+    public void resetControlScheme() {
+        setControlScheme(ControlScheme.LOCKED_PLAYER_RELATIVE_STRAFE);
     }
 
     private record ShapeInstance(Shape shape, int expirationTick) {

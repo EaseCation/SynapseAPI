@@ -73,6 +73,7 @@ public final class VanillaExperiments {
     /**
      * Loads Jigsaw Structures from the behavior pack worldgen folder. (Data-Driven Jigsaw Structures)
      * @since 1.21.50
+     * @deprecated 1.21.120
      */
     public static final Experiment JIGSAW_STRUCTURES = new Experiment("jigsaw_structures", true);
     /**
@@ -84,6 +85,7 @@ public final class VanillaExperiments {
     /**
      * Enables custom components v2 for scripting (V2.0.0-beta and higher) and json (V1.21.80 and higher) APIs. (Custom Components V2)
      * @since 1.21.80
+     * @deprecated 1.21.90
      */
     public static final Experiment CUSTOM_COMPONENTS_V2 = new Experiment("custom_components_v2", true);
     /**

@@ -1332,6 +1332,8 @@
     "minecraft:raw_iron": 520,
     "minecraft:raw_gold": 521,
     "minecraft:raw_copper": 522,
+    "minecraft:breeze_rod": 529,
+    "minecraft:mace": 530,
     "minecraft:campfire": 720,
     "minecraft:suspicious_stew": 734,
     "minecraft:honeycomb": 736,

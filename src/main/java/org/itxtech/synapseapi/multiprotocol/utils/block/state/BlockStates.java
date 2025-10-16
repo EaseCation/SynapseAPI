@@ -179,6 +179,10 @@ public final class BlockStates {
             MINECRAFT_CARDINAL_DIRECTION_WEST,
             MINECRAFT_CARDINAL_DIRECTION_NORTH,
             MINECRAFT_CARDINAL_DIRECTION_EAST));
+    public static final BooleanBlockState MINECRAFT_CONNECTION_EAST = register(new BooleanBlockState(BlockStateNames.MINECRAFT_CONNECTION_EAST));
+    public static final BooleanBlockState MINECRAFT_CONNECTION_NORTH = register(new BooleanBlockState(BlockStateNames.MINECRAFT_CONNECTION_NORTH));
+    public static final BooleanBlockState MINECRAFT_CONNECTION_SOUTH = register(new BooleanBlockState(BlockStateNames.MINECRAFT_CONNECTION_SOUTH));
+    public static final BooleanBlockState MINECRAFT_CONNECTION_WEST = register(new BooleanBlockState(BlockStateNames.MINECRAFT_CONNECTION_WEST));
     public static final StringBlockState MINECRAFT_FACING_DIRECTION = register(new StringBlockState(BlockStateNames.MINECRAFT_FACING_DIRECTION,
             MINECRAFT_FACING_DIRECTION_DOWN,
             MINECRAFT_FACING_DIRECTION_UP,

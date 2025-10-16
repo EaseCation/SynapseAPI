@@ -36,16 +36,14 @@ import it.unimi.dsi.fastutil.Pair;
 import it.unimi.dsi.fastutil.ints.Int2FloatMap;
 import it.unimi.dsi.fastutil.ints.Int2IntMap;
 import it.unimi.dsi.fastutil.longs.Long2ObjectMap;
+import org.itxtech.synapseapi.camera.CameraManager;
 import org.itxtech.synapseapi.dialogue.NPCDialoguePlayerHandler;
 import org.itxtech.synapseapi.event.player.SynapsePlayerConnectEvent;
 import org.itxtech.synapseapi.event.player.SynapsePlayerPreChatEvent;
 import org.itxtech.synapseapi.event.player.SynapsePlayerTransferEvent;
 import org.itxtech.synapseapi.event.player.SynapsePlayerUnexpectedBehaviorEvent;
 import org.itxtech.synapseapi.multiprotocol.AbstractProtocol;
-import org.itxtech.synapseapi.multiprotocol.common.camera.CameraFadeInstruction;
-import org.itxtech.synapseapi.multiprotocol.common.camera.CameraFovInstruction;
-import org.itxtech.synapseapi.multiprotocol.common.camera.CameraSetInstruction;
-import org.itxtech.synapseapi.multiprotocol.common.camera.CameraTargetInstruction;
+import org.itxtech.synapseapi.multiprotocol.common.camera.CameraInstruction;
 import org.itxtech.synapseapi.multiprotocol.common.drawer.Shape;
 import org.itxtech.synapseapi.multiprotocol.protocol116100.protocol.TextPacket116100;
 import org.itxtech.synapseapi.multiprotocol.protocol116100ne.protocol.TextPacket116100NE;
@@ -75,7 +73,7 @@ import java.net.InetSocketAddress;
 import java.util.*;
 import java.util.function.Function;
 
-import static org.itxtech.synapseapi.SynapseSharedConstants.NETWORK_STACK_LATENCY_TELEMETRY;
+import static org.itxtech.synapseapi.SynapseSharedConstants.*;
 
 /**
  * Created by boybook on 16/6/24.
@@ -217,6 +215,10 @@ public class SynapsePlayer extends Player {
                         }
                     }
 
+                    JsonElement dataVersion = cachedExtra.get("DataVersion");
+                    if (dataVersion != null) {
+                        checkDataVersion(dataVersion.getAsInt());
+                    }
                     JsonElement blocksChecksum = cachedExtra.get("blocks_checksum");
                     if (blocksChecksum != null) {
                         checkBlockRegistryChecksum(blocksChecksum.getAsLong());
@@ -229,12 +231,29 @@ public class SynapsePlayer extends Player {
                     if (biomesChecksum != null) {
                         checkBiomeRegistryChecksum(biomesChecksum.getAsLong());
                     }
+                    JsonElement entitiesChecksum = cachedExtra.get("entities_checksum");
+                    if (entitiesChecksum != null) {
+                        checkEntityRegistryChecksum(entitiesChecksum.getAsLong());
+                    }
+                    JsonElement camerasChecksum = cachedExtra.get("cameras_checksum");
+                    if (camerasChecksum != null) {
+                        checkCameraRegistryChecksum(camerasChecksum.getAsLong());
+                    }
                 }
             } catch (Exception e) {
                 MainLogger.getLogger().logException(e);
                 this.close("", "disconnectionScreen.internalError.cantConnect");
             }
         }
+    }
+
+    protected void checkDataVersion(int previousDataVersion) {
+        if (DATA_VERSION == previousDataVersion) {
+            return;
+        }
+
+        SynapseAPI.getInstance().getLogger().info("玩家 {} 触发原生跨服由于先前的数据版本 {} 与本服 {} 不同", getName(), previousDataVersion, DATA_VERSION);
+        rejoinGame("disconnectionScreen.blockMismatch");
     }
 
     protected void checkBlockRegistryChecksum(long previousChecksum) {
@@ -264,6 +283,26 @@ public class SynapsePlayer extends Player {
         }
 
         SynapseAPI.getInstance().getLogger().info("玩家 {} 触发原生跨服由于先前的生物群系注册表 {} 与本服 {} 不同", getName(), previousChecksum, checksum);
+        rejoinGame("disconnectionScreen.blockMismatch");
+    }
+
+    protected void checkEntityRegistryChecksum(long previousChecksum) {
+        long checksum = AvailableEntityIdentifiersPalette.getEntityRegistryChecksum();
+        if (checksum == previousChecksum) {
+            return;
+        }
+
+        SynapseAPI.getInstance().getLogger().info("玩家 {} 触发原生跨服由于先前的实体注册表 {} 与本服 {} 不同", getName(), previousChecksum, checksum);
+        rejoinGame("disconnectionScreen.blockMismatch");
+    }
+
+    protected void checkCameraRegistryChecksum(long previousChecksum) {
+        long checksum = CameraManager.getCameraRegistryChecksum();
+        if (checksum == previousChecksum) {
+            return;
+        }
+
+        SynapseAPI.getInstance().getLogger().info("玩家 {} 触发原生跨服由于先前的相机注册表 {} 与本服 {} 不同", getName(), previousChecksum, checksum);
         rejoinGame("disconnectionScreen.blockMismatch");
     }
 
@@ -531,7 +570,6 @@ public class SynapsePlayer extends Player {
             this.sendAvailableEntityIdentifiers();
             this.syncFeatureRegistry();
             this.sendCameraPresets();
-            this.sendAimAssistPresets();
         } else {
             if (dimension != DimensionID.OVERWORLD && dummyDimension != DimensionID.OVERWORLD) {
                 forceSendEmptyChunks(chunkRadius, 0, 0, dummyDimension);
@@ -595,6 +633,7 @@ public class SynapsePlayer extends Player {
 //            clearCameraInstruction();
             showHud();
             clearAimAssist();
+            resetControlScheme();
         }
         this.sendFogStack();
 
@@ -861,9 +900,12 @@ public class SynapsePlayer extends Player {
                     pk.extra.add("beh_packs", behPacks);
                     pk.extra.addProperty("viewDistance", viewDistance);
                     pk.extra.addProperty("viewDistanceMax", getClientMaxViewDistance());
+                    pk.extra.addProperty("DataVersion", DATA_VERSION);
                     pk.extra.addProperty("blocks_checksum", AdvancedGlobalBlockPalette.getBlockRegistryChecksum());
                     pk.extra.addProperty("items_checksum", AdvancedRuntimeItemPalette.getItemRegistryChecksum());
                     pk.extra.addProperty("biomes_checksum", BiomeDefinitions.getBiomeRegistryChecksum());
+                    pk.extra.addProperty("entities_checksum", AvailableEntityIdentifiersPalette.getEntityRegistryChecksum());
+                    pk.extra.addProperty("cameras_checksum", CameraManager.getCameraRegistryChecksum());
                     getSynapseEntry().sendDataPacket(pk);
                 }
             }, 1);
@@ -1665,40 +1707,14 @@ public class SynapsePlayer extends Player {
         // 1.19.20+
     }
 
+    /**
+     * CameraPresets and CameraAimAssistPresets
+     */
     protected void sendCameraPresets() {
         // 1.19.70+
     }
 
-    public void startCameraInstruction(CameraSetInstruction set, CameraFovInstruction fov, CameraTargetInstruction target, CameraFadeInstruction fade) {
-    }
-
-    public void startCameraInstruction(CameraSetInstruction set, CameraFovInstruction fov, CameraFadeInstruction fade) {
-    }
-
-    public void startCameraInstruction(CameraSetInstruction set, CameraTargetInstruction target, CameraFadeInstruction fade) {
-    }
-
-    public void startCameraInstruction(CameraSetInstruction set, CameraFadeInstruction fade) {
-        // 1.20.30+
-    }
-
-    public void startCameraInstruction(CameraSetInstruction set, CameraFovInstruction fov) {
-    }
-
-    public void startCameraInstruction(CameraSetInstruction set, CameraTargetInstruction target) {
-    }
-
-    public void startCameraInstruction(CameraSetInstruction set) {
-        // 1.20.30+
-    }
-
-    public void startCameraInstruction(CameraFovInstruction fov) {
-    }
-
-    public void startCameraInstruction(CameraTargetInstruction target) {
-    }
-
-    public void startCameraInstruction(CameraFadeInstruction fade) {
+    public void startCameraInstruction(CameraInstruction instruction) {
         // 1.20.30+
     }
 
@@ -1721,12 +1737,6 @@ public class SynapsePlayer extends Player {
     }
 
     protected void tryDisruptIllegalClientBeforeStartGame() {
-    }
-
-    /**
-     * @since 1.21.50
-     */
-    protected void sendAimAssistPresets() {
     }
 
     /**

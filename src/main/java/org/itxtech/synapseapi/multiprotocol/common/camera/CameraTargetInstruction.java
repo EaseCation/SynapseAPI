@@ -17,8 +17,6 @@ public class CameraTargetInstruction implements Cloneable {
     public Vector3f centerOffset;
     public long entityId;
 
-    public boolean remove;
-
     public CameraTargetInstruction(long entityId) {
         this.entityId = entityId;
     }
@@ -26,10 +24,6 @@ public class CameraTargetInstruction implements Cloneable {
     public CameraTargetInstruction(long entityId, Vector3f centerOffset) {
         this.entityId = entityId;
         this.centerOffset = centerOffset;
-    }
-
-    public CameraTargetInstruction(boolean remove) {
-        this.remove = remove;
     }
 
     @Override

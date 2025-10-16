@@ -6,6 +6,8 @@ import cn.nukkit.entity.data.EntityMetadata;
 import cn.nukkit.entity.data.LongEntityData;
 import cn.nukkit.network.protocol.*;
 import cn.nukkit.network.protocol.PlayerListPacket.Entry;
+import org.itxtech.synapseapi.multiprotocol.common.camera.CameraAttachToEntityInstruction;
+import org.itxtech.synapseapi.multiprotocol.common.camera.CameraInstruction;
 import org.itxtech.synapseapi.multiprotocol.common.camera.CameraTargetInstruction;
 import org.itxtech.synapseapi.multiprotocol.protocol113.protocol.MoveEntityDeltaPacket113;
 import org.itxtech.synapseapi.multiprotocol.protocol116.protocol.UpdatePlayerGameTypePacket116;
@@ -22,6 +24,7 @@ import org.itxtech.synapseapi.multiprotocol.protocol12070.protocol.MobEffectPack
 import org.itxtech.synapseapi.multiprotocol.protocol12070.protocol.SetEntityMotionPacket12070;
 import org.itxtech.synapseapi.multiprotocol.protocol12080.protocol.UpdatePlayerGameTypePacket12080;
 import org.itxtech.synapseapi.multiprotocol.protocol121100.protocol.CameraInstructionPacket121100;
+import org.itxtech.synapseapi.multiprotocol.protocol121120.protocol.CameraInstructionPacket121120;
 import org.itxtech.synapseapi.multiprotocol.protocol12120.protocol.CameraInstructionPacket12120;
 import org.itxtech.synapseapi.multiprotocol.protocol12120.protocol.MobArmorEquipmentPacket12120;
 import org.itxtech.synapseapi.multiprotocol.protocol12140.protocol.CameraInstructionPacket12140;
@@ -91,9 +94,15 @@ public class DataPacketEidReplacer {
                     if (dp.eid == from) {
                         dp.eid = to;
                     }
+                    if (dp.event == EntityEventPacket.KINETIC_DAMAGE_DEALT && dp.data == from) {
+                        dp.data = (int) to;
+                    }
                 } else if (packet instanceof EntityEventPacket dp) {
                     if (dp.eid == from) {
                         dp.eid = to;
+                    }
+                    if (dp.event == EntityEventPacket.KINETIC_DAMAGE_DEALT && dp.data == from) {
+                        dp.data = (int) to;
                     }
                 }
                 break;
@@ -289,33 +298,66 @@ public class DataPacketEidReplacer {
                 }
                 break;
             case ProtocolInfo.CAMERA_INSTRUCTION_PACKET:
-                if (packet instanceof CameraInstructionPacket121100 dp) {
-                    CameraTargetInstruction target = dp.target;
+                if (packet instanceof CameraInstructionPacket121120 dp) {
+                    CameraInstruction instruction = dp.instruction;
+                    CameraInstruction clone = null;
+                    CameraTargetInstruction target = instruction.target;
                     if (target != null && target.entityId == from) {
                         CameraTargetInstruction copy = target.clone();
                         copy.entityId = to;
-                        dp.target = copy;
+                        clone = instruction.clone();
+                        dp.instruction = clone;
+                        clone.target = copy;
+                    }
+                    CameraAttachToEntityInstruction attach = instruction.attachToEntity;
+                    if (attach != null && attach.entityId == from) {
+                        CameraAttachToEntityInstruction copy = attach.clone();
+                        copy.entityId = to;
+                        if (clone == null) {
+                            clone = instruction.clone();
+                            dp.instruction = clone;
+                        }
+                        clone.attachToEntity = copy;
+                    }
+                } else if (packet instanceof CameraInstructionPacket121100 dp) {
+                    CameraInstruction instruction = dp.instruction;
+                    CameraTargetInstruction target = instruction.target;
+                    if (target != null && target.entityId == from) {
+                        CameraTargetInstruction copy = target.clone();
+                        copy.entityId = to;
+                        CameraInstruction clone = instruction.clone();
+                        dp.instruction = clone;
+                        clone.target = copy;
                     }
                 } else if (packet instanceof CameraInstructionPacket12190 dp) {
-                    CameraTargetInstruction target = dp.target;
+                    CameraInstruction instruction = dp.instruction;
+                    CameraTargetInstruction target = instruction.target;
                     if (target != null && target.entityId == from) {
                         CameraTargetInstruction copy = target.clone();
                         copy.entityId = to;
-                        dp.target = copy;
+                        CameraInstruction clone = instruction.clone();
+                        dp.instruction = clone;
+                        clone.target = copy;
                     }
                 } else if (packet instanceof CameraInstructionPacket12140 dp) {
-                    CameraTargetInstruction target = dp.target;
+                    CameraInstruction instruction = dp.instruction;
+                    CameraTargetInstruction target = instruction.target;
                     if (target != null && target.entityId == from) {
                         CameraTargetInstruction copy = target.clone();
                         copy.entityId = to;
-                        dp.target = copy;
+                        CameraInstruction clone = instruction.clone();
+                        dp.instruction = clone;
+                        clone.target = copy;
                     }
                 } else if (packet instanceof CameraInstructionPacket12120 dp) {
-                    CameraTargetInstruction target = dp.target;
+                    CameraInstruction instruction = dp.instruction;
+                    CameraTargetInstruction target = instruction.target;
                     if (target != null && target.entityId == from) {
                         CameraTargetInstruction copy = target.clone();
                         copy.entityId = to;
-                        dp.target = copy;
+                        CameraInstruction clone = instruction.clone();
+                        dp.instruction = clone;
+                        clone.target = copy;
                     }
                 }
                 break;

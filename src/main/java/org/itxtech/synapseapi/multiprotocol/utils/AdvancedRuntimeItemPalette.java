@@ -83,6 +83,7 @@ public final class AdvancedRuntimeItemPalette {
         RuntimeItemPalette palette12193 = new RuntimeItemPalette(AbstractProtocol.PROTOCOL_121_93, "runtime_item_ids_12193.json");
         RuntimeItemPalette palette121100 = new RuntimeItemPalette(AbstractProtocol.PROTOCOL_121_100, "runtime_item_ids_121100.json");
         RuntimeItemPalette palette121110 = new RuntimeItemPalette(AbstractProtocol.PROTOCOL_121_111, "runtime_item_ids_121110.json");
+        RuntimeItemPalette palette121120 = new RuntimeItemPalette(AbstractProtocol.PROTOCOL_121_120, "runtime_item_ids_121120.json");
 
 /*
         register(AbstractProtocol.PROTOCOL_116_100, palette116100, null);
@@ -130,6 +131,7 @@ public final class AdvancedRuntimeItemPalette {
         register(AbstractProtocol.PROTOCOL_121_93, palette12193, null);
         register(AbstractProtocol.PROTOCOL_121_100, palette121100, null);
         register(AbstractProtocol.PROTOCOL_121_111, palette121110, null);
+        register(AbstractProtocol.PROTOCOL_121_120, palette121120, null);
 
         recalculateItemRegistryChecksum();
     }

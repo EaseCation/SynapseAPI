@@ -239,6 +239,8 @@ public class DataFlagTranslator {
 
     public static final int FLAG_121110_CAN_USE_VERTICAL_MOVEMENT_ACTION = 125;
 
+    public static final int FLAG_121130_BODY_ROTATION_LOCKED_TO_VEHICLE = 126;
+
 	public static final int[] COUNT = Utils.make(() -> {
 		int[] versions = new int[AbstractProtocol.getValues().length];
 		Arrays.fill(versions, 120);
@@ -512,6 +514,8 @@ public class DataFlagTranslator {
 		v12ToV11950Book[Entity.DATA_FLAG_BODY_ROTATION_ALWAYS_FOLLOWS_HEAD] = FLAG_12190_BODY_ROTATION_ALWAYS_FOLLOWS_HEAD;
 
         v12ToV11950Book[Entity.DATA_FLAG_CAN_USE_VERTICAL_MOVEMENT_ACTION] = FLAG_121110_CAN_USE_VERTICAL_MOVEMENT_ACTION;
+
+        v12ToV11950Book[Entity.DATA_FLAG_BODY_ROTATION_LOCKED_TO_VEHICLE] = FLAG_121130_BODY_ROTATION_LOCKED_TO_VEHICLE;
 	}
 
 	public static int translateTo14Id(int v12Id) {

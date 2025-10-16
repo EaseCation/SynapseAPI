@@ -1009,7 +1009,7 @@ public class SynapsePlayer116 extends SynapsePlayer113 {
 				}
 
 				if (playerAuthInputPacket.hasFlag(PlayerAuthInputFlags.MISSED_SWING) && isServerAuthoritativeSoundEnabled() && !isSpectator()) {
-					level.addLevelSoundEvent(this, LevelSoundEventPacket.SOUND_ATTACK_NODAMAGE, EntityFullNames.PLAYER);
+					level.addLevelSoundEvent(this, inventory.getItemInHand().getAttackMissSound(), EntityFullNames.PLAYER);
 
 					// touch bug: https://bugs.mojang.com/browse/MCPE-107865
 					if (getLoginChainData().getCurrentInputMode() == ClientChainData.INPUT_TOUCH) {

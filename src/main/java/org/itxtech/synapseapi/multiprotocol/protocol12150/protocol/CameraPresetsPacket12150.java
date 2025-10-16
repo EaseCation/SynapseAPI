@@ -50,7 +50,7 @@ public class CameraPresetsPacket12150 extends Packet12150 {
 
             putOptional(preset.aimAssist, (stream, aimAssist) -> {
                 putOptional(aimAssist.presetId, BinaryStream::putString);
-                putOptional(aimAssist.targetMode, BinaryStream::putLInt);
+                putOptional(aimAssist.targetMode, BinaryStream::putByte);
                 putOptional(aimAssist.angle, BinaryStream::putVector2f);
                 putOptional(aimAssist.distance, BinaryStream::putLFloat);
             });

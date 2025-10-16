@@ -9,22 +9,17 @@ import cn.nukkit.utils.BlockColor;
 import lombok.ToString;
 import org.itxtech.synapseapi.multiprotocol.common.camera.CameraFadeInstruction;
 import org.itxtech.synapseapi.multiprotocol.common.camera.CameraFadeInstruction.TimeData;
+import org.itxtech.synapseapi.multiprotocol.common.camera.CameraInstruction;
 import org.itxtech.synapseapi.multiprotocol.common.camera.CameraSetInstruction;
 import org.itxtech.synapseapi.multiprotocol.common.camera.CameraEase;
 
-import javax.annotation.Nullable;
 import java.io.IOException;
 
 @ToString
 public class CameraInstructionPacket11970 extends Packet11970 {
     public static final int NETWORK_ID = ProtocolInfo.CAMERA_INSTRUCTION_PACKET;
 
-    @Nullable
-    public CameraSetInstruction set;
-    @Nullable
-    public Boolean clear;
-    @Nullable
-    public CameraFadeInstruction fade;
+    public CameraInstruction instruction;
 
     @Override
     public int pid() {
@@ -39,8 +34,11 @@ public class CameraInstructionPacket11970 extends Packet11970 {
     public void encode() {
         reset();
 
+        //TODO: helper.putCameraInstruction(this, instruction);
+
         CompoundTag root = new CompoundTag();
 
+        CameraSetInstruction set = instruction.set;
         if (set != null) {
             CompoundTag tag = new CompoundTag()
                     .putInt("preset", set.preset.runtimeId);
@@ -79,10 +77,12 @@ public class CameraInstructionPacket11970 extends Packet11970 {
             root.putCompound("set", tag);
         }
 
+        Boolean clear = instruction.clear;
         if (clear != null) {
             root.putBoolean("clear", clear);
         }
 
+        CameraFadeInstruction fade = instruction.fade;
         if (fade != null) {
             CompoundTag tag = new CompoundTag();
 

@@ -207,7 +207,10 @@ public class BiomeDefinitionListPacket12180 extends Packet12180 {
                     for (BiomeReplacementData data : replaceBiomes) {
                         bs.putLShort(strings.getOrAdd(data.replacementBiome));
                         bs.putLShort(strings.getOrAdd(data.dimension));
-                        bs.putLShort(strings.getOrAdd(data.targetBiomes));
+                        bs.putUnsignedVarInt(data.targetBiomes.size());
+                        for (String targetBiome : data.targetBiomes) {
+                            bs.putLShort(strings.getOrAdd(targetBiome));
+                        }
                         bs.putLFloat(data.amount);
                         bs.putLFloat(data.noiseFrequencyScale);
                         bs.putLInt(data.replacementIndex);

@@ -7,18 +7,19 @@ import cn.nukkit.nbt.tag.ListTag;
 import cn.nukkit.network.protocol.BatchPacket;
 import cn.nukkit.network.protocol.BatchPacket.Track;
 import cn.nukkit.network.protocol.DataPacket;
+import cn.nukkit.utils.BinaryStream;
+import cn.nukkit.utils.Hash;
 import com.google.common.io.ByteStreams;
 import lombok.extern.log4j.Log4j2;
 import org.itxtech.synapseapi.SynapseAPI;
+import org.itxtech.synapseapi.event.server.EntityRegistryChecksumChangedEvent;
 import org.itxtech.synapseapi.multiprotocol.AbstractProtocol;
 import org.itxtech.synapseapi.multiprotocol.protocol18.protocol.AvailableEntityIdentifiersPacket18;
 
 import javax.annotation.Nullable;
 import java.io.IOException;
 import java.nio.ByteOrder;
-import java.util.Collections;
-import java.util.EnumMap;
-import java.util.Map;
+import java.util.*;
 import java.util.zip.Deflater;
 
 @Log4j2
@@ -26,6 +27,9 @@ public final class AvailableEntityIdentifiersPalette {
 
     private static final Map<AbstractProtocol, CompoundTag> palettes = new EnumMap<>(AbstractProtocol.class);
     private static final Map<AbstractProtocol, BatchPacket> PACKETS = new EnumMap<>(AbstractProtocol.class);
+
+    private static long ENTITY_REGISTRY_CHECKSUM;
+    private static final AbstractProtocol ENTITY_REGISTRY_CHECKSUM_VERSION = AbstractProtocol.FIRST_AVAILABLE_PROTOCOL;
 
     private static int CUSTOM_ENTITY_RUNTIME_ID_ALLOCATOR = 1000;
 
@@ -119,6 +123,7 @@ public final class AvailableEntityIdentifiersPalette {
             palettes.put(AbstractProtocol.PROTOCOL_121_93, data12190);
             palettes.put(AbstractProtocol.PROTOCOL_121_100, data12190);
             palettes.put(AbstractProtocol.PROTOCOL_121_111, data121110);
+            palettes.put(AbstractProtocol.PROTOCOL_121_120, data121110);
         } catch (NullPointerException | IOException e) {
             throw new AssertionError("Unable to load entity_identifiers.dat");
         }
@@ -160,6 +165,30 @@ public final class AvailableEntityIdentifiersPalette {
 
             PACKETS.put(protocol, batch);
         }
+
+        recalculateEntityRegistryChecksum();
+    }
+
+    private static void recalculateEntityRegistryChecksum() {
+        Set<String> sort = new TreeSet<>();
+        for (CompoundTag entry : getData(ENTITY_REGISTRY_CHECKSUM_VERSION).getList("idlist", CompoundTag.class)) {
+            sort.add(entry.getString("id"));
+        }
+
+        BinaryStream stream = new BinaryStream();
+        for (String id : sort) {
+            stream.putString(id);
+        }
+
+        long newChecksum = Hash.xxh64(stream.getBuffer());
+        if (ENTITY_REGISTRY_CHECKSUM == newChecksum) {
+            return;
+        }
+        ENTITY_REGISTRY_CHECKSUM = newChecksum;
+
+        new EntityRegistryChecksumChangedEvent(newChecksum).call();
+
+        SynapseAPI.getInstance().getLogger().debug("EntityRegistry checksum: {}", newChecksum);
     }
 
     @Nullable
@@ -204,6 +233,10 @@ public final class AvailableEntityIdentifiersPalette {
         });
 
         CommandEnum.ENUM_ENTITY_TYPE.getValues().put(id, Collections.emptySet());
+    }
+
+    public static long getEntityRegistryChecksum() {
+        return ENTITY_REGISTRY_CHECKSUM;
     }
 
     public static void init() {

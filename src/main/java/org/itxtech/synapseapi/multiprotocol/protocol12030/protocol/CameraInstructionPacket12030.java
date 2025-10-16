@@ -3,21 +3,13 @@ package org.itxtech.synapseapi.multiprotocol.protocol12030.protocol;
 import cn.nukkit.network.protocol.ProtocolInfo;
 import cn.nukkit.utils.BinaryStream;
 import lombok.ToString;
-import org.itxtech.synapseapi.multiprotocol.common.camera.CameraFadeInstruction;
-import org.itxtech.synapseapi.multiprotocol.common.camera.CameraSetInstruction;
-
-import javax.annotation.Nullable;
+import org.itxtech.synapseapi.multiprotocol.common.camera.CameraInstruction;
 
 @ToString
 public class CameraInstructionPacket12030 extends Packet12030 {
     public static final int NETWORK_ID = ProtocolInfo.CAMERA_INSTRUCTION_PACKET;
 
-    @Nullable
-    public CameraSetInstruction set;
-    @Nullable
-    public Boolean clear;
-    @Nullable
-    public CameraFadeInstruction fade;
+    public CameraInstruction instruction;
 
     @Override
     public int pid() {
@@ -32,7 +24,7 @@ public class CameraInstructionPacket12030 extends Packet12030 {
     public void encode() {
         reset();
 
-        putOptional(set, (stream, set) -> {
+        putOptional(instruction.set, (stream, set) -> {
             stream.putLInt(set.preset.runtimeId);
             stream.putOptional(set.ease, (bs, ease) -> {
                 bs.putByte(ease.type);
@@ -44,9 +36,9 @@ public class CameraInstructionPacket12030 extends Packet12030 {
             stream.putOptional(set.defaultPreset, BinaryStream::putBoolean);
         });
 
-        putOptional(clear, BinaryStream::putBoolean);
+        putOptional(instruction.clear, BinaryStream::putBoolean);
 
-        putOptional(fade, (stream, fade) -> {
+        putOptional(instruction.fade, (stream, fade) -> {
             stream.putOptional(fade.time, (bs, time) -> {
                 bs.putLFloat(time.fadeInTime);
                 bs.putLFloat(time.stayTime);

@@ -3,29 +3,13 @@ package org.itxtech.synapseapi.multiprotocol.protocol121100.protocol;
 import cn.nukkit.network.protocol.ProtocolInfo;
 import cn.nukkit.utils.BinaryStream;
 import lombok.ToString;
-import org.itxtech.synapseapi.multiprotocol.common.camera.CameraFadeInstruction;
-import org.itxtech.synapseapi.multiprotocol.common.camera.CameraFovInstruction;
-import org.itxtech.synapseapi.multiprotocol.common.camera.CameraSetInstruction;
-import org.itxtech.synapseapi.multiprotocol.common.camera.CameraTargetInstruction;
-
-import javax.annotation.Nullable;
+import org.itxtech.synapseapi.multiprotocol.common.camera.CameraInstruction;
 
 @ToString
 public class CameraInstructionPacket121100 extends Packet121100 {
     public static final int NETWORK_ID = ProtocolInfo.CAMERA_INSTRUCTION_PACKET;
 
-    @Nullable
-    public CameraSetInstruction set;
-    @Nullable
-    public Boolean clear;
-    @Nullable
-    public CameraFadeInstruction fade;
-    @Nullable
-    public CameraTargetInstruction target;
-    @Nullable
-    public Boolean removeTarget;
-    @Nullable
-    public CameraFovInstruction fieldOfView;
+    public CameraInstruction instruction;
 
     @Override
     public int pid() {
@@ -40,7 +24,7 @@ public class CameraInstructionPacket121100 extends Packet121100 {
     public void encode() {
         reset();
 
-        putOptional(set, (stream, set) -> {
+        putOptional(instruction.set, (stream, set) -> {
             stream.putLInt(set.preset.runtimeId);
             stream.putOptional(set.ease, (bs, ease) -> {
                 bs.putByte(ease.type);
@@ -55,9 +39,9 @@ public class CameraInstructionPacket121100 extends Packet121100 {
             stream.putBoolean(set.removeIgnoreStartingValuesComponent);
         });
 
-        putOptional(clear, BinaryStream::putBoolean);
+        putOptional(instruction.clear, BinaryStream::putBoolean);
 
-        putOptional(fade, (stream, fade) -> {
+        putOptional(instruction.fade, (stream, fade) -> {
             stream.putOptional(fade.time, (bs, time) -> {
                 bs.putLFloat(time.fadeInTime);
                 bs.putLFloat(time.stayTime);
@@ -70,14 +54,14 @@ public class CameraInstructionPacket121100 extends Packet121100 {
             });
         });
 
-        putOptional(target, (stream, target) -> {
+        putOptional(instruction.target, (stream, target) -> {
             stream.putOptional(target.centerOffset, BinaryStream::putVector3f);
             stream.putLLong(target.entityId);
         });
 
-        putOptional(removeTarget, BinaryStream::putBoolean);
+        putOptional(instruction.removeTarget, BinaryStream::putBoolean);
 
-        putOptional(fieldOfView, (stream, fov) -> {
+        putOptional(instruction.fieldOfView, (stream, fov) -> {
             stream.putLFloat(fov.fieldOfView);
             stream.putLFloat(fov.ease.duration);
             stream.putByte(fov.ease.type);

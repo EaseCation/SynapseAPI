@@ -1,5 +1,6 @@
 package org.itxtech.synapseapi.multiprotocol;
 
+import cn.nukkit.GameVersion;
 import cn.nukkit.Server;
 import cn.nukkit.network.Compressor;
 import cn.nukkit.network.protocol.BatchPacket;
@@ -93,6 +94,8 @@ import org.itxtech.synapseapi.multiprotocol.protocol121100.BinaryStreamHelper121
 import org.itxtech.synapseapi.multiprotocol.protocol121100.protocol.Packet121100;
 import org.itxtech.synapseapi.multiprotocol.protocol121111.BinaryStreamHelper121111;
 import org.itxtech.synapseapi.multiprotocol.protocol121111.protocol.Packet121111;
+import org.itxtech.synapseapi.multiprotocol.protocol121120.BinaryStreamHelper121120;
+import org.itxtech.synapseapi.multiprotocol.protocol121120.protocol.Packet121120;
 import org.itxtech.synapseapi.multiprotocol.protocol1212.BinaryStreamHelper1212;
 import org.itxtech.synapseapi.multiprotocol.protocol1212.protocol.Packet1212;
 import org.itxtech.synapseapi.multiprotocol.protocol12120.BinaryStreamHelper12120;
@@ -199,6 +202,7 @@ public enum AbstractProtocol {
     PROTOCOL_121_93(819, Packet12193.class, SynapsePlayer116100.class, BinaryStreamHelper12193.create(), Compressor.SNAPPY),
     PROTOCOL_121_100(827, Packet121100.class, SynapsePlayer116100.class, BinaryStreamHelper121100.create(), Compressor.SNAPPY),
     PROTOCOL_121_111(844, Packet121111.class, SynapsePlayer116100.class, BinaryStreamHelper121111.create(), Compressor.SNAPPY),
+    PROTOCOL_121_120(859, Packet121120.class, SynapsePlayer116100.class, BinaryStreamHelper121120.create(), Compressor.SNAPPY),
     ;
 
     private static final AbstractProtocol[] VALUES = values();
@@ -227,6 +231,7 @@ public enum AbstractProtocol {
     }
 
     private final int protocolStart;
+    private final GameVersion version;
     private final Class<? extends DataPacket> packetClass;
     private final Class<? extends SynapsePlayer> playerClass;
     private final BinaryStreamHelper helper;
@@ -234,6 +239,7 @@ public enum AbstractProtocol {
 
     AbstractProtocol(int protocolStart, Class<? extends DataPacket> packetClass, Class<? extends SynapsePlayer> playerClass, BinaryStreamHelper helper, Compressor compressor) {
         this.protocolStart = protocolStart;
+        this.version = GameVersion.byProtocol(protocolStart);
         this.packetClass = packetClass;
         this.playerClass = playerClass;
         this.helper = helper;
@@ -256,6 +262,10 @@ public enum AbstractProtocol {
 
     public int getProtocolStart() {
         return protocolStart;
+    }
+
+    public GameVersion getVersion() {
+        return version;
     }
 
     public BinaryStreamHelper getHelper() {

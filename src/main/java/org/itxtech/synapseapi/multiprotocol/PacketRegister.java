@@ -114,6 +114,7 @@ import org.itxtech.synapseapi.multiprotocol.protocol121.protocol.TextPacket121;
 import org.itxtech.synapseapi.multiprotocol.protocol121100.protocol.StartGamePacket121100;
 import org.itxtech.synapseapi.multiprotocol.protocol121111.protocol.GameRulesChangedPacket121111;
 import org.itxtech.synapseapi.multiprotocol.protocol121111.protocol.ServerboundPackSettingChangePacket121111;
+import org.itxtech.synapseapi.multiprotocol.protocol121120.protocol.AnimatePacket121120;
 import org.itxtech.synapseapi.multiprotocol.protocol12120.protocol.*;
 import org.itxtech.synapseapi.multiprotocol.protocol12130.protocol.*;
 import org.itxtech.synapseapi.multiprotocol.protocol12140.protocol.*;
@@ -478,6 +479,8 @@ public class PacketRegister {
 
         registerPacket(AbstractProtocol.PROTOCOL_121_111, ProtocolInfo.GAME_RULES_CHANGED_PACKET, GameRulesChangedPacket121111.class);
         registerPacket(AbstractProtocol.PROTOCOL_121_111, ProtocolInfo.SERVERBOUND_PACK_SETTING_CHANGE_PACKET, ServerboundPackSettingChangePacket121111.class);
+
+        registerPacket(AbstractProtocol.PROTOCOL_121_120, ProtocolInfo.ANIMATE_PACKET, AnimatePacket121120.class);
 
         checkNeteaseSpecialExtend();
     }

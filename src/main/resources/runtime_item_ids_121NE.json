@@ -864,7 +864,8 @@
     },
     {
         "name": "minecraft:breeze_rod",
-        "id": 433
+        "id": 433,
+        "oldId": 529
     },
     {
         "name": "minecraft:breeze_spawn_egg",
@@ -4835,7 +4836,8 @@
     },
     {
         "name": "minecraft:mace",
-        "id": 326
+        "id": 326,
+        "oldId": 530
     },
     {
         "name": "minecraft:magenta_candle",

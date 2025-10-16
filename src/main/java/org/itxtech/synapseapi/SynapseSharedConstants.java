@@ -1,6 +1,8 @@
 package org.itxtech.synapseapi;
 
 public final class SynapseSharedConstants {
+    public static final int DATA_VERSION = 1;
+
     /**
      * 是否启用化学附加包的内容.
      */
