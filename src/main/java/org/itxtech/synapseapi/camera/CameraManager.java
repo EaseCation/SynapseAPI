@@ -126,47 +126,47 @@ public class CameraManager {
 
         if (protocol.getProtocolStart() >= AbstractProtocol.PROTOCOL_121_90.getProtocolStart()) {
             CameraPresetsPacket12190 packet = new CameraPresetsPacket12190();
-            packet.presets = CameraManager.getInstance().getCameras(protocol);
+            packet.presets = this.getCameras(protocol);
             packet.setHelper(protocol.getHelper());
             packets.add(packet);
         } else if (protocol.getProtocolStart() >= AbstractProtocol.PROTOCOL_121_80.getProtocolStart()) {
             CameraPresetsPacket12180 packet = new CameraPresetsPacket12180();
-            packet.presets = CameraManager.getInstance().getCameras(protocol);
+            packet.presets = this.getCameras(protocol);
             packet.setHelper(protocol.getHelper());
             packets.add(packet);
         } else if (protocol.getProtocolStart() >= AbstractProtocol.PROTOCOL_121_60.getProtocolStart()) {
             CameraPresetsPacket12160 packet = new CameraPresetsPacket12160();
-            packet.presets = CameraManager.getInstance().getCameras(protocol);
+            packet.presets = this.getCameras(protocol);
             packet.setHelper(protocol.getHelper());
             packets.add(packet);
         } else if (protocol.getProtocolStart() >= AbstractProtocol.PROTOCOL_121_50.getProtocolStart()) {
             CameraPresetsPacket12150 packet = new CameraPresetsPacket12150();
-            packet.presets = CameraManager.getInstance().getCameras(protocol);
+            packet.presets = this.getCameras(protocol);
             packet.setHelper(protocol.getHelper());
             packets.add(packet);
         } else if (protocol.getProtocolStart() >= AbstractProtocol.PROTOCOL_121_40.getProtocolStart()) {
             CameraPresetsPacket12140 packet = new CameraPresetsPacket12140();
-            packet.presets = CameraManager.getInstance().getCameras(protocol);
+            packet.presets = this.getCameras(protocol);
             packet.setHelper(protocol.getHelper());
             packets.add(packet);
         } else if (protocol.getProtocolStart() >= AbstractProtocol.PROTOCOL_121_30.getProtocolStart()) {
             CameraPresetsPacket12130 packet = new CameraPresetsPacket12130();
-            packet.presets = CameraManager.getInstance().getCameras(protocol);
+            packet.presets = this.getCameras(protocol);
             packet.setHelper(protocol.getHelper());
             packets.add(packet);
         } else if (protocol.getProtocolStart() >= AbstractProtocol.PROTOCOL_121_20.getProtocolStart()) {
             CameraPresetsPacket12120 packet = new CameraPresetsPacket12120();
-            packet.presets = CameraManager.getInstance().getCameras(protocol);
+            packet.presets = this.getCameras(protocol);
             packet.setHelper(protocol.getHelper());
             packets.add(packet);
         } else if (protocol.getProtocolStart() >= AbstractProtocol.PROTOCOL_120_30.getProtocolStart()) {
             CameraPresetsPacket12030 packet = new CameraPresetsPacket12030();
-            packet.presets = CameraManager.getInstance().getCameras(protocol);
+            packet.presets = this.getCameras(protocol);
             packet.setHelper(protocol.getHelper());
             packets.add(packet);
         } else if (protocol.getProtocolStart() >= AbstractProtocol.PROTOCOL_120.getProtocolStart()) {
             CameraPresetsPacket11970 packet = new CameraPresetsPacket11970();
-            packet.presets = CameraManager.getInstance().getCameras(protocol);
+            packet.presets = this.getCameras(protocol);
             packet.setHelper(protocol.getHelper());
             packets.add(packet);
         }
