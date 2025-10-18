@@ -152,7 +152,7 @@ public class SynapseEntryPutPacketThread extends Thread {
                             }
 
                             RedirectPacket pk = new RedirectPacket();
-                            pk.compressionAlgorithm = CompressionAlgorithm.SNAPPY;
+                            pk.compressionAlgorithm = entry.player.getServer().getCompressor().getAlgorithm();
                             pk.sessionId = entry.player.getSessionId();
 
                             if (hasMetrics) {
@@ -191,7 +191,7 @@ public class SynapseEntryPutPacketThread extends Thread {
                             queuedPlayers.put(entry.player.getId(), entry.player);
                         } else {
                             RedirectPacket pk = new RedirectPacket();
-                            pk.compressionAlgorithm = CompressionAlgorithm.SNAPPY;
+                            pk.compressionAlgorithm = entry.player.getServer().getCompressor().getAlgorithm();
                             pk.sessionId = entry.player.getSessionId();
                             pk.mcpeBuffer = entry.packet.getBuffer();
 
@@ -313,7 +313,7 @@ public class SynapseEntryPutPacketThread extends Thread {
                         Pair<byte[][], Track[][]> pair = finalData.get(protocol);
                         if (pair != null) {
                             RedirectPacket pk = new RedirectPacket();
-                            pk.compressionAlgorithm = CompressionAlgorithm.SNAPPY;
+                            pk.compressionAlgorithm = entry.player.getServer().getCompressor().getAlgorithm();
                             pk.protocol = player.getProtocol();
                             pk.sessionId = player.getSessionId();
 

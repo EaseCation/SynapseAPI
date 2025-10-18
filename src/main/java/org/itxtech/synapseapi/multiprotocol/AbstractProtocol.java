@@ -210,7 +210,7 @@ public enum AbstractProtocol {
     public static final AbstractProtocol FIRST_PROTOCOL = VALUES[0];
     public static final AbstractProtocol LAST_PROTOCOL = VALUES[VALUES.length - 1];
     public static final AbstractProtocol FIRST_AVAILABLE_PROTOCOL = AbstractProtocol.PROTOCOL_120_10;
-    public static final AbstractProtocol FIRST_ALLOW_LOGIN_PROTOCOL = AbstractProtocol.PROTOCOL_120_10;
+    public static final AbstractProtocol FIRST_ALLOW_LOGIN_PROTOCOL = AbstractProtocol.PROTOCOL_120_60;
     public static final AbstractProtocol LAST_ALLOW_LOGIN_PROTOCOL = LAST_PROTOCOL;
     public static final AbstractProtocol LAST_NETEASE_PROTOCOL = PROTOCOL_121_2;
 
@@ -243,6 +243,12 @@ public enum AbstractProtocol {
         this.packetClass = packetClass;
         this.playerClass = playerClass;
         this.helper = helper;
+
+        Compressor compressorOverride = Server.getInstance().getCompressor();
+        if (protocolStart >= 649 && compressorOverride != Compressor.SNAPPY) {
+            SynapseAPI.getInstance().getLogger().debug("dynamic compressor override: {} | {} => {}", protocolStart, compressor, compressorOverride);
+            compressor = compressorOverride;
+        }
         this.compressor = compressor;
 
         if (helper instanceof AdvancedBinaryStreamHelper) {

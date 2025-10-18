@@ -68,7 +68,7 @@ public class EntityPropertiesCache {
      */
     @Nullable
     public static DataPacket getPacket(AbstractProtocol protocol, boolean netease) {
-        return protocol.getProtocolStart() >= AbstractProtocol.PROTOCOL_119_30.getProtocolStart() ? PACKETS_SNAPPY : PACKETS;
+        return protocol.getCompressor() == Compressor.SNAPPY ? PACKETS_SNAPPY : PACKETS;
     }
 
     public static byte[] getCompiledPlayerProperties(AbstractProtocol protocol, boolean netease) {
