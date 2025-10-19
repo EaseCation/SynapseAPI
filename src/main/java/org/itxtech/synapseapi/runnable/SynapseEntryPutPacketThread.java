@@ -313,7 +313,7 @@ public class SynapseEntryPutPacketThread extends Thread {
                         Pair<byte[][], Track[][]> pair = finalData.get(protocol);
                         if (pair != null) {
                             RedirectPacket pk = new RedirectPacket();
-                            pk.compressionAlgorithm = entry.player.getServer().getCompressor().getAlgorithm();
+                            pk.compressionAlgorithm = player.getServer().getCompressor().getAlgorithm();
                             pk.protocol = player.getProtocol();
                             pk.sessionId = player.getSessionId();
 
