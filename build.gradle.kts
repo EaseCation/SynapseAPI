@@ -4,7 +4,7 @@ import org.gradle.api.publish.maven.MavenPublication
 plugins {
     `java-library`
     `maven-publish`
-    alias(libs.plugins.shadow)
+    id("com.gradleup.shadow") version "9.2.2"
 }
 
 group = "org.itxtech.synapse"
@@ -33,8 +33,9 @@ dependencies {
     // 从 JitPack 引用已发布的 Nukkit
     compileOnly("com.github.EaseCation:Nukkit:master-SNAPSHOT")
 
-    // 从 JitPack 引用 authlib-stub（编译时存根，运行时由 AuthLibPackage 插件提供真实实现）
-    compileOnly("com.github.EaseCation:authlib-stub:1.0.0-stub")
+    // 从 mavenLocal/JitPack 引用 authlib-stub（编译时存根，运行时由 AuthLibPackage 插件提供真实实现）
+    // 注意：发布后使用 com.github.EaseCation:authlib-stub:1.0.0-stub
+    compileOnly("com.netease.mc:authlib-stub:1.0.0-stub")
 
     // 注解处理和编译时依赖
     compileOnly("org.projectlombok:lombok:1.18.38")
