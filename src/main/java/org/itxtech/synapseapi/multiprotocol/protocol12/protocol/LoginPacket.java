@@ -112,7 +112,6 @@ public class LoginPacket extends Packet12 {
         } catch (Exception e) {
             // TODO: handle exception,认证失败
             this.clientUUID = null;//若认证失败，则clientUUID为null。
-            throw e;
         }
     }
 
