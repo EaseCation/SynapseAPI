@@ -397,6 +397,15 @@
         "minecraft:stone_shovel",
         "minecraft:wooden_shovel"
     ],
+    "minecraft:is_spear": [
+        "minecraft:copper_spear",
+        "minecraft:diamond_spear",
+        "minecraft:golden_spear",
+        "minecraft:iron_spear",
+        "minecraft:netherite_spear",
+        "minecraft:stone_spear",
+        "minecraft:wooden_spear"
+    ],
     "minecraft:is_sword": [
         "minecraft:copper_sword",
         "minecraft:diamond_sword",
@@ -648,6 +657,7 @@
         "minecraft:blaze_spawn_egg",
         "minecraft:bogged_spawn_egg",
         "minecraft:breeze_spawn_egg",
+        "minecraft:camel_husk_spawn_egg",
         "minecraft:camel_spawn_egg",
         "minecraft:cat_spawn_egg",
         "minecraft:cave_spider_spawn_egg",
@@ -684,6 +694,7 @@
         "minecraft:npc_spawn_egg",
         "minecraft:ocelot_spawn_egg",
         "minecraft:panda_spawn_egg",
+        "minecraft:parched_spawn_egg",
         "minecraft:parrot_spawn_egg",
         "minecraft:phantom_spawn_egg",
         "minecraft:pig_spawn_egg",
@@ -727,15 +738,6 @@
         "minecraft:zombie_pigman_spawn_egg",
         "minecraft:zombie_spawn_egg",
         "minecraft:zombie_villager_spawn_egg"
-    ],
-    "minecraft:spear": [
-        "minecraft:copper_spear",
-        "minecraft:diamond_spear",
-        "minecraft:golden_spear",
-        "minecraft:iron_spear",
-        "minecraft:netherite_spear",
-        "minecraft:stone_spear",
-        "minecraft:wooden_spear"
     ],
     "minecraft:stone_bricks": [
         "minecraft:chiseled_stone_bricks",

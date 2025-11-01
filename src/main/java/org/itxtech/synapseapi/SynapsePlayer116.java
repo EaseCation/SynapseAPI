@@ -20,6 +20,7 @@ import cn.nukkit.entity.data.FloatEntityData;
 import cn.nukkit.entity.item.EntityBoat;
 import cn.nukkit.entity.passive.EntityAbstractHorse;
 import cn.nukkit.entity.passive.EntityCamel;
+import cn.nukkit.entity.passive.EntityCamelHusk;
 import cn.nukkit.event.entity.EntityDamageByEntityEvent;
 import cn.nukkit.event.entity.EntityDamageEvent;
 import cn.nukkit.event.inventory.InventoryCloseEvent;
@@ -40,6 +41,7 @@ import cn.nukkit.item.Item;
 import cn.nukkit.item.Items;
 import cn.nukkit.item.enchantment.Enchantment;
 import cn.nukkit.lang.TranslationContainer;
+import cn.nukkit.level.GameRule;
 import cn.nukkit.level.Position;
 import cn.nukkit.level.particle.PunchBlockParticle;
 import cn.nukkit.math.*;
@@ -111,7 +113,7 @@ public class SynapsePlayer116 extends SynapsePlayer113 {
 		startGamePacket.seed = -1;
 		startGamePacket.dimension = (byte) (this.level.getDimension().getId() & 0xff);
 		startGamePacket.worldGamemode = getClientFriendlyGamemode(this.gamemode);
-		startGamePacket.difficulty = this.server.getDifficulty();
+		startGamePacket.difficulty = this.level.getDifficulty();
 		startGamePacket.spawnX = (int) spawnPosition.x;
 		startGamePacket.spawnY = (int) spawnPosition.y;
 		startGamePacket.spawnZ = (int) spawnPosition.z;
@@ -644,7 +646,7 @@ public class SynapsePlayer116 extends SynapsePlayer113 {
 								if (target instanceof Player) {
 									if ((((Player) target).getGamemode() & 0x01) > 0) {
 										break;
-									} else if (!this.server.getConfiguration().isPvp() || this.server.getDifficulty() == 0) {
+									} else if (!this.server.getConfiguration().isPvp() || this.level.getDifficulty() == 0 || !level.getGameRules().getBoolean(GameRule.PVP)) {
 										break;
 									}
 								}
@@ -1026,7 +1028,9 @@ public class SynapsePlayer116 extends SynapsePlayer113 {
 						horse.updatePlayerJump(playerAuthInputPacket.hasFlag(PlayerAuthInputFlags.JUMPING));
 					} else if (riding instanceof EntityCamel camel && camel.isControlling(this)) {
 						camel.updatePlayerJump(this, playerAuthInputPacket.hasFlag(PlayerAuthInputFlags.JUMPING));
-					}
+					} else if (riding instanceof EntityCamelHusk camel && camel.isControlling(this)) {
+                        camel.updatePlayerJump(this, playerAuthInputPacket.hasFlag(PlayerAuthInputFlags.JUMPING));
+                    }
 				}
 
 				boolean predictedInVehicle = playerAuthInputPacket.hasFlag(PlayerAuthInputFlags.IN_CLIENT_PREDICTED_IN_VEHICLE);

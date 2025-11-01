@@ -3,16 +3,7 @@ package org.itxtech.synapseapi.multiprotocol.protocol14.protocol;
 import cn.nukkit.Server;
 import cn.nukkit.entity.data.Skin;
 import cn.nukkit.network.protocol.ProtocolInfo;
-import cn.nukkit.utils.JsonUtil;
-import cn.nukkit.utils.LoginChainData;
-import cn.nukkit.utils.PersonaPiece;
-import cn.nukkit.utils.PersonaPieceTint;
-import cn.nukkit.utils.SerializedImage;
-import cn.nukkit.utils.SkinAnimation;
-import cn.nukkit.utils.TextFormat;
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.JsonNode;
+import cn.nukkit.utils.*;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.netease.mc.authlib.TokenChainEC;
@@ -24,6 +15,9 @@ import org.itxtech.synapseapi.multiprotocol.protocol12.utils.ClientChainData12;
 import org.itxtech.synapseapi.multiprotocol.protocol12.utils.ClientChainData12NetEase;
 import org.itxtech.synapseapi.multiprotocol.protocol12.utils.ClientChainData12Urgency;
 import org.itxtech.synapseapi.utils.ClientChainDataXbox;
+import tools.jackson.core.JacksonException;
+import tools.jackson.core.type.TypeReference;
+import tools.jackson.databind.JsonNode;
 
 import java.nio.charset.StandardCharsets;
 import java.util.*;
@@ -85,7 +79,7 @@ public class LoginPacket14 extends Packet14 {
         try {
             decodeChainData();
             decodeSkinData();
-        } catch (JsonProcessingException e) {
+        } catch (JacksonException e) {
             throw new RuntimeException("broken json", e);
         }
 
@@ -131,7 +125,7 @@ public class LoginPacket14 extends Packet14 {
         return protocol;
     }
 
-    private void decodeChainData() throws JsonProcessingException {
+    private void decodeChainData() throws JacksonException {
         int length = this.getLInt();
         if (!this.isReadable(length)) {
             throw new IndexOutOfBoundsException("array length mismatch");
@@ -177,23 +171,23 @@ public class LoginPacket14 extends Packet14 {
                 if (extra != null && extra.isObject()) {
                     JsonNode displayNameNode = extra.get("displayName");
                     if (displayNameNode != null) {
-                        this.username = displayNameNode.asText();
+                        this.username = displayNameNode.asString();
                     }
                     JsonNode identityNode = extra.get("identity");
                     if (identityNode != null) {
-                        this.clientUUID = UUID.fromString(identityNode.asText());
+                        this.clientUUID = UUID.fromString(identityNode.asString());
                     }
                     JsonNode xuidNode = extra.get("XUID");
                     if (xuidNode != null) {
-                        this.xuid = xuidNode.asText();
+                        this.xuid = xuidNode.asString();
                     }
                     JsonNode titleIdNode = extra.get("titleId");
                     if (titleIdNode != null) {
-                        this.titleId = titleIdNode.asText();
+                        this.titleId = titleIdNode.asString();
                     }
                     JsonNode sandboxId = extra.get("sandboxId");
                     if (sandboxId != null) {
-                        this.sandboxId = sandboxId.asText();
+                        this.sandboxId = sandboxId.asString();
                     }
                 }
             }
@@ -280,7 +274,7 @@ public class LoginPacket14 extends Packet14 {
         }
     }
 
-    private void decodeSkinData() throws JsonProcessingException {
+    private void decodeSkinData() throws JacksonException {
         int length = this.getLInt();
         if (!this.isReadable(length)) {
             throw new IndexOutOfBoundsException("array length mismatch");
@@ -294,21 +288,21 @@ public class LoginPacket14 extends Packet14 {
         }
         JsonNode deviceIdNode = skinToken.get("DeviceId");
         if (deviceIdNode != null) {
-            this.deviceId = skinToken.get("DeviceId").asText();
+            this.deviceId = skinToken.get("DeviceId").asString();
         }
 
         skin = new Skin().setPlayerSkin(true);
         JsonNode skinIdNode = skinToken.get("SkinId");
         if (skinIdNode != null) {
-            skin.setSkinId(skinIdNode.asText());
+            skin.setSkinId(skinIdNode.asString());
         }
         JsonNode playFabIdNode = skinToken.get("PlayFabId");
         if (playFabIdNode != null) {
-            skin.setPlayFabId(playFabIdNode.asText());
+            skin.setPlayFabId(playFabIdNode.asString());
         }
         JsonNode capeIdNode = skinToken.get("CapeId");
         if (capeIdNode != null) {
-            skin.setCapeId(capeIdNode.asText());
+            skin.setCapeId(capeIdNode.asString());
         }
 
         skin.setSkinData(getImage(skinToken, "Skin"));
@@ -328,24 +322,24 @@ public class LoginPacket14 extends Packet14 {
 
         JsonNode skinResourcePatchNode = skinToken.get("SkinResourcePatch");
         if (skinResourcePatchNode != null) {
-            skin.setSkinResourcePatch(new String(Base64.getDecoder().decode(skinResourcePatchNode.asText()), StandardCharsets.UTF_8));
+            skin.setSkinResourcePatch(new String(Base64.getDecoder().decode(skinResourcePatchNode.asString()), StandardCharsets.UTF_8));
         }
 
         JsonNode skinGeometryDataNode = skinToken.get("SkinGeometryData");
         if (skinGeometryDataNode != null) {
-            skin.setGeometryData(new String(Base64.getDecoder().decode(skinGeometryDataNode.asText()), StandardCharsets.UTF_8));
+            skin.setGeometryData(new String(Base64.getDecoder().decode(skinGeometryDataNode.asString()), StandardCharsets.UTF_8));
         }
 
         JsonNode skinGeometryDataEngineVersionNode = skinToken.get("SkinGeometryDataEngineVersion");
         if (skinGeometryDataEngineVersionNode != null) {
-            skin.setGeometryDataEngineVersion(new String(Base64.getDecoder().decode(skinGeometryDataEngineVersionNode.asText()), StandardCharsets.UTF_8));
+            skin.setGeometryDataEngineVersion(new String(Base64.getDecoder().decode(skinGeometryDataEngineVersionNode.asString()), StandardCharsets.UTF_8));
         }
 
         JsonNode skinAnimationDataNode = skinToken.get("SkinAnimationData");
         if (skinAnimationDataNode != null) {
-            skin.setAnimationData(new String(Base64.getDecoder().decode(skinAnimationDataNode.asText()), StandardCharsets.UTF_8));
+            skin.setAnimationData(new String(Base64.getDecoder().decode(skinAnimationDataNode.asString()), StandardCharsets.UTF_8));
         } else if ((skinAnimationDataNode = skinToken.get("AnimationData")) != null) {
-            skin.setAnimationData(new String(Base64.getDecoder().decode(skinAnimationDataNode.asText()), StandardCharsets.UTF_8));
+            skin.setAnimationData(new String(Base64.getDecoder().decode(skinAnimationDataNode.asString()), StandardCharsets.UTF_8));
         }
 
         JsonNode animatedImageDataNode = skinToken.get("AnimatedImageData");
@@ -357,12 +351,12 @@ public class LoginPacket14 extends Packet14 {
 
         JsonNode skinColorNode = skinToken.get("SkinColor");
         if (skinColorNode != null) {
-            skin.setSkinColor(skinColorNode.asText());
+            skin.setSkinColor(skinColorNode.asString());
         }
 
         JsonNode armSizeNode = skinToken.get("ArmSize");
         if (armSizeNode != null) {
-            skin.setArmSize(armSizeNode.asText());
+            skin.setArmSize(armSizeNode.asString());
         }
 
         JsonNode personaPiecesNode = skinToken.get("PersonaPieces");
@@ -381,12 +375,12 @@ public class LoginPacket14 extends Packet14 {
 
         JsonNode platformOfflineIdNode = skinToken.get("PlatformOfflineId");
         if (platformOfflineIdNode != null) {
-            this.platformOfflineId = platformOfflineIdNode.asText();
+            this.platformOfflineId = platformOfflineIdNode.asString();
         }
 
         JsonNode platformOnlineIdNode = skinToken.get("PlatformOnlineId");
         if (platformOnlineIdNode != null) {
-            this.platformOnlineId = platformOnlineIdNode.asText();
+            this.platformOnlineId = platformOnlineIdNode.asString();
         }
 
         JsonNode trustedSkinNode = skinToken.get("TrustedSkin");
@@ -438,7 +432,7 @@ public class LoginPacket14 extends Packet14 {
 
         JsonNode skinIIDNode = skinToken.get("SkinIID");
         if (skinIIDNode != null) {
-            this.skinIID = skinIIDNode.asText();
+            this.skinIID = skinIIDNode.asString();
         }
 
         JsonNode growthLevelNode = skinToken.get("GrowthLevel");
@@ -448,13 +442,13 @@ public class LoginPacket14 extends Packet14 {
 
         JsonNode bloomDataNode = skinToken.get("BloomData");
         if (bloomDataNode != null) {
-            this.bloomData = bloomDataNode.asText();
+            this.bloomData = bloomDataNode.asString();
         }
 
         validSkin = skin.isValidStrict();
     }
 
-    private JsonNode decodeToken(String token) throws JsonProcessingException {
+    private JsonNode decodeToken(String token) throws JacksonException {
         String[] base = token.split("\\.", 4);
         if (base.length < 2) return null;
         byte[] decode;
@@ -469,7 +463,7 @@ public class LoginPacket14 extends Packet14 {
     private static SkinAnimation getAnimation(JsonNode element) {
         float frames = (float) element.get("Frames").asDouble();
         int type = element.get("Type").asInt();
-        byte[] data = Base64.getDecoder().decode(element.get("Image").asText());
+        byte[] data = Base64.getDecoder().decode(element.get("Image").asString());
         int width = element.get("ImageWidth").asInt();
         int height = element.get("ImageHeight").asInt();
         int expression;
@@ -486,7 +480,7 @@ public class LoginPacket14 extends Packet14 {
         String dataKey = name + "Data";
         JsonNode dataNode = token.get(dataKey);
         if (dataNode != null) {
-            byte[] skinImage = Base64.getDecoder().decode(dataNode.asText());
+            byte[] skinImage = Base64.getDecoder().decode(dataNode.asString());
             String widthKey = name + "ImageWidth";
             String heightKey = name + "ImageHeight";
             JsonNode widthNode = token.get(widthKey);
@@ -503,19 +497,19 @@ public class LoginPacket14 extends Packet14 {
     }
 
     private static PersonaPiece getPersonaPiece(JsonNode object) {
-        String pieceId = object.get("PieceId").asText();
-        String pieceType = object.get("PieceType").asText();
-        String packId = object.get("PackId").asText();
+        String pieceId = object.get("PieceId").asString();
+        String pieceType = object.get("PieceType").asString();
+        String packId = object.get("PackId").asString();
         boolean isDefault = object.get("IsDefault").asBoolean();
-        String productId = object.get("ProductId").asText();
+        String productId = object.get("ProductId").asString();
         return new PersonaPiece(pieceId, pieceType, packId, isDefault, productId);
     }
 
     public static PersonaPieceTint getTint(JsonNode object) {
-        String pieceType = object.get("PieceType").asText();
+        String pieceType = object.get("PieceType").asString();
         List<String> colors = new ObjectArrayList<>();
         for (JsonNode element : object.get("Colors")) {
-            colors.add(element.asText()); // remove #
+            colors.add(element.asString()); // remove #
         }
         return new PersonaPieceTint(pieceType, colors);
     }

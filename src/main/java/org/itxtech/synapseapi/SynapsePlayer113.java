@@ -84,7 +84,7 @@ public class SynapsePlayer113 extends SynapsePlayer112 {
 		startGamePacket.seed = -1;
 		startGamePacket.dimension = (byte) (this.level.getDimension().getId() & 0xff);
 		startGamePacket.worldGamemode = getClientFriendlyGamemode(this.gamemode);
-		startGamePacket.difficulty = this.server.getDifficulty();
+		startGamePacket.difficulty = this.level.getDifficulty();
 		startGamePacket.spawnX = (int) spawnPosition.x;
 		startGamePacket.spawnY = (int) spawnPosition.y;
 		startGamePacket.spawnZ = (int) spawnPosition.z;
@@ -539,7 +539,7 @@ public class SynapsePlayer113 extends SynapsePlayer112 {
 								} else if (target instanceof Player) {
 									if ((((Player) target).getGamemode() & 0x01) > 0) {
 										break;
-									} else if (!this.server.getConfiguration().isPvp() || this.server.getDifficulty() == 0) {
+									} else if (!this.server.getConfiguration().isPvp() || this.level.getDifficulty() == 0 || !level.getGameRules().getBoolean(GameRule.PVP)) {
 										break;
 									}
 								}

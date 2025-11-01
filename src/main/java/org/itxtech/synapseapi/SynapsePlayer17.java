@@ -67,7 +67,7 @@ public class SynapsePlayer17 extends SynapsePlayer16 {
 		startGamePacket.seed = -1;
 		startGamePacket.dimension = (byte) (this.level.getDimension().getId() & 0xff);
 		startGamePacket.worldGamemode = getClientFriendlyGamemode(this.gamemode);
-		startGamePacket.difficulty = this.server.getDifficulty();
+		startGamePacket.difficulty = this.level.getDifficulty();
 		startGamePacket.spawnX = (int) spawnPosition.x;
 		startGamePacket.spawnY = (int) spawnPosition.y;
 		startGamePacket.spawnZ = (int) spawnPosition.z;

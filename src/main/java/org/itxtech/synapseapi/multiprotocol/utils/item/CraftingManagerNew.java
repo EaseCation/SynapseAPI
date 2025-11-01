@@ -4,7 +4,6 @@ import cn.nukkit.inventory.*;
 import cn.nukkit.item.Item;
 import cn.nukkit.item.Items;
 import cn.nukkit.utils.JsonUtil;
-import com.fasterxml.jackson.core.type.TypeReference;
 import com.google.common.io.ByteStreams;
 import com.google.gson.Gson;
 import com.google.gson.JsonArray;
@@ -17,6 +16,7 @@ import it.unimi.dsi.fastutil.chars.CharList;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import lombok.extern.log4j.Log4j2;
 import org.itxtech.synapseapi.SynapseAPI;
+import tools.jackson.core.type.TypeReference;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;

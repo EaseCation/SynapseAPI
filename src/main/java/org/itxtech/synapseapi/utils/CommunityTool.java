@@ -6,13 +6,13 @@ import cn.nukkit.nbt.tag.CompoundTag;
 import cn.nukkit.nbt.tag.ListTag;
 import cn.nukkit.nbt.tag.Tag;
 import cn.nukkit.utils.JsonUtil;
-import com.fasterxml.jackson.core.type.TypeReference;
 import org.apache.commons.compress.compressors.gzip.GzipCompressorOutputStream;
 import org.apache.commons.compress.compressors.gzip.GzipParameters;
 import org.itxtech.synapseapi.multiprotocol.AbstractProtocol;
 import org.itxtech.synapseapi.multiprotocol.utils.block.BlockPalette;
 import org.itxtech.synapseapi.multiprotocol.utils.block.BlockPalette.BlockData;
 import org.itxtech.synapseapi.multiprotocol.utils.block.RuntimeBlockMapper;
+import tools.jackson.core.type.TypeReference;
 
 import java.io.*;
 import java.nio.ByteOrder;
