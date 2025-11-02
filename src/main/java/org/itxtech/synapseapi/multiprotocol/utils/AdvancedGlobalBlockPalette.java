@@ -243,7 +243,28 @@ public final class AdvancedGlobalBlockPalette {
                 new GlobalBlockPaletteNBT(AbstractProtocol.PROTOCOL_121_120, RuntimeBlockMapper.PALETTES.get(AbstractProtocol.PROTOCOL_121_120)[0].palette),
         });
 
+        for (AbstractProtocol protocol : AbstractProtocol.getValues()) {
+            if (protocol.getProtocolStart() < AbstractProtocol.PROTOCOL_16.getProtocolStart()) {
+                continue;
+            }
+            if (protocol.getProtocolStart() < AbstractProtocol.FIRST_AVAILABLE_PROTOCOL.getProtocolStart()) {
+                continue;
+            }
+            if (palettes.get(protocol) == null) {
+                throw new AssertionError();
+            }
+        }
+
         registerStaticPalettes();
+
+        for (StaticVersion version : StaticVersion.getValues()) {
+            if (version.getProtocol() < AbstractProtocol.FIRST_AVAILABLE_PROTOCOL.getProtocolStart()) {
+                continue;
+            }
+            if (staticPalettes.get(version) == null) {
+                throw new AssertionError();
+            }
+        }
     }
 
     private static void registerStaticPalettes() {

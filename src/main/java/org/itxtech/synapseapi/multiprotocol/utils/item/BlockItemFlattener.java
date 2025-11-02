@@ -62,6 +62,7 @@ public final class BlockItemFlattener {
         registerIdDowngrader(AbstractProtocol.PROTOCOL_121_93, BlockItemFlattener::downgrader12140);
         registerIdDowngrader(AbstractProtocol.PROTOCOL_121_100, BlockItemFlattener::downgrader12140);
         registerIdDowngrader(AbstractProtocol.PROTOCOL_121_111, BlockItemFlattener::downgrader12140);
+        registerIdDowngrader(AbstractProtocol.PROTOCOL_121_120, BlockItemFlattener::downgrader12140);
 
         registerAuxValueFixer(AbstractProtocol.PROTOCOL_121, BlockItemFlattener::metaFixer121);
         registerAuxValueFixer(AbstractProtocol.PROTOCOL_121_2, BlockItemFlattener::metaFixer121);
@@ -76,6 +77,23 @@ public final class BlockItemFlattener {
         registerAuxValueFixer(AbstractProtocol.PROTOCOL_121_93, BlockItemFlattener::metaFixer12140);
         registerAuxValueFixer(AbstractProtocol.PROTOCOL_121_100, BlockItemFlattener::metaFixer12140);
         registerAuxValueFixer(AbstractProtocol.PROTOCOL_121_111, BlockItemFlattener::metaFixer12140);
+        registerAuxValueFixer(AbstractProtocol.PROTOCOL_121_120, BlockItemFlattener::metaFixer12140);
+
+        for (AbstractProtocol protocol : AbstractProtocol.getValues()) {
+            if (protocol.getProtocolStart() <= BASE_GAME_VERSION.getProtocolStart()) {
+                continue;
+            }
+            if (protocol.getProtocolStart() >= AbstractProtocol.PROTOCOL_119_70.getProtocolStart()) {
+                if (DOWNGRADERS.get(protocol) == null) {
+                    throw new AssertionError();
+                }
+            }
+            if (protocol.getProtocolStart() >= AbstractProtocol.PROTOCOL_121.getProtocolStart()) {
+                if (AUX_VALUE_FIXERS.get(protocol) == null) {
+                    throw new AssertionError();
+                }
+            }
+        }
     }
 
     private static void registerIdDowngrader(AbstractProtocol protocol, Int2IntFunction downgrader) {

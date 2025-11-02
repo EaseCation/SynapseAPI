@@ -133,6 +133,18 @@ public final class AdvancedRuntimeItemPalette {
         register(AbstractProtocol.PROTOCOL_121_111, palette121110, null);
         register(AbstractProtocol.PROTOCOL_121_120, palette121120, null);
 
+        for (AbstractProtocol protocol : AbstractProtocol.getValues()) {
+            if (protocol.getProtocolStart() < AbstractProtocol.PROTOCOL_116_100.getProtocolStart()) {
+                continue;
+            }
+            if (protocol.getProtocolStart() < AbstractProtocol.FIRST_AVAILABLE_PROTOCOL.getProtocolStart()) {
+                continue;
+            }
+            if (palettes.get(protocol) == null) {
+                throw new AssertionError();
+            }
+        }
+
         recalculateItemRegistryChecksum();
     }
 
