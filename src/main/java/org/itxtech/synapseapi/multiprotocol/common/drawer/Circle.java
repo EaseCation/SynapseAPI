@@ -2,6 +2,7 @@ package org.itxtech.synapseapi.multiprotocol.common.drawer;
 
 import cn.nukkit.math.Vector3f;
 import lombok.ToString;
+import org.itxtech.synapseapi.multiprotocol.protocol12190.protocol.ServerScriptDebugDrawerPacket12190.Entry;
 import org.itxtech.synapseapi.multiprotocol.protocol12190.protocol.ServerScriptDebugDrawerPacket12190.Type;
 
 /**
@@ -9,11 +10,19 @@ import org.itxtech.synapseapi.multiprotocol.protocol12190.protocol.ServerScriptD
  */
 @ToString(callSuper = true)
 public class Circle extends Shape {
+    public int segments = 20;
+
     /**
      * @param location the location of the shape
      */
     public Circle(Vector3f location) {
         super(location);
+    }
+
+    @Override
+    public void addAdditionalData(Entry entry) {
+        super.addAdditionalData(entry);
+        entry.numSegments = (byte) segments;
     }
 
     @Override

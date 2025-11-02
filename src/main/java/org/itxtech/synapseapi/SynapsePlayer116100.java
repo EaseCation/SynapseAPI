@@ -137,6 +137,7 @@ import org.itxtech.synapseapi.multiprotocol.protocol121100.protocol.CameraInstru
 import org.itxtech.synapseapi.multiprotocol.protocol121100.protocol.StartGamePacket121100;
 import org.itxtech.synapseapi.multiprotocol.protocol121120.protocol.AnimatePacket121120;
 import org.itxtech.synapseapi.multiprotocol.protocol121120.protocol.CameraInstructionPacket121120;
+import org.itxtech.synapseapi.multiprotocol.protocol121120.protocol.DebugDrawerPacket121120;
 import org.itxtech.synapseapi.multiprotocol.protocol1212.protocol.ClientboundCloseFormPacket1212;
 import org.itxtech.synapseapi.multiprotocol.protocol12120.protocol.*;
 import org.itxtech.synapseapi.multiprotocol.protocol12130.protocol.EmotePacket12130;
@@ -4556,9 +4557,7 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
 
         shapes.put(shape.id, new ShapeInstance(shape, shape.totalTimeLeft > 0 ? (int) (shape.totalTimeLeft * 20) + getServer().getTick() : Integer.MAX_VALUE));
 
-        ServerScriptDebugDrawerPacket12190 packet = new ServerScriptDebugDrawerPacket12190();
-        packet.entries = new Entry[]{shape.createPacketEntry()};
-        dataPacket(packet);
+        sendDebugDrawerPacket(shape.createPacketEntry(getDummyDimension()));
     }
 
     @Override
@@ -4567,9 +4566,7 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
             return;
         }
 
-        ServerScriptDebugDrawerPacket12190 packet = new ServerScriptDebugDrawerPacket12190();
-        packet.entries = new Entry[]{new Entry(shape.id)};
-        dataPacket(packet);
+        sendDebugDrawerPacket(new Entry(shape.id, getDummyDimension()));
     }
 
     @Override
@@ -4578,9 +4575,7 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
             return;
         }
 
-        ServerScriptDebugDrawerPacket12190 packet = new ServerScriptDebugDrawerPacket12190();
-        packet.entries = shapes.keySet().longStream().mapToObj(Entry::new).toArray(Entry[]::new);
-        dataPacket(packet);
+        sendDebugDrawerPacket(shapes.keySet().longStream().mapToObj(id -> new Entry(id, getDummyDimension())).toArray(Entry[]::new));
 
         shapes.clear();
     }
@@ -4595,10 +4590,21 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
                 continue;
             }
 
-            entries.add(new Entry(instance.shape.id));
+            entries.add(new Entry(instance.shape.id, getDummyDimension()));
             iterator.remove();
         }
         if (entries.isEmpty()) {
+            return;
+        }
+
+        sendDebugDrawerPacket(entries.toArray(new Entry[0]));
+    }
+
+    private void sendDebugDrawerPacket(Entry... entries) {
+        if (getProtocol() >= AbstractProtocol.PROTOCOL_121_120.getProtocolStart()) {
+            DebugDrawerPacket121120 packet = new DebugDrawerPacket121120();
+            packet.entries = entries;
+            dataPacket(packet);
             return;
         }
 
@@ -4606,7 +4612,7 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
             return;
         }
         ServerScriptDebugDrawerPacket12190 packet = new ServerScriptDebugDrawerPacket12190();
-        packet.entries = entries.toArray(new Entry[0]);
+        packet.entries = entries;
         dataPacket(packet);
     }
 

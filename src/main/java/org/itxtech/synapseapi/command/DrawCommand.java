@@ -53,6 +53,7 @@ public class DrawCommand extends Command implements PluginIdentifiableCommand {
                 CommandParameter.newType("scale", true, CommandParamType.FLOAT),
                 CommandParameter.newType("timeLeft", true, CommandParamType.FLOAT),
                 CommandParameter.newType("color", true, CommandParamType.STRING),
+                CommandParameter.newType("segments", true, CommandParamType.INT),
         });
         commandParameters.put("text", new CommandParameter[]{
                 CommandParameter.newType("player", CommandParamType.TARGET),
@@ -118,11 +119,21 @@ public class DrawCommand extends Command implements PluginIdentifiableCommand {
                     shape = box;
                 }
                 case SPHERE -> {
+                    int segments = parser.parseIntOrDefault(-1, 2, 0xff);
+
                     Sphere sphere = new Sphere(location);
+                    if (segments != -1) {
+                        sphere.segments = segments;
+                    }
                     shape = sphere;
                 }
                 case CIRCLE -> {
+                    int segments = parser.parseIntOrDefault(-1, 2, 0xff);
+
                     Circle circle = new Circle(location);
+                    if (segments != -1) {
+                        circle.segments = segments;
+                    }
                     shape = circle;
                 }
                 case TEXT -> {
@@ -203,8 +214,8 @@ public class DrawCommand extends Command implements PluginIdentifiableCommand {
 /*
 /draw @s line ~ ~ ~ 0 0 0 1 0 #00ffff ~3 ~3 ~3
 /draw @s box ~ ~ ~ 0 0 0 1.1 0 #ff0000 3 3 3
-/draw @s sphere ~ ~ ~ 0 0 0 3 0 #0000ff
-/draw @s circle ~ ~ ~ 0 0 0 2 0 #ffff00
+/draw @s sphere ~ ~ ~ 0 0 0 3 0 #0000ff 20
+/draw @s circle ~ ~ ~ 0 0 0 2 0 #ffff00 20
 /draw @s text ~ ~ ~ 0 0 0 1 0 #ff00ff Text
 /draw @s arrow ~ ~ ~ 0 0 0 1 0 #00ff00 ~-3 ~3 ~-3 0.5 0.25 4
 /draw @s clear

@@ -45,9 +45,10 @@ public abstract class Shape {
         this.location = location;
     }
 
-    public final Entry createPacketEntry() {
+    public final Entry createPacketEntry(int dimension) {
         Entry entry = new Entry();
         entry.id = id;
+        entry.dimension = dimension;
         entry.type = getType();
         entry.location = location;
         entry.rotation = rotation;

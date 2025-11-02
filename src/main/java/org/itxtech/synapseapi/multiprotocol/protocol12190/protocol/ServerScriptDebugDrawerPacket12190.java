@@ -59,6 +59,10 @@ public class ServerScriptDebugDrawerPacket12190 extends Packet12190 {
         public Vector3f rotation;
         public Float totalTimeLeft;
         public Integer color;
+        /**
+         * @since 1.21.120
+         */
+        public int dimension;
         public String text;
         public Vector3f boxBound;
         public Vector3f lineEndLocation;
@@ -66,17 +70,33 @@ public class ServerScriptDebugDrawerPacket12190 extends Packet12190 {
         public Float arrowHeadRadius;
         public Byte numSegments;
 
-        public Entry(long id) {
+        public Entry(long id, int dimension) {
             this.id = id;
+            this.dimension = dimension;
         }
     }
 
     public enum Type {
-        LINE,
-        BOX,
-        SPHERE,
-        CIRCLE,
-        TEXT,
-        ARROW,
+        LINE(4),
+        BOX(3),
+        SPHERE(5),
+        CIRCLE(5),
+        TEXT(2),
+        ARROW(1),
+        ;
+
+        private final int payloadType;
+
+        Type(int payloadType) {
+            this.payloadType = payloadType;
+        }
+
+        public int getPayloadType() {
+            return payloadType;
+        }
+
+        public static int getPayloadType(Type type) {
+            return type == null ? 0 : type.getPayloadType();
+        }
     }
 }
