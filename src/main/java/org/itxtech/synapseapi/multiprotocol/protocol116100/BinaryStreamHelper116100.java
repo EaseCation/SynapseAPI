@@ -218,38 +218,6 @@ public class BinaryStreamHelper116100 extends BinaryStreamHelper116100NE {
     }
 
     @Override
-    public Item getCraftingRecipeIngredient(BinaryStream stream) {
-        int networkId = stream.getVarInt();
-        if (networkId == ItemID.AIR) {
-            return Items.air();
-        }
-
-        networkId = convertCustomBlockItemClientIdToServerId(networkId);
-
-        int legacyFullId = AdvancedRuntimeItemPalette.getLegacyFullId(this.protocol, stream.neteaseMode, networkId);
-        int id = AdvancedRuntimeItemPalette.getId(this.protocol, stream.neteaseMode, legacyFullId);
-        boolean hasData = AdvancedRuntimeItemPalette.hasData(this.protocol, stream.neteaseMode, legacyFullId);
-
-        if (id < Short.MIN_VALUE || id >= Short.MAX_VALUE) {
-            throw new RuntimeException("Invalid item ID received: " + id);
-        }
-
-        int damage = stream.getVarInt();
-        if (hasData) {
-            damage = AdvancedRuntimeItemPalette.getData(this.protocol, stream.neteaseMode, legacyFullId);
-        } else if (damage == 0x7fff) {
-            damage = -1;
-        }
-
-        if (damage < Short.MIN_VALUE || damage >= Short.MAX_VALUE) {
-            throw new RuntimeException("Invalid item meta received: " + id);
-        }
-
-        int count = stream.getVarInt();
-        return Item.get(id, damage, count);
-    }
-
-    @Override
     public void putCraftingRecipeIngredient(BinaryStream stream, Item ingredient) {
         if (ingredient == null || ingredient.getId() == ItemID.AIR) {
             stream.putVarInt(ItemID.AIR);

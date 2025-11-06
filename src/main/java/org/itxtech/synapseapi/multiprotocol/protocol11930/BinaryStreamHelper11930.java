@@ -2,7 +2,6 @@ package org.itxtech.synapseapi.multiprotocol.protocol11930;
 
 import cn.nukkit.inventory.recipe.*;
 import cn.nukkit.item.Item;
-import cn.nukkit.item.ItemID;
 import cn.nukkit.network.protocol.types.ItemDescriptorType;
 import cn.nukkit.network.protocol.types.ItemStackRequest;
 import cn.nukkit.utils.BinaryStream;
@@ -130,73 +129,6 @@ public class BinaryStreamHelper11930 extends BinaryStreamHelper11921 {
         }
 
         stream.putVarInt(ingredient.getCount());
-    }
-
-    @Override
-    public Item getCraftingRecipeIngredient(BinaryStream stream) { //TODO: ItemDescriptor
-        int id;
-        int damage;
-
-        int descriptorType = stream.getByte();
-        switch (descriptorType) {
-            default:
-            case 0:
-                id = ItemID.AIR;
-                damage = 0;
-                break;
-            case 1:
-                int networkId = stream.getLShort();
-
-                networkId = convertCustomBlockItemClientIdToServerId(networkId);
-
-                int legacyFullId = AdvancedRuntimeItemPalette.getLegacyFullId(this.protocol, stream.neteaseMode, networkId);
-                id = AdvancedRuntimeItemPalette.getId(this.protocol, stream.neteaseMode, legacyFullId);
-                boolean hasData = AdvancedRuntimeItemPalette.hasData(this.protocol, stream.neteaseMode, legacyFullId);
-
-                damage = stream.getLShort();
-                if (hasData) {
-                    damage = AdvancedRuntimeItemPalette.getData(this.protocol, stream.neteaseMode, legacyFullId);
-                } else if (damage == 0x7fff) {
-                    damage = -1;
-                } else {
-                    damage = 0;
-                }
-                break;
-            case 2:
-                String molangExpression = stream.getString();
-                int molangVersion = stream.getByte();
-
-                //TODO: MolangDescriptor
-                id = ItemID.AIR;
-                damage = 0;
-                break;
-            case 3:
-                String tag = stream.getString();
-
-                //TODO: ItemTagDescriptor
-                id = ItemID.AIR;
-                damage = 0;
-                break;
-            case 4:
-                String name = stream.getString();
-
-                legacyFullId = AdvancedRuntimeItemPalette.getLegacyFullIdByName(this.protocol, stream.neteaseMode, name);
-                id = AdvancedRuntimeItemPalette.getId(this.protocol, stream.neteaseMode, legacyFullId);
-                hasData = AdvancedRuntimeItemPalette.hasData(this.protocol, stream.neteaseMode, legacyFullId);
-
-                damage = stream.getLShort();
-                if (hasData) {
-                    damage = AdvancedRuntimeItemPalette.getData(this.protocol, stream.neteaseMode, legacyFullId);
-                } else if (damage == 0x7fff) {
-                    damage = -1;
-                } else {
-                    damage = 0;
-                }
-                break;
-        }
-
-        int count = stream.getVarInt();
-        return Item.get(id, damage, count);
     }
 
     @Override

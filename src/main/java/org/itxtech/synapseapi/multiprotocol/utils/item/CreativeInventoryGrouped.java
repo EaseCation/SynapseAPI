@@ -166,7 +166,7 @@ public final class CreativeInventoryGrouped {
                     if (itemId == ItemID.LODESTONE_COMPASS) {
                         return ANONYMOUS_EQUIPMENT_GROUP.leftInt();
                     }
-                    if (itemId == ItemID.SPAWN_EGG) {
+                    if (item.isSpawnEgg()) {
                         return SPAWN_EGG_GROUP_INDEX;
                     }
                     if (itemId == ItemID.SKULL) {

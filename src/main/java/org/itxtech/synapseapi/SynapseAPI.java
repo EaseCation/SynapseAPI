@@ -215,6 +215,7 @@ public class SynapseAPI extends PluginBase implements Listener {
 
         AdvancedGlobalBlockPalette.init();
         AdvancedRuntimeItemPalette.init();
+        TagManager.registerVanillaTags();
         CreativeItemsPalette.init();
         AvailableEntityIdentifiersPalette.init();
         BiomeDefinitions.init();
