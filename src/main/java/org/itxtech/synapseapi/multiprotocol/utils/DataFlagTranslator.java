@@ -252,6 +252,7 @@ public class DataFlagTranslator {
 		versions[AbstractProtocol.PROTOCOL_121_100.ordinal()] = 125;
         versions[AbstractProtocol.PROTOCOL_121_111.ordinal()] = 126;
         versions[AbstractProtocol.PROTOCOL_121_120.ordinal()] = 126;
+        versions[AbstractProtocol.PROTOCOL_121_124.ordinal()] = 126;
 
         for (AbstractProtocol protocol : AbstractProtocol.getValues()) {
             if (protocol.ordinal() < AbstractProtocol.PROTOCOL_121_70.ordinal()) {

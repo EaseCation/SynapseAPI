@@ -140,6 +140,7 @@ public class CreativeItemsPalette {
             register(AbstractProtocol.PROTOCOL_121_100, CreativeInventoryNew.getItems(), null);
             register(AbstractProtocol.PROTOCOL_121_111, CreativeInventoryNew.getItems(), null);
             register(AbstractProtocol.PROTOCOL_121_120, CreativeInventoryNew.getItems(), null);
+            register(AbstractProtocol.PROTOCOL_121_124, CreativeInventoryNew.getItems(), null);
         }
 
         for (AbstractProtocol protocol : AbstractProtocol.getValues()) {
