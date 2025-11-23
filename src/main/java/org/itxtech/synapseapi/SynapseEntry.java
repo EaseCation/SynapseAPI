@@ -33,6 +33,7 @@ import org.itxtech.synapseapi.multiprotocol.PacketRegister;
 import org.itxtech.synapseapi.multiprotocol.protocol113.protocol.IPlayerAuthInputPacket;
 import org.itxtech.synapseapi.multiprotocol.protocol113.protocol.InteractPacket113;
 import org.itxtech.synapseapi.multiprotocol.protocol116100ne.protocol.MovePlayerPacket116100NE;
+import org.itxtech.synapseapi.multiprotocol.protocol121130.protocol.InteractPacket121130;
 import org.itxtech.synapseapi.network.SynLibInterface;
 import org.itxtech.synapseapi.network.SynapseInterface;
 import org.itxtech.synapseapi.network.protocol.spp.*;
@@ -567,7 +568,9 @@ public class SynapseEntry {
                                     break HANDLER;
                                 }
                                 try {
-                                    if (subPacket instanceof InteractPacket113 interactPacket && interactPacket.action == InteractPacket113.ACTION_MOUSEOVER) {
+                                    if (packetId == ProtocolInfo.INTERACT_PACKET
+                                            && (subPacket instanceof InteractPacket113 interactPacket && interactPacket.action == InteractPacket113.ACTION_MOUSEOVER
+                                            || subPacket instanceof InteractPacket121130 interactPacket121130 && interactPacket121130.action == InteractPacket121130.ACTION_MOUSEOVER)) {
                                         // 看向实体的交互包不稳定因此不参与计数
                                     } else if (packetCount[packetId]++ > PACKET_COUNT_LIMIT[packetId]) {
                                         tooManyPackets = true;

@@ -58,15 +58,15 @@ public class TextPacket14 extends Packet14 {
 			break;
 		case TYPE_TRANSLATION:
 			message = getString();
-			parameters = getArray(String.class, BinaryStream::getString);
+			parameters = getArray(new String[0], BinaryStream::getString);
 			break;
 		case TYPE_POPUP:
 			message = getString();
-			parameters = getArray(String.class, BinaryStream::getString);
+			parameters = getArray(new String[0], BinaryStream::getString);
 			break;
 		case JUKE_BOX_POPUP:
 			message = getString();
-			parameters = getArray(String.class, BinaryStream::getString);
+			parameters = getArray(new String[0], BinaryStream::getString);
 			break;
 		case TYPE_TIP:
 			message = getString();

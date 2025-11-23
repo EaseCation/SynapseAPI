@@ -54,15 +54,15 @@ public class TextPacket17 extends Packet17 {
 			break;
 		case TYPE_TRANSLATION:
 			message = getString();
-			parameters = getArray(String.class, BinaryStream::getString);
+			parameters = getArray(new String[0], BinaryStream::getString);
 			break;
 		case TYPE_POPUP:
 			message = getString();
-			parameters = getArray(String.class, BinaryStream::getString);
+			parameters = getArray(new String[0], BinaryStream::getString);
 			break;
 		case JUKE_BOX_POPUP:
 			message = getString();
-			parameters = getArray(String.class, BinaryStream::getString);
+			parameters = getArray(new String[0], BinaryStream::getString);
 			break;
 		case TYPE_TIP:
 			message = getString();

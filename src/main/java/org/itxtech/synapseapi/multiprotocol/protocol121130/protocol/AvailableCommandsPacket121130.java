@@ -1,25 +1,19 @@
-package org.itxtech.synapseapi.multiprotocol.protocol12010.protocol;
+package org.itxtech.synapseapi.multiprotocol.protocol121130.protocol;
 
 import cn.nukkit.command.data.*;
 import cn.nukkit.network.protocol.AvailableCommandsPacket;
 import cn.nukkit.network.protocol.DataPacket;
 import cn.nukkit.network.protocol.ProtocolInfo;
-import cn.nukkit.utils.BinaryStream;
 import cn.nukkit.utils.SequencedHashSet;
 import it.unimi.dsi.fastutil.longs.LongObjectPair;
 import lombok.ToString;
 import org.itxtech.synapseapi.utils.ClassUtils;
 
 import java.util.*;
-import java.util.function.ObjIntConsumer;
 
 @ToString
-public class AvailableCommandsPacket12010 extends Packet12010 {
+public class AvailableCommandsPacket121130 extends Packet121130 {
     public static final int NETWORK_ID = ProtocolInfo.AVAILABLE_COMMANDS_PACKET;
-
-    private static final ObjIntConsumer<BinaryStream> WRITE_BYTE = (s, v) -> s.putByte((byte) v);
-    private static final ObjIntConsumer<BinaryStream> WRITE_SHORT = BinaryStream::putLShort;
-    private static final ObjIntConsumer<BinaryStream> WRITE_INT = BinaryStream::putLInt;
 
     public static final int ARG_FLAG_VALID = 0x100000;
     public static final int ARG_FLAG_ENUM = 0x200000;
@@ -88,7 +82,7 @@ public class AvailableCommandsPacket12010 extends Packet12010 {
         commandNames.add("?");
 
         commands.forEach((name, data) -> {
-            CommandData cmdData = data.versions.get(0);
+            CommandData cmdData = data.versions.getFirst();
 
             if (cmdData.aliases != null) {
                 enums.add(cmdData.aliases);
@@ -117,7 +111,7 @@ public class AvailableCommandsPacket12010 extends Packet12010 {
                                 enumValues.add(enumValue);
 
                                 if (!constraints.isEmpty()) {
-                                    enumConstraints.add(LongObjectPair.of(((long) enumValues.indexOf(enumValue) << 32) | (enumIndex & 0xffffffffL), constraints));
+                                    enumConstraints.add(LongObjectPair.of((long) enumValues.indexOf(enumValue) << 32 | enumIndex & 0xffffffffL, constraints));
                                 }
                             });
                         }
@@ -132,15 +126,6 @@ public class AvailableCommandsPacket12010 extends Packet12010 {
 
         enums.add(new CommandEnum("CommandName", commandNames));
         enumValues.addAll(commandNames);
-
-        ObjIntConsumer<BinaryStream> indexWriter;
-        if (enumValues.size() <= 256) {
-            indexWriter = WRITE_BYTE;
-        } else if (enumValues.size() <= 65536) {
-            indexWriter = WRITE_SHORT;
-        } else {
-            indexWriter = WRITE_INT;
-        }
 
         this.putUnsignedVarInt(enumValues.size());
         enumValues.forEach(this::putString);
@@ -164,7 +149,7 @@ public class AvailableCommandsPacket12010 extends Packet12010 {
                     throw new IllegalStateException("Enum value '" + val + "' not found");
                 }
 
-                indexWriter.accept(this, i);
+                this.putLInt(i);
             }
         });
 
@@ -174,8 +159,8 @@ public class AvailableCommandsPacket12010 extends Packet12010 {
 
             this.putUnsignedVarInt(chainedSubCommand.values.size());
             chainedSubCommand.values.forEach(value -> {
-                this.putLShort(chainedSubCommandValues.indexOf(value.left()));
-                this.putLShort(value.rightInt());
+                this.putUnsignedVarInt(chainedSubCommandValues.indexOf(value.left()));
+                this.putUnsignedVarInt(value.rightInt());
             });
         });
 

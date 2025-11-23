@@ -53,6 +53,7 @@ import org.itxtech.synapseapi.multiprotocol.protocol12.utils.ClientChainData12;
 import org.itxtech.synapseapi.multiprotocol.protocol12.utils.ClientChainData12NetEase;
 import org.itxtech.synapseapi.multiprotocol.protocol12.utils.ClientChainData12Urgency;
 import org.itxtech.synapseapi.multiprotocol.protocol121.protocol.TextPacket121;
+import org.itxtech.synapseapi.multiprotocol.protocol121130.protocol.TextPacket121130;
 import org.itxtech.synapseapi.multiprotocol.protocol12120.protocol.ChangeDimensionPacket12120;
 import org.itxtech.synapseapi.multiprotocol.protocol14.protocol.PlayerActionPacket14;
 import org.itxtech.synapseapi.multiprotocol.protocol14.protocol.TextPacket14;
@@ -1509,6 +1510,8 @@ public class SynapsePlayer extends Player {
                 } else if (packet instanceof TextPacket116100) {
                     ((TextPacket116100) packet).message = TextFormat.clean(((TextPacket116100) packet).message);
                 } else if (packet instanceof TextPacket121 pk) {
+                    pk.message = TextFormat.clean(pk.message);
+                } else if (packet instanceof TextPacket121130 pk) {
                     pk.message = TextFormat.clean(pk.message);
                 }
             }

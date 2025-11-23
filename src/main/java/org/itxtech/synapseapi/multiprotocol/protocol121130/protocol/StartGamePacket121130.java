@@ -1,4 +1,4 @@
-package org.itxtech.synapseapi.multiprotocol.protocol121100.protocol;
+package org.itxtech.synapseapi.multiprotocol.protocol121130.protocol;
 
 import cn.nukkit.level.GameRules;
 import cn.nukkit.nbt.tag.CompoundTag;
@@ -12,7 +12,7 @@ import org.itxtech.synapseapi.multiprotocol.utils.AdvancedGlobalBlockPalette;
 import java.util.UUID;
 
 @ToString
-public class StartGamePacket121100 extends Packet121100 {
+public class StartGamePacket121130 extends Packet121130 {
     public static final int NETWORK_ID = ProtocolInfo.START_GAME_PACKET;
 
     public static final int GAME_PUBLISH_SETTING_NO_MULTI_PLAY = 0;
@@ -90,7 +90,7 @@ public class StartGamePacket121100 extends Packet121100 {
     public boolean isOnlySpawningV1Villagers = false;
     public boolean isDisablingPersonas;
     public boolean isDisablingCustomSkins;
-    public String vanillaVersion = "1.21.100";
+    public String vanillaVersion = "1.21.130";
     public boolean muteEmoteAnnouncements;
     public int limitedWorldWidth = 16;
     public int limitedWorldLength = 16;
@@ -123,7 +123,7 @@ public class StartGamePacket121100 extends Packet121100 {
     public byte[] blockProperties;
     public String multiplayerCorrelationId = "";
     public boolean isInventoryServerAuthoritative;
-    public String serverEngine = "1.21.100";
+    public String serverEngine = "1.21.130";
     public byte[] playerPropertyData = CompoundTag.EMPTY;
     /**
      * A XXHash64 of all block states by their compound tag.
@@ -140,7 +140,6 @@ public class StartGamePacket121100 extends Packet121100 {
      * These id's are stable and won't change regardless of other block changes.
      */
     public boolean blockNetworkIdsAreHashes;
-    public boolean tickDeathSystemsEnabled;
     public boolean isSoundServerAuthoritative;
 
     @Override
@@ -235,7 +234,6 @@ public class StartGamePacket121100 extends Packet121100 {
         this.putUUID(this.worldTemplateId);
         this.putBoolean(this.clientSideGenerationEnabled);
         this.putBoolean(this.blockNetworkIdsAreHashes);
-        this.putBoolean(this.tickDeathSystemsEnabled);
         this.putBoolean(this.isSoundServerAuthoritative);
     }
 }

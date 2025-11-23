@@ -21,7 +21,7 @@ public class EmoteListPacket116 extends Packet116 {
     @Override
     public void decode() {
         this.runtimeId = this.getEntityRuntimeId();
-        this.pieceIds = this.getArray(UUID.class, BinaryStream::getUUID);
+        this.pieceIds = this.getArray(new UUID[0], BinaryStream::getUUID);
     }
 
     @Override

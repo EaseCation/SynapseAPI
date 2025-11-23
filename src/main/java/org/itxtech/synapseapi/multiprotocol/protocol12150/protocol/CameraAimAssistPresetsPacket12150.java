@@ -3,6 +3,7 @@ package org.itxtech.synapseapi.multiprotocol.protocol12150.protocol;
 import cn.nukkit.network.protocol.ProtocolInfo;
 import cn.nukkit.utils.BinaryStream;
 import lombok.ToString;
+import org.apache.commons.lang3.ArrayUtils;
 import org.itxtech.synapseapi.multiprotocol.common.camera.CameraAimAssistCategories;
 import org.itxtech.synapseapi.multiprotocol.common.camera.CameraAimAssistCategories.Category;
 import org.itxtech.synapseapi.multiprotocol.common.camera.CameraAimAssistCategories.Category.Priority;
@@ -15,36 +16,51 @@ public class CameraAimAssistPresetsPacket12150 extends Packet12150 {
 
     public static final CameraAimAssistCategories[] DEFAULT_CATEGORIES = new CameraAimAssistCategories[]{
             new CameraAimAssistCategories("minecraft:aim_assist_categories_1",
-                    new Category("minecraft:bucket", Priority.EMPTY, new Priority[]{
-                            new Priority("minecraft:cauldron", 60),
-                            new Priority("minecraft:water", 60),
-                            new Priority("minecraft:lava", 60),
-                    }, null, null),
-                    new Category("minecraft:empty_hand", Priority.EMPTY, new Priority[]{
-                            new Priority("minecraft:oak_log", 60),
-                            new Priority("minecraft:birch_log", 60),
-                            new Priority("minecraft:spruce_log", 60),
-                            new Priority("minecraft:jungle_log", 60),
-                            new Priority("minecraft:acacia_log", 60),
-                            new Priority("minecraft:dark_oak_log", 60),
-                            new Priority("minecraft:mangrove_log", 60),
-                            new Priority("minecraft:cherry_log", 60),
-                    }, null, null),
-                    new Category("minecraft:default", Priority.EMPTY, new Priority[]{
-                            new Priority("minecraft:lever", 60),
-                            new Priority("minecraft:oak_button", 60),
-                            new Priority("minecraft:birch_button", 60),
-                            new Priority("minecraft:spruce_button", 60),
-                            new Priority("minecraft:dark_oak_button", 60),
-                    }, null, null)
+                    Category.builder()
+                            .name("minecraft:bucket")
+                            .defaultEntityPriority(30)
+                            .defaultBlockPriority(30)
+                            .blockPriorities(new Priority[]{
+                                    new Priority("minecraft:cauldron", 60),
+                                    new Priority("minecraft:water", 60),
+                                    new Priority("minecraft:lava", 60),
+                            })
+                            .build(),
+                    Category.builder()
+                            .name("minecraft:empty_hand")
+                            .defaultEntityPriority(30)
+                            .defaultBlockPriority(30)
+                            .blockPriorities(new Priority[]{
+                                    new Priority("minecraft:oak_log", 60),
+                                    new Priority("minecraft:birch_log", 60),
+                                    new Priority("minecraft:spruce_log", 60),
+                                    new Priority("minecraft:jungle_log", 60),
+                                    new Priority("minecraft:acacia_log", 60),
+                                    new Priority("minecraft:dark_oak_log", 60),
+                                    new Priority("minecraft:mangrove_log", 60),
+                                    new Priority("minecraft:cherry_log", 60),
+                            })
+                            .build(),
+                    Category.builder()
+                            .name("minecraft:default")
+                            .blockPriorities(new Priority[]{
+                                    new Priority("minecraft:lever", 60),
+                                    new Priority("minecraft:oak_button", 60),
+                                    new Priority("minecraft:birch_button", 60),
+                                    new Priority("minecraft:spruce_button", 60),
+                                    new Priority("minecraft:dark_oak_button", 60),
+                            })
+                            .build()
             ),
     };
     public static final CameraAimAssistPreset[] DEFAULT_PRESETS = new CameraAimAssistPreset[]{
             CameraAimAssistPreset.builder()
                     .identifier("minecraft:aim_assist_default")
                     .categories("minecraft:aim_assist_categories_1")
-                    .exclusions(new String[]{
+                    .blockExclusions(new String[]{
                             "minecraft:bedrock",
+                    })
+                    .entityExclusions(new String[]{
                             "minecraft:arrow",
                     })
                     .liquidTargetingList(new String[]{
@@ -122,8 +138,9 @@ public class CameraAimAssistPresetsPacket12150 extends Packet12150 {
             putString(preset.identifier);
             putString(preset.categories);
 
-            putUnsignedVarInt(preset.exclusions.length);
-            for (String exclusion : preset.exclusions) {
+            String[] exclusions = ArrayUtils.addAll(ArrayUtils.addAll(preset.blockExclusions, preset.entityExclusions), preset.blockTagExclusions);
+            putUnsignedVarInt(exclusions.length);
+            for (String exclusion : exclusions) {
                 putString(exclusion);
             }
 

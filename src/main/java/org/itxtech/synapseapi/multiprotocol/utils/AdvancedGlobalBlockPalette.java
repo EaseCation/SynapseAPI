@@ -245,6 +245,9 @@ public final class AdvancedGlobalBlockPalette {
         palettes.put(AbstractProtocol.PROTOCOL_121_124, new AdvancedGlobalBlockPaletteInterface[]{
                 new GlobalBlockPaletteNBT(AbstractProtocol.PROTOCOL_121_124, RuntimeBlockMapper.PALETTES.get(AbstractProtocol.PROTOCOL_121_124)[0].palette),
         });
+        palettes.put(AbstractProtocol.PROTOCOL_121_130, new AdvancedGlobalBlockPaletteInterface[]{
+                new GlobalBlockPaletteNBT(AbstractProtocol.PROTOCOL_121_130, RuntimeBlockMapper.PALETTES.get(AbstractProtocol.PROTOCOL_121_130)[0].palette),
+        });
 
         for (AbstractProtocol protocol : AbstractProtocol.getValues()) {
             if (protocol.getProtocolStart() < AbstractProtocol.PROTOCOL_16.getProtocolStart()) {

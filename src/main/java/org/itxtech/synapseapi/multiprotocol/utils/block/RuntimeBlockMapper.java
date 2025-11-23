@@ -113,6 +113,7 @@ public final class RuntimeBlockMapper {
         PALETTES.put(AbstractProtocol.PROTOCOL_121_111, new BlockPalette[]{palette121110, palette121110});
         PALETTES.put(AbstractProtocol.PROTOCOL_121_120, new BlockPalette[]{palette121110, palette121110});
         PALETTES.put(AbstractProtocol.PROTOCOL_121_124, new BlockPalette[]{palette121110, palette121110});
+        PALETTES.put(AbstractProtocol.PROTOCOL_121_130, new BlockPalette[]{palette121110, palette121110});
 
         for (AbstractProtocol protocol : AbstractProtocol.getValues()) {
             if (protocol.getProtocolStart() < AbstractProtocol.PROTOCOL_117_40.getProtocolStart()) {

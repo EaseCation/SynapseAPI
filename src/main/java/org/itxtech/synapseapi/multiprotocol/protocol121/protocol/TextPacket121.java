@@ -63,7 +63,7 @@ public class TextPacket121 extends Packet121 {
             case TYPE_POPUP:
             case TYPE_JUKEBOX_POPUP:
                 this.message = this.getString();
-                this.parameters = this.getArray(String.class, BinaryStream::getString);
+                this.parameters = this.getArray(new String[0], BinaryStream::getString);
                 break;
             default:
                 break;

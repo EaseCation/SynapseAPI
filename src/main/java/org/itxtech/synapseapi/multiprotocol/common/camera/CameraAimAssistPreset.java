@@ -21,7 +21,11 @@ public class CameraAimAssistPreset {
     @Default
     public String categories = "";
     @Default
-    public String[] exclusions = new String[0];
+    public String[] blockExclusions = new String[0];
+    @Default
+    public String[] entityExclusions = new String[0];
+    @Default
+    public String[] blockTagExclusions = new String[0];
     @Default
     public String[] liquidTargetingList = new String[0];
     @Default

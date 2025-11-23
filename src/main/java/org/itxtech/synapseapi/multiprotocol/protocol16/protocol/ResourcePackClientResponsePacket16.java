@@ -2,6 +2,7 @@ package org.itxtech.synapseapi.multiprotocol.protocol16.protocol;
 
 import cn.nukkit.network.protocol.DataPacket;
 import cn.nukkit.network.protocol.ProtocolInfo;
+import cn.nukkit.utils.BinaryStream;
 import lombok.ToString;
 
 @ToString
@@ -20,7 +21,7 @@ public class ResourcePackClientResponsePacket16 extends Packet16 {
     @Override
     public void decode() {
         this.responseStatus = (byte) this.getByte();
-        this.packEntries = this.getArrayLShort(Entry.class, stream -> {
+        this.packEntries = this.getArray(BinaryStream::getLShort, new Entry[0], stream -> {
             String[] entry = this.getString().split("_", 3);
             return new Entry(entry[0], entry[1]);
         });

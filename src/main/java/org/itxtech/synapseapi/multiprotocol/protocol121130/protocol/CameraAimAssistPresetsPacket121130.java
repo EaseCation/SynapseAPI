@@ -1,16 +1,15 @@
-package org.itxtech.synapseapi.multiprotocol.protocol12160.protocol;
+package org.itxtech.synapseapi.multiprotocol.protocol121130.protocol;
 
 import cn.nukkit.network.protocol.ProtocolInfo;
 import cn.nukkit.utils.BinaryStream;
 import lombok.ToString;
-import org.apache.commons.lang3.ArrayUtils;
 import org.itxtech.synapseapi.multiprotocol.common.camera.CameraAimAssistCategories.Category;
 import org.itxtech.synapseapi.multiprotocol.common.camera.CameraAimAssistCategories.Category.Priority;
 import org.itxtech.synapseapi.multiprotocol.common.camera.CameraAimAssistPreset;
 import org.itxtech.synapseapi.multiprotocol.common.camera.CameraAimAssistPreset.ItemSetting;
 
 @ToString
-public class CameraAimAssistPresetsPacket12160 extends Packet12160 {
+public class CameraAimAssistPresetsPacket121130 extends Packet121130 {
     public static final int NETWORK_ID = ProtocolInfo.CAMERA_AIM_ASSIST_PRESETS_PACKET;
 
     public static final int OPERATION_SET = 0;
@@ -124,6 +123,12 @@ public class CameraAimAssistPresetsPacket12160 extends Packet12160 {
                 putLInt(priority.priority);
             }
 
+            putUnsignedVarInt(category.blockTagPriorities.length);
+            for (Priority priority : category.blockTagPriorities) {
+                putString(priority.identifier);
+                putLInt(priority.priority);
+            }
+
             putOptional(category.defaultEntityPriority, BinaryStream::putLInt);
             putOptional(category.defaultBlockPriority, BinaryStream::putLInt);
         }
@@ -132,9 +137,18 @@ public class CameraAimAssistPresetsPacket12160 extends Packet12160 {
         for (CameraAimAssistPreset preset : presets) {
             putString(preset.identifier);
 
-            String[] exclusions = ArrayUtils.addAll(ArrayUtils.addAll(preset.blockExclusions, preset.entityExclusions), preset.blockTagExclusions);
-            putUnsignedVarInt(exclusions.length);
-            for (String exclusion : exclusions) {
+            putUnsignedVarInt(preset.blockExclusions.length);
+            for (String exclusion : preset.blockExclusions) {
+                putString(exclusion);
+            }
+
+            putUnsignedVarInt(preset.entityExclusions.length);
+            for (String exclusion : preset.entityExclusions) {
+                putString(exclusion);
+            }
+
+            putUnsignedVarInt(preset.blockTagExclusions.length);
+            for (String exclusion : preset.blockTagExclusions) {
                 putString(exclusion);
             }
 

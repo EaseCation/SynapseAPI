@@ -13,7 +13,7 @@ import lombok.ToString;
  */
 @ToString
 public class ServerScriptDebugDrawerPacket12190 extends Packet12190 {
-    public static final int NETWORK_ID = ProtocolInfo.SERVER_SCRIPT_DEBUG_DRAWER_PACKET;
+    public static final int NETWORK_ID = ProtocolInfo.DEBUG_DRAWER_PACKET;
 
     public Entry[] entries = new Entry[0];
 

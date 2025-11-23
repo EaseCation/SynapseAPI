@@ -16,6 +16,51 @@ public class GraphicsOverrideParameterPacket121120 extends Packet121120 {
      * Sent to set the sky zenith color.
      */
     public static final int TYPE_SKY_ZENITH_COLOR = 0;
+    /**
+     * Sent to set the sky horizon color.
+     * @since 1.21.130
+     */
+    public static final int TYPE_SKY_HORIZON_COLOR = 1;
+    /**
+     * Sent to set the horizon blend min.
+     * @since 1.21.130
+     */
+    public static final int TYPE_HORIZON_BLEND_MIN = 2;
+    /**
+     * Sent to set the horizon blend max.
+     * @since 1.21.130
+     */
+    public static final int TYPE_HORIZON_BLEND_MAX = 3;
+    /**
+     * Sent to set the horizon blend start.
+     * @since 1.21.130
+     */
+    public static final int TYPE_HORIZON_BLEND_START = 4;
+    /**
+     * Sent to set the horizon blend mie start.
+     * @since 1.21.130
+     */
+    public static final int TYPE_HORIZON_BLEND_MIE_START = 5;
+    /**
+     * Sent to set the rayleigh strength.
+     * @since 1.21.130
+     */
+    public static final int TYPE_RAYLEIGH_STRENGTH = 6;
+    /**
+     * Sent to set the sun mie strength.
+     * @since 1.21.130
+     */
+    public static final int TYPE_SUN_MIE_STRENGTH = 7;
+    /**
+     * Sent to set the moon mie strength.
+     * @since 1.21.130
+     */
+    public static final int TYPE_MOON_MIE_STRENGTH = 8;
+    /**
+     * Sent to set the sun glare shape.
+     * @since 1.21.130
+     */
+    public static final int TYPE_SUN_GLARE_SHAPE = 9;
 
     /// Pair<Time, Components>[]
     public FloatObjectPair<Vector3f>[] keyframes = new FloatObjectPair[0];

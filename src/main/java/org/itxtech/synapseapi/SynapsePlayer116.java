@@ -49,6 +49,7 @@ import cn.nukkit.network.PacketViolationReason;
 import cn.nukkit.network.SourceInterface;
 import cn.nukkit.network.protocol.*;
 import cn.nukkit.network.protocol.AnimatePacket.Action;
+import cn.nukkit.network.protocol.AnimatePacket.SwingSource;
 import cn.nukkit.network.protocol.types.ContainerIds;
 import cn.nukkit.network.protocol.types.NetworkInventoryAction;
 import cn.nukkit.potion.Effect;
@@ -1018,6 +1019,7 @@ public class SynapsePlayer116 extends SynapsePlayer113 {
 						AnimatePacket pk = new AnimatePacket();
 						pk.eid = getId();
 						pk.action = Action.SWING_ARM;
+                        pk.swingSource = SwingSource.ATTACK;
 						dataPacket(pk);
 						Server.broadcastPacket(getViewers().values(), pk);
 					}

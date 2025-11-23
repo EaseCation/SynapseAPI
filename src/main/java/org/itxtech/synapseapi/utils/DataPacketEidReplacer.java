@@ -25,6 +25,7 @@ import org.itxtech.synapseapi.multiprotocol.protocol12070.protocol.SetEntityMoti
 import org.itxtech.synapseapi.multiprotocol.protocol12080.protocol.UpdatePlayerGameTypePacket12080;
 import org.itxtech.synapseapi.multiprotocol.protocol121100.protocol.CameraInstructionPacket121100;
 import org.itxtech.synapseapi.multiprotocol.protocol121120.protocol.CameraInstructionPacket121120;
+import org.itxtech.synapseapi.multiprotocol.protocol121130.protocol.MobEffectPacket121130;
 import org.itxtech.synapseapi.multiprotocol.protocol12120.protocol.CameraInstructionPacket12120;
 import org.itxtech.synapseapi.multiprotocol.protocol12120.protocol.MobArmorEquipmentPacket12120;
 import org.itxtech.synapseapi.multiprotocol.protocol12140.protocol.CameraInstructionPacket12140;
@@ -122,6 +123,10 @@ public class DataPacketEidReplacer {
                 } else if (packet instanceof MobEffectPacket12070) {
                     if (((MobEffectPacket12070) packet).eid == from) ((MobEffectPacket12070) packet).eid = to;
                 } else if (packet instanceof MobEffectPacket12140 dp) {
+                    if (dp.eid == from) {
+                        dp.eid = to;
+                    }
+                } else if (packet instanceof MobEffectPacket121130 dp) {
                     if (dp.eid == from) {
                         dp.eid = to;
                     }

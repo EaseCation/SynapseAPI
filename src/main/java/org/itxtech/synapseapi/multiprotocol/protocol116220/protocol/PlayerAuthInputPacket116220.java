@@ -313,7 +313,7 @@ public class PlayerAuthInputPacket116220 extends Packet116220 implements Invento
             }
 
             MutableInt counter = new MutableInt();
-            this.inventoryActions = this.getArray(NetworkInventoryAction.class, bs -> {
+            this.inventoryActions = this.getArray(new NetworkInventoryAction[0], bs -> {
                 if (counter.getAndIncrement() > 100) {
                     throw new IndexOutOfBoundsException("Too many actions in item use transaction (PlayerAuthInputPacket)");
                 }

@@ -11,6 +11,7 @@ import org.itxtech.synapseapi.multiprotocol.AbstractProtocol;
 import org.itxtech.synapseapi.multiprotocol.common.camera.CameraPreset;
 import org.itxtech.synapseapi.multiprotocol.protocol11970.protocol.CameraPresetsPacket11970;
 import org.itxtech.synapseapi.multiprotocol.protocol12030.protocol.CameraPresetsPacket12030;
+import org.itxtech.synapseapi.multiprotocol.protocol121130.protocol.CameraAimAssistPresetsPacket121130;
 import org.itxtech.synapseapi.multiprotocol.protocol12120.protocol.CameraPresetsPacket12120;
 import org.itxtech.synapseapi.multiprotocol.protocol12130.protocol.CameraPresetsPacket12130;
 import org.itxtech.synapseapi.multiprotocol.protocol12140.protocol.CameraPresetsPacket12140;
@@ -172,6 +173,13 @@ public class CameraManager {
         }
 
         if (protocol.getProtocolStart() >= AbstractProtocol.PROTOCOL_121_60.getProtocolStart()) {
+            CameraAimAssistPresetsPacket121130 packet = new CameraAimAssistPresetsPacket121130();
+            packet.categories = CameraAimAssistPresetsPacket121130.DEFAULT_CATEGORIES;
+            packet.presets = CameraAimAssistPresetsPacket121130.DEFAULT_PRESETS;
+            packet.operation = CameraAimAssistPresetsPacket121130.OPERATION_ADD_TO_EXISTING;
+            packet.setHelper(protocol.getHelper());
+            packets.add(packet);
+        } else if (protocol.getProtocolStart() >= AbstractProtocol.PROTOCOL_121_60.getProtocolStart()) {
             CameraAimAssistPresetsPacket12160 packet = new CameraAimAssistPresetsPacket12160();
             packet.categories = CameraAimAssistPresetsPacket12160.DEFAULT_CATEGORIES;
             packet.presets = CameraAimAssistPresetsPacket12160.DEFAULT_PRESETS;

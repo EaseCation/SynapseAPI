@@ -32,9 +32,14 @@ public class CameraAimAssistCategories {
     public static class Category {
         public String name;
         @Default
-        public Priority[] entityPriorities = new Priority[0];
+        public Priority[] entityPriorities = Priority.EMPTY;
         @Default
-        public Priority[] blockPriorities = new Priority[0];
+        public Priority[] blockPriorities = Priority.EMPTY;
+        /**
+         * @since 1.21.130
+         */
+        @Default
+        public Priority[] blockTagPriorities = Priority.EMPTY;
         @Nullable
         public Integer defaultEntityPriority;
         @Nullable

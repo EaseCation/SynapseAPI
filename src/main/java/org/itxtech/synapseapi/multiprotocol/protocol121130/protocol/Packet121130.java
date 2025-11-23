@@ -6,7 +6,7 @@ import org.itxtech.synapseapi.multiprotocol.IterationProtocolPacket;
 public abstract class Packet121130 extends IterationProtocolPacket {
     @Override
     public AbstractProtocol getAbstractProtocol() {
-        return AbstractProtocol.PROTOCOL_121_120;
+        return AbstractProtocol.PROTOCOL_121_130;
     }
 
     @Override

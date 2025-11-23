@@ -11,7 +11,7 @@ import org.itxtech.synapseapi.multiprotocol.protocol12190.protocol.ServerScriptD
  */
 @ToString
 public class DebugDrawerPacket121120 extends Packet121120 {
-    public static final int NETWORK_ID = ProtocolInfo.SERVER_SCRIPT_DEBUG_DRAWER_PACKET;
+    public static final int NETWORK_ID = ProtocolInfo.DEBUG_DRAWER_PACKET;
 
     public Entry[] entries = new Entry[0];
 

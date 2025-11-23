@@ -34,7 +34,7 @@ public class MapInfoRequestPacket11830NE extends Packet11830NE {
         if (count > MAX_MAP_PIXELS) {
             throw new IndexOutOfBoundsException("Too many pixels");
         }
-        clientPixels = getArray(count, PixelEntry.class, stream -> new PixelEntry(stream.getLInt(), stream.getLShort()));
+        clientPixels = getArray(count, new PixelEntry[0], stream -> new PixelEntry(stream.getLInt(), stream.getLShort()));
     }
 
     @Override

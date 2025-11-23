@@ -1,21 +1,15 @@
-package org.itxtech.synapseapi.multiprotocol.protocol116100.protocol;
+package org.itxtech.synapseapi.multiprotocol.protocol121130.protocol;
 
 import cn.nukkit.network.protocol.DataPacket;
 import cn.nukkit.network.protocol.ProtocolInfo;
 import cn.nukkit.network.protocol.TextPacket;
 import cn.nukkit.utils.BinaryStream;
+import cn.nukkit.utils.Utils;
 import lombok.ToString;
-import org.itxtech.synapseapi.utils.ClassUtils;
 
 @ToString
-public class TextPacket116100 extends Packet116100 {
-
+public class TextPacket121130 extends Packet121130 {
     public static final int NETWORK_ID = ProtocolInfo.TEXT_PACKET;
-
-    @Override
-    public int pid() {
-        return NETWORK_ID;
-    }
 
     public static final byte TYPE_RAW = 0;
     public static final byte TYPE_CHAT = 1;
@@ -28,52 +22,58 @@ public class TextPacket116100 extends Packet116100 {
     public static final byte TYPE_ANNOUNCEMENT = 8;
     public static final byte TYPE_OBJECT = 9;
     public static final byte TYPE_OBJECT_WHISPER = 10;
-    /**
-     * @since 1.19.30
-     */
     public static final byte TYPE_OBJECT_ANNOUNCEMENT = 11;
 
-    public byte type;
-    public boolean isLocalized = false;
+    public static final byte BODY_TYPE_MESSAGE_ONLY = 0;
+    public static final byte BODY_TYPE_AUTHOR_AND_MESSAGE = 1;
+    public static final byte BODY_TYPE_MESSAGE_AND_PARAMS = 2;
 
+    public boolean isLocalized;
+
+    public byte type;
     public String message = "";
     public String[] parameters = new String[0];
     public String primaryName = "";
 
     public String sendersXUID = "";
     public String platformIdString = "";
+    public String filteredMessage = "";
 
     public String unknownNE = ""; // Biggest wtf
 
     @Override
+    public int pid() {
+        return NETWORK_ID;
+    }
+
+    @Override
     public void decode() {
-        this.type = (byte) getByte();
         this.isLocalized = this.getBoolean();
 
-        switch (this.type) {
-            case TYPE_CHAT:
-            case TYPE_WHISPER:
-            case TYPE_ANNOUNCEMENT:
-                this.primaryName = this.getString();
-            case TYPE_RAW:
-            case TYPE_TIP:
-            case TYPE_SYSTEM:
-            case TYPE_OBJECT:
-            case TYPE_OBJECT_WHISPER:
-            case TYPE_OBJECT_ANNOUNCEMENT:
+        int bodyType = (int) this.getUnsignedVarInt();
+        switch (bodyType) {
+            case BODY_TYPE_MESSAGE_ONLY:
+                this.skip(BODY_MAGIC_MESSAGE_ONLY.length);
+                this.type = (byte) this.getByte();
                 this.message = this.getString();
                 break;
-            case TYPE_TRANSLATION:
-            case TYPE_POPUP:
-            case TYPE_JUKEBOX_POPUP:
+            case BODY_TYPE_AUTHOR_AND_MESSAGE:
+                this.skip(BODY_MAGIC_AUTHOR_AND_MESSAGE.length);
+                this.type = (byte) this.getByte();
+                this.primaryName = this.getString();
+                this.message = this.getString();
+                break;
+            case BODY_TYPE_MESSAGE_AND_PARAMS:
+                this.skip(BODY_MAGIC_MESSAGE_AND_PARAMS.length);
+                this.type = (byte) this.getByte();
                 this.message = this.getString();
                 this.parameters = this.getArray(new String[0], BinaryStream::getString);
                 break;
-            default:
-                break;
         }
+
         this.sendersXUID = this.getString();
         this.platformIdString = this.getString();
+        this.filteredMessage = this.getString();
 
         if (this.neteaseMode) {
             if (this.type == TYPE_CHAT || this.type == TYPE_POPUP) {
@@ -85,19 +85,18 @@ public class TextPacket116100 extends Packet116100 {
     @Override
     public void encode() {
         this.reset();
-        this.putByte(this.type);
         this.putBoolean(this.isLocalized);
+
         switch (this.type) {
-            case TYPE_CHAT:
-            case TYPE_WHISPER:
-            case TYPE_ANNOUNCEMENT:
-                this.putString(this.primaryName);
             case TYPE_RAW:
             case TYPE_TIP:
             case TYPE_SYSTEM:
             case TYPE_OBJECT:
             case TYPE_OBJECT_WHISPER:
-            case TYPE_OBJECT_ANNOUNCEMENT:
+            case TYPE_OBJECT_ANNOUNCEMENT: {
+                this.putUnsignedVarInt(BODY_TYPE_MESSAGE_ONLY);
+                this.put(BODY_MAGIC_MESSAGE_ONLY);
+                this.putByte(this.type);
                 String message = this.message;
                 if (neteaseMode) {
                     // 中国版客户端bug的临时解决方案, 防止触发PacketViolationWarningPacket断开连接
@@ -108,20 +107,43 @@ public class TextPacket116100 extends Packet116100 {
                 }
                 this.putString(message);
                 break;
+            }
+            case TYPE_CHAT:
+            case TYPE_WHISPER:
+            case TYPE_ANNOUNCEMENT: {
+                this.putUnsignedVarInt(BODY_TYPE_AUTHOR_AND_MESSAGE);
+                this.put(BODY_MAGIC_AUTHOR_AND_MESSAGE);
+                this.putByte(this.type);
+                this.putString(this.primaryName);
+                String message = this.message;
+                if (neteaseMode) {
+                    // 中国版客户端bug的临时解决方案, 防止触发PacketViolationWarningPacket断开连接
+                    int nameLength = primaryName.length();
+                    if (nameLength + message.length() >= 512) {
+                        message = message.substring(0, 511 - nameLength);
+                    }
+                }
+                this.putString(message);
+                break;
+            }
             case TYPE_TRANSLATION:
             case TYPE_POPUP:
-            case TYPE_JUKEBOX_POPUP:
+            case TYPE_JUKEBOX_POPUP: {
+                this.putUnsignedVarInt(BODY_TYPE_MESSAGE_AND_PARAMS);
+                this.put(BODY_MAGIC_MESSAGE_AND_PARAMS);
+                this.putByte(this.type);
                 this.putString(this.message);
                 this.putUnsignedVarInt(this.parameters.length);
                 for (String parameter : this.parameters) {
                     this.putString(parameter);
                 }
                 break;
-            default:
-                break;
+            }
         }
+
         this.putString(this.sendersXUID);
         this.putString(this.platformIdString);
+        this.putString(this.filteredMessage);
 
         if (this.neteaseMode) {
             if (this.type == TYPE_CHAT || this.type == TYPE_POPUP) {
@@ -132,7 +154,6 @@ public class TextPacket116100 extends Packet116100 {
 
     @Override
     public DataPacket fromDefault(DataPacket pk) {
-        ClassUtils.requireInstance(pk, TextPacket.class);
         TextPacket packet = (TextPacket) pk;
         this.type = packet.type;
         this.isLocalized = packet.isLocalized;
@@ -149,4 +170,30 @@ public class TextPacket116100 extends Packet116100 {
     public static Class<? extends DataPacket> getDefaultPacket() {
         return TextPacket.class;
     }
+
+    // WTH???
+    private static final byte[] BODY_MAGIC_MESSAGE_ONLY = Utils.make(() -> {
+        BinaryStream stream = new BinaryStream();
+        stream.putString("raw");
+        stream.putString("tip");
+        stream.putString("systemmessage");
+        stream.putString("textobjectwhisper");
+        stream.putString("textobjectannouncement");
+        stream.putString("textobject");
+        return stream.getBuffer();
+    });
+    private static final byte[] BODY_MAGIC_AUTHOR_AND_MESSAGE = Utils.make(() -> {
+        BinaryStream stream = new BinaryStream();
+        stream.putString("chat");
+        stream.putString("whisper");
+        stream.putString("announcement");
+        return stream.getBuffer();
+    });
+    private static final byte[] BODY_MAGIC_MESSAGE_AND_PARAMS = Utils.make(() -> {
+        BinaryStream stream = new BinaryStream();
+        stream.putString("translate");
+        stream.putString("popup");
+        stream.putString("jukeboxpopup");
+        return stream.getBuffer();
+    });
 }
