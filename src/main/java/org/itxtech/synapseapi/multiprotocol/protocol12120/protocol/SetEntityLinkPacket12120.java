@@ -17,7 +17,7 @@ public class SetEntityLinkPacket12120 extends Packet12120 {
     public long vehicleUniqueId;
     public long riderUniqueId;
     public byte type;
-    public byte immediate;
+    public boolean immediate;
     public boolean riderInitiated;
     public float vehicleAngularVelocity;
 
@@ -31,7 +31,7 @@ public class SetEntityLinkPacket12120 extends Packet12120 {
         this.vehicleUniqueId = this.getEntityUniqueId();
         this.riderUniqueId = this.getEntityUniqueId();
         this.type = (byte) this.getByte();
-        this.immediate = (byte) this.getByte();
+        this.immediate = this.getBoolean();
         this.riderInitiated = this.getBoolean();
         this.vehicleAngularVelocity = this.getLFloat();
     }
@@ -42,7 +42,7 @@ public class SetEntityLinkPacket12120 extends Packet12120 {
         this.putEntityUniqueId(this.vehicleUniqueId);
         this.putEntityUniqueId(this.riderUniqueId);
         this.putByte(this.type);
-        this.putByte(this.immediate);
+        this.putBoolean(this.immediate);
         this.putBoolean(this.riderInitiated);
         this.putLFloat(this.vehicleAngularVelocity);
     }

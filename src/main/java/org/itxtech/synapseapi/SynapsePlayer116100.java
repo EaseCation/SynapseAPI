@@ -50,6 +50,7 @@ import cn.nukkit.network.protocol.types.*;
 import cn.nukkit.potion.Effect;
 import cn.nukkit.resourcepacks.ResourcePack;
 import cn.nukkit.scheduler.AsyncTask;
+import cn.nukkit.utils.DummyBossBar;
 import cn.nukkit.utils.LoginChainData;
 import cn.nukkit.utils.TextFormat;
 import com.google.gson.JsonElement;
@@ -150,6 +151,7 @@ import org.itxtech.synapseapi.multiprotocol.protocol12140.protocol.MovementEffec
 import org.itxtech.synapseapi.multiprotocol.protocol12140.protocol.ResourcePacksInfoPacket12140;
 import org.itxtech.synapseapi.multiprotocol.protocol12150.protocol.CameraAimAssistPacket12050;
 import org.itxtech.synapseapi.multiprotocol.protocol12150.protocol.ResourcePacksInfoPacket12150;
+import org.itxtech.synapseapi.multiprotocol.protocol12160.protocol.BossEventPacket12160;
 import org.itxtech.synapseapi.multiprotocol.protocol12160.protocol.ClientCameraAimAssistPacket12160;
 import org.itxtech.synapseapi.multiprotocol.protocol12160.protocol.CreativeContentPacket12160;
 import org.itxtech.synapseapi.multiprotocol.protocol12160.protocol.StartGamePacket12160;
@@ -2948,6 +2950,21 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
                             sendAimAssist(CameraAimAssistPacket12050.ACTION_CLEAR, CameraAimAssistPacket12050.MODE_ANGLE, 30, 45, 5.7f, "");
                         }
                     }
+                }
+                break;
+            case ProtocolInfo.BOSS_EVENT_PACKET:
+                if (getProtocol() < AbstractProtocol.PROTOCOL_121_60.getProtocolStart()) {
+                    super.handleDataPacket(packet);
+                    break;
+                }
+                BossEventPacket12160 bossEventPacket = (BossEventPacket12160) packet;
+                switch (bossEventPacket.type) {
+                    case BossEventPacket12160.TYPE_QUERY:
+                        DummyBossBar bossBar = dummyBossBars.get(bossEventPacket.bossEid);
+                        if (bossBar != null) {
+                            bossBar.reshow();
+                        }
+                        break;
                 }
                 break;
             case ProtocolInfo.INTERACT_PACKET:

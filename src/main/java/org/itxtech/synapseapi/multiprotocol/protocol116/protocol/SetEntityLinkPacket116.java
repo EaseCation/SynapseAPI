@@ -23,15 +23,15 @@ public class SetEntityLinkPacket116 extends Packet116 {
     public long vehicleUniqueId; //from
     public long riderUniqueId; //to
     public byte type;
-    public byte immediate;
-    public boolean riderInitiated = false;
+    public boolean immediate;
+    public boolean riderInitiated;
 
     @Override
     public void decode() {
         this.vehicleUniqueId = this.getEntityUniqueId();
         this.riderUniqueId = this.getEntityUniqueId();
         this.type = (byte) this.getByte();
-        this.immediate = (byte) this.getByte();
+        this.immediate = this.getBoolean();
         this.riderInitiated = this.getBoolean();
     }
 
@@ -41,7 +41,7 @@ public class SetEntityLinkPacket116 extends Packet116 {
         this.putEntityUniqueId(this.vehicleUniqueId);
         this.putEntityUniqueId(this.riderUniqueId);
         this.putByte(this.type);
-        this.putByte(this.immediate);
+        this.putBoolean(this.immediate);
         this.putBoolean(this.riderInitiated);
     }
 

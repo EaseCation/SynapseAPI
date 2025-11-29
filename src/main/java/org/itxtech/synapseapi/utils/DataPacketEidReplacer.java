@@ -6,6 +6,7 @@ import cn.nukkit.entity.data.EntityMetadata;
 import cn.nukkit.entity.data.LongEntityData;
 import cn.nukkit.network.protocol.*;
 import cn.nukkit.network.protocol.PlayerListPacket.Entry;
+import cn.nukkit.network.protocol.types.EntityLink;
 import org.itxtech.synapseapi.multiprotocol.common.camera.CameraAttachToEntityInstruction;
 import org.itxtech.synapseapi.multiprotocol.common.camera.CameraInstruction;
 import org.itxtech.synapseapi.multiprotocol.common.camera.CameraTargetInstruction;
@@ -199,6 +200,10 @@ public class DataPacketEidReplacer {
                     if (newMetadata != null) {
                         dp.metadata = newMetadata;
                     }
+                    EntityLink[] newLinks = replaceEntityLinks(from, to, dp.links);
+                    if (newLinks != null) {
+                        dp.links = newLinks;
+                    }
                 }
                 break;
             case ProtocolInfo.ADD_ITEM_ACTOR_PACKET:
@@ -214,6 +219,10 @@ public class DataPacketEidReplacer {
                     EntityMetadata newMetadata = replaceEntityMetadata(dp.metadata, from, to);
                     if (newMetadata != null) {
                         dp.metadata = newMetadata;
+                    }
+                    EntityLink[] newLinks = replaceEntityLinks(from, to, dp.links);
+                    if (newLinks != null) {
+                        dp.links = newLinks;
                     }
                 }
                 break;
@@ -470,5 +479,32 @@ public class DataPacketEidReplacer {
         }
         newMetadata.putLong(dataId, to);
         return newMetadata;
+    }
+
+    @Nullable
+    private static EntityLink[] replaceEntityLinks(long from, long to, EntityLink... links) {
+        EntityLink[] newLinks = null;
+        for (int i = 0; i < links.length; i++) {
+            EntityLink link = links[i];
+            EntityLink newLink = null;
+            if (link.fromEntityUniquieId == from) {
+                newLink = link.clone();
+                newLink.fromEntityUniquieId = to;
+            }
+            if (link.toEntityUniquieId == from) {
+                if (newLink == null) {
+                    newLink = link.clone();
+                }
+                newLink.toEntityUniquieId = to;
+            }
+            if (newLink == null) {
+                continue;
+            }
+            if (newLinks == null) {
+                newLinks = links.clone();
+            }
+            newLinks[i] = newLink;
+        }
+        return newLinks;
     }
 }

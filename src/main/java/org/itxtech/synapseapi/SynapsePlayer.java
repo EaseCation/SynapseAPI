@@ -24,6 +24,7 @@ import cn.nukkit.nbt.tag.ListTag;
 import cn.nukkit.network.PacketViolationReason;
 import cn.nukkit.network.SourceInterface;
 import cn.nukkit.network.protocol.*;
+import cn.nukkit.network.protocol.types.EntityLink;
 import cn.nukkit.resourcepacks.ResourcePack;
 import cn.nukkit.scheduler.AsyncTask;
 import cn.nukkit.scheduler.Task;
@@ -1063,6 +1064,8 @@ public class SynapsePlayer extends Player {
                             dataPacket(ackPacket);
                         }
                     }
+
+                    postTeleport(true);
                     return true;
                 }
 
@@ -1114,10 +1117,20 @@ public class SynapsePlayer extends Player {
                 stopSoundPacket.stopAll = false;
                 this.dataPacket(stopSoundPacket);
             }
+
+            postTeleport(true);
             return true;
         }
 
         return false;
+    }
+
+    @Override
+    protected void postTeleport(boolean synapse) {
+        if (!synapse) {
+            return;
+        }
+        super.postTeleport(synapse);
     }
 
     @Override
@@ -1154,6 +1167,10 @@ public class SynapsePlayer extends Player {
             pk.intProperties = propertyValues.left();
             pk.floatProperties = propertyValues.right();
         }
+        pk.links = new EntityLink[this.passengers.size()];
+        for (int i = 0; i < pk.links.length; i++) {
+            pk.links[i] = new EntityLink(this.getId(), this.passengers.get(i).getId(), i == 0 ? EntityLink.TYPE_RIDER : EntityLink.TYPE_PASSENGER, false, false, 0f);
+        }
         Server.broadcastPacket(this.getViewers().values(), pk);
 
         this.armorInventory.sendContents(this.getViewers().values());
@@ -1165,7 +1182,7 @@ public class SynapsePlayer extends Player {
                 SetEntityLinkPacket pk1 = new SetEntityLinkPacket();
                 pk1.vehicleUniqueId = this.riding.getId();
                 pk1.riderUniqueId = this.getId();
-                pk1.type = SetEntityLinkPacket.TYPE_RIDE;
+                pk1.type = this.riding.getPassenger() == this ? SetEntityLinkPacket.TYPE_RIDE : SetEntityLinkPacket.TYPE_PASSENGER;
                 Server.broadcastPacket(this.getViewers().values(), pk1);
             });
         }
@@ -1199,6 +1216,10 @@ public class SynapsePlayer extends Player {
             pk.intProperties = propertyValues.left();
             pk.floatProperties = propertyValues.right();
         }
+        pk.links = new EntityLink[this.passengers.size()];
+        for (int i = 0; i < pk.links.length; i++) {
+            pk.links[i] = new EntityLink(this.getId(), this.passengers.get(i).getId(), i == 0 ? EntityLink.TYPE_RIDER : EntityLink.TYPE_PASSENGER, false, false, 0f);
+        }
         player.dataPacket(pk);
 
         this.armorInventory.sendContents(player);
@@ -1210,7 +1231,7 @@ public class SynapsePlayer extends Player {
                 SetEntityLinkPacket pk1 = new SetEntityLinkPacket();
                 pk1.vehicleUniqueId = this.riding.getId();
                 pk1.riderUniqueId = this.getId();
-                pk1.type = SetEntityLinkPacket.TYPE_RIDE;
+                pk1.type = this.riding.getPassenger() == this ? SetEntityLinkPacket.TYPE_RIDE : SetEntityLinkPacket.TYPE_PASSENGER;
                 player.dataPacket(pk1);
             });
         }

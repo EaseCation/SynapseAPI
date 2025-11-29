@@ -172,7 +172,7 @@ public class CameraManager {
             packets.add(packet);
         }
 
-        if (protocol.getProtocolStart() >= AbstractProtocol.PROTOCOL_121_60.getProtocolStart()) {
+        if (protocol.getProtocolStart() >= AbstractProtocol.PROTOCOL_121_130.getProtocolStart()) {
             CameraAimAssistPresetsPacket121130 packet = new CameraAimAssistPresetsPacket121130();
             packet.categories = CameraAimAssistPresetsPacket121130.DEFAULT_CATEGORIES;
             packet.presets = CameraAimAssistPresetsPacket121130.DEFAULT_PRESETS;
