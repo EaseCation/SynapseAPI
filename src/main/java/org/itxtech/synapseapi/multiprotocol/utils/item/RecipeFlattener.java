@@ -77,7 +77,7 @@ public final class RecipeFlattener {
             return;
         }
         recipes.add(TodoCraftingRecipe.shaped(
-                Item.get(ItemID.STICK),
+                Item.get(ItemID.STICK, 0, 4),
                 new String[]{
                         "A",
                         "A"
@@ -86,7 +86,7 @@ public final class RecipeFlattener {
                         'A', cerateRecipeIngredient("minecraft:planks")
                 )));
         recipes.add(TodoCraftingRecipe.shaped(
-                Item.get(ItemID.BOWL),
+                Item.get(ItemID.BOWL, 0, 4),
                 new String[]{
                         "A A",
                         " A "
@@ -202,7 +202,7 @@ public final class RecipeFlattener {
                         'B', cerateRecipeIngredient(ItemID.BOOK)
                 )));
         recipes.add(TodoCraftingRecipe.shaped(
-                Item.get(ItemBlockID.TRIPWIRE_HOOK),
+                Item.get(ItemBlockID.TRIPWIRE_HOOK, 0, 2),
                 new String[]{
                         "A",
                         "B",
