@@ -18,8 +18,7 @@ import cn.nukkit.entity.item.EntityBoat;
 import cn.nukkit.entity.item.EntityItem;
 import cn.nukkit.entity.item.EntityXPOrb;
 import cn.nukkit.entity.projectile.EntityArrow;
-import cn.nukkit.entity.property.EntityProperty;
-import cn.nukkit.entity.property.EnumEntityProperty;
+import cn.nukkit.entity.property.*;
 import cn.nukkit.event.inventory.InventoryCloseEvent;
 import cn.nukkit.event.player.*;
 import cn.nukkit.form.window.FormWindow;
@@ -156,6 +155,7 @@ import org.itxtech.synapseapi.multiprotocol.protocol12160.protocol.ClientCameraA
 import org.itxtech.synapseapi.multiprotocol.protocol12160.protocol.CreativeContentPacket12160;
 import org.itxtech.synapseapi.multiprotocol.protocol12160.protocol.StartGamePacket12160;
 import org.itxtech.synapseapi.multiprotocol.protocol12170.protocol.LevelSoundEventPacketV312170;
+import org.itxtech.synapseapi.multiprotocol.protocol12170.protocol.PlayerUpdateEntityOverridesPacket12170;
 import org.itxtech.synapseapi.multiprotocol.protocol12170.protocol.SetHudPacket12170;
 import org.itxtech.synapseapi.multiprotocol.protocol12180.protocol.ClientboundControlSchemeSetPacket12180;
 import org.itxtech.synapseapi.multiprotocol.protocol12180.protocol.PlayerLocationPacket12180;
@@ -4319,6 +4319,202 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
         packet.uniqueEntityId = entity.getId();
         packet.property = propertyName;
         packet.stringValue = value;
+        dataPacket(packet);
+    }
+
+    @Override
+    public void setEntityPropertyOverride(Entity entity, String propertyName, int value) {
+        if (getProtocol() < AbstractProtocol.PROTOCOL_121_70.getProtocolStart()) {
+            return;
+        }
+
+        int index = lookupEntityPropertyIndex(entity, propertyName).orElse(-1);
+        if (index < 0) {
+            getServer().getLogger().warning("unknown entity property: " + propertyName);
+            return;
+        }
+
+        PlayerUpdateEntityOverridesPacket12170 packet = new PlayerUpdateEntityOverridesPacket12170();
+        packet.entityUniqueId = entity.getId();
+        packet.propertyIndex = index;
+        packet.type = PlayerUpdateEntityOverridesPacket12170.TYPE_SET_INT_OVERRIDE;
+        packet.intValue = value;
+        dataPacket(packet);
+    }
+
+    @Override
+    public void setEntityPropertyOverride(Entity entity, IntEntityProperty property, int value) {
+        if (getProtocol() < AbstractProtocol.PROTOCOL_121_70.getProtocolStart()) {
+            return;
+        }
+
+        PlayerUpdateEntityOverridesPacket12170 packet = new PlayerUpdateEntityOverridesPacket12170();
+        packet.entityUniqueId = entity.getId();
+        packet.propertyIndex = property.getIndex();
+        packet.type = PlayerUpdateEntityOverridesPacket12170.TYPE_SET_INT_OVERRIDE;
+        packet.intValue = value;
+        dataPacket(packet);
+    }
+
+    @Override
+    public void setEntityPropertyOverride(Entity entity, String propertyName, float value) {
+        if (getProtocol() < AbstractProtocol.PROTOCOL_121_70.getProtocolStart()) {
+            return;
+        }
+
+        int index = lookupEntityPropertyIndex(entity, propertyName).orElse(-1);
+        if (index < 0) {
+            getServer().getLogger().warning("unknown entity property: " + propertyName);
+            return;
+        }
+
+        PlayerUpdateEntityOverridesPacket12170 packet = new PlayerUpdateEntityOverridesPacket12170();
+        packet.entityUniqueId = entity.getId();
+        packet.propertyIndex = index;
+        packet.type = PlayerUpdateEntityOverridesPacket12170.TYPE_SET_FLOAT_OVERRIDE;
+        packet.floatValue = value;
+        dataPacket(packet);
+    }
+
+    @Override
+    public void setEntityPropertyOverride(Entity entity, FloatEntityProperty property, float value) {
+        if (getProtocol() < AbstractProtocol.PROTOCOL_121_70.getProtocolStart()) {
+            return;
+        }
+
+        PlayerUpdateEntityOverridesPacket12170 packet = new PlayerUpdateEntityOverridesPacket12170();
+        packet.entityUniqueId = entity.getId();
+        packet.propertyIndex = property.getIndex();
+        packet.type = PlayerUpdateEntityOverridesPacket12170.TYPE_SET_FLOAT_OVERRIDE;
+        packet.floatValue = value;
+        dataPacket(packet);
+    }
+
+    @Override
+    public void setEntityPropertyOverride(Entity entity, String propertyName, boolean value) {
+        if (getProtocol() < AbstractProtocol.PROTOCOL_121_70.getProtocolStart()) {
+            return;
+        }
+
+        int index = lookupEntityPropertyIndex(entity, propertyName).orElse(-1);
+        if (index < 0) {
+            getServer().getLogger().warning("unknown entity property: " + propertyName);
+            return;
+        }
+
+        PlayerUpdateEntityOverridesPacket12170 packet = new PlayerUpdateEntityOverridesPacket12170();
+        packet.entityUniqueId = entity.getId();
+        packet.propertyIndex = index;
+        packet.type = PlayerUpdateEntityOverridesPacket12170.TYPE_SET_INT_OVERRIDE;
+        packet.intValue = value ? 1 : 0;
+        dataPacket(packet);
+    }
+
+    @Override
+    public void setEntityPropertyOverride(Entity entity, BooleanEntityProperty property, boolean value) {
+        if (getProtocol() < AbstractProtocol.PROTOCOL_121_70.getProtocolStart()) {
+            return;
+        }
+
+        PlayerUpdateEntityOverridesPacket12170 packet = new PlayerUpdateEntityOverridesPacket12170();
+        packet.entityUniqueId = entity.getId();
+        packet.propertyIndex = property.getIndex();
+        packet.type = PlayerUpdateEntityOverridesPacket12170.TYPE_SET_INT_OVERRIDE;
+        packet.intValue = value ? 1 : 0;
+        dataPacket(packet);
+    }
+
+    @Override
+    public void setEntityPropertyOverride(Entity entity, String propertyName, String value) {
+        if (getProtocol() < AbstractProtocol.PROTOCOL_121_70.getProtocolStart()) {
+            return;
+        }
+
+        EntityProperty property = entity.getProperties().getProperty(propertyName);
+        if (property == null) {
+            getServer().getLogger().warning("unknown entity property: " + propertyName);
+            return;
+        }
+        if (!(property instanceof EnumEntityProperty enumProperty)) {
+            getServer().getLogger().warning("entity property type mismatch: " + propertyName);
+            return;
+        }
+        int valueIndex = enumProperty.getValues().indexOf(value);
+        if (valueIndex == -1) {
+            getServer().getLogger().warning("unknown entity property value: " + propertyName);
+            return;
+        }
+        int index = property.getIndex();
+
+        PlayerUpdateEntityOverridesPacket12170 packet = new PlayerUpdateEntityOverridesPacket12170();
+        packet.entityUniqueId = entity.getId();
+        packet.propertyIndex = index;
+        packet.type = PlayerUpdateEntityOverridesPacket12170.TYPE_SET_INT_OVERRIDE;
+        packet.intValue = valueIndex;
+        dataPacket(packet);
+    }
+
+    @Override
+    public void setEntityPropertyOverride(Entity entity, EnumEntityProperty property, String value) {
+        if (getProtocol() < AbstractProtocol.PROTOCOL_121_70.getProtocolStart()) {
+            return;
+        }
+
+        int valueIndex = property.getValues().indexOf(value);
+        if (valueIndex == -1) {
+            getServer().getLogger().warning("unknown entity property value: " + property);
+            return;
+        }
+
+        PlayerUpdateEntityOverridesPacket12170 packet = new PlayerUpdateEntityOverridesPacket12170();
+        packet.entityUniqueId = entity.getId();
+        packet.propertyIndex = property.getIndex();
+        packet.type = PlayerUpdateEntityOverridesPacket12170.TYPE_SET_INT_OVERRIDE;
+        packet.intValue = valueIndex;
+        dataPacket(packet);
+    }
+
+    @Override
+    public void removeEntityPropertyOverride(Entity entity, String propertyName) {
+        if (getProtocol() < AbstractProtocol.PROTOCOL_121_70.getProtocolStart()) {
+            return;
+        }
+
+        int index = lookupEntityPropertyIndex(entity, propertyName).orElse(-1);
+        if (index < 0) {
+            getServer().getLogger().warning("unknown entity property: " + propertyName);
+            return;
+        }
+
+        PlayerUpdateEntityOverridesPacket12170 packet = new PlayerUpdateEntityOverridesPacket12170();
+        packet.entityUniqueId = entity.getId();
+        packet.propertyIndex = index;
+        packet.type = PlayerUpdateEntityOverridesPacket12170.TYPE_REMOVE_OVERRIDE;
+        dataPacket(packet);
+    }
+
+    @Override
+    public void removeEntityPropertyOverride(Entity entity, EntityProperty property) {
+        if (getProtocol() < AbstractProtocol.PROTOCOL_121_70.getProtocolStart()) {
+            return;
+        }
+
+        PlayerUpdateEntityOverridesPacket12170 packet = new PlayerUpdateEntityOverridesPacket12170();
+        packet.entityUniqueId = entity.getId();
+        packet.propertyIndex = property.getIndex();
+        packet.type = PlayerUpdateEntityOverridesPacket12170.TYPE_REMOVE_OVERRIDE;
+        dataPacket(packet);
+    }
+
+    @Override
+    public void removeEntityPropertyOverrides(Entity entity) {
+        if (getProtocol() < AbstractProtocol.PROTOCOL_121_70.getProtocolStart()) {
+            return;
+        }
+
+        PlayerUpdateEntityOverridesPacket12170 packet = new PlayerUpdateEntityOverridesPacket12170();
+        packet.entityUniqueId = entity.getId();
+        packet.type = PlayerUpdateEntityOverridesPacket12170.TYPE_CLEAR_OVERRIDES;
         dataPacket(packet);
     }
 
