@@ -5069,6 +5069,13 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
     }
 
     private void sendDebugDrawerPacket(Entry... entries) {
+        if (getProtocol() >= AbstractProtocol.PROTOCOL_121_130.getProtocolStart()) {
+            DebugDrawerPacket121130 packet = new DebugDrawerPacket121130();
+            packet.entries = entries;
+            dataPacket(packet);
+            return;
+        }
+
         if (getProtocol() >= AbstractProtocol.PROTOCOL_121_120.getProtocolStart()) {
             DebugDrawerPacket121120 packet = new DebugDrawerPacket121120();
             packet.entries = entries;
