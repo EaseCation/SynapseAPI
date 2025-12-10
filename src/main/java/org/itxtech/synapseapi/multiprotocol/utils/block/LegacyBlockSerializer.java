@@ -13,7 +13,7 @@ import org.itxtech.synapseapi.multiprotocol.utils.BiomeDefinitions;
 import org.itxtech.synapseapi.multiprotocol.utils.CraftingPacketManager;
 import org.itxtech.synapseapi.multiprotocol.utils.CreativeItemsPalette;
 
-import java.util.function.IntFunction;
+import java.util.function.BiFunction;
 
 import static cn.nukkit.GameVersion.*;
 import static cn.nukkit.block.BlockID.*;
@@ -2379,7 +2379,7 @@ public final class LegacyBlockSerializer {
             }
 
             @Override
-            public void registerCustomBlock(String name, int id, IntFunction<CompoundTag> definitionSupplier) {
+            public void registerCustomBlock(String name, int id, BiFunction<Integer, Boolean, CompoundTag> definitionSupplier) {
                 BlockLegacy legacyBlock = BlockTypes.getBlockRegistry().getBlock(id);
                 registerDeserializer(id, legacyBlock.getVariantCount() == 1 ? LegacyBlockSerializer::deserializeSimple : legacyBlock::deserialize);
 

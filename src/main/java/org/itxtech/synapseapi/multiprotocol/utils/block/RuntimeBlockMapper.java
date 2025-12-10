@@ -18,7 +18,7 @@ import java.util.Map.Entry;
 import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
-import java.util.function.IntFunction;
+import java.util.function.BiFunction;
 
 import static cn.nukkit.GameVersion.*;
 
@@ -61,6 +61,7 @@ public final class RuntimeBlockMapper {
         BlockPalette palette12080 = BlockPalette.fromNBT("block_state_list_12080.nbt");
         BlockPalette palette121 = BlockPalette.fromNBT("block_state_list_121.nbt");
         BlockPalette palette121N = BlockPalette.fromNBT("block_state_list_121.nbt").toNetease();
+        //BlockPalette palette1212N = BlockTypes.toNetEase(false).createBlockPalette();
 //        BlockPalette palette12120 = BlockPalette.fromNBT("block_state_list_12120.nbt");
         BlockPalette palette12120 = BlockTypes.V1_21_20.getBlockRegistry().createBlockPalette();
         BlockPalette palette12130 = BlockTypes.V1_21_30.getBlockRegistry().createBlockPalette();
@@ -213,7 +214,7 @@ public final class RuntimeBlockMapper {
         return null;
     }
 
-    static void registerCustomBlock(String name, int id, IntFunction<CompoundTag> definitionSupplier) {
+    static void registerCustomBlock(String name, int id, BiFunction<Integer, Boolean, CompoundTag> definitionSupplier) {
         BlockLegacy legacyBlock = cn.nukkit.block.state.BlockTypes.getBlockRegistry().getBlock(id);
 
         int variantCount = legacyBlock.getVariantCount();
@@ -248,7 +249,7 @@ public final class RuntimeBlockMapper {
                     palette.palette.add(new BlockData(name, variants[meta].getCompound("states"), id, meta));
                 }
 
-                palette.properties.add(new BlockProperty(name, definitionSupplier.apply(protocol.getProtocolStart())));
+                palette.properties.add(new BlockProperty(name, definitionSupplier.apply(protocol.getProtocolStart(), i != 0)));
             }
         }
     }

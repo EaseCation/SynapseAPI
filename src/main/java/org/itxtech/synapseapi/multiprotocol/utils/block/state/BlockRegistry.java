@@ -29,6 +29,10 @@ public class BlockRegistry {
         blocks.values().forEach(BlockLegacy::createPermutations);
     }
 
+    public BlockLegacy getBlock(String name) {
+        return blocks.get(name);
+    }
+
     public BlockLegacy registerBlock(String name, int id) {
         BlockLegacy block = new BlockLegacy(id, name);
         blocks.put(name, block);

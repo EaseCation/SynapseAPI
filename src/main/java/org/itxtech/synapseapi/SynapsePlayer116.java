@@ -18,9 +18,6 @@ import cn.nukkit.entity.EntityID;
 import cn.nukkit.entity.EntityRideable;
 import cn.nukkit.entity.data.FloatEntityData;
 import cn.nukkit.entity.item.EntityBoat;
-import cn.nukkit.entity.passive.EntityAbstractHorse;
-import cn.nukkit.entity.passive.EntityCamel;
-import cn.nukkit.entity.passive.EntityCamelHusk;
 import cn.nukkit.event.entity.EntityDamageByEntityEvent;
 import cn.nukkit.event.entity.EntityDamageEvent;
 import cn.nukkit.event.inventory.InventoryCloseEvent;
@@ -63,6 +60,7 @@ import org.itxtech.synapseapi.multiprotocol.protocol113.protocol.IPlayerAuthInpu
 import org.itxtech.synapseapi.multiprotocol.protocol113.protocol.IPlayerAuthInputPacket.PlayerBlockAction;
 import org.itxtech.synapseapi.multiprotocol.protocol113.protocol.InteractPacket113;
 import org.itxtech.synapseapi.multiprotocol.protocol116.protocol.*;
+import org.itxtech.synapseapi.multiprotocol.protocol116220.protocol.PlayerAuthInputPacket116220;
 import org.itxtech.synapseapi.multiprotocol.protocol14.protocol.PlayerActionPacket14;
 import org.itxtech.synapseapi.multiprotocol.utils.CreativeItemsPalette;
 
@@ -1025,14 +1023,8 @@ public class SynapsePlayer116 extends SynapsePlayer113 {
 					}
 				}
 
-				if (isRiding()) {
-					if (riding instanceof EntityAbstractHorse horse) {
-						horse.updatePlayerJump(playerAuthInputPacket.hasFlag(PlayerAuthInputFlags.JUMPING));
-					} else if (riding instanceof EntityCamel camel && camel.isControlling(this)) {
-						camel.updatePlayerJump(this, playerAuthInputPacket.hasFlag(PlayerAuthInputFlags.JUMPING));
-					} else if (riding instanceof EntityCamelHusk camel && camel.isControlling(this)) {
-                        camel.updatePlayerJump(this, playerAuthInputPacket.hasFlag(PlayerAuthInputFlags.JUMPING));
-                    }
+				if (riding instanceof EntityRideable rideable) {
+					rideable.updatePlayerJump(this, playerAuthInputPacket.hasFlag(PlayerAuthInputFlags.JUMPING));
 				}
 
 				boolean predictedInVehicle = playerAuthInputPacket.hasFlag(PlayerAuthInputFlags.IN_CLIENT_PREDICTED_IN_VEHICLE);
@@ -1648,11 +1640,110 @@ public class SynapsePlayer116 extends SynapsePlayer113 {
 					}
 
 					rideable.onPlayerInput(this, playerAuthInputPacket.getX(), playerAuthInputPacket.getY(), playerAuthInputPacket.getZ(), vehicleYaw, vehiclePitch);
-				} else if (this.riding != null && (moveVecX != 0 || moveVecY != 0) && riding.isControlling(this)) {
+				} else if (this.riding != null && (moveVecX != 0 || moveVecY != 0
+						|| AbstractProtocol.PROTOCOL_121_130.isOlderThanOrEqual(getProtocol()) && (playerAuthInputPacket.hasFlag(PlayerAuthInputFlags.PADDLE_LEFT) || playerAuthInputPacket.hasFlag(PlayerAuthInputFlags.PADDLE_RIGHT)))
+						&& riding.isControlling(this)) {
 					moveVecX = Mth.clamp(moveVecX, -1, 1);
 					moveVecY = Mth.clamp(moveVecY, -1, 1);
 
-					if (this.riding instanceof EntityRideable rideable && !(this.riding instanceof EntityBoat)) {
+					if (this.riding instanceof EntityRideable rideable) {
+						if (AbstractProtocol.PROTOCOL_121_130.isOlderThanOrEqual(getProtocol()) && rideable instanceof EntityBoat boat) {
+							boolean paddleLeft = playerAuthInputPacket.hasFlag(PlayerAuthInputFlags.PADDLE_LEFT);
+							boolean paddleRight = playerAuthInputPacket.hasFlag(PlayerAuthInputFlags.PADDLE_RIGHT);
+
+							switch (playerAuthInputPacket.getInputMode()) {
+								case PlayerAuthInputPacket116220.INPUT_MODE_MOUSE_KEYBOARD:
+									boolean temp = paddleLeft;
+									paddleLeft = paddleRight;
+									paddleRight = temp;
+									break;
+								case PlayerAuthInputPacket116220.INPUT_MODE_TOUCHSCREEN:
+									if (playerAuthInputPacket.getInteractionModel() == PlayerAuthInputPacket116220.INTERACTION_MODEL_CLASSIC) {
+										if (paddleLeft && paddleRight) {
+											moveVecY = 1;
+										} else if (paddleLeft) {
+											moveVecX = -1;
+										} else if (paddleRight) {
+											moveVecX = 1;
+										}
+										break;
+									}
+								case PlayerAuthInputPacket116220.INPUT_MODE_GAME_PAD:
+									paddleLeft = moveVecX < 0;
+									paddleRight = moveVecX > 0;
+									break;
+							}
+
+							float left = 0;
+							float right = 0;
+							if (moveVecY > 0) {
+								left = 0.04f;
+								right = 0.04f;
+								if (!paddleLeft || !paddleRight) {
+									if (paddleLeft) {
+										left = 0.05f;
+										right = 0.02f;
+									} else if (paddleRight) {
+										left = 0.02f;
+										right = 0.05f;
+									}
+								}
+							} else if (moveVecY < 0) {
+								left = -0.004f;
+								right = -0.004f;
+								if (!paddleLeft || !paddleRight) {
+									if (paddleLeft) {
+										left = -0.005f;
+										right = -0.002f;
+									} else if (paddleRight) {
+										left = -0.002f;
+										right = -0.005f;
+									}
+								}
+
+								float temp = left;
+								left = right;
+								right = temp;
+							} else if (!paddleLeft || !paddleRight) {
+								if (paddleLeft) {
+									left = 0.04f;
+								} else if (paddleRight) {
+									right = 0.04f;
+								}
+							}
+							float random = 0.0002f * ThreadLocalRandom.current().nextFloat();
+							left += left * random;
+							right += right * random;
+
+							float frameSecondsLeft = boat.getDataPropertyFloat(DATA_PADDLE_TIME_LEFT);
+							if (Mth.sign(frameSecondsLeft) != Mth.sign(left)) {
+								frameSecondsLeft = left;
+							} else {
+								frameSecondsLeft += left;
+								if (frameSecondsLeft > 1000) {
+									frameSecondsLeft -= 1000;
+								} else if (frameSecondsLeft < -1000) {
+									frameSecondsLeft += 1000;
+								}
+							}
+							boat.setDataProperty(new FloatEntityData(DATA_PADDLE_TIME_LEFT, frameSecondsLeft));
+
+							float frameSecondsRight = boat.getDataPropertyFloat(DATA_PADDLE_TIME_RIGHT);
+							if (Mth.sign(frameSecondsRight) != Mth.sign(right)) {
+								frameSecondsRight = right;
+							} else {
+								frameSecondsRight += right;
+								if (frameSecondsRight > 1000) {
+									frameSecondsRight -= 1000;
+								} else if (frameSecondsRight < -1000) {
+									frameSecondsRight += 1000;
+								}
+							}
+							boat.setDataProperty(new FloatEntityData(DATA_PADDLE_TIME_RIGHT, frameSecondsRight));
+						} else if (moveVecX == 0 && moveVecY == 0) {
+							break;
+						}
+
 						rideable.onPlayerInput(this, moveVecX, moveVecY);
 					}
 

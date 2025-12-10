@@ -99,6 +99,7 @@ public final class BlockStates {
             CREAKING_HEART_STATE_UPROOTED,
             CREAKING_HEART_STATE_DORMANT,
             CREAKING_HEART_STATE_AWAKE));
+    public static final BooleanBlockState CUSTOM_APPEARANCE = register(new BooleanBlockState(BlockStateNames.CUSTOM_APPEARANCE));
     public static final StringBlockState DAMAGE = register(new StringBlockState(BlockStateNames.DAMAGE,
             DAMAGE_UNDAMAGED,
             DAMAGE_SLIGHTLY_DAMAGED,

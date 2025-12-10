@@ -27,7 +27,7 @@ public class AnimatePacket121130 extends Packet121130 {
 
     @Override
     public void decode() {
-        this.action = Action.fromId((int) this.getUnsignedVarInt());
+        this.action = Action.fromId(this.getByte());
         this.eid = this.getEntityRuntimeId();
         this.data = this.getLFloat();
         this.swingSource = this.getOptionalEnum(SwingSource::byName);
@@ -36,7 +36,7 @@ public class AnimatePacket121130 extends Packet121130 {
     @Override
     public void encode() {
         this.reset();
-        this.putUnsignedVarInt(this.action.getId());
+        this.putByte(this.action.getId());
         this.putEntityRuntimeId(this.eid);
         this.putLFloat(this.data);
         this.putOptionalEnum(this.swingSource, SwingSource::getName);

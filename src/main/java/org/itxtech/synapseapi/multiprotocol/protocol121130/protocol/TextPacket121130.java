@@ -7,6 +7,8 @@ import cn.nukkit.utils.BinaryStream;
 import cn.nukkit.utils.Utils;
 import lombok.ToString;
 
+import javax.annotation.Nullable;
+
 @ToString
 public class TextPacket121130 extends Packet121130 {
     public static final int NETWORK_ID = ProtocolInfo.TEXT_PACKET;
@@ -37,7 +39,8 @@ public class TextPacket121130 extends Packet121130 {
 
     public String sendersXUID = "";
     public String platformIdString = "";
-    public String filteredMessage = "";
+    @Nullable
+    public String filteredMessage;
 
     public String unknownNE = ""; // Biggest wtf
 
@@ -73,7 +76,7 @@ public class TextPacket121130 extends Packet121130 {
 
         this.sendersXUID = this.getString();
         this.platformIdString = this.getString();
-        this.filteredMessage = this.getString();
+        this.filteredMessage = this.getOptional(BinaryStream::getString);
 
         if (this.neteaseMode) {
             if (this.type == TYPE_CHAT || this.type == TYPE_POPUP) {
@@ -143,7 +146,7 @@ public class TextPacket121130 extends Packet121130 {
 
         this.putString(this.sendersXUID);
         this.putString(this.platformIdString);
-        this.putString(this.filteredMessage);
+        this.putOptional(this.filteredMessage, BinaryStream::putString);
 
         if (this.neteaseMode) {
             if (this.type == TYPE_CHAT || this.type == TYPE_POPUP) {

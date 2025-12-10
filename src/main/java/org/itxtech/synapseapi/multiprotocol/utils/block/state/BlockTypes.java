@@ -2078,6 +2078,29 @@ public class BlockTypes {
         return REGISTRY;
     }
 
+    public static BlockRegistry toNetEase(boolean customAppearance) {
+        return toNetEase(REGISTRY, customAppearance);
+    }
+
+    protected static BlockRegistry toNetEase(BlockRegistry vanilla, boolean customAppearance) {
+        BlockRegistry registry = new BlockRegistry(vanilla.getVersion(), vanilla);
+
+        if (customAppearance) {
+            registry.patch(vanilla.getBlock("minecraft:crafting_table"), BlockStates.CUSTOM_APPEARANCE);
+
+            registry.patch(vanilla.getBlock("minecraft:furnace"), BlockStates.CUSTOM_APPEARANCE);
+
+            registry.patch(vanilla.getBlock("minecraft:lit_furnace"), BlockStates.CUSTOM_APPEARANCE);
+        }
+
+        registry.registerBlock("minecraft:micro_block", 9990);
+
+        registry.registerBlock("minecraft:mod_ore", 230);
+
+        registry.createBlockPermutations();
+        return registry;
+    }
+
     public static class V1_21_20 extends BlockTypes {
         private static final BlockRegistry REGISTRY = new BlockRegistry((1 << 24) | (21 << 16) | (20 << 8) | 6, BlockTypes.REGISTRY);
 
@@ -2352,6 +2375,10 @@ public class BlockTypes {
         public static BlockRegistry getBlockRegistry() {
             return REGISTRY;
         }
+
+        public static BlockRegistry toNetEase(boolean customAppearance) {
+            return toNetEase(REGISTRY, customAppearance);
+        }
     }
 
     public static class V1_21_30 extends V1_21_20 {
@@ -2437,6 +2464,10 @@ public class BlockTypes {
         public static BlockRegistry getBlockRegistry() {
             return REGISTRY;
         }
+
+        public static BlockRegistry toNetEase(boolean customAppearance) {
+            return toNetEase(REGISTRY, customAppearance);
+        }
     }
 
     public static class V1_21_40 extends V1_21_30 {
@@ -2466,6 +2497,10 @@ public class BlockTypes {
 
         public static BlockRegistry getBlockRegistry() {
             return REGISTRY;
+        }
+
+        public static BlockRegistry toNetEase(boolean customAppearance) {
+            return toNetEase(REGISTRY, customAppearance);
         }
     }
 
@@ -2597,6 +2632,10 @@ public class BlockTypes {
         public static BlockRegistry getBlockRegistry() {
             return REGISTRY;
         }
+
+        public static BlockRegistry toNetEase(boolean customAppearance) {
+            return toNetEase(REGISTRY, customAppearance);
+        }
     }
 
     public static class V1_21_60 extends V1_21_50 {
@@ -2677,6 +2716,10 @@ public class BlockTypes {
         public static BlockRegistry getBlockRegistry() {
             return REGISTRY;
         }
+
+        public static BlockRegistry toNetEase(boolean customAppearance) {
+            return toNetEase(REGISTRY, customAppearance);
+        }
     }
 
     public static class V1_21_70 extends V1_21_60 {
@@ -2707,6 +2750,10 @@ public class BlockTypes {
         public static BlockRegistry getBlockRegistry() {
             return REGISTRY;
         }
+
+        public static BlockRegistry toNetEase(boolean customAppearance) {
+            return toNetEase(REGISTRY, customAppearance);
+        }
     }
 
     public static class V1_21_80 extends V1_21_70 {
@@ -2722,6 +2769,10 @@ public class BlockTypes {
 
         public static BlockRegistry getBlockRegistry() {
             return REGISTRY;
+        }
+
+        public static BlockRegistry toNetEase(boolean customAppearance) {
+            return toNetEase(REGISTRY, customAppearance);
         }
     }
 
@@ -2758,6 +2809,10 @@ public class BlockTypes {
 
         public static BlockRegistry getBlockRegistry() {
             return REGISTRY;
+        }
+
+        public static BlockRegistry toNetEase(boolean customAppearance) {
+            return toNetEase(REGISTRY, customAppearance);
         }
     }
 
@@ -2954,6 +3009,10 @@ public class BlockTypes {
 
         public static BlockRegistry getBlockRegistry() {
             return REGISTRY;
+        }
+
+        public static BlockRegistry toNetEase(boolean customAppearance) {
+            return toNetEase(REGISTRY, customAppearance);
         }
     }
 }

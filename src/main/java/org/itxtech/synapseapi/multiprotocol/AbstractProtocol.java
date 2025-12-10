@@ -134,6 +134,7 @@ import org.itxtech.synapseapi.multiprotocol.protocol19.BinaryStreamHelper19;
 import org.itxtech.synapseapi.multiprotocol.protocol19.protocol.Packet19;
 import org.itxtech.synapseapi.multiprotocol.utils.AdvancedBinaryStreamHelper;
 
+import javax.annotation.Nullable;
 import java.util.Arrays;
 
 /**
@@ -208,7 +209,7 @@ public enum AbstractProtocol {
     PROTOCOL_121_111(844, Packet121111.class, SynapsePlayer116100.class, BinaryStreamHelper121111.create(), Compressor.SNAPPY),
     PROTOCOL_121_120(859, Packet121120.class, SynapsePlayer116100.class, BinaryStreamHelper121120.create(), Compressor.SNAPPY),
     PROTOCOL_121_124(860, Packet121124.class, SynapsePlayer116100.class, BinaryStreamHelper121124.create(), Compressor.SNAPPY),
-    PROTOCOL_121_130(897, Packet121130.class, SynapsePlayer116100.class, BinaryStreamHelper121130.create(), Compressor.SNAPPY),
+    PROTOCOL_121_130(898, Packet121130.class, SynapsePlayer116100.class, BinaryStreamHelper121130.create(), Compressor.SNAPPY),
     ;
 
     private static final AbstractProtocol[] VALUES = values();
@@ -288,16 +289,78 @@ public enum AbstractProtocol {
         return compressor;
     }
 
+    public boolean isNewerThan(AbstractProtocol protocol) {
+        return this.protocolStart > protocol.protocolStart;
+    }
+
+    public boolean isNewerThan(GameVersion version) {
+        return this.protocolStart > version.getProtocol();
+    }
+
+    public boolean isNewerThan(int protocol) {
+        return this.protocolStart > protocol;
+    }
+
+    public boolean isNewerThanOrEqual(AbstractProtocol protocol) {
+        return this.protocolStart >= protocol.protocolStart;
+    }
+
+    public boolean isNewerThanOrEqual(GameVersion version) {
+        return this.protocolStart >= version.getProtocol();
+    }
+
+    public boolean isNewerThanOrEqual(int protocol) {
+        return this.protocolStart >= protocol;
+    }
+
+    public boolean isOlderThan(AbstractProtocol protocol) {
+        return this.protocolStart < protocol.protocolStart;
+    }
+
+    public boolean isOlderThan(GameVersion version) {
+        return this.protocolStart < version.getProtocol();
+    }
+
+    public boolean isOlderThan(int protocol) {
+        return this.protocolStart < protocol;
+    }
+
+    public boolean isOlderThanOrEqual(AbstractProtocol protocol) {
+        return this.protocolStart <= protocol.protocolStart;
+    }
+
+    public boolean isOlderThanOrEqual(GameVersion version) {
+        return this.protocolStart <= version.getProtocol();
+    }
+
+    public boolean isOlderThanOrEqual(int protocol) {
+        return this.protocolStart <= protocol;
+    }
+
+    public boolean isEqual(AbstractProtocol protocol) {
+        return this.protocolStart == protocol.protocolStart;
+    }
+
+    public boolean isEqual(GameVersion version) {
+        return this.protocolStart == version.getProtocol();
+    }
+
+    public boolean isEqual(int protocol) {
+        return this.protocolStart == protocol;
+    }
+
     /**
      * 获取前一个协议版本
      * 无法到1.2，最前为1.4
      * @return 前一个协议版本
      */
+    @Nullable
     public AbstractProtocol previous() {
         int previous = this.ordinal() - 1;
         return previous > 1 ? getValues()[previous] : null;
     }
 
+    @Nullable
     public AbstractProtocol next() {
         int next = this.ordinal() + 1;
         return next < getValues().length ? getValues()[next] : null;

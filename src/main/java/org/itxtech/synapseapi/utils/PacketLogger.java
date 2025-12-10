@@ -50,17 +50,20 @@ public final class PacketLogger {
     }
 
     static {
-        CLIENTBOUND_FILTER[ProtocolInfo.LEVEL_CHUNK_PACKET] = true;
-        CLIENTBOUND_FILTER[ProtocolInfo.SUB_CHUNK_PACKET] = true;
-        CLIENTBOUND_FILTER[ProtocolInfo.CLIENT_CACHE_MISS_RESPONSE_PACKET] = true;
-        CLIENTBOUND_FILTER[ProtocolInfo.NETWORK_CHUNK_PUBLISHER_UPDATE_PACKET] = true;
+        boolean debugChunk = false;
+        boolean debugPlayer = false;
+
+        CLIENTBOUND_FILTER[ProtocolInfo.LEVEL_CHUNK_PACKET] = !debugChunk;
+        CLIENTBOUND_FILTER[ProtocolInfo.SUB_CHUNK_PACKET] = !debugChunk;
+        CLIENTBOUND_FILTER[ProtocolInfo.CLIENT_CACHE_MISS_RESPONSE_PACKET] = !debugChunk;
+        CLIENTBOUND_FILTER[ProtocolInfo.NETWORK_CHUNK_PUBLISHER_UPDATE_PACKET] = !debugChunk;
         CLIENTBOUND_FILTER[ProtocolInfo.NETWORK_STACK_LATENCY_PACKET] = true;
 
-        SERVERBOUND_FILTER[ProtocolInfo.MOVE_PLAYER_PACKET] = true;
-        SERVERBOUND_FILTER[ProtocolInfo.PLAYER_AUTH_INPUT_PACKET] = true;
-        SERVERBOUND_FILTER[ProtocolInfo.CLIENT_CACHE_BLOB_STATUS_PACKET] = true;
-        SERVERBOUND_FILTER[ProtocolInfo.SUB_CHUNK_REQUEST_PACKET] = true;
-        SERVERBOUND_FILTER[ProtocolInfo.ANIMATE_PACKET] = true;
+        SERVERBOUND_FILTER[ProtocolInfo.MOVE_PLAYER_PACKET] = !debugPlayer;
+        SERVERBOUND_FILTER[ProtocolInfo.PLAYER_AUTH_INPUT_PACKET] = !debugPlayer;
+        SERVERBOUND_FILTER[ProtocolInfo.CLIENT_CACHE_BLOB_STATUS_PACKET] = !debugChunk;
+        SERVERBOUND_FILTER[ProtocolInfo.SUB_CHUNK_REQUEST_PACKET] = !debugChunk;
+        SERVERBOUND_FILTER[ProtocolInfo.ANIMATE_PACKET] = !debugPlayer;
         SERVERBOUND_FILTER[ProtocolInfo.NETWORK_STACK_LATENCY_PACKET] = true;
 
         if (false) {

@@ -17,7 +17,7 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Objects;
 import java.util.Set;
-import java.util.function.IntFunction;
+import java.util.function.BiFunction;
 
 import static cn.nukkit.item.RuntimeItemPaletteInterface.Entry.*;
 
@@ -168,21 +168,22 @@ public final class AdvancedRuntimeItemPalette {
         registerCustomItem(fullName, id, oldId, null);
     }
 
-    public static void registerCustomItem(String fullName, int id, @Nullable IntFunction<CompoundTag> componentsSupplier) {
+    public static void registerCustomItem(String fullName, int id, @Nullable BiFunction<Integer, Boolean, CompoundTag> componentsSupplier) {
         registerCustomItem(fullName, id, null, componentsSupplier);
     }
 
-    public static void registerCustomItem(String fullName, int id, @Nullable Integer oldId, @Nullable IntFunction<CompoundTag> componentsSupplier) {
+    public static void registerCustomItem(String fullName, int id, @Nullable Integer oldId, @Nullable BiFunction<Integer, Boolean, CompoundTag> componentsSupplier) {
         Set<AdvancedRuntimeItemPaletteInterface> finished = new ObjectOpenHashSet<>();
         for (Entry<AbstractProtocol, AdvancedRuntimeItemPaletteInterface[]> entry : palettes.entrySet()) {
             AbstractProtocol protocol = entry.getKey();
             AdvancedRuntimeItemPaletteInterface[] interfaces = entry.getValue();
-            for (AdvancedRuntimeItemPaletteInterface palette : interfaces) {
+            for (int i = 0; i < interfaces.length; i++) {
+                AdvancedRuntimeItemPaletteInterface palette = interfaces[i];
                 if (!finished.add(palette)) {
                     continue;
                 }
 
-                boolean componentBased = componentsSupplier != null && componentsSupplier.apply(protocol.getProtocolStart()).contains("item_properties");
+                boolean componentBased = componentsSupplier != null && componentsSupplier.apply(protocol.getProtocolStart(), i != 0).contains("item_properties");
                 int version = componentBased ? VERSION_DATA_DRIVEN : componentsSupplier != null ? VERSION_LEGACY : VERSION_NONE;
                 palette.registerItem(new RuntimeItemPaletteInterface.Entry(fullName, id, oldId, null, componentBased, version));
             }
