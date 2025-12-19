@@ -250,24 +250,6 @@ public final class LegacyItemSerializer {
         INTERNAL_MAPPING.putIfAbsent(identifier, internalId);
     }
 
-    private static void registerItemAux(String identifier, int id, int internalId) {
-        Objects.requireNonNull(identifier, "identifier");
-        if (id < 0) {
-            throw new IllegalArgumentException("Invalid non-block item ID: " + id);
-        }
-
-        if (ItemUtil.ITEM_ID_TO_NAME[id] == null) {
-            throw new IllegalArgumentException("Attempted to register '" + identifier + "', but ID '" + id + "' doesn't exists: " + ItemUtil.ITEM_ID_TO_NAME[id]);
-        }
-        if (ItemUtil.ITEM_NAME_TO_ID.containsKey(identifier)) {
-            throw new IllegalArgumentException(identifier + "' already exists: " + ItemUtil.ITEM_NAME_TO_ID.getInt(identifier));
-        }
-
-        ItemUtil.ITEM_NAME_TO_ID.put(identifier, id);
-
-        INTERNAL_MAPPING.putIfAbsent(identifier, internalId);
-    }
-
     private static void registerCustomBlockItem(String fullName, int itemId) {
         Objects.requireNonNull(fullName, "fullName");
         if (itemId >= 0) {
@@ -315,12 +297,7 @@ public final class LegacyItemSerializer {
 
             @Override
             public void registerItem(String identifier, int id, int maxAuxVal) {
-                LegacyItemSerializer.registerItem(identifier, id, (id << 16) | 0xffff);
-            }
-
-            @Override
-            public void registerItemAux(String identifier, int id, int meta) {
-                LegacyItemSerializer.registerItemAux(identifier, id, (id << 16) | meta);
+                LegacyItemSerializer.registerItem(identifier, id, id << 16 | (maxAuxVal > 0 ? 0xffff : 0));
             }
 
             @Override

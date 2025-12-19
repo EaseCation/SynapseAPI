@@ -2,7 +2,6 @@ package org.itxtech.synapseapi.multiprotocol.utils;
 
 import cn.nukkit.block.Blocks;
 import cn.nukkit.item.Item;
-import cn.nukkit.item.ItemRuntimeID;
 import cn.nukkit.item.RuntimeItemPaletteInterface.Entry;
 import cn.nukkit.nbt.NBTIO;
 import cn.nukkit.nbt.tag.CompoundTag;
@@ -49,7 +48,7 @@ public class RuntimeItemPalette implements AdvancedRuntimeItemPaletteInterface {
         }
         LEGACY_ITEM_ID_MAP.defaultReturnValue(-1);
 
-        LEGACY_ITEM_ID_MAP.put("minecraft:chest_boat", ItemRuntimeID.CHEST_BOAT); //HACK
+//        LEGACY_ITEM_ID_MAP.put("minecraft:chest_boat", Item.CHEST_BOAT); //HACK
     }
 
     private final AbstractProtocol protocol;
@@ -183,6 +182,12 @@ public class RuntimeItemPalette implements AdvancedRuntimeItemPaletteInterface {
     public void registerItem(Entry entry) {
         int oldId;
         boolean hasData = entry.oldData != null;
+
+        if (hasData && entry.oldData > 0 && (entry.oldId == null || entry.oldId > 0xff && entry.oldId != Item.SKULL)) {
+            hasData = false;
+            log.trace("item '{}' has been flattened: id {} meta {} ({})", entry.name, entry.oldId, entry.oldData, protocol);
+            entry = new Entry(entry.name, entry.id, null, null, entry.component, entry.version);
+        }
 
         if (entry.oldId == null) {
             int fullId = LegacyItemSerializer.getInternalMapping().getInt(entry.name);

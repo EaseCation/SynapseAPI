@@ -2903,7 +2903,7 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
                             break;
                         }
                         Item held = inventory.getItemInHand();
-                        if (!(held instanceof ItemEdible) && !held.is(Item.POTION) && !held.is(Item.BUCKET, ItemBucket.MILK_BUCKET) && (!(held instanceof ItemChemicalTickable tickable) || tickable.isActivated())) {
+                        if (!(held instanceof ItemEdible) && !held.is(Item.POTION) && !held.is(Item.MILK_BUCKET) && (!(held instanceof ItemChemicalTickable tickable) || tickable.isActivated())) {
                             break;
                         }
 

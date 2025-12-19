@@ -1,10 +1,8 @@
 package org.itxtech.synapseapi.multiprotocol.utils.item;
 
-import cn.nukkit.block.Block;
-import cn.nukkit.block.BlockID;
-import cn.nukkit.block.BlockSerializer;
-import cn.nukkit.block.BlockUpgrader;
+import cn.nukkit.block.*;
 import cn.nukkit.item.Item;
+import cn.nukkit.item.ItemFullNames;
 import cn.nukkit.item.ItemID;
 import cn.nukkit.item.Items;
 import cn.nukkit.nbt.NBTIO;
@@ -13,11 +11,7 @@ import com.google.common.io.ByteStreams;
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;
 import com.google.gson.reflect.TypeToken;
-import it.unimi.dsi.fastutil.objects.Object2IntMap;
-import it.unimi.dsi.fastutil.objects.Object2IntOpenHashMap;
-import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
-import it.unimi.dsi.fastutil.objects.ObjectArrayList;
-import it.unimi.dsi.fastutil.objects.ObjectIntPair;
+import it.unimi.dsi.fastutil.objects.*;
 import lombok.extern.log4j.Log4j2;
 import org.itxtech.synapseapi.SynapseAPI;
 import org.itxtech.synapseapi.multiprotocol.AbstractProtocol;
@@ -106,10 +100,12 @@ public final class ItemUtil {
             throw new AssertionError("Unable to load item_flatten_map.json", e);
         }
 
-        ITEM_ID_TO_NAME[ItemID.AIR] = "minecraft:air";
-        BLOCK_ID_TO_NAME[BlockID.AIR] = "minecraft:air";
-        ITEM_NAME_TO_ID.put("minecraft:air", ItemID.AIR);
-        ITEM_TO_BLOCK.put("minecraft:air", "minecraft:air");
+        ITEM_ID_TO_NAME[ItemID.AIR] = ItemFullNames.AIR;
+        BLOCK_ID_TO_NAME[BlockID.AIR] = BlockFullNames.AIR;
+        ITEM_NAME_TO_ID.put(ItemFullNames.AIR, ItemID.AIR);
+        ITEM_TO_BLOCK.put(ItemFullNames.AIR, BlockFullNames.AIR);
+
+        ITEM_NAME_TO_ID.putIfAbsent(ItemFullNames.CHEST_BOAT, ItemID.CHEST_BOAT); //HACK
     }
 
     public static void emptyItem(CompoundTag tag) {
