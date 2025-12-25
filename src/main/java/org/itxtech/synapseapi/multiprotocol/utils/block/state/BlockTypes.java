@@ -2636,6 +2636,26 @@ public class BlockTypes {
         public static BlockRegistry toNetEase(boolean customAppearance) {
             return toNetEase(REGISTRY, customAppearance);
         }
+
+        protected static BlockRegistry toNetEase(BlockRegistry vanilla, boolean customAppearance) {
+            BlockRegistry registry = new BlockRegistry(vanilla.getVersion(), vanilla);
+
+            if (customAppearance) {
+                registry.patch(vanilla.getBlock("minecraft:crafting_table"), BlockStates.CUSTOM_APPEARANCE);
+
+                registry.patch(vanilla.getBlock("minecraft:furnace"), BlockStates.CUSTOM_APPEARANCE);
+
+                registry.patch(vanilla.getBlock("minecraft:lit_furnace"), BlockStates.CUSTOM_APPEARANCE);
+            }
+
+            registry.registerBlock("minecraft:micro_block", 9990);
+
+//            registry.registerBlock("minecraft:mod_ore", 230);
+            registry.remove(CHALKBOARD);
+
+            registry.createBlockPermutations();
+            return registry;
+        }
     }
 
     public static class V1_21_60 extends V1_21_50 {

@@ -15,6 +15,11 @@ public class BinaryStreamHelper12150 extends BinaryStreamHelper12140 {
     }
 
     @Override
+    public boolean isNetEase() {
+        return true;
+    }
+
+    @Override
     protected void putItemStackResponseSlotInfo(BinaryStream stream, ItemStackResponseSlotInfo info) {
         stream.putByte(info.slot);
         stream.putByte(info.hotbarSlot);

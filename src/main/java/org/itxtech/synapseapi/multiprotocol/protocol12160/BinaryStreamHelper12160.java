@@ -15,6 +15,11 @@ public class BinaryStreamHelper12160 extends BinaryStreamHelper12150 {
     }
 
     @Override
+    public boolean isNetEase() {
+        return false;
+    }
+
+    @Override
     public void putAbilityLayer(BinaryStream stream, AbilityLayer layer) {
         stream.putLShort(layer.type);
 

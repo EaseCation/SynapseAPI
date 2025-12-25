@@ -39,6 +39,10 @@ public class BlockRegistry {
         return block;
     }
 
+    public BlockLegacy remove(BlockLegacy oldBlock) {
+        return blocks.remove(oldBlock.name);
+    }
+
     public BlockLegacy patch(BlockLegacy oldBlock, BlockState newState) {
         return patch(oldBlock, newState, newState.variationCount);
     }
