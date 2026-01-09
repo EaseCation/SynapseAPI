@@ -89,7 +89,6 @@ public final class ItemComponentDefinitions {
                     load("item_components120.nbt", AbstractProtocol.PROTOCOL_120, false),
                     null,
             });
-*/
             DEFINITIONS.put(AbstractProtocol.PROTOCOL_120_10, new Map[]{
                     load("item_components12010.nbt", AbstractProtocol.PROTOCOL_120_10, false),
                     load("item_components12010.nbt", AbstractProtocol.PROTOCOL_120_10, true),
@@ -139,6 +138,7 @@ public final class ItemComponentDefinitions {
                     load("item_components12140.nbt", AbstractProtocol.PROTOCOL_121_40, false),
                     null,
             });
+*/
             DEFINITIONS.put(AbstractProtocol.PROTOCOL_121_50, new Map[]{
                     load("item_components12150.nbt", AbstractProtocol.PROTOCOL_121_50, false),
                     load("item_components12150.nbt", AbstractProtocol.PROTOCOL_121_50, true),

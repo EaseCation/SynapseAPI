@@ -1,6 +1,6 @@
 package org.itxtech.synapseapi.multiprotocol.utils.item;
 
-import cn.nukkit.block.BlockTallGrass;
+import cn.nukkit.block.BlockGrassShort;
 import cn.nukkit.item.Item;
 import cn.nukkit.item.ItemBlockID;
 import cn.nukkit.item.ItemID;
@@ -11,8 +11,9 @@ import org.itxtech.synapseapi.multiprotocol.AbstractProtocol;
 import java.util.EnumMap;
 import java.util.Map;
 
+@Deprecated
 public final class BlockItemFlattener {
-    private static final AbstractProtocol BASE_GAME_VERSION = AbstractProtocol.PROTOCOL_120_10;
+    private static final AbstractProtocol BASE_GAME_VERSION = AbstractProtocol.FIRST_AVAILABLE_PROTOCOL;
     private static final Map<AbstractProtocol, Int2IntFunction> DOWNGRADERS = new EnumMap<>(AbstractProtocol.class);
     private static final Map<AbstractProtocol, AuxValueFixer> AUX_VALUE_FIXERS = new EnumMap<>(AbstractProtocol.class);
 
@@ -160,9 +161,6 @@ public final class BlockItemFlattener {
         }
         if (id <= ItemBlockID.ORANGE_STAINED_GLASS_PANE && id >= ItemBlockID.BLACK_STAINED_GLASS_PANE) {
             return ItemBlockID.STAINED_GLASS_PANE;
-        }
-        if (true) { // base-game-version: 1.20.10
-            return id;
         }
         return downgrader12010(id);
     }
@@ -353,7 +351,7 @@ public final class BlockItemFlattener {
     private static int metaFixer121(int flattenedId, int id, int meta) {
         if (id == ItemBlockID.SHORT_GRASS) {
             if (meta == 0) {
-                return Item.getFullId(id, BlockTallGrass.TYPE_GRASS);
+                return Item.getFullId(id, BlockGrassShort.TYPE_GRASS);
             }
         }
         return Item.getFullId(id, meta);

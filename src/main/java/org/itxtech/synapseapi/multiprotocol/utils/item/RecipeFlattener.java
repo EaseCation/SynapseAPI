@@ -1,6 +1,6 @@
 package org.itxtech.synapseapi.multiprotocol.utils.item;
 
-import cn.nukkit.block.BlockSlabStone4;
+import cn.nukkit.block.BlockSlabStone;
 import cn.nukkit.inventory.*;
 import cn.nukkit.inventory.recipe.RecipeIngredient;
 import cn.nukkit.item.Item;
@@ -16,9 +16,14 @@ import java.util.Map;
 
 import static cn.nukkit.GameVersion.*;
 
+@Deprecated
 public final class RecipeFlattener {
     public static void addFlattenedRecipes(AbstractProtocol protocol, Collection<Recipe> recipes) {
-/*
+        if (true) {
+            // deprecated since 1.21.40
+            return;
+        }
+
         if (protocol.getProtocolStart() < AbstractProtocol.PROTOCOL_119_70.getProtocolStart()) {
             return;
         }
@@ -72,7 +77,7 @@ public final class RecipeFlattener {
                         'B', cerateRecipeIngredient("minecraft:soul_fire_base_blocks"),
                         'C', cerateRecipeIngredient("minecraft:logs")
                 )));
-*/
+
         if (protocol.getProtocolStart() < AbstractProtocol.PROTOCOL_120_50.getProtocolStart()) {
             return;
         }
@@ -277,7 +282,7 @@ public final class RecipeFlattener {
                 },
                 Map.of(
                         'A', cerateRecipeIngredient(ItemID.STICK),
-                        'B', cerateRecipeIngredient(ItemBlockID.STONE_SLAB4, BlockSlabStone4.TYPE_STONE),
+                        'B', cerateRecipeIngredient(ItemBlockID.STONE_SLAB4, BlockSlabStone.TYPE_STONE),
                         'C', cerateRecipeIngredient("minecraft:planks")
                 )));
         recipes.add(TodoCraftingRecipe.shaped(

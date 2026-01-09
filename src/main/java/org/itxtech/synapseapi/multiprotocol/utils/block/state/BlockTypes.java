@@ -9,7 +9,7 @@ public class BlockTypes {
     public static final BlockLegacy ACACIA_BUTTON = REGISTRY.registerBlock("minecraft:acacia_button", BlockID.ACACIA_BUTTON)
             .addState(BlockStates.FACING_DIRECTION)
             .addState(BlockStates.BUTTON_PRESSED_BIT);
-    public static final BlockLegacy ACACIA_DOOR = REGISTRY.registerBlock("minecraft:acacia_door", BlockID.BLOCK_ACACIA_DOOR)
+    public static final BlockLegacy ACACIA_DOOR = REGISTRY.registerBlock("minecraft:acacia_door", BlockID.ACACIA_DOOR)
             .addState(BlockStates.DIRECTION)
             .addState(BlockStates.OPEN_BIT)
             .addState(BlockStates.UPPER_BLOCK_BIT)
@@ -135,7 +135,7 @@ public class BlockTypes {
     public static final BlockLegacy BASALT = REGISTRY.registerBlock("minecraft:basalt", BlockID.BASALT)
             .addState(BlockStates.PILLAR_AXIS);
     public static final BlockLegacy BEACON = REGISTRY.registerBlock("minecraft:beacon", BlockID.BEACON);
-    public static final BlockLegacy BED = REGISTRY.registerBlock("minecraft:bed", BlockID.BLOCK_BED)
+    public static final BlockLegacy BED = REGISTRY.registerBlock("minecraft:bed", BlockID.BED)
             .addState(BlockStates.DIRECTION)
             .addState(BlockStates.OCCUPIED_BIT)
             .addState(BlockStates.HEAD_PIECE_BIT);
@@ -147,7 +147,7 @@ public class BlockTypes {
     public static final BlockLegacy BEEHIVE = REGISTRY.registerBlock("minecraft:beehive", BlockID.BEEHIVE)
             .addState(BlockStates.DIRECTION)
             .addState(BlockStates.HONEY_LEVEL);
-    public static final BlockLegacy BEETROOT = REGISTRY.registerBlock("minecraft:beetroot", BlockID.BLOCK_BEETROOT)
+    public static final BlockLegacy BEETROOT = REGISTRY.registerBlock("minecraft:beetroot", BlockID.BEETROOT)
             .addState(BlockStates.GROWTH);
     public static final BlockLegacy BELL = REGISTRY.registerBlock("minecraft:bell", BlockID.BELL)
             .addState(BlockStates.DIRECTION)
@@ -160,7 +160,7 @@ public class BlockTypes {
     public static final BlockLegacy BIRCH_BUTTON = REGISTRY.registerBlock("minecraft:birch_button", BlockID.BIRCH_BUTTON)
             .addState(BlockStates.FACING_DIRECTION)
             .addState(BlockStates.BUTTON_PRESSED_BIT);
-    public static final BlockLegacy BIRCH_DOOR = REGISTRY.registerBlock("minecraft:birch_door", BlockID.BLOCK_BIRCH_DOOR)
+    public static final BlockLegacy BIRCH_DOOR = REGISTRY.registerBlock("minecraft:birch_door", BlockID.BIRCH_DOOR)
             .addState(BlockStates.DIRECTION)
             .addState(BlockStates.OPEN_BIT)
             .addState(BlockStates.UPPER_BLOCK_BIT)
@@ -264,7 +264,7 @@ public class BlockTypes {
     public static final BlockLegacy BRAIN_CORAL_BLOCK = REGISTRY.registerBlock("minecraft:brain_coral_block", BlockID.BRAIN_CORAL_BLOCK);
     public static final BlockLegacy BRAIN_CORAL_FAN = REGISTRY.registerBlock("minecraft:brain_coral_fan", BlockID.BRAIN_CORAL_FAN)
             .addState(BlockStates.CORAL_FAN_DIRECTION);
-    public static final BlockLegacy BREWING_STAND = REGISTRY.registerBlock("minecraft:brewing_stand", BlockID.BLOCK_BREWING_STAND)
+    public static final BlockLegacy BREWING_STAND = REGISTRY.registerBlock("minecraft:brewing_stand", BlockID.BREWING_STAND)
             .addState(BlockStates.BREWING_STAND_SLOT_A_BIT)
             .addState(BlockStates.BREWING_STAND_SLOT_B_BIT)
             .addState(BlockStates.BREWING_STAND_SLOT_C_BIT);
@@ -301,14 +301,14 @@ public class BlockTypes {
     public static final BlockLegacy BUDDING_AMETHYST = REGISTRY.registerBlock("minecraft:budding_amethyst", BlockID.BUDDING_AMETHYST);
     public static final BlockLegacy CACTUS = REGISTRY.registerBlock("minecraft:cactus", BlockID.CACTUS)
             .addState(BlockStates.AGE);
-    public static final BlockLegacy CAKE = REGISTRY.registerBlock("minecraft:cake", BlockID.BLOCK_CAKE)
+    public static final BlockLegacy CAKE = REGISTRY.registerBlock("minecraft:cake", BlockID.CAKE)
             .addState(BlockStates.BITE_COUNTER);
     public static final BlockLegacy CALCITE = REGISTRY.registerBlock("minecraft:calcite", BlockID.CALCITE);
     public static final BlockLegacy CALIBRATED_SCULK_SENSOR = REGISTRY.registerBlock("minecraft:calibrated_sculk_sensor", BlockID.CALIBRATED_SCULK_SENSOR)
             .addState(BlockStates.SCULK_SENSOR_PHASE)
             .addState(BlockStates.MINECRAFT_CARDINAL_DIRECTION);
-    public static final BlockLegacy CAMERA = REGISTRY.registerBlock("minecraft:camera", BlockID.BLOCK_CAMERA);
-    public static final BlockLegacy CAMPFIRE = REGISTRY.registerBlock("minecraft:campfire", BlockID.BLOCK_CAMPFIRE)
+    public static final BlockLegacy CAMERA = REGISTRY.registerBlock("minecraft:camera", BlockID.CAMERA);
+    public static final BlockLegacy CAMPFIRE = REGISTRY.registerBlock("minecraft:campfire", BlockID.CAMPFIRE)
             .addState(BlockStates.MINECRAFT_CARDINAL_DIRECTION)
             .addState(BlockStates.EXTINGUISHED);
     public static final BlockLegacy CANDLE = REGISTRY.registerBlock("minecraft:candle", BlockID.CANDLE)
@@ -321,7 +321,7 @@ public class BlockTypes {
     public static final BlockLegacy CARTOGRAPHY_TABLE = REGISTRY.registerBlock("minecraft:cartography_table", BlockID.CARTOGRAPHY_TABLE);
     public static final BlockLegacy CARVED_PUMPKIN = REGISTRY.registerBlock("minecraft:carved_pumpkin", BlockID.CARVED_PUMPKIN)
             .addState(BlockStates.MINECRAFT_CARDINAL_DIRECTION);
-    public static final BlockLegacy CAULDRON = REGISTRY.registerBlock("minecraft:cauldron", BlockID.BLOCK_CAULDRON)
+    public static final BlockLegacy CAULDRON = REGISTRY.registerBlock("minecraft:cauldron", BlockID.CAULDRON)
             .addState(BlockStates.FILL_LEVEL)
             .addState(BlockStates.CAULDRON_LIQUID);
     public static final BlockLegacy CAVE_VINES = REGISTRY.registerBlock("minecraft:cave_vines", BlockID.CAVE_VINES)
@@ -330,7 +330,7 @@ public class BlockTypes {
             .addState(BlockStates.GROWING_PLANT_AGE);
     public static final BlockLegacy CAVE_VINES_HEAD_WITH_BERRIES = REGISTRY.registerBlock("minecraft:cave_vines_head_with_berries", BlockID.CAVE_VINES_HEAD_WITH_BERRIES)
             .addState(BlockStates.GROWING_PLANT_AGE);
-    public static final BlockLegacy CHAIN = REGISTRY.registerBlock("minecraft:chain", BlockID.BLOCK_CHAIN)
+    public static final BlockLegacy CHAIN = REGISTRY.registerBlock("minecraft:chain", BlockID.CHAIN)
             .addState(BlockStates.PILLAR_AXIS);
     public static final BlockLegacy CHAIN_COMMAND_BLOCK = REGISTRY.registerBlock("minecraft:chain_command_block", BlockID.CHAIN_COMMAND_BLOCK)
             .addState(BlockStates.FACING_DIRECTION)
@@ -482,7 +482,7 @@ public class BlockTypes {
     public static final BlockLegacy CRIMSON_BUTTON = REGISTRY.registerBlock("minecraft:crimson_button", BlockID.CRIMSON_BUTTON)
             .addState(BlockStates.FACING_DIRECTION)
             .addState(BlockStates.BUTTON_PRESSED_BIT);
-    public static final BlockLegacy CRIMSON_DOOR = REGISTRY.registerBlock("minecraft:crimson_door", BlockID.BLOCK_CRIMSON_DOOR)
+    public static final BlockLegacy CRIMSON_DOOR = REGISTRY.registerBlock("minecraft:crimson_door", BlockID.CRIMSON_DOOR)
             .addState(BlockStates.DIRECTION)
             .addState(BlockStates.OPEN_BIT)
             .addState(BlockStates.UPPER_BLOCK_BIT)
@@ -547,7 +547,7 @@ public class BlockTypes {
     public static final BlockLegacy DARK_OAK_BUTTON = REGISTRY.registerBlock("minecraft:dark_oak_button", BlockID.DARK_OAK_BUTTON)
             .addState(BlockStates.FACING_DIRECTION)
             .addState(BlockStates.BUTTON_PRESSED_BIT);
-    public static final BlockLegacy DARK_OAK_DOOR = REGISTRY.registerBlock("minecraft:dark_oak_door", BlockID.BLOCK_DARK_OAK_DOOR)
+    public static final BlockLegacy DARK_OAK_DOOR = REGISTRY.registerBlock("minecraft:dark_oak_door", BlockID.DARK_OAK_DOOR)
             .addState(BlockStates.DIRECTION)
             .addState(BlockStates.OPEN_BIT)
             .addState(BlockStates.UPPER_BLOCK_BIT)
@@ -866,14 +866,14 @@ public class BlockTypes {
     public static final BlockLegacy FIRE_CORAL_FAN = REGISTRY.registerBlock("minecraft:fire_coral_fan", BlockID.FIRE_CORAL_FAN)
             .addState(BlockStates.CORAL_FAN_DIRECTION);
     public static final BlockLegacy FLETCHING_TABLE = REGISTRY.registerBlock("minecraft:fletching_table", BlockID.FLETCHING_TABLE);
-    public static final BlockLegacy FLOWER_POT = REGISTRY.registerBlock("minecraft:flower_pot", BlockID.BLOCK_FLOWER_POT)
+    public static final BlockLegacy FLOWER_POT = REGISTRY.registerBlock("minecraft:flower_pot", BlockID.FLOWER_POT)
             .addState(BlockStates.UPDATE_BIT);
     public static final BlockLegacy FLOWERING_AZALEA = REGISTRY.registerBlock("minecraft:flowering_azalea", BlockID.FLOWERING_AZALEA);
     public static final BlockLegacy FLOWING_LAVA = REGISTRY.registerBlock("minecraft:flowing_lava", BlockID.FLOWING_LAVA)
             .addState(BlockStates.LIQUID_DEPTH);
     public static final BlockLegacy FLOWING_WATER = REGISTRY.registerBlock("minecraft:flowing_water", BlockID.FLOWING_WATER)
             .addState(BlockStates.LIQUID_DEPTH);
-    public static final BlockLegacy FRAME = REGISTRY.registerBlock("minecraft:frame", BlockID.BLOCK_FRAME)
+    public static final BlockLegacy FRAME = REGISTRY.registerBlock("minecraft:frame", BlockID.FRAME)
             .addState(BlockStates.FACING_DIRECTION)
             .addState(BlockStates.ITEM_FRAME_MAP_BIT)
             .addState(BlockStates.ITEM_FRAME_PHOTO_BIT);
@@ -885,7 +885,7 @@ public class BlockTypes {
     public static final BlockLegacy GILDED_BLACKSTONE = REGISTRY.registerBlock("minecraft:gilded_blackstone", BlockID.GILDED_BLACKSTONE);
     public static final BlockLegacy GLASS = REGISTRY.registerBlock("minecraft:glass", BlockID.GLASS);
     public static final BlockLegacy GLASS_PANE = REGISTRY.registerBlock("minecraft:glass_pane", BlockID.GLASS_PANE);
-    public static final BlockLegacy GLOW_FRAME = REGISTRY.registerBlock("minecraft:glow_frame", BlockID.BLOCK_GLOW_FRAME)
+    public static final BlockLegacy GLOW_FRAME = REGISTRY.registerBlock("minecraft:glow_frame", BlockID.GLOW_FRAME)
             .addState(BlockStates.FACING_DIRECTION)
             .addState(BlockStates.ITEM_FRAME_MAP_BIT)
             .addState(BlockStates.ITEM_FRAME_PHOTO_BIT);
@@ -982,7 +982,7 @@ public class BlockTypes {
             .addState(BlockStates.REDSTONE_SIGNAL);
     public static final BlockLegacy HONEY_BLOCK = REGISTRY.registerBlock("minecraft:honey_block", BlockID.HONEY_BLOCK);
     public static final BlockLegacy HONEYCOMB_BLOCK = REGISTRY.registerBlock("minecraft:honeycomb_block", BlockID.HONEYCOMB_BLOCK);
-    public static final BlockLegacy HOPPER = REGISTRY.registerBlock("minecraft:hopper", BlockID.BLOCK_HOPPER)
+    public static final BlockLegacy HOPPER = REGISTRY.registerBlock("minecraft:hopper", BlockID.HOPPER)
             .addState(BlockStates.FACING_DIRECTION)
             .addState(BlockStates.TOGGLE_BIT);
     public static final BlockLegacy HORN_CORAL = REGISTRY.registerBlock("minecraft:horn_coral", BlockID.HORN_CORAL);
@@ -997,7 +997,7 @@ public class BlockTypes {
     public static final BlockLegacy INVISIBLE_BEDROCK = REGISTRY.registerBlock("minecraft:invisible_bedrock", BlockID.INVISIBLE_BEDROCK);
     public static final BlockLegacy IRON_BARS = REGISTRY.registerBlock("minecraft:iron_bars", BlockID.IRON_BARS);
     public static final BlockLegacy IRON_BLOCK = REGISTRY.registerBlock("minecraft:iron_block", BlockID.IRON_BLOCK);
-    public static final BlockLegacy IRON_DOOR = REGISTRY.registerBlock("minecraft:iron_door", BlockID.BLOCK_IRON_DOOR)
+    public static final BlockLegacy IRON_DOOR = REGISTRY.registerBlock("minecraft:iron_door", BlockID.IRON_DOOR)
             .addState(BlockStates.DIRECTION)
             .addState(BlockStates.OPEN_BIT)
             .addState(BlockStates.UPPER_BLOCK_BIT)
@@ -1014,7 +1014,7 @@ public class BlockTypes {
     public static final BlockLegacy JUNGLE_BUTTON = REGISTRY.registerBlock("minecraft:jungle_button", BlockID.JUNGLE_BUTTON)
             .addState(BlockStates.FACING_DIRECTION)
             .addState(BlockStates.BUTTON_PRESSED_BIT);
-    public static final BlockLegacy JUNGLE_DOOR = REGISTRY.registerBlock("minecraft:jungle_door", BlockID.BLOCK_JUNGLE_DOOR)
+    public static final BlockLegacy JUNGLE_DOOR = REGISTRY.registerBlock("minecraft:jungle_door", BlockID.JUNGLE_DOOR)
             .addState(BlockStates.DIRECTION)
             .addState(BlockStates.OPEN_BIT)
             .addState(BlockStates.UPPER_BLOCK_BIT)
@@ -1056,7 +1056,7 @@ public class BlockTypes {
             .addState(BlockStates.FACING_DIRECTION);
     public static final BlockLegacy JUNGLE_WOOD = REGISTRY.registerBlock("minecraft:jungle_wood", BlockID.JUNGLE_WOOD)
             .addState(BlockStates.PILLAR_AXIS);
-    public static final BlockLegacy KELP = REGISTRY.registerBlock("minecraft:kelp", BlockID.BLOCK_KELP)
+    public static final BlockLegacy KELP = REGISTRY.registerBlock("minecraft:kelp", BlockID.KELP)
             .addState(BlockStates.KELP_AGE);
     public static final BlockLegacy LADDER = REGISTRY.registerBlock("minecraft:ladder", BlockID.LADDER)
             .addState(BlockStates.FACING_DIRECTION);
@@ -1161,7 +1161,7 @@ public class BlockTypes {
     public static final BlockLegacy MANGROVE_BUTTON = REGISTRY.registerBlock("minecraft:mangrove_button", BlockID.MANGROVE_BUTTON)
             .addState(BlockStates.FACING_DIRECTION)
             .addState(BlockStates.BUTTON_PRESSED_BIT);
-    public static final BlockLegacy MANGROVE_DOOR = REGISTRY.registerBlock("minecraft:mangrove_door", BlockID.BLOCK_MANGROVE_DOOR)
+    public static final BlockLegacy MANGROVE_DOOR = REGISTRY.registerBlock("minecraft:mangrove_door", BlockID.MANGROVE_DOOR)
             .addState(BlockStates.DIRECTION)
             .addState(BlockStates.OPEN_BIT)
             .addState(BlockStates.UPPER_BLOCK_BIT)
@@ -1251,8 +1251,8 @@ public class BlockTypes {
             .addState(BlockStates.WEIRDO_DIRECTION)
             .addState(BlockStates.UPSIDE_DOWN_BIT);
     public static final BlockLegacy NETHER_GOLD_ORE = REGISTRY.registerBlock("minecraft:nether_gold_ore", BlockID.NETHER_GOLD_ORE);
-    public static final BlockLegacy NETHER_SPROUTS = REGISTRY.registerBlock("minecraft:nether_sprouts", BlockID.BLOCK_NETHER_SPROUTS);
-    public static final BlockLegacy NETHER_WART = REGISTRY.registerBlock("minecraft:nether_wart", BlockID.BLOCK_NETHER_WART)
+    public static final BlockLegacy NETHER_SPROUTS = REGISTRY.registerBlock("minecraft:nether_sprouts", BlockID.NETHER_SPROUTS);
+    public static final BlockLegacy NETHER_WART = REGISTRY.registerBlock("minecraft:nether_wart", BlockID.NETHER_WART)
             .addState(BlockStates.AGE, BlockStateIntegerValues.NETHER_WART_MAX_AGE + 1);
     public static final BlockLegacy NETHER_WART_BLOCK = REGISTRY.registerBlock("minecraft:nether_wart_block", BlockID.NETHER_WART_BLOCK);
     public static final BlockLegacy NETHERITE_BLOCK = REGISTRY.registerBlock("minecraft:netherite_block", BlockID.NETHERITE_BLOCK);
@@ -1543,7 +1543,7 @@ public class BlockTypes {
             .addState(BlockStates.TORCH_FACING_DIRECTION);
     public static final BlockLegacy REDSTONE_WIRE = REGISTRY.registerBlock("minecraft:redstone_wire", BlockID.REDSTONE_WIRE)
             .addState(BlockStates.REDSTONE_SIGNAL);
-    public static final BlockLegacy REEDS = REGISTRY.registerBlock("minecraft:reeds", BlockID.BLOCK_REEDS)
+    public static final BlockLegacy REEDS = REGISTRY.registerBlock("minecraft:reeds", BlockID.REEDS)
             .addState(BlockStates.AGE);
     public static final BlockLegacy REINFORCED_DEEPSLATE = REGISTRY.registerBlock("minecraft:reinforced_deepslate", BlockID.REINFORCED_DEEPSLATE);
     public static final BlockLegacy REPEATING_COMMAND_BLOCK = REGISTRY.registerBlock("minecraft:repeating_command_block", BlockID.REPEATING_COMMAND_BLOCK)
@@ -1586,7 +1586,7 @@ public class BlockTypes {
     public static final BlockLegacy SHROOMLIGHT = REGISTRY.registerBlock("minecraft:shroomlight", BlockID.SHROOMLIGHT);
     public static final BlockLegacy SILVER_GLAZED_TERRACOTTA = REGISTRY.registerBlock("minecraft:silver_glazed_terracotta", BlockID.SILVER_GLAZED_TERRACOTTA)
             .addState(BlockStates.FACING_DIRECTION);
-    public static final BlockLegacy SKULL = REGISTRY.registerBlock("minecraft:skull", BlockID.BLOCK_SKULL)
+    public static final BlockLegacy SKULL = REGISTRY.registerBlock("minecraft:skull", BlockID.SKULL)
             .addState(BlockStates.FACING_DIRECTION);
     public static final BlockLegacy SLIME = REGISTRY.registerBlock("minecraft:slime", BlockID.SLIME);
     public static final BlockLegacy SMALL_AMETHYST_BUD = REGISTRY.registerBlock("minecraft:small_amethyst_bud", BlockID.SMALL_AMETHYST_BUD)
@@ -1616,7 +1616,7 @@ public class BlockTypes {
     public static final BlockLegacy SNOW_LAYER = REGISTRY.registerBlock("minecraft:snow_layer", BlockID.SNOW_LAYER)
             .addState(BlockStates.HEIGHT)
             .addState(BlockStates.COVERED_BIT);
-    public static final BlockLegacy SOUL_CAMPFIRE = REGISTRY.registerBlock("minecraft:soul_campfire", BlockID.BLOCK_SOUL_CAMPFIRE)
+    public static final BlockLegacy SOUL_CAMPFIRE = REGISTRY.registerBlock("minecraft:soul_campfire", BlockID.SOUL_CAMPFIRE)
             .addState(BlockStates.MINECRAFT_CARDINAL_DIRECTION)
             .addState(BlockStates.EXTINGUISHED);
     public static final BlockLegacy SOUL_FIRE = REGISTRY.registerBlock("minecraft:soul_fire", BlockID.SOUL_FIRE)
@@ -1633,7 +1633,7 @@ public class BlockTypes {
     public static final BlockLegacy SPRUCE_BUTTON = REGISTRY.registerBlock("minecraft:spruce_button", BlockID.SPRUCE_BUTTON)
             .addState(BlockStates.FACING_DIRECTION)
             .addState(BlockStates.BUTTON_PRESSED_BIT);
-    public static final BlockLegacy SPRUCE_DOOR = REGISTRY.registerBlock("minecraft:spruce_door", BlockID.BLOCK_SPRUCE_DOOR)
+    public static final BlockLegacy SPRUCE_DOOR = REGISTRY.registerBlock("minecraft:spruce_door", BlockID.SPRUCE_DOOR)
             .addState(BlockStates.DIRECTION)
             .addState(BlockStates.OPEN_BIT)
             .addState(BlockStates.UPPER_BLOCK_BIT)
@@ -1862,7 +1862,7 @@ public class BlockTypes {
     public static final BlockLegacy WARPED_BUTTON = REGISTRY.registerBlock("minecraft:warped_button", BlockID.WARPED_BUTTON)
             .addState(BlockStates.FACING_DIRECTION)
             .addState(BlockStates.BUTTON_PRESSED_BIT);
-    public static final BlockLegacy WARPED_DOOR = REGISTRY.registerBlock("minecraft:warped_door", BlockID.BLOCK_WARPED_DOOR)
+    public static final BlockLegacy WARPED_DOOR = REGISTRY.registerBlock("minecraft:warped_door", BlockID.WARPED_DOOR)
             .addState(BlockStates.DIRECTION)
             .addState(BlockStates.OPEN_BIT)
             .addState(BlockStates.UPPER_BLOCK_BIT)
@@ -2024,7 +2024,7 @@ public class BlockTypes {
     public static final BlockLegacy WEB = REGISTRY.registerBlock("minecraft:web", BlockID.WEB);
     public static final BlockLegacy WEEPING_VINES = REGISTRY.registerBlock("minecraft:weeping_vines", BlockID.WEEPING_VINES)
             .addState(BlockStates.WEEPING_VINES_AGE);
-    public static final BlockLegacy WHEAT = REGISTRY.registerBlock("minecraft:wheat", BlockID.BLOCK_WHEAT)
+    public static final BlockLegacy WHEAT = REGISTRY.registerBlock("minecraft:wheat", BlockID.WHEAT)
             .addState(BlockStates.GROWTH);
     public static final BlockLegacy WHITE_CANDLE = REGISTRY.registerBlock("minecraft:white_candle", BlockID.WHITE_CANDLE)
             .addState(BlockStates.CANDLES)
@@ -2046,7 +2046,7 @@ public class BlockTypes {
     public static final BlockLegacy WOODEN_BUTTON = REGISTRY.registerBlock("minecraft:wooden_button", BlockID.WOODEN_BUTTON)
             .addState(BlockStates.FACING_DIRECTION)
             .addState(BlockStates.BUTTON_PRESSED_BIT);
-    public static final BlockLegacy WOODEN_DOOR = REGISTRY.registerBlock("minecraft:wooden_door", BlockID.BLOCK_WOODEN_DOOR)
+    public static final BlockLegacy WOODEN_DOOR = REGISTRY.registerBlock("minecraft:wooden_door", BlockID.WOODEN_DOOR)
             .addState(BlockStates.DIRECTION)
             .addState(BlockStates.OPEN_BIT)
             .addState(BlockStates.UPPER_BLOCK_BIT)

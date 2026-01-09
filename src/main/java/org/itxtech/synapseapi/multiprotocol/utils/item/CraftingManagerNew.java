@@ -29,8 +29,8 @@ import static org.itxtech.synapseapi.SynapseSharedConstants.*;
 
 @Log4j2
 public class CraftingManagerNew extends CraftingManagerLegacy {
-    private static final String DIRECTORY = "recipes12010/";
-    private static final String TAGS_FILE = "item_tags_120.json";
+    private static final String DIRECTORY = "recipes12150/";
+    private static final String TAGS_FILE = "item_tags_12150.json";
 
     @Override
     protected void initialize() {
@@ -46,7 +46,7 @@ public class CraftingManagerNew extends CraftingManagerLegacy {
 
         tagMap.forEach((tagName, itemNames) -> {
             List<Item> items = new ArrayList<>();
-            itemNames.forEach(itemName -> items.addAll(TaggedItemFlattener.get(itemName)));
+            itemNames.forEach(itemName -> items.add(Item.get(Items.getIdByName(itemName))));
             this.tags.put(tagName, items);
         });
 
@@ -171,6 +171,11 @@ public class CraftingManagerNew extends CraftingManagerLegacy {
             } else {
                 firstResult = deserializeItem(output.remove(0).getAsJsonObject());
                 output.forEach(item -> extraResults.add(deserializeItem(item.getAsJsonObject())));
+            }
+
+            if (!SERVER_AUTHORITATIVE_INVENTORY && firstResult.isBundle()) {
+                log.debug("server authoritative inventory is required to use 'minecraft:bundle'. skipping recipe {}", entry);
+                throw UNSUPPORTED_ITEM_EXCEPTION;
             }
 
             for (Char2ObjectMap<Item> materials : ingredients) {

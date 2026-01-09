@@ -21,12 +21,12 @@ public final class CreativeInventoryNew {
     private static final List<Entry> ITEMS = new ObjectArrayList<>();
 
     static {
-        log.info("Loading Creative Items from creative_items.json (new) 1.20.10");
+        log.info("Loading Creative Items from creative_items.json (new) 1.21.50");
 
         ITEMS.clear();
 
         JsonArray items;
-        try (InputStream stream = SynapseAPI.class.getClassLoader().getResourceAsStream("creativeitems_12010.json");
+        try (InputStream stream = SynapseAPI.class.getClassLoader().getResourceAsStream("creativeitems_12150.json");
              InputStreamReader reader = new InputStreamReader(stream)) {
             items = new Gson().fromJson(reader, JsonArray.class);
         } catch (NullPointerException | IOException e) {
@@ -42,6 +42,11 @@ public final class CreativeInventoryNew {
                 }
 
                 if (!ENABLE_CHEMISTRY_FEATURE && item.isChemistryFeature()) {
+                    continue;
+                }
+
+                if (!SERVER_AUTHORITATIVE_INVENTORY && item.isBundle()) {
+                    log.debug("server authoritative inventory is required to use 'minecraft:bundle'. skipping creative {}", itemEntry);
                     continue;
                 }
 

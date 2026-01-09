@@ -12,16 +12,16 @@ import java.util.*;
 
 import static cn.nukkit.GameVersion.*;
 
+@Deprecated
 @Log4j2
 public final class TaggedItemFlattener {
     private static final Map<String, List<Item>> REGISTRY = new HashMap<>();
 
     static {
-/*
         register(V1_19_70, ItemBlockFullNames.WOOL);
 
         register(V1_20_0, ItemBlockFullNames.CARPET);
-*/
+
         register(V1_20_50, ItemBlockFullNames.PLANKS,
                 item(ItemBlockID.PLANKS, BlockPlanks.OAK),
                 item(ItemBlockID.PLANKS, BlockPlanks.SPRUCE),

@@ -11,6 +11,7 @@ import it.unimi.dsi.fastutil.chars.Char2ObjectOpenHashMap;
 
 import java.util.*;
 
+@Deprecated
 public class TodoCraftingRecipe implements CraftingRecipe {
     private final RecipeType type;
     private final UUID uuid;

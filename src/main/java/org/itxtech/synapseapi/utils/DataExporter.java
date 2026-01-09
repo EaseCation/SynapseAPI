@@ -50,7 +50,7 @@ public class DataExporter {
                 if (!netease) {
                     microsoft = palette;
                 } else if (microsoft == palette) {
-                    palette = palette.toNetease();
+                    palette = palette.toNetease(protocol);
                 }
                 List<Map<String, Object>> container = new ArrayList<>();
                 ListTag<CompoundTag> containerNbt = new ListTag<>();
@@ -92,7 +92,7 @@ public class DataExporter {
                                     entryCommunity.put("val", newMeta);
                                 }
                             }
-                            case Block.BLOCK_FRAME, Block.BLOCK_GLOW_FRAME -> {
+                            case Block.FRAME, Block.GLOW_FRAME -> {
                                 int meta = block.val;
                                 int newMeta = (meta & ~0b111) | (5 - (meta & 0b111));
                                 if (meta != newMeta) {

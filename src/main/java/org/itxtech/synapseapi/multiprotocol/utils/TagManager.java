@@ -17,8 +17,8 @@ import java.util.List;
 import java.util.Map;
 
 public class TagManager {
-    private static final String CURRENT_BLOCK_TAGS_FILE_NAME = "block_tags_120.json";
-    private static final String CURRENT_ITEM_TAGS_FILE_NAME = "item_tags_120.json";
+    private static final String CURRENT_BLOCK_TAGS_FILE_NAME = "block_tags_12150.json";
+    private static final String CURRENT_ITEM_TAGS_FILE_NAME = "item_tags_12150.json";
 
     public static void registerVanillaTags() {
         registerVanillaBlockTags();

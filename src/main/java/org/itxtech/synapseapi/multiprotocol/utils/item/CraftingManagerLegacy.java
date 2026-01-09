@@ -1,6 +1,7 @@
 package org.itxtech.synapseapi.multiprotocol.utils.item;
 
 import cn.nukkit.inventory.*;
+import cn.nukkit.inventory.recipe.SpecialRecipes;
 import cn.nukkit.item.Item;
 import cn.nukkit.item.Items;
 import com.google.common.io.ByteStreams;
@@ -162,7 +163,12 @@ public class CraftingManagerLegacy extends CraftingManager {
     }
 
     protected void loadHardcoded(JsonElement element) {
-        registerRecipe(new MultiRecipe(UUID.fromString(element.getAsString())));
+        UUID uuid = UUID.fromString(element.getAsString());
+        if (SpecialRecipes.getRecipe(uuid) == null) {
+            log.trace("Skip an unimplemented multi recipe: {}", element);
+            return;
+        }
+        registerRecipe(new MultiRecipe(uuid));
     }
 
     protected void loadPotionType(JsonElement element) {

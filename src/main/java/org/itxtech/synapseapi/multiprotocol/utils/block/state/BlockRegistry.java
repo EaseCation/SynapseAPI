@@ -80,6 +80,10 @@ public class BlockRegistry {
     }
 
     public BlockPalette createBlockPalette() {
+        return createBlockPalette(false);
+    }
+
+    public BlockPalette createBlockPalette(boolean baseVersion) {
         BlockPalette instance = new BlockPalette();
         for (Entry<String, BlockLegacy> entry : blocks.entrySet()) {
             String name = entry.getKey();
@@ -97,7 +101,7 @@ public class BlockRegistry {
                     }
                     block.states[i].state.toNBT(states, value);
                 }
-                instance.palette.add(new BlockData(name, states));
+                instance.palette.add(baseVersion ? new BlockData(name, states, block.id, state.meta) : new BlockData(name, states));
             }
         }
         instance.sortHash();

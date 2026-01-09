@@ -1131,8 +1131,8 @@ public class SynapsePlayer116 extends SynapsePlayer113 {
 												break actionswitch;
 											}
 											break;
-										case Block.BLOCK_FRAME:
-										case Block.BLOCK_GLOW_FRAME:
+										case Block.FRAME:
+										case Block.GLOW_FRAME:
 											BlockEntity itemFrame = this.level.getBlockEntityIfLoaded(pos);
 											if (itemFrame instanceof BlockEntityItemFrame && (((BlockEntityItemFrame) itemFrame).dropItem(this) || isCreative() && getProtocol() < AbstractProtocol.PROTOCOL_120_70.getProtocolStart())) {
 												break actionswitch;

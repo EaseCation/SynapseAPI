@@ -1,5 +1,6 @@
 package org.itxtech.synapseapi.multiprotocol.utils.block;
 
+import cn.nukkit.block.Block;
 import cn.nukkit.nbt.NBTIO;
 import cn.nukkit.nbt.tag.CompoundTag;
 import cn.nukkit.nbt.tag.ListTag;
@@ -15,6 +16,7 @@ import lombok.AllArgsConstructor;
 import lombok.ToString;
 import lombok.extern.log4j.Log4j2;
 import org.itxtech.synapseapi.SynapseAPI;
+import org.itxtech.synapseapi.multiprotocol.AbstractProtocol;
 import org.itxtech.synapseapi.multiprotocol.utils.blockpalette.data.PaletteBlockTable.DumpJsonTableEntry;
 
 import java.io.BufferedInputStream;
@@ -228,12 +230,17 @@ public class BlockPalette {
         }
     }
 
-    public BlockPalette toNetease() {
+    public BlockPalette toNetease(AbstractProtocol protocol) {
         BlockPalette netease = new BlockPalette();
         netease.palette.addAll(this.palette);
         netease.properties.addAll(this.properties);
 
-        netease.palette.add(new BlockData("minecraft:mod_ore", 230));
+        if (protocol.isOlderThan(AbstractProtocol.PROTOCOL_121_50)) {
+            netease.palette.add(new BlockData("minecraft:mod_ore", 230));
+        } else {
+            netease.palette.removeIf(block -> block.id == Block.CHALKBOARD || "minecraft:chalkboard".equals(block.name));
+        }
+
         netease.palette.add(new BlockData("minecraft:micro_block", 9990));
 
         netease.sortHash();
@@ -281,7 +288,7 @@ public class BlockPalette {
             this(name, new CompoundTag("states"), -1, id, 0);
         }
 
-        BlockData(String name, CompoundTag states, int id, int val) {
+        public BlockData(String name, CompoundTag states, int id, int val) {
             this(name, states, -1, id, val);
         }
 

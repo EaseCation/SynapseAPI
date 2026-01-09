@@ -7,7 +7,6 @@ import cn.nukkit.item.ItemSerializer.RuntimeItemSerializer;
 import cn.nukkit.nbt.tag.*;
 import it.unimi.dsi.fastutil.objects.Object2IntMap;
 import it.unimi.dsi.fastutil.objects.Object2IntOpenHashMap;
-import it.unimi.dsi.fastutil.objects.ObjectIntPair;
 import lombok.extern.log4j.Log4j2;
 import org.itxtech.synapseapi.multiprotocol.utils.AdvancedRuntimeItemPalette;
 import org.itxtech.synapseapi.multiprotocol.utils.CreativeItemsPalette;
@@ -56,7 +55,7 @@ public final class LegacyItemSerializer {
         int fullBlockId;
         if (id >= 0) {
             name = ItemUtil.ITEM_ID_TO_NAME[id];
-            fullBlockId = id <= 0xff && id != ItemID.GLOW_STICK ? Block.getFullId(id, damage) : -1;
+            fullBlockId = id <= 0xff && id != ItemID.GLOW_STICK ? Block.getFullId(id, Block.getUnsafe(id, damage).getItemSerializationMeta()) : -1;
 
             if (name == null) {
                 log.debug("Invalid item id: " + id);
@@ -78,16 +77,7 @@ public final class LegacyItemSerializer {
                 return tag;
             }
 
-            fullBlockId = Block.getFullId(blockId, damage);
-        }
-
-        String[] metaToNewName = ItemUtil.LEGACY_TO_FLATTENED.get(name);
-        if (metaToNewName != null && damage < metaToNewName.length) {
-            String flattenedName = metaToNewName[damage];
-            if (flattenedName != null) {
-                name = flattenedName;
-                damage = 0;
-            }
+            fullBlockId = Block.getFullId(blockId, Block.getUnsafe(blockId, damage).getItemSerializationMeta());
         }
 
         tag.putString("Name", name);
@@ -172,23 +162,15 @@ public final class LegacyItemSerializer {
             }
 
             id = Block.getItemId(blockId);
-            damage = Block.getDamageFromFullId(fullId);
+            damage = Block.getDamageFromFullId(fullId) & Block.getUnsafe(blockId).getItemKeepMetaMask();
         } else {
-            ObjectIntPair<String> legacy = ItemUtil.FLATTENED_TO_LEGACY.get(name);
-            if (legacy != null) {
-                name = legacy.left();
-                damage = legacy.rightInt();
+            id = ItemUtil.ITEM_NAME_TO_ID.getInt(name);
 
-                id = ItemUtil.ITEM_NAME_TO_ID.getInt(name);
-            } else {
-                id = ItemUtil.ITEM_NAME_TO_ID.getInt(name);
-
-                if (id == ItemID.AIR) {
-                    return Items.air();
-                }
-
-                damage = tag.getShort("Damage");
+            if (id == ItemID.AIR) {
+                return Items.air();
             }
+
+            damage = tag.getShort("Damage");
         }
 
         Item item = Item.get(id, damage, count);
@@ -291,18 +273,13 @@ public final class LegacyItemSerializer {
             }
 
             @Override
-            public void registerItem(String identifier, int id) {
-                LegacyItemSerializer.registerItem(identifier, id, id << 16);
-            }
-
-            @Override
             public void registerItem(String identifier, int id, int maxAuxVal) {
-                LegacyItemSerializer.registerItem(identifier, id, id << 16 | (maxAuxVal > 0 ? 0xffff : 0));
+                LegacyItemSerializer.registerItem(identifier, id, id << 16 | maxAuxVal);
             }
 
             @Override
             public void registerCustomItem(String fullName, int id, @Nullable BiFunction<Integer, Boolean, CompoundTag> componentsSupplier) {
-                registerItem(fullName, id);
+                registerItem(fullName, id, 0);
 
                 AdvancedRuntimeItemPalette.registerCustomItem(fullName, id, componentsSupplier);
             }

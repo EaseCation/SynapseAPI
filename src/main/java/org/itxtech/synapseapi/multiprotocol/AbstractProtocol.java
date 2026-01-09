@@ -216,8 +216,8 @@ public enum AbstractProtocol {
     private static final AbstractProtocol[] BY_PROTOCOL;
     public static final AbstractProtocol FIRST_PROTOCOL = VALUES[0];
     public static final AbstractProtocol LAST_PROTOCOL = VALUES[VALUES.length - 1];
-    public static final AbstractProtocol FIRST_AVAILABLE_PROTOCOL = AbstractProtocol.PROTOCOL_120_10;
-    public static final AbstractProtocol FIRST_ALLOW_LOGIN_PROTOCOL = AbstractProtocol.PROTOCOL_120_60;
+    public static final AbstractProtocol FIRST_AVAILABLE_PROTOCOL = AbstractProtocol.PROTOCOL_121_50;
+    public static final AbstractProtocol FIRST_ALLOW_LOGIN_PROTOCOL = AbstractProtocol.PROTOCOL_121_50;
     public static final AbstractProtocol LAST_ALLOW_LOGIN_PROTOCOL = LAST_PROTOCOL;
     public static final AbstractProtocol LAST_NETEASE_PROTOCOL = PROTOCOL_121_50;
 

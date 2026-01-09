@@ -18,7 +18,6 @@ import org.itxtech.synapseapi.SynapseAPI;
 import org.itxtech.synapseapi.multiprotocol.AbstractProtocol;
 import org.itxtech.synapseapi.multiprotocol.protocol12160.protocol.CreativeContentPacket12160.Entry;
 import org.itxtech.synapseapi.multiprotocol.protocol12160.protocol.CreativeContentPacket12160.Group;
-import org.itxtech.synapseapi.multiprotocol.utils.AdvancedGlobalBlockPalette;
 import org.itxtech.synapseapi.multiprotocol.utils.block.BlockPalette.BlockData;
 import org.itxtech.synapseapi.multiprotocol.utils.block.RuntimeBlockMapper;
 import org.itxtech.synapseapi.multiprotocol.utils.block.VanillaBlockUpgrader;
@@ -48,8 +47,7 @@ public final class CreativeInventoryGrouped {
     private static final Int2IntMap GROUP_INDEX_BY_BLOCK_RUNTIME_ID = new Int2IntOpenHashMap();
 
     private static int SPAWN_EGG_GROUP_INDEX = -1;
-    private static int SKULL_GROUP_INDEX = -1;
-    private static int MUSHROOM_GROUP_INDEX = -1;
+    private static int BANNER_GROUP_INDEX = -1;
 
     static {
         log.info("Loading Creative Items from creative_items.json (grouped) 1.21.60");
@@ -80,10 +78,8 @@ public final class CreativeInventoryGrouped {
             };
             if ("itemGroup.name.mobEgg".equals(text)) {
                 SPAWN_EGG_GROUP_INDEX = GROUPS.size();
-            } else if ("itemGroup.name.skull".equals(text)) {
-                SKULL_GROUP_INDEX = GROUPS.size();
-            } else if ("itemGroup.name.mushroom".equals(text)) {
-                MUSHROOM_GROUP_INDEX = GROUPS.size();
+            } else if ("itemGroup.name.banner".equals(text)) {
+                BANNER_GROUP_INDEX = GROUPS.size();
             }
             Item icon;
             try {
@@ -97,7 +93,7 @@ public final class CreativeInventoryGrouped {
             }
             if (icon == null) {
                 if ("itemGroup.name.skull".equals(text)) {
-                    icon = Item.get(Item.SKULL, ItemSkull.HEAD_CREEPER);
+                    icon = Item.get(ItemBlockID.CREEPER_HEAD);
                 } else {
                     icon = Items.air();
                 }
@@ -115,7 +111,7 @@ public final class CreativeInventoryGrouped {
 
         GROUP_INDEX_BY_BLOCK_RUNTIME_ID.defaultReturnValue(ANONYMOUS_BLOCK_GROUP.leftInt());
 
-        if (SPAWN_EGG_GROUP_INDEX == -1 || SKULL_GROUP_INDEX == -1 || MUSHROOM_GROUP_INDEX == -1) {
+        if (SPAWN_EGG_GROUP_INDEX == -1 || BANNER_GROUP_INDEX == -1) {
             throw new AssertionError("vanilla item group not found");
         }
 
@@ -169,11 +165,8 @@ public final class CreativeInventoryGrouped {
                     if (item.isSpawnEgg()) {
                         return SPAWN_EGG_GROUP_INDEX;
                     }
-                    if (itemId == ItemID.SKULL) {
-                        return SKULL_GROUP_INDEX;
-                    }
-                    if (itemId == ItemBlockID.BROWN_MUSHROOM) {
-                        return MUSHROOM_GROUP_INDEX;
+                    if (itemId == ItemID.BANNER) {
+                        return BANNER_GROUP_INDEX;
                     }
                     if (item.isBlockItem()) {
                         Block block = item.getBlock();

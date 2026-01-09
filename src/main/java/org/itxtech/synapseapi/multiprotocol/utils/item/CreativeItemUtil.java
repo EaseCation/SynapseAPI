@@ -1,8 +1,10 @@
 package org.itxtech.synapseapi.multiprotocol.utils.item;
 
+import cn.nukkit.block.Block;
 import cn.nukkit.item.Item;
+import cn.nukkit.item.ItemFullNames;
 import cn.nukkit.item.ItemID;
-import cn.nukkit.utils.BinaryStream;
+import cn.nukkit.item.Items;
 import com.google.common.io.ByteStreams;
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;
@@ -12,7 +14,7 @@ import it.unimi.dsi.fastutil.objects.Object2IntMap.Entry;
 import lombok.extern.log4j.Log4j2;
 import org.itxtech.synapseapi.SynapseAPI;
 import org.itxtech.synapseapi.multiprotocol.AbstractProtocol;
-import org.itxtech.synapseapi.multiprotocol.utils.AdvancedRuntimeItemPalette;
+import org.itxtech.synapseapi.multiprotocol.utils.AdvancedGlobalBlockPalette;
 
 import javax.annotation.Nullable;
 import java.io.ByteArrayInputStream;
@@ -31,14 +33,14 @@ public final class CreativeItemUtil {
         log.debug("Loading creative item data...");
         Gson gson = new Gson();
 
-        try (InputStreamReader reader = new InputStreamReader(new ByteArrayInputStream(ByteStreams.toByteArray(SynapseAPI.class.getClassLoader().getResourceAsStream("item_id_map_12050.json"))))) {
+        try (InputStreamReader reader = new InputStreamReader(new ByteArrayInputStream(ByteStreams.toByteArray(SynapseAPI.class.getClassLoader().getResourceAsStream("item_id_map_12150.json"))))) {
             ITEM_NAME_TO_ID = gson.fromJson(reader, new TypeToken<Object2IntOpenHashMap<String>>(){});
             ITEM_NAME_TO_ID.defaultReturnValue(Item.AIR);
         } catch (Exception e) {
             throw new AssertionError("Unable to load item_id_map.json", e);
         }
 
-        try (InputStreamReader reader = new InputStreamReader(new ByteArrayInputStream(ByteStreams.toByteArray(SynapseAPI.class.getClassLoader().getResourceAsStream("item_flatten_map_12050.json"))))) {
+        try (InputStreamReader reader = new InputStreamReader(new ByteArrayInputStream(ByteStreams.toByteArray(SynapseAPI.class.getClassLoader().getResourceAsStream("item_flatten_map_12150.json"))))) {
             gson.fromJson(reader, JsonObject.class).entrySet().forEach(entry -> {
                 String legacyName = entry.getKey();
 
@@ -64,7 +66,7 @@ public final class CreativeItemUtil {
             throw new AssertionError("Unable to load item_flatten_map.json", e);
         }
 
-        ITEM_NAME_TO_ID.put("minecraft:air", ItemID.AIR);
+        ITEM_NAME_TO_ID.put(ItemFullNames.AIR, ItemID.AIR);
 
         for (Entry<String> entry : LegacyItemSerializer.getInternalMapping().object2IntEntrySet()) {
             Integer fullId = entry.getIntValue();
@@ -83,47 +85,8 @@ public final class CreativeItemUtil {
         int blockRuntimeId = itemEntry.has("blockNetId") ? itemEntry.get("blockNetId").getAsInt() : -1;
         String nbt = itemEntry.has("nbt") ? itemEntry.get("nbt").getAsString() : null;
 
-        if (blockRuntimeId != -1) {
-            BinaryStream stream = new BinaryStream();
-            stream.setHelper(AbstractProtocol.PROTOCOL_121_60.getHelper());
-            stream.putVarInt(ITEM_NAME_TO_ID.getInt(name));
-            stream.putLShort(count);
-            stream.putUnsignedVarInt(0);
-            stream.putVarInt(blockRuntimeId);
-            stream.putByteArray(new byte[]{
-                    0, 0,
-                    0, 0, 0, 0,
-                    0, 0, 0, 0,
-            });
-            Item networkItem = stream.getItemInstance();
-            if (nbt != null) {
-                networkItem.setCompoundTag(Base64.getDecoder().decode(nbt));
-            }
-            return networkItem;
-        }
+        int id = Items.getIdByName(name);
 
-        int id;
-        ObjectIntPair<String> legacy = FLATTENED_TO_LEGACY.get(name);
-        if (legacy != null) {
-            id = ITEM_NAME_TO_ID.getOrDefault(legacy.left(), Integer.MIN_VALUE);
-            meta = legacy.rightInt();
-        } else {
-            id = ITEM_NAME_TO_ID.getOrDefault(name, Integer.MIN_VALUE);
-        }
-
-        if (id == Integer.MIN_VALUE) {
-            int networkLegacyFullId = AdvancedRuntimeItemPalette.getLegacyFullIdByName(AbstractProtocol.PROTOCOL_121_60, false, name);
-            if (networkLegacyFullId != -1) {
-                id = AdvancedRuntimeItemPalette.getId(AbstractProtocol.PROTOCOL_121_60, false, networkLegacyFullId);
-                if (AdvancedRuntimeItemPalette.hasData(AbstractProtocol.PROTOCOL_121_60, false, networkLegacyFullId)) {
-                    meta = AdvancedRuntimeItemPalette.getData(AbstractProtocol.PROTOCOL_121_60, false, networkLegacyFullId);
-                }
-            } else {
-                log.debug("Unknown item name: {}", name);
-                return null;
-            }
-        }
-/*
         if (blockRuntimeId != -1) {
             int legacyId = AdvancedGlobalBlockPalette.getLegacyId(AbstractProtocol.PROTOCOL_121_60, false, blockRuntimeId);
 
@@ -134,9 +97,16 @@ public final class CreativeItemUtil {
 
             meta = legacyId & 0x3fff;
 
-            assert id == Block.getItemId(legacyId >> 14);
+            if (meta != 0) {
+                log.trace("creative item '{}' has meta: {} - {}", id, meta, itemEntry);
+            }
+
+            int expectedId = Block.getItemId(legacyId >> 14);
+            if (id != expectedId) {
+                log.error("creative item id {} != {} : {}", id, expectedId, itemEntry);
+            }
         }
-*/
+
         if (id == Item.BANNER) {
             if ("CgAAAwQAVHlwZQAAAAAA".equals(nbt)) {
                 nbt = null;

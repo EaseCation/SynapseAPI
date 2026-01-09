@@ -2,6 +2,7 @@ package org.itxtech.synapseapi.multiprotocol.utils.item;
 
 import cn.nukkit.block.Block;
 import cn.nukkit.inventory.*;
+import cn.nukkit.inventory.recipe.SpecialRecipes;
 import cn.nukkit.item.Item;
 import cn.nukkit.item.Items;
 import com.google.common.io.ByteStreams;
@@ -84,7 +85,12 @@ public class CraftingManagerMedieval extends CraftingManagerLegacy {
 
     @Override
     protected void loadHardcoded(JsonElement element) {
-        registerRecipe(new MultiRecipe(UUID.fromString(element.getAsJsonObject().get("uuid").getAsString())));
+        UUID uuid = UUID.fromString(element.getAsJsonObject().get("uuid").getAsString());
+        if (SpecialRecipes.getRecipe(uuid) == null) {
+            log.trace("Skip an unimplemented multi recipe: {}", element);
+            return;
+        }
+        registerRecipe(new MultiRecipe(uuid));
     }
 
     @Override

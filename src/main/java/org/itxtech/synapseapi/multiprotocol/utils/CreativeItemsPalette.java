@@ -118,7 +118,6 @@ public class CreativeItemsPalette {
             register(AbstractProtocol.PROTOCOL_119_70, CreativeInventoryNew.getItems(), null);
             register(AbstractProtocol.PROTOCOL_119_80, CreativeInventoryNew.getItems(), null);
             register(AbstractProtocol.PROTOCOL_120, CreativeInventoryNew.getItems(), null);
-*/
             register(AbstractProtocol.PROTOCOL_120_10, CreativeInventoryNew.getItems(), null);
             register(AbstractProtocol.PROTOCOL_120_30, CreativeInventoryNew.getItems(), null);
             register(AbstractProtocol.PROTOCOL_120_40, CreativeInventoryNew.getItems(), null);
@@ -131,6 +130,7 @@ public class CreativeItemsPalette {
             register(AbstractProtocol.PROTOCOL_121_20, CreativeInventoryNew.getItems(), null);
             register(AbstractProtocol.PROTOCOL_121_30, CreativeInventoryNew.getItems(), null);
             register(AbstractProtocol.PROTOCOL_121_40, CreativeInventoryNew.getItems(), null);
+*/
             register(AbstractProtocol.PROTOCOL_121_50, CreativeInventoryNew.getItems(), null);
             register(AbstractProtocol.PROTOCOL_121_60, CreativeInventoryNew.getItems(), null);
             register(AbstractProtocol.PROTOCOL_121_70, CreativeInventoryNew.getItems(), null);

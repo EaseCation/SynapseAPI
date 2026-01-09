@@ -76,7 +76,7 @@ public class BinaryStreamHelper116220 extends BinaryStreamHelper116210 {
         if (id < 256 && id != Item.GLOW_STICK) { // ItemBlock
             int legacyId = AdvancedGlobalBlockPalette.getLegacyId(this.protocol, stream.neteaseMode, blockRuntimeId);
             if (legacyId != -1) {
-                damage = legacyId & 0x3fff;
+                damage = legacyId & Block.getUnsafe(Block.itemIdToBlockId(id)).getItemKeepMetaMask();
             }
         }
 
@@ -210,7 +210,7 @@ public class BinaryStreamHelper116220 extends BinaryStreamHelper116210 {
         }
 
         Block block = isBlock ? item.getBlockUnsafe() : null;
-        int runtimeId = block == null || block.isBlockItem() ? 0 : AdvancedGlobalBlockPalette.getOrCreateRuntimeId(this.protocol, stream.neteaseMode, block.getId(), block.getDamage());
+        int runtimeId = block == null || block.isBlockItem() ? 0 : AdvancedGlobalBlockPalette.getOrCreateRuntimeId(this.protocol, stream.neteaseMode, block.getId(), block.getItemSerializationMeta());
         stream.putVarInt(runtimeId);
 
         if (SynapseSharedConstants.ITEM_BLOCK_DEBUG) {

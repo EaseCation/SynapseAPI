@@ -78,10 +78,10 @@ public final class BiomeDefinitions {
             CompoundTag data11920 = NBTIO.read(ByteStreams.toByteArray(SynapseAPI.getInstance().getResource("biome_definitions11920.nbt")), ByteOrder.LITTLE_ENDIAN, true);
             CompoundTag data11930 = NBTIO.read(ByteStreams.toByteArray(SynapseAPI.getInstance().getResource("biome_definitions11930.nbt")), ByteOrder.LITTLE_ENDIAN, true);
             CompoundTag data11940 = NBTIO.read(ByteStreams.toByteArray(SynapseAPI.getInstance().getResource("biome_definitions11940.nbt")), ByteOrder.LITTLE_ENDIAN, true);
-*/
             CompoundTag data11980 = NBTIO.read(ByteStreams.toByteArray(SynapseAPI.getInstance().getResource("biome_definitions11980.nbt")), ByteOrder.LITTLE_ENDIAN, true);
             CompoundTag data12120 = NBTIO.read(ByteStreams.toByteArray(SynapseAPI.getInstance().getResource("biome_definitions12120.nbt")), ByteOrder.LITTLE_ENDIAN, true);
             CompoundTag data12140 = NBTIO.read(ByteStreams.toByteArray(SynapseAPI.getInstance().getResource("biome_definitions12140.nbt")), ByteOrder.LITTLE_ENDIAN, true);
+*/
             CompoundTag data12150 = NBTIO.read(ByteStreams.toByteArray(SynapseAPI.getInstance().getResource("biome_definitions12150.nbt")), ByteOrder.LITTLE_ENDIAN, true);
             CompoundTag data12160 = NBTIO.read(ByteStreams.toByteArray(SynapseAPI.getInstance().getResource("biome_definitions12160.nbt")), ByteOrder.LITTLE_ENDIAN, true);
             CompoundTag data12170 = NBTIO.read(ByteStreams.toByteArray(SynapseAPI.getInstance().getResource("biome_definitions12170.nbt")), ByteOrder.LITTLE_ENDIAN, true);
@@ -121,7 +121,6 @@ public final class BiomeDefinitions {
             data.put(AbstractProtocol.PROTOCOL_119_70, data11940);
             data.put(AbstractProtocol.PROTOCOL_119_80, data11980);
             data.put(AbstractProtocol.PROTOCOL_120, data11980);
-*/
             data.put(AbstractProtocol.PROTOCOL_120_10, data11980);
             data.put(AbstractProtocol.PROTOCOL_120_30, data11980);
             data.put(AbstractProtocol.PROTOCOL_120_40, data11980);
@@ -134,6 +133,7 @@ public final class BiomeDefinitions {
             data.put(AbstractProtocol.PROTOCOL_121_20, data12120);
             data.put(AbstractProtocol.PROTOCOL_121_30, data12120);
             data.put(AbstractProtocol.PROTOCOL_121_40, data12140);
+*/
             data.put(AbstractProtocol.PROTOCOL_121_50, data12150);
             data.put(AbstractProtocol.PROTOCOL_121_60, data12160);
             data.put(AbstractProtocol.PROTOCOL_121_70, data12170);

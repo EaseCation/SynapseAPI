@@ -14,7 +14,6 @@ import com.google.gson.Gson;
 import com.google.gson.JsonObject;
 import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
-import it.unimi.dsi.fastutil.objects.ObjectIntPair;
 import lombok.extern.log4j.Log4j2;
 import org.itxtech.synapseapi.SynapseAPI;
 import org.itxtech.synapseapi.multiprotocol.utils.block.BlockUtil;
@@ -88,11 +87,6 @@ public final class VanillaItemUpgrader {
                     }
                 }
 
-                ObjectIntPair<String> legacy = ItemUtil.FLATTENED_TO_LEGACY.get(rawNameId);
-                if (legacy != null) {
-                    rawNameId = legacy.left();
-                }
-
                 wasNumId = true;
             } else if (idTag instanceof StringTag) {
                 // JE - best we can do here is hope the string IDs match
@@ -130,11 +124,6 @@ public final class VanillaItemUpgrader {
         if (blockTag != null) {
             BlockUpgrader.upgrade(blockTag);
         } else if ((blockName = ItemUtil.ITEM_TO_BLOCK.get(newName)) != null) {
-            ObjectIntPair<String> legacy = ItemUtil.FLATTENED_TO_LEGACY.get(blockName);
-            if (legacy != null) {
-                blockName = legacy.left();
-            }
-
             // this is a legacy block item represented by ID + meta
             blockTag = new CompoundTag()
                     .putString("name", blockName)

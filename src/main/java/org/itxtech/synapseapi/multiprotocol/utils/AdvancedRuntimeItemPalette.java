@@ -60,7 +60,6 @@ public final class AdvancedRuntimeItemPalette {
         RuntimeItemPalette palette11970 = new RuntimeItemPalette(AbstractProtocol.PROTOCOL_119_70, "runtime_item_ids_11970.json");
         RuntimeItemPalette palette11980 = new RuntimeItemPalette(AbstractProtocol.PROTOCOL_119_80, "runtime_item_ids_11980.json");
         RuntimeItemPalette palette120 = new RuntimeItemPalette(AbstractProtocol.PROTOCOL_120, "runtime_item_ids_120.json");
-*/
         RuntimeItemPalette palette12010 = new RuntimeItemPalette(AbstractProtocol.PROTOCOL_120_10, "runtime_item_ids_12010.json");
         RuntimeItemPalette palette12010N = new RuntimeItemPalette(AbstractProtocol.PROTOCOL_120_10, "runtime_item_ids_12010NE.json"); //NOTICE: 中国版部分物品的运行时id硬编码在客户端 (目前已知所有药水容器都是静态id, 使用动态id会导致无法放进酿造台)
         RuntimeItemPalette palette12030 = new RuntimeItemPalette(AbstractProtocol.PROTOCOL_120_30, "runtime_item_ids_12030.json");
@@ -75,6 +74,7 @@ public final class AdvancedRuntimeItemPalette {
         RuntimeItemPalette palette12120 = new RuntimeItemPalette(AbstractProtocol.PROTOCOL_121_20, "runtime_item_ids_12120.json");
         RuntimeItemPalette palette12130 = new RuntimeItemPalette(AbstractProtocol.PROTOCOL_121_30, "runtime_item_ids_12130.json");
         RuntimeItemPalette palette12140 = new RuntimeItemPalette(AbstractProtocol.PROTOCOL_121_40, "runtime_item_ids_12140.json");
+*/
         RuntimeItemPalette palette12150 = new RuntimeItemPalette(AbstractProtocol.PROTOCOL_121_50, "runtime_item_ids_12150.json");
         RuntimeItemPalette palette12150N = new RuntimeItemPalette(AbstractProtocol.PROTOCOL_121_50, "runtime_item_ids_12150.json", true);
         RuntimeItemPalette palette12160 = new RuntimeItemPalette(AbstractProtocol.PROTOCOL_121_60, "runtime_item_ids_12160.json");
@@ -112,7 +112,6 @@ public final class AdvancedRuntimeItemPalette {
         register(AbstractProtocol.PROTOCOL_119_70, palette11970, null);
         register(AbstractProtocol.PROTOCOL_119_80, palette11980, null);
         register(AbstractProtocol.PROTOCOL_120, palette120, null);
-*/
         register(AbstractProtocol.PROTOCOL_120_10, palette12010, palette12010N);
         register(AbstractProtocol.PROTOCOL_120_30, palette12030, null);
         register(AbstractProtocol.PROTOCOL_120_40, palette12030, null);
@@ -125,6 +124,7 @@ public final class AdvancedRuntimeItemPalette {
         register(AbstractProtocol.PROTOCOL_121_20, palette12120, null);
         register(AbstractProtocol.PROTOCOL_121_30, palette12130, null);
         register(AbstractProtocol.PROTOCOL_121_40, palette12140, null);
+*/
         register(AbstractProtocol.PROTOCOL_121_50, palette12150, palette12150N);
         register(AbstractProtocol.PROTOCOL_121_60, palette12160, null);
         register(AbstractProtocol.PROTOCOL_121_70, palette12170, null);

@@ -39,9 +39,10 @@ import static cn.nukkit.GameVersion.*;
 
 @Log4j2
 public final class VanillaBlockUpgrader {
-    private static final int ALLOWED_VERSION = (1 << 24) | (20 << 16) | (10 << 8) | 0xff; //TODO: Chunker.app temporary HACK
+//    private static final int ALLOWED_VERSION = (1 << 24) | (20 << 16) | (10 << 8) | 0xff; //TODO: Chunker.app temporary HACK
 
     private static final Map<GameVersion, List<BlockUpgradeSchema>> SCHEMAS = new EnumMap<>(GameVersion.class);
+    private static final Map<GameVersion, List<BlockUpgradeSchema>> RUNTIME_MAPPING_SCHEMAS = new EnumMap<>(GameVersion.class);
     private static final List<BlockUpgradeSchema> UPGRADE_SCHEMAS = new ObjectArrayList<>();
     private static int CURRENT_VERSION;
 
@@ -57,8 +58,16 @@ public final class VanillaBlockUpgrader {
     }
 
     public static List<BlockUpgradeSchema> getSchemas(Predicate<GameVersion> filter) {
+        return getSchemas(filter, SCHEMAS);
+    }
+
+    public static List<BlockUpgradeSchema> getRuntimeMappingSchemas(Predicate<GameVersion> filter) {
+        return getSchemas(filter, RUNTIME_MAPPING_SCHEMAS);
+    }
+
+    public static List<BlockUpgradeSchema> getSchemas(Predicate<GameVersion> filter, Map<GameVersion, List<BlockUpgradeSchema>> upgradeSchemas) {
         List<BlockUpgradeSchema> schemas = new ObjectArrayList<>();
-        for (Entry<GameVersion, List<BlockUpgradeSchema>> entry : SCHEMAS.entrySet()) {
+        for (Entry<GameVersion, List<BlockUpgradeSchema>> entry : upgradeSchemas.entrySet()) {
             if (!filter.test(entry.getKey())) {
                 continue;
             }
@@ -270,6 +279,13 @@ public final class VanillaBlockUpgrader {
     }
 
     private static BlockUpgradeSchema addSchema(String file, GameVersion baseGameVersion) {
+        return addSchema(file, baseGameVersion, 0);
+    }
+
+    /**
+     * @param flags 0b1: disable upgrade schema; 0b10: disable runtime mapping schema
+     */
+    private static BlockUpgradeSchema addSchema(String file, GameVersion baseGameVersion, int flags) {
         JsonObject json;
         try (InputStreamReader reader = new InputStreamReader(new ByteArrayInputStream(ByteStreams.toByteArray(SynapseAPI.class.getClassLoader().getResourceAsStream("block_upgrade_schemas/" + file))))) {
             json = GSON.fromJson(reader, JsonObject.class);
@@ -278,7 +294,7 @@ public final class VanillaBlockUpgrader {
         }
 
         BlockUpgradeSchema schema = new BlockUpgradeSchema(json);
-        if (baseGameVersion.isAvailable()) {
+        if (baseGameVersion.isAvailable() && (flags & 0b1) == 0) {
             UPGRADE_SCHEMAS.add(schema);
 
             int version = schema.getVersion();
@@ -287,8 +303,14 @@ public final class VanillaBlockUpgrader {
             }
         }
 
-        List<BlockUpgradeSchema> schemas = SCHEMAS.computeIfAbsent(baseGameVersion, k -> new ObjectArrayList<>());
-        schemas.add(schema);
+        if ((flags & 0b1) == 0) {
+            List<BlockUpgradeSchema> schemas = SCHEMAS.computeIfAbsent(baseGameVersion, k -> new ObjectArrayList<>());
+            schemas.add(schema);
+        }
+        if ((flags & 0b10) == 0) {
+            List<BlockUpgradeSchema> schemas = RUNTIME_MAPPING_SCHEMAS.computeIfAbsent(baseGameVersion, k -> new ObjectArrayList<>());
+            schemas.add(schema);
+        }
 
         return schema;
     }
@@ -392,11 +414,8 @@ public final class VanillaBlockUpgrader {
         addSchema("0281_1.20.80.24_beta_to_1.21.0.25_beta.json", V1_21_0);
         addSchema("0291_1.21.0.25_beta_to_1.21.20.24_beta.json", V1_21_20);
         addSchema("0301_1.21.20.24_beta_to_1.21.30.24_beta.json", V1_21_30);
-        if (V1_21_40.isAvailable()) {
-            addSchema("0311_1.21.30.24_beta_to_1.21.40.20_beta_vanilla.json", V1_21_40);
-        } else {
-            addSchema("0311_1.21.30.24_beta_to_1.21.40.20_beta.json", V1_21_40);
-        }
+        addSchema("0311_1.21.30.24_beta_to_1.21.40.20_beta_vanilla.json", V1_21_40, 0b10);
+        addSchema("0311_1.21.30.24_beta_to_1.21.40.20_beta.json", V1_21_40, 0b1);
         addSchema("0321_1.21.40.20_beta_to_1.21.60.25_beta.json", V1_21_60);
         addSchema("0331_1.21.60.25_beta_to_1.21.110.25_beta.json", V1_21_111);
 

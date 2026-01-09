@@ -15,7 +15,6 @@ import it.unimi.dsi.fastutil.objects.*;
 import lombok.extern.log4j.Log4j2;
 import org.itxtech.synapseapi.SynapseAPI;
 import org.itxtech.synapseapi.multiprotocol.AbstractProtocol;
-import org.itxtech.synapseapi.multiprotocol.utils.AdvancedRuntimeItemPalette;
 import org.itxtech.synapseapi.multiprotocol.utils.block.BlockUtil;
 
 import javax.annotation.Nullable;
@@ -29,7 +28,7 @@ import java.util.Map;
 
 @Log4j2
 public final class ItemUtil {
-    private static final AbstractProtocol DATA_VERSION = AbstractProtocol.PROTOCOL_120_10;
+    private static final AbstractProtocol DATA_VERSION = AbstractProtocol.FIRST_AVAILABLE_PROTOCOL;
 
     static final Object2IntMap<String> ITEM_NAME_TO_ID;
     static final String[] ITEM_ID_TO_NAME = new String[Short.MAX_VALUE];
@@ -37,14 +36,16 @@ public final class ItemUtil {
 
     static final Map<String, String> ITEM_TO_BLOCK = new Object2ObjectOpenHashMap<>();
 
+    @Deprecated
     static final Map<String, String[]> LEGACY_TO_FLATTENED = new Object2ObjectOpenHashMap<>();
+    @Deprecated
     static final Map<String, ObjectIntPair<String>> FLATTENED_TO_LEGACY = new Object2ObjectOpenHashMap<>();
 
     static {
         log.debug("Loading item data...");
         Gson gson = new Gson();
 
-        try (InputStreamReader reader = new InputStreamReader(new ByteArrayInputStream(ByteStreams.toByteArray(SynapseAPI.class.getClassLoader().getResourceAsStream("item_id_map_12010.json"))))) {
+        try (InputStreamReader reader = new InputStreamReader(new ByteArrayInputStream(ByteStreams.toByteArray(SynapseAPI.class.getClassLoader().getResourceAsStream("item_id_map_12150.json"))))) {
             ITEM_NAME_TO_ID = gson.fromJson(reader, new TypeToken<Object2IntOpenHashMap<String>>(){});
             ITEM_NAME_TO_ID.defaultReturnValue(Item.AIR);
 
@@ -66,13 +67,13 @@ public final class ItemUtil {
             throw new AssertionError("Unable to load item_id_map.json", e);
         }
 
-        try (InputStreamReader reader = new InputStreamReader(new ByteArrayInputStream(ByteStreams.toByteArray(SynapseAPI.class.getClassLoader().getResourceAsStream("item_block_map_12010.json"))))) {
+        try (InputStreamReader reader = new InputStreamReader(new ByteArrayInputStream(ByteStreams.toByteArray(SynapseAPI.class.getClassLoader().getResourceAsStream("item_block_map_12150.json"))))) {
             gson.fromJson(reader, new TypeToken<Object2ObjectOpenHashMap<String, String>>(){}).forEach((block, item) -> ITEM_TO_BLOCK.put(item, block));
         } catch (Exception e) {
             throw new AssertionError("Unable to load item_block_map.json", e);
         }
 
-        try (InputStreamReader reader = new InputStreamReader(new ByteArrayInputStream(ByteStreams.toByteArray(SynapseAPI.class.getClassLoader().getResourceAsStream("item_flatten_map_12010.json"))))) {
+        try (InputStreamReader reader = new InputStreamReader(new ByteArrayInputStream(ByteStreams.toByteArray(SynapseAPI.class.getClassLoader().getResourceAsStream("item_flatten_map_12150.json"))))) {
             gson.fromJson(reader, JsonObject.class).entrySet().forEach(entry -> {
                 String legacyName = entry.getKey();
 
@@ -145,21 +146,7 @@ public final class ItemUtil {
             meta = -1;
         }
 
-        int id;
-        int fullId = AdvancedRuntimeItemPalette.getLegacyFullIdByName(DATA_VERSION, false, name);
-        if (fullId == -1) {
-            int itemFullId = Items.getFullIdByName(name, true, true);
-            if (itemFullId == -1) {
-                return null;
-            }
-            id = Item.getIdFromFullId(itemFullId);
-            meta = Item.getMetaFromFullId(itemFullId);
-        } else {
-            id = AdvancedRuntimeItemPalette.getId(DATA_VERSION, false, fullId);
-            if (AdvancedRuntimeItemPalette.hasData(DATA_VERSION, false, fullId)) {
-                meta = AdvancedRuntimeItemPalette.getData(DATA_VERSION, false, fullId);
-            }
-        }
+        int id = Items.getIdByName(name);
 
         if (blockStates != null) {
             CompoundTag blockTag = new CompoundTag()

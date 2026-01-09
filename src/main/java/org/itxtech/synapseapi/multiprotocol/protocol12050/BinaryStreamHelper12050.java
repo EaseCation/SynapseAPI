@@ -61,7 +61,7 @@ public class BinaryStreamHelper12050 extends BinaryStreamHelper12040 {
         id = AdvancedRuntimeItemPalette.getId(this.protocol, stream.neteaseMode, fullId);
 
         int newId = id;
-        id = BlockItemFlattener.downgrade(this.protocol, id);
+//        id = BlockItemFlattener.downgrade(this.protocol, id);
 
         boolean hasData = AdvancedRuntimeItemPalette.hasData(this.protocol, stream.neteaseMode, fullId);
         if (hasData) {
@@ -76,13 +76,13 @@ public class BinaryStreamHelper12050 extends BinaryStreamHelper12040 {
         if (id < 256 && id != Item.GLOW_STICK) { // ItemBlock
             int legacyId = AdvancedGlobalBlockPalette.getLegacyId(this.protocol, stream.neteaseMode, blockRuntimeId);
             if (legacyId != -1) {
-                damage = legacyId & 0x3fff;
+                damage = legacyId & Block.getUnsafe(Block.itemIdToBlockId(id)).getItemKeepMetaMask();
             }
         }
 
-        int itemFullId = BlockItemFlattener.fixMeta(this.protocol, newId, id, damage);
-        id = Item.getIdFromFullId(itemFullId);
-        damage = Item.getMetaFromFullId(itemFullId);
+//        int itemFullId = BlockItemFlattener.fixMeta(this.protocol, newId, id, damage);
+//        id = Item.getIdFromFullId(itemFullId);
+//        damage = Item.getMetaFromFullId(itemFullId);
 
         byte[] bytes = stream.getByteArray();
         ByteBuf buf = ByteBufAllocator.DEFAULT.ioBuffer(bytes.length);
@@ -207,7 +207,7 @@ public class BinaryStreamHelper12050 extends BinaryStreamHelper12040 {
         }
 
         Block block = isBlock ? item.getBlockUnsafe() : null;
-        int runtimeId = block == null || block.isBlockItem() ? 0 : AdvancedGlobalBlockPalette.getOrCreateRuntimeId(this.protocol, stream.neteaseMode, block.getId(), block.getDamage());
+        int runtimeId = block == null || block.isBlockItem() ? 0 : AdvancedGlobalBlockPalette.getOrCreateRuntimeId(this.protocol, stream.neteaseMode, block.getId(), block.getItemSerializationMeta());
         stream.putVarInt(runtimeId);
 
         if (SynapseSharedConstants.ITEM_BLOCK_DEBUG) {
@@ -294,7 +294,7 @@ public class BinaryStreamHelper12050 extends BinaryStreamHelper12040 {
                 int id = AdvancedRuntimeItemPalette.getId(this.protocol, stream.neteaseMode, legacyFullId);
                 boolean hasData = AdvancedRuntimeItemPalette.hasData(this.protocol, stream.neteaseMode, legacyFullId);
 
-                id = BlockItemFlattener.downgrade(this.protocol, id);
+//                id = BlockItemFlattener.downgrade(this.protocol, id);
 
                 int damage = stream.getLShort();
                 if (hasData) {

@@ -92,8 +92,6 @@ public class SynapseAPI extends PluginBase implements Listener {
         this.blobCacheChunkSendPreTick = this.getConfig().getInt("blob-cache-chunk-send-pre-tick", 0);
         this.recordPacketStack = this.getConfig().getBoolean("record-packet-stack", false);
 
-        saveResource("recipes11.json", true);
-
         PacketRegister.init();
 
         GlobalBlockPalette.setInstance(new GlobalBlockPaletteInterface(){
@@ -228,7 +226,6 @@ public class SynapseAPI extends PluginBase implements Listener {
                 : new CraftingManagerLegacy());
         CraftingPacketManager.rebuildPacket();
 
-        ChunkRequestTask.addPreloadVersion(StaticVersion.V1_21_2_NETEASE);
         ChunkRequestTask.addPreloadVersion(StaticVersion.V1_21_50_NETEASE);
 
         //仅用于开发测试

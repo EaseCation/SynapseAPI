@@ -1,7 +1,9 @@
 package org.itxtech.synapseapi.multiprotocol.utils;
 
+import cn.nukkit.block.BlockGrassShort;
 import cn.nukkit.block.Blocks;
 import cn.nukkit.item.Item;
+import cn.nukkit.item.ItemBlockID;
 import cn.nukkit.item.RuntimeItemPaletteInterface.Entry;
 import cn.nukkit.nbt.NBTIO;
 import cn.nukkit.nbt.tag.CompoundTag;
@@ -93,7 +95,9 @@ public class RuntimeItemPalette implements AdvancedRuntimeItemPaletteInterface {
         }
 
         if (microsoftToNetease) {
-            registerItem(new Entry("minecraft:mod_ore", 230, 230, null));
+            if (protocol.isOlderThan(AbstractProtocol.PROTOCOL_121_50)) {
+                registerItem(new Entry("minecraft:mod_ore", 230, 230, null));
+            }
             registerItem(new Entry("minecraft:micro_block", -9735, -9735, null));
             registerItem(new Entry("minecraft:mod_armor", 1996, 454, null));
             registerItem(new Entry("minecraft:mod", 1997, 456, null));
@@ -183,10 +187,14 @@ public class RuntimeItemPalette implements AdvancedRuntimeItemPaletteInterface {
         int oldId;
         boolean hasData = entry.oldData != null;
 
-        if (hasData && entry.oldData > 0 && (entry.oldId == null || entry.oldId > 0xff && entry.oldId != Item.SKULL)) {
+        if (hasData && entry.oldData > 0 && (entry.oldId == null || entry.oldId > 0xff)) {
             hasData = false;
             log.trace("item '{}' has been flattened: id {} meta {} ({})", entry.name, entry.oldId, entry.oldData, protocol);
             entry = new Entry(entry.name, entry.id, null, null, entry.component, entry.version);
+        }
+
+        if (entry.oldId != null && (entry.oldId == Item.SKULL || entry.oldId < 256 && entry.oldId != Item.GLOW_STICK)) {
+            entry = new Entry(entry.name, entry.id, entry.id, 0, entry.component, entry.version);
         }
 
         if (entry.oldId == null) {

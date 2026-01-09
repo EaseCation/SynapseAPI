@@ -54,7 +54,6 @@ public final class AvailableEntityIdentifiersPalette {
             CompoundTag data11910 = NBTIO.read(ByteStreams.toByteArray(SynapseAPI.getInstance().getResource("entity_identifiers_11910.nbt")), ByteOrder.LITTLE_ENDIAN, true);
             CompoundTag data11960 = NBTIO.read(ByteStreams.toByteArray(SynapseAPI.getInstance().getResource("entity_identifiers_11960.nbt")), ByteOrder.LITTLE_ENDIAN, true);
             CompoundTag data11970 = NBTIO.read(ByteStreams.toByteArray(SynapseAPI.getInstance().getResource("entity_identifiers_11970.nbt")), ByteOrder.LITTLE_ENDIAN, true);
-*/
             CompoundTag data11980 = NBTIO.read(ByteStreams.toByteArray(SynapseAPI.getInstance().getResource("entity_identifiers_11980.nbt")), ByteOrder.LITTLE_ENDIAN, true);
             CompoundTag data12040 = NBTIO.read(ByteStreams.toByteArray(SynapseAPI.getInstance().getResource("entity_identifiers_12040.nbt")), ByteOrder.LITTLE_ENDIAN, true);
             CompoundTag data12060 = NBTIO.read(ByteStreams.toByteArray(SynapseAPI.getInstance().getResource("entity_identifiers_12060.nbt")), ByteOrder.LITTLE_ENDIAN, true);
@@ -62,6 +61,7 @@ public final class AvailableEntityIdentifiersPalette {
             CompoundTag data12080 = NBTIO.read(ByteStreams.toByteArray(SynapseAPI.getInstance().getResource("entity_identifiers_12080.nbt")), ByteOrder.LITTLE_ENDIAN, true);
             CompoundTag data121 = NBTIO.read(ByteStreams.toByteArray(SynapseAPI.getInstance().getResource("entity_identifiers_121.nbt")), ByteOrder.LITTLE_ENDIAN, true);
             CompoundTag data12120 = NBTIO.read(ByteStreams.toByteArray(SynapseAPI.getInstance().getResource("entity_identifiers_12120.nbt")), ByteOrder.LITTLE_ENDIAN, true);
+*/
             CompoundTag data12150 = NBTIO.read(ByteStreams.toByteArray(SynapseAPI.getInstance().getResource("entity_identifiers_12150.nbt")), ByteOrder.LITTLE_ENDIAN, true);
             CompoundTag data12190 = NBTIO.read(ByteStreams.toByteArray(SynapseAPI.getInstance().getResource("entity_identifiers_12190.nbt")), ByteOrder.LITTLE_ENDIAN, true);
             CompoundTag data121110 = NBTIO.read(ByteStreams.toByteArray(SynapseAPI.getInstance().getResource("entity_identifiers_121110.nbt")), ByteOrder.LITTLE_ENDIAN, true);
@@ -103,7 +103,6 @@ public final class AvailableEntityIdentifiersPalette {
             palettes.put(AbstractProtocol.PROTOCOL_119_70, data11970);
             palettes.put(AbstractProtocol.PROTOCOL_119_80, data11980);
             palettes.put(AbstractProtocol.PROTOCOL_120, data11980);
-*/
             palettes.put(AbstractProtocol.PROTOCOL_120_10, data11980);
             palettes.put(AbstractProtocol.PROTOCOL_120_30, data11980);
             palettes.put(AbstractProtocol.PROTOCOL_120_40, data12040);
@@ -116,6 +115,7 @@ public final class AvailableEntityIdentifiersPalette {
             palettes.put(AbstractProtocol.PROTOCOL_121_20, data12120);
             palettes.put(AbstractProtocol.PROTOCOL_121_30, data12120);
             palettes.put(AbstractProtocol.PROTOCOL_121_40, data12120);
+*/
             palettes.put(AbstractProtocol.PROTOCOL_121_50, data12150);
             palettes.put(AbstractProtocol.PROTOCOL_121_60, data12150);
             palettes.put(AbstractProtocol.PROTOCOL_121_70, data12150);
