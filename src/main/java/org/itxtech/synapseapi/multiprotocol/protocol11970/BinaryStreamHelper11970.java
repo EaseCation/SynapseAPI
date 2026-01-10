@@ -21,7 +21,6 @@ import org.itxtech.synapseapi.SynapseSharedConstants;
 import org.itxtech.synapseapi.multiprotocol.protocol11963.BinaryStreamHelper11963;
 import org.itxtech.synapseapi.multiprotocol.utils.AdvancedGlobalBlockPalette;
 import org.itxtech.synapseapi.multiprotocol.utils.AdvancedRuntimeItemPalette;
-import org.itxtech.synapseapi.multiprotocol.utils.item.BlockItemFlattener;
 
 import java.io.IOException;
 import java.nio.ByteOrder;

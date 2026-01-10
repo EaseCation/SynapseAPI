@@ -26,8 +26,6 @@ import org.itxtech.synapseapi.messaging.StandardMessenger;
 import org.itxtech.synapseapi.multiprotocol.AbstractProtocol;
 import org.itxtech.synapseapi.multiprotocol.PacketRegister;
 import org.itxtech.synapseapi.multiprotocol.utils.*;
-import org.itxtech.synapseapi.multiprotocol.utils.item.CraftingManagerLegacy;
-import org.itxtech.synapseapi.multiprotocol.utils.item.CraftingManagerMedieval;
 import org.itxtech.synapseapi.multiprotocol.utils.item.CraftingManagerNew;
 import org.itxtech.synapseapi.utils.ClientData;
 import org.itxtech.synapseapi.utils.NetTest;
@@ -221,9 +219,7 @@ public class SynapseAPI extends PluginBase implements Listener {
         EntityPropertiesCache.init();
         CameraManager.init();
 
-        getServer().setCraftingManager(V1_19_0.isAvailable() ? new CraftingManagerNew()
-                : V1_18_0.isAvailable() ? new CraftingManagerMedieval()
-                : new CraftingManagerLegacy());
+        getServer().setCraftingManager(new CraftingManagerNew());
         CraftingPacketManager.rebuildPacket();
 
         ChunkRequestTask.addPreloadVersion(StaticVersion.V1_21_50_NETEASE);

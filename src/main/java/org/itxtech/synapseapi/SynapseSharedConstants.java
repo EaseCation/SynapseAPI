@@ -9,11 +9,6 @@ public final class SynapseSharedConstants {
     public static final boolean ENABLE_CHEMISTRY_FEATURE = false;
 
     /**
-     * 检查资源数据.
-     */
-    public static final boolean CHECK_RESOURCE_DATA = false;
-
-    /**
      * 强制识别连接来自中国版客户端, 用于 ProxyPass 抓包调试.
      */
     public static final boolean FORCE_NETEASE_PLAYER = false;

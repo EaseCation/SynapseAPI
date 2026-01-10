@@ -14,11 +14,8 @@ import org.itxtech.synapseapi.multiprotocol.AbstractProtocol;
 import org.itxtech.synapseapi.multiprotocol.utils.AdvancedGlobalBlockPaletteInterface;
 import org.itxtech.synapseapi.multiprotocol.utils.block.BlockPalette.BlockData;
 import org.itxtech.synapseapi.multiprotocol.utils.block.BlockProperty;
-import org.itxtech.synapseapi.multiprotocol.utils.blockpalette.data.PaletteBlockData;
-import org.itxtech.synapseapi.multiprotocol.utils.blockpalette.data.PaletteBlockTable;
 
 import java.io.IOException;
-import java.nio.ByteOrder;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
@@ -45,84 +42,6 @@ public class GlobalBlockPaletteNBT implements AdvancedGlobalBlockPaletteInterfac
     private final ReentrantReadWriteLock readWriteLock = new ReentrantReadWriteLock();
     private final Lock readLock = readWriteLock.readLock();
     private final Lock writeLock = readWriteLock.writeLock();
-
-    public GlobalBlockPaletteNBT(AbstractProtocol protocol, PaletteBlockTable blockTable, String itemDataPaletteJsonFile, boolean allowUnknownBlock) {
-        log.debug("Loading Advanced Global Block Palette from PaletteBlockTable(nbt) for {}. totalRuntimeIds {} remapSize {}", protocol, blockTable.totalRuntimeIds, blockTable.size());
-
-        totalRuntimeIds = Math.max(blockTable.totalRuntimeIds, blockTable.size());
-        runtimeIdToLegacy = new int[totalRuntimeIds];
-        runtimeIdToState = new CompoundTag[totalRuntimeIds];
-        Arrays.fill(runtimeIdToLegacy, -1);
-        unknownToRuntimeId.defaultReturnValue(-1);
-
-        this.allowUnknownBlock = allowUnknownBlock;
-
-        IntList[] idMetaToRuntimeId = new IntList[Block.BLOCK_ID_COUNT];
-        try {
-            compiledTable = NBTIO.write(blockTable.toTag(), ByteOrder.LITTLE_ENDIAN, true);
-            for (int i = 0; i < blockTable.size(); i++, runtimeIdAllocator.incrementAndGet()) {
-                PaletteBlockData data = blockTable.get(i);
-                runtimeIdToState[i] = data.block.getStatesTag();
-
-                if (data.legacyStates != null && data.legacyStates.length > 0) {
-                    int legacyIdNoMeta = data.legacyStates[data.legacyIndex].id << BLOCK_META_BITS;
-                    int legacyId = legacyIdNoMeta | data.legacyStates[data.legacyIndex].val;
-                    runtimeIdToLegacy[i] = legacyId;
-                    for (PaletteBlockData.LegacyStates legacyState : data.legacyStates) {
-                        int id = legacyState.id;
-                        if (id >= Block.BLOCK_ID_COUNT) {
-                            log.debug("Skip unsupported block: {}", data);
-                            continue;
-                        }
-
-                        int meta = legacyState.val;
-//                        legacyIdNoMeta = id << BLOCK_META_BITS;
-//                        legacyId = legacyIdNoMeta | meta;
-//                        if (legacyToRuntimeId[legacyId] == -1) {
-//                            legacyToRuntimeId[legacyId] = i;
-//                        }
-                        IntList metaToRuntimeId = idMetaToRuntimeId[id];
-                        if (metaToRuntimeId == null) {
-                            metaToRuntimeId = new IntArrayList();
-                            idMetaToRuntimeId[id] = metaToRuntimeId;
-                        }
-                        while (metaToRuntimeId.size() <= meta) {
-                            metaToRuntimeId.add(-1);
-                        }
-                        if (metaToRuntimeId.getInt(meta) == -1) {
-                            metaToRuntimeId.set(meta, i);
-                        }
-                    }
-                }
-            }
-        } catch (IOException e) {
-            throw new AssertionError("Unable to write block palette", e);
-        }
-
-        for (int id = 0; id < Block.BLOCK_ID_COUNT; id++) {
-            IntList metaToRuntimeId = idMetaToRuntimeId[id];
-            if (metaToRuntimeId == null) {
-                continue;
-            }
-            int firstRuntimeId = metaToRuntimeId.getInt(0);
-            if (firstRuntimeId == -1) {
-                log.debug("First block runtimeId undefined. id {}", id);
-            }
-            for (int meta = 0; meta < metaToRuntimeId.size(); meta++) {
-                int runtimeId = metaToRuntimeId.getInt(meta);
-                if (runtimeId != -1) {
-                    continue;
-                }
-//                log.trace("Mapping undefined block meta to first runtimeId: id {} meta {} -> runtimeId {}", id, meta, firstRuntimeId);
-                metaToRuntimeId.set(meta, firstRuntimeId);
-            }
-            this.idMetaToRuntimeId[id] = metaToRuntimeId.toIntArray();
-        }
-
-        blockProperties = new byte[1]; // BinaryStream::putUnsignedVarInt(0);
-
-        itemDataPalette = loadItemDataPalette(itemDataPaletteJsonFile);
-    }
 
     public GlobalBlockPaletteNBT(AbstractProtocol protocol, List<BlockData> palette) {
         this(protocol, palette, Collections.emptyList());

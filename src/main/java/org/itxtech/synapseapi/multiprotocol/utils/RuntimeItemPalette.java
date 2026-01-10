@@ -1,9 +1,7 @@
 package org.itxtech.synapseapi.multiprotocol.utils;
 
-import cn.nukkit.block.BlockGrassShort;
 import cn.nukkit.block.Blocks;
 import cn.nukkit.item.Item;
-import cn.nukkit.item.ItemBlockID;
 import cn.nukkit.item.RuntimeItemPaletteInterface.Entry;
 import cn.nukkit.nbt.NBTIO;
 import cn.nukkit.nbt.tag.CompoundTag;
@@ -31,7 +29,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -103,80 +100,6 @@ public class RuntimeItemPalette implements AdvancedRuntimeItemPaletteInterface {
             registerItem(new Entry("minecraft:mod", 1997, 456, null));
             registerItem(new Entry("minecraft:mod_ex", 1998, 498, null));
             registerItem(new Entry("minecraft:debug_stick", 1999, 735, null));
-        }
-
-        this.buildNetworkCache();
-    }
-
-    public RuntimeItemPalette(AbstractProtocol protocol, String runtimeItemIdJsonFile, String legacyItemIdJsonFile, String itemFlattenJsonFile) {
-        this.protocol = protocol;
-
-        List<RuntimeEntry> runtimeIds;
-        try (InputStreamReader reader = new InputStreamReader(SynapseAPI.class.getClassLoader().getResourceAsStream(runtimeItemIdJsonFile))) {
-            runtimeIds = GSON.fromJson(reader, new TypeToken<ArrayList<RuntimeEntry>>(){}.getType());
-        } catch (NullPointerException | IOException e) {
-            throw new AssertionError("Unable to load runtime item map", e);
-        }
-
-        Object2IntMap<String> legacyIds;
-        try (InputStreamReader reader = new InputStreamReader(SynapseAPI.class.getClassLoader().getResourceAsStream(legacyItemIdJsonFile))) {
-            legacyIds = GSON.fromJson(reader, new TypeToken<Object2IntOpenHashMap<String>>(){}.getType());
-        } catch (NullPointerException | IOException e) {
-            throw new AssertionError("Unable to load legacy item id map", e);
-        }
-        legacyIds.defaultReturnValue(-1);
-
-        Map<String, Map<String, String>> itemFlattenMap;
-        try (InputStreamReader reader = new InputStreamReader(SynapseAPI.class.getClassLoader().getResourceAsStream(itemFlattenJsonFile))) {
-            itemFlattenMap = GSON.fromJson(reader, new TypeToken<HashMap<String, HashMap<String, String>>>(){}.getType());
-        } catch (NullPointerException | IOException e) {
-            throw new AssertionError("Unable to load item flatten map", e);
-        }
-        Object2IntMap<String> itemFlattens = new Object2IntOpenHashMap<>();
-        itemFlattens.defaultReturnValue(-1);
-        itemFlattenMap.forEach((legacyName, metaMap) -> metaMap.forEach((meta, newName) -> {
-            int legacyId = LEGACY_ITEM_ID_MAP.getInt(legacyName);
-            if (legacyId == -1) {
-                log.error("Unmapped runtime item: name '{}' legacy name '{}' ({})", newName, legacyName, itemFlattenJsonFile);
-                return;
-            }
-            itemFlattens.put(newName, Item.getFullId(legacyId, Integer.parseInt(meta)));
-        }));
-
-        legacyNetworkMap.defaultReturnValue(-1);
-        nameToLegacy.defaultReturnValue(-1);
-        networkLegacyMap.defaultReturnValue(-1);
-        blockLegacyToFlatten.defaultReturnValue(-1);
-        nameToNetworkMap.defaultReturnValue(-1);
-//        blockFlattenToLegacy.defaultReturnValue(-1);
-        nameToNetTodoMap.defaultReturnValue(-1);
-
-        for (RuntimeEntry entry : runtimeIds) {
-            Integer oldId;
-            Integer oldData;
-            String name = entry.name;
-            int runtimeId = entry.id;
-            if (runtimeId < 256) {
-                oldId = runtimeId;
-                oldData = 0;
-            } else {
-                int legacyId = legacyIds.getInt(name);
-                if (legacyId != -1) {
-                    oldId = legacyId;
-                    oldData = null;
-                } else {
-                    int itemFullId = itemFlattens.getInt(name);
-                    if (itemFullId != -1) {
-                        oldId = Item.getIdFromFullId(itemFullId);
-                        oldData = Item.getMetaFromFullId(itemFullId);
-                    } else {
-                        oldId = null;
-                        oldData = null;
-                        log.trace("Unmapped runtime item: name '{}' runtimeId '{}' ({})", runtimeId, name, protocol);
-                    }
-                }
-            }
-            registerItem(new Entry(name, runtimeId, oldId, oldData));
         }
 
         this.buildNetworkCache();

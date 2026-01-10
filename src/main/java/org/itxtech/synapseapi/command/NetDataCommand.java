@@ -16,7 +16,6 @@ import cn.nukkit.plugin.Plugin;
 import org.itxtech.synapseapi.multiprotocol.AbstractProtocol;
 import org.itxtech.synapseapi.multiprotocol.utils.AdvancedGlobalBlockPalette;
 import org.itxtech.synapseapi.multiprotocol.utils.AdvancedRuntimeItemPalette;
-import org.itxtech.synapseapi.multiprotocol.utils.item.BlockItemFlattener;
 
 public class NetDataCommand extends Command implements PluginIdentifiableCommand {
     private final Plugin plugin;
@@ -115,17 +114,10 @@ public class NetDataCommand extends Command implements PluginIdentifiableCommand
                         sender.sendMessage(e.getMessage());
                         return true;
                     }
-                    int flattenedId = AdvancedRuntimeItemPalette.getId(version, netease, networkFullId);
-                    int id = BlockItemFlattener.downgrade(version, flattenedId);
+                    int id = AdvancedRuntimeItemPalette.getId(version, netease, networkFullId);
 
                     if (AdvancedRuntimeItemPalette.hasData(version, netease, networkFullId)) {
-                        if (id != flattenedId) {
-                            sender.sendMessage("Item ID: " + id + " meta: " + AdvancedRuntimeItemPalette.getData(version, netease, networkFullId) + " (flattenedId: " + flattenedId + ")");
-                        } else {
-                            sender.sendMessage("Item ID: " + id + " meta: " + AdvancedRuntimeItemPalette.getData(version, netease, networkFullId));
-                        }
-                    } else if (id != flattenedId) {
-                        sender.sendMessage("Item ID: " + id + " (flattenedId: " + flattenedId + ")");
+                        sender.sendMessage("Item ID: " + id + " meta: " + AdvancedRuntimeItemPalette.getData(version, netease, networkFullId));
                     } else {
                         sender.sendMessage("Item ID: " + id);
                     }

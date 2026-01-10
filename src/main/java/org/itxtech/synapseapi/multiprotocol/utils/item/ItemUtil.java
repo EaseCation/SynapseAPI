@@ -14,7 +14,6 @@ import com.google.gson.reflect.TypeToken;
 import it.unimi.dsi.fastutil.objects.*;
 import lombok.extern.log4j.Log4j2;
 import org.itxtech.synapseapi.SynapseAPI;
-import org.itxtech.synapseapi.multiprotocol.AbstractProtocol;
 import org.itxtech.synapseapi.multiprotocol.utils.block.BlockUtil;
 
 import javax.annotation.Nullable;
@@ -23,23 +22,15 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.nio.ByteOrder;
 import java.util.Base64;
-import java.util.List;
 import java.util.Map;
 
 @Log4j2
 public final class ItemUtil {
-    private static final AbstractProtocol DATA_VERSION = AbstractProtocol.FIRST_AVAILABLE_PROTOCOL;
-
     static final Object2IntMap<String> ITEM_NAME_TO_ID;
     static final String[] ITEM_ID_TO_NAME = new String[Short.MAX_VALUE];
     static final String[] BLOCK_ID_TO_NAME = new String[Block.BLOCK_ID_COUNT];
 
     static final Map<String, String> ITEM_TO_BLOCK = new Object2ObjectOpenHashMap<>();
-
-    @Deprecated
-    static final Map<String, String[]> LEGACY_TO_FLATTENED = new Object2ObjectOpenHashMap<>();
-    @Deprecated
-    static final Map<String, ObjectIntPair<String>> FLATTENED_TO_LEGACY = new Object2ObjectOpenHashMap<>();
 
     static {
         log.debug("Loading item data...");
@@ -71,34 +62,6 @@ public final class ItemUtil {
             gson.fromJson(reader, new TypeToken<Object2ObjectOpenHashMap<String, String>>(){}).forEach((block, item) -> ITEM_TO_BLOCK.put(item, block));
         } catch (Exception e) {
             throw new AssertionError("Unable to load item_block_map.json", e);
-        }
-
-        try (InputStreamReader reader = new InputStreamReader(new ByteArrayInputStream(ByteStreams.toByteArray(SynapseAPI.class.getClassLoader().getResourceAsStream("item_flatten_map_12150.json"))))) {
-            gson.fromJson(reader, JsonObject.class).entrySet().forEach(entry -> {
-                String legacyName = entry.getKey();
-
-                List<String> metaToNewName = new ObjectArrayList<>();
-                entry.getValue().getAsJsonObject().entrySet().forEach(pair -> {
-                    int legacyMeta = Integer.parseInt(pair.getKey());
-                    String newName = pair.getValue().getAsString();
-
-                    while (metaToNewName.size() <= legacyMeta) {
-                        metaToNewName.add(null);
-                    }
-                    metaToNewName.set(legacyMeta, newName);
-
-                    ObjectIntPair<String> existed = FLATTENED_TO_LEGACY.get(newName);
-                    if (existed != null && existed.rightInt() > legacyMeta) {
-                        return;
-                    }
-
-                    FLATTENED_TO_LEGACY.put(newName, ObjectIntPair.of(legacyName, legacyMeta));
-                });
-
-                LEGACY_TO_FLATTENED.put(legacyName, metaToNewName.toArray(new String[0]));
-            });
-        } catch (Exception e) {
-            throw new AssertionError("Unable to load item_flatten_map.json", e);
         }
 
         ITEM_ID_TO_NAME[ItemID.AIR] = ItemFullNames.AIR;

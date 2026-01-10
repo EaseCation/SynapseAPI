@@ -1,26 +1,19 @@
 package org.itxtech.synapseapi.multiprotocol.utils;
 
-import cn.nukkit.Server;
 import cn.nukkit.level.GlobalBlockPaletteInterface;
 import cn.nukkit.level.GlobalBlockPaletteInterface.StaticVersion;
-import it.unimi.dsi.fastutil.ints.IntArrayList;
-import it.unimi.dsi.fastutil.ints.IntList;
 import lombok.extern.log4j.Log4j2;
 import org.itxtech.synapseapi.SynapseAPI;
-import org.itxtech.synapseapi.SynapseSharedConstants;
 import org.itxtech.synapseapi.event.server.BlockRegistryChecksumChangedEvent;
 import org.itxtech.synapseapi.multiprotocol.AbstractProtocol;
 import org.itxtech.synapseapi.multiprotocol.utils.block.BlockPalette;
 import org.itxtech.synapseapi.multiprotocol.utils.block.LegacyBlockSerializer;
 import org.itxtech.synapseapi.multiprotocol.utils.block.RuntimeBlockMapper;
 import org.itxtech.synapseapi.multiprotocol.utils.blockpalette.*;
-import org.itxtech.synapseapi.multiprotocol.utils.blockpalette.data.PaletteBlockTable;
 
 import java.util.EnumMap;
 import java.util.Map;
 import java.util.Map.Entry;
-import java.util.concurrent.atomic.AtomicInteger;
-import java.util.stream.Stream;
 
 @Log4j2
 public final class AdvancedGlobalBlockPalette {
@@ -454,58 +447,6 @@ public final class AdvancedGlobalBlockPalette {
         return BLOCK_REGISTRY_CHECKSUM;
     }
 
-    public static void init() { //检查数据
-        if (!SynapseSharedConstants.CHECK_RESOURCE_DATA) {
-            return;
-        }
-        PaletteBlockTable table112 = PaletteBlockTable.fromJson("block_state_list_112.json");
-        PaletteBlockTable table113 = PaletteBlockTable.fromNBTOld("block_state_list_113.dat");
-        PaletteBlockTable table114 = PaletteBlockTable.fromNBT("block_state_list_114.dat");
-        PaletteBlockTable table116 = PaletteBlockTable.fromNBT("block_state_list_116.dat");
-        PaletteBlockTable table11620 = PaletteBlockTable.fromNBT("block_state_list_11620.dat");
-        PaletteBlockTable table116100 = PaletteBlockTable.fromNBTV3("block_state_list_116100.dat");
-
-        PaletteBlockTable table112trimmed = table112.trim(table116100);
-        PaletteBlockTable table113trimmed = table113.trim(table116100);
-        PaletteBlockTable table114trimmed = table114.trim(table116100);
-        PaletteBlockTable table116trimmed = table116.trim(table116100);
-        PaletteBlockTable table11620trimmed = table11620.trim(table116100);
-        //PaletteBlockTable table116100trimmed = table116100.trim(target);
-
-        IntList ignoreIds = IntArrayList.wrap(new int[]{
-                166, //荧光棒物品
-                210, //允许方块
-                211, //拒绝方块
-                212, //边界方块
-                217, //结构空位
-                230, //黑板方块
-                242, //相机方块
-        });
-        AtomicInteger index = new AtomicInteger(AbstractProtocol.PROTOCOL_112.ordinal());
-        Stream.of(
-                table112trimmed, //10
-                table113trimmed, //11
-                table114trimmed, //12
-                table116trimmed, //14
-                table11620trimmed //15
-        ).forEach(trimmedTable -> {
-            boolean[] existedIds = new boolean[256];
-
-            trimmedTable.forEach(entry -> {
-                if (entry.id < 256) {
-                    existedIds[entry.id] = true;
-                }
-            });
-
-            for (int i = 0; i < 256; i++) {
-                if (!existedIds[i] && !ignoreIds.contains(i)) {
-                    Server.getInstance().getLogger().warning("Block id does not exist: " + i + " (protocol " + AbstractProtocol.getValues()[index.get()].name() + ")");
-                }
-            }
-
-            if (index.incrementAndGet() == AbstractProtocol.PROTOCOL_114_60.ordinal() || index.get() == AbstractProtocol.PROTOCOL_116_200.ordinal()) {
-                index.incrementAndGet();
-            }
-        });
+    public static void init() {
     }
 }

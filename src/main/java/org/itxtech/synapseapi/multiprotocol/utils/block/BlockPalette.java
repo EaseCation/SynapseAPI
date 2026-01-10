@@ -17,7 +17,6 @@ import lombok.ToString;
 import lombok.extern.log4j.Log4j2;
 import org.itxtech.synapseapi.SynapseAPI;
 import org.itxtech.synapseapi.multiprotocol.AbstractProtocol;
-import org.itxtech.synapseapi.multiprotocol.utils.blockpalette.data.PaletteBlockTable.DumpJsonTableEntry;
 
 import java.io.BufferedInputStream;
 import java.io.ByteArrayInputStream;
@@ -264,6 +263,21 @@ public class BlockPalette {
             throw new RuntimeException(e);
         }
         return Hash.xxh64(bytes);
+    }
+
+    @ToString
+    private static class DumpJsonTableEntry {
+        public String name;
+        public int val;
+        public List<StateEntry> states;
+        public int id;
+    }
+
+    @ToString
+    private static class StateEntry {
+        public String name;
+        public String type;
+        public Object value;
     }
 
     @ToString

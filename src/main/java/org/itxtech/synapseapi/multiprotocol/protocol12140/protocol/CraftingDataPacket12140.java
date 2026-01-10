@@ -1,7 +1,6 @@
 package org.itxtech.synapseapi.multiprotocol.protocol12140.protocol;
 
 import cn.nukkit.inventory.*;
-import cn.nukkit.inventory.recipe.RecipeIngredient;
 import cn.nukkit.item.Item;
 import cn.nukkit.network.protocol.CraftingDataPacket;
 import cn.nukkit.network.protocol.DataPacket;
@@ -10,8 +9,6 @@ import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import lombok.ToString;
 import lombok.extern.log4j.Log4j2;
 import org.itxtech.synapseapi.multiprotocol.AbstractProtocol;
-import org.itxtech.synapseapi.multiprotocol.utils.item.RecipeFlattener;
-import org.itxtech.synapseapi.multiprotocol.utils.item.TodoCraftingRecipe;
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -51,83 +48,6 @@ public class CraftingDataPacket12140 extends Packet12140 {
 
         for (Recipe recipe : entries) {
             RecipeType type = recipe.getType();
-            if (type == null) { //TODO: ItemDescriptor
-                TodoCraftingRecipe todo = (TodoCraftingRecipe) recipe;
-                type = todo.getRecipeType();
-                this.putVarInt(type.ordinal());
-                switch (type) {
-                    case SHAPELESS:
-                    case SHAPELESS_USER_DATA: {
-                        this.putString(todo.getRecipeId());
-                        List<RecipeIngredient> ingredients = todo.getShapelessInput();
-                        this.putUnsignedVarInt(ingredients.size());
-                        for (RecipeIngredient ingredient : ingredients) {
-                            this.helper.putRecipeIngredient(this, ingredient);
-                        }
-                        this.putUnsignedVarInt(1);
-                        this.putItemInstance(todo.getResult());
-                        this.putUUID(todo.getId());
-                        this.putString(todo.getTag().toString());
-                        this.putVarInt(todo.getPriority());
-                        if (type == RecipeType.SHAPELESS || type == RecipeType.SHAPELESS_USER_DATA) {
-                            int unlockType = /*todo.getUnlockingContext()*/UNLOCK_ALWAYS_UNLOCKED;
-                            this.putByte((byte) unlockType);
-                            if (unlockType == UNLOCK_NONE) {
-                                /*
-                                List<RecipeIngredient> unlockingIngredients = todo.getUnlockingIngredients();
-                                this.putUnsignedVarInt(unlockingIngredients.size());
-                                for (Item unlockingIngredient : unlockingIngredients) {
-                                    this.helper.putRecipeIngredient(unlockingIngredient);
-                                }
-                                */this.putUnsignedVarInt(0);
-                            }
-                        }
-                        this.putUnsignedVarInt(recipeNetworkId++);
-                        break;
-                    }
-                    case SHAPED: {
-                        this.putString(todo.getRecipeId());
-                        this.putVarInt(todo.getShapedWidth());
-                        this.putVarInt(todo.getShapedHeight());
-                        for (int z = 0; z < todo.getShapedHeight(); ++z) {
-                            for (int x = 0; x < todo.getShapedWidth(); ++x) {
-                                this.helper.putRecipeIngredient(this, todo.getShapedInput(x, z));
-                            }
-                        }
-                        List<Item> outputs = new ObjectArrayList<>();
-                        outputs.add(todo.getResult());
-                        outputs.addAll(todo.getExtraResults());
-                        this.putUnsignedVarInt(outputs.size());
-                        for (Item output : outputs) {
-                            this.putItemInstance(output);
-                        }
-                        this.putUUID(todo.getId());
-                        this.putString(todo.getTag().toString());
-                        this.putVarInt(todo.getPriority());
-                        this.putBoolean(todo.isAssumeSymmetry());
-                        if (type == RecipeType.SHAPED) {
-                            int unlockType = /*todo.getUnlockingContext()*/UNLOCK_ALWAYS_UNLOCKED;
-                            this.putByte((byte) unlockType);
-                            if (unlockType == UNLOCK_NONE) {
-                                /*
-                                List<RecipeIngredient> unlockingIngredients = todo.getUnlockingIngredients();
-                                this.putUnsignedVarInt(unlockingIngredients.size());
-                                for (Item unlockingIngredient : unlockingIngredients) {
-                                    this.helper.putRecipeIngredient(unlockingIngredient);
-                                }
-                                */this.putUnsignedVarInt(0);
-                            }
-                        }
-                        this.putUnsignedVarInt(recipeNetworkId++);
-                        break;
-                    }
-                    default: {
-                        throw new IllegalStateException("Unimplemented todo recipe type: " + type);
-                    }
-                }
-                continue;
-            }
-
             this.putVarInt(type.ordinal());
             switch (type) {
                 case SHAPELESS:
@@ -273,8 +193,6 @@ public class CraftingDataPacket12140 extends Packet12140 {
         this.containerEntries = packet.containerEntries;
         this.materialReducerEntries = packet.materialReducerEntries;
         this.cleanRecipes = packet.cleanRecipes;
-
-        RecipeFlattener.addFlattenedRecipes(protocol, this.entries);
 
         return this;
     }
