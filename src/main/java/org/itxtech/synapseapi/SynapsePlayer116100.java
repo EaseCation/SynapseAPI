@@ -2995,7 +2995,7 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
 
                 if (interactPacket.target == 0 && interactPacket.action == InteractPacket121130.ACTION_MOUSEOVER) {
                     this.lookAtEntity = null;
-                    this.setButtonText("");
+                    this.setButtonText(inventory.getItemInHand().getInteractText(this));
                     setDataProperty(new ByteEntityData(DATA_CAN_RIDE_TARGET, false));
                     break;
                 }
