@@ -379,7 +379,9 @@ public class SynapsePlayer116 extends SynapsePlayer113 {
 										lastRightClickData.face == face &&
 										lastRightClickData.playerPos.distanceSquared(useItemData.playerPos) < Mth.EPSILON &&
 										lastRightClickData.blockPos.equalsVec(blockVector) &&
-										lastRightClickData.clickPos.distanceSquared(clickPos) < Mth.EPSILON; // signature spam bug has 0 distance, but allow some error
+										lastRightClickData.clickPos.distanceSquared(clickPos) < Mth.EPSILON && // signature spam bug has 0 distance, but allow some error
+										Block.equals(lastRightClickData.block, useItemData.block) &&
+										lastRightClickData.clientInteractPrediction == useItemData.clientInteractPrediction;
 								if (spamBug /*&& !(useItemData.itemInHand instanceof ItemBlock)*/) {
 									return;
 								}
@@ -397,13 +399,30 @@ public class SynapsePlayer116 extends SynapsePlayer113 {
 
 								if (this.canInteract(blockVector.add(0.5, 0.5, 0.5), this.isCreative() ? MAX_REACH_DISTANCE_CREATIVE : MAX_REACH_DISTANCE_SURVIVAL)) {
 									if (this.isCreative()) {
-										if (this.level.useItemOn(blockVector.asVector3(), i, face, clickPos.x, clickPos.y, clickPos.z, this) != null) {
+										Vector3 blockPos;
+										Block clientBlock = useItemData.block;
+										if (clientBlock != null) {
+											clientBlock.position(blockVector, level);
+											blockPos = clientBlock;
+										} else {
+											blockPos = blockVector.asVector3();
+										}
+										Boolean clientPrediction = AbstractProtocol.PROTOCOL_121_20.isOlderThanOrEqual(protocol) ? useItemData.clientInteractPrediction : null;
+										if (this.level.useItemOn(blockPos, i, face, clickPos.x, clickPos.y, clickPos.z, this, clientPrediction) != null) {
 											break packetswitch;
 										}
 									} else if (i.equals(useItemData.itemInHand)) {
 										Item oldItem = i.clone();
-										//TODO: Implement adventure mode checks
-										if ((i = this.level.useItemOn(blockVector.asVector3(), i, face, clickPos.x, clickPos.y, clickPos.z, this)) != null) {
+										Vector3 blockPos;
+										Block clientBlock = useItemData.block;
+										if (clientBlock != null) {
+											clientBlock.position(blockVector, level);
+											blockPos = clientBlock;
+										} else {
+											blockPos = blockVector.asVector3();
+										}
+										Boolean clientPrediction = AbstractProtocol.PROTOCOL_121_20.isOlderThanOrEqual(protocol) ? useItemData.clientInteractPrediction : null;
+										if ((i = this.level.useItemOn(blockPos, i, face, clickPos.x, clickPos.y, clickPos.z, this, clientPrediction)) != null) {
 											if (i.getId() == 10000) {  // Hack!
 												entityInBlock = true;
 											} else {
@@ -1396,9 +1415,11 @@ public class SynapsePlayer116 extends SynapsePlayer113 {
 							case InventoryTransactionPacket116.USE_ITEM_ACTION_CLICK_BLOCK:
 								// Remove if client bug is ever fixed
 								boolean spamBug = lastRightClickData != null && System.currentTimeMillis() - lastRightClickTime < 100 &&
-										lastRightClickData.playerPos.distanceSquared(useItemData.playerPos) < 0.00001 &&
+										lastRightClickData.playerPos.distanceSquared(useItemData.playerPos) < Mth.EPSILON &&
 										lastRightClickData.blockPos.equalsVec(blockVector) &&
-										lastRightClickData.clickPos.distanceSquared(clickPos) < 0.00001;
+										lastRightClickData.clickPos.distanceSquared(clickPos) < Mth.EPSILON &&
+										Block.equals(lastRightClickData.block, useItemData.block) &&
+										lastRightClickData.clientInteractPrediction == useItemData.clientInteractPrediction;
 								lastRightClickData = useItemData;
 								lastRightClickTime = System.currentTimeMillis();
 								if (spamBug /*&& !(useItemData.itemInHand instanceof ItemBlock)*/) {
@@ -1412,13 +1433,30 @@ public class SynapsePlayer116 extends SynapsePlayer113 {
 
 								if (this.canInteract(blockVector.add(0.5, 0.5, 0.5), this.isCreative() ? MAX_REACH_DISTANCE_CREATIVE : MAX_REACH_DISTANCE_SURVIVAL)) {
 									if (this.isCreative()) {
-										if (this.level.useItemOn(blockVector.asVector3(), i, face, clickPos.x, clickPos.y, clickPos.z, this) != null) {
+										Vector3 blockPos;
+										Block clientBlock = useItemData.block;
+										if (clientBlock != null) {
+											clientBlock.position(blockVector, level);
+											blockPos = clientBlock;
+										} else {
+											blockPos = blockVector.asVector3();
+										}
+										Boolean clientPrediction = AbstractProtocol.PROTOCOL_121_20.isOlderThanOrEqual(protocol) ? useItemData.clientInteractPrediction : null;
+										if (this.level.useItemOn(blockPos, i, face, clickPos.x, clickPos.y, clickPos.z, this, clientPrediction) != null) {
 											break;
 										}
 									} else if (i.equals(useItemData.itemInHand)) {
 										Item oldItem = i.clone();
-										//TODO: Implement adventure mode checks
-										if ((i = this.level.useItemOn(blockVector.asVector3(), i, face, clickPos.x, clickPos.y, clickPos.z, this)) != null) {
+										Vector3 blockPos;
+										Block clientBlock = useItemData.block;
+										if (clientBlock != null) {
+											clientBlock.position(blockVector, level);
+											blockPos = clientBlock;
+										} else {
+											blockPos = blockVector.asVector3();
+										}
+										Boolean clientPrediction = AbstractProtocol.PROTOCOL_121_20.isOlderThanOrEqual(protocol) ? useItemData.clientInteractPrediction : null;
+										if ((i = this.level.useItemOn(blockPos, i, face, clickPos.x, clickPos.y, clickPos.z, this, clientPrediction)) != null) {
 											if (i.getId() != 10000) {  // Hack
 												if (!i.equals(oldItem) || i.getCount() != oldItem.getCount()) {
 													inventory.setItemInHand(i);

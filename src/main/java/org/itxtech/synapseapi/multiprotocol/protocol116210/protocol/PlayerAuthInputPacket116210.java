@@ -1,5 +1,6 @@
 package org.itxtech.synapseapi.multiprotocol.protocol116210.protocol;
 
+import cn.nukkit.block.Block;
 import cn.nukkit.inventory.transaction.data.UseItemData;
 import cn.nukkit.math.BlockVector3;
 import cn.nukkit.math.Vector3f;
@@ -11,9 +12,11 @@ import cn.nukkit.network.protocol.types.ItemStackRequest;
 import cn.nukkit.network.protocol.types.NetworkInventoryAction;
 import lombok.ToString;
 import lombok.extern.log4j.Log4j2;
+import org.itxtech.synapseapi.multiprotocol.AbstractProtocol;
 import org.itxtech.synapseapi.multiprotocol.common.inventory.LegacySetItemSlotData;
 import org.itxtech.synapseapi.multiprotocol.protocol113.protocol.IPlayerAuthInputPacket;
 import org.itxtech.synapseapi.multiprotocol.protocol116.protocol.PlayerAuthInputPacket116;
+import org.itxtech.synapseapi.multiprotocol.utils.AdvancedGlobalBlockPalette;
 
 import javax.annotation.Nullable;
 
@@ -193,7 +196,11 @@ public class PlayerAuthInputPacket116210 extends Packet116210 implements Invento
             itemData.itemInHand = this.getSlot();
             itemData.playerPos = this.getVector3f().asVector3();
             itemData.clickPos = this.getVector3f();
-            itemData.blockId = (int) this.getUnsignedVarInt();
+            int blockRuntimeId = (int) this.getUnsignedVarInt();
+            int blockFullId = AdvancedGlobalBlockPalette.getLegacyId((AbstractProtocol) helper.getProtocol(), neteaseMode, blockRuntimeId);
+            if (blockFullId != -1) {
+                itemData.block = Block.fromFullId(blockFullId);
+            }
             this.useItemData = itemData;
         }
 

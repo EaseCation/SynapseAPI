@@ -1,5 +1,6 @@
 package org.itxtech.synapseapi.multiprotocol.protocol116.protocol;
 
+import cn.nukkit.block.Block;
 import cn.nukkit.inventory.transaction.data.ReleaseItemData;
 import cn.nukkit.inventory.transaction.data.TransactionData;
 import cn.nukkit.inventory.transaction.data.UseItemData;
@@ -12,6 +13,7 @@ import cn.nukkit.network.protocol.types.NetworkInventoryAction;
 import lombok.ToString;
 import org.itxtech.synapseapi.multiprotocol.AbstractProtocol;
 import org.itxtech.synapseapi.multiprotocol.common.inventory.LegacySetItemSlotData;
+import org.itxtech.synapseapi.multiprotocol.utils.AdvancedGlobalBlockPalette;
 import org.itxtech.synapseapi.utils.ClassUtils;
 
 import static org.itxtech.synapseapi.SynapseSharedConstants.SERVER_AUTHORITATIVE_INVENTORY;
@@ -171,7 +173,8 @@ public class InventoryTransactionPacket116 extends Packet116 implements Inventor
                 this.putSlot(useItemData.itemInHand);
                 this.putVector3f(useItemData.playerPos.asVector3f());
                 this.putVector3f(useItemData.clickPos);
-                this.putUnsignedVarInt(useItemData.blockId);
+                Block block = useItemData.block;
+                this.putUnsignedVarInt(block != null ? AdvancedGlobalBlockPalette.getOrCreateRuntimeId(protocol, neteaseMode, block.getId(), block.getItemSerializationMeta()) : 0);
                 if (protocol.getProtocolStart() >= AbstractProtocol.PROTOCOL_121_20.getProtocolStart()) {
                     this.putUnsignedVarInt(useItemData.clientInteractPrediction ? 1 : 0);
                 }
@@ -257,7 +260,11 @@ public class InventoryTransactionPacket116 extends Packet116 implements Inventor
                 itemData.itemInHand = this.getSlot();
                 itemData.playerPos = this.getVector3f().asVector3();
                 itemData.clickPos = this.getVector3f();
-                itemData.blockId = (int) this.getUnsignedVarInt();
+                int blockRuntimeId = (int) this.getUnsignedVarInt();
+                int blockFullId = AdvancedGlobalBlockPalette.getLegacyId(protocol, neteaseMode, blockRuntimeId);
+                if (blockFullId != -1) {
+                    itemData.block = Block.fromFullId(blockFullId);
+                }
                 if (protocol.getProtocolStart() >= AbstractProtocol.PROTOCOL_121_20.getProtocolStart()) {
                     itemData.clientInteractPrediction = this.getUnsignedVarInt() != 0;
                 }
