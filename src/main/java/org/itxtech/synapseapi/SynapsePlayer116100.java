@@ -2630,11 +2630,32 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
                 RequestChunkRadiusPacket11980 requestChunkRadiusPacket = (RequestChunkRadiusPacket11980) packet;
                 this.viewDistance = Mth.clamp(requestChunkRadiusPacket.radius, 4, 96);
                 this.clientMaxViewDistance = Math.max(this.viewDistance, Mth.clamp(requestChunkRadiusPacket.maxRadius, 4, 96));
-                this.chunkRadius = Math.min(this.viewDistance, this.getMaxViewDistance());
+                int requestedRadius = Math.min(this.viewDistance, this.getMaxViewDistance());
 
-                ChunkRadiusUpdatedPacket chunkRadiusUpdatePacket = new ChunkRadiusUpdatedPacket();
-                chunkRadiusUpdatePacket.radius = this.chunkRadius;
-                this.dataPacket(chunkRadiusUpdatePacket);
+                // 玩家已登录后主动改变视距时触发事件
+                if (this.spawned) {
+                    PlayerChunkRadiusRequestEvent event = new PlayerChunkRadiusRequestEvent(this, this.chunkRadius, requestedRadius);
+                    this.server.getPluginManager().callEvent(event);
+
+                    if (event.isCancelled()) {
+                        // 取消：发送旧视距给客户端
+                        ChunkRadiusUpdatedPacket chunkRadiusUpdatePacket = new ChunkRadiusUpdatedPacket();
+                        chunkRadiusUpdatePacket.radius = this.chunkRadius;
+                        this.dataPacket(chunkRadiusUpdatePacket);
+                    } else {
+                        // 使用插件设置的最终视距
+                        this.chunkRadius = event.getRadius();
+                        ChunkRadiusUpdatedPacket chunkRadiusUpdatePacket = new ChunkRadiusUpdatedPacket();
+                        chunkRadiusUpdatePacket.radius = this.chunkRadius;
+                        this.dataPacket(chunkRadiusUpdatePacket);
+                    }
+                } else {
+                    // 首次请求（登录过程中），直接应用
+                    this.chunkRadius = requestedRadius;
+                    ChunkRadiusUpdatedPacket chunkRadiusUpdatePacket = new ChunkRadiusUpdatedPacket();
+                    chunkRadiusUpdatePacket.radius = this.chunkRadius;
+                    this.dataPacket(chunkRadiusUpdatePacket);
+                }
                 break;
             case ProtocolInfo.EMOTE_PACKET:
                 if (getProtocol() >= AbstractProtocol.PROTOCOL_121_30.getProtocolStart()) {
