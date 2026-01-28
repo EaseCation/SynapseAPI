@@ -82,6 +82,19 @@ public class NPCDialoguePlayerHandler {
         }
     }
 
+    /**
+     * 无缝切换到新NPC的对话，不关闭当前对话框
+     * 用于多NPC轮流对话场景
+     */
+    public void openDialogueSeamless(NPCDialogueScene scene, Entity entity, String name) {
+        if (scene == null) {
+            return;
+        }
+        SynapseAPI.getInstance().getLogger().trace("玩家(" + player.getName() + ") 无缝切换对话框(" + scene.getSceneName() + ")");
+        scene.sendTo(player, entity.getId(), name);
+        this.state = new NPCDialogueState.Opening(scene, entity, name);
+    }
+
     public void closeDialogue() {
         if (state == null) {
             return;
