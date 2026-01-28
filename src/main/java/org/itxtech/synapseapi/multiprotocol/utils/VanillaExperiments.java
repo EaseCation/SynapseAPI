@@ -94,6 +94,11 @@ public final class VanillaExperiments {
      * @deprecated 1.21.90
      */
     public static final Experiment EXPERIMENTAL_GRAPHICS = new Experiment("experimental_graphics", true);
+    /**
+     * Enables the use of voxel shapes for some vanilla and custom blocks. (Voxel Shapes)
+     * @since 1.26.10
+     */
+    public static final Experiment VOXEL_SHAPES = new Experiment("voxel_shapes", true);
 
     // Gameplay Experiments
 

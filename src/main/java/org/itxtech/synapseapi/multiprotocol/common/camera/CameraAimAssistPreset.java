@@ -26,6 +26,11 @@ public class CameraAimAssistPreset {
     public String[] entityExclusions = new String[0];
     @Default
     public String[] blockTagExclusions = new String[0];
+    /**
+     * @since 1.26.0
+     */
+    @Default
+    public String[] entityTypeFamiliesExclusions = new String[0];
     @Default
     public String[] liquidTargetingList = new String[0];
     @Default

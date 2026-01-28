@@ -1,10 +1,9 @@
 package org.itxtech.synapseapi.multiprotocol.protocol116100.protocol;
 
 import cn.nukkit.network.protocol.DataPacket;
+import cn.nukkit.network.protocol.MoveEntityDeltaPacket;
 import cn.nukkit.network.protocol.ProtocolInfo;
 import lombok.ToString;
-import org.itxtech.synapseapi.multiprotocol.protocol15.protocol.MoveEntityDeltaPacket;
-import org.itxtech.synapseapi.utils.ClassUtils;
 
 @ToString
 public class MoveEntityDeltaPacket116100 extends Packet116100 {
@@ -52,20 +51,6 @@ public class MoveEntityDeltaPacket116100 extends Packet116100 {
         putRotation(FLAG_HAS_HEAD_YAW, this.headYawDelta);
     }
 
-    private float getCoordinate(int flag) {
-        if ((flags & flag) != 0) {
-            return this.getLFloat();
-        }
-        return 0;
-    }
-
-    private float getRotation(int flag) {
-        if ((flags & flag) != 0) {
-            return this.getByte() * (360f / 256f);
-        }
-        return 0;
-    }
-
     private void putCoordinate(int flag, float value) {
         if ((flags & flag) != 0) {
             this.putLFloat(value);
@@ -80,17 +65,14 @@ public class MoveEntityDeltaPacket116100 extends Packet116100 {
 
     @Override
     public DataPacket fromDefault(DataPacket pk) {
-        ClassUtils.requireInstance(pk, MoveEntityDeltaPacket.class);
-
         MoveEntityDeltaPacket packet = (MoveEntityDeltaPacket) pk;
         this.flags = packet.flags;
-        this.x = packet.xDelta;
-        this.y = packet.yDelta;
-        this.z = packet.zDelta;
-        this.pitchDelta = packet.pitchDelta;
-        this.yawDelta = packet.yawDelta;
-        this.headYawDelta = packet.headYawDelta;
-
+        this.x = packet.x;
+        this.y = packet.y;
+        this.z = packet.z;
+        this.pitchDelta = packet.pitch;
+        this.yawDelta = packet.yaw;
+        this.headYawDelta = packet.headYaw;
         return this;
     }
 

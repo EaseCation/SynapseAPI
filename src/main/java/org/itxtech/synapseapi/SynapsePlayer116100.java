@@ -164,6 +164,7 @@ import org.itxtech.synapseapi.multiprotocol.protocol12190.protocol.ResourcePacks
 import org.itxtech.synapseapi.multiprotocol.protocol12190.protocol.ServerScriptDebugDrawerPacket12190;
 import org.itxtech.synapseapi.multiprotocol.protocol12190.protocol.ServerScriptDebugDrawerPacket12190.Entry;
 import org.itxtech.synapseapi.multiprotocol.protocol12190.protocol.StartGamePacket12190;
+import org.itxtech.synapseapi.multiprotocol.protocol126.protocol.*;
 import org.itxtech.synapseapi.multiprotocol.protocol14.protocol.PlayerActionPacket14;
 import org.itxtech.synapseapi.multiprotocol.protocol16.protocol.ResourcePackClientResponsePacket16;
 import org.itxtech.synapseapi.multiprotocol.utils.*;
@@ -249,7 +250,50 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
 
     @Override
     protected DataPacket generateStartGamePacket(Position spawnPosition) {
-        if (this.getProtocol() >= AbstractProtocol.PROTOCOL_121_130.getProtocolStart()) {
+        if (this.getProtocol() >= AbstractProtocol.PROTOCOL_126.getProtocolStart()) {
+            StartGamePacket126 startGamePacket = new StartGamePacket126();
+            startGamePacket.protocol = AbstractProtocol.fromRealProtocol(this.protocol);
+            startGamePacket.netease = this.isNetEaseClient();
+            startGamePacket.entityUniqueId = SYNAPSE_PLAYER_ENTITY_ID;
+            startGamePacket.entityRuntimeId = SYNAPSE_PLAYER_ENTITY_ID;
+            startGamePacket.playerGamemode = getClientFriendlyGamemode(this.gamemode);
+            startGamePacket.x = (float) this.x;
+            startGamePacket.y = (float) this.y;
+            startGamePacket.z = (float) this.z;
+            startGamePacket.yaw = (float) this.yaw;
+            startGamePacket.pitch = (float) this.pitch;
+            startGamePacket.seed = -1;
+            startGamePacket.dimension = (byte) (this.level.getDimension().getId() & 0xff);
+            startGamePacket.worldGamemode = getClientFriendlyGamemode(this.gamemode);
+            startGamePacket.difficulty = this.level.getDifficulty();
+            startGamePacket.spawnX = (int) spawnPosition.x;
+            startGamePacket.spawnY = (int) spawnPosition.y;
+            startGamePacket.spawnZ = (int) spawnPosition.z;
+            startGamePacket.hasAchievementsDisabled = true;
+            startGamePacket.dayCycleStopTime = -1;
+            startGamePacket.rainLevel = 0;
+            startGamePacket.lightningLevel = 0;
+            startGamePacket.commandsEnabled = this.isEnableClientCommand();
+            startGamePacket.levelId = "";
+            startGamePacket.worldName = this.getServer().getNetwork().getName();
+            startGamePacket.generator = 1; // 0 old, 1 infinite, 2 flat
+            startGamePacket.gameRules = getSupportedRules();
+            startGamePacket.isInventoryServerAuthoritative = SERVER_AUTHORITATIVE_INVENTORY;
+            startGamePacket.isBlockBreakingServerAuthoritative = this.serverAuthoritativeBlockBreaking;
+            startGamePacket.currentTick = 0;//this.server.getTick();
+            startGamePacket.enchantmentSeed = ThreadLocalRandom.current().nextInt();
+            startGamePacket.playerPropertyData = getCompiledPlayerProperties();
+            startGamePacket.isSoundServerAuthoritative = isServerAuthoritativeSoundEnabled();
+            List<Experiment> experiments = new ArrayList<>();
+            experiments.add(VanillaExperiments.GAMETEST);
+            experiments.add(VanillaExperiments.UPCOMING_CREATOR_FEATURES);
+            if (isBetaClient()) {
+                experiments.add(VanillaExperiments.DEFERRED_TECHNICAL_PREVIEW);
+            }
+            experiments.add(VanillaExperiments.EXPERIMENTAL_CREATOR_CAMERAS);
+            startGamePacket.experiments = new Experiments(experiments.toArray(new Experiment[0]));
+            return startGamePacket;
+        } else if (this.getProtocol() >= AbstractProtocol.PROTOCOL_121_130.getProtocolStart()) {
             StartGamePacket121130 startGamePacket = new StartGamePacket121130();
             startGamePacket.protocol = AbstractProtocol.fromRealProtocol(this.protocol);
             startGamePacket.netease = this.isNetEaseClient();
@@ -1501,7 +1545,13 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
                 if (!this.spawned || !this.isAlive()) {
                     break;
                 }
-                if (this.getProtocol() >= AbstractProtocol.PROTOCOL_121_130.getProtocolStart()) {
+                if (this.getProtocol() >= AbstractProtocol.PROTOCOL_126.getProtocolStart()) {
+                    TextPacket126 textPacket = (TextPacket126) packet;
+
+                    if (textPacket.type == TextPacket126.TYPE_CHAT) {
+                        FilterTextService.filter(textPacket.message, this, true, this::preChat);
+                    }
+                } else if (this.getProtocol() >= AbstractProtocol.PROTOCOL_121_130.getProtocolStart()) {
                     TextPacket121130 textPacket = (TextPacket121130) packet;
 
                     if (textPacket.type == TextPacket121130.TYPE_CHAT) {
@@ -2630,11 +2680,32 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
                 RequestChunkRadiusPacket11980 requestChunkRadiusPacket = (RequestChunkRadiusPacket11980) packet;
                 this.viewDistance = Mth.clamp(requestChunkRadiusPacket.radius, 4, 96);
                 this.clientMaxViewDistance = Math.max(this.viewDistance, Mth.clamp(requestChunkRadiusPacket.maxRadius, 4, 96));
-                this.chunkRadius = Math.min(this.viewDistance, this.getMaxViewDistance());
+                int requestedRadius = Math.min(this.viewDistance, this.getMaxViewDistance());
 
-                ChunkRadiusUpdatedPacket chunkRadiusUpdatePacket = new ChunkRadiusUpdatedPacket();
-                chunkRadiusUpdatePacket.radius = this.chunkRadius;
-                this.dataPacket(chunkRadiusUpdatePacket);
+                // 玩家已登录后主动改变视距时触发事件
+                if (this.spawned) {
+                    PlayerChunkRadiusRequestEvent event = new PlayerChunkRadiusRequestEvent(this, this.chunkRadius, requestedRadius);
+                    this.server.getPluginManager().callEvent(event);
+
+                    if (event.isCancelled()) {
+                        // 取消：发送旧视距给客户端
+                        ChunkRadiusUpdatedPacket chunkRadiusUpdatePacket = new ChunkRadiusUpdatedPacket();
+                        chunkRadiusUpdatePacket.radius = this.chunkRadius;
+                        this.dataPacket(chunkRadiusUpdatePacket);
+                    } else {
+                        // 使用插件设置的最终视距
+                        this.chunkRadius = event.getRadius();
+                        ChunkRadiusUpdatedPacket chunkRadiusUpdatePacket = new ChunkRadiusUpdatedPacket();
+                        chunkRadiusUpdatePacket.radius = this.chunkRadius;
+                        this.dataPacket(chunkRadiusUpdatePacket);
+                    }
+                } else {
+                    // 首次请求（登录过程中），直接应用
+                    this.chunkRadius = requestedRadius;
+                    ChunkRadiusUpdatedPacket chunkRadiusUpdatePacket = new ChunkRadiusUpdatedPacket();
+                    chunkRadiusUpdatePacket.radius = this.chunkRadius;
+                    this.dataPacket(chunkRadiusUpdatePacket);
+                }
                 break;
             case ProtocolInfo.EMOTE_PACKET:
                 if (getProtocol() >= AbstractProtocol.PROTOCOL_121_30.getProtocolStart()) {
@@ -3038,6 +3109,79 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
 
                         ((InventoryHolder) targetEntity).openInventory(this);
                         break;
+                }
+                break;
+            case ProtocolInfo.BOOK_EDIT_PACKET:
+                if (getProtocol() < AbstractProtocol.PROTOCOL_126.getProtocolStart()) {
+                    super.handleDataPacket(packet);
+                    break;
+                }
+                BookEditPacket126 bookEditPacket = (BookEditPacket126) packet;
+                if (!callPacketReceiveEvent(bookEditPacket.toDefault())) {
+                    break;
+                }
+
+                if (isSpectator()) {
+                    return;
+                }
+
+                if (isCreative()) {
+                    // handled in InventoryTransactionPacket
+                    return;
+                }
+
+                Item oldBook = this.inventory.getItem(bookEditPacket.inventorySlot);
+                if (oldBook.getId() != Item.WRITABLE_BOOK) {
+                    return;
+                }
+
+                if (bookEditPacket.text != null && bookEditPacket.text.length() > ItemBookAndQuill.MAX_PAGE_LENGTH) {
+                    this.getServer().getLogger().debug(this.getName() + ": BookEditPacket with too long text");
+                    return;
+                }
+
+                if (bookEditPacket.pageNumber < 0 || bookEditPacket.pageNumber >= ItemBookAndQuill.MAX_PAGES) {
+                    this.getServer().getLogger().debug(this.getName() + ": Invalid BookEditPacket page " + bookEditPacket.pageNumber);
+                    return;
+                }
+
+                Item newBook = oldBook.clone();
+                boolean success;
+                switch (bookEditPacket.action) {
+                    case REPLACE_PAGE:
+                        success = ((ItemBookAndQuill) newBook).setPageText(bookEditPacket.pageNumber, bookEditPacket.text);
+                        break;
+                    case ADD_PAGE:
+                        success = ((ItemBookAndQuill) newBook).insertPage(bookEditPacket.pageNumber, bookEditPacket.text);
+                        break;
+                    case DELETE_PAGE:
+                        success = ((ItemBookAndQuill) newBook).deletePage(bookEditPacket.pageNumber);
+                        break;
+                    case SWAP_PAGES:
+                        success = ((ItemBookAndQuill) newBook).swapPages(bookEditPacket.pageNumber, bookEditPacket.secondaryPageNumber);
+                        break;
+                    case SIGN_BOOK:
+                        if (bookEditPacket.title == null || bookEditPacket.author == null || bookEditPacket.xuid == null
+                                || bookEditPacket.title.isEmpty() || bookEditPacket.author.isEmpty()
+                                || bookEditPacket.title.length() > ItemBookWritten.MAX_TITLE_LENGTHE
+                                || bookEditPacket.author.length() > ItemBookWritten.MAX_AUTHOR_LENGTHE
+                                || bookEditPacket.xuid.length() > 64) {
+                            this.getServer().getLogger().debug(this.getName() + ": Invalid BookEditPacket action SIGN_BOOK: title/author/xuid is too long");
+                            return;
+                        }
+                        newBook = Item.get(Item.WRITTEN_BOOK, 0, 1, oldBook.getCompoundTag());
+                        success = ((ItemBookWritten) newBook).signBook(bookEditPacket.title, bookEditPacket.author, bookEditPacket.xuid, ItemBookWritten.GENERATION_ORIGINAL);
+                        break;
+                    default:
+                        return;
+                }
+
+                if (success) {
+                    PlayerEditBookEvent editBookEvent = new PlayerEditBookEvent(this, oldBook, newBook, bookEditPacket.action);
+                    this.server.getPluginManager().callEvent(editBookEvent);
+                    if (!editBookEvent.isCancelled()) {
+                        this.inventory.setItem(bookEditPacket.inventorySlot, editBookEvent.getNewBook(), bookEditPacket.action != BookEditPacket.Action.SWAP_PAGES);
+                    }
                 }
                 break;
             default:
@@ -3944,6 +4088,16 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
 
     @Override
     public void sendJukeboxPopup(TranslationContainer message) {
+        if (this.getProtocol() >= AbstractProtocol.PROTOCOL_126.getProtocolStart()) {
+            TextPacket126 pk = new TextPacket126();
+            pk.type = TextPacket126.TYPE_JUKEBOX_POPUP;
+            pk.isLocalized = true;
+            pk.message = message.getText();
+            pk.parameters = Arrays.stream(message.getParameters()).map(String::valueOf).toArray(String[]::new);
+            this.dataPacket(pk);
+            return;
+        }
+
         if (this.getProtocol() >= AbstractProtocol.PROTOCOL_121_130.getProtocolStart()) {
             TextPacket121130 pk = new TextPacket121130();
             pk.type = TextPacket121130.TYPE_JUKEBOX_POPUP;
@@ -4596,6 +4750,13 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
 
     @Override
     public void startCameraInstruction(CameraInstruction instruction) {
+        if (getProtocol() >= AbstractProtocol.PROTOCOL_126.getProtocolStart()) {
+            CameraInstructionPacket126 pk = new CameraInstructionPacket126();
+            pk.instruction = instruction;
+            this.dataPacket(pk);
+            return;
+        }
+
         if (getProtocol() >= AbstractProtocol.PROTOCOL_121_120.getProtocolStart()) {
             CameraInstructionPacket121120 pk = new CameraInstructionPacket121120();
             pk.instruction = instruction;
@@ -5069,6 +5230,13 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
     }
 
     private void sendDebugDrawerPacket(Entry... entries) {
+        if (getProtocol() >= AbstractProtocol.PROTOCOL_126.getProtocolStart()) {
+            DebugDrawerPacket126 packet = new DebugDrawerPacket126();
+            packet.entries = entries;
+            dataPacket(packet);
+            return;
+        }
+
         if (getProtocol() >= AbstractProtocol.PROTOCOL_121_130.getProtocolStart()) {
             DebugDrawerPacket121130 packet = new DebugDrawerPacket121130();
             packet.entries = entries;
@@ -5212,6 +5380,32 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
     }
 
     private void setGraphicsOverride(int type, float value, String... biomeIdentifiers) {
+        setGraphicsOverride(type, value, true, biomeIdentifiers);
+    }
+
+    private void setGraphicsOverride(int type, float value, boolean timeBased, String... biomeIdentifiers) {
+        if (getProtocol() >= AbstractProtocol.PROTOCOL_126.getProtocolStart()) {
+            if (timeBased) {
+                FloatObjectPair<Vector3f>[] keyframes = new FloatObjectPair[]{FloatObjectPair.of(0, new Vector3f(value, 0, 0))};
+                for (String biomeIdentifier : biomeIdentifiers) {
+                    GraphicsOverrideParameterPacket126 packet = new GraphicsOverrideParameterPacket126();
+                    packet.keyframes = keyframes;
+                    packet.biome = biomeIdentifier;
+                    packet.type = type;
+                    dataPacket(packet);
+                }
+            } else {
+                for (String biomeIdentifier : biomeIdentifiers) {
+                    GraphicsOverrideParameterPacket126 packet = new GraphicsOverrideParameterPacket126();
+                    packet.floatValue = value;
+                    packet.biome = biomeIdentifier;
+                    packet.type = type;
+                    dataPacket(packet);
+                }
+            }
+            return;
+        }
+
         if (getProtocol() < AbstractProtocol.PROTOCOL_121_120.getProtocolStart()) {
             return;
         }
@@ -5226,6 +5420,33 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
     }
 
     private void setGraphicsOverride(int type, Color value, String... biomeIdentifiers) {
+        setGraphicsOverride(type, value, true, biomeIdentifiers);
+    }
+
+    private void setGraphicsOverride(int type, Color value, boolean timeBased, String... biomeIdentifiers) {
+        if (getProtocol() >= AbstractProtocol.PROTOCOL_126.getProtocolStart()) {
+            Vector3f vec = new Vector3f(value.getRed() / 255f, value.getGreen() / 255f, value.getBlue() / 255f);
+            if (timeBased) {
+                FloatObjectPair<Vector3f>[] keyframes = new FloatObjectPair[]{FloatObjectPair.of(0, vec)};
+                for (String biomeIdentifier : biomeIdentifiers) {
+                    GraphicsOverrideParameterPacket126 packet = new GraphicsOverrideParameterPacket126();
+                    packet.keyframes = keyframes;
+                    packet.biome = biomeIdentifier;
+                    packet.type = type;
+                    dataPacket(packet);
+                }
+            } else {
+                for (String biomeIdentifier : biomeIdentifiers) {
+                    GraphicsOverrideParameterPacket126 packet = new GraphicsOverrideParameterPacket126();
+                    packet.vecValue = vec;
+                    packet.biome = biomeIdentifier;
+                    packet.type = type;
+                    dataPacket(packet);
+                }
+            }
+            return;
+        }
+
         if (getProtocol() < AbstractProtocol.PROTOCOL_121_120.getProtocolStart()) {
             return;
         }
@@ -5240,6 +5461,17 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
     }
 
     private void resetGraphicsOverride(int type, String... biomeIdentifiers) {
+        if (getProtocol() >= AbstractProtocol.PROTOCOL_126.getProtocolStart()) {
+            for (String biomeIdentifier : biomeIdentifiers) {
+                GraphicsOverrideParameterPacket126 packet = new GraphicsOverrideParameterPacket126();
+                packet.biome = biomeIdentifier;
+                packet.type = type;
+                packet.reset = true;
+                dataPacket(packet);
+            }
+            return;
+        }
+
         if (getProtocol() < AbstractProtocol.PROTOCOL_121_120.getProtocolStart()) {
             return;
         }
@@ -5250,6 +5482,16 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
             packet.reset = true;
             dataPacket(packet);
         }
+    }
+
+    @Override
+    public void sendVoxelShapes() {
+        if (getProtocol() < AbstractProtocol.PROTOCOL_126.getProtocolStart()) {
+            return;
+        }
+
+        VoxelShapesPacket126 packet = new VoxelShapesPacket126();
+        dataPacket(packet);
     }
 
     private record ShapeInstance(Shape shape, int expirationTick) {

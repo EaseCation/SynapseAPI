@@ -45,4 +45,8 @@ public class BiomeDefinitionChunkGenData {
     public Collection<BiomeConditionalTransformationData> legacyPreHillsEdge;
     @Nullable
     public Collection<BiomeReplacementData> replaceBiomes;
+    /**
+     * @since 1.26.0
+     */
+    public Integer villageType;
 }

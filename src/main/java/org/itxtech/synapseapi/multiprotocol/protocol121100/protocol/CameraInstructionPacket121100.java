@@ -27,7 +27,7 @@ public class CameraInstructionPacket121100 extends Packet121100 {
         putOptional(instruction.set, (stream, set) -> {
             stream.putLInt(set.preset.runtimeId);
             stream.putOptional(set.ease, (bs, ease) -> {
-                bs.putByte(ease.type);
+                bs.putByte(ease.type.ordinal());
                 bs.putLFloat(ease.duration);
             });
             stream.putOptional(set.pos, BinaryStream::putVector3f);
@@ -64,7 +64,7 @@ public class CameraInstructionPacket121100 extends Packet121100 {
         putOptional(instruction.fieldOfView, (stream, fov) -> {
             stream.putLFloat(fov.fieldOfView);
             stream.putLFloat(fov.ease.duration);
-            stream.putByte(fov.ease.type);
+            stream.putByte(fov.ease.type.ordinal());
             stream.putBoolean(fov.clear);
         });
     }

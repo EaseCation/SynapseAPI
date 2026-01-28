@@ -56,6 +56,7 @@ import org.itxtech.synapseapi.multiprotocol.protocol12.utils.ClientChainData12Ur
 import org.itxtech.synapseapi.multiprotocol.protocol121.protocol.TextPacket121;
 import org.itxtech.synapseapi.multiprotocol.protocol121130.protocol.TextPacket121130;
 import org.itxtech.synapseapi.multiprotocol.protocol12120.protocol.ChangeDimensionPacket12120;
+import org.itxtech.synapseapi.multiprotocol.protocol126.protocol.TextPacket126;
 import org.itxtech.synapseapi.multiprotocol.protocol14.protocol.PlayerActionPacket14;
 import org.itxtech.synapseapi.multiprotocol.protocol14.protocol.TextPacket14;
 import org.itxtech.synapseapi.multiprotocol.protocol17.protocol.TextPacket17;
@@ -562,6 +563,7 @@ public class SynapsePlayer extends Player {
 
             sendDimensionData();
             sendJigsawStructureData();
+            sendVoxelShapes();
 
             DataPacket startGamePacket = generateStartGamePacket(spawnPosition);
             this.dataPacket(startGamePacket);
@@ -780,7 +782,10 @@ public class SynapsePlayer extends Player {
             if (!this.sentSkins.isEmpty()) {  // 跨服时，移除所有已发送的PlayerList（皮肤）
                 PlayerListPacket pk = new PlayerListPacket();
                 pk.type = PlayerListPacket.TYPE_REMOVE;
-                pk.entries = this.sentSkins.stream().map(PlayerListPacket.Entry::new).toArray(PlayerListPacket.Entry[]::new);
+                pk.entries = this.sentSkins.stream()
+                        .filter(uuid -> !uuid.equals(getUniqueId()))
+                        .map(PlayerListPacket.Entry::new)
+                        .toArray(PlayerListPacket.Entry[]::new);
                 this.dataPacket(pk);
                 this.sentSkins.clear();
             }
@@ -1534,6 +1539,8 @@ public class SynapsePlayer extends Player {
                     pk.message = TextFormat.clean(pk.message);
                 } else if (packet instanceof TextPacket121130 pk) {
                     pk.message = TextFormat.clean(pk.message);
+                } else if (packet instanceof TextPacket126 pk) {
+                    pk.message = TextFormat.clean(pk.message);
                 }
             }
         }
@@ -1847,5 +1854,8 @@ public class SynapsePlayer extends Player {
 
     int getClientMaxViewDistance() {
         return -1;
+    }
+
+    public void sendVoxelShapes() {
     }
 }

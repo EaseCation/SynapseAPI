@@ -40,6 +40,12 @@ public abstract class Shape {
      * The color of the shape.
      */
     public Color color;
+    /**
+     * The entity this shape is attached to.
+     * When set, this shape will copy the root location of the attached entity and the shape's position will be used as an offset.
+     * @since 1.26.0
+     */
+    public Long attachedEntityRuntimeId;
 
     protected Shape(Vector3f location) {
         this.location = location;
@@ -59,6 +65,7 @@ public abstract class Shape {
             entry.totalTimeLeft = Float.MAX_VALUE;
         }
         entry.color = color.getRGB();
+        entry.attachedEntityRuntimeId = attachedEntityRuntimeId;
         addAdditionalData(entry);
         return entry;
     }

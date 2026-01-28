@@ -40,6 +40,11 @@ public class CameraAimAssistCategories {
          */
         @Default
         public Priority[] blockTagPriorities = Priority.EMPTY;
+        /**
+         * @since 1.26.0
+         */
+        @Default
+        public Priority[] entityTypeFamiliesPriorities = Priority.EMPTY;
         @Nullable
         public Integer defaultEntityPriority;
         @Nullable

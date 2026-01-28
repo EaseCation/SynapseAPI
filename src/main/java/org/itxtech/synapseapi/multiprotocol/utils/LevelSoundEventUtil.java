@@ -20,6 +20,37 @@ public final class LevelSoundEventUtil {
                 if (protocol == AbstractProtocol.PROTOCOL_121_93) {
                     return 561;
                 }
+                break;
+            case SOUND_STONE_SPEAR_ATTACK_HIT:
+            case SOUND_IRON_SPEAR_ATTACK_HIT:
+            case SOUND_COPPER_SPEAR_ATTACK_HIT:
+            case SOUND_GOLDEN_SPEAR_ATTACK_HIT:
+            case SOUND_DIAMOND_SPEAR_ATTACK_HIT:
+            case SOUND_NETHERITE_SPEAR_ATTACK_HIT:
+                if (protocol.isOlderThan(AbstractProtocol.PROTOCOL_126)) {
+                    return SOUND_SPEAR_ATTACK_HIT;
+                }
+                break;
+            case SOUND_STONE_SPEAR_ATTACK_MISS:
+            case SOUND_IRON_SPEAR_ATTACK_MISS:
+            case SOUND_COPPER_SPEAR_ATTACK_MISS:
+            case SOUND_GOLDEN_SPEAR_ATTACK_MISS:
+            case SOUND_DIAMOND_SPEAR_ATTACK_MISS:
+            case SOUND_NETHERITE_SPEAR_ATTACK_MISS:
+                if (protocol.isOlderThan(AbstractProtocol.PROTOCOL_126)) {
+                    return SOUND_SPEAR_ATTACK_MISS;
+                }
+                break;
+            case SOUND_STONE_SPEAR_USE:
+            case SOUND_IRON_SPEAR_USE:
+            case SOUND_COPPER_SPEAR_USE:
+            case SOUND_GOLDEN_SPEAR_USE:
+            case SOUND_DIAMOND_SPEAR_USE:
+            case SOUND_NETHERITE_SPEAR_USE:
+                if (protocol.isOlderThan(AbstractProtocol.PROTOCOL_126)) {
+                    return SOUND_SPEAR_USE;
+                }
+                break;
         }
         return sound;
     }
@@ -46,6 +77,8 @@ public final class LevelSoundEventUtil {
             case SOUND_FENCE_GATE_CLOSE:
             case SOUND_BRUSH:
             case SOUND_BRUSH_COMPLETED:
+            case SOUND_CRAFTER_CRAFT:
+            case SOUND_CRAFTER_FAILED:
             case SOUND_COPPER_BULB_ON:
             case SOUND_COPPER_BULB_OFF:
             case SOUND_PLACE_ITEM:
@@ -146,8 +179,13 @@ public final class LevelSoundEventUtil {
             case SOUND_FENCE_GATE_CLOSE:
             case SOUND_BRUSH:
             case SOUND_BRUSH_COMPLETED:
+            case SOUND_CRAFTER_CRAFT:
+            case SOUND_CRAFTER_FAILED:
             case SOUND_COPPER_BULB_ON:
             case SOUND_COPPER_BULB_OFF:
+            case SOUND_PLACE_ITEM:
+            case SOUND_SINGLE_ITEM_SWAP:
+            case SOUND_MULTI_ITEM_SWAP:
                 if (protocol.getProtocolStart() >= AbstractProtocol.PROTOCOL_114.getProtocolStart()) {
                     int legacyId = AdvancedGlobalBlockPalette.getLegacyId(protocol, netease, extraData);
                     if (legacyId == -1) {

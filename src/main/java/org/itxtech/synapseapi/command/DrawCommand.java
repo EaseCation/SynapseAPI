@@ -9,6 +9,7 @@ import cn.nukkit.command.data.CommandEnum;
 import cn.nukkit.command.data.CommandParamType;
 import cn.nukkit.command.data.CommandParameter;
 import cn.nukkit.command.exceptions.CommandSyntaxException;
+import cn.nukkit.entity.Entity;
 import cn.nukkit.math.Vector3;
 import cn.nukkit.math.Vector3f;
 import cn.nukkit.plugin.Plugin;
@@ -35,9 +36,31 @@ public class DrawCommand extends Command implements PluginIdentifiableCommand {
                 CommandParameter.newType("color", true, CommandParamType.STRING),
                 CommandParameter.newType("endLocation", true, CommandParamType.POSITION),
         });
+        commandParameters.put("lineActor", new CommandParameter[]{
+                CommandParameter.newType("player", CommandParamType.TARGET),
+                CommandParameter.newEnum("shape", new CommandEnum("ShapeAttachLine", "attach_line")),
+                CommandParameter.newType("attach", CommandParamType.TARGET),
+                CommandParameter.newType("location", CommandParamType.POSITION),
+                CommandParameter.newType("rotation", true, CommandParamType.POSITION),
+                CommandParameter.newType("scale", true, CommandParamType.FLOAT),
+                CommandParameter.newType("timeLeft", true, CommandParamType.FLOAT),
+                CommandParameter.newType("color", true, CommandParamType.STRING),
+                CommandParameter.newType("endLocation", true, CommandParamType.POSITION),
+        });
         commandParameters.put("box", new CommandParameter[]{
                 CommandParameter.newType("player", CommandParamType.TARGET),
                 CommandParameter.newEnum("shape", new CommandEnum("ShapeBox", "box")),
+                CommandParameter.newType("location", CommandParamType.POSITION),
+                CommandParameter.newType("rotation", true, CommandParamType.POSITION),
+                CommandParameter.newType("scale", true, CommandParamType.FLOAT),
+                CommandParameter.newType("timeLeft", true, CommandParamType.FLOAT),
+                CommandParameter.newType("color", true, CommandParamType.STRING),
+                CommandParameter.newType("bound", true, CommandParamType.POSITION),
+        });
+        commandParameters.put("boxActor", new CommandParameter[]{
+                CommandParameter.newType("player", CommandParamType.TARGET),
+                CommandParameter.newEnum("shape", new CommandEnum("ShapeBox", "attach_box")),
+                CommandParameter.newType("attach", CommandParamType.TARGET),
                 CommandParameter.newType("location", CommandParamType.POSITION),
                 CommandParameter.newType("rotation", true, CommandParamType.POSITION),
                 CommandParameter.newType("scale", true, CommandParamType.FLOAT),
@@ -55,6 +78,17 @@ public class DrawCommand extends Command implements PluginIdentifiableCommand {
                 CommandParameter.newType("color", true, CommandParamType.STRING),
                 CommandParameter.newType("segments", true, CommandParamType.INT),
         });
+        commandParameters.put("shapeActor", new CommandParameter[]{
+                CommandParameter.newType("player", CommandParamType.TARGET),
+                CommandParameter.newEnum("shape", new CommandEnum("Shape", "sphere", "attach_circle")),
+                CommandParameter.newType("attach", CommandParamType.TARGET),
+                CommandParameter.newType("location", CommandParamType.POSITION),
+                CommandParameter.newType("rotation", true, CommandParamType.POSITION),
+                CommandParameter.newType("scale", true, CommandParamType.FLOAT),
+                CommandParameter.newType("timeLeft", true, CommandParamType.FLOAT),
+                CommandParameter.newType("color", true, CommandParamType.STRING),
+                CommandParameter.newType("segments", true, CommandParamType.INT),
+        });
         commandParameters.put("text", new CommandParameter[]{
                 CommandParameter.newType("player", CommandParamType.TARGET),
                 CommandParameter.newEnum("shape", new CommandEnum("ShapeText", "text")),
@@ -65,9 +99,34 @@ public class DrawCommand extends Command implements PluginIdentifiableCommand {
                 CommandParameter.newType("color", true, CommandParamType.STRING),
                 CommandParameter.newType("text", true, CommandParamType.MESSAGE),
         });
+        commandParameters.put("textActor", new CommandParameter[]{
+                CommandParameter.newType("player", CommandParamType.TARGET),
+                CommandParameter.newEnum("shape", new CommandEnum("ShapeText", "attach_text")),
+                CommandParameter.newType("attach", CommandParamType.TARGET),
+                CommandParameter.newType("location", CommandParamType.POSITION),
+                CommandParameter.newType("rotation", true, CommandParamType.POSITION),
+                CommandParameter.newType("scale", true, CommandParamType.FLOAT),
+                CommandParameter.newType("timeLeft", true, CommandParamType.FLOAT),
+                CommandParameter.newType("color", true, CommandParamType.STRING),
+                CommandParameter.newType("text", true, CommandParamType.MESSAGE),
+        });
         commandParameters.put("arrow", new CommandParameter[]{
                 CommandParameter.newType("player", CommandParamType.TARGET),
                 CommandParameter.newEnum("shape", new CommandEnum("ShapeArrow", "arrow")),
+                CommandParameter.newType("location", CommandParamType.POSITION),
+                CommandParameter.newType("rotation", true, CommandParamType.POSITION),
+                CommandParameter.newType("scale", true, CommandParamType.FLOAT),
+                CommandParameter.newType("timeLeft", true, CommandParamType.FLOAT),
+                CommandParameter.newType("color", true, CommandParamType.STRING),
+                CommandParameter.newType("endLocation", true, CommandParamType.POSITION),
+                CommandParameter.newType("headLength", true, CommandParamType.FLOAT),
+                CommandParameter.newType("headRadius", true, CommandParamType.FLOAT),
+                CommandParameter.newType("headSegments", true, CommandParamType.INT),
+        });
+        commandParameters.put("arrowActor", new CommandParameter[]{
+                CommandParameter.newType("player", CommandParamType.TARGET),
+                CommandParameter.newEnum("shape", new CommandEnum("ShapeArrow", "attach_arrow")),
+                CommandParameter.newType("attach", CommandParamType.TARGET),
                 CommandParameter.newType("location", CommandParamType.POSITION),
                 CommandParameter.newType("rotation", true, CommandParamType.POSITION),
                 CommandParameter.newType("scale", true, CommandParamType.FLOAT),
@@ -95,6 +154,7 @@ public class DrawCommand extends Command implements PluginIdentifiableCommand {
         try {
             List<Player> players = parser.parseTargetPlayers();
             Shape type = parser.parseEnum(Shape.class);
+            Entity attach = type.attach ? parser.parseTargets(1).getFirst() : null;
             Vector3f location = type != Shape.CLEAR ? parser.parseVector3().asVector3f() : null;
             Vector3 rotation = parser.parseVector3OrDefault((Vector3) null);
             float scale = parser.parseFloatOrDefault(Float.NaN);
@@ -103,13 +163,13 @@ public class DrawCommand extends Command implements PluginIdentifiableCommand {
 
             org.itxtech.synapseapi.multiprotocol.common.drawer.Shape shape;
             switch (type) {
-                case LINE -> {
+                case LINE, ATTACH_LINE -> {
                     Vector3 endLocation = parser.parseVector3OrDefault((Vector3) null);
 
                     Line line = new Line(location, endLocation == null ? location : endLocation.asVector3f());
                     shape = line;
                 }
-                case BOX -> {
+                case BOX, ATTACH_BOX -> {
                     Vector3 bound = parser.parseVector3OrDefault((Vector3) null);
 
                     Box box = new Box(location);
@@ -118,7 +178,7 @@ public class DrawCommand extends Command implements PluginIdentifiableCommand {
                     }
                     shape = box;
                 }
-                case SPHERE -> {
+                case SPHERE, ATTACH_SPHERE -> {
                     int segments = parser.parseIntOrDefault(-1, 2, 0xff);
 
                     Sphere sphere = new Sphere(location);
@@ -127,7 +187,7 @@ public class DrawCommand extends Command implements PluginIdentifiableCommand {
                     }
                     shape = sphere;
                 }
-                case CIRCLE -> {
+                case CIRCLE, ATTACH_CIRCLE -> {
                     int segments = parser.parseIntOrDefault(-1, 2, 0xff);
 
                     Circle circle = new Circle(location);
@@ -136,13 +196,13 @@ public class DrawCommand extends Command implements PluginIdentifiableCommand {
                     }
                     shape = circle;
                 }
-                case TEXT -> {
+                case TEXT, ATTACH_TEXT -> {
                     String text = parser.literalOrDefault((String) null);
 
                     Text txt = new Text(location, text);
                     shape = txt;
                 }
-                case ARROW -> {
+                case ARROW, ATTACH_ARROW -> {
                     Vector3 endLocation = parser.parseVector3OrDefault((Vector3) null);
                     float headLength = parser.parseFloatOrDefault(Float.NaN);
                     float headRadius = parser.parseFloatOrDefault(Float.NaN);
@@ -183,6 +243,9 @@ public class DrawCommand extends Command implements PluginIdentifiableCommand {
             if (color != null) {
                 shape.color = color;
             }
+            if (attach != null) {
+                shape.attachedEntityRuntimeId = attach.getId();
+            }
             for (Player player : players) {
                 if (player instanceof SynapsePlayer synapsePlayer) {
                     synapsePlayer.addShape(shape);
@@ -208,6 +271,23 @@ public class DrawCommand extends Command implements PluginIdentifiableCommand {
         TEXT,
         ARROW,
         CLEAR,
+        ATTACH_LINE(true),
+        ATTACH_BOX(true),
+        ATTACH_SPHERE(true),
+        ATTACH_CIRCLE(true),
+        ATTACH_TEXT(true),
+        ATTACH_ARROW(true),
+        ;
+
+        private final boolean attach;
+
+        Shape() {
+            this(false);
+        }
+
+        Shape(boolean attach) {
+            this.attach = attach;
+        }
     }
 }
 
@@ -219,4 +299,11 @@ public class DrawCommand extends Command implements PluginIdentifiableCommand {
 /draw @s text ~ ~ ~ 0 0 0 1 0 #ff00ff Text
 /draw @s arrow ~ ~ ~ 0 0 0 1 0 #00ff00 ~-3 ~3 ~-3 0.5 0.25 4
 /draw @s clear
+
+/draw @s attach_line @s 0 1 0 0 0 0 1 0 #00ffff ~3 ~3 ~3
+/draw @s attach_box @s 0 1 0 0 0 0 1.1 0 #ff0000 3 3 3
+/draw @s attach_sphere @s 0 1 0 0 0 0 3 0 #0000ff 20
+/draw @s attach_circle @s 0 1 0 0 0 0 2 0 #ffff00 20
+/draw @s attach_text @s 0 1 0 0 0 0 1 0 #ff00ff Text
+/draw @s attach_arrow @s 0 1 0 0 0 0 1 0 #00ff00 ~-3 ~3 ~-3 0.5 0.25 4
 */

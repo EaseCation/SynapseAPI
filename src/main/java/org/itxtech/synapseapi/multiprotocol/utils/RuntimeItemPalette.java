@@ -94,6 +94,9 @@ public class RuntimeItemPalette implements AdvancedRuntimeItemPaletteInterface {
         if (microsoftToNetease) {
             if (protocol.isOlderThan(AbstractProtocol.PROTOCOL_121_50)) {
                 registerItem(new Entry("minecraft:mod_ore", 230, 230, null));
+            } else {
+//                unregisterItem("minecraft:chalkboard", 230);
+//                unregisterItem("minecraft:board", 454);
             }
             registerItem(new Entry("minecraft:micro_block", -9735, -9735, null));
             registerItem(new Entry("minecraft:mod_armor", 1996, 454, null));
