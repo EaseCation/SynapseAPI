@@ -1,10 +1,12 @@
 package org.itxtech.synapseapi.multiprotocol.protocol15.protocol;
 
+import cn.nukkit.network.protocol.DataPacket;
+import cn.nukkit.network.protocol.MoveEntityDeltaPacket;
 import cn.nukkit.network.protocol.ProtocolInfo;
 import lombok.ToString;
 
 @ToString
-public class MoveEntityDeltaPacket extends Packet15 {
+public class MoveEntityDeltaPacket15 extends Packet15 {
     public static final int NETWORK_ID = ProtocolInfo.MOVE_ACTOR_DELTA_PACKET;
 
     public static final int FLAG_HAS_X = 0b1;
@@ -45,20 +47,6 @@ public class MoveEntityDeltaPacket extends Packet15 {
         putRotation(FLAG_HAS_HEAD_YAW, this.headYawDelta);
     }
 
-    private int getCoordinate(int flag) {
-        if ((flags & flag) != 0) {
-            return this.getVarInt();
-        }
-        return 0;
-    }
-
-    private float getRotation(int flag) {
-        if ((flags & flag) != 0) {
-            return this.getByte() * (360f / 256f);
-        }
-        return 0;
-    }
-
     private void putCoordinate(int flag, int value) {
         if ((flags & flag) != 0) {
             this.putVarInt(value);
@@ -69,5 +57,22 @@ public class MoveEntityDeltaPacket extends Packet15 {
         if ((flags & flag) != 0) {
             this.putByte((byte) (value / (360f / 256f)));
         }
+    }
+
+    @Override
+    public DataPacket fromDefault(DataPacket pk) {
+        MoveEntityDeltaPacket packet = (MoveEntityDeltaPacket) pk;
+        this.flags = packet.flags;
+        this.xDelta = (int) packet.x;
+        this.yDelta = (int) packet.y;
+        this.zDelta = (int) packet.z;
+        this.pitchDelta = packet.pitch;
+        this.yawDelta = packet.yaw;
+        this.headYawDelta = packet.headYaw;
+        return this;
+    }
+
+    public static Class<? extends DataPacket> getDefaultPacket() {
+        return MoveEntityDeltaPacket.class;
     }
 }

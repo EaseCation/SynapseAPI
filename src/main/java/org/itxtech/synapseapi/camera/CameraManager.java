@@ -9,6 +9,7 @@ import org.itxtech.synapseapi.SynapseAPI;
 import org.itxtech.synapseapi.event.server.CameraRegistryChecksumChangedEvent;
 import org.itxtech.synapseapi.multiprotocol.AbstractProtocol;
 import org.itxtech.synapseapi.multiprotocol.common.camera.CameraPreset;
+import org.itxtech.synapseapi.multiprotocol.common.camera.CameraSplineDefinition;
 import org.itxtech.synapseapi.multiprotocol.protocol11970.protocol.CameraPresetsPacket11970;
 import org.itxtech.synapseapi.multiprotocol.protocol12030.protocol.CameraPresetsPacket12030;
 import org.itxtech.synapseapi.multiprotocol.protocol121130.protocol.CameraAimAssistPresetsPacket121130;
@@ -21,6 +22,8 @@ import org.itxtech.synapseapi.multiprotocol.protocol12160.protocol.CameraAimAssi
 import org.itxtech.synapseapi.multiprotocol.protocol12160.protocol.CameraPresetsPacket12160;
 import org.itxtech.synapseapi.multiprotocol.protocol12180.protocol.CameraPresetsPacket12180;
 import org.itxtech.synapseapi.multiprotocol.protocol12190.protocol.CameraPresetsPacket12190;
+import org.itxtech.synapseapi.multiprotocol.protocol126.protocol.CameraAimAssistPresetsPacket126;
+import org.itxtech.synapseapi.multiprotocol.protocol126.protocol.CameraSplinePacket126;
 
 import javax.annotation.Nullable;
 import java.util.*;
@@ -39,6 +42,8 @@ public class CameraManager {
     private CameraPreset[] runtimeCameras;
     private final Map<AbstractProtocol, CameraPreset[]> clientCameras = new EnumMap<>(AbstractProtocol.class);
     private final Map<AbstractProtocol, DataPacket> packets = new EnumMap<>(AbstractProtocol.class);
+
+    private final Map<String, CameraSplineDefinition> splines = new HashMap<>();
 
     private CameraManager() {
         // register builtin cameras
@@ -172,7 +177,14 @@ public class CameraManager {
             packets.add(packet);
         }
 
-        if (protocol.getProtocolStart() >= AbstractProtocol.PROTOCOL_121_130.getProtocolStart()) {
+        if (protocol.getProtocolStart() >= AbstractProtocol.PROTOCOL_126.getProtocolStart()) {
+            CameraAimAssistPresetsPacket126 packet = new CameraAimAssistPresetsPacket126();
+            packet.categories = CameraAimAssistPresetsPacket126.DEFAULT_CATEGORIES;
+            packet.presets = CameraAimAssistPresetsPacket126.DEFAULT_PRESETS;
+            packet.operation = CameraAimAssistPresetsPacket126.OPERATION_ADD_TO_EXISTING;
+            packet.setHelper(protocol.getHelper());
+            packets.add(packet);
+        } else if (protocol.getProtocolStart() >= AbstractProtocol.PROTOCOL_121_130.getProtocolStart()) {
             CameraAimAssistPresetsPacket121130 packet = new CameraAimAssistPresetsPacket121130();
             packet.categories = CameraAimAssistPresetsPacket121130.DEFAULT_CATEGORIES;
             packet.presets = CameraAimAssistPresetsPacket121130.DEFAULT_PRESETS;
@@ -190,6 +202,13 @@ public class CameraManager {
             CameraAimAssistPresetsPacket12150 packet = new CameraAimAssistPresetsPacket12150();
             packet.categories = CameraAimAssistPresetsPacket12150.DEFAULT_CATEGORIES;
             packet.presets = CameraAimAssistPresetsPacket12150.DEFAULT_PRESETS;
+            packet.setHelper(protocol.getHelper());
+            packets.add(packet);
+        }
+
+        if (protocol.getProtocolStart() >= AbstractProtocol.PROTOCOL_126.getProtocolStart()) {
+            CameraSplinePacket126 packet = new CameraSplinePacket126();
+            packet.splines = getSplines();
             packet.setHelper(protocol.getHelper());
             packets.add(packet);
         }
@@ -243,6 +262,16 @@ public class CameraManager {
     @Nullable
     public DataPacket getPresetPackets(AbstractProtocol protocol) {
         return packets.get(protocol);
+    }
+
+    public boolean registerSpline(CameraSplineDefinition spline) {
+        String identifier = spline.name;
+        Objects.requireNonNull(identifier, "identifier");
+        return splines.putIfAbsent(identifier, spline) == null;
+    }
+
+    private CameraSplineDefinition[] getSplines() {
+        return splines.values().toArray(new CameraSplineDefinition[0]);
     }
 
     public static void init() {

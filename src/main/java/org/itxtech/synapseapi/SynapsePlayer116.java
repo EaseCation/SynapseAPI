@@ -839,9 +839,6 @@ public class SynapsePlayer116 extends SynapsePlayer113 {
 					this.getServer().getPluginManager().callEvent(new SynapsePlayerInputModeChangeEvent(this, from, playerAuthInputPacket.getInputMode()));
 				}
 
-				long inputFlags = playerAuthInputPacket.getInputFlags();
-				long inputFlags2 = playerAuthInputPacket.getInputFlags2();
-
 				if (playerAuthInputPacket.hasFlag(PlayerAuthInputFlags.START_SPRINTING) && !this.isSprinting()) {
 					PlayerToggleSprintEvent playerToggleSprintEvent = new PlayerToggleSprintEvent(this, true);
 					if (hasEffect(Effect.BLINDNESS)) {

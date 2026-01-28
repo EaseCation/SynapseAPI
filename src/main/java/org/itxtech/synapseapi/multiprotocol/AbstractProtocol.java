@@ -120,6 +120,8 @@ import org.itxtech.synapseapi.multiprotocol.protocol12190.BinaryStreamHelper1219
 import org.itxtech.synapseapi.multiprotocol.protocol12190.protocol.Packet12190;
 import org.itxtech.synapseapi.multiprotocol.protocol12193.BinaryStreamHelper12193;
 import org.itxtech.synapseapi.multiprotocol.protocol12193.protocol.Packet12193;
+import org.itxtech.synapseapi.multiprotocol.protocol126.BinaryStreamHelper126;
+import org.itxtech.synapseapi.multiprotocol.protocol126.protocol.Packet126;
 import org.itxtech.synapseapi.multiprotocol.protocol14.BinaryStreamHelper14;
 import org.itxtech.synapseapi.multiprotocol.protocol14.protocol.Packet14;
 import org.itxtech.synapseapi.multiprotocol.protocol15.BinaryStreamHelper15;
@@ -210,6 +212,7 @@ public enum AbstractProtocol {
     PROTOCOL_121_120(859, Packet121120.class, SynapsePlayer116100.class, BinaryStreamHelper121120.create(), Compressor.SNAPPY),
     PROTOCOL_121_124(860, Packet121124.class, SynapsePlayer116100.class, BinaryStreamHelper121124.create(), Compressor.SNAPPY),
     PROTOCOL_121_130(898, Packet121130.class, SynapsePlayer116100.class, BinaryStreamHelper121130.create(), Compressor.SNAPPY),
+    PROTOCOL_126(924, Packet126.class, SynapsePlayer116100.class, BinaryStreamHelper126.create(), Compressor.SNAPPY),
     ;
 
     private static final AbstractProtocol[] VALUES = values();

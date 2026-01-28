@@ -1,8 +1,6 @@
 package org.itxtech.synapseapi.multiprotocol.common.camera;
 
 import cn.nukkit.math.Vector3f;
-import it.unimi.dsi.fastutil.floats.FloatFloatPair;
-import it.unimi.dsi.fastutil.objects.ObjectFloatPair;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Builder.Default;
@@ -17,22 +15,33 @@ import lombok.ToString;
 @AllArgsConstructor
 @ToString
 public class CameraSplineInstruction {
-    /// TimeSeconds
+    /**
+     * The total time, in seconds, to play back the spline.
+     */
     public float totalTime;
+    /**
+     * The spline interpolation type.
+     */
     @Default
     public SplineType type = SplineType.LINE;
-    /// ControlPoint[]
+    /**
+     * Array of curve control point positions, each as [x, y, z] in world space.
+     */
     @Default
-    public Vector3f[] curve = new Vector3f[0];
-    /// Pair<Alpha, TimeSeconds>[]
+    public Vector3f[] controlPoints = new Vector3f[0];
+    /**
+     * Key frames where each entry defines a progress alpha [0–1] and a time (in seconds) when the spline should reach that progress.
+     */
     @Default
-    public FloatFloatPair[] progressKeyFrames = new FloatFloatPair[0];
-    /// Pair<Rotation, TimeSeconds>[]
+    public CameraSplineProgressKeyFrame[] progressKeyFrames = new CameraSplineProgressKeyFrame[0];
+    /**
+     * Array of rotation key frames, each with a rotation value and the time (in seconds) when it should be applied.
+     */
     @Default
-    public ObjectFloatPair<Vector3f>[] rotationOption = new ObjectFloatPair[0];
-
-    public enum SplineType {
-        LINE,
-        HERMITE,
-    }
+    public CameraSplineRotationKeyFrame[] rotationKeyFrames = new CameraSplineRotationKeyFrame[0];
+    /**
+     * @since 1.26.0
+     */
+    @Default
+    public String name = "";
 }

@@ -27,7 +27,7 @@ public class CameraInstructionPacket12190 extends Packet12190 {
         putOptional(instruction.set, (stream, set) -> {
             stream.putLInt(set.preset.runtimeId);
             stream.putOptional(set.ease, (bs, ease) -> {
-                bs.putByte(ease.type);
+                bs.putByte(ease.type.ordinal());
                 bs.putLFloat(ease.duration);
             });
             stream.putOptional(set.pos, BinaryStream::putVector3f);

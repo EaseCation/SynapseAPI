@@ -3,10 +3,10 @@ package org.itxtech.synapseapi.multiprotocol.protocol121120.protocol;
 import cn.nukkit.math.Vector3f;
 import cn.nukkit.network.protocol.ProtocolInfo;
 import cn.nukkit.utils.BinaryStream;
-import it.unimi.dsi.fastutil.floats.FloatFloatPair;
-import it.unimi.dsi.fastutil.objects.ObjectFloatPair;
 import lombok.ToString;
 import org.itxtech.synapseapi.multiprotocol.common.camera.CameraInstruction;
+import org.itxtech.synapseapi.multiprotocol.common.camera.CameraSplineProgressKeyFrame;
+import org.itxtech.synapseapi.multiprotocol.common.camera.CameraSplineRotationKeyFrame;
 
 @ToString
 public class CameraInstructionPacket121120 extends Packet121120 {
@@ -30,7 +30,7 @@ public class CameraInstructionPacket121120 extends Packet121120 {
         putOptional(instruction.set, (stream, set) -> {
             stream.putLInt(set.preset.runtimeId);
             stream.putOptional(set.ease, (bs, ease) -> {
-                bs.putByte(ease.type);
+                bs.putByte(ease.type.ordinal());
                 bs.putLFloat(ease.duration);
             });
             stream.putOptional(set.pos, BinaryStream::putVector3f);
@@ -67,26 +67,26 @@ public class CameraInstructionPacket121120 extends Packet121120 {
         putOptional(instruction.fieldOfView, (stream, fov) -> {
             stream.putLFloat(fov.fieldOfView);
             stream.putLFloat(fov.ease.duration);
-            stream.putByte(fov.ease.type);
+            stream.putByte(fov.ease.type.ordinal());
             stream.putBoolean(fov.clear);
         });
 
         putOptional(instruction.spline, (stream, spline) -> {
             stream.putLFloat(spline.totalTime);
             stream.putByte(spline.type.ordinal());
-            stream.putUnsignedVarInt(spline.curve.length);
-            for (Vector3f controlPoint : spline.curve) {
+            stream.putUnsignedVarInt(spline.controlPoints.length);
+            for (Vector3f controlPoint : spline.controlPoints) {
                 stream.putVector3f(controlPoint);
             }
             stream.putUnsignedVarInt(spline.progressKeyFrames.length);
-            for (FloatFloatPair progressKeyFrame : spline.progressKeyFrames) {
-                stream.putLFloat(progressKeyFrame.leftFloat());
-                stream.putLFloat(progressKeyFrame.rightFloat());
+            for (CameraSplineProgressKeyFrame progressKeyFrame : spline.progressKeyFrames) {
+                stream.putLFloat(progressKeyFrame.progress);
+                stream.putLFloat(progressKeyFrame.time);
             }
-            stream.putUnsignedVarInt(spline.rotationOption.length);
-            for (ObjectFloatPair<Vector3f> rotationKeyFrame : spline.rotationOption) {
-                stream.putVector3f(rotationKeyFrame.left());
-                stream.putLFloat(rotationKeyFrame.rightFloat());
+            stream.putUnsignedVarInt(spline.rotationKeyFrames.length);
+            for (CameraSplineRotationKeyFrame rotationKeyFrame : spline.rotationKeyFrames) {
+                stream.putVector3f(rotationKeyFrame.rotationX, rotationKeyFrame.rotationY, rotationKeyFrame.rotationZ);
+                stream.putLFloat(rotationKeyFrame.time);
             }
         });
 

@@ -78,6 +78,7 @@ public class AwardAchievementPacket121 extends Packet121 {
     public static final int ACHIEVEMENT_HEART_TRANSPLANTER = 113;
     public static final int ACHIEVEMENT_STAY_HYDRATED = 114;
     public static final int ACHIEVEMENT_MOB_KABOB = 115;
+    public static final int ACHIEVEMENT_ADVENTURING_TIME = 116;
 
     public int achievement;
 

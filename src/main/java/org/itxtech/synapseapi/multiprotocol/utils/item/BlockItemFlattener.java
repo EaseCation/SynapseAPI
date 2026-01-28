@@ -65,6 +65,7 @@ public final class BlockItemFlattener {
         registerIdDowngrader(AbstractProtocol.PROTOCOL_121_120, BlockItemFlattener::downgrader12140);
         registerIdDowngrader(AbstractProtocol.PROTOCOL_121_124, BlockItemFlattener::downgrader12140);
         registerIdDowngrader(AbstractProtocol.PROTOCOL_121_130, BlockItemFlattener::downgrader12140);
+        registerIdDowngrader(AbstractProtocol.PROTOCOL_126, BlockItemFlattener::downgrader12140);
 
         registerAuxValueFixer(AbstractProtocol.PROTOCOL_121, BlockItemFlattener::metaFixer121);
         registerAuxValueFixer(AbstractProtocol.PROTOCOL_121_2, BlockItemFlattener::metaFixer121);
@@ -82,6 +83,7 @@ public final class BlockItemFlattener {
         registerAuxValueFixer(AbstractProtocol.PROTOCOL_121_120, BlockItemFlattener::metaFixer12140);
         registerAuxValueFixer(AbstractProtocol.PROTOCOL_121_124, BlockItemFlattener::metaFixer12140);
         registerAuxValueFixer(AbstractProtocol.PROTOCOL_121_130, BlockItemFlattener::metaFixer12140);
+        registerAuxValueFixer(AbstractProtocol.PROTOCOL_126, BlockItemFlattener::metaFixer12140);
 
         for (AbstractProtocol protocol : AbstractProtocol.getValues()) {
             if (protocol.getProtocolStart() <= BASE_GAME_VERSION.getProtocolStart()) {

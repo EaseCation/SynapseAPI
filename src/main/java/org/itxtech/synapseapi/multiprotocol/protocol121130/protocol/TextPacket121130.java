@@ -53,7 +53,7 @@ public class TextPacket121130 extends Packet121130 {
     public void decode() {
         this.isLocalized = this.getBoolean();
 
-        int bodyType = (int) this.getUnsignedVarInt();
+        int bodyType = this.getByte();
         switch (bodyType) {
             case BODY_TYPE_MESSAGE_ONLY:
                 this.skip(BODY_MAGIC_MESSAGE_ONLY.length);
@@ -97,7 +97,7 @@ public class TextPacket121130 extends Packet121130 {
             case TYPE_OBJECT:
             case TYPE_OBJECT_WHISPER:
             case TYPE_OBJECT_ANNOUNCEMENT: {
-                this.putUnsignedVarInt(BODY_TYPE_MESSAGE_ONLY);
+                this.putByte(BODY_TYPE_MESSAGE_ONLY);
                 this.put(BODY_MAGIC_MESSAGE_ONLY);
                 this.putByte(this.type);
                 String message = this.message;
@@ -114,7 +114,7 @@ public class TextPacket121130 extends Packet121130 {
             case TYPE_CHAT:
             case TYPE_WHISPER:
             case TYPE_ANNOUNCEMENT: {
-                this.putUnsignedVarInt(BODY_TYPE_AUTHOR_AND_MESSAGE);
+                this.putByte(BODY_TYPE_AUTHOR_AND_MESSAGE);
                 this.put(BODY_MAGIC_AUTHOR_AND_MESSAGE);
                 this.putByte(this.type);
                 this.putString(this.primaryName);
@@ -132,7 +132,7 @@ public class TextPacket121130 extends Packet121130 {
             case TYPE_TRANSLATION:
             case TYPE_POPUP:
             case TYPE_JUKEBOX_POPUP: {
-                this.putUnsignedVarInt(BODY_TYPE_MESSAGE_AND_PARAMS);
+                this.putByte(BODY_TYPE_MESSAGE_AND_PARAMS);
                 this.put(BODY_MAGIC_MESSAGE_AND_PARAMS);
                 this.putByte(this.type);
                 this.putString(this.message);

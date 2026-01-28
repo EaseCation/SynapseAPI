@@ -63,6 +63,10 @@ public class ServerScriptDebugDrawerPacket12190 extends Packet12190 {
          * @since 1.21.120
          */
         public int dimension;
+        /**
+         * @since 1.26.0
+         */
+        public Long attachedEntityRuntimeId;
         public String text;
         public Vector3f boxBound;
         public Vector3f lineEndLocation;

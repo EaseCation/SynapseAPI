@@ -37,8 +37,11 @@ import org.itxtech.synapseapi.multiprotocol.protocol12170.protocol.LevelSoundEve
 import org.itxtech.synapseapi.multiprotocol.protocol12170.protocol.PlayerUpdateEntityOverridesPacket12170;
 import org.itxtech.synapseapi.multiprotocol.protocol12180.protocol.PlayerLocationPacket12180;
 import org.itxtech.synapseapi.multiprotocol.protocol12190.protocol.CameraInstructionPacket12190;
+import org.itxtech.synapseapi.multiprotocol.protocol12190.protocol.ServerScriptDebugDrawerPacket12190;
+import org.itxtech.synapseapi.multiprotocol.protocol126.protocol.CameraInstructionPacket126;
+import org.itxtech.synapseapi.multiprotocol.protocol126.protocol.DebugDrawerPacket126;
 import org.itxtech.synapseapi.multiprotocol.protocol14.protocol.PlayerActionPacket14;
-import org.itxtech.synapseapi.multiprotocol.protocol15.protocol.MoveEntityDeltaPacket;
+import org.itxtech.synapseapi.multiprotocol.protocol15.protocol.MoveEntityDeltaPacket15;
 import org.itxtech.synapseapi.multiprotocol.protocol18.protocol.SpawnParticleEffectPacket18;
 
 import javax.annotation.Nullable;
@@ -272,7 +275,11 @@ public class DataPacketEidReplacer {
                 }
                 break;
             case ProtocolInfo.MOVE_ACTOR_DELTA_PACKET:
-                if (packet instanceof MoveEntityDeltaPacket116100) {
+                if (packet instanceof MoveEntityDeltaPacket dp) {
+                    if (dp.entityRuntimeId == from) {
+                        dp.entityRuntimeId = to;
+                    }
+                } else if (packet instanceof MoveEntityDeltaPacket116100) {
                     if (((MoveEntityDeltaPacket116100) packet).entityRuntimeId == from) {
                         ((MoveEntityDeltaPacket116100) packet).entityRuntimeId = to;
                     }
@@ -280,9 +287,9 @@ public class DataPacketEidReplacer {
                     if (((MoveEntityDeltaPacket113) packet).entityRuntimeId == from) {
                         ((MoveEntityDeltaPacket113) packet).entityRuntimeId = to;
                     }
-                } else if (packet instanceof MoveEntityDeltaPacket) {
-                    if (((MoveEntityDeltaPacket) packet).entityRuntimeId == from) {
-                        ((MoveEntityDeltaPacket) packet).entityRuntimeId = to;
+                } else if (packet instanceof MoveEntityDeltaPacket15) {
+                    if (((MoveEntityDeltaPacket15) packet).entityRuntimeId == from) {
+                        ((MoveEntityDeltaPacket15) packet).entityRuntimeId = to;
                     }
                 }
                 break;
@@ -312,7 +319,28 @@ public class DataPacketEidReplacer {
                 }
                 break;
             case ProtocolInfo.CAMERA_INSTRUCTION_PACKET:
-                if (packet instanceof CameraInstructionPacket121120 dp) {
+                if (packet instanceof CameraInstructionPacket126 dp) {
+                    CameraInstruction instruction = dp.instruction;
+                    CameraInstruction clone = null;
+                    CameraTargetInstruction target = instruction.target;
+                    if (target != null && target.entityId == from) {
+                        CameraTargetInstruction copy = target.clone();
+                        copy.entityId = to;
+                        clone = instruction.clone();
+                        dp.instruction = clone;
+                        clone.target = copy;
+                    }
+                    CameraAttachToEntityInstruction attach = instruction.attachToEntity;
+                    if (attach != null && attach.entityId == from) {
+                        CameraAttachToEntityInstruction copy = attach.clone();
+                        copy.entityId = to;
+                        if (clone == null) {
+                            clone = instruction.clone();
+                            dp.instruction = clone;
+                        }
+                        clone.attachToEntity = copy;
+                    }
+                } else if (packet instanceof CameraInstructionPacket121120 dp) {
                     CameraInstruction instruction = dp.instruction;
                     CameraInstruction clone = null;
                     CameraTargetInstruction target = instruction.target;
@@ -415,6 +443,15 @@ public class DataPacketEidReplacer {
                 if (packet instanceof PlayerLocationPacket12180 dp) {
                     if (dp.entityUniqueId == from) {
                         dp.entityUniqueId = to;
+                    }
+                }
+                break;
+            case ProtocolInfo.DEBUG_DRAWER_PACKET:
+                if (packet instanceof DebugDrawerPacket126 dp) {
+                    for (ServerScriptDebugDrawerPacket12190.Entry entry : dp.entries) {
+                        if (entry.attachedEntityRuntimeId != null && entry.attachedEntityRuntimeId == from) {
+                            entry.attachedEntityRuntimeId = to;
+                        }
                     }
                 }
                 break;

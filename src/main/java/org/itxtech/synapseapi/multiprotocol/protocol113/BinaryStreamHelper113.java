@@ -1,6 +1,8 @@
 package org.itxtech.synapseapi.multiprotocol.protocol113;
 
 import cn.nukkit.command.data.*;
+import cn.nukkit.math.Rotation;
+import cn.nukkit.network.protocol.types.*;
 import cn.nukkit.utils.BinaryStream;
 import org.itxtech.synapseapi.multiprotocol.protocol112.BinaryStreamHelper112;
 import org.itxtech.synapseapi.multiprotocol.protocol113.protocol.AvailableCommandsPacket113;
@@ -117,5 +119,33 @@ public class BinaryStreamHelper113 extends BinaryStreamHelper112 {
         });
     }
 
+    @Override
+    public StructureEditorData getStructureEditorData(BinaryStream stream) {
+        StructureEditorData data = new StructureEditorData();
+        data.name = stream.getString();
+        data.dataField = stream.getString();
+        data.includePlayers = stream.getBoolean();
+        data.boundingBoxVisible = stream.getBoolean();
+        data.type = StructureBlockType.getValues()[stream.getVarInt()];
+        data.settings = getStructureSettings(stream);
+        data.redstoneSaveToDisk = stream.getVarInt() != 0;
+        return data;
+    }
 
+    @Override
+    public StructureSettings getStructureSettings(BinaryStream stream) {
+        StructureSettings settings = new StructureSettings();
+        settings.paletteName = stream.getString();
+        settings.ignoreEntities = stream.getBoolean();
+        settings.ignoreBlocks = stream.getBoolean();
+        settings.size = stream.getBlockVector3();
+        settings.offset = stream.getBlockVector3();
+        settings.lastEditedByEntityUniqueId = stream.getEntityUniqueId();
+        settings.rotation = Rotation.getValues()[stream.getByte()];
+        settings.mirror = StructureMirror.getValues()[stream.getByte()];
+        settings.integrityValue = stream.getLFloat();
+        settings.integritySeed = stream.getLInt();
+        settings.pivot = stream.getVector3f();
+        return settings;
+    }
 }
