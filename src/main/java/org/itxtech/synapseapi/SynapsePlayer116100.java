@@ -3372,16 +3372,43 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
 //    }
 
     @Override
+    public void playAnimation(String animation, Entity entity) {
+        this.playAnimation(animation, "default", "", "__runtime_controller", 0, entity.getId());
+    }
+
+    @Override
     public void playAnimation(String animation, long entityRuntimeId) {
+        this.playAnimation(animation, "default", "", "__runtime_controller", 0, entityRuntimeId);
+    }
+
+    @Override
+    public void playAnimation(String animation, String nextState, String stopExpression, String controller, float blendOutTime, Entity... entities) {
+        long[] entityRuntimeIds = new long[entities.length];
+        for (int i = 0; i < entities.length; i++) {
+            entityRuntimeIds[i] = entities[i].getId();
+        }
+        this.playAnimation(animation, nextState, stopExpression, controller, blendOutTime, entityRuntimeIds);
+    }
+
+    @Override
+    public void playAnimation(String animation, String nextState, String stopExpression, String controller, float blendOutTime, long... entityRuntimeIds) {
         if (this.protocol >= AbstractProtocol.PROTOCOL_117_30.getProtocolStart()) {
             AnimateEntityPacket11730 pk = new AnimateEntityPacket11730();
-            pk.entityRuntimeIds = new long[]{entityRuntimeId};
             pk.animation = animation;
+            pk.nextState = nextState;
+            pk.stopExpression = stopExpression;
+            pk.controller = controller;
+            pk.blendOutTime = blendOutTime;
+            pk.entityRuntimeIds = entityRuntimeIds.clone();
             this.dataPacket(pk);
         } else {
             AnimateEntityPacket116100 pk = new AnimateEntityPacket116100();
-            pk.entityRuntimeIds = new long[]{entityRuntimeId};
             pk.animation = animation;
+            pk.nextState = nextState;
+            pk.stopExpression = stopExpression;
+            pk.controller = controller;
+            pk.blendOutTime = blendOutTime;
+            pk.entityRuntimeIds = entityRuntimeIds.clone();
             this.dataPacket(pk);
         }
     }
