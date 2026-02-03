@@ -402,7 +402,7 @@ public class SynapsePlayer16 extends SynapsePlayer14 {
 			int chunkX = Level.getHashX(index);
 			int chunkZ = Level.getHashZ(index);
 			for (Entity entity : this.level.getChunkEntities(chunkX, chunkZ).values()) {
-				if (this != entity && !entity.closed && entity.isAlive()) {
+				if (this != entity && !entity.closed && entity.isAlive() && entity.isWithinEntityViewDistance(this)) {
 					entity.spawnTo(this);
 				}
 			}

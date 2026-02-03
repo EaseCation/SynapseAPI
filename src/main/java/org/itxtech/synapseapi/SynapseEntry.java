@@ -30,6 +30,7 @@ import org.itxtech.synapseapi.event.player.SynapsePlayerTooManyPacketsInBatchEve
 import org.itxtech.synapseapi.messaging.StandardMessenger;
 import org.itxtech.synapseapi.multiprotocol.AbstractProtocol;
 import org.itxtech.synapseapi.multiprotocol.PacketRegister;
+import org.itxtech.synapseapi.multiprotocol.common.PlayerAuthInputFlags;
 import org.itxtech.synapseapi.multiprotocol.protocol113.protocol.IPlayerAuthInputPacket;
 import org.itxtech.synapseapi.multiprotocol.protocol113.protocol.InteractPacket113;
 import org.itxtech.synapseapi.multiprotocol.protocol116100ne.protocol.MovePlayerPacket116100NE;
@@ -659,7 +660,7 @@ public class SynapseEntry {
                                                 packet.yaw = authInputPacket.getYaw();
                                                 packet.headYaw = authInputPacket.getHeadYaw();
                                                 packet.pitch = authInputPacket.getPitch();
-                                                packet.mode = MovePlayerPacket.MODE_NORMAL;
+                                                packet.mode = authInputPacket.hasFlag(PlayerAuthInputFlags.HANDLED_TELEPORT) ? MovePlayerPacket.MODE_TELEPORT : MovePlayerPacket.MODE_NORMAL;
                                                 packet.onGround = player.onGround;
                                                 long ridingEid = authInputPacket.getPredictedVehicleEntityUniqueId();
                                                 if (ridingEid != 0) {
