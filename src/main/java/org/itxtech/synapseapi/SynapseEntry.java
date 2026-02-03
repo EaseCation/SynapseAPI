@@ -583,13 +583,10 @@ public class SynapseEntry {
                                         //玩家体验优化：直接不经过主线程广播玩家移动，插件过度干预可能会造成移动鬼畜问题
                                         boolean serverAuthoritativeMovement = player.isServerAuthoritativeMovementEnabled();
                                         if (!serverAuthoritativeMovement && subPacket instanceof MovePlayerPacket) {
-                                            //判断是否和玩家自身在附近区块
-                                            /*if (Math.abs((int) ((MovePlayerPacket) subPacket).x >> 4 - player.getFloorX() >> 4) > 4
-                                                    || Math.abs((int) ((MovePlayerPacket) subPacket).z >> 4 - player.getFloorZ() >> 4) > 4
-                                                    || Math.abs((int) ((MovePlayerPacket) subPacket).y - player.getFloorY()) > 100
-                                            ) {
+                                            // 判断是否和玩家自身在附近区块，过滤 TP 后客户端发来的旧坐标包
+                                            if (!isPositionNearPlayer(((MovePlayerPacket) subPacket).x, ((MovePlayerPacket) subPacket).y, ((MovePlayerPacket) subPacket).z, player)) {
                                                 continue;
-                                            }*/
+                                            }
                                             ((MovePlayerPacket) subPacket).eid = player.getId();
                                             subPacket.setChannel(DataPacket.CHANNEL_PLAYER_MOVING);
                                             MovePlayerPacket116100NE newMovePacket = null;
@@ -606,13 +603,10 @@ public class SynapseEntry {
                                                 }
                                             }
                                         } else if (!serverAuthoritativeMovement && subPacket instanceof MovePlayerPacket116100NE) {
-                                            //判断是否和玩家自身在附近区块
-                                            /*if (Math.abs((int) ((MovePlayerPacket116100NE) subPacket).x >> 4 - player.getFloorX() >> 4) > 4
-                                                    || Math.abs((int) ((MovePlayerPacket116100NE) subPacket).z >> 4 - player.getFloorZ() >> 4) > 4
-                                                    || Math.abs((int) ((MovePlayerPacket116100NE) subPacket).y - player.getFloorY()) > 100
-                                            ) {
+                                            // 判断是否和玩家自身在附近区块，过滤 TP 后客户端发来的旧坐标包
+                                            if (!isPositionNearPlayer(((MovePlayerPacket116100NE) subPacket).x, ((MovePlayerPacket116100NE) subPacket).y, ((MovePlayerPacket116100NE) subPacket).z, player)) {
                                                 continue;
-                                            }*/
+                                            }
                                             ((MovePlayerPacket116100NE) subPacket).eid = player.getId();
                                             subPacket.setChannel(DataPacket.CHANNEL_PLAYER_MOVING);
                                             MovePlayerPacket oldMovePacket = null;
@@ -639,26 +633,19 @@ public class SynapseEntry {
                                                     viewer.dataPacket(subPacket);
                                                 }
                                             }
-                                        } else if (serverAuthoritativeMovement && subPacket instanceof IPlayerAuthInputPacket) {
-                                            IPlayerAuthInputPacket authInputPacket = (IPlayerAuthInputPacket) subPacket;
-
+                                        } else if (serverAuthoritativeMovement && subPacket instanceof IPlayerAuthInputPacket authInputPacket) {
                                             long tick = authInputPacket.getTick();
                                             if (player.lastAuthInputPacketTick > tick) {
                                                 player.setViolated("input_tick");
-                                                synapse.getServer().getScheduler().scheduleTask(synapse, () -> {
-                                                    player.onPacketViolation(PacketViolationReason.IMPOSSIBLE_BEHAVIOR, "input_tick", String.valueOf(tick));
-                                                });
+                                                synapse.getServer().getScheduler().scheduleTask(synapse, () -> player.onPacketViolation(PacketViolationReason.IMPOSSIBLE_BEHAVIOR, "input_tick", String.valueOf(tick)));
                                                 break HANDLER;
                                             }
                                             player.lastAuthInputPacketTick = tick;
 
-                                            //判断是否和玩家自身在附近区块
-                                            /*if (Math.abs((int) authInputPacket.getX() >> 4 - player.getFloorX() >> 4) > 4
-                                                    || Math.abs((int) authInputPacket.getZ() >> 4 - player.getFloorZ() >> 4) > 4
-                                                    || Math.abs((int) authInputPacket.getY() - player.getFloorY()) > 100
-                                            ) {
+                                            // 判断是否和玩家自身在附近区块，过滤 TP 后客户端发来的旧坐标包
+                                            if (!isPositionNearPlayer(authInputPacket.getX(), authInputPacket.getY(), authInputPacket.getZ(), player)) {
                                                 continue;
-                                            }*/
+                                            }
                                             if (authInputPacket.getDeltaX() != 0 || authInputPacket.getDeltaZ() != 0 || authInputPacket.getY() != player.lastAuthInputY || authInputPacket.getYaw() != player.lastAuthInputYaw || authInputPacket.getPitch() != player.lastAuthInputPitch) {
                                                 player.lastAuthInputY = authInputPacket.getY();
                                                 player.lastAuthInputYaw = authInputPacket.getYaw();
@@ -713,10 +700,13 @@ public class SynapseEntry {
                             }
                         } else {
                             this.redirectPacketQueue.offer(new RedirectPacketEntry(player, pk0));
-                            if (SynapseAPI.getInstance().isNetworkBroadcastPlayerMove() && !player.isServerAuthoritativeMovementEnabled() && pk0 instanceof MovePlayerPacket) {
-                                //玩家体验优化：直接不经过主线程广播玩家移动，插件过度干预可能会造成移动鬼畜问题
-                                ((MovePlayerPacket) pk0).eid = player.getId();
-                                player.getViewers().values().forEach(viewer -> viewer.dataPacket(pk0));
+                            if (SynapseAPI.getInstance().isNetworkBroadcastPlayerMove() && !player.isServerAuthoritativeMovementEnabled() && pk0 instanceof MovePlayerPacket movePacket) {
+                                // 玩家体验优化：直接不经过主线程广播玩家移动，插件过度干预可能会造成移动鬼畜问题
+                                // 判断是否和玩家自身在附近区块，过滤 TP 后客户端发来的旧坐标包
+                                if (isPositionNearPlayer(movePacket.x, movePacket.y, movePacket.z, player)) {
+                                    movePacket.eid = player.getId();
+                                    player.getViewers().values().forEach(viewer -> viewer.dataPacket(pk0));
+                                }
                             }
                         }
                     }
@@ -731,6 +721,27 @@ public class SynapseEntry {
                 this.synapse.getMessenger().dispatchIncomingMessage(this, messagePacket.channel, messagePacket.data);
                 break;
         }
+    }
+
+    /**
+     * 检查数据包坐标是否接近玩家服务端位置
+     * 用于网络层过滤 TP 后客户端发来的旧坐标包
+     *
+     * @param packetX 数据包中的X坐标
+     * @param packetY 数据包中的Y坐标
+     * @param packetZ 数据包中的Z坐标
+     * @param player  玩家实例
+     * @return 坐标是否在合理范围内（XZ偏差不超过4个区块，Y偏差不超过100格）
+     */
+    private static boolean isPositionNearPlayer(float packetX, float packetY, float packetZ, SynapsePlayer player) {
+        int packetChunkX = ((int) packetX) >> 4;
+        int packetChunkZ = ((int) packetZ) >> 4;
+        int playerChunkX = ((int) player.x) >> 4;
+        int playerChunkZ = ((int) player.z) >> 4;
+
+        return Math.abs(packetChunkX - playerChunkX) <= 4
+                && Math.abs(packetChunkZ - playerChunkZ) <= 4
+                && Math.abs((int) packetY - (int) player.y) <= 100;
     }
 
     private static class RedirectPacketEntry {
