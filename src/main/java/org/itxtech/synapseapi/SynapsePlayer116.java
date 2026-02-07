@@ -1825,6 +1825,7 @@ public class SynapsePlayer116 extends SynapsePlayer113 {
 	public void openInventory() {
 		ContainerOpenPacket pk = new ContainerOpenPacket();
 		pk.windowId = this.getWindowId(this.inventory);
+		lastOpenedWindowId = pk.windowId;
 		pk.type = this.inventory.getType().getNetworkType();
 		pk.x = this.getFloorX();
 		pk.y = this.getFloorY();

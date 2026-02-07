@@ -1438,11 +1438,28 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
                         this.closingWindowId = containerClosePacket.windowId;
                         this.removeWindow(this.windowIndex.get(containerClosePacket.windowId), true);
                         this.closingWindowId = Integer.MIN_VALUE;
-                    } else {
+                    } else if (containerClosePacket.windowId != -1) {
                         this.getServer().getLogger().debug(getName() + " unopened window: " + containerClosePacket.windowId);
                     }
 
                     if (containerClosePacket.windowId == -1) {
+                        if (this.lastOpenedWindowId != -1) {
+                            log.debug("{} pushing a new container screen ({}) failed because a container screen that was already open on the client has not yet been closed", getName(), lastOpenedWindowId);
+
+                            if (this.inventoryOpen && this.lastOpenedWindowId == ContainerIds.INVENTORY) {
+                                this.inventoryOpen = false;
+                            }
+
+                            Inventory lastOpenedInventory = this.windowIndex.get(this.lastOpenedWindowId);
+                            if (lastOpenedInventory != null) {
+                                this.closingWindowId = Integer.MAX_VALUE;
+                                this.removeWindow(lastOpenedInventory, true);
+                                this.closingWindowId = Integer.MIN_VALUE;
+                            }
+                            this.lastOpenedWindowId = -1;
+                            return;
+                        }
+
                         this.craftingType = CRAFTING_SMALL;
                         this.resetCraftingGridType();
                         this.addWindow(this.craftingGrid, ContainerIds.NONE);
@@ -1452,14 +1469,17 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
                         pk.windowId = -1;
                         this.dataPacket(pk);
                     } else { // Close bugged inventory
-                        ContainerClosePacket pk = new ContainerClosePacket();
+                        ContainerClosePacket121 pk = new ContainerClosePacket121();
                         pk.windowId = containerClosePacket.windowId;
                         this.dataPacket(pk);
 
                         for (Inventory open : new ArrayList<>(this.windows.keySet())) {
-                            if (open instanceof ContainerInventory) {
-                                this.removeWindow(open);
+                            if (!(open instanceof ContainerInventory) && !(open instanceof PlayerEnderChestInventory)) {
+                                continue;
                             }
+                            this.server.getPluginManager().callEvent(new InventoryCloseEvent(open, this));
+
+                            this.removeWindow(open, true);
                         }
                     }
                     break;
@@ -1480,7 +1500,7 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
                     this.closingWindowId = containerClosePacket.windowId;
                     this.removeWindow(this.windowIndex.get(containerClosePacket.windowId), true);
                     this.closingWindowId = Integer.MIN_VALUE;
-                } else {
+                } else if (containerClosePacket.windowId != -1) {
                     this.getServer().getLogger().debug(getName() + " unopened window: " + containerClosePacket.windowId);
                 }
 
@@ -3209,7 +3229,11 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
 			this.permanentWindows.add(cnt);
 		}
 
-		if (this.spawned && inventory.open(this)) {
+        if (inventoryOpen) {
+            log.debug("{} opened player inventory screen, ignore new container screen request: {}", getName(), cnt);
+        }
+
+		if (this.spawned && !inventoryOpen && inventory.open(this)) {
 			return cnt;
 		} else if (!alwaysOpen) {
             if (!this.permanentWindows.contains(this.getWindowId(inventory)))
