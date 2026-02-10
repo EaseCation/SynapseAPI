@@ -468,7 +468,9 @@ public class SynapsePlayer116 extends SynapsePlayer113 {
 
 								Item oldItem = i.clone();
 
-								if (this.canInteract(blockVector.add(0.5, 0.5, 0.5), this.isCreative() ? MAX_REACH_DISTANCE_CREATIVE : MAX_REACH_DISTANCE_SURVIVAL) && (i = this.level.useBreakOn(blockVector.asVector3(), face, i, this, true)) != null) {
+								if (isBreakingBlock()
+										&& this.canInteract(blockVector.add(0.5, 0.5, 0.5), this.isCreative() ? MAX_REACH_DISTANCE_CREATIVE : MAX_REACH_DISTANCE_SURVIVAL)
+										&& (i = this.level.useBreakOn(blockVector.asVector3(), face, i, this, true)) != null) {
 									if (this.isSurvival()) {
 										this.getFoodData().updateFoodExpLevel(0.005f);
 										if (!i.equals(oldItem) || i.getCount() != oldItem.getCount()) {
@@ -1101,12 +1103,11 @@ public class SynapsePlayer116 extends SynapsePlayer113 {
 									}
 									distanceChecked = true;
 									this.level.addLevelEvent(this.breakingBlock, LevelEventPacket.EVENT_BLOCK_STOP_BREAK);
-									this.lastBreak = -1;
 									this.breakingBlock = null;
 									this.breakingBlockFace = null;
 								}
 							case PlayerActionPacket14.ACTION_START_BREAK: // both
-								if (!this.spawned || !this.isAlive() || this.isSpectator() || this.lastBreak != -1 || !distanceChecked && pos.distanceSquared(this) > 100) {
+								if (!this.spawned || !this.isAlive() || this.isSpectator() || this.isBreakingBlock() || !distanceChecked && pos.distanceSquared(this) > 100) {
 									break;
 								}
 								face = BlockFace.fromIndex(blockAction.data);
@@ -1169,7 +1170,7 @@ public class SynapsePlayer116 extends SynapsePlayer113 {
 								this.lastBreak = System.currentTimeMillis();
 								break;
 							case PlayerActionPacket14.ACTION_STOP_BREAK: // client
-								if (this.breakingBlock == null || this.breakingBlockFace == null) {
+								if (!this.isBreakingBlock() || this.breakingBlockFace == null) {
 									break;
 								}
 								pos = this.breakingBlock;
@@ -1186,7 +1187,9 @@ public class SynapsePlayer116 extends SynapsePlayer113 {
 
 								item = this.getInventory().getItemInHand();
 								Item oldItem = item.clone();
-								if (this.canInteract(pos.add(0.5, 0.5, 0.5), this.isCreative() ? MAX_REACH_DISTANCE_CREATIVE : MAX_REACH_DISTANCE_SURVIVAL) && (item = this.level.useBreakOn(pos, face, item, this, true)) != null) {
+								if (isBreakingBlock()
+										&& this.canInteract(pos.add(0.5, 0.5, 0.5), this.isCreative() ? MAX_REACH_DISTANCE_CREATIVE : MAX_REACH_DISTANCE_SURVIVAL)
+										&& (item = this.level.useBreakOn(pos, face, item, this, true)) != null) {
 									// success
 									if (this.isSurvival()) {
 										this.getFoodData().updateFoodExpLevel(0.005f);
@@ -1217,7 +1220,6 @@ public class SynapsePlayer116 extends SynapsePlayer113 {
 //									int breakTime = blockAction.data;
 								}
 								this.level.addLevelEvent(pos, LevelEventPacket.EVENT_BLOCK_STOP_BREAK);
-								this.lastBreak = -1;
 								this.breakingBlock = null;
 								this.breakingBlockFace = null;
 								break;
@@ -1461,7 +1463,8 @@ public class SynapsePlayer116 extends SynapsePlayer113 {
 								i = this.getInventory().getItemInHand();
 								Item oldItem = i.clone();
 
-								if (this.canInteract(blockVector.add(0.5, 0.5, 0.5), this.isCreative() ? MAX_REACH_DISTANCE_CREATIVE : MAX_REACH_DISTANCE_SURVIVAL)
+								if (isBreakingBlock()
+										&& this.canInteract(blockVector.add(0.5, 0.5, 0.5), this.isCreative() ? MAX_REACH_DISTANCE_CREATIVE : MAX_REACH_DISTANCE_SURVIVAL)
 										&& (i = this.level.useBreakOn(blockVector.asVector3(), face, i, this, true)) != null) {
 									if (this.isSurvival()) {
 										this.getFoodData().updateFoodExpLevel(0.005f);
