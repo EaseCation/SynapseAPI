@@ -4401,7 +4401,7 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
 
     @Override
     public boolean isNeedLevelChangeLoadScreen() {
-        return this.isNetEaseClient() && this.isSubChunkRequestAvailable() /*&& this.isBlobCacheAvailable()*/;
+        return (this.isNetEaseClient() || this.isJavaClient()) && this.isSubChunkRequestAvailable() /*&& this.isBlobCacheAvailable()*/;
     }
 
     @Override

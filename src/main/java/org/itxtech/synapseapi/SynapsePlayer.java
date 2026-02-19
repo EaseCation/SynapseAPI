@@ -146,6 +146,12 @@ public class SynapsePlayer extends Player {
         return false;
     }
 
+    public boolean isJavaClient() {
+        return loginChainData != null
+                && loginChainData.getViaProxyAuthToken() != null
+                && !loginChainData.getViaProxyAuthToken().isEmpty();
+    }
+
     public int nextDummyDimension() {
         this.dummyDimension++;
         if (this.dummyDimension < 3) {
@@ -572,7 +578,38 @@ public class SynapsePlayer extends Player {
             this.syncFeatureRegistry();
             this.sendCameraPresets();
         } else {
-            if (dimension != DimensionID.OVERWORLD && dummyDimension != DimensionID.OVERWORLD) {
+            if (this.isJavaClient()) {
+                // Java 客户端：始终发送真实维度以退出 loading 状态
+                // ViaBedrock 通过备用维度名称处理同维度切换
+                dummyDimension = dimension;
+
+                if (getProtocol() >= AbstractProtocol.PROTOCOL_121_20.getProtocolStart()) {
+                    ChangeDimensionPacket12120 changeDimensionPacket = new ChangeDimensionPacket12120();
+                    changeDimensionPacket.dimension = dummyDimension;
+                    changeDimensionPacket.x = (float) getX();
+                    changeDimensionPacket.y = (float) getY();
+                    changeDimensionPacket.z = (float) getZ();
+                    dataPacket(changeDimensionPacket);
+                } else {
+                    ChangeDimensionPacket changeDimensionPacket = new ChangeDimensionPacket();
+                    changeDimensionPacket.dimension = dummyDimension;
+                    changeDimensionPacket.x = (float) getX();
+                    changeDimensionPacket.y = (float) getY();
+                    changeDimensionPacket.z = (float) getZ();
+                    dataPacket(changeDimensionPacket);
+                }
+
+                PlayerActionPacket119 ackPacket = new PlayerActionPacket119();
+                ackPacket.action = PlayerActionPacket.ACTION_DIMENSION_CHANGE_ACK;
+                ackPacket.entityId = getId();
+                ackPacket.x = getFloorX();
+                ackPacket.y = getFloorY();
+                ackPacket.z = getFloorZ();
+                ackPacket.resultX = ackPacket.x;
+                ackPacket.resultY = ackPacket.y;
+                ackPacket.resultZ = ackPacket.z;
+                dataPacket(ackPacket);
+            } else if (dimension != DimensionID.OVERWORLD && dummyDimension != DimensionID.OVERWORLD) {
                 forceSendEmptyChunks(chunkRadius, 0, 0, dummyDimension);
 
                 dummyDimension = dimension;
@@ -798,8 +835,13 @@ public class SynapsePlayer extends Player {
             preChangeDimensionScreen(true);
 
             if (this.isNeedLevelChangeLoadScreen()) {
-                if (!isLevelChanging) {
-                    transferDimension = this.nextDummyDimension();
+                if (this.isJavaClient()) {
+                    // Java 客户端：保持真实维度，ViaBedrock 通过备用名称处理同维度切换
+                    transferDimension = this.dummyDimension;
+                } else {
+                    if (!isLevelChanging) {
+                        transferDimension = this.nextDummyDimension();
+                    }
                 }
 
                 if (getProtocol() >= AbstractProtocol.PROTOCOL_121_20.getProtocolStart()) {
@@ -1023,6 +1065,44 @@ public class SynapsePlayer extends Player {
                 preChangeDimensionScreen(false);
 
                 Dimension newDimension = location.level.getDimension();
+
+                if (this.isJavaClient()) {
+                    // Java 客户端：始终发送真实维度
+                    // ViaBedrock 通过备用维度名称处理同维度切换
+                    this.dummyDimension = newDimension.getId();
+                    this.isLevelChange = true;
+
+                    if (getProtocol() >= AbstractProtocol.PROTOCOL_121_20.getProtocolStart()) {
+                        ChangeDimensionPacket12120 changeDimensionPacket = new ChangeDimensionPacket12120();
+                        changeDimensionPacket.dimension = this.dummyDimension;
+                        changeDimensionPacket.x = (float) this.getX();
+                        changeDimensionPacket.y = (float) this.getY();
+                        changeDimensionPacket.z = (float) this.getZ();
+                        this.dataPacket(changeDimensionPacket);
+                    } else {
+                        ChangeDimensionPacket changeDimensionPacket = new ChangeDimensionPacket();
+                        changeDimensionPacket.dimension = this.dummyDimension;
+                        changeDimensionPacket.x = (float) this.getX();
+                        changeDimensionPacket.y = (float) this.getY();
+                        changeDimensionPacket.z = (float) this.getZ();
+                        this.dataPacket(changeDimensionPacket);
+                    }
+
+                    PlayerActionPacket119 ackPacket = new PlayerActionPacket119();
+                    ackPacket.action = PlayerActionPacket.ACTION_DIMENSION_CHANGE_ACK;
+                    ackPacket.entityId = getId();
+                    ackPacket.x = getFloorX();
+                    ackPacket.y = getFloorY();
+                    ackPacket.z = getFloorZ();
+                    ackPacket.resultX = ackPacket.x;
+                    ackPacket.resultY = ackPacket.y;
+                    ackPacket.resultZ = ackPacket.z;
+                    dataPacket(ackPacket);
+
+                    postTeleport(true);
+                    return true;
+                }
+
                 if (!this.isNeedLevelChangeLoadScreen() || newDimension != Dimension.OVERWORLD) {
                     if (from.getLevel().getDimension() != newDimension) {
                         this.dummyDimension = newDimension.getId();
