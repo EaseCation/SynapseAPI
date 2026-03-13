@@ -578,6 +578,8 @@ public class SynapsePlayer extends Player {
             this.syncFeatureRegistry();
             this.sendCameraPresets();
         } else {
+            this.locallyInitialized = true;
+
             if (this.isJavaClient()) {
                 // Java 客户端：始终发送真实维度以退出 loading 状态
                 // ViaBedrock 通过备用维度名称处理同维度切换

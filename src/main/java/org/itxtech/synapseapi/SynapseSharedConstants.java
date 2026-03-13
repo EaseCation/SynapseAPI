@@ -63,7 +63,7 @@ public final class SynapseSharedConstants {
     /**
      * 1.12+ 是否使用客户端区块缓存?
      */
-    public static final boolean USE_CLIENT_BLOB_CACHE = false;
+    public static final boolean USE_CLIENT_BLOB_CACHE = true;
 
     /**
      * 1.18+ 是否使用子区块请求?
