@@ -91,7 +91,7 @@ public class BinaryStreamHelper12010 extends BinaryStreamHelper120 {
             }
         });
     }
-
+/*
     @Override
     public void putSkin(BinaryStream stream, Skin skin) {
         if (!stream.neteaseMode) {
@@ -149,4 +149,5 @@ public class BinaryStreamHelper12010 extends BinaryStreamHelper120 {
         stream.putBoolean(skin.isPrimaryUser());
         stream.putBoolean(skin.isOverridingPlayerAppearance());
     }
+*/
 }

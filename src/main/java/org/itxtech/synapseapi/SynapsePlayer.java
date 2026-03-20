@@ -24,7 +24,6 @@ import cn.nukkit.nbt.tag.ListTag;
 import cn.nukkit.network.PacketViolationReason;
 import cn.nukkit.network.SourceInterface;
 import cn.nukkit.network.protocol.*;
-import cn.nukkit.network.protocol.types.EntityLink;
 import cn.nukkit.resourcepacks.ResourcePack;
 import cn.nukkit.scheduler.AsyncTask;
 import cn.nukkit.scheduler.Task;
@@ -33,9 +32,6 @@ import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonPrimitive;
-import it.unimi.dsi.fastutil.Pair;
-import it.unimi.dsi.fastutil.ints.Int2FloatMap;
-import it.unimi.dsi.fastutil.ints.Int2IntMap;
 import it.unimi.dsi.fastutil.longs.Long2ObjectMap;
 import org.itxtech.synapseapi.camera.CameraManager;
 import org.itxtech.synapseapi.dialogue.NPCDialoguePlayerHandler;
@@ -76,7 +72,8 @@ import java.net.InetSocketAddress;
 import java.util.*;
 import java.util.function.Function;
 
-import static org.itxtech.synapseapi.SynapseSharedConstants.*;
+import static org.itxtech.synapseapi.SynapseSharedConstants.DATA_VERSION;
+import static org.itxtech.synapseapi.SynapseSharedConstants.NETWORK_STACK_LATENCY_TELEMETRY;
 
 /**
  * Created by boybook on 16/6/24.
@@ -147,6 +144,12 @@ public class SynapsePlayer extends Player {
 
     public boolean isNeedLevelChangeLoadScreen() {
         return false;
+    }
+
+    public boolean isJavaClient() {
+        return loginChainData != null
+                && loginChainData.getViaProxyAuthToken() != null
+                && !loginChainData.getViaProxyAuthToken().isEmpty();
     }
 
     public int nextDummyDimension() {
@@ -575,7 +578,40 @@ public class SynapsePlayer extends Player {
             this.syncFeatureRegistry();
             this.sendCameraPresets();
         } else {
-            if (dimension != DimensionID.OVERWORLD && dummyDimension != DimensionID.OVERWORLD) {
+            this.locallyInitialized = true;
+
+            if (this.isJavaClient()) {
+                // Java 客户端：始终发送真实维度以退出 loading 状态
+                // ViaBedrock 通过备用维度名称处理同维度切换
+                dummyDimension = dimension;
+
+                if (getProtocol() >= AbstractProtocol.PROTOCOL_121_20.getProtocolStart()) {
+                    ChangeDimensionPacket12120 changeDimensionPacket = new ChangeDimensionPacket12120();
+                    changeDimensionPacket.dimension = dummyDimension;
+                    changeDimensionPacket.x = (float) getX();
+                    changeDimensionPacket.y = (float) getY();
+                    changeDimensionPacket.z = (float) getZ();
+                    dataPacket(changeDimensionPacket);
+                } else {
+                    ChangeDimensionPacket changeDimensionPacket = new ChangeDimensionPacket();
+                    changeDimensionPacket.dimension = dummyDimension;
+                    changeDimensionPacket.x = (float) getX();
+                    changeDimensionPacket.y = (float) getY();
+                    changeDimensionPacket.z = (float) getZ();
+                    dataPacket(changeDimensionPacket);
+                }
+
+                PlayerActionPacket119 ackPacket = new PlayerActionPacket119();
+                ackPacket.action = PlayerActionPacket.ACTION_DIMENSION_CHANGE_ACK;
+                ackPacket.entityId = getId();
+                ackPacket.x = getFloorX();
+                ackPacket.y = getFloorY();
+                ackPacket.z = getFloorZ();
+                ackPacket.resultX = ackPacket.x;
+                ackPacket.resultY = ackPacket.y;
+                ackPacket.resultZ = ackPacket.z;
+                dataPacket(ackPacket);
+            } else if (dimension != DimensionID.OVERWORLD && dummyDimension != DimensionID.OVERWORLD) {
                 forceSendEmptyChunks(chunkRadius, 0, 0, dummyDimension);
 
                 dummyDimension = dimension;
@@ -801,8 +837,13 @@ public class SynapsePlayer extends Player {
             preChangeDimensionScreen(true);
 
             if (this.isNeedLevelChangeLoadScreen()) {
-                if (!isLevelChanging) {
-                    transferDimension = this.nextDummyDimension();
+                if (this.isJavaClient()) {
+                    // Java 客户端：保持真实维度，ViaBedrock 通过备用名称处理同维度切换
+                    transferDimension = this.dummyDimension;
+                } else {
+                    if (!isLevelChanging) {
+                        transferDimension = this.nextDummyDimension();
+                    }
                 }
 
                 if (getProtocol() >= AbstractProtocol.PROTOCOL_121_20.getProtocolStart()) {
@@ -979,8 +1020,6 @@ public class SynapsePlayer extends Player {
 
                 //DummyBossBar
                 this.getDummyBossBars().values().forEach(DummyBossBar::reshow);
-                //防止切换世界后的玩家实体因为被客户端卸载而消失问题
-                this.getLevel().getPlayers().values().stream().filter(p -> p instanceof SynapsePlayer && p.getViewers().containsKey(this.getLoaderId())).forEach(p -> ((SynapsePlayer) p).forceSpawnTo(this));
             }
 
             this.spawnToAll();
@@ -1028,6 +1067,44 @@ public class SynapsePlayer extends Player {
                 preChangeDimensionScreen(false);
 
                 Dimension newDimension = location.level.getDimension();
+
+                if (this.isJavaClient()) {
+                    // Java 客户端：始终发送真实维度
+                    // ViaBedrock 通过备用维度名称处理同维度切换
+                    this.dummyDimension = newDimension.getId();
+                    this.isLevelChange = true;
+
+                    if (getProtocol() >= AbstractProtocol.PROTOCOL_121_20.getProtocolStart()) {
+                        ChangeDimensionPacket12120 changeDimensionPacket = new ChangeDimensionPacket12120();
+                        changeDimensionPacket.dimension = this.dummyDimension;
+                        changeDimensionPacket.x = (float) this.getX();
+                        changeDimensionPacket.y = (float) this.getY();
+                        changeDimensionPacket.z = (float) this.getZ();
+                        this.dataPacket(changeDimensionPacket);
+                    } else {
+                        ChangeDimensionPacket changeDimensionPacket = new ChangeDimensionPacket();
+                        changeDimensionPacket.dimension = this.dummyDimension;
+                        changeDimensionPacket.x = (float) this.getX();
+                        changeDimensionPacket.y = (float) this.getY();
+                        changeDimensionPacket.z = (float) this.getZ();
+                        this.dataPacket(changeDimensionPacket);
+                    }
+
+                    PlayerActionPacket119 ackPacket = new PlayerActionPacket119();
+                    ackPacket.action = PlayerActionPacket.ACTION_DIMENSION_CHANGE_ACK;
+                    ackPacket.entityId = getId();
+                    ackPacket.x = getFloorX();
+                    ackPacket.y = getFloorY();
+                    ackPacket.z = getFloorZ();
+                    ackPacket.resultX = ackPacket.x;
+                    ackPacket.resultY = ackPacket.y;
+                    ackPacket.resultZ = ackPacket.z;
+                    dataPacket(ackPacket);
+
+                    postTeleport(true);
+                    return true;
+                }
+
                 if (!this.isNeedLevelChangeLoadScreen() || newDimension != Dimension.OVERWORLD) {
                     if (from.getLevel().getDimension() != newDimension) {
                         this.dummyDimension = newDimension.getId();
@@ -1144,102 +1221,15 @@ public class SynapsePlayer extends Player {
         return super.orderChunks();
     }
 
-    public void forceSpawn() {
-        if (!this.skin.isValid()) {
-            throw new IllegalStateException(this.getClass().getSimpleName() + " must have a valid skin set");
-        }
-
-        //this.server.updatePlayerListData(this.getUniqueId(), this.getId(), this.getName(), this.skin, this.getLoginChainData().getXUID(), this.getViewers().values());
-
-        AddPlayerPacket pk = new AddPlayerPacket();
-        pk.uuid = this.getUniqueId();
-        pk.username = this.getNameTag();
-        pk.entityUniqueId = this.getId();
-        pk.entityRuntimeId = this.getId();
-        pk.x = (float)this.x;
-        pk.y = (float)this.y;
-        pk.z = (float)this.z;
-        pk.speedX = (float)this.motionX;
-        pk.speedY = (float)this.motionY;
-        pk.speedZ = (float)this.motionZ;
-        pk.yaw = (float)this.yaw;
-        pk.headYaw = (float)this.yaw;
-        pk.pitch = (float)this.pitch;
-        pk.item = this.getInventory().getItemInHand();
-        pk.metadata = this.dataProperties;
-        Pair<Int2IntMap, Int2FloatMap> propertyValues = getProperties().getValues();
-        if (propertyValues != null) {
-            pk.intProperties = propertyValues.left();
-            pk.floatProperties = propertyValues.right();
-        }
-        pk.links = new EntityLink[this.passengers.size()];
-        for (int i = 0; i < pk.links.length; i++) {
-            pk.links[i] = new EntityLink(this.getId(), this.passengers.get(i).getId(), i == 0 ? EntityLink.TYPE_RIDER : EntityLink.TYPE_PASSENGER, false, false, 0f);
-        }
-        Server.broadcastPacket(this.getViewers().values(), pk);
-
-        this.armorInventory.sendContents(this.getViewers().values());
-        this.offhandInventory.sendContents(this.getViewers().values());
-
-        if (this.riding != null) {
-            Server.getInstance().getScheduler().scheduleTask(SynapseAPI.getInstance(), () -> {
-                if (this.riding == null) return;
-                SetEntityLinkPacket pk1 = new SetEntityLinkPacket();
-                pk1.vehicleUniqueId = this.riding.getId();
-                pk1.riderUniqueId = this.getId();
-                pk1.type = this.riding.getPassenger() == this ? SetEntityLinkPacket.TYPE_RIDE : SetEntityLinkPacket.TYPE_PASSENGER;
-                Server.broadcastPacket(this.getViewers().values(), pk1);
-            });
-        }
-    }
-
-    public void forceSpawnTo(Player player) {
-        if (!this.skin.isValid()) {
-            throw new IllegalStateException(this.getClass().getSimpleName() + " must have a valid skin set");
-        }
-
-        //this.server.updatePlayerListData(this.getUniqueId(), this.getId(), this.getName(), this.skin, this.getLoginChainData().getXUID(), this.getViewers().values());
-
-        AddPlayerPacket pk = new AddPlayerPacket();
-        pk.uuid = this.getUniqueId();
-        pk.username = this.getNameTag();
-        pk.entityUniqueId = this.getId();
-        pk.entityRuntimeId = this.getId();
-        pk.x = (float)this.x;
-        pk.y = (float)this.y;
-        pk.z = (float)this.z;
-        pk.speedX = (float)this.motionX;
-        pk.speedY = (float)this.motionY;
-        pk.speedZ = (float)this.motionZ;
-        pk.yaw = (float)this.yaw;
-        pk.headYaw = (float)this.yaw;
-        pk.pitch = (float)this.pitch;
-        pk.item = this.getInventory().getItemInHand();
-        pk.metadata = this.dataProperties;
-        Pair<Int2IntMap, Int2FloatMap> propertyValues = getProperties().getValues();
-        if (propertyValues != null) {
-            pk.intProperties = propertyValues.left();
-            pk.floatProperties = propertyValues.right();
-        }
-        pk.links = new EntityLink[this.passengers.size()];
-        for (int i = 0; i < pk.links.length; i++) {
-            pk.links[i] = new EntityLink(this.getId(), this.passengers.get(i).getId(), i == 0 ? EntityLink.TYPE_RIDER : EntityLink.TYPE_PASSENGER, false, false, 0f);
-        }
-        player.dataPacket(pk);
-
-        this.armorInventory.sendContents(player);
-        this.offhandInventory.sendContents(player);
-
-        if (this.riding != null) {
-            Server.getInstance().getScheduler().scheduleTask(SynapseAPI.getInstance(), () -> {
-                if (this.riding == null) return;
-                SetEntityLinkPacket pk1 = new SetEntityLinkPacket();
-                pk1.vehicleUniqueId = this.riding.getId();
-                pk1.riderUniqueId = this.getId();
-                pk1.type = this.riding.getPassenger() == this ? SetEntityLinkPacket.TYPE_RIDE : SetEntityLinkPacket.TYPE_PASSENGER;
-                player.dataPacket(pk1);
-            });
-        }
+    @Override
+    public void spawnTo(Player player) {
+        /*if (this.getSkin().isPersona() && player.isNetEaseClient() && player.getProtocol() >= AbstractProtocol.PROTOCOL_121_50.getProtocolStart()) {
+            // 2026-02 中国版3.7BUG：如果是persona皮肤，则需要重发，否则会显示为史蒂夫
+            String uid = this.getLoginChainData().getNetEaseUID();
+            if (uid == null || uid.isEmpty()) uid = this.getLoginChainData().getXUID();
+            this.server.updatePlayerListData(this.getUniqueId(), this.getId(), this.getDisplayName(), this.skin, uid, new Player[]{player});
+        }*/
+        super.spawnTo(player);
     }
 
     protected boolean callPacketReceiveEvent(DataPacket packet) {
@@ -1464,8 +1454,6 @@ public class SynapsePlayer extends Player {
     public String getOriginName() {
         return originName;
     }
-
-    public long nextForceSpawn = System.currentTimeMillis();
 
     @Override
     public boolean onUpdate(int currentTick) {

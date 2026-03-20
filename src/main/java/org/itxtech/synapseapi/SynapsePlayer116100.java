@@ -57,6 +57,7 @@ import it.unimi.dsi.fastutil.Pair;
 import it.unimi.dsi.fastutil.floats.FloatObjectPair;
 import it.unimi.dsi.fastutil.ints.*;
 import it.unimi.dsi.fastutil.longs.Long2ObjectMap;
+import it.unimi.dsi.fastutil.longs.Long2ObjectMaps;
 import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.objects.ObjectIterator;
 import lombok.extern.log4j.Log4j2;
@@ -1437,11 +1438,28 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
                         this.closingWindowId = containerClosePacket.windowId;
                         this.removeWindow(this.windowIndex.get(containerClosePacket.windowId), true);
                         this.closingWindowId = Integer.MIN_VALUE;
-                    } else {
+                    } else if (containerClosePacket.windowId != -1) {
                         this.getServer().getLogger().debug(getName() + " unopened window: " + containerClosePacket.windowId);
                     }
 
                     if (containerClosePacket.windowId == -1) {
+                        if (this.lastOpenedWindowId != -1) {
+                            log.debug("{} pushing a new container screen ({}) failed because a container screen that was already open on the client has not yet been closed", getName(), lastOpenedWindowId);
+
+                            if (this.inventoryOpen && this.lastOpenedWindowId == ContainerIds.INVENTORY) {
+                                this.inventoryOpen = false;
+                            }
+
+                            Inventory lastOpenedInventory = this.windowIndex.get(this.lastOpenedWindowId);
+                            if (lastOpenedInventory != null) {
+                                this.closingWindowId = Integer.MAX_VALUE;
+                                this.removeWindow(lastOpenedInventory, true);
+                                this.closingWindowId = Integer.MIN_VALUE;
+                            }
+                            this.lastOpenedWindowId = -1;
+                            return;
+                        }
+
                         this.craftingType = CRAFTING_SMALL;
                         this.resetCraftingGridType();
                         this.addWindow(this.craftingGrid, ContainerIds.NONE);
@@ -1451,14 +1469,17 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
                         pk.windowId = -1;
                         this.dataPacket(pk);
                     } else { // Close bugged inventory
-                        ContainerClosePacket pk = new ContainerClosePacket();
+                        ContainerClosePacket121 pk = new ContainerClosePacket121();
                         pk.windowId = containerClosePacket.windowId;
                         this.dataPacket(pk);
 
                         for (Inventory open : new ArrayList<>(this.windows.keySet())) {
-                            if (open instanceof ContainerInventory) {
-                                this.removeWindow(open);
+                            if (!(open instanceof ContainerInventory) && !(open instanceof PlayerEnderChestInventory)) {
+                                continue;
                             }
+                            this.server.getPluginManager().callEvent(new InventoryCloseEvent(open, this));
+
+                            this.removeWindow(open, true);
                         }
                     }
                     break;
@@ -1479,7 +1500,7 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
                     this.closingWindowId = containerClosePacket.windowId;
                     this.removeWindow(this.windowIndex.get(containerClosePacket.windowId), true);
                     this.closingWindowId = Integer.MIN_VALUE;
-                } else {
+                } else if (containerClosePacket.windowId != -1) {
                     this.getServer().getLogger().debug(getName() + " unopened window: " + containerClosePacket.windowId);
                 }
 
@@ -2683,29 +2704,22 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
                 int requestedRadius = Math.min(this.viewDistance, this.getMaxViewDistance());
 
                 // 玩家已登录后主动改变视距时触发事件
-                if (this.spawned) {
-                    PlayerChunkRadiusRequestEvent event = new PlayerChunkRadiusRequestEvent(this, this.chunkRadius, requestedRadius);
-                    this.server.getPluginManager().callEvent(event);
+                PlayerChunkRadiusRequestEvent event = new PlayerChunkRadiusRequestEvent(this, this.chunkRadius, requestedRadius);
+                this.server.getPluginManager().callEvent(event);
 
-                    if (event.isCancelled()) {
-                        // 取消：发送旧视距给客户端
-                        ChunkRadiusUpdatedPacket chunkRadiusUpdatePacket = new ChunkRadiusUpdatedPacket();
-                        chunkRadiusUpdatePacket.radius = this.chunkRadius;
-                        this.dataPacket(chunkRadiusUpdatePacket);
-                    } else {
-                        // 使用插件设置的最终视距
-                        this.chunkRadius = event.getRadius();
-                        ChunkRadiusUpdatedPacket chunkRadiusUpdatePacket = new ChunkRadiusUpdatedPacket();
-                        chunkRadiusUpdatePacket.radius = this.chunkRadius;
-                        this.dataPacket(chunkRadiusUpdatePacket);
-                    }
+                if (event.isCancelled()) {
+                    // 取消：发送旧视距给客户端
+                    ChunkRadiusUpdatedPacket chunkRadiusUpdatePacket = new ChunkRadiusUpdatedPacket();
+                    chunkRadiusUpdatePacket.radius = this.chunkRadius;
+                    this.dataPacket(chunkRadiusUpdatePacket);
                 } else {
-                    // 首次请求（登录过程中），直接应用
-                    this.chunkRadius = requestedRadius;
+                    // 使用插件设置的最终视距
+                    this.chunkRadius = event.getRadius();
                     ChunkRadiusUpdatedPacket chunkRadiusUpdatePacket = new ChunkRadiusUpdatedPacket();
                     chunkRadiusUpdatePacket.radius = this.chunkRadius;
                     this.dataPacket(chunkRadiusUpdatePacket);
                 }
+
                 break;
             case ProtocolInfo.EMOTE_PACKET:
                 if (getProtocol() >= AbstractProtocol.PROTOCOL_121_30.getProtocolStart()) {
@@ -3215,7 +3229,11 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
 			this.permanentWindows.add(cnt);
 		}
 
-		if (this.spawned && inventory.open(this)) {
+        if (inventoryOpen) {
+            log.debug("{} opened player inventory screen, ignore new container screen request: {}", getName(), cnt);
+        }
+
+		if (this.spawned && !inventoryOpen && inventory.open(this)) {
 			return cnt;
 		} else if (!alwaysOpen) {
             if (!this.permanentWindows.contains(this.getWindowId(inventory)))
@@ -3453,7 +3471,56 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
         this.chunkLoadCount++;
         boolean centerChunk = !this.isNeedLevelChangeLoadScreen() && CENTER_CHUNK_WITHOUT_CACHE && this.getChunkX() == x && this.getChunkZ() == z;
 
-        if (this.isBlobCacheAvailable() && this.isSubModeLevelChunkBlobCacheEnabled() && !centerChunk) {
+        if (!this.isSubChunkRequestAvailable()) {
+            if (this.isBlobCacheAvailable() && !this.isBlobCacheDisabled()) {
+                ChunkBlobCache blobCache = cachedData.getBlobCache();
+                long[] blobIds;
+                Long2ObjectMap<byte[]> blobs;
+                if (getProtocol() >= AbstractProtocol.PROTOCOL_121_40.getProtocolStart()) {
+                    blobIds = blobCache.getBlobIds();
+                    blobs = blobCache.getBlobs();
+                } else {
+                    blobIds = blobCache.getBlobIdsLegacy();
+                    blobs = blobCache.getBlobsLegacy();
+                }
+
+                ObjectIterator<Long2ObjectMap.Entry<byte[]>> iter = Long2ObjectMaps.fastIterator(blobs);
+                while (iter.hasNext()) {
+                    Long2ObjectMap.Entry<? extends byte[]> entry = iter.next();
+                    long hash = entry.getLongKey();
+                    clientCacheTrack.put(hash, new BlobTrack(hash, entry.getValue()));
+                }
+
+                LevelChunkPacket pk = createLevelChunkPacket();
+                pk.chunkX = x;
+                pk.chunkZ = z;
+                pk.dimension = dimension;
+                pk.subChunkCount = subChunkCount;
+                pk.cacheEnabled = true;
+                pk.blobIds = blobIds;
+                pk.data = blobCache.getFullChunkPayload();
+                this.dataPacket(pk);
+
+                this.sendQueuedChunk = false;
+
+                if (chunkHash == this.teleportChunkIndex) {
+                    if (blobIds.length > 1) {
+                        this.teleportChunkBlobHash = blobIds[0];
+                        //this.teleportChunkLoaded = false;
+                    } else {
+                        this.teleportChunkLoaded = true;
+                    }
+                }
+            } else {
+                LevelChunkPacket pk = createLevelChunkPacket();
+                pk.chunkX = x;
+                pk.chunkZ = z;
+                pk.dimension = dimension;
+                pk.subChunkCount = subChunkCount;
+                pk.data = ((LevelChunkPacket12060) packet).data;
+                this.dataPacket(pk);
+            }
+        } else if (this.isBlobCacheAvailable() && this.isSubModeLevelChunkBlobCacheEnabled() && !centerChunk) {
             ChunkBlobCache blobCache = cachedData.getBlobCache();
             long[] ids;
             Long2ObjectMap<byte[]> blobs;
@@ -3501,7 +3568,7 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
         //TODO: move to sub chunk response?
         if (this.spawned) {
             for (Entity entity : this.level.getChunkEntities(x, z).values()) {
-                if (this != entity && !entity.closed && entity.isAlive()) {
+                if (this != entity && !entity.closed && entity.isAlive() && entity.isWithinEntityViewDistance(this)) {
                     entity.spawnTo(this);
                 }
             }
@@ -3524,15 +3591,57 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
         long chunkHash = Level.chunkHash(x, z);
         this.usedChunks.put(chunkHash, true);
         this.chunkLoadCount++;
-        boolean centerChunk = !this.isNeedLevelChangeLoadScreen() && CENTER_CHUNK_WITHOUT_CACHE && this.getChunkX() == x && this.getChunkZ() == z;
+        boolean centerChunk;
 
         LevelChunkPacket pk = createLevelChunkPacket();
         pk.chunkX = x;
         pk.chunkZ = z;
         pk.dimension = dimension;
-        pk.subChunkCount = LevelChunkPacket.CLIENT_REQUEST_TRUNCATED_COLUMN_FAKE_COUNT;
-        pk.subChunkRequestLimit = subChunkCount;
-        if (this.isBlobCacheAvailable() && this.isSubModeLevelChunkBlobCacheEnabled() && !centerChunk) {
+        if (!this.isSubChunkRequestAvailable()) {
+            centerChunk = this.getChunkX() == x && this.getChunkZ() == z;
+
+            if (this.isBlobCacheAvailable() && (!centerChunk || !CENTER_CHUNK_WITHOUT_CACHE) && !this.isBlobCacheDisabled()) {
+                ChunkBlobCache blobCache = cachedData.getBlobCache();
+                long[] blobIds;
+                Long2ObjectMap<byte[]> blobs;
+                if (getProtocol() >= AbstractProtocol.PROTOCOL_121_40.getProtocolStart()) {
+                    blobIds = blobCache.getBlobIds();
+                    blobs = blobCache.getBlobs();
+                } else {
+                    blobIds = blobCache.getBlobIdsLegacy();
+                    blobs = blobCache.getBlobsLegacy();
+                }
+
+                ObjectIterator<Long2ObjectMap.Entry<byte[]>> iter = Long2ObjectMaps.fastIterator(blobs);
+                while (iter.hasNext()) {
+                    Long2ObjectMap.Entry<? extends byte[]> entry = iter.next();
+                    long hash = entry.getLongKey();
+                    clientCacheTrack.put(hash, new BlobTrack(hash, entry.getValue()));
+                }
+
+                pk.subChunkCount = subChunkCount;
+                pk.cacheEnabled = true;
+                pk.blobIds = blobIds;
+                pk.data = blobCache.getFullChunkPayload();
+
+                this.sendQueuedChunk = false;
+                if (chunkHash == this.teleportChunkIndex) {
+                    if (blobIds.length > 1) {
+                        this.teleportChunkBlobHash = blobIds[0];
+                        //this.teleportChunkLoaded = false;
+                    } else {
+                        this.teleportChunkLoaded = true;
+                    }
+                }
+            } else {
+                pk.subChunkCount = subChunkCount;
+                pk.data = payload;
+            }
+
+            if (centerChunk) {
+                this.teleportChunkLoaded = true;
+            }
+        } else if (this.isBlobCacheAvailable() && this.isSubModeLevelChunkBlobCacheEnabled() && !(centerChunk = !this.isNeedLevelChangeLoadScreen() && CENTER_CHUNK_WITHOUT_CACHE && this.getChunkX() == x && this.getChunkZ() == z)) {
             ChunkBlobCache blobCache = cachedData.getBlobCache();
             long[] ids;
             Long2ObjectMap<byte[]> blobs;
@@ -3547,10 +3656,14 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
             long hash = ids[ids.length - 1]; // biome
             this.clientCacheTrack.put(hash, new BlobTrack(hash, blobs.get(hash)));
 
+            pk.subChunkCount = LevelChunkPacket.CLIENT_REQUEST_TRUNCATED_COLUMN_FAKE_COUNT;
+            pk.subChunkRequestLimit = subChunkCount;
             pk.blobIds = new long[]{hash};
             pk.cacheEnabled = true;
             pk.data = blobCache.getSubRequestModeFullChunkPayload();
         } else {
+            pk.subChunkCount = LevelChunkPacket.CLIENT_REQUEST_TRUNCATED_COLUMN_FAKE_COUNT;
+            pk.subChunkRequestLimit = subChunkCount;
             pk.data = subModePayload;
         }
         this.dataPacket(pk);
@@ -3565,7 +3678,7 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
         //TODO: move to sub chunk response?
         if (this.spawned) {
             for (Entity entity : this.level.getChunkEntities(x, z).values()) {
-                if (this != entity && !entity.closed && entity.isAlive()) {
+                if (this != entity && !entity.closed && entity.isAlive() && entity.isWithinEntityViewDistance(this)) {
                     entity.spawnTo(this);
                 }
             }
@@ -4288,7 +4401,7 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
 
     @Override
     public boolean isNeedLevelChangeLoadScreen() {
-        return this.isNetEaseClient() && this.isSubChunkRequestAvailable() /*&& this.isBlobCacheAvailable()*/;
+        return (this.isNetEaseClient() || this.isJavaClient()) && this.isSubChunkRequestAvailable() /*&& this.isBlobCacheAvailable()*/;
     }
 
     @Override
