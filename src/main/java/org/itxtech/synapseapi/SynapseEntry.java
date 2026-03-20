@@ -18,6 +18,7 @@ import cn.nukkit.plugin.Plugin;
 import cn.nukkit.utils.BinaryStream;
 import cn.nukkit.utils.MainLogger;
 import cn.nukkit.utils.Zlib;
+import com.google.gson.JsonObject;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.ByteBufUtil;
 import io.netty.buffer.Unpooled;
@@ -101,6 +102,7 @@ public class SynapseEntry {
     private SynLibInterface synLibInterface;
     private ClientData clientData;
     private String serverDescription;
+    private JsonObject metadata = new JsonObject();
 
     public SynapseEntry(SynapseAPI synapse, String serverIp, int port, boolean isMainServer, String password, String serverDescription) {
         this.synapse = synapse;
@@ -256,6 +258,10 @@ public class SynapseEntry {
         isMainServer = mainServer;
     }
 
+    public void setMetadata(JsonObject metadata) {
+        this.metadata = metadata;
+    }
+
     public String getHash() {
         return this.serverIp + ":" + this.port;
     }
@@ -269,6 +275,7 @@ public class SynapseEntry {
         pk.description = this.serverDescription;
         pk.maxPlayers = this.getSynapse().getServer().getMaxPlayers();
         pk.protocol = SynapseInfo.CURRENT_PROTOCOL;
+        pk.metadata = this.metadata;
         this.sendDataPacket(pk);
     }
 
