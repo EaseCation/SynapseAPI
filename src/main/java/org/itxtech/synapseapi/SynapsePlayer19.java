@@ -1,6 +1,7 @@
 package org.itxtech.synapseapi;
 
 import cn.nukkit.Player;
+import cn.nukkit.Server;
 import cn.nukkit.block.Block;
 import cn.nukkit.block.BlockID;
 import cn.nukkit.block.BlockLectern;
@@ -11,6 +12,7 @@ import cn.nukkit.math.Vector3;
 import cn.nukkit.network.PacketViolationReason;
 import cn.nukkit.network.SourceInterface;
 import cn.nukkit.network.protocol.DataPacket;
+import cn.nukkit.network.protocol.LevelSoundEventPacket;
 import cn.nukkit.network.protocol.ProtocolInfo;
 import cn.nukkit.resourcepacks.ResourcePack;
 import org.itxtech.synapseapi.event.player.SynapsePlayerBroadcastLevelSoundEvent;
@@ -37,6 +39,19 @@ public class SynapsePlayer19 extends SynapsePlayer18 {
 	private int waitingPongTicks = PONG_TIMEOUT_TICKS;
 	private int pongTimeoutCount;
 
+	// CPS限制（由反作弊系统设置，仅内存临时状态）
+	private boolean cpsLimited = false;
+	protected int lastAllowedSwingTick = 0;
+	protected static final int CPS_LIMIT_SWING_INTERVAL = 2; // 每2tick放行一次（10CPS）
+
+	public boolean isCpsLimited() {
+		return cpsLimited;
+	}
+
+	public void setCpsLimited(boolean limited) {
+		this.cpsLimited = limited;
+	}
+
 	public SynapsePlayer19(SourceInterface interfaz, SynapseEntry synapseEntry, Long clientID, InetSocketAddress socketAddress) {
 		super(interfaz, synapseEntry, clientID, socketAddress);
 		// this.levelChangeLoadScreen = true;
@@ -53,6 +68,14 @@ public class SynapsePlayer19 extends SynapsePlayer18 {
 				if (!callPacketReceiveEvent(packet)) break;
 				LevelSoundEventPacketV319 levelSoundEventPacket = (LevelSoundEventPacketV319) packet;
 				int sound = levelSoundEventPacket.sound;
+				// CPS限制：限制挥手/攻击音效频率
+				if (cpsLimited && (sound == LevelSoundEventPacket.SOUND_ATTACK_NODAMAGE || sound == LevelSoundEventPacket.SOUND_ATTACK)) {
+					int currentTick = Server.getInstance().getTick();
+					if (currentTick - lastAllowedSwingTick < CPS_LIMIT_SWING_INTERVAL) {
+						break;
+					}
+					lastAllowedSwingTick = currentTick;
+				}
 				SynapsePlayerBroadcastLevelSoundEvent event = new SynapsePlayerBroadcastLevelSoundEvent(this,
 						sound,
 						new Vector3(levelSoundEventPacket.x, levelSoundEventPacket.y, levelSoundEventPacket.z),

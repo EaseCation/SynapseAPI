@@ -1009,16 +1009,37 @@ public class SynapsePlayer116 extends SynapsePlayer113 {
 				}
 
 				if (playerAuthInputPacket.hasFlag(PlayerAuthInputFlags.MISSED_SWING) && isServerAuthoritativeSoundEnabled() && !isSpectator()) {
-					level.addLevelSoundEvent(this, inventory.getItemInHand().getAttackMissSound(), EntityFullNames.PLAYER);
+					// CPS限制：限制空击音效和动画频率
+					if (isCpsLimited()) {
+						int currentTick = Server.getInstance().getTick();
+						if (currentTick - lastAllowedSwingTick < CPS_LIMIT_SWING_INTERVAL) {
+							// 跳过音效和动画
+						} else {
+							lastAllowedSwingTick = currentTick;
+							level.addLevelSoundEvent(this, inventory.getItemInHand().getAttackMissSound(), EntityFullNames.PLAYER);
 
-					// touch bug: https://bugs.mojang.com/browse/MCPE-107865
-					if (getLoginChainData().getCurrentInputMode() == ClientChainData.INPUT_TOUCH) {
-						AnimatePacket pk = new AnimatePacket();
-						pk.eid = getId();
-						pk.action = Action.SWING_ARM;
-                        pk.swingSource = SwingSource.ATTACK;
-						dataPacket(pk);
-						Server.broadcastPacket(getViewers().values(), pk);
+							// touch bug: https://bugs.mojang.com/browse/MCPE-107865
+							if (getLoginChainData().getCurrentInputMode() == ClientChainData.INPUT_TOUCH) {
+								AnimatePacket pk = new AnimatePacket();
+								pk.eid = getId();
+								pk.action = Action.SWING_ARM;
+								pk.swingSource = SwingSource.ATTACK;
+								dataPacket(pk);
+								Server.broadcastPacket(getViewers().values(), pk);
+							}
+						}
+					} else {
+						level.addLevelSoundEvent(this, inventory.getItemInHand().getAttackMissSound(), EntityFullNames.PLAYER);
+
+						// touch bug: https://bugs.mojang.com/browse/MCPE-107865
+						if (getLoginChainData().getCurrentInputMode() == ClientChainData.INPUT_TOUCH) {
+							AnimatePacket pk = new AnimatePacket();
+							pk.eid = getId();
+							pk.action = Action.SWING_ARM;
+							pk.swingSource = SwingSource.ATTACK;
+							dataPacket(pk);
+							Server.broadcastPacket(getViewers().values(), pk);
+						}
 					}
 				}
 

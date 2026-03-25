@@ -1249,6 +1249,14 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
                     }
                     LevelSoundEventPacketV312170 levelSoundEventPacket = (LevelSoundEventPacketV312170) packet;
                     int sound = levelSoundEventPacket.sound;
+                    // CPS限制：限制挥手/攻击音效频率
+                    if (isCpsLimited() && (sound == LevelSoundEventPacket.SOUND_ATTACK_NODAMAGE || sound == LevelSoundEventPacket.SOUND_ATTACK)) {
+                        int currentTick = Server.getInstance().getTick();
+                        if (currentTick - lastAllowedSwingTick < CPS_LIMIT_SWING_INTERVAL) {
+                            break;
+                        }
+                        lastAllowedSwingTick = currentTick;
+                    }
                     SynapsePlayerBroadcastLevelSoundEvent event = new SynapsePlayerBroadcastLevelSoundEvent(this,
                             sound,
                             new Vector3(levelSoundEventPacket.x, levelSoundEventPacket.y, levelSoundEventPacket.z),
@@ -2111,6 +2119,14 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
                             }
 
                             if (isServerAuthoritativeSoundEnabled()) {
+                                // CPS限制：限制空击音效频率
+                                if (isCpsLimited()) {
+                                    int currentTick = Server.getInstance().getTick();
+                                    if (currentTick - lastAllowedSwingTick < CPS_LIMIT_SWING_INTERVAL) {
+                                        break;
+                                    }
+                                    lastAllowedSwingTick = currentTick;
+                                }
                                 level.addLevelSoundEvent(this, inventory.getItemInHand().getAttackMissSound(), EntityFullNames.PLAYER);
                             }
                             break;
@@ -2844,6 +2860,14 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
                     AnimatePacket.Action animation = animationEvent.getAnimationType();
                     switch (animation) {
                         case SWING_ARM:
+                            // CPS限制：限制挥手动画广播频率
+                            if (isCpsLimited()) {
+                                int currentTick = Server.getInstance().getTick();
+                                if (currentTick - lastAllowedSwingTick < CPS_LIMIT_SWING_INTERVAL) {
+                                    break;
+                                }
+                                lastAllowedSwingTick = currentTick;
+                            }
                             this.swingTime = -1;
                             this.swinging = true;
 
@@ -2892,6 +2916,14 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
                     AnimatePacket.Action animation = animationEvent.getAnimationType();
                     switch (animation) {
                         case SWING_ARM:
+                            // CPS限制：限制挥手动画广播频率
+                            if (isCpsLimited()) {
+                                int currentTick = Server.getInstance().getTick();
+                                if (currentTick - lastAllowedSwingTick < CPS_LIMIT_SWING_INTERVAL) {
+                                    break;
+                                }
+                                lastAllowedSwingTick = currentTick;
+                            }
                             this.swingTime = -1;
                             this.swinging = true;
 
