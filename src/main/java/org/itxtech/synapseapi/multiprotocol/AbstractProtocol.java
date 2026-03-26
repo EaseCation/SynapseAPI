@@ -122,6 +122,8 @@ import org.itxtech.synapseapi.multiprotocol.protocol12193.BinaryStreamHelper1219
 import org.itxtech.synapseapi.multiprotocol.protocol12193.protocol.Packet12193;
 import org.itxtech.synapseapi.multiprotocol.protocol126.BinaryStreamHelper126;
 import org.itxtech.synapseapi.multiprotocol.protocol126.protocol.Packet126;
+import org.itxtech.synapseapi.multiprotocol.protocol12610.BinaryStreamHelper12610;
+import org.itxtech.synapseapi.multiprotocol.protocol12610.protocol.Packet12610;
 import org.itxtech.synapseapi.multiprotocol.protocol14.BinaryStreamHelper14;
 import org.itxtech.synapseapi.multiprotocol.protocol14.protocol.Packet14;
 import org.itxtech.synapseapi.multiprotocol.protocol15.BinaryStreamHelper15;
@@ -213,6 +215,7 @@ public enum AbstractProtocol {
     PROTOCOL_121_124(860, Packet121124.class, SynapsePlayer116100.class, BinaryStreamHelper121124.create(), Compressor.SNAPPY),
     PROTOCOL_121_130(898, Packet121130.class, SynapsePlayer116100.class, BinaryStreamHelper121130.create(), Compressor.SNAPPY),
     PROTOCOL_126(924, Packet126.class, SynapsePlayer116100.class, BinaryStreamHelper126.create(), Compressor.SNAPPY),
+    PROTOCOL_126_10(944, Packet12610.class, SynapsePlayer116100.class, BinaryStreamHelper12610.create(), Compressor.SNAPPY),
     ;
 
     private static final AbstractProtocol[] VALUES = values();
@@ -222,7 +225,7 @@ public enum AbstractProtocol {
     public static final AbstractProtocol FIRST_AVAILABLE_PROTOCOL = AbstractProtocol.PROTOCOL_120_10;
     public static final AbstractProtocol FIRST_ALLOW_LOGIN_PROTOCOL = AbstractProtocol.PROTOCOL_120_60;
     public static final AbstractProtocol LAST_ALLOW_LOGIN_PROTOCOL = LAST_PROTOCOL;
-    public static final AbstractProtocol LAST_NETEASE_PROTOCOL = PROTOCOL_121_50;
+    public static final AbstractProtocol LAST_NETEASE_PROTOCOL = PROTOCOL_121_93;
 
     static {
         BY_PROTOCOL = new AbstractProtocol[LAST_PROTOCOL.protocolStart + 1];

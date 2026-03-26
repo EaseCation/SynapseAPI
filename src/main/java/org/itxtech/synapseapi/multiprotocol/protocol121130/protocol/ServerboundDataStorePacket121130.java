@@ -36,7 +36,7 @@ public class ServerboundDataStorePacket121130 extends Packet121130 {
         double doubleData = 0;
         boolean boolData = false;
         String stringData = "";
-        int dataType = getLInt();
+        int dataType = (int) getUnsignedVarInt();
         switch (dataType) {
             case DataStoreUpdate.TYPE_DOUBLE -> doubleData = getLDouble();
             case DataStoreUpdate.TYPE_BOOL -> boolData = getBoolean();

@@ -251,6 +251,7 @@ public interface PlayerAuthInputFlags {
         versions[AbstractProtocol.PROTOCOL_121_124.ordinal()] = 65;
         versions[AbstractProtocol.PROTOCOL_121_130.ordinal()] = 65;
         versions[AbstractProtocol.PROTOCOL_126.ordinal()] = 65;
+        versions[AbstractProtocol.PROTOCOL_126_10.ordinal()] = 65;
 /*
         for (AbstractProtocol protocol : AbstractProtocol.getValues()) {
             if (protocol.ordinal() < AbstractProtocol.PROTOCOL_121_50.ordinal()) {

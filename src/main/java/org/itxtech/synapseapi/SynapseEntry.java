@@ -18,6 +18,9 @@ import cn.nukkit.plugin.Plugin;
 import cn.nukkit.utils.BinaryStream;
 import cn.nukkit.utils.MainLogger;
 import cn.nukkit.utils.Zlib;
+import io.netty.buffer.ByteBuf;
+import io.netty.buffer.ByteBufUtil;
+import io.netty.buffer.Unpooled;
 import it.unimi.dsi.fastutil.Pair;
 import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
 import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
@@ -50,7 +53,7 @@ import java.util.*;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.ThreadLocalRandom;
 
-import static org.itxtech.synapseapi.SynapseSharedConstants.SERVERBOUND_PACKET_LOGGING;
+import static org.itxtech.synapseapi.SynapseSharedConstants.*;
 
 /**
  * @author boybook
@@ -824,10 +827,20 @@ public class SynapseEntry {
                             pk.neteaseMode = netease;
                             pk.decode();
                             packets.add(pk);
+                            if (PACKET_EOF_DEBUG && !pk.feof()) {
+                                ByteBuf wrapped = Unpooled.wrappedBuffer(buf);
+                                log.warn("{} {} {}\n{}", protocol, netease, head.getPid(), ByteBufUtil.prettyHexDump(wrapped));
+                                wrapped.release();
+                            }
                         }
                     } catch (Exception e) {
                         MainLogger.getLogger().logException(e);
                         // malformed packet
+                        if (PACKET_EOF_DEBUG) {
+                            ByteBuf wrapped = Unpooled.wrappedBuffer(buf);
+                            log.error("{} {} {}\n{}", protocol, netease, head.getPid(), ByteBufUtil.prettyHexDump(wrapped));
+                            wrapped.release();
+                        }
                         return null;
                     }
                 }

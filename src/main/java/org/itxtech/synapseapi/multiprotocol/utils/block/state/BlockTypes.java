@@ -3035,4 +3035,22 @@ public class BlockTypes {
             return toNetEase(REGISTRY, customAppearance);
         }
     }
+
+    public static class V1_26_10 extends V1_21_110 {
+        private static final BlockRegistry REGISTRY = new BlockRegistry((1 << 24) | (21 << 16) | (60 << 8) | 33, V1_21_110.REGISTRY);
+
+        public static final BlockLegacy GOLDEN_DANDELION = REGISTRY.registerBlock("minecraft:golden_dandelion", BlockID.GOLDEN_DANDELION);
+
+        static {
+            REGISTRY.createBlockPermutations();
+        }
+
+        public static BlockRegistry getBlockRegistry() {
+            return REGISTRY;
+        }
+
+        public static BlockRegistry toNetEase(boolean customAppearance) {
+            return toNetEase(REGISTRY, customAppearance);
+        }
+    }
 }

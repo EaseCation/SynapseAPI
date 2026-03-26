@@ -55,6 +55,9 @@ public class LoginPacket14 extends Packet14 {
     public String xuid;
     public String titleId;
     public String sandboxId;// = "RETAIL"
+    public String playFabId;
+    public int pfcd;
+    public String subject;
 
     public Skin skin;
     public boolean validSkin;
@@ -140,13 +143,48 @@ public class LoginPacket14 extends Packet14 {
             Map<String, List<String>> map;
             if (protocol >= AbstractProtocol.PROTOCOL_121_90.getProtocolStart()) {
                 Object authenticationType = root.get("AuthenticationType");
-                if (!(authenticationType instanceof Number)) { //integer 0
+                if (!(authenticationType instanceof Number)) {
                     return;
                 }
+
                 Object token = root.get("Token");
-                if (!(token instanceof String)) { //empty ""
+                if (!(token instanceof String jwt)) {
                     return;
                 }
+                if (!jwt.isEmpty()) {
+                    JsonNode payload = decodeToken(jwt);
+                    if (payload != null && payload.isObject()) {
+                        JsonNode xnameNode = payload.get("xname");
+                        if (xnameNode != null) {
+                            this.username = xnameNode.asString();
+                        }
+                        JsonNode xidNode = payload.get("xid");
+                        if (xidNode != null) {
+                            this.xuid = xidNode.asString();
+                            if (!xuid.isEmpty()) {
+                                this.clientUUID = UUID.nameUUIDFromBytes(("pocket-auth-1-xuid:" + xuid).getBytes(StandardCharsets.UTF_8));
+                            }
+                        }
+                        JsonNode midNode = payload.get("mid");
+                        if (midNode != null) {
+                            this.playFabId = midNode.asString();
+                        }
+                        JsonNode pfcdNode = payload.get("pfcd");
+                        if (pfcdNode != null) {
+                            this.pfcd = pfcdNode.asInt();
+                        }
+                        JsonNode subNode = payload.get("sub");
+                        if (subNode != null) {
+                            this.subject = subNode.asString();
+                        }
+                        JsonNode tidNode = payload.get("tid");
+                        if (tidNode != null) {
+                            this.titleId = tidNode.asString();
+                        }
+                    }
+                    return;
+                }
+
                 Object certificate = root.get("Certificate");
                 if (!(certificate instanceof String cert)) {
                     return;
@@ -217,13 +255,48 @@ public class LoginPacket14 extends Packet14 {
         List<String> chains;
         if (protocol >= AbstractProtocol.PROTOCOL_121_90.getProtocolStart()) {
             Object authenticationType = root.get("AuthenticationType");
-            if (!(authenticationType instanceof Number)) { //integer 0
+            if (!(authenticationType instanceof Number)) {
                 return;
             }
+
             Object token = root.get("Token");
-            if (!(token instanceof String)) { //empty ""
+            if (!(token instanceof String jwt)) {
                 return;
             }
+            if (!jwt.isEmpty()) {
+                JsonNode payload = decodeToken(jwt);
+                if (payload != null && payload.isObject()) {
+                    JsonNode xnameNode = payload.get("xname");
+                    if (xnameNode != null) {
+                        this.username = xnameNode.asString();
+                    }
+                    JsonNode xidNode = payload.get("xid");
+                    if (xidNode != null) {
+                        this.xuid = xidNode.asString();
+                        if (!xuid.isEmpty()) {
+                            this.clientUUID = UUID.nameUUIDFromBytes(("pocket-auth-1-xuid:" + xuid).getBytes(StandardCharsets.UTF_8));
+                        }
+                    }
+                    JsonNode midNode = payload.get("mid");
+                    if (midNode != null) {
+                        this.playFabId = midNode.asString();
+                    }
+                    JsonNode pfcdNode = payload.get("pfcd");
+                    if (pfcdNode != null) {
+                        this.pfcd = pfcdNode.asInt();
+                    }
+                    JsonNode subNode = payload.get("sub");
+                    if (subNode != null) {
+                        this.subject = subNode.asString();
+                    }
+                    JsonNode tidNode = payload.get("tid");
+                    if (tidNode != null) {
+                        this.titleId = tidNode.asString();
+                    }
+                }
+                return;
+            }
+
             Object certificate = root.get("Certificate");
             if (!(certificate instanceof String cert)) {
                 return;
@@ -449,8 +522,8 @@ public class LoginPacket14 extends Packet14 {
     }
 
     private JsonNode decodeToken(String token) throws JacksonException {
-        String[] base = token.split("\\.", 4);
-        if (base.length < 2) return null;
+        String[] base = token.split("\\.", 3);
+        if (base.length != 3) return null;
         byte[] decode;
         try {
             decode = Base64.getUrlDecoder().decode(base[1]);

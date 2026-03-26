@@ -2,10 +2,8 @@ package org.itxtech.synapseapi.multiprotocol.protocol126.protocol;
 
 import cn.nukkit.network.protocol.ProtocolInfo;
 import it.unimi.dsi.fastutil.objects.ObjectIntPair;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.NoArgsConstructor;
 import lombok.ToString;
+import org.itxtech.synapseapi.multiprotocol.common.block.VoxelShape;
 
 /**
  * Syncs client with server voxel shape data on world join.
@@ -15,6 +13,31 @@ import lombok.ToString;
 @ToString
 public class VoxelShapesPacket126 extends Packet126 {
     public static final int NETWORK_ID = ProtocolInfo.VOXEL_SHAPES_PACKET;
+
+    public static final VoxelShape[] VANILLA_SHAPES = {
+            VoxelShape.builder()
+                    .xSize(0)
+                    .ySize(0)
+                    .zSize(0)
+                    .storage(new byte[0])
+                    .xCoordinates(new float[]{0})
+                    .yCoordinates(new float[]{0})
+                    .zCoordinates(new float[]{0})
+                    .build(),
+            VoxelShape.builder()
+                    .xSize(1)
+                    .ySize(1)
+                    .zSize(1)
+                    .storage(new byte[]{1})
+                    .xCoordinates(new float[]{0, 1})
+                    .yCoordinates(new float[]{0, 1})
+                    .zCoordinates(new float[]{0, 1})
+                    .build(),
+    };
+    public static final ObjectIntPair<String>[] VANILLA_NAME_MAP = new ObjectIntPair[]{
+            ObjectIntPair.of("minecraft:empty", 0),
+            ObjectIntPair.of("minecraft:unit_cube", 1),
+    };
 
     public VoxelShape[] shapes = new VoxelShape[0];
     /// Pair<Name, RegistryHandle>[]
@@ -59,41 +82,5 @@ public class VoxelShapesPacket126 extends Packet126 {
             stream.putString(entry.left());
             stream.putLShort(entry.rightInt());
         });
-    }
-
-    @Builder
-    @NoArgsConstructor
-    @AllArgsConstructor
-    @ToString
-    public static class VoxelShape {
-        /**
-         * Number of cells along the X axis.
-         */
-        public int xSize;
-        /**
-         * Number of cells along the Y axis.
-         */
-        public int ySize;
-        /**
-         * Number of cells along the Z axis.
-         */
-        public int zSize;
-        /**
-         * Solid/empty state per cell.
-         */
-        public byte[] storage;
-
-        /**
-         * Cell boundaries along the X axis.
-         */
-        public float[] xCoordinates;
-        /**
-         * Cell boundaries along the Y axis.
-         */
-        public float[] yCoordinates;
-        /**
-         * Cell boundaries along the Z axis.
-         */
-        public float[] zCoordinates;
     }
 }

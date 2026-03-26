@@ -308,6 +308,7 @@ public final class LegacyBlockSerializer {
         registerDeserializer(WAXED_EXPOSED_COPPER_BARS, LegacyBlockSerializer::deserializeSimple);
         registerDeserializer(WAXED_WEATHERED_COPPER_BARS, LegacyBlockSerializer::deserializeSimple);
         registerDeserializer(WAXED_OXIDIZED_COPPER_BARS, LegacyBlockSerializer::deserializeSimple);
+        registerDeserializer(GOLDEN_DANDELION, LegacyBlockSerializer::deserializeSimple);
 
         registerDeserializer(STONE, states -> {
             String type = states.getString(STONE_TYPE);

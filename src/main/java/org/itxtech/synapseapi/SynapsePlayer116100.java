@@ -166,6 +166,9 @@ import org.itxtech.synapseapi.multiprotocol.protocol12190.protocol.ServerScriptD
 import org.itxtech.synapseapi.multiprotocol.protocol12190.protocol.ServerScriptDebugDrawerPacket12190.Entry;
 import org.itxtech.synapseapi.multiprotocol.protocol12190.protocol.StartGamePacket12190;
 import org.itxtech.synapseapi.multiprotocol.protocol126.protocol.*;
+import org.itxtech.synapseapi.multiprotocol.protocol12610.protocol.CameraInstructionPacket12610;
+import org.itxtech.synapseapi.multiprotocol.protocol12610.protocol.UpdateClientInputLocksPacket12610;
+import org.itxtech.synapseapi.multiprotocol.protocol12610.protocol.VoxelShapesPacket12610;
 import org.itxtech.synapseapi.multiprotocol.protocol14.protocol.PlayerActionPacket14;
 import org.itxtech.synapseapi.multiprotocol.protocol16.protocol.ResourcePackClientResponsePacket16;
 import org.itxtech.synapseapi.multiprotocol.utils.*;
@@ -292,6 +295,9 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
                 experiments.add(VanillaExperiments.DEFERRED_TECHNICAL_PREVIEW);
             }
             experiments.add(VanillaExperiments.EXPERIMENTAL_CREATOR_CAMERAS);
+            if (getProtocol() >= AbstractProtocol.PROTOCOL_126_10.getProtocolStart()) {
+                experiments.add(VanillaExperiments.VOXEL_SHAPES);
+            }
             startGamePacket.experiments = new Experiments(experiments.toArray(new Experiment[0]));
             return startGamePacket;
         } else if (this.getProtocol() >= AbstractProtocol.PROTOCOL_121_130.getProtocolStart()) {
@@ -1336,6 +1342,9 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
                                 experiments.add(VanillaExperiments.DEFERRED_TECHNICAL_PREVIEW);
                             }
                             experiments.add(VanillaExperiments.EXPERIMENTAL_CREATOR_CAMERAS);
+                            if (getProtocol() >= AbstractProtocol.PROTOCOL_126_10.getProtocolStart()) {
+                                experiments.add(VanillaExperiments.VOXEL_SHAPES);
+                            }
                             stackPacket.experiments = new Experiments(experiments.toArray(new Experiment[0]));
                             this.dataPacket(stackPacket);
                         } else if (this.getProtocol() >= AbstractProtocol.PROTOCOL_120_80.getProtocolStart()) {
@@ -4890,6 +4899,13 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
 
     @Override
     public void startCameraInstruction(CameraInstruction instruction) {
+        if (getProtocol() >= AbstractProtocol.PROTOCOL_126_10.getProtocolStart()) {
+            CameraInstructionPacket12610 pk = new CameraInstructionPacket12610();
+            pk.instruction = instruction;
+            this.dataPacket(pk);
+            return;
+        }
+
         if (getProtocol() >= AbstractProtocol.PROTOCOL_126.getProtocolStart()) {
             CameraInstructionPacket126 pk = new CameraInstructionPacket126();
             pk.instruction = instruction;
@@ -4995,10 +5011,16 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
 
     @Override
     public void lockInput(int flags) {
-        if (getProtocol() < AbstractProtocol.PROTOCOL_119_50.getProtocolStart()) {
+        if (getProtocol() >= AbstractProtocol.PROTOCOL_126_10.getProtocolStart()) {
+            UpdateClientInputLocksPacket12610 packet = new UpdateClientInputLocksPacket12610();
+            packet.flags = flags;
+            dataPacket(packet);
             return;
         }
 
+        if (getProtocol() < AbstractProtocol.PROTOCOL_119_50.getProtocolStart()) {
+            return;
+        }
         UpdateClientInputLocksPacket11950 packet = new UpdateClientInputLocksPacket11950();
         packet.flags = flags;
         packet.x = (float) getX();
@@ -5626,11 +5648,21 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
 
     @Override
     public void sendVoxelShapes() {
-        if (getProtocol() < AbstractProtocol.PROTOCOL_126.getProtocolStart()) {
+        if (getProtocol() >= AbstractProtocol.PROTOCOL_126_10.getProtocolStart()) {
+            VoxelShapesPacket12610 packet = new VoxelShapesPacket12610();
+            packet.shapes = VoxelShapesPacket12610.VANILLA_SHAPES;
+            packet.nameMap = VoxelShapesPacket12610.VANILLA_NAME_MAP;
+            packet.customShapeCount = 0;
+            dataPacket(packet);
             return;
         }
 
+        if (getProtocol() < AbstractProtocol.PROTOCOL_126.getProtocolStart()) {
+            return;
+        }
         VoxelShapesPacket126 packet = new VoxelShapesPacket126();
+        packet.shapes = VoxelShapesPacket126.VANILLA_SHAPES;
+        packet.nameMap = VoxelShapesPacket126.VANILLA_NAME_MAP;
         dataPacket(packet);
     }
 

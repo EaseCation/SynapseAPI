@@ -40,6 +40,7 @@ import org.itxtech.synapseapi.multiprotocol.protocol12190.protocol.CameraInstruc
 import org.itxtech.synapseapi.multiprotocol.protocol12190.protocol.ServerScriptDebugDrawerPacket12190;
 import org.itxtech.synapseapi.multiprotocol.protocol126.protocol.CameraInstructionPacket126;
 import org.itxtech.synapseapi.multiprotocol.protocol126.protocol.DebugDrawerPacket126;
+import org.itxtech.synapseapi.multiprotocol.protocol12610.protocol.CameraInstructionPacket12610;
 import org.itxtech.synapseapi.multiprotocol.protocol14.protocol.PlayerActionPacket14;
 import org.itxtech.synapseapi.multiprotocol.protocol15.protocol.MoveEntityDeltaPacket15;
 import org.itxtech.synapseapi.multiprotocol.protocol18.protocol.SpawnParticleEffectPacket18;
@@ -319,7 +320,28 @@ public class DataPacketEidReplacer {
                 }
                 break;
             case ProtocolInfo.CAMERA_INSTRUCTION_PACKET:
-                if (packet instanceof CameraInstructionPacket126 dp) {
+                if (packet instanceof CameraInstructionPacket12610 dp) {
+                    CameraInstruction instruction = dp.instruction;
+                    CameraInstruction clone = null;
+                    CameraTargetInstruction target = instruction.target;
+                    if (target != null && target.entityId == from) {
+                        CameraTargetInstruction copy = target.clone();
+                        copy.entityId = to;
+                        clone = instruction.clone();
+                        dp.instruction = clone;
+                        clone.target = copy;
+                    }
+                    CameraAttachToEntityInstruction attach = instruction.attachToEntity;
+                    if (attach != null && attach.entityId == from) {
+                        CameraAttachToEntityInstruction copy = attach.clone();
+                        copy.entityId = to;
+                        if (clone == null) {
+                            clone = instruction.clone();
+                            dp.instruction = clone;
+                        }
+                        clone.attachToEntity = copy;
+                    }
+                } else if (packet instanceof CameraInstructionPacket126 dp) {
                     CameraInstruction instruction = dp.instruction;
                     CameraInstruction clone = null;
                     CameraTargetInstruction target = instruction.target;
