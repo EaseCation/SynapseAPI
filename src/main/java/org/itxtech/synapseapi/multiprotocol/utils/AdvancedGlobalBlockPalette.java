@@ -322,7 +322,7 @@ public final class AdvancedGlobalBlockPalette {
         staticPalettes.put(StaticVersion.V1_21_70, new GlobalBlockPaletteStatic(palettes.get(AbstractProtocol.PROTOCOL_121_70)[0]));
         staticPalettes.put(StaticVersion.V1_21_80, new GlobalBlockPaletteStatic(palettes.get(AbstractProtocol.PROTOCOL_121_80)[0]));
         staticPalettes.put(StaticVersion.V1_21_90, new GlobalBlockPaletteStatic(palettes.get(AbstractProtocol.PROTOCOL_121_90)[0]));
-        staticPalettes.put(StaticVersion.V1_21_93_NETEASE, new GlobalBlockPaletteStatic(palettes.get(AbstractProtocol.PROTOCOL_121_90)[1]));
+        staticPalettes.put(StaticVersion.V1_21_93_NETEASE, new GlobalBlockPaletteStatic(palettes.get(AbstractProtocol.PROTOCOL_121_93)[1]));
         staticPalettes.put(StaticVersion.V1_21_100, new GlobalBlockPaletteStatic(palettes.get(AbstractProtocol.PROTOCOL_121_100)[0]));
         staticPalettes.put(StaticVersion.V1_21_111, new GlobalBlockPaletteStatic(palettes.get(AbstractProtocol.PROTOCOL_121_111)[0]));
         staticPalettes.put(StaticVersion.V1_26_10, new GlobalBlockPaletteStatic(palettes.get(AbstractProtocol.PROTOCOL_126_10)[0]));
