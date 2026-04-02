@@ -75,6 +75,7 @@ public final class RuntimeBlockMapper {
         BlockPalette palette12180N = BlockTypes.V1_21_80.toNetEase(false).createBlockPalette();
         BlockPalette palette121100 = BlockTypes.V1_21_100.getBlockRegistry().createBlockPalette();
         BlockPalette palette121110 = BlockTypes.V1_21_110.getBlockRegistry().createBlockPalette();
+        BlockPalette palette121111N = BlockTypes.V1_21_110.toNetEase(false).createBlockPalette();
         BlockPalette palette12610 = BlockTypes.V1_26_10.getBlockRegistry().createBlockPalette();
 
 /*
@@ -115,11 +116,11 @@ public final class RuntimeBlockMapper {
         PALETTES.put(AbstractProtocol.PROTOCOL_121_90, new BlockPalette[]{palette12180, palette12180N});
         PALETTES.put(AbstractProtocol.PROTOCOL_121_93, new BlockPalette[]{palette12180, palette12180N});
         PALETTES.put(AbstractProtocol.PROTOCOL_121_100, new BlockPalette[]{palette121100, palette121100});
-        PALETTES.put(AbstractProtocol.PROTOCOL_121_111, new BlockPalette[]{palette121110, palette121110});
-        PALETTES.put(AbstractProtocol.PROTOCOL_121_120, new BlockPalette[]{palette121110, palette121110});
-        PALETTES.put(AbstractProtocol.PROTOCOL_121_124, new BlockPalette[]{palette121110, palette121110});
-        PALETTES.put(AbstractProtocol.PROTOCOL_121_130, new BlockPalette[]{palette121110, palette121110});
-        PALETTES.put(AbstractProtocol.PROTOCOL_126, new BlockPalette[]{palette121110, palette121110});
+        PALETTES.put(AbstractProtocol.PROTOCOL_121_111, new BlockPalette[]{palette121110, palette121111N});
+        PALETTES.put(AbstractProtocol.PROTOCOL_121_120, new BlockPalette[]{palette121110, palette121111N});
+        PALETTES.put(AbstractProtocol.PROTOCOL_121_124, new BlockPalette[]{palette121110, palette121111N});
+        PALETTES.put(AbstractProtocol.PROTOCOL_121_130, new BlockPalette[]{palette121110, palette121111N});
+        PALETTES.put(AbstractProtocol.PROTOCOL_126, new BlockPalette[]{palette121110, palette121111N});
         PALETTES.put(AbstractProtocol.PROTOCOL_126_10, new BlockPalette[]{palette12610, palette12610});
 
         for (AbstractProtocol protocol : AbstractProtocol.getValues()) {
@@ -176,6 +177,7 @@ public final class RuntimeBlockMapper {
                 CompletableFuture.runAsync(() -> map(V1_21_80, palette12180N, basePalette)),
                 CompletableFuture.runAsync(() -> map(V1_21_100, palette121100, basePalette)),
                 CompletableFuture.runAsync(() -> map(V1_21_111, palette121110, basePalette)),
+                CompletableFuture.runAsync(() -> map(V1_21_111, palette121111N, basePalette)),
                 CompletableFuture.runAsync(() -> map(V1_26_10, palette12610, basePalette))
         ).join();
 
