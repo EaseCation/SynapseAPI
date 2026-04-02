@@ -212,59 +212,46 @@ public final class BiomeDefinitions {
         if (protocol.getProtocolStart() >= AbstractProtocol.PROTOCOL_126.getProtocolStart()) {
             BiomeDefinitionListPacket126 biomePacket = new BiomeDefinitionListPacket126();
             biomePacket.biomes = loadNewPacket(protocol);
-            biomePacket.setHelper(protocol.getHelper());
-            biomePacket.tryEncode();
             packet = biomePacket;
 
             BiomeDefinitionListPacket126 biomePacketNe = new BiomeDefinitionListPacket126();
             biomePacketNe.biomes = biomePacket.biomes;
-            biomePacketNe.setHelper(protocol.getHelper());
-            biomePacketNe.neteaseMode = true;
-            biomePacketNe.tryEncode();
             packetNe = biomePacketNe;
         } else if (protocol.getProtocolStart() >= AbstractProtocol.PROTOCOL_121_111.getProtocolStart()) {
             BiomeDefinitionListPacket121111 biomePacket = new BiomeDefinitionListPacket121111();
             biomePacket.biomes = loadNewPacket(protocol);
-            biomePacket.setHelper(protocol.getHelper());
-            biomePacket.tryEncode();
             packet = biomePacket;
 
             BiomeDefinitionListPacket121111 biomePacketNe = new BiomeDefinitionListPacket121111();
             biomePacketNe.biomes = biomePacket.biomes;
-            biomePacketNe.setHelper(protocol.getHelper());
-            biomePacketNe.neteaseMode = true;
-            biomePacketNe.tryEncode();
             packetNe = biomePacketNe;
         } else if (protocol.getProtocolStart() >= AbstractProtocol.PROTOCOL_121_100.getProtocolStart()) {
             BiomeDefinitionListPacket121100 biomePacket = new BiomeDefinitionListPacket121100();
             biomePacket.biomes = loadNewPacket(protocol);
-            biomePacket.setHelper(protocol.getHelper());
-            biomePacket.tryEncode();
             packet = biomePacket;
 
             BiomeDefinitionListPacket121100 biomePacketNe = new BiomeDefinitionListPacket121100();
             biomePacketNe.biomes = biomePacket.biomes;
-            biomePacketNe.setHelper(protocol.getHelper());
-            biomePacketNe.neteaseMode = true;
-            biomePacketNe.tryEncode();
             packetNe = biomePacketNe;
         } else {
             BiomeDefinitionListPacket12180 biomePacket = new BiomeDefinitionListPacket12180();
             biomePacket.biomes = loadNewPacket(protocol);
-            biomePacket.setHelper(protocol.getHelper());
-            biomePacket.tryEncode();
             packet = biomePacket;
 
             BiomeDefinitionListPacket12180 biomePacketNe = new BiomeDefinitionListPacket12180();
             biomePacketNe.biomes = biomePacket.biomes;
-            biomePacketNe.setHelper(protocol.getHelper());
-            biomePacketNe.neteaseMode = true;
-            biomePacketNe.tryEncode();
             packetNe = biomePacketNe;
         }
 
+        packet.setHelper(protocol.getHelper());
+        packet.tryEncode();
+
         BatchPacket batch = packet.compress(protocol.getCompressor(), Deflater.BEST_COMPRESSION);
         batch.tracks = new Track[]{new Track(packet.pid(), packet.getCount())};
+
+        packetNe.setHelper(protocol.getHelper());
+        packetNe.neteaseMode = true;
+        packetNe.tryEncode();
 
         BatchPacket batchNe = packetNe.compress(protocol.getCompressor(), Deflater.BEST_COMPRESSION);
         batchNe.tracks = new Track[]{new Track(packetNe.pid(), packetNe.getCount())};
