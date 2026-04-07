@@ -1,6 +1,6 @@
 package org.itxtech.synapseapi.multiprotocol.utils.item;
 
-import cn.nukkit.block.BlockTallGrass;
+import cn.nukkit.block.BlockGrassShort;
 import cn.nukkit.item.Item;
 import cn.nukkit.item.ItemBlockID;
 import cn.nukkit.item.ItemID;
@@ -357,7 +357,7 @@ public final class BlockItemFlattener {
     private static int metaFixer121(int flattenedId, int id, int meta) {
         if (id == ItemBlockID.SHORT_GRASS) {
             if (meta == 0) {
-                return Item.getFullId(id, BlockTallGrass.TYPE_GRASS);
+                return Item.getFullId(id, BlockGrassShort.TYPE_GRASS);
             }
         }
         return Item.getFullId(id, meta);
