@@ -124,7 +124,6 @@ public final class ItemComponentDefinitions {
             DEFINITIONS.put(AbstractProtocol.PROTOCOL_121_2, new Map[]{
                     load("item_components121.nbt", AbstractProtocol.PROTOCOL_121_2, false),
                     load("item_components121.nbt", AbstractProtocol.PROTOCOL_121_2, true),
-                    null,
             });
             DEFINITIONS.put(AbstractProtocol.PROTOCOL_121_20, new Map[]{
                     load("item_components12120.nbt", AbstractProtocol.PROTOCOL_121_20, false),
@@ -161,7 +160,7 @@ public final class ItemComponentDefinitions {
             });
             DEFINITIONS.put(AbstractProtocol.PROTOCOL_121_93, new Map[]{
                     load("item_components12180.nbt", AbstractProtocol.PROTOCOL_121_93, false),
-                    null,
+                    load("item_components12180.nbt", AbstractProtocol.PROTOCOL_121_93, true),
             });
             DEFINITIONS.put(AbstractProtocol.PROTOCOL_121_100, new Map[]{
                     load("item_components12180.nbt", AbstractProtocol.PROTOCOL_121_100, false),
@@ -169,7 +168,7 @@ public final class ItemComponentDefinitions {
             });
             DEFINITIONS.put(AbstractProtocol.PROTOCOL_121_111, new Map[]{
                     load("item_components121110.nbt", AbstractProtocol.PROTOCOL_121_111, false),
-                    null,
+                    load("item_components121110.nbt", AbstractProtocol.PROTOCOL_121_111, true),
             });
             DEFINITIONS.put(AbstractProtocol.PROTOCOL_121_120, new Map[]{
                     load("item_components121120.nbt", AbstractProtocol.PROTOCOL_121_120, false),
@@ -185,6 +184,10 @@ public final class ItemComponentDefinitions {
             });
             DEFINITIONS.put(AbstractProtocol.PROTOCOL_126, new Map[]{
                     load("item_components126.nbt", AbstractProtocol.PROTOCOL_126, false),
+                    null,
+            });
+            DEFINITIONS.put(AbstractProtocol.PROTOCOL_126_10, new Map[]{
+                    load("item_components126.nbt", AbstractProtocol.PROTOCOL_126_10, false),
                     null,
             });
         } catch (NullPointerException | IOException e) {

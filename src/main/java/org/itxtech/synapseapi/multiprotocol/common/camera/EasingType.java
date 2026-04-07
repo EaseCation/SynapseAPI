@@ -48,4 +48,8 @@ public enum EasingType {
     public String toString() {
         return name;
     }
+
+    public String getName() {
+        return name;
+    }
 }

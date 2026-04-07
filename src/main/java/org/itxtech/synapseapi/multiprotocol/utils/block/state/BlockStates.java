@@ -8,6 +8,7 @@ import java.util.List;
 import static org.itxtech.synapseapi.multiprotocol.utils.block.BlockStateIntegerValues.*;
 import static org.itxtech.synapseapi.multiprotocol.utils.block.BlockStateStringValues.*;
 
+// This file is generated automatically, do not edit it manually.
 public final class BlockStates {
     private static final List<BlockState> REGISTRY = new ArrayList<>();
 
@@ -197,6 +198,7 @@ public final class BlockStates {
             MINECRAFT_FACING_DIRECTION_SOUTH,
             MINECRAFT_FACING_DIRECTION_WEST,
             MINECRAFT_FACING_DIRECTION_EAST));
+    public static final IntegerBlockState MINECRAFT_MULTI_BLOCK_PART = register(new IntegerBlockState(BlockStateNames.MINECRAFT_MULTI_BLOCK_PART, MAX_MINECRAFT_MULTI_BLOCK_PART + 1));
     public static final StringBlockState MINECRAFT_VERTICAL_HALF = register(new StringBlockState(BlockStateNames.MINECRAFT_VERTICAL_HALF,
             MINECRAFT_VERTICAL_HALF_BOTTOM,
             MINECRAFT_VERTICAL_HALF_TOP));

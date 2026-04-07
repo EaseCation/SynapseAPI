@@ -1,9 +1,13 @@
 package org.itxtech.synapseapi.network.protocol.spp;
 
+import com.google.gson.Gson;
+import com.google.gson.JsonObject;
+
 /**
  * Created by boybook on 16/6/24.
  */
 public class ConnectPacket extends SynapseDataPacket {
+    private static final Gson GSON = new Gson();
 
     public static final int NETWORK_ID = SynapseInfo.CONNECT_PACKET;
 
@@ -12,6 +16,7 @@ public class ConnectPacket extends SynapseDataPacket {
     public boolean isMainServer;
     public String description;
     public String password;
+    public JsonObject metadata = new JsonObject();
 
     @Override
     public byte pid() {
@@ -26,6 +31,7 @@ public class ConnectPacket extends SynapseDataPacket {
         this.putBoolean(this.isMainServer);
         this.putString(this.description);
         this.putString(this.password);
+        this.putString(GSON.toJson(this.metadata));
     }
 
     @Override
@@ -35,5 +41,6 @@ public class ConnectPacket extends SynapseDataPacket {
         this.isMainServer = this.getBoolean();
         this.description = this.getString();
         this.password = this.getString();
+        this.metadata = GSON.fromJson(this.getString(), JsonObject.class);
     }
 }

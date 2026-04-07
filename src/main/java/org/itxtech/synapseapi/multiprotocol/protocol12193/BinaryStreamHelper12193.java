@@ -11,4 +11,9 @@ public class BinaryStreamHelper12193 extends BinaryStreamHelper12190 {
     public String getGameVersion() {
         return "1.21.93";
     }
+
+    @Override
+    public boolean isNetEase() {
+        return true;
+    }
 }

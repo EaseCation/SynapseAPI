@@ -161,7 +161,7 @@ public class SynapsePlayer112 extends SynapsePlayer19 {
 
 			if (this.spawned) {
 				for (Entity entity : this.level.getChunkEntities(x, z).values()) {
-					if (this != entity && !entity.closed && entity.isAlive()) {
+					if (this != entity && !entity.closed && entity.isAlive() && entity.isWithinEntityViewDistance(this)) {
 						entity.spawnTo(this);
 					}
 				}
@@ -247,7 +247,7 @@ public class SynapsePlayer112 extends SynapsePlayer19 {
 
 		if (this.spawned) {
 			for (Entity entity : this.level.getChunkEntities(x, z).values()) {
-				if (this != entity && !entity.closed && entity.isAlive()) {
+				if (this != entity && !entity.closed && entity.isAlive() && entity.isWithinEntityViewDistance(this)) {
 					entity.spawnTo(this);
 				}
 			}

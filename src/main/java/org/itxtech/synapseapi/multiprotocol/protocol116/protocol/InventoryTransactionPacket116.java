@@ -178,6 +178,9 @@ public class InventoryTransactionPacket116 extends Packet116 implements Inventor
                 if (protocol.getProtocolStart() >= AbstractProtocol.PROTOCOL_121_20.getProtocolStart()) {
                     this.putUnsignedVarInt(useItemData.clientInteractPrediction ? 1 : 0);
                 }
+                if (protocol.getProtocolStart() >= AbstractProtocol.PROTOCOL_126_10.getProtocolStart()) {
+                    this.putByte(useItemData.clientCooldownState);
+                }
                 break;
             case TYPE_USE_ITEM_ON_ENTITY:
                 UseItemOnEntityData useItemOnEntityData = (UseItemOnEntityData) this.transactionData;
@@ -267,6 +270,9 @@ public class InventoryTransactionPacket116 extends Packet116 implements Inventor
                 }
                 if (protocol.getProtocolStart() >= AbstractProtocol.PROTOCOL_121_20.getProtocolStart()) {
                     itemData.clientInteractPrediction = this.getUnsignedVarInt() != 0;
+                }
+                if (protocol.getProtocolStart() >= AbstractProtocol.PROTOCOL_126_10.getProtocolStart()) {
+                    itemData.clientCooldownState = this.getByte();
                 }
 
                 this.transactionData = itemData;

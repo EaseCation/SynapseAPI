@@ -92,6 +92,17 @@ public class ServerboundDiagnosticsPacket126 extends Packet126 {
     public static final int CATEGORY_SCRIPTING_CONTEXT_RUN = 78;
     public static final int CATEGORY_DATA_DRIVEN_UI = 79;
     public static final int CATEGORY_DATA_DRIVEN_UI_DEFS = 80;
+    public static final int CATEGORY_GAMEFACE = 81;
+    public static final int CATEGORY_GAMEFACE_SYSTEM = 82;
+    public static final int CATEGORY_GAMEFACE_DOM = 83;
+    public static final int CATEGORY_GAMEFACE_CSS = 84;
+    public static final int CATEGORY_GAMEFACE_DISPLAY = 85;
+    public static final int CATEGORY_GAMEFACE_TEMP_ALLOCATOR = 86;
+    public static final int CATEGORY_GAMEFACE_POOL_ALLOCATOR = 87;
+    public static final int CATEGORY_GAMEFACE_DUMP = 88;
+    public static final int CATEGORY_GAMEFACE_MEDIA = 89;
+    public static final int CATEGORY_GAMEFACE_JSON = 90;
+    public static final int CATEGORY_GAMEFACE_SCRIPT_ENGINE = 91;
 
     public float avgFps;
     public float avgServerSimTickTimeMs;

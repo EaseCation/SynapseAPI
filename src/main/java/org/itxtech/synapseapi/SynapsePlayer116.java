@@ -487,7 +487,9 @@ public class SynapsePlayer116 extends SynapsePlayer113 {
 
 								Item oldItem = i.clone();
 
-								if (this.canInteract(blockVector.add(0.5, 0.5, 0.5), this.isCreative() ? MAX_REACH_DISTANCE_CREATIVE : MAX_REACH_DISTANCE_SURVIVAL) && (i = this.level.useBreakOn(blockVector.asVector3(), face, i, this, true)) != null) {
+								if (isBreakingBlock()
+										&& this.canInteract(blockVector.add(0.5, 0.5, 0.5), this.isCreative() ? MAX_REACH_DISTANCE_CREATIVE : MAX_REACH_DISTANCE_SURVIVAL)
+										&& (i = this.level.useBreakOn(blockVector.asVector3(), face, i, this, true)) != null) {
 									if (this.isSurvival()) {
 										this.getFoodData().updateFoodExpLevel(0.005f);
 										if (!i.equals(oldItem) || i.getCount() != oldItem.getCount()) {
@@ -1120,12 +1122,11 @@ public class SynapsePlayer116 extends SynapsePlayer113 {
 									}
 									distanceChecked = true;
 									this.level.addLevelEvent(this.breakingBlock, LevelEventPacket.EVENT_BLOCK_STOP_BREAK);
-									this.lastBreak = -1;
 									this.breakingBlock = null;
 									this.breakingBlockFace = null;
 								}
 							case PlayerActionPacket14.ACTION_START_BREAK: // both
-								if (!this.spawned || !this.isAlive() || this.isSpectator() || this.lastBreak != -1 || !distanceChecked && pos.distanceSquared(this) > 100) {
+								if (!this.spawned || !this.isAlive() || this.isSpectator() || this.isBreakingBlock() || !distanceChecked && pos.distanceSquared(this) > 100) {
 									break;
 								}
 								face = BlockFace.fromIndex(blockAction.data);
@@ -1188,7 +1189,7 @@ public class SynapsePlayer116 extends SynapsePlayer113 {
 								this.lastBreak = System.currentTimeMillis();
 								break;
 							case PlayerActionPacket14.ACTION_STOP_BREAK: // client
-								if (this.breakingBlock == null || this.breakingBlockFace == null) {
+								if (!this.isBreakingBlock() || this.breakingBlockFace == null) {
 									break;
 								}
 								pos = this.breakingBlock;
@@ -1205,7 +1206,9 @@ public class SynapsePlayer116 extends SynapsePlayer113 {
 
 								item = this.getInventory().getItemInHand();
 								Item oldItem = item.clone();
-								if (this.canInteract(pos.add(0.5, 0.5, 0.5), this.isCreative() ? MAX_REACH_DISTANCE_CREATIVE : MAX_REACH_DISTANCE_SURVIVAL) && (item = this.level.useBreakOn(pos, face, item, this, true)) != null) {
+								if (isBreakingBlock()
+										&& this.canInteract(pos.add(0.5, 0.5, 0.5), this.isCreative() ? MAX_REACH_DISTANCE_CREATIVE : MAX_REACH_DISTANCE_SURVIVAL)
+										&& (item = this.level.useBreakOn(pos, face, item, this, true)) != null) {
 									// success
 									if (this.isSurvival()) {
 										this.getFoodData().updateFoodExpLevel(0.005f);
@@ -1236,7 +1239,6 @@ public class SynapsePlayer116 extends SynapsePlayer113 {
 //									int breakTime = blockAction.data;
 								}
 								this.level.addLevelEvent(pos, LevelEventPacket.EVENT_BLOCK_STOP_BREAK);
-								this.lastBreak = -1;
 								this.breakingBlock = null;
 								this.breakingBlockFace = null;
 								break;
@@ -1499,7 +1501,8 @@ public class SynapsePlayer116 extends SynapsePlayer113 {
 								i = this.getInventory().getItemInHand();
 								Item oldItem = i.clone();
 
-								if (this.canInteract(blockVector.add(0.5, 0.5, 0.5), this.isCreative() ? MAX_REACH_DISTANCE_CREATIVE : MAX_REACH_DISTANCE_SURVIVAL)
+								if (isBreakingBlock()
+										&& this.canInteract(blockVector.add(0.5, 0.5, 0.5), this.isCreative() ? MAX_REACH_DISTANCE_CREATIVE : MAX_REACH_DISTANCE_SURVIVAL)
 										&& (i = this.level.useBreakOn(blockVector.asVector3(), face, i, this, true)) != null) {
 									if (this.isSurvival()) {
 										this.getFoodData().updateFoodExpLevel(0.005f);
@@ -1676,13 +1679,14 @@ public class SynapsePlayer116 extends SynapsePlayer113 {
 
 					rideable.onPlayerInput(this, playerAuthInputPacket.getX(), playerAuthInputPacket.getY(), playerAuthInputPacket.getZ(), vehicleYaw, vehiclePitch);
 				} else if (this.riding != null && (moveVecX != 0 || moveVecY != 0
-						|| AbstractProtocol.PROTOCOL_121_130.isOlderThanOrEqual(getProtocol()) && (playerAuthInputPacket.hasFlag(PlayerAuthInputFlags.PADDLE_LEFT) || playerAuthInputPacket.hasFlag(PlayerAuthInputFlags.PADDLE_RIGHT)))
+						|| EntityRideable.isServerAuthoritativeRide(getProtocol())
+						&& (playerAuthInputPacket.hasFlag(PlayerAuthInputFlags.PADDLE_LEFT) || playerAuthInputPacket.hasFlag(PlayerAuthInputFlags.PADDLE_RIGHT)))
 						&& riding.isControlling(this)) {
 					moveVecX = Mth.clamp(moveVecX, -1, 1);
 					moveVecY = Mth.clamp(moveVecY, -1, 1);
 
 					if (this.riding instanceof EntityRideable rideable) {
-						if (AbstractProtocol.PROTOCOL_121_130.isOlderThanOrEqual(getProtocol()) && rideable instanceof EntityBoat boat) {
+						if (EntityRideable.isServerAuthoritativeRide(getProtocol()) && rideable instanceof EntityBoat boat) {
 							boolean paddleLeft = playerAuthInputPacket.hasFlag(PlayerAuthInputFlags.PADDLE_LEFT);
 							boolean paddleRight = playerAuthInputPacket.hasFlag(PlayerAuthInputFlags.PADDLE_RIGHT);
 
@@ -1863,6 +1867,7 @@ public class SynapsePlayer116 extends SynapsePlayer113 {
 	public void openInventory() {
 		ContainerOpenPacket pk = new ContainerOpenPacket();
 		pk.windowId = this.getWindowId(this.inventory);
+		lastOpenedWindowId = pk.windowId;
 		pk.type = this.inventory.getType().getNetworkType();
 		pk.x = this.getFloorX();
 		pk.y = this.getFloorY();
