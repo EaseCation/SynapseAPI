@@ -122,6 +122,7 @@ import org.itxtech.synapseapi.multiprotocol.protocol12180.protocol.PlayerListPac
 import org.itxtech.synapseapi.multiprotocol.protocol12190.protocol.ResourcePacksInfoPacket12190;
 import org.itxtech.synapseapi.multiprotocol.protocol12190.protocol.StartGamePacket12190;
 import org.itxtech.synapseapi.multiprotocol.protocol126.protocol.*;
+import org.itxtech.synapseapi.multiprotocol.protocol12610.protocol.*;
 import org.itxtech.synapseapi.multiprotocol.protocol15.protocol.*;
 import org.itxtech.synapseapi.multiprotocol.protocol14.protocol.*;
 import org.itxtech.synapseapi.multiprotocol.protocol16.protocol.*;
@@ -491,6 +492,10 @@ public class PacketRegister {
         registerPacket(AbstractProtocol.PROTOCOL_126, ProtocolInfo.BOOK_EDIT_PACKET, BookEditPacket126.class);
         registerPacket(AbstractProtocol.PROTOCOL_126, ProtocolInfo.SERVERBOUND_DIAGNOSTICS_PACKET, ServerboundDiagnosticsPacket126.class);
         registerPacket(AbstractProtocol.PROTOCOL_126, ProtocolInfo.SERVERBOUND_DATA_STORE_PACKET, ServerboundDataStorePacket126.class);
+
+        registerPacket(AbstractProtocol.PROTOCOL_126_10, ProtocolInfo.RESOURCE_PACKS_READY_FOR_VALIDATION_PACKET, ResourcePacksReadyForValidationPacket12610.class);
+        registerPacket(AbstractProtocol.PROTOCOL_126_10, ProtocolInfo.SERVERBOUND_DATA_DRIVEN_SCREEN_CLOSED_PACKET, ServerboundDataDrivenScreenClosedPacket12610.class);
+        registerPacket(AbstractProtocol.PROTOCOL_126_10, ProtocolInfo.PARTY_CHANGED_PACKET, PartyChangedPacket12610.class);
 
         checkNeteaseSpecialExtend();
     }

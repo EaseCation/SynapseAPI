@@ -8,7 +8,7 @@ import lombok.ToString;
  */
 @ToString
 public class ClientboundDataDrivenUICloseAllScreensPacket126 extends Packet126 {
-    public static final int NETWORK_ID = ProtocolInfo.CLIENTBOUND_DATA_DRIVEN_UI_CLOSE_ALL_SCREENS_PACKET;
+    public static final int NETWORK_ID = ProtocolInfo.CLIENTBOUND_DATA_DRIVEN_UI_CLOSE_SCREEN_PACKET;
 
     @Override
     public int pid() {

@@ -403,6 +403,9 @@ public final class ParticleIdTranslator {
 
     public static final int V121110_GREEN_FLAME = 98;
 
+    public static final int V12610_PAUSE_MOB_GROWTH = 99;
+    public static final int V12610_RESET_MOB_GROWTH = 100;
+
     static {
         Arrays.fill(v12ToV112Book, -1);
         v12ToV112Book[Particle.BUBBLE] = TYPE_BUBBLE;
@@ -799,6 +802,9 @@ public final class ParticleIdTranslator {
         v12ToV12070Book[Particle.EYEBLOSSOM_CLOSE] = V12150_EYEBLOSSOM_CLOSE;
 
         v12ToV12070Book[Particle.GREEN_FLAME] = V121110_GREEN_FLAME;
+
+        v12ToV12070Book[Particle.PAUSE_MOB_GROWTH] = V12610_PAUSE_MOB_GROWTH;
+        v12ToV12070Book[Particle.RESET_MOB_GROWTH] = V12610_RESET_MOB_GROWTH;
     }
 
     public static int translateTo112(int particleId) {

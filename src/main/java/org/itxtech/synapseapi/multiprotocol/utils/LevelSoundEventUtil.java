@@ -88,7 +88,7 @@ public final class LevelSoundEventUtil {
             case SOUND_NOTE:
                 if (extraData < 0) {
                     extraData = -extraData;
-                    if (protocol.getProtocolStart() >= AbstractProtocol.PROTOCOL_121_50.getProtocolStart()) {
+                    if (protocol.getProtocolStart() >= AbstractProtocol.PROTOCOL_126_10.getProtocolStart()) {
                         switch (extraData >> 8) {
                             case 5: // bell
                                 extraData = (6 << 8) | (extraData & 0xff);
@@ -102,6 +102,54 @@ public final class LevelSoundEventUtil {
                             case 8: // guitar
                                 extraData = (7 << 8) | (extraData & 0xff);
                                 break;
+
+                            case 16: // skeleton
+                                extraData = (21 << 8) | (extraData & 0xff);
+                                break;
+                            case 17: // wither skeleton
+                                extraData = (24 << 8) | (extraData & 0xff);
+                                break;
+                            case 18: // zombie
+                                extraData = (20 << 8) | (extraData & 0xff);
+                                break;
+                            case 19: // creeper
+                                extraData = (22 << 8) | (extraData & 0xff);
+                                break;
+                            case 20: // ender dragon
+                                extraData = (23 << 8) | (extraData & 0xff);
+                                break;
+                            case 21: // piglin
+                                extraData = (25 << 8) | (extraData & 0xff);
+                                break;
+
+                            case 22: // trumpet
+                                extraData = (16 << 8) | (extraData & 0xff);
+                                break;
+                            case 23: // trumpet exposed
+                                extraData = (17 << 8) | (extraData & 0xff);
+                                break;
+                            case 24: // trumpet weathered
+                                extraData = (18 << 8) | (extraData & 0xff);
+                                break;
+                            case 25: // trumpet oxidized
+                                extraData = (19 << 8) | (extraData & 0xff);
+                                break;
+                        }
+                    } else if (protocol.getProtocolStart() >= AbstractProtocol.PROTOCOL_121_50.getProtocolStart()) {
+                        switch (extraData >> 8) {
+                            case 5: // bell
+                                extraData = (6 << 8) | (extraData & 0xff);
+                                break;
+                            case 6: // flute
+                                extraData = (5 << 8) | (extraData & 0xff);
+                                break;
+                            case 7: // chime
+                                extraData = (8 << 8) | (extraData & 0xff);
+                                break;
+                            case 8: // guitar
+                                extraData = (7 << 8) | (extraData & 0xff);
+                                break;
+
                             case 16: // skeleton
                                 extraData = (17 << 8) | (extraData & 0xff);
                                 break;
@@ -121,7 +169,7 @@ public final class LevelSoundEventUtil {
                     }
                     return extraData;
                 }
-                if (protocol.getProtocolStart() >= AbstractProtocol.PROTOCOL_121_50.getProtocolStart()) {
+                if (protocol.getProtocolStart() >= AbstractProtocol.PROTOCOL_126_10.getProtocolStart()) {
                     switch (extraData) {
                         case 5: // bell
                             extraData = 6;
@@ -135,6 +183,54 @@ public final class LevelSoundEventUtil {
                         case 8: // guitar
                             extraData = 7;
                             break;
+
+                        case 16: // skeleton
+                            extraData = 21;
+                            break;
+                        case 17: // wither skeleton
+                            extraData = 24;
+                            break;
+                        case 18: // zombie
+                            extraData = 20;
+                            break;
+                        case 19: // creeper
+                            extraData = 22;
+                            break;
+                        case 20: // ender dragon
+                            extraData = 23;
+                            break;
+                        case 21: // piglin
+                            extraData = 25;
+                            break;
+
+                        case 22: // trumpet
+                            extraData = 16;
+                            break;
+                        case 23: // trumpet exposed
+                            extraData = 17;
+                            break;
+                        case 24: // trumpet weathered
+                            extraData = 18;
+                            break;
+                        case 25: // trumpet oxidized
+                            extraData = 19;
+                            break;
+                    }
+                } else if (protocol.getProtocolStart() >= AbstractProtocol.PROTOCOL_121_50.getProtocolStart()) {
+                    switch (extraData) {
+                        case 5: // bell
+                            extraData = 6;
+                            break;
+                        case 6: // flute
+                            extraData = 5;
+                            break;
+                        case 7: // chime
+                            extraData = 8;
+                            break;
+                        case 8: // guitar
+                            extraData = 7;
+                            break;
+
                         case 16: // skeleton
                             extraData = 17;
                             break;

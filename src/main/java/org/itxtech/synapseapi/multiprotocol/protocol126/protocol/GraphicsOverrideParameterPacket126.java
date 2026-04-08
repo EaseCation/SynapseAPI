@@ -142,6 +142,121 @@ public class GraphicsOverrideParameterPacket126 extends Packet126 {
      * @since 1.26.0
      */
     public static final int TYPE_SHADOWS_CONTRAST = 25;
+    /**
+     * Sent to set the color grading highlights gain value.
+     * @since 1.26.10
+     */
+    public static final int TYPE_HIGHLIGHTS_GAIN = 26;
+    /**
+     * Sent to set the color grading highlights gamma value.
+     * @since 1.26.10
+     */
+    public static final int TYPE_HIGHLIGHTS_GAMMA = 27;
+    /**
+     * Sent to set the color grading highlights offset value.
+     * @since 1.26.10
+     */
+    public static final int TYPE_HIGHLIGHTS_OFFSET = 28;
+    /**
+     * Sent to set the color grading highlights saturation value.
+     * @since 1.26.10
+     */
+    public static final int TYPE_HIGHLIGHTS_SATURATION = 29;
+    /**
+     * Sent to set the color grading midtones gain value.
+     * @since 1.26.10
+     */
+    public static final int TYPE_MIDTONES_GAIN = 30;
+    /**
+     * Sent to set the color grading midtones gamma value.
+     * @since 1.26.10
+     */
+    public static final int TYPE_MIDTONES_GAMMA = 31;
+    /**
+     * Sent to set the color grading midtones offset value.
+     * @since 1.26.10
+     */
+    public static final int TYPE_MIDTONES_OFFSET = 32;
+    /**
+     * Sent to set the color grading midtones saturation value.
+     * @since 1.26.10
+     */
+    public static final int TYPE_MIDTONES_SATURATION = 33;
+    /**
+     * Sent to set the color grading shadows gain value.
+     * @since 1.26.10
+     */
+    public static final int TYPE_SHADOWS_GAIN = 34;
+    /**
+     * Sent to set the color grading shadows gamma value.
+     * @since 1.26.10
+     */
+    public static final int TYPE_SHADOWS_GAMMA = 35;
+    /**
+     * Sent to set the color grading shadows offset value.
+     * @since 1.26.10
+     */
+    public static final int TYPE_SHADOWS_OFFSET = 36;
+    /**
+     * Sent to set the color grading shadows saturation value.
+     * @since 1.26.10
+     */
+    public static final int TYPE_SHADOWS_SATURATION = 37;
+    /**
+     * Sent to set the color grading highlights min value.
+     * @since 1.26.10
+     */
+    public static final int TYPE_HIGHLIGHTS_MIN = 38;
+    /**
+     * Sent to set the color grading shadows max value.
+     * @since 1.26.10
+     */
+    public static final int TYPE_SHADOWS_MAX = 39;
+    /**
+     * Sent to set the color grading temperature value.
+     * @since 1.26.10
+     */
+    public static final int TYPE_TEMPERATURE = 40;
+    /**
+     * Sent to set the lighting sun color value.
+     * @since 1.26.10
+     */
+    public static final int TYPE_SUN_COLOR = 41;
+    /**
+     * Sent to set the lighting sun illuminance value.
+     * @since 1.26.10
+     */
+    public static final int TYPE_SUN_ILLUMINANCE = 42;
+    /**
+     * Sent to set the lighting moon color value.
+     * @since 1.26.10
+     */
+    public static final int TYPE_MOON_COLOR = 43;
+    /**
+     * Sent to set the lighting moon illuminance value.
+     * @since 1.26.10
+     */
+    public static final int TYPE_MOON_ILLUMINANCE = 44;
+    /**
+     * Sent to set the lighting flash color value.
+     * @since 1.26.10
+     */
+    public static final int TYPE_FLASH_COLOR = 45;
+    /**
+     * Sent to set the lighting flash illuminance value.
+     * @since 1.26.10
+     */
+    public static final int TYPE_FLASH_ILLUMINANCE = 46;
+    /**
+     * Sent to set the lighting ambient color value.
+     * @since 1.26.10
+     */
+    public static final int TYPE_AMBIENT_COLOR = 47;
+    /**
+     * Sent to set the lighting ambient illuminance value.
+     * @since 1.26.10
+     */
+    public static final int TYPE_AMBIENT_ILLUMINANCE = 48;
 
     /// Pair<Time, Components>[]
     public FloatObjectPair<Vector3f>[] keyframes = new FloatObjectPair[0];

@@ -78,6 +78,10 @@ public final class SynapseSharedConstants {
      * Enables incoming packets logging?
      */
     public static final boolean SERVERBOUND_PACKET_LOGGING = false;
+    /**
+     * Enables packet decode debug?
+     */
+    public static final boolean PACKET_EOF_DEBUG = false;
 
     /**
      * NetworkStackLatencyPacket ping pong.

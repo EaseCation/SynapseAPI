@@ -46,6 +46,11 @@ public class BiomeDefinitionListPacket126 extends Packet126 {
             this.putLInt(definition.mapWaterColorARGB);
             this.putBoolean(definition.rain);
 
+            if (neteaseMode) {
+                this.putLInt(definition.dimension);
+                this.putString(definition.vanilla);
+            }
+
             this.putOptional(definition.tags, (stream, tags) -> {
                 putUnsignedVarInt(tags.size());
                 for (String tag : tags) {

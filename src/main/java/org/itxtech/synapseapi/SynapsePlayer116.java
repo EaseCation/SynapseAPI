@@ -1679,13 +1679,14 @@ public class SynapsePlayer116 extends SynapsePlayer113 {
 
 					rideable.onPlayerInput(this, playerAuthInputPacket.getX(), playerAuthInputPacket.getY(), playerAuthInputPacket.getZ(), vehicleYaw, vehiclePitch);
 				} else if (this.riding != null && (moveVecX != 0 || moveVecY != 0
-						|| AbstractProtocol.PROTOCOL_121_130.isOlderThanOrEqual(getProtocol()) && (playerAuthInputPacket.hasFlag(PlayerAuthInputFlags.PADDLE_LEFT) || playerAuthInputPacket.hasFlag(PlayerAuthInputFlags.PADDLE_RIGHT)))
+						|| EntityRideable.isServerAuthoritativeRide(getProtocol())
+						&& (playerAuthInputPacket.hasFlag(PlayerAuthInputFlags.PADDLE_LEFT) || playerAuthInputPacket.hasFlag(PlayerAuthInputFlags.PADDLE_RIGHT)))
 						&& riding.isControlling(this)) {
 					moveVecX = Mth.clamp(moveVecX, -1, 1);
 					moveVecY = Mth.clamp(moveVecY, -1, 1);
 
 					if (this.riding instanceof EntityRideable rideable) {
-						if (AbstractProtocol.PROTOCOL_121_130.isOlderThanOrEqual(getProtocol()) && rideable instanceof EntityBoat boat) {
+						if (EntityRideable.isServerAuthoritativeRide(getProtocol()) && rideable instanceof EntityBoat boat) {
 							boolean paddleLeft = playerAuthInputPacket.hasFlag(PlayerAuthInputFlags.PADDLE_LEFT);
 							boolean paddleRight = playerAuthInputPacket.hasFlag(PlayerAuthInputFlags.PADDLE_RIGHT);
 

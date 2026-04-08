@@ -34,7 +34,7 @@ public class CameraPreset {
             .radius(10f)
             .build();
     /**
-     * @since 1.22.
+     * @since 1.21.80
      */
     public static final CameraPreset CONTROL_SCHEME_CAMERA_PRESET = CameraPreset.builder()
             .name("minecraft:control_scheme_camera")

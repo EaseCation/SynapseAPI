@@ -185,14 +185,18 @@ public final class ClientChainData12 implements LoginChainData {
     private UUID clientUUID;
     private String xuid;
     private String identityPublicKey;
+
     private String neteaseUid;
     private String neteaseSid;
+    private String neteaseDataVersion;
+
     private String neteasePlatform;
     private String neteaseClientOsName;
     private String neteaseEnv;
     private String neteaseClientEngineVersion;
     private String neteaseClientPatchVersion;
     private String neteaseClientBit;
+    private String neteaseGameType;
 
     private long clientId;
     private String serverAddress;
@@ -204,7 +208,6 @@ public final class ClientChainData12 implements LoginChainData {
     private String languageCode;
     private int currentInputMode;
     private int defaultInputMode;
-
     private int UIProfile;
 
     private String capeData;
@@ -229,13 +232,28 @@ public final class ClientChainData12 implements LoginChainData {
         List<String> chains;
         if (protocol >= AbstractProtocol.PROTOCOL_121_90.getProtocolStart()) {
             Object authenticationType = root.get("AuthenticationType");
-            if (!(authenticationType instanceof Number)) { //integer 0
+            if (!(authenticationType instanceof Number)) {
                 return;
             }
+
             Object token = root.get("Token");
-            if (!(token instanceof String)) { //empty ""
+            if (!(token instanceof String jwt)) {
                 return;
             }
+            if (!jwt.isEmpty()) {
+                JsonObject payload = decodeToken(jwt);
+                if (payload != null) {
+                    if (payload.has("xname")) this.username = payload.get("xname").getAsString();
+                    if (payload.has("xid")) {
+                        this.xuid = payload.get("xid").getAsString();
+                        if (!xuid.isEmpty()) {
+                            this.clientUUID = UUID.nameUUIDFromBytes(("pocket-auth-1-xuid:" + xuid).getBytes(StandardCharsets.UTF_8));
+                        }
+                    }
+                }
+                return;
+            }
+
             Object certificate = root.get("Certificate");
             if (!(certificate instanceof String cert)) {
                 return;
@@ -260,14 +278,18 @@ public final class ClientChainData12 implements LoginChainData {
                 if (extra.has("displayName")) this.username = extra.get("displayName").getAsString();
                 if (extra.has("identity")) this.clientUUID = UUID.fromString(extra.get("identity").getAsString());
                 if (extra.has("XUID")) this.xuid = extra.get("XUID").getAsString();
+
                 if (extra.has("uid")) this.neteaseUid = extra.get("uid").getAsString();
                 if (extra.has("netease_sid")) this.neteaseSid = extra.get("netease_sid").getAsString();
+                if (extra.has("version")) this.neteaseDataVersion = extra.get("version").getAsString();
+
                 if (extra.has("platform")) this.neteasePlatform = extra.get("platform").getAsString();
                 if (extra.has("os_name")) this.neteaseClientOsName = extra.get("os_name").getAsString();
                 if (extra.has("env")) this.neteaseEnv = extra.get("env").getAsString();
                 if (extra.has("engineVersion")) this.neteaseClientEngineVersion = extra.get("engineVersion").getAsString();
                 if (extra.has("patchVersion")) this.neteaseClientPatchVersion = extra.get("patchVersion").getAsString();
                 if (extra.has("bit")) this.neteaseClientBit = extra.get("bit").getAsString();
+                if (extra.has("game_type")) this.neteaseGameType = extra.get("game_type").getAsString();
             }
             if (chainMap.has("identityPublicKey"))
                 this.identityPublicKey = chainMap.get("identityPublicKey").getAsString();
@@ -298,8 +320,8 @@ public final class ClientChainData12 implements LoginChainData {
     }
 
     private JsonObject decodeToken(String token) {
-        String[] base = token.split("\\.", 4);
-        if (base.length < 2) return null;
+        String[] base = token.split("\\.", 3);
+        if (base.length != 3) return null;
         byte[] decode;
     	try {
         	decode = Base64.getUrlDecoder().decode(base[1]);

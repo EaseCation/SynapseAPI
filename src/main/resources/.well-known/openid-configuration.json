@@ -1,0 +1,58 @@
+{
+	"claims_supported": [
+		"aud",
+		"iss",
+		"sub",
+		"exp",
+		"ipt",
+		"did",
+		"dip",
+		"atyp",
+		"mem",
+		"cap",
+		"hmt",
+		"ver",
+		"plat",
+		"dtyp",
+		"lang",
+		"lc",
+		"rc",
+		"age",
+		"ugeo",
+		"ofl",
+		"qfl",
+		"prop",
+		"erole",
+		"eoid",
+		"etid",
+		"ssrc",
+		"itr",
+		"pre",
+		"pmid",
+		"xid",
+		"mid",
+		"pfcd",
+		"tid",
+		"xname",
+		"pid",
+		"pname",
+		"nid",
+		"nname",
+		"cpk"
+	],
+	"id_token_signing_alg_values_supported": [
+		"RS256"
+	],
+	"issuer": "https://authorization.franchise.minecraft-services.net/",
+	"jwks_uri": "https://authorization.franchise.minecraft-services.net/.well-known/keys",
+	"response_types_supported": [
+		"token id_token"
+	],
+	"subject_types_supported": [
+		"pairwise"
+	],
+	"token_endpoint": "https://authorization.franchise.minecraft-services.net/api/v1.0/session/start",
+	"token_endpoint_auth_methods_supported": [
+		"private_key_jwt"
+	]
+}

@@ -2,6 +2,7 @@ package org.itxtech.synapseapi.multiprotocol.common.biome;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
+import lombok.Builder.Default;
 import lombok.NoArgsConstructor;
 import lombok.ToString;
 
@@ -45,6 +46,15 @@ public class BiomeDefinitionData {
     public float scale;
     public int mapWaterColorARGB;
     public boolean rain;
+    /**
+     * @since 1.21.90-netease
+     */
+    public int dimension;
+    /**
+     * @since 1.21.90-netease
+     */
+    @Default
+    public String vanilla = "";
     @Nullable
     public Set<String> tags;
     @Nullable
