@@ -35,7 +35,6 @@ import java.util.*;
 import java.util.Map.Entry;
 import java.util.stream.Collectors;
 
-import static cn.nukkit.GameVersion.*;
 import static org.itxtech.synapseapi.SynapseSharedConstants.*;
 
 /**
@@ -272,11 +271,11 @@ public class SynapseAPI extends PluginBase implements Listener {
         if (NETWORK_STACK_LATENCY_TELEMETRY) {
             this.getServer().getCommandMap().register("synapse", new LatencyCommand(this));
         }
+        this.getServer().getCommandMap().register("synapse", new FastTransferCommand(this));
         this.getServer().getCommandMap().register("synapse", new ChunkNetVerCommand(this));
         this.getServer().getCommandMap().register("synapse", new NetDataCommand(this));
         this.getServer().getCommandMap().register("synapse", new DebugExportCommand(this));
         this.getServer().getCommandMap().register("synapse", new CommunityToolCommand(this));
-        this.getServer().getCommandMap().register("synapse", new DrawCommand(this));
 
         FilterTextService filterTextService = FilterTextService.getInstance();
         getServer().getScheduler().scheduleRepeatingTask(this, filterTextService::tick, 1);

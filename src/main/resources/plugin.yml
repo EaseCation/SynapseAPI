@@ -16,6 +16,9 @@ permissions:
   synapseapi.command.latency:
     description: /latency
     default: true
+  synapseapi.command.fasttransfer:
+    description: /fasttransfer
+    default: op
   synapseapi.command.chunknetv:
     description: /chunknetv
     default: op
@@ -27,7 +30,4 @@ permissions:
     default: op
   synapseapi.command.communitytool:
     description: /communitytool
-    default: op
-  synapseapi.command.draw:
-    description: /draw
     default: op

@@ -239,7 +239,9 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
 
         blockVersion = StaticVersion.fromProtocol(protocol, isNetEaseClient());
 
-        level.onPlayerAdd(this);
+        if (!isClosed()) {
+            level.onPlayerAdd(this);
+        }
 
         if (cachedExtra != null) {
             JsonElement maxViewDistance = cachedExtra.get("viewDistanceMax");

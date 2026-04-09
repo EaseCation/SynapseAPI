@@ -190,7 +190,7 @@ public class SynapsePlayer extends Player {
         // 从上一个服务器传递过来的dummyDimension，用于发送子区块的时候使用
         if (this.cachedExtra != null && this.cachedExtra.has("dummyDimension")) {
             this.dummyDimension = this.cachedExtra.get("dummyDimension").getAsInt();
-            this.getServer().getLogger().debug("[DummyDimension] 从上一服务端收到玩家 " + this.getName() + " 的dummyDimension: " + this.dummyDimension);
+            this.getServer().getLogger().debug("[DummyDimension] 从上一服务端收到玩家 " + Optional.ofNullable(packet.extra).map(extra -> extra.get("username")).map(JsonElement::getAsString).orElse("null") + " 的dummyDimension: " + this.dummyDimension);
         }
         SynapsePlayerConnectEvent ev;
         this.server.getPluginManager().callEvent(ev = new SynapsePlayerConnectEvent(this, this.isFirstTimeLogin));
@@ -204,9 +204,9 @@ public class SynapsePlayer extends Player {
                 }
                 if (pk instanceof org.itxtech.synapseapi.multiprotocol.protocol12.protocol.LoginPacket) {
                     ((org.itxtech.synapseapi.multiprotocol.protocol12.protocol.LoginPacket) pk).isFirstTimeLogin = packet.isFirstTime;
-                    ((org.itxtech.synapseapi.multiprotocol.protocol12.protocol.LoginPacket) pk).username = packet.extra.get("username").getAsString();
+                    if (packet.extra.has("username")) ((org.itxtech.synapseapi.multiprotocol.protocol12.protocol.LoginPacket) pk).username = packet.extra.get("username").getAsString();
                     ((org.itxtech.synapseapi.multiprotocol.protocol12.protocol.LoginPacket) pk).clientUUID = packet.uuid;
-                    ((org.itxtech.synapseapi.multiprotocol.protocol12.protocol.LoginPacket) pk).xuid = packet.extra.get("xuid").getAsString();
+                    if (packet.extra.has("xuid")) ((org.itxtech.synapseapi.multiprotocol.protocol12.protocol.LoginPacket) pk).xuid = packet.extra.get("xuid").getAsString();
                     this.isNetEaseClient = Optional.ofNullable(packet.extra.get("netease")).orElseGet(() -> new JsonPrimitive(false)).getAsBoolean();
                 }
                 this.handleDataPacket(pk);
@@ -222,28 +222,28 @@ public class SynapsePlayer extends Player {
                     }
 
                     JsonElement dataVersion = cachedExtra.get("DataVersion");
-                    if (dataVersion != null) {
-                        checkDataVersion(dataVersion.getAsInt());
+                    if (dataVersion != null && !checkDataVersion(dataVersion.getAsInt())) {
+                        return;
                     }
                     JsonElement blocksChecksum = cachedExtra.get("blocks_checksum");
-                    if (blocksChecksum != null) {
-                        checkBlockRegistryChecksum(blocksChecksum.getAsLong());
+                    if (blocksChecksum != null && !checkBlockRegistryChecksum(blocksChecksum.getAsLong())) {
+                        return;
                     }
                     JsonElement itemsChecksum = cachedExtra.get("items_checksum");
-                    if (itemsChecksum != null) {
-                        checkItemRegistryChecksum(itemsChecksum.getAsLong());
+                    if (itemsChecksum != null && !checkItemRegistryChecksum(itemsChecksum.getAsLong())) {
+                        return;
                     }
                     JsonElement biomesChecksum = cachedExtra.get("biomes_checksum");
-                    if (biomesChecksum != null) {
-                        checkBiomeRegistryChecksum(biomesChecksum.getAsLong());
+                    if (biomesChecksum != null && !checkBiomeRegistryChecksum(biomesChecksum.getAsLong())) {
+                        return;
                     }
                     JsonElement entitiesChecksum = cachedExtra.get("entities_checksum");
-                    if (entitiesChecksum != null) {
-                        checkEntityRegistryChecksum(entitiesChecksum.getAsLong());
+                    if (entitiesChecksum != null && !checkEntityRegistryChecksum(entitiesChecksum.getAsLong())) {
+                        return;
                     }
                     JsonElement camerasChecksum = cachedExtra.get("cameras_checksum");
-                    if (camerasChecksum != null) {
-                        checkCameraRegistryChecksum(camerasChecksum.getAsLong());
+                    if (camerasChecksum != null && !checkCameraRegistryChecksum(camerasChecksum.getAsLong())) {
+                        return;
                     }
                 }
             } catch (Exception e) {
@@ -253,63 +253,69 @@ public class SynapsePlayer extends Player {
         }
     }
 
-    protected void checkDataVersion(int previousDataVersion) {
+    protected boolean checkDataVersion(int previousDataVersion) {
         if (DATA_VERSION == previousDataVersion) {
-            return;
+            return true;
         }
 
         SynapseAPI.getInstance().getLogger().info("玩家 {} 触发原生跨服由于先前的数据版本 {} 与本服 {} 不同", getName(), previousDataVersion, DATA_VERSION);
         rejoinGame("disconnectionScreen.blockMismatch");
+        return false;
     }
 
-    protected void checkBlockRegistryChecksum(long previousChecksum) {
+    protected boolean checkBlockRegistryChecksum(long previousChecksum) {
         long checksum = AdvancedGlobalBlockPalette.getBlockRegistryChecksum();
         if (checksum == previousChecksum) {
-            return;
+            return true;
         }
 
         SynapseAPI.getInstance().getLogger().info("玩家 {} 触发原生跨服由于先前的方块注册表 {} 与本服 {} 不同", getName(), previousChecksum, checksum);
         rejoinGame("disconnectionScreen.blockMismatch");
+        return false;
     }
 
-    protected void checkItemRegistryChecksum(long previousChecksum) {
+    protected boolean checkItemRegistryChecksum(long previousChecksum) {
         long checksum = AdvancedRuntimeItemPalette.getItemRegistryChecksum();
         if (checksum == previousChecksum) {
-            return;
+            return true;
         }
 
         SynapseAPI.getInstance().getLogger().info("玩家 {} 触发原生跨服由于先前的物品注册表 {} 与本服 {} 不同", getName(), previousChecksum, checksum);
         rejoinGame("disconnectionScreen.blockMismatch");
+        return false;
     }
 
-    protected void checkBiomeRegistryChecksum(long previousChecksum) {
+    protected boolean checkBiomeRegistryChecksum(long previousChecksum) {
         long checksum = BiomeDefinitions.getBiomeRegistryChecksum();
         if (checksum == previousChecksum) {
-            return;
+            return true;
         }
 
         SynapseAPI.getInstance().getLogger().info("玩家 {} 触发原生跨服由于先前的生物群系注册表 {} 与本服 {} 不同", getName(), previousChecksum, checksum);
         rejoinGame("disconnectionScreen.blockMismatch");
+        return false;
     }
 
-    protected void checkEntityRegistryChecksum(long previousChecksum) {
+    protected boolean checkEntityRegistryChecksum(long previousChecksum) {
         long checksum = AvailableEntityIdentifiersPalette.getEntityRegistryChecksum();
         if (checksum == previousChecksum) {
-            return;
+            return true;
         }
 
         SynapseAPI.getInstance().getLogger().info("玩家 {} 触发原生跨服由于先前的实体注册表 {} 与本服 {} 不同", getName(), previousChecksum, checksum);
         rejoinGame("disconnectionScreen.blockMismatch");
+        return false;
     }
 
-    protected void checkCameraRegistryChecksum(long previousChecksum) {
+    protected boolean checkCameraRegistryChecksum(long previousChecksum) {
         long checksum = CameraManager.getCameraRegistryChecksum();
         if (checksum == previousChecksum) {
-            return;
+            return true;
         }
 
         SynapseAPI.getInstance().getLogger().info("玩家 {} 触发原生跨服由于先前的相机注册表 {} 与本服 {} 不同", getName(), previousChecksum, checksum);
         rejoinGame("disconnectionScreen.blockMismatch");
+        return false;
     }
 
     public void rejoinGame() {
@@ -652,7 +658,26 @@ public class SynapsePlayer extends Player {
                     ackPacket.z = getFloorZ();
                     dataPacket(ackPacket);
                 }
-            }
+            }/* else if (getProtocol() >= AbstractProtocol.PROTOCOL_119_50.getProtocolStart()) {
+                PlayerActionPacket119 ackPacket = new PlayerActionPacket119();
+                ackPacket.action = PlayerActionPacket.ACTION_DIMENSION_CHANGE_ACK;
+                ackPacket.entityId = getId();
+                ackPacket.x = getFloorX();
+                ackPacket.y = getFloorY();
+                ackPacket.z = getFloorZ();
+                ackPacket.resultX = ackPacket.x;
+                ackPacket.resultY = ackPacket.y;
+                ackPacket.resultZ = ackPacket.z;
+                dataPacket(ackPacket);
+            } else if (isNetEaseClient() && getProtocol() >= AbstractProtocol.PROTOCOL_118.getProtocolStart()) {
+                PlayerActionPacket14 ackPacket = new PlayerActionPacket14();
+                ackPacket.action = PlayerActionPacket.ACTION_DIMENSION_CHANGE_ACK;
+                ackPacket.entityId = getId();
+                ackPacket.x = getFloorX();
+                ackPacket.y = getFloorY();
+                ackPacket.z = getFloorZ();
+                dataPacket(ackPacket);
+            }*/
 
             GameRulesChangedPacket packet = new GameRulesChangedPacket();
             packet.gameRules = this.level.getGameRules();

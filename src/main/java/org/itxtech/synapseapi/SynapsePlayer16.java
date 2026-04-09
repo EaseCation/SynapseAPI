@@ -44,7 +44,7 @@ public class SynapsePlayer16 extends SynapsePlayer14 {
 	protected long pingNs;
 	protected long latencyNs;
 
-	private List<ServerSubPacketHandler<?>> subPacketHandlers = new ArrayList<>();
+	private final List<ServerSubPacketHandler<?>> subPacketHandlers = new ArrayList<>();
 
 	public SynapsePlayer16(SourceInterface interfaz, SynapseEntry synapseEntry, Long clientID, InetSocketAddress socketAddress) {
 		super(interfaz, synapseEntry, clientID, socketAddress);
@@ -70,30 +70,60 @@ public class SynapsePlayer16 extends SynapsePlayer14 {
 
 			try {
 				DataPacket pk = packet.decodedLoginPacket;
+				if (pk == null) {
+					close("", "disconnect.loginFailed");
+					return;
+				}
 				if (pk instanceof LoginPacket14) {
 					((LoginPacket14) pk).isFirstTimeLogin = packet.isFirstTime;
-					((LoginPacket14) pk).username = packet.extra.get("username").getAsString();
+					if (packet.extra.has("username")) ((LoginPacket14) pk).username = packet.extra.get("username").getAsString();
 					((LoginPacket14) pk).clientUUID = packet.uuid;
-					((LoginPacket14) pk).xuid = packet.extra.get("xuid").getAsString();
+					if (packet.extra.has("xuid")) ((LoginPacket14) pk).xuid = packet.extra.get("xuid").getAsString();
 					if (packet.extra.has("titleId")) ((LoginPacket14) pk).titleId = packet.extra.get("titleId").getAsString();
 					if (packet.extra.has("sandboxId")) ((LoginPacket14) pk).sandboxId = packet.extra.get("sandboxId").getAsString();
 					this.isNetEaseClient = Optional.ofNullable(packet.extra.get("netease")).orElseGet(() -> new JsonPrimitive(false)).getAsBoolean();
 				}
-				if (pk == null) {
-					close("", "disconnect.loginFailed");
-				} else {
-					this.handleDataPacket(pk);
+				this.handleDataPacket(pk);
 
-					if (cachedExtra != null) {
-						JsonElement blocksChecksum = cachedExtra.get("blocks_checksum");
-						if (blocksChecksum != null) {
-							checkBlockRegistryChecksum(blocksChecksum.getAsLong());
+				if (cachedExtra != null) {
+					JsonElement viewDistance = cachedExtra.get("viewDistance");
+					if (viewDistance != null) {
+						int distance = viewDistance.getAsInt();
+						if (distance >= 4 && distance <= 96) {
+							this.viewDistance = distance;
+							this.chunkRadius = Math.min(this.viewDistance, this.getMaxViewDistance());
 						}
+					}
+
+					JsonElement dataVersion = cachedExtra.get("DataVersion");
+					if (dataVersion != null && !checkDataVersion(dataVersion.getAsInt())) {
+						return;
+					}
+					JsonElement blocksChecksum = cachedExtra.get("blocks_checksum");
+					if (blocksChecksum != null && !checkBlockRegistryChecksum(blocksChecksum.getAsLong())) {
+						return;
+					}
+					JsonElement itemsChecksum = cachedExtra.get("items_checksum");
+					if (itemsChecksum != null && !checkItemRegistryChecksum(itemsChecksum.getAsLong())) {
+						return;
+					}
+					JsonElement biomesChecksum = cachedExtra.get("biomes_checksum");
+					if (biomesChecksum != null && !checkBiomeRegistryChecksum(biomesChecksum.getAsLong())) {
+						return;
+					}
+					JsonElement entitiesChecksum = cachedExtra.get("entities_checksum");
+					if (entitiesChecksum != null && !checkEntityRegistryChecksum(entitiesChecksum.getAsLong())) {
+						return;
+					}
+					JsonElement camerasChecksum = cachedExtra.get("cameras_checksum");
+					if (camerasChecksum != null && !checkCameraRegistryChecksum(camerasChecksum.getAsLong())) {
+						return;
 					}
 				}
 			} catch (Exception e) {
 				MainLogger.getLogger().logException(e);
 				this.close("", "disconnectionScreen.internalError.cantConnect");
+				return;
 			}
 		}
 

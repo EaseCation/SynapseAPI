@@ -29,6 +29,7 @@ import cn.nukkit.utils.Binary;
 import cn.nukkit.utils.LoginChainData;
 import cn.nukkit.utils.MainLogger;
 import cn.nukkit.utils.TextFormat;
+import com.google.gson.JsonElement;
 import com.google.gson.JsonPrimitive;
 import org.itxtech.synapseapi.event.player.SynapsePlayerConnectEvent;
 import org.itxtech.synapseapi.filtertext.FilterTextService;
@@ -57,6 +58,11 @@ public class SynapsePlayer14 extends SynapsePlayer {
 		}
 		this.isFirstTimeLogin = packet.isFirstTime;
 		this.cachedExtra = packet.extra;
+		// 从上一个服务器传递过来的dummyDimension，用于发送子区块的时候使用
+		if (this.cachedExtra != null && this.cachedExtra.has("dummyDimension")) {
+			this.dummyDimension = this.cachedExtra.get("dummyDimension").getAsInt();
+			this.getServer().getLogger().debug("[DummyDimension] 从上一服务端收到玩家 " + Optional.ofNullable(packet.extra).map(extra -> extra.get("username")).map(JsonElement::getAsString).orElse("null") + " 的dummyDimension: " + this.dummyDimension);
+		}
 		SynapsePlayerConnectEvent ev;
 		this.server.getPluginManager().callEvent(ev = new SynapsePlayerConnectEvent(this, this.isFirstTimeLogin));
 		if (!ev.isCancelled()) {
@@ -65,22 +71,58 @@ public class SynapsePlayer14 extends SynapsePlayer {
 			try {
 				DataPacket pk = packet.decodedLoginPacket;
 				if (pk == null) {
-					close();
+					close("", "disconnect.loginFailed");
 					return;
 				}
 				if (pk instanceof org.itxtech.synapseapi.multiprotocol.protocol14.protocol.LoginPacket14) {
 					((org.itxtech.synapseapi.multiprotocol.protocol14.protocol.LoginPacket14) pk).isFirstTimeLogin = packet.isFirstTime;
-					((org.itxtech.synapseapi.multiprotocol.protocol14.protocol.LoginPacket14) pk).username = packet.extra.get("username").getAsString();
+					if (packet.extra.has("username")) ((org.itxtech.synapseapi.multiprotocol.protocol14.protocol.LoginPacket14) pk).username = packet.extra.get("username").getAsString();
 					((org.itxtech.synapseapi.multiprotocol.protocol14.protocol.LoginPacket14) pk).clientUUID = packet.uuid;
-					((org.itxtech.synapseapi.multiprotocol.protocol14.protocol.LoginPacket14) pk).xuid = packet.extra.get("xuid").getAsString();
+					if (packet.extra.has("xuid")) ((org.itxtech.synapseapi.multiprotocol.protocol14.protocol.LoginPacket14) pk).xuid = packet.extra.get("xuid").getAsString();
 					if (packet.extra.has("titleId")) ((LoginPacket14) pk).titleId = packet.extra.get("titleId").getAsString();
 					if (packet.extra.has("sandboxId")) ((LoginPacket14) pk).sandboxId = packet.extra.get("sandboxId").getAsString();
 					this.isNetEaseClient = Optional.ofNullable(packet.extra.get("netease")).orElseGet(() -> new JsonPrimitive(false)).getAsBoolean();
 				}
 				this.handleDataPacket(pk);
+
+				if (cachedExtra != null) {
+					JsonElement viewDistance = cachedExtra.get("viewDistance");
+					if (viewDistance != null) {
+						int distance = viewDistance.getAsInt();
+						if (distance >= 4 && distance <= 96) {
+							this.viewDistance = distance;
+							this.chunkRadius = Math.min(this.viewDistance, this.getMaxViewDistance());
+						}
+					}
+
+					JsonElement dataVersion = cachedExtra.get("DataVersion");
+					if (dataVersion != null && !checkDataVersion(dataVersion.getAsInt())) {
+						return;
+					}
+					JsonElement blocksChecksum = cachedExtra.get("blocks_checksum");
+					if (blocksChecksum != null && !checkBlockRegistryChecksum(blocksChecksum.getAsLong())) {
+						return;
+					}
+					JsonElement itemsChecksum = cachedExtra.get("items_checksum");
+					if (itemsChecksum != null && !checkItemRegistryChecksum(itemsChecksum.getAsLong())) {
+						return;
+					}
+					JsonElement biomesChecksum = cachedExtra.get("biomes_checksum");
+					if (biomesChecksum != null && !checkBiomeRegistryChecksum(biomesChecksum.getAsLong())) {
+						return;
+					}
+					JsonElement entitiesChecksum = cachedExtra.get("entities_checksum");
+					if (entitiesChecksum != null && !checkEntityRegistryChecksum(entitiesChecksum.getAsLong())) {
+						return;
+					}
+					JsonElement camerasChecksum = cachedExtra.get("cameras_checksum");
+					if (camerasChecksum != null && !checkCameraRegistryChecksum(camerasChecksum.getAsLong())) {
+						return;
+					}
+				}
 			} catch (Exception e) {
 				MainLogger.getLogger().logException(e);
-				this.close();
+				this.close("", "disconnectionScreen.internalError.cantConnect");
 			}
 		}
 	}
