@@ -58,6 +58,20 @@ public final class CommunityTool {
         });
 
         BlockPalette microsoft = RuntimeBlockMapper.PALETTES.get(AbstractProtocol.fromRealProtocol(protocol))[0];
+        if (creative.containsKey("groups")) {
+            for (Map<String, Object> group : creative.get("groups")) {
+                //noinspection unchecked
+                Map<String, Object> entry = (Map<String, Object>) group.get("icon");
+                if (!entry.containsKey("blockRuntimeId")) {
+                    continue;
+                }
+                BlockData block = microsoft.palette.get(((Number) entry.get("blockRuntimeId")).intValue());
+                netease.palette.stream()
+                        .filter(data -> block.name.equals(data.name) && block.states.equalsTags(data.states))
+                        .findFirst()
+                        .ifPresent(data -> entry.put("blockRuntimeId", data.runtimeId));
+            }
+        }
         for (Map<String, Object> entry : creative.get("items")) {
             if (!entry.containsKey("blockRuntimeId")) {
                 continue;
