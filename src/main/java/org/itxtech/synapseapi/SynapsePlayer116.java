@@ -395,7 +395,7 @@ public class SynapsePlayer116 extends SynapsePlayer113 {
 
 								// 从useItemData中设置玩家坐标，用于最精准的碰撞箱判断
 								this.newPosition = useItemData.playerPos.subtract(0, this.getBaseOffset(), 0);
-								boolean entityInBlock = false;
+								boolean clientPredictedFailure = false;
 
 								if (this.canInteract(blockVector.add(0.5, 0.5, 0.5), this.isCreative() ? MAX_REACH_DISTANCE_CREATIVE : MAX_REACH_DISTANCE_SURVIVAL)) {
 									if (this.isCreative()) {
@@ -422,16 +422,13 @@ public class SynapsePlayer116 extends SynapsePlayer113 {
 											blockPos = blockVector.asVector3();
 										}
 										Boolean clientPrediction = AbstractProtocol.PROTOCOL_121_20.isOlderThanOrEqual(protocol) ? useItemData.clientInteractPrediction : null;
+										clientPredictedFailure = clientPrediction != null && !clientPrediction;
 										if ((i = this.level.useItemOn(blockPos, i, face, clickPos.x, clickPos.y, clickPos.z, this, clientPrediction)) != null) {
-											if (i.getId() == 10000) {  // Hack!
-												entityInBlock = true;
-											} else {
-												if (!i.equals(oldItem) || i.getCount() != oldItem.getCount()) {
-													inventory.setItemInHand(i);
-													inventory.sendHeldItem(this.getViewers().values());
-												}
-												break packetswitch;
+											if (!i.equals(oldItem) || i.getCount() != oldItem.getCount()) {
+												inventory.setItemInHand(i);
+												inventory.sendHeldItem(this.getViewers().values());
 											}
+											break packetswitch;
 										}
 									}
 								}
@@ -441,25 +438,18 @@ public class SynapsePlayer116 extends SynapsePlayer113 {
 									inventory.sendHeldItem(this);
 								}
 
+								if (clientPredictedFailure) {
+									break packetswitch;
+								}
+
 								if (blockVector.distanceSquared(this) > 10000) {
 									break packetswitch;
 								}
 
-								Runnable blockSend = () -> {
-									Block target = this.level.getBlock(blockVector.asVector3());
-									Block block0 = target.getSide(face);
-
-									this.level.sendBlocks(new Player[]{SynapsePlayer116.this}, new Block[]{target, block0}, UpdateBlockPacket.FLAG_ALL_PRIORITY);
-								};
-
-								// 如果与玩家较近，则延迟发送
-								if (entityInBlock && blockVector.add(0.5, 0.5, 0.5).distanceSquared(this) < 4) {
-									this.server.getScheduler().scheduleDelayedTask(SynapseAPI.getInstance(), blockSend, 20);
-								} else {
-									blockSend.run();
-								}
-
 								Block target = level.getBlock(blockVector.asVector3());
+								Block block0 = target.getSide(face);
+
+								this.level.sendBlocks(new Player[]{this}, new Block[]{target, block0}, UpdateBlockPacket.FLAG_ALL_PRIORITY);
 
 								if (target instanceof BlockDoor) {
 									BlockDoor door = (BlockDoor) target;
