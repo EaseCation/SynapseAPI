@@ -150,14 +150,14 @@ public interface IPlayerAuthInputPacket extends InventoryTransactionPacketInterf
     }
 
     default boolean hasFlag(int flagId) {
-        if (isNeteaseFlags1212() && flagId >= PlayerAuthInputFlags.IN_CLIENT_PREDICTED_IN_VEHICLE) {
-            ++flagId;
+        if (flagId >= PlayerAuthInputFlags.ACK_ENTITY_DATA) {
+            flagId += getNeteaseFlagsVersion();
         }
         return ((flagId >= 64 ? getInputFlags2() : getInputFlags()) & (1L << flagId)) != 0;
     }
 
-    default boolean isNeteaseFlags1212() {
-        return false;
+    default int getNeteaseFlagsVersion() {
+        return 0;
     }
 
     @ToString

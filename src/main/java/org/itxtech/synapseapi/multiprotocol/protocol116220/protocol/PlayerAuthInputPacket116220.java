@@ -198,7 +198,7 @@ public class PlayerAuthInputPacket116220 extends Packet116220 implements Invento
     public boolean isEnchantingPart = false;
     public boolean isRepairItemPart = false;
 
-    private boolean neteaseFlags1212;
+    private int neteaseFlagsVersion;
 
     @Override
     public int pid() {
@@ -217,8 +217,12 @@ public class PlayerAuthInputPacket116220 extends Packet116220 implements Invento
         }
 
         AbstractProtocol protocol = (AbstractProtocol) helper.getProtocol();
-        if (neteaseMode && protocol.getProtocolStart() >= AbstractProtocol.PROTOCOL_121_2.getProtocolStart()) {
-            neteaseFlags1212 = true;
+        if (neteaseMode) {
+            if (protocol.getProtocolStart() >= AbstractProtocol.PROTOCOL_121_93.getProtocolStart()) {
+                neteaseFlagsVersion = 2;
+            } else if (protocol.getProtocolStart() >= AbstractProtocol.PROTOCOL_121_2.getProtocolStart()) {
+                neteaseFlagsVersion = 1;
+            }
         }
 
         this.pitch = this.getLFloat();
@@ -231,10 +235,7 @@ public class PlayerAuthInputPacket116220 extends Packet116220 implements Invento
         this.moveVecZ = this.getLFloat();
         this.headYaw = this.getLFloat();
         if (protocol.getProtocolStart() >= AbstractProtocol.PROTOCOL_121_50.getProtocolStart()) {
-            int flagCount = PlayerAuthInputFlags.COUNT[protocol.ordinal()];
-            if (neteaseMode) {
-                ++flagCount;
-            }
+            int flagCount = PlayerAuthInputFlags.COUNT[protocol.ordinal()] + neteaseFlagsVersion;
 /*
             inputFlags = getBitSet(flagCount);
 */
@@ -682,7 +683,7 @@ public class PlayerAuthInputPacket116220 extends Packet116220 implements Invento
     }
 
     @Override
-    public boolean isNeteaseFlags1212() {
-        return neteaseFlags1212;
+    public int getNeteaseFlagsVersion() {
+        return neteaseFlagsVersion;
     }
 }

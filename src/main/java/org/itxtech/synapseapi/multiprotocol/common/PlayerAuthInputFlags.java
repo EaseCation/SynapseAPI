@@ -150,6 +150,14 @@ public interface PlayerAuthInputFlags {
      * @since 1.20.30
      */
     int STOP_FLYING = 43;
+//    /**
+//     * @since 1.21.2-netease
+//     */
+//    int USING_MOTION_CONTROLLER = 44;
+//    /**
+//     * @since 1.21.93-netease
+//     */
+//    int HAS_FORCE_INPUT_MOVE_VECTOR = 45;
     /**
      * @since 1.20.40
      */
