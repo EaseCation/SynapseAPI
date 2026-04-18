@@ -5418,6 +5418,10 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
         if (getProtocol() < AbstractProtocol.PROTOCOL_121_90.getProtocolStart()) {
             return;
         }
+        if (getProtocol() < AbstractProtocol.PROTOCOL_121_100.getProtocolStart() && !isNetEaseClient() && !locallyInitialized) {
+            // prevent microsoft client crash (netease has already fixed)
+            return;
+        }
         ServerScriptDebugDrawerPacket12190 packet = new ServerScriptDebugDrawerPacket12190();
         packet.entries = entries;
         dataPacket(packet);
