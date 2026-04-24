@@ -77,6 +77,7 @@ public class SynapsePlayer116 extends SynapsePlayer113 {
 	protected boolean inventoryOpen;
 
 	protected boolean serverAuthoritativeMovement = SERVER_AUTHORITATIVE_MOVEMENT;
+	protected long clientTickRaw;
 	private long clientTick = -1;
 	private long clientTickDiff;
 	private int clientTickTooFastCount;
@@ -1912,6 +1913,7 @@ public class SynapsePlayer116 extends SynapsePlayer113 {
 
 	@Override
 	protected void onClientTickUpdated(long tick) {
+		clientTickRaw = tick;
         long tickDiff = tick - server.getTick();
 		if (clientTick == -1) {
 			clientTick = tick;

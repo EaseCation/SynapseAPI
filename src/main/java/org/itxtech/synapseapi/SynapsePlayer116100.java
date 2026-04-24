@@ -5173,6 +5173,7 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
         packet.entityRuntimeId = entityRuntimeId;
         packet.effectType = type;
         packet.effectDuration = duration;
+        packet.tick = clientTickRaw;
         dataPacket(packet);
     }
 
