@@ -2,6 +2,7 @@
 disable-rak: false
 enable: true
 autoCompress: true
+network-stack-latency-trace: false
 
 entries:
   - server-ip: 127.0.0.1

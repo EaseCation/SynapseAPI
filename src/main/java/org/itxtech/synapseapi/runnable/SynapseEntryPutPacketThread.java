@@ -22,6 +22,7 @@ import org.itxtech.synapseapi.multiprotocol.protocol16.protocol.CompatibilityPac
 import org.itxtech.synapseapi.network.SynapseInterface;
 import org.itxtech.synapseapi.network.SynapseMetrics;
 import org.itxtech.synapseapi.network.protocol.spp.RedirectPacket;
+import org.itxtech.synapseapi.network.protocol.spp.RedirectTraceData;
 import org.itxtech.synapseapi.utils.PacketLogger;
 
 import java.io.IOException;
@@ -61,8 +62,12 @@ public class SynapseEntryPutPacketThread extends Thread {
     }
 
     public void addMainToThread(SynapsePlayer player, DataPacket packet) {
+        this.addMainToThread(player, packet, null);
+    }
+
+    public void addMainToThread(SynapsePlayer player, DataPacket packet, RedirectTraceData traceData) {
         if (player.getSynapseEntry().getSynapse().isRecordPacketStack()) packet.stack = new Throwable();
-        this.queue.offer(new Entry(player, packet));
+        this.queue.offer(new Entry(player, packet, traceData));
     }
 
     public void addMainToThreadBroadcast(SynapsePlayer[] players, DataPacket[] packets) {
@@ -114,6 +119,9 @@ public class SynapseEntryPutPacketThread extends Thread {
             while ((entry = queue.poll()) != null) {
                 try {
                     if (!entry.player.closed) {
+                        if (entry.traceData != null) {
+                            SynapseAPI.getInstance().getLatencyTraceManager().markEncodeStart(entry.player, entry.traceData, System.nanoTime());
+                        }
                         DataPacket old = entry.packet;
 
                         entry.packet = PacketRegister.getCompatiblePacket(entry.packet, (entry.player).getProtocol(), entry.player.isNetEaseClient());
@@ -131,6 +139,9 @@ public class SynapseEntryPutPacketThread extends Thread {
                             entry.packet.setHelper(AbstractProtocol.fromRealProtocol(entry.player.getProtocol()).getHelper());
                             entry.packet.tryEncode();
                         }
+                        if (entry.traceData != null) {
+                            SynapseAPI.getInstance().getLatencyTraceManager().markEncodeEnd(entry.player, entry.traceData, System.nanoTime());
+                        }
 
                         if (entry.packet instanceof BatchPacket batch) {
                             List<byte[]> outboundQueue = entry.player.outboundQueue;
@@ -139,6 +150,7 @@ public class SynapseEntryPutPacketThread extends Thread {
                                 RedirectPacket pk = new RedirectPacket();
                                 pk.compressionAlgorithm = compressor.getAlgorithm();
                                 pk.sessionId = entry.player.getSessionId();
+                                pk.traceData = entry.traceData == null ? null : entry.traceData.copy();
                                 pk.mcpeBuffer = batchPackets(outboundQueue, compressor);
                                 outboundQueue.clear();
 
@@ -154,6 +166,7 @@ public class SynapseEntryPutPacketThread extends Thread {
                             RedirectPacket pk = new RedirectPacket();
                             pk.compressionAlgorithm = entry.player.getServer().getCompressor().getAlgorithm();
                             pk.sessionId = entry.player.getSessionId();
+                            pk.traceData = entry.traceData == null ? null : entry.traceData.copy();
 
                             if (hasMetrics) {
                                 Track[] tracks = batch.tracks;
@@ -175,7 +188,7 @@ public class SynapseEntryPutPacketThread extends Thread {
                             }
 
                             this.synapseInterface.putPacket(pk);
-                        } else if (this.isAutoCompress) {
+                        } else if (this.isAutoCompress && entry.traceData == null) {
                             byte[] buffer = entry.packet.getBuffer();
 
                             if (hasMetrics) {
@@ -193,6 +206,7 @@ public class SynapseEntryPutPacketThread extends Thread {
                             RedirectPacket pk = new RedirectPacket();
                             pk.compressionAlgorithm = entry.player.getServer().getCompressor().getAlgorithm();
                             pk.sessionId = entry.player.getSessionId();
+                            pk.traceData = entry.traceData == null ? null : entry.traceData.copy();
                             pk.mcpeBuffer = entry.packet.getBuffer();
 
                             int bytes = pk.mcpeBuffer.length;
@@ -367,10 +381,12 @@ public class SynapseEntryPutPacketThread extends Thread {
     private static class Entry {
         private final SynapsePlayer player;
         private DataPacket packet;
+        private final RedirectTraceData traceData;
 
-        public Entry(SynapsePlayer player, DataPacket packet) {
+        public Entry(SynapsePlayer player, DataPacket packet, RedirectTraceData traceData) {
             this.player = player;
             this.packet = packet;
+            this.traceData = traceData;
         }
     }
 

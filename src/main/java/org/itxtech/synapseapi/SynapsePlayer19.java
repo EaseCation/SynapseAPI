@@ -112,6 +112,7 @@ public class SynapsePlayer19 extends SynapsePlayer18 {
 						break;
 					}
 					latencyNs = latency;
+					SynapseAPI.getInstance().getLatencyTraceManager().complete(this, networkStackLatencyPacket.timestamp, latency);
 					ping();
 				}
 
@@ -297,6 +298,9 @@ public class SynapsePlayer19 extends SynapsePlayer18 {
 		NetworkStackLatencyPacket19 packet = new NetworkStackLatencyPacket19();
 		packet.isFromServer = true;
 		packet.timestamp = time;
+		if (SynapseAPI.getInstance().getLatencyTraceManager().isEnabled()) {
+			packet.traceData = SynapseAPI.getInstance().getLatencyTraceManager().createDownstreamTrace(this, time, time);
+		}
 		dataPacket(packet);
 	}
 

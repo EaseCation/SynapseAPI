@@ -16,6 +16,9 @@ permissions:
   synapseapi.command.latency:
     description: /latency
     default: true
+  synapseapi.command.latencytrace:
+    description: /latencytrace
+    default: op
   synapseapi.command.fasttransfer:
     description: /fasttransfer
     default: op

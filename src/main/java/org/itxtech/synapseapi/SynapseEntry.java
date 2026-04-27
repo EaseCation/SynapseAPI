@@ -39,6 +39,8 @@ import org.itxtech.synapseapi.multiprotocol.protocol113.protocol.IPlayerAuthInpu
 import org.itxtech.synapseapi.multiprotocol.protocol113.protocol.InteractPacket113;
 import org.itxtech.synapseapi.multiprotocol.protocol116100ne.protocol.MovePlayerPacket116100NE;
 import org.itxtech.synapseapi.multiprotocol.protocol121130.protocol.InteractPacket121130;
+import org.itxtech.synapseapi.multiprotocol.protocol16.protocol.NetworkStackLatencyPacket16;
+import org.itxtech.synapseapi.multiprotocol.protocol19.protocol.NetworkStackLatencyPacket19;
 import org.itxtech.synapseapi.network.SynLibInterface;
 import org.itxtech.synapseapi.network.SynapseInterface;
 import org.itxtech.synapseapi.network.protocol.spp.*;
@@ -396,6 +398,7 @@ public class SynapseEntry {
                 if (SERVERBOUND_PACKET_LOGGING && log.isTraceEnabled()) {
                     PacketLogger.handleServerboundPacket(redirectPacketEntry.player, packet);
                 }
+                synapse.getLatencyTraceManager().markMainHandle(redirectPacketEntry.player, redirectPacketEntry.traceData, System.nanoTime());
                 redirectPacketEntry.player.handleDataPacket(packet);
             }
 
@@ -523,6 +526,7 @@ public class SynapseEntry {
             case SynapseInfo.REDIRECT_PACKET:
                 RedirectPacket redirectPacket = (RedirectPacket) pk;
                 synapse.getServer().getNetwork().addDownloadStatistic(redirectPacket.mcpeBuffer.length);
+                synapse.getLatencyTraceManager().markUpstreamReceive(redirectPacket.traceData, System.nanoTime());
 
                 SynapsePlayer player = this.players.get(redirectPacket.sessionId);
                 if (player != null && !player.isViolated()) {
@@ -558,6 +562,7 @@ public class SynapseEntry {
 */
 
                             List<DataPacket> packets = processBatch((BatchPacket) pk0, redirectPacket.protocol, player.isNetEaseClient(), redirectPacket.compressionAlgorithm);
+                            synapse.getLatencyTraceManager().markAsyncDecode(redirectPacket.traceData, System.nanoTime());
                             if (packets == null) {
                                 player.setViolated("packet_bad_batch");
                                 synapse.getServer().getScheduler().scheduleTask(synapse, () -> {
@@ -588,7 +593,8 @@ public class SynapseEntry {
                                         continue;
                                     }
 
-                                    this.redirectPacketQueue.offer(new RedirectPacketEntry(player, subPacket));
+                                    attachTraceData(subPacket, redirectPacket.traceData);
+                                    this.redirectPacketQueue.offer(new RedirectPacketEntry(player, subPacket, redirectPacket.traceData));
 
                                     if (SynapseAPI.getInstance().isNetworkBroadcastPlayerMove() && player.isOnline()) {
                                         //玩家体验优化：直接不经过主线程广播玩家移动，插件过度干预可能会造成移动鬼畜问题
@@ -710,7 +716,9 @@ public class SynapseEntry {
                                 player.violationIncomingThread = player.getViolationLevel();
                             }
                         } else {
-                            this.redirectPacketQueue.offer(new RedirectPacketEntry(player, pk0));
+                            synapse.getLatencyTraceManager().markAsyncDecode(redirectPacket.traceData, System.nanoTime());
+                            attachTraceData(pk0, redirectPacket.traceData);
+                            this.redirectPacketQueue.offer(new RedirectPacketEntry(player, pk0, redirectPacket.traceData));
                             if (SynapseAPI.getInstance().isNetworkBroadcastPlayerMove() && !player.isServerAuthoritativeMovementEnabled() && pk0 instanceof MovePlayerPacket movePacket) {
                                 // 玩家体验优化：直接不经过主线程广播玩家移动，插件过度干预可能会造成移动鬼畜问题
                                 // 判断是否和玩家自身在附近区块，过滤 TP 后客户端发来的旧坐标包
@@ -760,10 +768,23 @@ public class SynapseEntry {
     private static class RedirectPacketEntry {
         private final SynapsePlayer player;
         private final DataPacket dataPacket;
+        private final RedirectTraceData traceData;
 
-        private RedirectPacketEntry(SynapsePlayer player, DataPacket dataPacket) {
+        private RedirectPacketEntry(SynapsePlayer player, DataPacket dataPacket, RedirectTraceData traceData) {
             this.player = player;
             this.dataPacket = dataPacket;
+            this.traceData = traceData;
+        }
+    }
+
+    private static void attachTraceData(DataPacket packet, RedirectTraceData traceData) {
+        if (traceData == null) {
+            return;
+        }
+        if (packet instanceof NetworkStackLatencyPacket16 latencyPacket16) {
+            latencyPacket16.traceData = traceData;
+        } else if (packet instanceof NetworkStackLatencyPacket19 latencyPacket19) {
+            latencyPacket19.traceData = traceData;
         }
     }
 

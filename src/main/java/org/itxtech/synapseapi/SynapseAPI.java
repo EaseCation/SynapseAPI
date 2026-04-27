@@ -27,6 +27,7 @@ import org.itxtech.synapseapi.multiprotocol.AbstractProtocol;
 import org.itxtech.synapseapi.multiprotocol.PacketRegister;
 import org.itxtech.synapseapi.multiprotocol.utils.*;
 import org.itxtech.synapseapi.multiprotocol.utils.item.CraftingManagerNew;
+import org.itxtech.synapseapi.network.latency.NetworkLatencyTraceManager;
 import org.itxtech.synapseapi.utils.ClientData;
 import org.itxtech.synapseapi.utils.NetTest;
 import org.itxtech.synapseapi.utils.SynapsePlayerViolationListener;
@@ -52,6 +53,7 @@ public class SynapseAPI extends PluginBase implements Listener {
     private Messenger messenger;
     private boolean networkBroadcastPlayerMove;
     private int blobCacheChunkSendPreTick;
+    private NetworkLatencyTraceManager latencyTraceManager = new NetworkLatencyTraceManager(false);
 
     public static SynapseAPI getInstance() {
         return instance;
@@ -67,6 +69,10 @@ public class SynapseAPI extends PluginBase implements Listener {
 
     public int getBlobCacheChunkSendPreTick() {
         return blobCacheChunkSendPreTick;
+    }
+
+    public NetworkLatencyTraceManager getLatencyTraceManager() {
+        return latencyTraceManager;
     }
 
     @Override
@@ -88,6 +94,7 @@ public class SynapseAPI extends PluginBase implements Listener {
         this.networkBroadcastPlayerMove = this.getConfig().getBoolean("network-broadcast-player-move", false);
         this.blobCacheChunkSendPreTick = this.getConfig().getInt("blob-cache-chunk-send-pre-tick", 0);
         this.recordPacketStack = this.getConfig().getBoolean("record-packet-stack", false);
+        this.latencyTraceManager = new NetworkLatencyTraceManager(this.getConfig().getBoolean("network-stack-latency-trace", false));
 
         PacketRegister.init();
 
@@ -270,6 +277,7 @@ public class SynapseAPI extends PluginBase implements Listener {
 */
         if (NETWORK_STACK_LATENCY_TELEMETRY) {
             this.getServer().getCommandMap().register("synapse", new LatencyCommand(this));
+            this.getServer().getCommandMap().register("synapse", new LatencyTraceCommand(this));
         }
         this.getServer().getCommandMap().register("synapse", new FastTransferCommand(this));
         this.getServer().getCommandMap().register("synapse", new ChunkNetVerCommand(this));

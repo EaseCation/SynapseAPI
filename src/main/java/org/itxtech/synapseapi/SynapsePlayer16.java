@@ -300,6 +300,7 @@ public class SynapsePlayer16 extends SynapsePlayer14 {
 				if (!callPacketReceiveEvent(packet)) {
 					break;
 				}
+				NetworkStackLatencyPacket16 networkStackLatencyPacket = (NetworkStackLatencyPacket16) packet;
 				if (NETWORK_STACK_LATENCY_TELEMETRY) {
 					long latency = System.nanoTime() - pingNs;
 					if (latency < 10_000_000) {
@@ -307,6 +308,7 @@ public class SynapsePlayer16 extends SynapsePlayer14 {
 						break;
 					}
 					latencyNs = latency;
+					SynapseAPI.getInstance().getLatencyTraceManager().complete(this, networkStackLatencyPacket.timestamp, latency);
 					ping();
 				}
 				break;
@@ -516,6 +518,9 @@ public class SynapsePlayer16 extends SynapsePlayer14 {
 
 		NetworkStackLatencyPacket16 packet = new NetworkStackLatencyPacket16();
 		packet.timestamp = time;
+		if (SynapseAPI.getInstance().getLatencyTraceManager().isEnabled()) {
+			packet.traceData = SynapseAPI.getInstance().getLatencyTraceManager().createDownstreamTrace(this, time, time);
+		}
 		dataPacket(packet);
 	}
 

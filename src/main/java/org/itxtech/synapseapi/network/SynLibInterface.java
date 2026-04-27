@@ -4,6 +4,9 @@ import cn.nukkit.Player;
 import cn.nukkit.network.SourceInterface;
 import cn.nukkit.network.protocol.DataPacket;
 import org.itxtech.synapseapi.SynapsePlayer;
+import org.itxtech.synapseapi.multiprotocol.protocol16.protocol.NetworkStackLatencyPacket16;
+import org.itxtech.synapseapi.multiprotocol.protocol19.protocol.NetworkStackLatencyPacket19;
+import org.itxtech.synapseapi.network.protocol.spp.RedirectTraceData;
 
 /**
  * Created by boybook on 16/6/24.
@@ -45,8 +48,15 @@ public class SynLibInterface implements SourceInterface {
 
     @Override
     public Integer putPacket(Player player, DataPacket packet, boolean needACK, boolean immediate) {
-        if (player instanceof SynapsePlayer) this.synapseInterface.getPutPacketThread().addMainToThread((SynapsePlayer) player, packet);
-        else throw new RuntimeException("putPacket (not SynapsePlayer) to SynLibInterface");
+        if (player instanceof SynapsePlayer synapsePlayer) {
+            RedirectTraceData traceData = null;
+            if (packet instanceof NetworkStackLatencyPacket16 latencyPacket16) {
+                traceData = latencyPacket16.traceData;
+            } else if (packet instanceof NetworkStackLatencyPacket19 latencyPacket19) {
+                traceData = latencyPacket19.traceData;
+            }
+            this.synapseInterface.getPutPacketThread().addMainToThread(synapsePlayer, packet, traceData);
+        } else throw new RuntimeException("putPacket (not SynapsePlayer) to SynLibInterface");
         return 0;  //这个返回值在nk中并没有被用到
     }
 

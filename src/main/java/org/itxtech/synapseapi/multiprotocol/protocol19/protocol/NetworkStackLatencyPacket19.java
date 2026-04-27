@@ -2,12 +2,14 @@ package org.itxtech.synapseapi.multiprotocol.protocol19.protocol;
 
 import cn.nukkit.network.protocol.ProtocolInfo;
 import lombok.ToString;
+import org.itxtech.synapseapi.network.protocol.spp.RedirectTraceData;
 
 @ToString
 public class NetworkStackLatencyPacket19 extends Packet19 {
 
     public long timestamp;
     public boolean isFromServer;
+    public RedirectTraceData traceData;
 
     @Override
     public int pid() {
