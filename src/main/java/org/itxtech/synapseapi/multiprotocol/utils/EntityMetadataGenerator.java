@@ -121,8 +121,10 @@ public class EntityMetadataGenerator {
 				boolean isFlags = false;
 				int flags1Id = -1;
 				int flags2Id = -1;
+				int flags3Id = -1;
 				long flags1 = -1;
 				long flags2 = -1;
+				long flags3 = -1;
 				if (v12Id == Entity.DATA_FLAGS) {
 					if (flagsTranslated) {
 						continue;
@@ -130,8 +132,10 @@ public class EntityMetadataGenerator {
 					isFlags = true;
 					flags1Id = newId;
 					flags2Id = translateId(Entity.DATA_FLAGS_EXTENDED, protocol);
+					flags3Id = translateId(Entity.DATA_FLAGS_3, protocol);
 					flags1 = data;
 					flags2 = v12Metadata.getLong(Entity.DATA_FLAGS_EXTENDED);
+					flags3 = v12Metadata.getLong(Entity.DATA_FLAGS_3);
 				} else if (v12Id == Entity.DATA_FLAGS_EXTENDED) {
 					if (flagsTranslated) {
 						continue;
@@ -139,12 +143,27 @@ public class EntityMetadataGenerator {
 					isFlags = true;
 					flags1Id = translateId(Entity.DATA_FLAGS, protocol);
 					flags2Id = newId;
+					flags3Id = translateId(Entity.DATA_FLAGS_3, protocol);
 					flags1 = v12Metadata.getLong(Entity.DATA_FLAGS);
 					flags2 = data;
+					flags3 = v12Metadata.getLong(Entity.DATA_FLAGS_3);
+				} else if (v12Id == Entity.DATA_FLAGS_3) {
+					if (flagsTranslated) {
+						continue;
+					}
+					isFlags = true;
+					flags1Id = translateId(Entity.DATA_FLAGS, protocol);
+					flags2Id = translateId(Entity.DATA_FLAGS_EXTENDED, protocol);
+					flags3Id = newId;
+					flags1 = v12Metadata.getLong(Entity.DATA_FLAGS);
+					flags2 = v12Metadata.getLong(Entity.DATA_FLAGS_EXTENDED);
+					flags3 = data;
 				}
 				if (isFlags) {
 					long[] flags;
-					if (protocol.ordinal() >= AbstractProtocol.PROTOCOL_119_50.ordinal()) {
+					if (protocol.ordinal() >= AbstractProtocol.PROTOCOL_126_20.ordinal()) {
+						flags = DataFlagTranslator.translate12620(flags1, flags2, flags3);
+					} else if (protocol.ordinal() >= AbstractProtocol.PROTOCOL_119_50.ordinal()) {
 						flags = DataFlagTranslator.translate11950(flags1, flags2);
 					} else if (protocol.ordinal() >= AbstractProtocol.PROTOCOL_17.ordinal()) {
 						flags = DataFlagTranslator.translate17(flags1, flags2);
@@ -158,6 +177,9 @@ public class EntityMetadataGenerator {
 					entityMetadata.put(new LongEntityData(flags1Id, flags[0]));
 					if (flags2Id != -1) {
 						entityMetadata.put(new LongEntityData(flags2Id, flags[1]));
+					}
+					if (flags3Id != -1 && flags.length > 2) {
+						entityMetadata.put(new LongEntityData(flags3Id, flags[2]));
 					}
 				} else {
 					LongEntityData longEntityData = new LongEntityData(newId, data);

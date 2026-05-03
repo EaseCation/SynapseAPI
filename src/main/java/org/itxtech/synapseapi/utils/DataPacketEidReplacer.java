@@ -41,6 +41,9 @@ import org.itxtech.synapseapi.multiprotocol.protocol12190.protocol.ServerScriptD
 import org.itxtech.synapseapi.multiprotocol.protocol126.protocol.CameraInstructionPacket126;
 import org.itxtech.synapseapi.multiprotocol.protocol126.protocol.DebugDrawerPacket126;
 import org.itxtech.synapseapi.multiprotocol.protocol12610.protocol.CameraInstructionPacket12610;
+import org.itxtech.synapseapi.multiprotocol.protocol12620.protocol.PrimitiveShapesPacket12620;
+import org.itxtech.synapseapi.multiprotocol.protocol12620.protocol.EntityEventPacket12620;
+import org.itxtech.synapseapi.multiprotocol.protocol12620.protocol.LevelSoundEventPacketV312620;
 import org.itxtech.synapseapi.multiprotocol.protocol14.protocol.PlayerActionPacket14;
 import org.itxtech.synapseapi.multiprotocol.protocol15.protocol.MoveEntityDeltaPacket15;
 import org.itxtech.synapseapi.multiprotocol.protocol18.protocol.SpawnParticleEffectPacket18;
@@ -96,7 +99,14 @@ public class DataPacketEidReplacer {
                 if (((UpdateAttributesPacket) packet).entityId == from) ((UpdateAttributesPacket) packet).entityId = to;
                 break;
             case ProtocolInfo.ACTOR_EVENT_PACKET:
-                if (packet instanceof EntityEventPacket116100 dp) {
+                if (packet instanceof EntityEventPacket12620 dp) {
+                    if (dp.eid == from) {
+                        dp.eid = to;
+                    }
+                    if (dp.event == EntityEventPacket.KINETIC_DAMAGE_DEALT && dp.data == from) {
+                        dp.data = (int) to;
+                    }
+                } else if (packet instanceof EntityEventPacket116100 dp) {
                     if (dp.eid == from) {
                         dp.eid = to;
                     }
@@ -433,7 +443,11 @@ public class DataPacketEidReplacer {
                 }
                 break;
             case ProtocolInfo.LEVEL_SOUND_EVENT_PACKET:
-                if (packet instanceof LevelSoundEventPacketV312170 dp) {
+                if (packet instanceof LevelSoundEventPacketV312620 dp) {
+                    if (dp.entityUniqueId == from) {
+                        dp.entityUniqueId = to;
+                    }
+                } else if (packet instanceof LevelSoundEventPacketV312170 dp) {
                     if (dp.entityUniqueId == from) {
                         dp.entityUniqueId = to;
                     }
@@ -468,8 +482,14 @@ public class DataPacketEidReplacer {
                     }
                 }
                 break;
-            case ProtocolInfo.DEBUG_DRAWER_PACKET:
-                if (packet instanceof DebugDrawerPacket126 dp) {
+            case ProtocolInfo.PRIMITIVE_SHAPES_PACKET:
+                if (packet instanceof PrimitiveShapesPacket12620 dp) {
+                    for (ServerScriptDebugDrawerPacket12190.Entry entry : dp.entries) {
+                        if (entry.attachedEntityRuntimeId != null && entry.attachedEntityRuntimeId == from) {
+                            entry.attachedEntityRuntimeId = to;
+                        }
+                    }
+                } else if (packet instanceof DebugDrawerPacket126 dp) {
                     for (ServerScriptDebugDrawerPacket12190.Entry entry : dp.entries) {
                         if (entry.attachedEntityRuntimeId != null && entry.attachedEntityRuntimeId == from) {
                             entry.attachedEntityRuntimeId = to;
@@ -492,7 +512,11 @@ public class DataPacketEidReplacer {
     public static DataPacket replaceBack(DataPacket packet, long from, long to) {
         switch (packet.pid()) {
             case ProtocolInfo.ACTOR_EVENT_PACKET:
-                if (packet instanceof EntityEventPacket116100 pk) {
+                if (packet instanceof EntityEventPacket12620 pk) {
+                    if (pk.eid == from) {
+                        pk.eid = to;
+                    }
+                } else if (packet instanceof EntityEventPacket116100 pk) {
                     if (pk.eid == from) {
                         pk.eid = to;
                     }

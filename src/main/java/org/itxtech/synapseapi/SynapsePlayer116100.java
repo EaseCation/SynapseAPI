@@ -38,7 +38,6 @@ import cn.nukkit.level.Position;
 import cn.nukkit.level.format.generic.ChunkBlobCache;
 import cn.nukkit.level.format.generic.ChunkCachedData;
 import cn.nukkit.level.format.generic.ChunkPacketCache;
-import cn.nukkit.level.generator.GeneratorID;
 import cn.nukkit.level.particle.PunchBlockParticle;
 import cn.nukkit.math.*;
 import cn.nukkit.network.PacketViolationReason;
@@ -72,6 +71,7 @@ import org.itxtech.synapseapi.multiprotocol.common.Experiments.Experiment;
 import org.itxtech.synapseapi.multiprotocol.common.camera.CameraInstruction;
 import org.itxtech.synapseapi.multiprotocol.common.camera.ControlScheme;
 import org.itxtech.synapseapi.multiprotocol.common.drawer.Shape;
+import org.itxtech.synapseapi.multiprotocol.common.level.DimensionDefinition;
 import org.itxtech.synapseapi.multiprotocol.protocol113.protocol.ResourcePackStackPacket113;
 import org.itxtech.synapseapi.multiprotocol.protocol116.protocol.CreativeContentPacket116;
 import org.itxtech.synapseapi.multiprotocol.protocol116100.protocol.*;
@@ -94,8 +94,6 @@ import org.itxtech.synapseapi.multiprotocol.protocol118.protocol.UpdateSubChunkB
 import org.itxtech.synapseapi.multiprotocol.protocol11810.protocol.PlayerStartItemCooldownPacket11810;
 import org.itxtech.synapseapi.multiprotocol.protocol11810.protocol.SubChunkRequestPacket11810;
 import org.itxtech.synapseapi.multiprotocol.protocol11830.protocol.ChangeMobPropertyPacket11830;
-import org.itxtech.synapseapi.multiprotocol.protocol11830.protocol.DimensionDataPacket11830;
-import org.itxtech.synapseapi.multiprotocol.protocol11830.protocol.DimensionDataPacket11830.DimensionDefinition;
 import org.itxtech.synapseapi.multiprotocol.protocol11830.protocol.SpawnParticleEffectPacket11830;
 import org.itxtech.synapseapi.multiprotocol.protocol11830.protocol.StartGamePacket11830;
 import org.itxtech.synapseapi.multiprotocol.protocol11830ne.protocol.NetworkChunkPublisherUpdatePacket11830NE;
@@ -169,6 +167,7 @@ import org.itxtech.synapseapi.multiprotocol.protocol126.protocol.*;
 import org.itxtech.synapseapi.multiprotocol.protocol12610.protocol.CameraInstructionPacket12610;
 import org.itxtech.synapseapi.multiprotocol.protocol12610.protocol.UpdateClientInputLocksPacket12610;
 import org.itxtech.synapseapi.multiprotocol.protocol12610.protocol.VoxelShapesPacket12610;
+import org.itxtech.synapseapi.multiprotocol.protocol12620.protocol.*;
 import org.itxtech.synapseapi.multiprotocol.protocol14.protocol.PlayerActionPacket14;
 import org.itxtech.synapseapi.multiprotocol.protocol16.protocol.ResourcePackClientResponsePacket16;
 import org.itxtech.synapseapi.multiprotocol.utils.*;
@@ -299,6 +298,7 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
             experiments.add(VanillaExperiments.EXPERIMENTAL_CREATOR_CAMERAS);
             if (getProtocol() >= AbstractProtocol.PROTOCOL_126_10.getProtocolStart()) {
                 experiments.add(VanillaExperiments.VOXEL_SHAPES);
+                experiments.add(VanillaExperiments.FURNACE_RECIPE_BOOK);
             }
             startGamePacket.experiments = new Experiments(experiments.toArray(new Experiment[0]));
             return startGamePacket;
@@ -1251,6 +1251,53 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
                     onPacketViolation(PacketViolationReason.IMPOSSIBLE_BEHAVIOR, "sound3");
                     break;
                 }
+                if (getProtocol() >= AbstractProtocol.PROTOCOL_126_20.getProtocolStart()) {
+                    if (!callPacketReceiveEvent(packet)) {
+                        break;
+                    }
+                    LevelSoundEventPacketV312620 levelSoundEventPacket = (LevelSoundEventPacketV312620) packet;
+                    int sound = levelSoundEventPacket.sound;
+                    SynapsePlayerBroadcastLevelSoundEvent event = new SynapsePlayerBroadcastLevelSoundEvent(this,
+                            sound,
+                            new Vector3(levelSoundEventPacket.x, levelSoundEventPacket.y, levelSoundEventPacket.z),
+                            LevelSoundEventUtil.translateExtraDataFromClient(sound, levelSoundEventPacket.extraData, AbstractProtocol.fromRealProtocol(getProtocol()), isNetEaseClient()),
+                            0,
+                            levelSoundEventPacket.entityIdentifier,
+                            levelSoundEventPacket.isBabyMob,
+                            levelSoundEventPacket.isGlobal,
+                            levelSoundEventPacket.entityUniqueId);
+                    if (this.isSpectator()) {
+                        event.setCancelled();
+                    }
+                    this.getServer().getPluginManager().callEvent(event);
+                    // 接入服务端权威音效后不再转发旧版本的C2S包.
+                    // 如有音效缺失, 查看客户端代码在相关位置补上即可
+                    if (false && !event.isCancelled()) {
+                        this.sendLevelSoundEvent(
+                                event.getLevelSound(),
+                                event.getPos(),
+                                event.getExtraData(),
+                                event.getPitch(),
+                                event.getEntityIdentifier(),
+                                event.isBabyMob(),
+                                event.isGlobal(),
+                                event.getEntityUniqueId()
+                        );
+                        this.getViewers().values().stream()
+                                .filter(p -> p instanceof SynapsePlayer)
+                                .forEach(p -> ((SynapsePlayer) p).sendLevelSoundEvent(
+                                        event.getLevelSound(),
+                                        event.getPos(),
+                                        event.getExtraData(),
+                                        event.getPitch(),
+                                        event.getEntityIdentifier(),
+                                        event.isBabyMob(),
+                                        event.isGlobal(),
+                                        event.getEntityUniqueId()
+                                ));
+                    }
+                    break;
+                }
                 if (getProtocol() >= AbstractProtocol.PROTOCOL_121_70.getProtocolStart()) {
                     if (!callPacketReceiveEvent(packet)) {
                         break;
@@ -1346,6 +1393,7 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
                             experiments.add(VanillaExperiments.EXPERIMENTAL_CREATOR_CAMERAS);
                             if (getProtocol() >= AbstractProtocol.PROTOCOL_126_10.getProtocolStart()) {
                                 experiments.add(VanillaExperiments.VOXEL_SHAPES);
+                                experiments.add(VanillaExperiments.FURNACE_RECIPE_BOOK);
                             }
                             stackPacket.experiments = new Experiments(experiments.toArray(new Experiment[0]));
                             this.dataPacket(stackPacket);
@@ -2981,6 +3029,59 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
                 }
                 break;
             case ProtocolInfo.ACTOR_EVENT_PACKET:
+                if (getProtocol() >= AbstractProtocol.PROTOCOL_126_20.getProtocolStart()) {
+                    if (!callPacketReceiveEvent(packet)) {
+                        break;
+                    }
+                    if (!this.spawned || !this.isAlive()) {
+                        break;
+                    }
+                    EntityEventPacket12620 entityEventPacket = (EntityEventPacket12620) packet;
+                    if (entityEventPacket.event != EntityEventPacket.ENCHANT) {
+                        this.craftingType = CRAFTING_SMALL;
+                    }
+                    //this.resetCraftingGridType();
+
+                    switch (entityEventPacket.event) {
+                        case EntityEventPacket.EATING_ITEM:
+                            if (entityEventPacket.data == 0 || entityEventPacket.eid != this.getId()) {
+                                break;
+                            }
+                            Item held = inventory.getItemInHand();
+                            if (!(held instanceof ItemEdible) && !held.is(Item.POTION) && !held.is(Item.MILK_BUCKET) && (!(held instanceof ItemChemicalTickable tickable) || tickable.isActivated())) {
+                                break;
+                            }
+
+                            EntityEventPacket pk = new EntityEventPacket();
+                            pk.eid = getId();
+                            pk.event = EntityEventPacket.EATING_ITEM;
+                            pk.data = (held.getId() << 16) | held.getDamage();
+                            this.dataPacket(pk);
+                            Server.broadcastPacket(this.getViewers().values(), pk);
+                            break;
+                        case EntityEventPacket.ENCHANT:
+                            if (entityEventPacket.eid != this.getId()) {
+                                break;
+                            }
+                            if (this.getWindowById(ENCHANT_WINDOW_ID) != null) {
+                                break; //附魔现在在 EnchantTransaction 中扣减经验等级
+                            }
+
+                            Inventory inventory = this.getWindowById(ANVIL_WINDOW_ID);
+                            if (inventory instanceof AnvilInventory anvilInventory) {
+                                anvilInventory.setCost(-entityEventPacket.data);
+                            } else if (this.getWindowById(ENCHANT_WINDOW_ID) != null) {
+                                int levels = entityEventPacket.data; // Sent as negative number of levels lost
+                                if (levels < 0) {
+                                    this.setExperience(this.getExperience(), this.getExperienceLevel() + levels);
+                                }
+                                break;
+                            }
+                            break;
+                    }
+                    break;
+                }
+
                 if (!callPacketReceiveEvent(packet)) {
                     break;
                 }
@@ -2988,13 +3089,13 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
                     break;
                 }
                 EntityEventPacket116100 entityEventPacket = (EntityEventPacket116100) packet;
-                if (entityEventPacket.event != EntityEventPacket116100.ENCHANT) {
+                if (entityEventPacket.event != EntityEventPacket.ENCHANT) {
                     this.craftingType = CRAFTING_SMALL;
                 }
                 //this.resetCraftingGridType();
 
                 switch (entityEventPacket.event) {
-                    case EntityEventPacket116100.EATING_ITEM:
+                    case EntityEventPacket.EATING_ITEM:
                         if (entityEventPacket.data == 0 || entityEventPacket.eid != this.getId()) {
                             break;
                         }
@@ -3010,7 +3111,7 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
                         this.dataPacket(pk);
                         Server.broadcastPacket(this.getViewers().values(), pk);
                         break;
-                    case EntityEventPacket116100.ENCHANT:
+                    case EntityEventPacket.ENCHANT:
                         if (entityEventPacket.eid != this.getId()) {
                             break;
                         }
@@ -3967,7 +4068,7 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
                 int chunkY = yIter.nextInt();
 
                 SubChunkPacket pk = this.createSubChunkPacket();
-                pk.dimension = this.dummyDimension;  // Level.DIMENSION_OVERWORLD;
+                pk.dimension = this.getDummyDimension();  // Level.DIMENSION_OVERWORLD;
                 pk.subChunkX = chunkX;
                 pk.subChunkY = chunkY;
                 pk.subChunkZ = chunkZ;
@@ -4004,7 +4105,7 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
             int chunkZ = Level.getHashZ(index);
             IntSet newRequests = entry.getValue();
 
-            if (this.level.requestSubChunks(chunkX, chunkZ, this, dummyDimension)) {
+            if (this.level.requestSubChunks(chunkX, chunkZ, this, getDummyDimension())) {
                 IntSet requests = this.subChunkSendQueue.get(index);
                 if (requests == null) {
                     requests = newRequests;
@@ -4022,7 +4123,7 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
                     int chunkY = yIter.nextInt();
 
                     SubChunkPacket pk = this.createSubChunkPacket();
-                    pk.dimension = this.dummyDimension;  // Level.DIMENSION_OVERWORLD;
+                    pk.dimension = this.getDummyDimension();  // Level.DIMENSION_OVERWORLD;
                     pk.subChunkX = chunkX;
                     pk.subChunkY = chunkY;
                     pk.subChunkZ = chunkZ;
@@ -4085,7 +4186,7 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
         }
 
         // dummyDimension HACK!
-        if (dimension != Level.DIMENSION_OVERWORLD && dimension != this.dummyDimension) {
+        if (dimension != Level.DIMENSION_OVERWORLD && dimension != this.getDummyDimension()) {
             SubChunkPacket pk = this.createSubChunkPacket();
             pk.dimension = dimension;
             pk.subChunkX = subChunkX;
@@ -4164,7 +4265,7 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
         packet.position = position;
         packet.identifier = identifier;
         packet.uniqueEntityId = entityUniqueId;
-        packet.dimension = dummyDimension/*Level.DIMENSION_OVERWORLD*/;
+        packet.dimension = getDummyDimension()/*Level.DIMENSION_OVERWORLD*/;
         packet.molangVariables = molangVariables;
         dataPacket(packet);
     }
@@ -4204,7 +4305,7 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
     }
 
     @Override
-    public void sendItemComponents() {
+    protected void sendItemComponents() {
         DataPacket pk = ItemComponentDefinitions.getPacket(AbstractProtocol.fromRealProtocol(protocol), isNetEaseClient());
         if (pk == null) {
             if (getProtocol() >= AbstractProtocol.PROTOCOL_121_60.getProtocolStart()) {
@@ -4412,12 +4513,13 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
 
     @Override
     public boolean isNeedLevelChangeLoadScreen() {
-        return (this.isNetEaseClient() || this.isJavaClient()) && this.isSubChunkRequestAvailable() /*&& this.isBlobCacheAvailable()*/;
+        return (this.isNetEaseClient() || /*getProtocol() >= AbstractProtocol.PROTOCOL_126_20.getProtocolStart() ||*/ this.isJavaClient()) && this.isSubChunkRequestAvailable() /*&& this.isBlobCacheAvailable()*/;
     }
 
     @Override
     public void sendDimensionData() {
-        if (getProtocol() < AbstractProtocol.PROTOCOL_118_30.getProtocolStart()) {
+        if (true) {
+            // custom dimensions currently don't support the bounds component - 1.26.20
             return;
         }
 
@@ -4425,32 +4527,12 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
             return;
         }
 
-        if (true) {
+        if (getProtocol() < AbstractProtocol.PROTOCOL_126_20.getProtocolStart()) {
             return;
         }
-
-        DimensionDataPacket11830 packet = new DimensionDataPacket11830();
-        packet.definitions = new DimensionDefinition[]{
-                new DimensionDefinition(DimensionDataPacket11830.VANILLA_OVERWORLD.identifier, 320, -64, GeneratorID.VOID),
-                new DimensionDefinition(DimensionDataPacket11830.VANILLA_NETHER.identifier, 0, 0, GeneratorID.VOID),
-                new DimensionDefinition(DimensionDataPacket11830.VANILLA_THE_END.identifier, 0, 0, GeneratorID.VOID),
-        };
+        DimensionDataPacket12620 packet = new DimensionDataPacket12620();
+        packet.definitions = DimensionDefinition.BUILTIN_DIMENSIONS;
         dataPacket(packet);
-
-/*
-        // test data-driven dimensions
-
-        DimensionDataPacket11830 packet = new DimensionDataPacket11830();
-        packet.definitions = new DimensionDefinition[]{
-//                DimensionDataPacket11830.VANILLA_OVERWORLD,
-                //new DimensionDefinition(DimensionDataPacket11830.VANILLA_OVERWORLD.identifier, 256, 0, Generator.TYPE_VOID),
-//                DimensionDataPacket11830.VANILLA_NETHER,
-//                DimensionDataPacket11830.VANILLA_THE_END,
-                new DimensionDefinition("ease:dim3", 256, 0, Generator.TYPE_VOID),
-                new DimensionDefinition("ease:dim4", 256, 0, Generator.TYPE_VOID),
-        };
-        dataPacket(packet);
-*/
     }
 
     @Override
@@ -4972,6 +5054,18 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
 
     @Override
     public void sendDisconnectScreen(int reason, @Nullable String message) {
+        if (getProtocol() >= AbstractProtocol.PROTOCOL_126_20.getProtocolStart()) {
+            DisconnectPacket12620 packet = new DisconnectPacket12620();
+            packet.reason = reason;
+            if (message != null) {
+                packet.message = message;
+            } else {
+                packet.hideDisconnectionScreen = true;
+            }
+            dataPacket(packet);
+            return;
+        }
+
         if (getProtocol() >= AbstractProtocol.PROTOCOL_121_20.getProtocolStart()) {
             DisconnectPacket12120 packet = new DisconnectPacket12120();
             packet.reason = reason;
@@ -5197,6 +5291,21 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
 
     @Override
     public void sendLevelSoundEvent(int levelSound, Vector3 pos, int extraData, int pitch, String entityIdentifier, boolean isBabyMob, boolean isGlobal, long entityUniqueId) {
+        if (getProtocol() >= AbstractProtocol.PROTOCOL_126_20.getProtocolStart()) {
+            LevelSoundEventPacketV312620 pk = new LevelSoundEventPacketV312620();
+            pk.sound = levelSound;
+            pk.x = (float) pos.x;
+            pk.y = (float) pos.y;
+            pk.z = (float) pos.z;
+            pk.extraData = LevelSoundEventUtil.translateTo18ExtraData(levelSound, extraData, pitch, AbstractProtocol.fromRealProtocol(protocol), isNetEaseClient());
+            pk.entityIdentifier = entityIdentifier;
+            pk.isBabyMob = isBabyMob;
+            pk.isGlobal = isGlobal;
+            pk.entityUniqueId = entityUniqueId;
+            dataPacket(pk);
+            return;
+        }
+
         if (getProtocol() < AbstractProtocol.PROTOCOL_121_70.getProtocolStart()) {
             super.sendLevelSoundEvent(levelSound, pos, extraData, pitch, entityIdentifier, isBabyMob, isGlobal, entityUniqueId);
             return;
@@ -5302,7 +5411,7 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
     }
 
     @Override
-    public void sendJigsawStructureData() {
+    protected void sendJigsawStructureData() {
         if (getProtocol() < AbstractProtocol.PROTOCOL_121_120.getProtocolStart()) {
             return;
         }
@@ -5351,7 +5460,7 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
 
         shapes.put(shape.id, new ShapeInstance(shape, shape.totalTimeLeft > 0 ? (int) (shape.totalTimeLeft * 20) + getServer().getTick() : Integer.MAX_VALUE));
 
-        sendDebugDrawerPacket(shape.createPacketEntry(getDummyDimension()));
+        sendPrimitiveShapePacket(shape.createPacketEntry(getDummyDimension(), getAbstractProtocol()));
     }
 
     @Override
@@ -5360,7 +5469,7 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
             return;
         }
 
-        sendDebugDrawerPacket(new Entry(shape.id, getDummyDimension()));
+        sendPrimitiveShapePacket(new Entry(shape.id, getDummyDimension()));
     }
 
     @Override
@@ -5369,7 +5478,7 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
             return;
         }
 
-        sendDebugDrawerPacket(shapes.keySet().longStream().mapToObj(id -> new Entry(id, getDummyDimension())).toArray(Entry[]::new));
+        sendPrimitiveShapePacket(shapes.keySet().longStream().mapToObj(id -> new Entry(id, getDummyDimension())).toArray(Entry[]::new));
 
         shapes.clear();
     }
@@ -5391,10 +5500,17 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
             return;
         }
 
-        sendDebugDrawerPacket(entries.toArray(new Entry[0]));
+        sendPrimitiveShapePacket(entries.toArray(new Entry[0]));
     }
 
-    private void sendDebugDrawerPacket(Entry... entries) {
+    private void sendPrimitiveShapePacket(Entry... entries) {
+        if (getProtocol() >= AbstractProtocol.PROTOCOL_126_20.getProtocolStart()) {
+            PrimitiveShapesPacket12620 packet = new PrimitiveShapesPacket12620();
+            packet.entries = entries;
+            dataPacket(packet);
+            return;
+        }
+
         if (getProtocol() >= AbstractProtocol.PROTOCOL_126.getProtocolStart()) {
             DebugDrawerPacket126 packet = new DebugDrawerPacket126();
             packet.entries = entries;
@@ -5654,22 +5770,11 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
     }
 
     @Override
-    public void sendVoxelShapes() {
-        if (getProtocol() >= AbstractProtocol.PROTOCOL_126_10.getProtocolStart()) {
-            VoxelShapesPacket12610 packet = new VoxelShapesPacket12610();
-            packet.shapes = VoxelShapesPacket12610.VANILLA_SHAPES;
-            packet.nameMap = VoxelShapesPacket12610.VANILLA_NAME_MAP;
-            packet.customShapeCount = 0;
-            dataPacket(packet);
+    protected void sendVoxelShapes() {
+        DataPacket packet = VoxelShapeManager.getPacket(getAbstractProtocol(), isNetEaseClient());
+        if (packet == null) {
             return;
         }
-
-        if (getProtocol() < AbstractProtocol.PROTOCOL_126.getProtocolStart()) {
-            return;
-        }
-        VoxelShapesPacket126 packet = new VoxelShapesPacket126();
-        packet.shapes = VoxelShapesPacket126.VANILLA_SHAPES;
-        packet.nameMap = VoxelShapesPacket126.VANILLA_NAME_MAP;
         dataPacket(packet);
     }
 

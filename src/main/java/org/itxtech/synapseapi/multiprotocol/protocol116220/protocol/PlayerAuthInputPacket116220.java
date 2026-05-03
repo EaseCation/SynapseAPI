@@ -245,7 +245,7 @@ public class PlayerAuthInputPacket116220 extends Packet116220 implements Invento
                 if (shift >= flagCount) {
                     throw new IllegalArgumentException("VarBitSet was too large");
                 }
-                byte b = getSingedByte();
+                byte b = getSignedByte();
                 long bits = b & 0x7f;
                 int nextShift = shift + 7;
                 if (flag2) {

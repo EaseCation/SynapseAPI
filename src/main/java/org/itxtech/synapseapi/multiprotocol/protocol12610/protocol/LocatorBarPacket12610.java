@@ -1,5 +1,6 @@
 package org.itxtech.synapseapi.multiprotocol.protocol12610.protocol;
 
+import cn.nukkit.math.Vector2f;
 import cn.nukkit.network.protocol.ProtocolInfo;
 import cn.nukkit.utils.BinaryStream;
 import lombok.AllArgsConstructor;
@@ -60,6 +61,19 @@ public class LocatorBarPacket12610 extends Packet12610 {
         public static final int ACTION_REMOVE = 2;
         public static final int ACTION_UPDATE = 3;
 
+        public static final int FLAG_WORLD_POS = 1 << 0;
+        public static final int FLAG_VISIBILITY = 1 << 1;
+        public static final int FLAG_TEXTURE = 1 << 2;
+        public static final int FLAG_COLOR = 1 << 3;
+        public static final int FLAG_CLIENT_POSITION_AUTHORITY = 1 << 4;
+
+        public static final int TEXTURE_SQUARE = 0;
+        public static final int TEXTURE_CIRCLE = 1;
+        public static final int TEXTURE_SMALL_SQUARE = 2;
+        public static final int TEXTURE_SMALL_STAR = 3;
+        public static final int TEXTURE_TINY_SQUARE = 4;
+        public static final int TEXTURE_TINY_STAR = 5;
+
         public UUID groupHandle;
 
         public int updateFlag;
@@ -67,8 +81,22 @@ public class LocatorBarPacket12610 extends Packet12610 {
         public Boolean visible;
         @Nullable
         public DimensionLocation dimensionLocation;
+        /**
+         * @deprecated 1.26.20
+         */
+        @Deprecated
         @Nullable
         public Integer textureId;
+        /**
+         * @since 1.26.20
+         */
+        @Nullable
+        public String texturePath;
+        /**
+         * @since 1.26.20
+         */
+        @Nullable
+        public Vector2f iconSize;
         @Nullable
         public Color color;
         @Nullable

@@ -220,7 +220,7 @@ public class SynapsePlayer18 extends SynapsePlayer17 {
 		packet.position = position;
 		packet.identifier = identifier;
 		packet.uniqueEntityId = entityUniqueId;
-		packet.dimensionId = dummyDimension/*Level.DIMENSION_OVERWORLD*/;
+		packet.dimensionId = getDummyDimension()/*Level.DIMENSION_OVERWORLD*/;
 		dataPacket(packet);
 	}
 }

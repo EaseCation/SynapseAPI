@@ -2,6 +2,7 @@ package org.itxtech.synapseapi.multiprotocol.common.drawer;
 
 import cn.nukkit.math.Vector3f;
 import lombok.ToString;
+import org.itxtech.synapseapi.multiprotocol.AbstractProtocol;
 import org.itxtech.synapseapi.multiprotocol.protocol12190.protocol.ServerScriptDebugDrawerPacket12190.Entry;
 import org.itxtech.synapseapi.multiprotocol.protocol12190.protocol.ServerScriptDebugDrawerPacket12190.Type;
 
@@ -26,7 +27,7 @@ public class Line extends Shape {
     }
 
     @Override
-    public void addAdditionalData(Entry entry) {
+    public void addAdditionalData(Entry entry, AbstractProtocol protocol) {
         entry.lineEndLocation = endLocation;
     }
 

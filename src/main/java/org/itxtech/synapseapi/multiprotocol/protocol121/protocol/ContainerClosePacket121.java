@@ -21,8 +21,8 @@ public class ContainerClosePacket121 extends Packet121 {
 
     @Override
     public void decode() {
-        this.windowId = this.getSingedByte();
-        this.windowType = this.getSingedByte();
+        this.windowId = this.getSignedByte();
+        this.windowType = this.getSignedByte();
         this.wasServerInitiated = this.getBoolean();
     }
 

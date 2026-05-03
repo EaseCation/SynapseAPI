@@ -3,11 +3,9 @@ package org.itxtech.synapseapi.multiprotocol.protocol12130;
 import cn.nukkit.network.protocol.types.ItemStackResponseContainerInfo;
 import cn.nukkit.network.protocol.types.ItemStackResponseSlotInfo;
 import cn.nukkit.utils.BinaryStream;
-import lombok.extern.log4j.Log4j2;
 import org.itxtech.synapseapi.multiprotocol.common.inventory.request.ItemStackRequestSlotInfo;
 import org.itxtech.synapseapi.multiprotocol.protocol12120.BinaryStreamHelper12120;
 
-@Log4j2
 public class BinaryStreamHelper12130 extends BinaryStreamHelper12120 {
     public static BinaryStreamHelper12130 create() {
         return new BinaryStreamHelper12130();

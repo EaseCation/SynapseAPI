@@ -10,7 +10,7 @@ import lombok.ToString;
 public class PartyChangedPacket12610 extends Packet12610 {
     public static final int NETWORK_ID = ProtocolInfo.PARTY_CHANGED_PACKET;
 
-    private String partyId;
+    public String partyId;
 
     @Override
     public int pid() {

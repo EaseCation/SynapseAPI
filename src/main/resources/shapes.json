@@ -1,0 +1,923 @@
+[
+    {
+        "names": [
+            "minecraft:empty"
+        ],
+        "xSize": 0,
+        "ySize": 0,
+        "zSize": 0,
+        "storage": [],
+        "xCoords": [
+            0.0
+        ],
+        "yCoords": [
+            0.0
+        ],
+        "zCoords": [
+            0.0
+        ]
+    },
+    {
+        "names": [
+            "minecraft:unit_cube"
+        ],
+        "xSize": 1,
+        "ySize": 1,
+        "zSize": 1,
+        "storage": [
+            1
+        ],
+        "xCoords": [
+            0.0,
+            1.0
+        ],
+        "yCoords": [
+            0.0,
+            1.0
+        ],
+        "zCoords": [
+            0.0,
+            1.0
+        ]
+    },
+    {
+        "names": [
+            "minecraft:box_16x10x16"
+        ],
+        "xSize": 1,
+        "ySize": 1,
+        "zSize": 1,
+        "storage": [
+            1
+        ],
+        "xCoords": [
+            0.0,
+            1.0
+        ],
+        "yCoords": [
+            0.0,
+            0.625
+        ],
+        "zCoords": [
+            0.0,
+            1.0
+        ]
+    },
+    {
+        "names": [
+            "minecraft:box_16x12x16"
+        ],
+        "xSize": 1,
+        "ySize": 1,
+        "zSize": 1,
+        "storage": [
+            1
+        ],
+        "xCoords": [
+            0.0,
+            1.0
+        ],
+        "yCoords": [
+            0.0,
+            0.75
+        ],
+        "zCoords": [
+            0.0,
+            1.0
+        ]
+    },
+    {
+        "names": [
+            "minecraft:box_16x13x16"
+        ],
+        "xSize": 1,
+        "ySize": 1,
+        "zSize": 1,
+        "storage": [
+            1
+        ],
+        "xCoords": [
+            0.0,
+            1.0
+        ],
+        "yCoords": [
+            0.0,
+            0.8125
+        ],
+        "zCoords": [
+            0.0,
+            1.0
+        ]
+    },
+    {
+        "names": [
+            "minecraft:box_16x14x16"
+        ],
+        "xSize": 1,
+        "ySize": 1,
+        "zSize": 1,
+        "storage": [
+            1
+        ],
+        "xCoords": [
+            0.0,
+            1.0
+        ],
+        "yCoords": [
+            0.0,
+            0.875
+        ],
+        "zCoords": [
+            0.0,
+            1.0
+        ]
+    },
+    {
+        "names": [
+            "minecraft:box_16x15x16"
+        ],
+        "xSize": 1,
+        "ySize": 1,
+        "zSize": 1,
+        "storage": [
+            1
+        ],
+        "xCoords": [
+            0.0,
+            1.0
+        ],
+        "yCoords": [
+            0.0,
+            0.9375
+        ],
+        "zCoords": [
+            0.0,
+            1.0
+        ]
+    },
+    {
+        "names": [
+            "minecraft:box_16x1x16"
+        ],
+        "xSize": 1,
+        "ySize": 1,
+        "zSize": 1,
+        "storage": [
+            1
+        ],
+        "xCoords": [
+            0.0,
+            1.0
+        ],
+        "yCoords": [
+            0.0,
+            0.0625
+        ],
+        "zCoords": [
+            0.0,
+            1.0
+        ]
+    },
+    {
+        "names": [
+            "minecraft:box_16x2x16"
+        ],
+        "xSize": 1,
+        "ySize": 1,
+        "zSize": 1,
+        "storage": [
+            1
+        ],
+        "xCoords": [
+            0.0,
+            1.0
+        ],
+        "yCoords": [
+            0.0,
+            0.125
+        ],
+        "zCoords": [
+            0.0,
+            1.0
+        ]
+    },
+    {
+        "names": [
+            "minecraft:box_16x4x16"
+        ],
+        "xSize": 1,
+        "ySize": 1,
+        "zSize": 1,
+        "storage": [
+            1
+        ],
+        "xCoords": [
+            0.0,
+            1.0
+        ],
+        "yCoords": [
+            0.0,
+            0.25
+        ],
+        "zCoords": [
+            0.0,
+            1.0
+        ]
+    },
+    {
+        "names": [
+            "minecraft:box_16x6x16"
+        ],
+        "xSize": 1,
+        "ySize": 1,
+        "zSize": 1,
+        "storage": [
+            1
+        ],
+        "xCoords": [
+            0.0,
+            1.0
+        ],
+        "yCoords": [
+            0.0,
+            0.375
+        ],
+        "zCoords": [
+            0.0,
+            1.0
+        ]
+    },
+    {
+        "names": [
+            "minecraft:box_16x8x16"
+        ],
+        "xSize": 1,
+        "ySize": 1,
+        "zSize": 1,
+        "storage": [
+            1
+        ],
+        "xCoords": [
+            0.0,
+            1.0
+        ],
+        "yCoords": [
+            0.0,
+            0.5
+        ],
+        "zCoords": [
+            0.0,
+            1.0
+        ]
+    },
+    {
+        "names": [
+            "minecraft:box_16x9x16"
+        ],
+        "xSize": 1,
+        "ySize": 1,
+        "zSize": 1,
+        "storage": [
+            1
+        ],
+        "xCoords": [
+            0.0,
+            1.0
+        ],
+        "yCoords": [
+            0.0,
+            0.5625
+        ],
+        "zCoords": [
+            0.0,
+            1.0
+        ]
+    },
+    {
+        "names": [
+            "minecraft:cake_bites_0"
+        ],
+        "xSize": 1,
+        "ySize": 1,
+        "zSize": 1,
+        "storage": [
+            1
+        ],
+        "xCoords": [
+            0.0625,
+            0.9375
+        ],
+        "yCoords": [
+            0.0,
+            0.5
+        ],
+        "zCoords": [
+            0.0625,
+            0.9375
+        ]
+    },
+    {
+        "names": [
+            "minecraft:cake_bites_1"
+        ],
+        "xSize": 1,
+        "ySize": 1,
+        "zSize": 1,
+        "storage": [
+            1
+        ],
+        "xCoords": [
+            0.1875,
+            0.9375
+        ],
+        "yCoords": [
+            0.0,
+            0.5
+        ],
+        "zCoords": [
+            0.0625,
+            0.9375
+        ]
+    },
+    {
+        "names": [
+            "minecraft:cake_bites_2"
+        ],
+        "xSize": 1,
+        "ySize": 1,
+        "zSize": 1,
+        "storage": [
+            1
+        ],
+        "xCoords": [
+            0.3125,
+            0.9375
+        ],
+        "yCoords": [
+            0.0,
+            0.5
+        ],
+        "zCoords": [
+            0.0625,
+            0.9375
+        ]
+    },
+    {
+        "names": [
+            "minecraft:cake_bites_3"
+        ],
+        "xSize": 1,
+        "ySize": 1,
+        "zSize": 1,
+        "storage": [
+            1
+        ],
+        "xCoords": [
+            0.4375,
+            0.9375
+        ],
+        "yCoords": [
+            0.0,
+            0.5
+        ],
+        "zCoords": [
+            0.0625,
+            0.9375
+        ]
+    },
+    {
+        "names": [
+            "minecraft:cake_bites_4"
+        ],
+        "xSize": 1,
+        "ySize": 1,
+        "zSize": 1,
+        "storage": [
+            1
+        ],
+        "xCoords": [
+            0.5625,
+            0.9375
+        ],
+        "yCoords": [
+            0.0,
+            0.5
+        ],
+        "zCoords": [
+            0.0625,
+            0.9375
+        ]
+    },
+    {
+        "names": [
+            "minecraft:cake_bites_5"
+        ],
+        "xSize": 1,
+        "ySize": 1,
+        "zSize": 1,
+        "storage": [
+            1
+        ],
+        "xCoords": [
+            0.6875,
+            0.9375
+        ],
+        "yCoords": [
+            0.0,
+            0.5
+        ],
+        "zCoords": [
+            0.0625,
+            0.9375
+        ]
+    },
+    {
+        "names": [
+            "minecraft:cake_bites_6"
+        ],
+        "xSize": 1,
+        "ySize": 1,
+        "zSize": 1,
+        "storage": [
+            1
+        ],
+        "xCoords": [
+            0.8125,
+            0.9375
+        ],
+        "yCoords": [
+            0.0,
+            0.5
+        ],
+        "zCoords": [
+            0.0625,
+            0.9375
+        ]
+    },
+    {
+        "names": [
+            "minecraft:candle_cake"
+        ],
+        "xSize": 3,
+        "ySize": 2,
+        "zSize": 3,
+        "storage": [
+            199,
+            117,
+            0
+        ],
+        "xCoords": [
+            0.0625,
+            0.4375,
+            0.5625,
+            0.9375
+        ],
+        "yCoords": [
+            0.0,
+            0.5,
+            0.875
+        ],
+        "zCoords": [
+            0.0625,
+            0.4375,
+            0.5625,
+            0.9375
+        ]
+    },
+    {
+        "names": [
+            "minecraft:composter"
+        ],
+        "xSize": 3,
+        "ySize": 2,
+        "zSize": 3,
+        "storage": [
+            255,
+            251,
+            3
+        ],
+        "xCoords": [
+            0.0,
+            0.125,
+            0.875,
+            1.0
+        ],
+        "yCoords": [
+            0.0,
+            0.125,
+            1.0
+        ],
+        "zCoords": [
+            0.0,
+            0.125,
+            0.875,
+            1.0
+        ]
+    },
+    {
+        "names": [
+            "minecraft:composter_level_1"
+        ],
+        "xSize": 3,
+        "ySize": 2,
+        "zSize": 3,
+        "storage": [
+            255,
+            251,
+            3
+        ],
+        "xCoords": [
+            0.0,
+            0.125,
+            0.875,
+            1.0
+        ],
+        "yCoords": [
+            0.0,
+            0.1875,
+            1.0
+        ],
+        "zCoords": [
+            0.0,
+            0.125,
+            0.875,
+            1.0
+        ]
+    },
+    {
+        "names": [
+            "minecraft:composter_level_2"
+        ],
+        "xSize": 3,
+        "ySize": 2,
+        "zSize": 3,
+        "storage": [
+            255,
+            251,
+            3
+        ],
+        "xCoords": [
+            0.0,
+            0.125,
+            0.875,
+            1.0
+        ],
+        "yCoords": [
+            0.0,
+            0.3125,
+            1.0
+        ],
+        "zCoords": [
+            0.0,
+            0.125,
+            0.875,
+            1.0
+        ]
+    },
+    {
+        "names": [
+            "minecraft:composter_level_3"
+        ],
+        "xSize": 3,
+        "ySize": 2,
+        "zSize": 3,
+        "storage": [
+            255,
+            251,
+            3
+        ],
+        "xCoords": [
+            0.0,
+            0.125,
+            0.875,
+            1.0
+        ],
+        "yCoords": [
+            0.0,
+            0.4375,
+            1.0
+        ],
+        "zCoords": [
+            0.0,
+            0.125,
+            0.875,
+            1.0
+        ]
+    },
+    {
+        "names": [
+            "minecraft:composter_level_4"
+        ],
+        "xSize": 3,
+        "ySize": 2,
+        "zSize": 3,
+        "storage": [
+            255,
+            251,
+            3
+        ],
+        "xCoords": [
+            0.0,
+            0.125,
+            0.875,
+            1.0
+        ],
+        "yCoords": [
+            0.0,
+            0.5625,
+            1.0
+        ],
+        "zCoords": [
+            0.0,
+            0.125,
+            0.875,
+            1.0
+        ]
+    },
+    {
+        "names": [
+            "minecraft:composter_level_5"
+        ],
+        "xSize": 3,
+        "ySize": 2,
+        "zSize": 3,
+        "storage": [
+            255,
+            251,
+            3
+        ],
+        "xCoords": [
+            0.0,
+            0.125,
+            0.875,
+            1.0
+        ],
+        "yCoords": [
+            0.0,
+            0.6875,
+            1.0
+        ],
+        "zCoords": [
+            0.0,
+            0.125,
+            0.875,
+            1.0
+        ]
+    },
+    {
+        "names": [
+            "minecraft:composter_level_6"
+        ],
+        "xSize": 3,
+        "ySize": 2,
+        "zSize": 3,
+        "storage": [
+            255,
+            251,
+            3
+        ],
+        "xCoords": [
+            0.0,
+            0.125,
+            0.875,
+            1.0
+        ],
+        "yCoords": [
+            0.0,
+            0.8125,
+            1.0
+        ],
+        "zCoords": [
+            0.0,
+            0.125,
+            0.875,
+            1.0
+        ]
+    },
+    {
+        "names": [
+            "minecraft:composter_level_7"
+        ],
+        "xSize": 3,
+        "ySize": 2,
+        "zSize": 3,
+        "storage": [
+            255,
+            251,
+            3
+        ],
+        "xCoords": [
+            0.0,
+            0.125,
+            0.875,
+            1.0
+        ],
+        "yCoords": [
+            0.0,
+            0.9375,
+            1.0
+        ],
+        "zCoords": [
+            0.0,
+            0.125,
+            0.875,
+            1.0
+        ]
+    },
+    {
+        "names": [
+            "minecraft:slab_type_top"
+        ],
+        "xSize": 1,
+        "ySize": 1,
+        "zSize": 1,
+        "storage": [
+            1
+        ],
+        "xCoords": [
+            0.0,
+            1.0
+        ],
+        "yCoords": [
+            0.5,
+            1.0
+        ],
+        "zCoords": [
+            0.0,
+            1.0
+        ]
+    },
+    {
+        "names": [],
+        "xSize": 1,
+        "ySize": 1,
+        "zSize": 1,
+        "storage": [
+            1
+        ],
+        "xCoords": [
+            0.0625,
+            0.9375
+        ],
+        "yCoords": [
+            0.0,
+            1.0
+        ],
+        "zCoords": [
+            0.0625,
+            0.9375
+        ]
+    },
+    {
+        "names": [],
+        "xSize": 3,
+        "ySize": 1,
+        "zSize": 3,
+        "storage": [
+            239,
+            1
+        ],
+        "xCoords": [
+            0.0,
+            0.125,
+            0.875,
+            1.0
+        ],
+        "yCoords": [
+            0.0,
+            1.0
+        ],
+        "zCoords": [
+            0.0,
+            0.125,
+            0.875,
+            1.0
+        ]
+    },
+    {
+        "names": [],
+        "xSize": 1,
+        "ySize": 1,
+        "zSize": 1,
+        "storage": [
+            1
+        ],
+        "xCoords": [
+            0.1875,
+            0.9375
+        ],
+        "yCoords": [
+            0.0,
+            1.0
+        ],
+        "zCoords": [
+            0.0625,
+            0.9375
+        ]
+    },
+    {
+        "names": [],
+        "xSize": 1,
+        "ySize": 1,
+        "zSize": 1,
+        "storage": [
+            1
+        ],
+        "xCoords": [
+            0.3125,
+            0.9375
+        ],
+        "yCoords": [
+            0.0,
+            1.0
+        ],
+        "zCoords": [
+            0.0625,
+            0.9375
+        ]
+    },
+    {
+        "names": [],
+        "xSize": 1,
+        "ySize": 1,
+        "zSize": 1,
+        "storage": [
+            1
+        ],
+        "xCoords": [
+            0.4375,
+            0.9375
+        ],
+        "yCoords": [
+            0.0,
+            1.0
+        ],
+        "zCoords": [
+            0.0625,
+            0.9375
+        ]
+    },
+    {
+        "names": [],
+        "xSize": 1,
+        "ySize": 1,
+        "zSize": 1,
+        "storage": [
+            1
+        ],
+        "xCoords": [
+            0.5625,
+            0.9375
+        ],
+        "yCoords": [
+            0.0,
+            1.0
+        ],
+        "zCoords": [
+            0.0625,
+            0.9375
+        ]
+    },
+    {
+        "names": [],
+        "xSize": 1,
+        "ySize": 1,
+        "zSize": 1,
+        "storage": [
+            1
+        ],
+        "xCoords": [
+            0.6875,
+            0.9375
+        ],
+        "yCoords": [
+            0.0,
+            1.0
+        ],
+        "zCoords": [
+            0.0625,
+            0.9375
+        ]
+    },
+    {
+        "names": [],
+        "xSize": 1,
+        "ySize": 1,
+        "zSize": 1,
+        "storage": [
+            1
+        ],
+        "xCoords": [
+            0.8125,
+            0.9375
+        ],
+        "yCoords": [
+            0.0,
+            1.0
+        ],
+        "zCoords": [
+            0.0625,
+            0.9375
+        ]
+    }
+]

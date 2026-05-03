@@ -125,20 +125,25 @@ public class BiomeDefinitionListPacket12180 extends Packet12180 {
                     }
                 });
 
-                stream.putOptional(chunkGenData.surfaceMaterials, (bs, surfaceMaterials) -> putBiomeSurfaceMaterialData(surfaceMaterials));
+                BiomeSurfaceBuilderData surfaceBuilder = chunkGenData.surfaceBuilder;
+                if (surfaceBuilder == null) {
+                    surfaceBuilder = BiomeSurfaceBuilderData.DEFAULT;
+                }
 
-                stream.putBoolean(chunkGenData.hasSwampSurface);
-                stream.putBoolean(chunkGenData.hasFrozenOceanSurface);
-                stream.putBoolean(chunkGenData.hasTheEndSurface);
+                stream.putOptional(surfaceBuilder.surfaceMaterials, (bs, surfaceMaterials) -> putBiomeSurfaceMaterialData(surfaceMaterials));
 
-                stream.putOptional(chunkGenData.mesaSurface, (bs, mesaSurface) -> {
+                stream.putBoolean(surfaceBuilder.hasSwampSurface);
+                stream.putBoolean(surfaceBuilder.hasFrozenOceanSurface);
+                stream.putBoolean(surfaceBuilder.hasTheEndSurface);
+
+                stream.putOptional(surfaceBuilder.mesaSurface, (bs, mesaSurface) -> {
                     putBlockNetId(mesaSurface.clayMaterial);
                     putBlockNetId(mesaSurface.hardClayMaterial);
                     bs.putBoolean(mesaSurface.brycePillars);
                     bs.putBoolean(mesaSurface.hasForest);
                 });
 
-                stream.putOptional(chunkGenData.cappedSurface, (bs, cappedSurface) -> {
+                stream.putOptional(surfaceBuilder.cappedSurface, (bs, cappedSurface) -> {
                     bs.putUnsignedVarInt(cappedSurface.floorBlocks.size());
                     for (Block block : cappedSurface.floorBlocks) {
                         putBlockNetId(block);
@@ -187,7 +192,7 @@ public class BiomeDefinitionListPacket12180 extends Packet12180 {
 
                     bs.putUnsignedVarInt(overworldGenRules.climate.size());
                     for (BiomeWeightedTemperatureData data : overworldGenRules.climate) {
-                        bs.putVarInt(data.temperatureCategory);
+                        bs.putVarInt(data.temperatureCategory.ordinal());
                         bs.putLInt(data.weight);
                     }
                 });

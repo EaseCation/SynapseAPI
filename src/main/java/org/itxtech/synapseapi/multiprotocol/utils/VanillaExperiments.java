@@ -95,10 +95,15 @@ public final class VanillaExperiments {
      */
     public static final Experiment EXPERIMENTAL_GRAPHICS = new Experiment("experimental_graphics", true);
     /**
-     * Enables the use of voxel shapes for some vanilla and custom blocks. (Voxel Shapes)
+     * Enables the use of voxel shapes for some vanilla and custom blocks. (Experimental Voxel Shape Features)
      * @since 1.26.10
      */
     public static final Experiment VOXEL_SHAPES = new Experiment("voxel_shapes", true);
+    /**
+     * Enables custom projectile improvements. (Experimental Custom Projectile Features)
+     * @since 1.26.20
+     */
+    public static final Experiment CUSTOM_PROJECTILES = new Experiment("custom_projectiles", true);
 
     // Gameplay Experiments
 
@@ -128,6 +133,18 @@ public final class VanillaExperiments {
      * @deprecated 1.21.90
      */
     public static final Experiment LOCATOR_BAR = new Experiment("locator_bar", true);
+    /**
+     * Add a recipe book in the furnace screen, similar to the one in the crafting table. (Furnace Recipe Book)
+     * @since 1.26.10
+     */
+    public static final Experiment FURNACE_RECIPE_BOOK = new Experiment("furnace_recipe_book", true);
+
+    /**
+     * y_202X_drop_N
+     */
+    public static Experiment yearDrop(int year, int drop) {
+        return new Experiment("y_" + year + "_drop_" + drop, true);
+    }
 
     private VanillaExperiments() {
     }

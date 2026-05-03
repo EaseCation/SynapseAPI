@@ -257,6 +257,21 @@ public class GraphicsOverrideParameterPacket126 extends Packet126 {
      * @since 1.26.10
      */
     public static final int TYPE_AMBIENT_ILLUMINANCE = 48;
+    /**
+     * Sent to set the lighting emissive desaturation value.
+     * @since 1.26.20
+     */
+    public static final int TYPE_EMISSIVE_DESATURATION = 49;
+    /**
+     * Sent to set the lighting sky intensity value.
+     * @since 1.26.20
+     */
+    public static final int TYPE_SKY_INTENSITY = 50;
+    /**
+     * Sent to set the lighting orbital offset degrees value.
+     * @since 1.26.20
+     */
+    public static final int TYPE_ORBITAL_OFFSET_DEGREES = 51;
 
     /// Pair<Time, Components>[]
     public FloatObjectPair<Vector3f>[] keyframes = new FloatObjectPair[0];

@@ -123,6 +123,7 @@ import org.itxtech.synapseapi.multiprotocol.protocol12190.protocol.ResourcePacks
 import org.itxtech.synapseapi.multiprotocol.protocol12190.protocol.StartGamePacket12190;
 import org.itxtech.synapseapi.multiprotocol.protocol126.protocol.*;
 import org.itxtech.synapseapi.multiprotocol.protocol12610.protocol.*;
+import org.itxtech.synapseapi.multiprotocol.protocol12620.protocol.*;
 import org.itxtech.synapseapi.multiprotocol.protocol15.protocol.*;
 import org.itxtech.synapseapi.multiprotocol.protocol14.protocol.*;
 import org.itxtech.synapseapi.multiprotocol.protocol16.protocol.*;
@@ -496,6 +497,17 @@ public class PacketRegister {
         registerPacket(AbstractProtocol.PROTOCOL_126_10, ProtocolInfo.RESOURCE_PACKS_READY_FOR_VALIDATION_PACKET, ResourcePacksReadyForValidationPacket12610.class);
         registerPacket(AbstractProtocol.PROTOCOL_126_10, ProtocolInfo.SERVERBOUND_DATA_DRIVEN_SCREEN_CLOSED_PACKET, ServerboundDataDrivenScreenClosedPacket12610.class);
         registerPacket(AbstractProtocol.PROTOCOL_126_10, ProtocolInfo.PARTY_CHANGED_PACKET, PartyChangedPacket12610.class);
+
+        registerPacket(AbstractProtocol.PROTOCOL_126_20, ProtocolInfo.DISCONNECT_PACKET, DisconnectPacket12620.class);
+        registerPacket(AbstractProtocol.PROTOCOL_126_20, ProtocolInfo.CRAFTING_DATA_PACKET, CraftingDataPacket12620.class);
+        registerPacket(AbstractProtocol.PROTOCOL_126_20, ProtocolInfo.INVENTORY_SLOT_PACKET, InventorySlotPacket12620.class);
+        registerPacket(AbstractProtocol.PROTOCOL_126_20, ProtocolInfo.LEVEL_SOUND_EVENT_PACKET_V3, LevelSoundEventPacketV312620.class);
+        registerPacket(AbstractProtocol.PROTOCOL_126_20, ProtocolInfo.ACTOR_EVENT_PACKET, EntityEventPacket12620.class);
+        registerPacket(AbstractProtocol.PROTOCOL_126_20, ProtocolInfo.PLAY_SOUND_PACKET, PlaySoundPacket12620.class);
+        registerPacket(AbstractProtocol.PROTOCOL_126_20, ProtocolInfo.UPDATE_CLIENT_OPTIONS_PACKET, UpdateClientOptionsPacket12620.class);
+        registerPacket(AbstractProtocol.PROTOCOL_126_20, ProtocolInfo.CLIENT_MOVEMENT_PREDICTION_SYNC_PACKET, ClientMovementPredictionSyncPacket12620.class);
+        registerPacket(AbstractProtocol.PROTOCOL_126_20, ProtocolInfo.SERVERBOUND_DIAGNOSTICS_PACKET, ServerboundDiagnosticsPacket12620.class);
+        registerPacket(AbstractProtocol.PROTOCOL_126_20, ProtocolInfo.PARTY_CHANGED_PACKET, PartyChangedPacket12620.class);
 
         checkNeteaseSpecialExtend();
     }

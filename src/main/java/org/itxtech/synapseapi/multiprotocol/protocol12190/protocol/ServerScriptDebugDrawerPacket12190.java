@@ -5,6 +5,7 @@ import cn.nukkit.network.protocol.ProtocolInfo;
 import cn.nukkit.utils.BinaryStream;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
+import lombok.Builder.Default;
 import lombok.NoArgsConstructor;
 import lombok.ToString;
 
@@ -13,7 +14,7 @@ import lombok.ToString;
  */
 @ToString
 public class ServerScriptDebugDrawerPacket12190 extends Packet12190 {
-    public static final int NETWORK_ID = ProtocolInfo.DEBUG_DRAWER_PACKET;
+    public static final int NETWORK_ID = ProtocolInfo.PRIMITIVE_SHAPES_PACKET;
 
     public Entry[] entries = new Entry[0];
 
@@ -58,6 +59,10 @@ public class ServerScriptDebugDrawerPacket12190 extends Packet12190 {
         public Float scale;
         public Vector3f rotation;
         public Float totalTimeLeft;
+        /**
+         * @since 1.26.20
+         */
+        public Float maximumRenderDistance;
         public Integer color;
         /**
          * @since 1.21.120
@@ -67,7 +72,30 @@ public class ServerScriptDebugDrawerPacket12190 extends Packet12190 {
          * @since 1.26.0
          */
         public Long attachedEntityRuntimeId;
+
         public String text;
+        /**
+         * @since 1.26.20
+         */
+        public boolean textRotation;
+        /**
+         * @since 1.26.20
+         */
+        public Integer backgroundColor;
+        /**
+         * @since 1.26.20
+         */
+        public boolean depthTest;
+        /**
+         * @since 1.26.20
+         */
+        @Default
+        public boolean showBackface = true;
+        /**
+         * @since 1.26.20
+         */
+        @Default
+        public boolean showTextBackface = true;
         public Vector3f boxBound;
         public Vector3f lineEndLocation;
         public Float arrowHeadLength;

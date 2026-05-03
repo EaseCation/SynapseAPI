@@ -27,6 +27,7 @@ public class MoveEntityAbsolutePacket15 extends Packet15 {
      * 不进行插值且忽略所有客户端状态.
      */
     public boolean forceMoveLocalEntity;
+    public boolean forceCompletion;
 
     @Override
     public int pid() {
@@ -40,6 +41,7 @@ public class MoveEntityAbsolutePacket15 extends Packet15 {
         onGround = (flags & 0x01) != 0;
         teleport = (flags & 0x02) != 0;
         forceMoveLocalEntity = (flags & 0x04) != 0;
+        forceCompletion = (flags & 0x08) != 0;
         Vector3f v = this.getVector3f();
         this.x = v.x;
         this.y = v.y;
@@ -63,6 +65,9 @@ public class MoveEntityAbsolutePacket15 extends Packet15 {
         if (forceMoveLocalEntity) {
             flags |= 0x04;
         }
+        if (forceCompletion) {
+            flags |= 0x08;
+        }
         this.putByte(flags);
         this.putVector3f(this.x, this.y, this.z);
         this.putByte((byte) (this.pitch / (360f / 256f)));
@@ -85,6 +90,7 @@ public class MoveEntityAbsolutePacket15 extends Packet15 {
         this.headYaw = packet.headYaw;
         this.yaw = packet.yaw;
         this.forceMoveLocalEntity = packet.forceMoveLocalEntity;
+        this.forceCompletion = packet.forceCompletion;
 
         return this;
     }

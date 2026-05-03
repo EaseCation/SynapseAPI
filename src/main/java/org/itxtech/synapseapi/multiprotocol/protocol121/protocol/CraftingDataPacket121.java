@@ -17,13 +17,11 @@ import cn.nukkit.network.protocol.DataPacket;
 import cn.nukkit.network.protocol.ProtocolInfo;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import lombok.ToString;
-import lombok.extern.log4j.Log4j2;
 import org.itxtech.synapseapi.multiprotocol.AbstractProtocol;
 
 import java.util.List;
 import java.util.stream.Collectors;
 
-@Log4j2
 @ToString
 public class CraftingDataPacket121 extends Packet121 {
     public static final int NETWORK_ID = ProtocolInfo.CRAFTING_DATA_PACKET;

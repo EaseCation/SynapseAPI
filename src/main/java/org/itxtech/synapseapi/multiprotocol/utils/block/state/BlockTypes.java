@@ -3053,4 +3053,162 @@ public class BlockTypes {
             return toNetEase(REGISTRY, customAppearance);
         }
     }
+
+    public static class V1_26_20 extends V1_26_10 {
+        private static final BlockRegistry REGISTRY = new BlockRegistry((1 << 24) | (21 << 16) | (60 << 8) | 33, V1_26_10.REGISTRY);
+
+        public static final BlockLegacy CHISELED_CINNABAR = REGISTRY.registerBlock("minecraft:chiseled_cinnabar", BlockID.CHISELED_CINNABAR);
+
+        public static final BlockLegacy CHISELED_SULFUR = REGISTRY.registerBlock("minecraft:chiseled_sulfur", BlockID.CHISELED_SULFUR);
+
+        public static final BlockLegacy CINNABAR = REGISTRY.registerBlock("minecraft:cinnabar", BlockID.CINNABAR);
+
+        public static final BlockLegacy CINNABAR_BRICK_DOUBLE_SLAB = REGISTRY.registerBlock("minecraft:cinnabar_brick_double_slab", BlockID.CINNABAR_BRICK_DOUBLE_SLAB)
+                .addState(BlockStates.MINECRAFT_VERTICAL_HALF);
+
+        public static final BlockLegacy CINNABAR_BRICK_SLAB = REGISTRY.registerBlock("minecraft:cinnabar_brick_slab", BlockID.CINNABAR_BRICK_SLAB)
+                .addState(BlockStates.MINECRAFT_VERTICAL_HALF);
+
+        public static final BlockLegacy CINNABAR_BRICK_STAIRS = REGISTRY.registerBlock("minecraft:cinnabar_brick_stairs", BlockID.CINNABAR_BRICK_STAIRS)
+                .addState(BlockStates.WEIRDO_DIRECTION)
+                .addState(BlockStates.UPSIDE_DOWN_BIT);
+
+        public static final BlockLegacy CINNABAR_BRICK_WALL = REGISTRY.registerBlock("minecraft:cinnabar_brick_wall", BlockID.CINNABAR_BRICK_WALL)
+                .addState(BlockStates.WALL_POST_BIT)
+                .addState(BlockStates.WALL_CONNECTION_TYPE_NORTH)
+                .addState(BlockStates.WALL_CONNECTION_TYPE_EAST)
+                .addState(BlockStates.WALL_CONNECTION_TYPE_SOUTH)
+                .addState(BlockStates.WALL_CONNECTION_TYPE_WEST);
+
+        public static final BlockLegacy CINNABAR_BRICKS = REGISTRY.registerBlock("minecraft:cinnabar_bricks", BlockID.CINNABAR_BRICKS);
+
+        public static final BlockLegacy CINNABAR_DOUBLE_SLAB = REGISTRY.registerBlock("minecraft:cinnabar_double_slab", BlockID.CINNABAR_DOUBLE_SLAB)
+                .addState(BlockStates.MINECRAFT_VERTICAL_HALF);
+
+        public static final BlockLegacy CINNABAR_SLAB = REGISTRY.registerBlock("minecraft:cinnabar_slab", BlockID.CINNABAR_SLAB)
+                .addState(BlockStates.MINECRAFT_VERTICAL_HALF);
+
+        public static final BlockLegacy CINNABAR_STAIRS = REGISTRY.registerBlock("minecraft:cinnabar_stairs", BlockID.CINNABAR_STAIRS)
+                .addState(BlockStates.WEIRDO_DIRECTION)
+                .addState(BlockStates.UPSIDE_DOWN_BIT);
+
+        public static final BlockLegacy CINNABAR_WALL = REGISTRY.registerBlock("minecraft:cinnabar_wall", BlockID.CINNABAR_WALL)
+                .addState(BlockStates.WALL_POST_BIT)
+                .addState(BlockStates.WALL_CONNECTION_TYPE_NORTH)
+                .addState(BlockStates.WALL_CONNECTION_TYPE_EAST)
+                .addState(BlockStates.WALL_CONNECTION_TYPE_SOUTH)
+                .addState(BlockStates.WALL_CONNECTION_TYPE_WEST);
+
+        public static final BlockLegacy POLISHED_CINNABAR = REGISTRY.registerBlock("minecraft:polished_cinnabar", BlockID.POLISHED_CINNABAR);
+
+        public static final BlockLegacy POLISHED_CINNABAR_DOUBLE_SLAB = REGISTRY.registerBlock("minecraft:polished_cinnabar_double_slab", BlockID.POLISHED_CINNABAR_DOUBLE_SLAB)
+                .addState(BlockStates.MINECRAFT_VERTICAL_HALF);
+
+        public static final BlockLegacy POLISHED_CINNABAR_SLAB = REGISTRY.registerBlock("minecraft:polished_cinnabar_slab", BlockID.POLISHED_CINNABAR_SLAB)
+                .addState(BlockStates.MINECRAFT_VERTICAL_HALF);
+
+        public static final BlockLegacy POLISHED_CINNABAR_STAIRS = REGISTRY.registerBlock("minecraft:polished_cinnabar_stairs", BlockID.POLISHED_CINNABAR_STAIRS)
+                .addState(BlockStates.WEIRDO_DIRECTION)
+                .addState(BlockStates.UPSIDE_DOWN_BIT);
+
+        public static final BlockLegacy POLISHED_CINNABAR_WALL = REGISTRY.registerBlock("minecraft:polished_cinnabar_wall", BlockID.POLISHED_CINNABAR_WALL)
+                .addState(BlockStates.WALL_POST_BIT)
+                .addState(BlockStates.WALL_CONNECTION_TYPE_NORTH)
+                .addState(BlockStates.WALL_CONNECTION_TYPE_EAST)
+                .addState(BlockStates.WALL_CONNECTION_TYPE_SOUTH)
+                .addState(BlockStates.WALL_CONNECTION_TYPE_WEST);
+
+        public static final BlockLegacy POLISHED_SULFUR = REGISTRY.registerBlock("minecraft:polished_sulfur", BlockID.POLISHED_SULFUR);
+
+        public static final BlockLegacy POLISHED_SULFUR_DOUBLE_SLAB = REGISTRY.registerBlock("minecraft:polished_sulfur_double_slab", BlockID.POLISHED_SULFUR_DOUBLE_SLAB)
+                .addState(BlockStates.MINECRAFT_VERTICAL_HALF);
+
+        public static final BlockLegacy POLISHED_SULFUR_SLAB = REGISTRY.registerBlock("minecraft:polished_sulfur_slab", BlockID.POLISHED_SULFUR_SLAB)
+                .addState(BlockStates.MINECRAFT_VERTICAL_HALF);
+
+        public static final BlockLegacy POLISHED_SULFUR_STAIRS = REGISTRY.registerBlock("minecraft:polished_sulfur_stairs", BlockID.POLISHED_SULFUR_STAIRS)
+                .addState(BlockStates.WEIRDO_DIRECTION)
+                .addState(BlockStates.UPSIDE_DOWN_BIT);
+
+        public static final BlockLegacy POLISHED_SULFUR_WALL = REGISTRY.registerBlock("minecraft:polished_sulfur_wall", BlockID.POLISHED_SULFUR_WALL)
+                .addState(BlockStates.WALL_POST_BIT)
+                .addState(BlockStates.WALL_CONNECTION_TYPE_NORTH)
+                .addState(BlockStates.WALL_CONNECTION_TYPE_EAST)
+                .addState(BlockStates.WALL_CONNECTION_TYPE_SOUTH)
+                .addState(BlockStates.WALL_CONNECTION_TYPE_WEST);
+
+        public static final BlockLegacy POTENT_SULFUR = REGISTRY.registerBlock("minecraft:potent_sulfur", BlockID.POTENT_SULFUR);
+
+        public static final BlockLegacy SULFUR = REGISTRY.registerBlock("minecraft:sulfur", BlockID.SULFUR);
+
+        public static final BlockLegacy SULFUR_BRICK_DOUBLE_SLAB = REGISTRY.registerBlock("minecraft:sulfur_brick_double_slab", BlockID.SULFUR_BRICK_DOUBLE_SLAB)
+                .addState(BlockStates.MINECRAFT_VERTICAL_HALF);
+
+        public static final BlockLegacy SULFUR_BRICK_SLAB = REGISTRY.registerBlock("minecraft:sulfur_brick_slab", BlockID.SULFUR_BRICK_SLAB)
+                .addState(BlockStates.MINECRAFT_VERTICAL_HALF);
+
+        public static final BlockLegacy SULFUR_BRICK_STAIRS = REGISTRY.registerBlock("minecraft:sulfur_brick_stairs", BlockID.SULFUR_BRICK_STAIRS)
+                .addState(BlockStates.WEIRDO_DIRECTION)
+                .addState(BlockStates.UPSIDE_DOWN_BIT);
+
+        public static final BlockLegacy SULFUR_BRICK_WALL = REGISTRY.registerBlock("minecraft:sulfur_brick_wall", BlockID.SULFUR_BRICK_WALL)
+                .addState(BlockStates.WALL_POST_BIT)
+                .addState(BlockStates.WALL_CONNECTION_TYPE_NORTH)
+                .addState(BlockStates.WALL_CONNECTION_TYPE_EAST)
+                .addState(BlockStates.WALL_CONNECTION_TYPE_SOUTH)
+                .addState(BlockStates.WALL_CONNECTION_TYPE_WEST);
+
+        public static final BlockLegacy SULFUR_BRICKS = REGISTRY.registerBlock("minecraft:sulfur_bricks", BlockID.SULFUR_BRICKS);
+
+        public static final BlockLegacy SULFUR_DOUBLE_SLAB = REGISTRY.registerBlock("minecraft:sulfur_double_slab", BlockID.SULFUR_DOUBLE_SLAB)
+                .addState(BlockStates.MINECRAFT_VERTICAL_HALF);
+
+        public static final BlockLegacy SULFUR_SLAB = REGISTRY.registerBlock("minecraft:sulfur_slab", BlockID.SULFUR_SLAB)
+                .addState(BlockStates.MINECRAFT_VERTICAL_HALF);
+
+        public static final BlockLegacy SULFUR_STAIRS = REGISTRY.registerBlock("minecraft:sulfur_stairs", BlockID.SULFUR_STAIRS)
+                .addState(BlockStates.WEIRDO_DIRECTION)
+                .addState(BlockStates.UPSIDE_DOWN_BIT);
+
+        public static final BlockLegacy SULFUR_WALL = REGISTRY.registerBlock("minecraft:sulfur_wall", BlockID.SULFUR_WALL)
+                .addState(BlockStates.WALL_POST_BIT)
+                .addState(BlockStates.WALL_CONNECTION_TYPE_NORTH)
+                .addState(BlockStates.WALL_CONNECTION_TYPE_EAST)
+                .addState(BlockStates.WALL_CONNECTION_TYPE_SOUTH)
+                .addState(BlockStates.WALL_CONNECTION_TYPE_WEST);
+
+        static {
+            REGISTRY.createBlockPermutations();
+        }
+
+        public static BlockRegistry getBlockRegistry() {
+            return REGISTRY;
+        }
+
+        public static BlockRegistry toNetEase(boolean customAppearance) {
+            return toNetEase(REGISTRY, customAppearance);
+        }
+    }
+
+    public static class V1_26_30 extends V1_26_20 {
+        private static final BlockRegistry REGISTRY = new BlockRegistry((1 << 24) | (21 << 16) | (60 << 8) | 33, V1_26_20.REGISTRY);
+
+        public static final BlockLegacy SULFUR_SPIKE = REGISTRY.registerBlock("minecraft:sulfur_spike", BlockID.SULFUR_SPIKE)
+                .addState(BlockStates.DRIPSTONE_THICKNESS)
+                .addState(BlockStates.HANGING);
+
+        public static final BlockLegacy POTENT_SULFUR = REGISTRY.patch(V1_26_20.POTENT_SULFUR, BlockStates.POTENT_SULFUR_STATE);
+
+        static {
+            REGISTRY.createBlockPermutations();
+        }
+
+        public static BlockRegistry getBlockRegistry() {
+            return REGISTRY;
+        }
+
+        public static BlockRegistry toNetEase(boolean customAppearance) {
+            return toNetEase(REGISTRY, customAppearance);
+        }
+    }
 }

@@ -22,19 +22,6 @@ public class BiomeDefinitionChunkGenData {
     @Nullable
     public Collection<BiomeSurfaceMaterialAdjustmentData> surfaceMaterialAdjustments;
     @Nullable
-    public BiomeSurfaceMaterialData surfaceMaterials;
-    /**
-     * @since 1.21.111
-     */
-    public boolean hasDefaultOverworldSurface;
-    public boolean hasSwampSurface;
-    public boolean hasFrozenOceanSurface;
-    public boolean hasTheEndSurface;
-    @Nullable
-    public BiomeMesaSurfaceData mesaSurface;
-    @Nullable
-    public BiomeCappedSurfaceData cappedSurface;
-    @Nullable
     public BiomeOverworldGenRulesData overworldGenRules;
     @Nullable
     public BiomeMultinoiseGenRulesData multinoiseGenRules;
@@ -48,5 +35,13 @@ public class BiomeDefinitionChunkGenData {
     /**
      * @since 1.26.0
      */
-    public Integer villageType;
+    @Nullable
+    public VillageType villageType;
+    @Nullable
+    public BiomeSurfaceBuilderData surfaceBuilder;
+    /**
+     * @since 1.26.20
+     */
+    @Nullable
+    public BiomeSurfaceBuilderData subSurfaceBuilder;
 }

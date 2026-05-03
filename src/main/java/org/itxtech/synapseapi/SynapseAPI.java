@@ -217,6 +217,7 @@ public class SynapseAPI extends PluginBase implements Listener {
         ItemComponentDefinitions.init();
         EntityPropertiesCache.init();
         CameraManager.init();
+        VoxelShapeManager.init();
 
         getServer().setCraftingManager(new CraftingManagerNew());
         CraftingPacketManager.rebuildPacket();

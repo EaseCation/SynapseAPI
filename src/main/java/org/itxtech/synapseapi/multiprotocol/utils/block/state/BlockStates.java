@@ -272,6 +272,11 @@ public final class BlockStates {
             PORTAL_AXIS_UNKNOWN,
             PORTAL_AXIS_X,
             PORTAL_AXIS_Z));
+    public static final StringBlockState POTENT_SULFUR_STATE = register(new StringBlockState(BlockStateNames.POTENT_SULFUR_STATE,
+            POTENT_SULFUR_STATE_DRY,
+            POTENT_SULFUR_STATE_WET,
+            POTENT_SULFUR_STATE_DORMANT,
+            POTENT_SULFUR_STATE_ERUPTING));
     public static final BooleanBlockState POWERED_BIT = register(new BooleanBlockState(BlockStateNames.POWERED_BIT));
     public static final IntegerBlockState POWERED_SHELF_TYPE = register(new IntegerBlockState(BlockStateNames.POWERED_SHELF_TYPE, MAX_POWERED_SHELF_TYPE + 1));
     public static final StringBlockState PRISMARINE_BLOCK_TYPE = register(new StringBlockState(BlockStateNames.PRISMARINE_BLOCK_TYPE,

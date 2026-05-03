@@ -11,7 +11,6 @@ import cn.nukkit.network.protocol.types.InventoryTransactionPacketInterface;
 import cn.nukkit.network.protocol.types.ItemStackRequest;
 import cn.nukkit.network.protocol.types.NetworkInventoryAction;
 import lombok.ToString;
-import lombok.extern.log4j.Log4j2;
 import org.itxtech.synapseapi.multiprotocol.AbstractProtocol;
 import org.itxtech.synapseapi.multiprotocol.common.inventory.LegacySetItemSlotData;
 import org.itxtech.synapseapi.multiprotocol.protocol113.protocol.IPlayerAuthInputPacket;
@@ -20,7 +19,6 @@ import org.itxtech.synapseapi.multiprotocol.utils.AdvancedGlobalBlockPalette;
 
 import javax.annotation.Nullable;
 
-@Log4j2
 @ToString
 public class PlayerAuthInputPacket116210 extends Packet116210 implements InventoryTransactionPacketInterface, IPlayerAuthInputPacket {
 

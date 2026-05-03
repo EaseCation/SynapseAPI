@@ -53,6 +53,7 @@ public class LoginPacket14 extends Packet14 {
     public int maxViewDistance;
     public int graphicsMode;
     public String partyId;
+    public boolean partyLeader;
     public String xuid;
     public String titleId;
     public String sandboxId;// = "RETAIL"
@@ -94,11 +95,15 @@ public class LoginPacket14 extends Packet14 {
         try {
             byte[] buffer = getBuffer();
 
-            decodedLoginChainData = ClientChainData12NetEase.of(buffer, protocol);
-            if (decodedLoginChainData.getClientUUID() != null) { // 网易认证通过！
-                this.netEaseClient = true;
-                log.info("[Login] " + this.username + TextFormat.RED + " 中国版验证通过！" + protocol);
-                return;
+            try {
+                decodedLoginChainData = ClientChainData12NetEase.of(buffer, protocol);
+                if (decodedLoginChainData.getClientUUID() != null) { // 网易认证通过！
+                    this.netEaseClient = true;
+                    log.info("[Login] " + this.username + TextFormat.RED + " 中国版验证通过！" + protocol);
+                    return;
+                }
+            } catch (Exception e) {
+                log.debug("[Login] {} 尝试解析中国版认证数据失败 {}", this.username, protocol, e);
             }
 
             if (DEBUG_ENVIRONMENT && !ClientChainDataXbox.of(buffer, protocol).isXboxAuthed() && username.startsWith("netease")) { // 国际版验证失败, 特定前缀玩家名解析为中国版 (仅限调试环境)
@@ -500,6 +505,11 @@ public class LoginPacket14 extends Packet14 {
         JsonNode partyIdNode = skinToken.get("PartyId");
         if (partyIdNode != null) {
             this.partyId = partyIdNode.asString();
+        }
+
+        JsonNode isPartyLeaderNode = skinToken.get("IsPartyLeader");
+        if (isPartyLeaderNode != null) {
+            this.partyLeader = isPartyLeaderNode.asBoolean();
         }
 
         // NetEase only:

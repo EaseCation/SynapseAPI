@@ -307,6 +307,14 @@ public final class LegacyBlockSerializer {
         registerDeserializer(WAXED_WEATHERED_COPPER_BARS, LegacyBlockSerializer::deserializeSimple);
         registerDeserializer(WAXED_OXIDIZED_COPPER_BARS, LegacyBlockSerializer::deserializeSimple);
         registerDeserializer(GOLDEN_DANDELION, LegacyBlockSerializer::deserializeSimple);
+        registerDeserializer(CHISELED_CINNABAR, LegacyBlockSerializer::deserializeSimple);
+        registerDeserializer(CHISELED_SULFUR, LegacyBlockSerializer::deserializeSimple);
+        registerDeserializer(CINNABAR, LegacyBlockSerializer::deserializeSimple);
+        registerDeserializer(CINNABAR_BRICKS, LegacyBlockSerializer::deserializeSimple);
+        registerDeserializer(POLISHED_CINNABAR, LegacyBlockSerializer::deserializeSimple);
+        registerDeserializer(POLISHED_SULFUR, LegacyBlockSerializer::deserializeSimple);
+        registerDeserializer(SULFUR, LegacyBlockSerializer::deserializeSimple);
+        registerDeserializer(SULFUR_BRICKS, LegacyBlockSerializer::deserializeSimple);
 
         registerDeserializer(STONE, LegacyBlockSerializer::deserializeSimple);
         registerDeserializer(GRANITE, LegacyBlockSerializer::deserializeSimple);
@@ -650,6 +658,18 @@ public final class LegacyBlockSerializer {
         registerDeserializer(PALE_OAK_DOUBLE_SLAB, LegacyBlockSerializer::deserializeSlab);
         registerDeserializer(RESIN_BRICK_SLAB, LegacyBlockSerializer::deserializeSlab);
         registerDeserializer(RESIN_BRICK_DOUBLE_SLAB, LegacyBlockSerializer::deserializeSlab);
+        registerDeserializer(CINNABAR_BRICK_SLAB, LegacyBlockSerializer::deserializeSlab);
+        registerDeserializer(CINNABAR_BRICK_DOUBLE_SLAB, LegacyBlockSerializer::deserializeSlab);
+        registerDeserializer(CINNABAR_SLAB, LegacyBlockSerializer::deserializeSlab);
+        registerDeserializer(CINNABAR_DOUBLE_SLAB, LegacyBlockSerializer::deserializeSlab);
+        registerDeserializer(POLISHED_CINNABAR_SLAB, LegacyBlockSerializer::deserializeSlab);
+        registerDeserializer(POLISHED_CINNABAR_DOUBLE_SLAB, LegacyBlockSerializer::deserializeSlab);
+        registerDeserializer(POLISHED_SULFUR_SLAB, LegacyBlockSerializer::deserializeSlab);
+        registerDeserializer(POLISHED_SULFUR_DOUBLE_SLAB, LegacyBlockSerializer::deserializeSlab);
+        registerDeserializer(SULFUR_BRICK_SLAB, LegacyBlockSerializer::deserializeSlab);
+        registerDeserializer(SULFUR_BRICK_DOUBLE_SLAB, LegacyBlockSerializer::deserializeSlab);
+        registerDeserializer(SULFUR_SLAB, LegacyBlockSerializer::deserializeSlab);
+        registerDeserializer(SULFUR_DOUBLE_SLAB, LegacyBlockSerializer::deserializeSlab);
 
         registerDeserializer(OAK_SLAB, LegacyBlockSerializer::deserializeSlab);
         registerDeserializer(SPRUCE_SLAB, LegacyBlockSerializer::deserializeSlab);
@@ -808,6 +828,12 @@ public final class LegacyBlockSerializer {
         registerDeserializer(TUFF_BRICK_STAIRS, LegacyBlockSerializer::deserializeStairs);
         registerDeserializer(PALE_OAK_STAIRS, LegacyBlockSerializer::deserializeStairs);
         registerDeserializer(RESIN_BRICK_STAIRS, LegacyBlockSerializer::deserializeStairs);
+        registerDeserializer(CINNABAR_BRICK_STAIRS, LegacyBlockSerializer::deserializeStairs);
+        registerDeserializer(CINNABAR_STAIRS, LegacyBlockSerializer::deserializeStairs);
+        registerDeserializer(POLISHED_CINNABAR_STAIRS, LegacyBlockSerializer::deserializeStairs);
+        registerDeserializer(POLISHED_SULFUR_STAIRS, LegacyBlockSerializer::deserializeStairs);
+        registerDeserializer(SULFUR_BRICK_STAIRS, LegacyBlockSerializer::deserializeStairs);
+        registerDeserializer(SULFUR_STAIRS, LegacyBlockSerializer::deserializeStairs);
 
         registerDeserializer(CHEST, LegacyBlockSerializer::deserializeCardinalDirection);
         registerDeserializer(TRAPPED_CHEST, LegacyBlockSerializer::deserializeCardinalDirection);
@@ -1131,6 +1157,12 @@ public final class LegacyBlockSerializer {
         registerDeserializer(POLISHED_TUFF_WALL, LegacyBlockSerializer::deserializeWall);
         registerDeserializer(TUFF_BRICK_WALL, LegacyBlockSerializer::deserializeWall);
         registerDeserializer(RESIN_BRICK_WALL, LegacyBlockSerializer::deserializeWall);
+        registerDeserializer(CINNABAR_BRICK_WALL, LegacyBlockSerializer::deserializeWall);
+        registerDeserializer(CINNABAR_WALL, LegacyBlockSerializer::deserializeWall);
+        registerDeserializer(POLISHED_CINNABAR_WALL, LegacyBlockSerializer::deserializeWall);
+        registerDeserializer(POLISHED_SULFUR_WALL, LegacyBlockSerializer::deserializeWall);
+        registerDeserializer(SULFUR_BRICK_WALL, LegacyBlockSerializer::deserializeWall);
+        registerDeserializer(SULFUR_WALL, LegacyBlockSerializer::deserializeWall);
         registerDeserializer(BORDER_BLOCK, LegacyBlockSerializer::deserializeWall);
 
         registerDeserializer(COBBLESTONE_WALL, LegacyBlockSerializer::deserializeWall);
@@ -1495,28 +1527,8 @@ public final class LegacyBlockSerializer {
         registerDeserializer(WAXED_WEATHERED_COPPER_CHAIN, LegacyBlockSerializer::deserializePillarAxis);
         registerDeserializer(WAXED_OXIDIZED_COPPER_CHAIN, LegacyBlockSerializer::deserializePillarAxis);
 
-        registerDeserializer(POINTED_DRIPSTONE, states -> {
-            int meta = states.getBoolean(HANGING) ? 0b1000 : 0;
-            String thickness = states.getString(DRIPSTONE_THICKNESS);
-            switch (thickness) {
-                default:
-                case DRIPSTONE_THICKNESS_TIP:
-                    break;
-                case DRIPSTONE_THICKNESS_FRUSTUM:
-                    meta |= 0b1;
-                    break;
-                case DRIPSTONE_THICKNESS_MIDDLE:
-                    meta |= 0b10;
-                    break;
-                case DRIPSTONE_THICKNESS_BASE:
-                    meta |= 0b11;
-                    break;
-                case DRIPSTONE_THICKNESS_MERGE:
-                    meta |= 0b100;
-                    break;
-            }
-            return meta;
-        });
+        registerDeserializer(POINTED_DRIPSTONE, LegacyBlockSerializer::deserializeSpike);
+        registerDeserializer(SULFUR_SPIKE, LegacyBlockSerializer::deserializeSpike);
 
         if (V1_21_111.isAvailable()) {
             registerDeserializer(LIGHTNING_ROD, LegacyBlockSerializer::deserializeLightningRod);
@@ -1809,6 +1821,21 @@ public final class LegacyBlockSerializer {
         registerDeserializer(BAMBOO_SHELF, LegacyBlockSerializer::deserializeShelf);
         registerDeserializer(CHERRY_SHELF, LegacyBlockSerializer::deserializeShelf);
         registerDeserializer(PALE_OAK_SHELF, LegacyBlockSerializer::deserializeShelf);
+
+        registerDeserializer(POTENT_SULFUR, states -> {
+            String state = states.getString(POTENT_SULFUR_STATE);
+            switch (state) {
+                default:
+                case POTENT_SULFUR_STATE_DRY:
+                    return BlockSulfurPotent.DRY;
+                case POTENT_SULFUR_STATE_WET:
+                    return BlockSulfurPotent.WET;
+                case POTENT_SULFUR_STATE_DORMANT:
+                    return BlockSulfurPotent.DORMANT;
+                case POTENT_SULFUR_STATE_ERUPTING:
+                    return BlockSulfurPotent.ERUPTING;
+            }
+        });
 
         registerDeserializer(CHALKBOARD, states -> states.getInt(DIRECTION) & 0b1111);
 
@@ -2398,6 +2425,29 @@ public final class LegacyBlockSerializer {
 
     private static int deserializeQuarter(CompoundTag states) {
         return states.getInt(GROWTH) & 0b111 | deserializeCardinalDirection(states) << 3;
+    }
+
+    private static int deserializeSpike(CompoundTag states) {
+        int meta = states.getBoolean(HANGING) ? 0b1000 : 0;
+        String thickness = states.getString(DRIPSTONE_THICKNESS);
+        switch (thickness) {
+            default:
+            case DRIPSTONE_THICKNESS_TIP:
+                break;
+            case DRIPSTONE_THICKNESS_FRUSTUM:
+                meta |= 0b1;
+                break;
+            case DRIPSTONE_THICKNESS_MIDDLE:
+                meta |= 0b10;
+                break;
+            case DRIPSTONE_THICKNESS_BASE:
+                meta |= 0b11;
+                break;
+            case DRIPSTONE_THICKNESS_MERGE:
+                meta |= 0b100;
+                break;
+        }
+        return meta;
     }
 
     public static void initialize() {

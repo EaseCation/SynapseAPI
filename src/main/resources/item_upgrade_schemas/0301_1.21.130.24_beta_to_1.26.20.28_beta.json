@@ -1,0 +1,10 @@
+{
+    "remappedMetas": {
+        "minecraft:bucket": {
+            "14": "minecraft:sulfur_cube_bucket"
+        },
+        "minecraft:spawn_egg": {
+            "153": "minecraft:sulfur_cube_spawn_egg"
+        }
+    }
+}

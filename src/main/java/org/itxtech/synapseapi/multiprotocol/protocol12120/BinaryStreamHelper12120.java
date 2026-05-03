@@ -7,12 +7,10 @@ import cn.nukkit.network.protocol.types.ItemStackRequestAction;
 import cn.nukkit.network.protocol.types.ItemStackResponseContainerInfo;
 import cn.nukkit.network.protocol.types.ItemStackResponseSlotInfo;
 import cn.nukkit.utils.BinaryStream;
-import lombok.extern.log4j.Log4j2;
 import org.itxtech.synapseapi.multiprotocol.common.inventory.request.action.*;
 import org.itxtech.synapseapi.multiprotocol.protocol11810.protocol.ItemStackRequestPacket11810;
 import org.itxtech.synapseapi.multiprotocol.protocol1212.BinaryStreamHelper1212;
 
-@Log4j2
 public class BinaryStreamHelper12120 extends BinaryStreamHelper1212 {
     public static BinaryStreamHelper12120 create() {
         return new BinaryStreamHelper12120();

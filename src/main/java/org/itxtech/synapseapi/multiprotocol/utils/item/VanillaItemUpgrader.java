@@ -211,6 +211,7 @@ public final class VanillaItemUpgrader {
         addSchema("0271_1.21.93_to_1.21.100.23_beta.json", V1_21_100);
         addSchema("0281_1.21.100.23_beta_to_1.21.110.25_beta.json", V1_21_111);
         addSchema("0291_1.21.110.25_beta_to_1.21.130.24_beta.json", V1_21_130);
+        addSchema("0301_1.21.130.24_beta_to_1.26.20.28_beta.json", V1_26_20);
         ItemUpgrader.setUpgrader(VanillaItemUpgrader::upgrade);
     }
 

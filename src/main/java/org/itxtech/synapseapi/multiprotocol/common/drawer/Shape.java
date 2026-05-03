@@ -2,6 +2,7 @@ package org.itxtech.synapseapi.multiprotocol.common.drawer;
 
 import cn.nukkit.math.Vector3f;
 import lombok.ToString;
+import org.itxtech.synapseapi.multiprotocol.AbstractProtocol;
 import org.itxtech.synapseapi.multiprotocol.protocol12190.protocol.ServerScriptDebugDrawerPacket12190.Entry;
 import org.itxtech.synapseapi.multiprotocol.protocol12190.protocol.ServerScriptDebugDrawerPacket12190.Type;
 
@@ -37,6 +38,12 @@ public abstract class Shape {
      */
     public float totalTimeLeft;
     /**
+     * If defined, this distance will be used to determine how far away this primitive will be rendered for each client.
+     * By default the distance will match the client's render distance setting.
+     * @since 1.26.20
+     */
+    public Float maximumRenderDistance;
+    /**
      * The color of the shape.
      */
     public Color color;
@@ -51,7 +58,7 @@ public abstract class Shape {
         this.location = location;
     }
 
-    public final Entry createPacketEntry(int dimension) {
+    public final Entry createPacketEntry(int dimension, AbstractProtocol protocol) {
         Entry entry = new Entry();
         entry.id = id;
         entry.dimension = dimension;
@@ -64,13 +71,16 @@ public abstract class Shape {
         } else {
             entry.totalTimeLeft = Float.MAX_VALUE;
         }
-        entry.color = color.getRGB();
+        entry.maximumRenderDistance = maximumRenderDistance;
+        if (color != null) {
+            entry.color = color.getRGB();
+        }
         entry.attachedEntityRuntimeId = attachedEntityRuntimeId;
-        addAdditionalData(entry);
+        addAdditionalData(entry, protocol);
         return entry;
     }
 
-    protected void addAdditionalData(Entry entry) {
+    protected void addAdditionalData(Entry entry, AbstractProtocol protocol) {
     }
 
     public abstract Type getType();

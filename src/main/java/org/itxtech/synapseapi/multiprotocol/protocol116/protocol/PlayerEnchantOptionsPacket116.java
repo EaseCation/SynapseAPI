@@ -60,13 +60,13 @@ public class PlayerEnchantOptionsPacket116 extends Packet116 {
     @RequiredArgsConstructor
     @Data
     public static class EnchantOption {
-        final int cost;
-        final int slotFlags;
-        final Enchant[] equipActivatedEnchantments;
-        final Enchant[] heldActivatedEnchantments;
-        final Enchant[] selfActivatedEnchantments;
-        final String name;
-        int optionId;
+        public final int cost;
+        public final int slotFlags;
+        public final Enchant[] equipActivatedEnchantments;
+        public final Enchant[] heldActivatedEnchantments;
+        public final Enchant[] selfActivatedEnchantments;
+        public final String name;
+        public int optionId;
 
         public EnchantOption(int cost, Enchant[] enchantments) {
             this(cost, enchantments, "");
@@ -81,7 +81,7 @@ public class PlayerEnchantOptionsPacket116 extends Packet116 {
     public static class Enchant {
         public static final Enchant[] EMPTY_ENCHANTS = new Enchant[0];
 
-        int id;
-        int level;
+        public int id;
+        public int level;
     }
 }

@@ -241,6 +241,10 @@ public class DataFlagTranslator {
 
     public static final int FLAG_121130_BODY_ROTATION_LOCKED_TO_VEHICLE = 126;
 
+	public static final int FLAG_12620_USES_LEGACY_FRICTION = 127;
+	public static final int FLAG_12620_USES_UNIFORM_AIR_DRAG = 128;
+	public static final int FLAG_12620_NAMEPLATE_DEPTH_TESTED = 129;
+
 	public static final int[] COUNT = Utils.make(() -> {
 		int[] versions = new int[AbstractProtocol.getValues().length];
 		Arrays.fill(versions, 120);
@@ -256,6 +260,7 @@ public class DataFlagTranslator {
         versions[AbstractProtocol.PROTOCOL_121_130.ordinal()] = 127;
 		versions[AbstractProtocol.PROTOCOL_126.ordinal()] = 127;
 		versions[AbstractProtocol.PROTOCOL_126_10.ordinal()] = 127;
+		versions[AbstractProtocol.PROTOCOL_126_20.ordinal()] = 130;
 
         for (AbstractProtocol protocol : AbstractProtocol.getValues()) {
             if (protocol.ordinal() < AbstractProtocol.PROTOCOL_121_70.ordinal()) {
@@ -542,6 +547,11 @@ public class DataFlagTranslator {
 
 		// 1.21.130
         v12ToV11950Book[Entity.DATA_FLAG_BODY_ROTATION_LOCKED_TO_VEHICLE] = FLAG_121130_BODY_ROTATION_LOCKED_TO_VEHICLE;
+
+		// 1.26.20
+		v12ToV11950Book[Entity.DATA_FLAG_USES_LEGACY_FRICTION] = FLAG_12620_USES_LEGACY_FRICTION;
+		v12ToV11950Book[Entity.DATA_FLAG_USES_UNIFORM_AIR_DRAG] = FLAG_12620_USES_UNIFORM_AIR_DRAG;
+		v12ToV11950Book[Entity.DATA_FLAG_NAMEPLATE_DEPTH_TESTED] = FLAG_12620_NAMEPLATE_DEPTH_TESTED;
 	}
 
 	public static int translateTo14Id(int v12Id) {
@@ -609,5 +619,106 @@ public class DataFlagTranslator {
 
 	public static long[] translate11950(long data, long data2) {
 		return translate2Flags(data, data2, DataFlagTranslator::translateTo11950Id);
+	}
+
+	private static long[] translate3Flags(long data, long data2, long data3, Int2IntFunction idTranslator) {
+		long flags1 = 0;
+		long flags2 = 0;
+		long flags3 = 0;
+		for (int i = 0; i < 64; i++) {
+			if ((data & 1L << i) != 0) {
+				int newId = idTranslator.applyAsInt(i);
+				if (newId >= 128) {
+					flags3 |= 1L << newId;
+				} else if (newId >= 64) {
+					flags2 |= 1L << newId;
+				} else if (newId != -1) {
+					flags1 |= 1L << newId;
+				}
+			}
+			if ((data2 & 1L << i) != 0) {
+				int newId = idTranslator.applyAsInt(1 << 6 | i);
+				if (newId >= 128) {
+					flags3 |= 1L << newId;
+				} else if (newId >= 64) {
+					flags2 |= 1L << newId;
+				} else if (newId != -1) {
+					flags1 |= 1L << newId;
+				}
+			}
+			if ((data3 & 1L << i) != 0) {
+				int newId = idTranslator.applyAsInt(1 << 7 | i);
+				if (newId >= 128) {
+					flags3 |= 1L << newId;
+				} else if (newId >= 64) {
+					flags2 |= 1L << newId;
+				} else if (newId != -1) {
+					flags1 |= 1L << newId;
+				}
+			}
+		}
+		return new long[]{flags1, flags2, flags3};
+	}
+
+	public static long[] translate12620(long data, long data2, long data3) {
+		return translate3Flags(data, data2, data3, DataFlagTranslator::translateTo11950Id);
+	}
+
+	private static long[] translate4Flags(long data, long data2, long data3, long data4, Int2IntFunction idTranslator) {
+		long flags1 = 0;
+		long flags2 = 0;
+		long flags3 = 0;
+		long flags4 = 0;
+		for (int i = 0; i < 64; i++) {
+			if ((data & 1L << i) != 0) {
+				int newId = idTranslator.applyAsInt(i);
+				if (newId >= 192) {
+					flags4 |= 1L << newId;
+				} else if (newId >= 128) {
+					flags3 |= 1L << newId;
+				} else if (newId >= 64) {
+					flags2 |= 1L << newId;
+				} else if (newId != -1) {
+					flags1 |= 1L << newId;
+				}
+			}
+			if ((data2 & 1L << i) != 0) {
+				int newId = idTranslator.applyAsInt(1 << 6 | i);
+				if (newId >= 192) {
+					flags4 |= 1L << newId;
+				} else if (newId >= 128) {
+					flags3 |= 1L << newId;
+				} else if (newId >= 64) {
+					flags2 |= 1L << newId;
+				} else if (newId != -1) {
+					flags1 |= 1L << newId;
+				}
+			}
+			if ((data3 & 1L << i) != 0) {
+				int newId = idTranslator.applyAsInt(1 << 7 | i);
+				if (newId >= 192) {
+					flags4 |= 1L << newId;
+				} else if (newId >= 128) {
+					flags3 |= 1L << newId;
+				} else if (newId >= 64) {
+					flags2 |= 1L << newId;
+				} else if (newId != -1) {
+					flags1 |= 1L << newId;
+				}
+			}
+			if ((data4 & 1L << i) != 0) {
+				int newId = idTranslator.applyAsInt(192 + i);
+				if (newId >= 192) {
+					flags4 |= 1L << newId;
+				} else if (newId >= 128) {
+					flags3 |= 1L << newId;
+				} else if (newId >= 64) {
+					flags2 |= 1L << newId;
+				} else if (newId != -1) {
+					flags1 |= 1L << newId;
+				}
+			}
+		}
+		return new long[]{flags1, flags2, flags3, flags4};
 	}
 }

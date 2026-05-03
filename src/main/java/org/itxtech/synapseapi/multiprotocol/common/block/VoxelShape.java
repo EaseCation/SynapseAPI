@@ -1,14 +1,12 @@
 package org.itxtech.synapseapi.multiprotocol.common.block;
 
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.NoArgsConstructor;
-import lombok.ToString;
+import lombok.*;
 
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
 @ToString
+@EqualsAndHashCode
 public class VoxelShape {
     /**
      * Number of cells along the X axis.

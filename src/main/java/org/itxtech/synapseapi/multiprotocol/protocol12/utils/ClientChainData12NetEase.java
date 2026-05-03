@@ -265,7 +265,7 @@ public final class ClientChainData12NetEase implements LoginChainData {
         Map<String, ?> root = GSON.fromJson(new String(bs.get(bs.getLInt()), StandardCharsets.UTF_8),
                 new TypeToken<Map<String, ?>>() {
                 }.getType());
-        if (root.isEmpty()) {
+        if (root == null || root.isEmpty()) {
             return;
         }
         List<String> chains;
@@ -299,7 +299,7 @@ public final class ClientChainData12NetEase implements LoginChainData {
             }
             Map<String, List<String>> map = GSON.fromJson(cert, new TypeToken<Map<String, List<String>>>() {
             }.getType());
-            if (map.isEmpty() || (chains = map.get("chain")) == null || chains.isEmpty()) {
+            if (map == null || map.isEmpty() || (chains = map.get("chain")) == null || chains.isEmpty()) {
                 return;
             }
         } else {

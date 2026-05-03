@@ -1,10 +1,8 @@
 package org.itxtech.synapseapi.multiprotocol.protocol11980;
 
 import cn.nukkit.command.data.CommandParamType;
-import lombok.extern.log4j.Log4j2;
 import org.itxtech.synapseapi.multiprotocol.protocol11970.BinaryStreamHelper11970;
 
-@Log4j2
 public class BinaryStreamHelper11980 extends BinaryStreamHelper11970 {
     public static BinaryStreamHelper11980 create() {
         return new BinaryStreamHelper11980();

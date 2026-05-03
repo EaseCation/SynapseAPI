@@ -154,6 +154,9 @@ public class CraftingManagerLegacy extends CraftingManager {
 
         try {
             registerRecipe(new FurnaceRecipe(
+                    null,
+                    Integer.toUnsignedString(RECIPE_COUNT, 36),
+                    0,
                     deserializeItem(entry.getAsJsonObject("output")),
                     deserializeItem(entry.getAsJsonObject("input")),
                     tag));
