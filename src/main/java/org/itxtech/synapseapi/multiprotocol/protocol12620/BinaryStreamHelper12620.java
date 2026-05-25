@@ -232,6 +232,10 @@ public class BinaryStreamHelper12620 extends BinaryStreamHelper12610 {
             return;
         }
 
+        if (item.getCount() > 64) {
+            throw new IllegalArgumentException("Item stack size must be less than or equal to 64");
+        }
+
         int id = item.getId();
         int meta = item.getDamage();
         boolean isBlock = id < 256 && id != Item.GLOW_STICK;

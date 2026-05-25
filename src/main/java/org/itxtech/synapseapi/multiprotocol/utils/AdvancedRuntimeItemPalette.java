@@ -90,6 +90,7 @@ public final class AdvancedRuntimeItemPalette {
         RuntimeItemPalette palette121130 = new RuntimeItemPalette(AbstractProtocol.PROTOCOL_121_130, "runtime_item_ids_121130.json");
         RuntimeItemPalette palette12610 = new RuntimeItemPalette(AbstractProtocol.PROTOCOL_126_10, "runtime_item_ids_12610.json");
         RuntimeItemPalette palette12620 = new RuntimeItemPalette(AbstractProtocol.PROTOCOL_126_20, "runtime_item_ids_12620.json");
+        RuntimeItemPalette palette12630 = new RuntimeItemPalette(AbstractProtocol.PROTOCOL_126_30, "runtime_item_ids_12630.json");
 
 /*
         register(AbstractProtocol.PROTOCOL_116_100, palette116100, null);
@@ -143,6 +144,7 @@ public final class AdvancedRuntimeItemPalette {
         register(AbstractProtocol.PROTOCOL_126, palette121130, null);
         register(AbstractProtocol.PROTOCOL_126_10, palette12610, null);
         register(AbstractProtocol.PROTOCOL_126_20, palette12620, null);
+        register(AbstractProtocol.PROTOCOL_126_30, palette12630, null);
 
         for (AbstractProtocol protocol : AbstractProtocol.getValues()) {
             if (protocol.getProtocolStart() < AbstractProtocol.PROTOCOL_116_100.getProtocolStart()) {

@@ -351,7 +351,7 @@ public class PlayerAuthInputPacket116220 extends Packet116220 implements Invento
                 itemData.clientInteractPrediction = this.getUnsignedVarInt() != 0;
             }
             if (protocol.getProtocolStart() >= AbstractProtocol.PROTOCOL_126_10.getProtocolStart()) {
-                itemData.clientCooldownState = this.getByte();
+                itemData.clientCooldownState = this.getByte() != 0;
             }
             this.useItemData = itemData;
         }

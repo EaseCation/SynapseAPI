@@ -21,6 +21,7 @@ import org.itxtech.synapseapi.multiprotocol.protocol11730.protocol.AnimateEntity
 import org.itxtech.synapseapi.multiprotocol.protocol11830.protocol.SpawnParticleEffectPacket11830;
 import org.itxtech.synapseapi.multiprotocol.protocol119.protocol.PlayerActionPacket119;
 import org.itxtech.synapseapi.multiprotocol.protocol11910.protocol.UpdateAbilitiesPacket11910;
+import org.itxtech.synapseapi.multiprotocol.protocol12040.protocol.BossEventPacket12040;
 import org.itxtech.synapseapi.multiprotocol.protocol12070.protocol.MobEffectPacket12070;
 import org.itxtech.synapseapi.multiprotocol.protocol12070.protocol.SetEntityMotionPacket12070;
 import org.itxtech.synapseapi.multiprotocol.protocol12080.protocol.UpdatePlayerGameTypePacket12080;
@@ -44,6 +45,8 @@ import org.itxtech.synapseapi.multiprotocol.protocol12610.protocol.CameraInstruc
 import org.itxtech.synapseapi.multiprotocol.protocol12620.protocol.PrimitiveShapesPacket12620;
 import org.itxtech.synapseapi.multiprotocol.protocol12620.protocol.EntityEventPacket12620;
 import org.itxtech.synapseapi.multiprotocol.protocol12620.protocol.LevelSoundEventPacketV312620;
+import org.itxtech.synapseapi.multiprotocol.protocol12630.protocol.LevelSoundEventPacketV312630;
+import org.itxtech.synapseapi.multiprotocol.protocol12630.protocol.MobArmorEquipmentPacket12630;
 import org.itxtech.synapseapi.multiprotocol.protocol14.protocol.PlayerActionPacket14;
 import org.itxtech.synapseapi.multiprotocol.protocol15.protocol.MoveEntityDeltaPacket15;
 import org.itxtech.synapseapi.multiprotocol.protocol18.protocol.SpawnParticleEffectPacket18;
@@ -159,6 +162,10 @@ public class DataPacketEidReplacer {
                     if (dp.eid == from) {
                         dp.eid = to;
                     }
+                } else if (packet instanceof MobArmorEquipmentPacket12630 dp) {
+                    if (dp.eid == from) {
+                        dp.eid = to;
+                    }
                 }
                 break;
             case ProtocolInfo.PLAYER_LIST_PACKET:
@@ -182,9 +189,22 @@ public class DataPacketEidReplacer {
                     if (dp.bossEid == from) {
                         dp.bossEid = to;
                     }
+                    if (dp.playerEid == from) {
+                        dp.playerEid = to;
+                    }
+                } else if (packet instanceof BossEventPacket12040 dp) {
+                    if (dp.bossEid == from) {
+                        dp.bossEid = to;
+                    }
+                    if (dp.playerEid == from) {
+                        dp.playerEid = to;
+                    }
                 } else if (packet instanceof BossEventPacket dp) {
                     if (dp.bossEid == from) {
                         dp.bossEid = to;
+                    }
+                    if (dp.playerEid == from) {
+                        dp.playerEid = to;
                     }
                 }
                 break;
@@ -443,7 +463,11 @@ public class DataPacketEidReplacer {
                 }
                 break;
             case ProtocolInfo.LEVEL_SOUND_EVENT_PACKET:
-                if (packet instanceof LevelSoundEventPacketV312620 dp) {
+                if (packet instanceof LevelSoundEventPacketV312630 dp) {
+                    if (dp.entityUniqueId == from) {
+                        dp.entityUniqueId = to;
+                    }
+                } else if (packet instanceof LevelSoundEventPacketV312620 dp) {
                     if (dp.entityUniqueId == from) {
                         dp.entityUniqueId = to;
                     }

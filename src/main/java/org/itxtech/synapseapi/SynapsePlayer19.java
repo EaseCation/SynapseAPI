@@ -132,7 +132,7 @@ public class SynapsePlayer19 extends SynapsePlayer18 {
 						break;
 					}
 
-					Block block = level.getBlock(lecternUpdatePacket.x, lecternUpdatePacket.y, lecternUpdatePacket.z);
+					Block block = level.getBlock(lecternUpdatePacket.x, lecternUpdatePacket.y, lecternUpdatePacket.z, false);
 					if (block.getId() != BlockID.LECTERN) {
 						break;
 					}
@@ -174,7 +174,7 @@ public class SynapsePlayer19 extends SynapsePlayer18 {
 						break;
 					}
 
-					Block block = level.getBlock(lecternUpdatePacket.x, lecternUpdatePacket.y, lecternUpdatePacket.z);
+					Block block = level.getBlock(lecternUpdatePacket.x, lecternUpdatePacket.y, lecternUpdatePacket.z, false);
 					if (block.getId() != BlockID.LECTERN) {
 						break;
 					}

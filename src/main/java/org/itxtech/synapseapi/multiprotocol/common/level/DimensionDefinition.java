@@ -22,7 +22,8 @@ public class DimensionDefinition {
     public static final int NETEASE_BUILTIN_DIMENSION_LAST = 20;
 
     /**
-     * -512-512
+     * -64~320
+     * @since 1.26.30
      */
     public static final DimensionDefinition[] BUILTIN_DIMENSIONS = Utils.make(() -> {
         DimensionDefinition[] netease = new DimensionDefinition[NETEASE_BUILTIN_DIMENSION_LAST - NETEASE_BUILTIN_DIMENSION_FIRST + 1];

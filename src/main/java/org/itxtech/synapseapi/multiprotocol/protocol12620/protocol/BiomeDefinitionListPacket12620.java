@@ -264,8 +264,8 @@ public class BiomeDefinitionListPacket12620 extends Packet12620 {
             }
 
             bs.putUnsignedVarInt(noiseGradientSurface.gradientBlocks.size());
-            for (Block block : noiseGradientSurface.gradientBlocks) {
-                this.putBlockNetId(block);
+            for (SerializedNoiseBlockSpecifier specifier : noiseGradientSurface.gradientBlocks) {
+                this.putBlockNetId(specifier.block);
             }
 
             bs.putString(noiseGradientSurface.noiseSeedString);

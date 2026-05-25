@@ -7,8 +7,10 @@ import cn.nukkit.utils.BinaryStream;
 import lombok.ToString;
 import org.itxtech.synapseapi.multiprotocol.AbstractProtocol;
 import org.itxtech.synapseapi.multiprotocol.common.Experiments;
+import org.itxtech.synapseapi.multiprotocol.common.ServerConfig;
 import org.itxtech.synapseapi.multiprotocol.utils.AdvancedGlobalBlockPalette;
 
+import javax.annotation.Nullable;
 import java.util.UUID;
 
 @ToString
@@ -141,7 +143,8 @@ public class StartGamePacket126 extends Packet126 {
      */
     public boolean blockNetworkIdsAreHashes;
     public boolean isSoundServerAuthoritative;
-    public boolean containServerJoinInformation;
+    @Nullable
+    public ServerConfig serverConfig;
 
     @Override
     public void decode() {
@@ -232,7 +235,16 @@ public class StartGamePacket126 extends Packet126 {
         this.putBoolean(this.clientSideGenerationEnabled);
         this.putBoolean(this.blockNetworkIdsAreHashes);
         this.putBoolean(this.isSoundServerAuthoritative);
-        this.putBoolean(this.containServerJoinInformation);
+        this.putOptional(this.serverConfig, (stream, server) -> {
+            stream.putOptional(server.gatheringConfig, (bs, gathering) -> {
+                bs.putString(gathering.experienceId.toString());
+                bs.putString(gathering.experienceName);
+                bs.putString(gathering.experienceWorldId.toString());
+                bs.putString(gathering.experienceWorldName);
+                bs.putString(gathering.creatorId);
+                bs.putString(gathering.storeId);
+            });
+        });
         this.putString(this.serverIdentifier);
         this.putString(this.worldIdentifier);
         this.putString(this.scenarioIdentifier);

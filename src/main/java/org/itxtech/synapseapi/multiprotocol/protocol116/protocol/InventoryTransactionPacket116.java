@@ -64,6 +64,7 @@ public class InventoryTransactionPacket116 extends Packet116 implements Inventor
      * Left click style attack of entity or elytra spin attack.
      */
     public static final int USE_ITEM_ON_ENTITY_ACTION_ATTACK = 1;
+    public static final int USE_ITEM_ON_ENTITY_ACTION_ITEM_INTERACT = 2;
 
 
     public static final int ACTION_MAGIC_SLOT_DROP_ITEM = 0;
@@ -179,7 +180,7 @@ public class InventoryTransactionPacket116 extends Packet116 implements Inventor
                     this.putUnsignedVarInt(useItemData.clientInteractPrediction ? 1 : 0);
                 }
                 if (protocol.getProtocolStart() >= AbstractProtocol.PROTOCOL_126_10.getProtocolStart()) {
-                    this.putByte(useItemData.clientCooldownState);
+                    this.putByte(useItemData.clientCooldownState ? 1 : 0);
                 }
                 break;
             case TYPE_USE_ITEM_ON_ENTITY:
@@ -272,7 +273,7 @@ public class InventoryTransactionPacket116 extends Packet116 implements Inventor
                     itemData.clientInteractPrediction = this.getUnsignedVarInt() != 0;
                 }
                 if (protocol.getProtocolStart() >= AbstractProtocol.PROTOCOL_126_10.getProtocolStart()) {
-                    itemData.clientCooldownState = this.getByte();
+                    itemData.clientCooldownState = this.getByte() != 0;
                 }
 
                 this.transactionData = itemData;

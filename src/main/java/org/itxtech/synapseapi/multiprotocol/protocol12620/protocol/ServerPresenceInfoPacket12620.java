@@ -2,6 +2,9 @@ package org.itxtech.synapseapi.multiprotocol.protocol12620.protocol;
 
 import cn.nukkit.network.protocol.ProtocolInfo;
 import lombok.ToString;
+import org.itxtech.synapseapi.multiprotocol.common.PresenceConfig;
+
+import javax.annotation.Nullable;
 
 /**
  * Sent by the server to provide PresenceConfiguration to the client.
@@ -10,14 +13,8 @@ import lombok.ToString;
 public class ServerPresenceInfoPacket12620 extends Packet12620 {
     public static final int NETWORK_ID = ProtocolInfo.SERVER_PRESENCE_INFO_PACKET;
 
-    /**
-     * The name of the experience.
-     */
-    public String experienceName;
-    /**
-     * The name of the world.
-     */
-    public String worldName;
+    @Nullable
+    public PresenceConfig config;
 
     @Override
     public int pid() {
@@ -31,7 +28,9 @@ public class ServerPresenceInfoPacket12620 extends Packet12620 {
     @Override
     public void encode() {
         reset();
-        putString(experienceName);
-        putString(worldName);
+        putOptional(config, (stream, config) -> {
+            putString(config.experienceName != null ? config.experienceName : " ");
+            putString(config.worldName != null ? config.worldName : " ");
+        });
     }
 }

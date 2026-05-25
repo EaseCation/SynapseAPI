@@ -324,7 +324,7 @@ public class SynapsePlayer113 extends SynapsePlayer112 {
 						face = useItemData.face;
 						int type = useItemData.actionType;
 
-						if (face == null && type != InventoryTransactionPacket116.USE_ITEM_ACTION_CLICK_AIR) {
+						if (face == null && type != InventoryTransactionPacket.USE_ITEM_ACTION_CLICK_AIR) {
 							break packetswitch;
 						}
 
@@ -376,6 +376,7 @@ public class SynapsePlayer113 extends SynapsePlayer112 {
 								block = target.getSide(face);
 
 								this.level.sendBlocks(new Player[]{this}, new Block[]{target, block}, UpdateBlockPacket.FLAG_ALL_PRIORITY);
+								this.level.sendBlocks(new Player[]{this}, new Block[]{level.getExtraBlock(target), level.getExtraBlock(block)}, UpdateBlockPacket.FLAG_ALL_PRIORITY, 1);
 
 								if (target instanceof BlockDoor) {
 									BlockDoor door = (BlockDoor) target;
@@ -422,6 +423,7 @@ public class SynapsePlayer113 extends SynapsePlayer112 {
 								if (blockVector.distanceSquared(this) < 10000) {
 									target = this.level.getBlock(blockVector.asVector3());
 									this.level.sendBlocks(new Player[]{this}, new Block[]{target}, UpdateBlockPacket.FLAG_ALL_PRIORITY);
+									this.level.sendBlocks(new Player[]{this}, new Block[]{level.getExtraBlock(target)}, UpdateBlockPacket.FLAG_ALL_PRIORITY, 1);
 
 									BlockEntity blockEntity = this.level.getBlockEntityIfLoaded(blockVector);
 									if (blockEntity instanceof BlockEntitySpawnable) {
@@ -623,7 +625,7 @@ public class SynapsePlayer113 extends SynapsePlayer112 {
 										//int ticksUsed = this.server.getTick() - this.startAction;
 										int ticksUsed = (int) (System.currentTimeMillis() - this.startActionTimestamp) / 50;
 
-										if (!item.onRelease(this, ticksUsed)) {
+										if (!item.onRelease(this, ticksUsed, releaseItemData.headRot)) {
 											this.inventory.sendContents(this);
 										}
 									} else {

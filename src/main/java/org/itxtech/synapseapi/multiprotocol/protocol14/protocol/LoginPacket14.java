@@ -47,6 +47,8 @@ public class LoginPacket14 extends Packet14 {
     public String platformOfflineId;
     public String platformOnlineId;
     public boolean editorMode;
+    public boolean editorCapable;
+    public int editorConnectionIntent;
     public boolean supportClientChunkGeneration;
     public int platformType;
     public int memoryTier;
@@ -54,6 +56,7 @@ public class LoginPacket14 extends Packet14 {
     public int graphicsMode;
     public String partyId;
     public boolean partyLeader;
+    public boolean filterProfanity;
     public String xuid;
     public String titleId;
     public String sandboxId;// = "RETAIL"
@@ -510,6 +513,21 @@ public class LoginPacket14 extends Packet14 {
         JsonNode isPartyLeaderNode = skinToken.get("IsPartyLeader");
         if (isPartyLeaderNode != null) {
             this.partyLeader = isPartyLeaderNode.asBoolean();
+        }
+
+        JsonNode filterProfanityNode = skinToken.get("FilterProfanity");
+        if (filterProfanityNode != null) {
+            this.filterProfanity = filterProfanityNode.asBoolean();
+        }
+
+        JsonNode clientIsEditorCapableNode = skinToken.get("ClientIsEditorCapable");
+        if (clientIsEditorCapableNode != null) {
+            this.editorCapable = clientIsEditorCapableNode.asBoolean();
+        }
+
+        JsonNode clientEditorConnectionIntentNode = skinToken.get("ClientEditorConnectionIntent");
+        if (clientEditorConnectionIntentNode != null) {
+            this.editorConnectionIntent = clientEditorConnectionIntentNode.asInt();
         }
 
         // NetEase only:

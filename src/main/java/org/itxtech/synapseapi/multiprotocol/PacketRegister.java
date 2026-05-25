@@ -86,6 +86,7 @@ import org.itxtech.synapseapi.multiprotocol.protocol120.protocol.UnlockedRecipes
 import org.itxtech.synapseapi.multiprotocol.protocol12010.protocol.AvailableCommandsPacket12010;
 import org.itxtech.synapseapi.multiprotocol.protocol12030.protocol.ResourcePacksInfoPacket12030;
 import org.itxtech.synapseapi.multiprotocol.protocol12030.protocol.StartGamePacket12030;
+import org.itxtech.synapseapi.multiprotocol.protocol12040.protocol.BossEventPacket12040;
 import org.itxtech.synapseapi.multiprotocol.protocol12040.protocol.DisconnectPacket12040;
 import org.itxtech.synapseapi.multiprotocol.protocol12050.protocol.PlayerToggleCrafterSlotRequestPacket12050;
 import org.itxtech.synapseapi.multiprotocol.protocol12050.protocol.SetPlayerInventoryOptionsPacket12050;
@@ -124,6 +125,7 @@ import org.itxtech.synapseapi.multiprotocol.protocol12190.protocol.StartGamePack
 import org.itxtech.synapseapi.multiprotocol.protocol126.protocol.*;
 import org.itxtech.synapseapi.multiprotocol.protocol12610.protocol.*;
 import org.itxtech.synapseapi.multiprotocol.protocol12620.protocol.*;
+import org.itxtech.synapseapi.multiprotocol.protocol12630.protocol.*;
 import org.itxtech.synapseapi.multiprotocol.protocol15.protocol.*;
 import org.itxtech.synapseapi.multiprotocol.protocol14.protocol.*;
 import org.itxtech.synapseapi.multiprotocol.protocol16.protocol.*;
@@ -402,6 +404,7 @@ public class PacketRegister {
         registerPacket(AbstractProtocol.PROTOCOL_120_30, ProtocolInfo.START_GAME_PACKET, StartGamePacket12030.class);
 
         registerPacket(AbstractProtocol.PROTOCOL_120_40, ProtocolInfo.DISCONNECT_PACKET, DisconnectPacket12040.class);
+        registerPacket(AbstractProtocol.PROTOCOL_120_40, ProtocolInfo.BOSS_EVENT_PACKET, BossEventPacket12040.class);
 
         registerPacket(AbstractProtocol.PROTOCOL_120_50, ProtocolInfo.PLAYER_TOGGLE_CRAFTER_SLOT_REQUEST_PACKET, PlayerToggleCrafterSlotRequestPacket12050.class);
         registerPacket(AbstractProtocol.PROTOCOL_120_50, ProtocolInfo.SET_PLAYER_INVENTORY_OPTIONS_PACKET, SetPlayerInventoryOptionsPacket12050.class);
@@ -498,6 +501,7 @@ public class PacketRegister {
         registerPacket(AbstractProtocol.PROTOCOL_126_10, ProtocolInfo.SERVERBOUND_DATA_DRIVEN_SCREEN_CLOSED_PACKET, ServerboundDataDrivenScreenClosedPacket12610.class);
         registerPacket(AbstractProtocol.PROTOCOL_126_10, ProtocolInfo.PARTY_CHANGED_PACKET, PartyChangedPacket12610.class);
 
+        registerPacket(AbstractProtocol.PROTOCOL_126_20, ProtocolInfo.START_GAME_PACKET, StartGamePacket12620.class);
         registerPacket(AbstractProtocol.PROTOCOL_126_20, ProtocolInfo.DISCONNECT_PACKET, DisconnectPacket12620.class);
         registerPacket(AbstractProtocol.PROTOCOL_126_20, ProtocolInfo.CRAFTING_DATA_PACKET, CraftingDataPacket12620.class);
         registerPacket(AbstractProtocol.PROTOCOL_126_20, ProtocolInfo.INVENTORY_SLOT_PACKET, InventorySlotPacket12620.class);
@@ -508,6 +512,18 @@ public class PacketRegister {
         registerPacket(AbstractProtocol.PROTOCOL_126_20, ProtocolInfo.CLIENT_MOVEMENT_PREDICTION_SYNC_PACKET, ClientMovementPredictionSyncPacket12620.class);
         registerPacket(AbstractProtocol.PROTOCOL_126_20, ProtocolInfo.SERVERBOUND_DIAGNOSTICS_PACKET, ServerboundDiagnosticsPacket12620.class);
         registerPacket(AbstractProtocol.PROTOCOL_126_20, ProtocolInfo.PARTY_CHANGED_PACKET, PartyChangedPacket12620.class);
+
+        registerPacket(AbstractProtocol.PROTOCOL_126_30, ProtocolInfo.START_GAME_PACKET, StartGamePacket12630.class);
+        registerPacket(AbstractProtocol.PROTOCOL_126_30, ProtocolInfo.CLIENT_CACHE_BLOB_STATUS_PACKET, ClientCacheBlobStatusPacket12630.class);
+        registerPacket(AbstractProtocol.PROTOCOL_126_30, ProtocolInfo.SUB_CHUNK_REQUEST_PACKET, SubChunkRequestPacket12630.class);
+        registerPacket(AbstractProtocol.PROTOCOL_126_30, ProtocolInfo.INVENTORY_TRANSACTION_PACKET, InventoryTransactionPacket12630.class);
+        registerPacket(AbstractProtocol.PROTOCOL_126_30, ProtocolInfo.INVENTORY_CONTENT_PACKET, InventoryContentPacket12630.class);
+        registerPacket(AbstractProtocol.PROTOCOL_126_30, ProtocolInfo.MOB_ARMOR_EQUIPMENT_PACKET, MobArmorEquipmentPacket12630.class);
+        registerPacket(AbstractProtocol.PROTOCOL_126_30, ProtocolInfo.LEVEL_SOUND_EVENT_PACKET_V3, LevelSoundEventPacketV312630.class);
+        registerPacket(AbstractProtocol.PROTOCOL_126_30, ProtocolInfo.BOSS_EVENT_PACKET, BossEventPacket12630.class);
+        registerPacket(AbstractProtocol.PROTOCOL_126_30, ProtocolInfo.COMMAND_BLOCK_UPDATE_PACKET, CommandBlockUpdatePacket12630.class);
+        registerPacket(AbstractProtocol.PROTOCOL_126_30, ProtocolInfo.SERVERBOUND_DIAGNOSTICS_PACKET, ServerboundDiagnosticsPacket12630.class);
+        registerPacket(AbstractProtocol.PROTOCOL_126_30, ProtocolInfo.PARTY_DESTINATION_COOKIE_RESPONSE_PACKET, PartyDestinationCookieResponsePacket12630.class);
 
         checkNeteaseSpecialExtend();
     }

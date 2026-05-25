@@ -89,7 +89,7 @@ public class SynapsePlayer116 extends SynapsePlayer113 {
 	protected boolean serverAuthoritativeBlockBreaking = SERVER_AUTHORITATIVE_BLOCK_BREAKING;
 	protected BlockFace breakingBlockFace;
 
-	private int currentTickAttackPacketCount = 0;
+	protected int currentTickAttackPacketCount;
 
 	private boolean emotedCurrentTick;
 
@@ -451,6 +451,7 @@ public class SynapsePlayer116 extends SynapsePlayer113 {
 								Block block0 = target.getSide(face);
 
 								this.level.sendBlocks(new Player[]{this}, new Block[]{target, block0}, UpdateBlockPacket.FLAG_ALL_PRIORITY);
+								this.level.sendBlocks(new Player[]{this}, new Block[]{level.getExtraBlock(target), level.getExtraBlock(block0)}, UpdateBlockPacket.FLAG_ALL_PRIORITY, 1);
 
 								if (target instanceof BlockDoor) {
 									BlockDoor door = (BlockDoor) target;
@@ -497,6 +498,7 @@ public class SynapsePlayer116 extends SynapsePlayer113 {
 								if (blockVector.distanceSquared(this) < 10000) {
 									target = this.level.getBlock(blockVector.asVector3());
 									this.level.sendBlocks(new Player[]{this}, new Block[]{target}, UpdateBlockPacket.FLAG_ALL_PRIORITY);
+									this.level.sendBlocks(new Player[]{this}, new Block[]{level.getExtraBlock(target)}, UpdateBlockPacket.FLAG_ALL_PRIORITY, 1);
 
 									BlockEntity blockEntity = this.level.getBlockEntityIfLoaded(blockVector);
 									if (blockEntity instanceof BlockEntitySpawnable) {
@@ -711,7 +713,7 @@ public class SynapsePlayer116 extends SynapsePlayer113 {
 										//int ticksUsed = this.server.getTick() - this.startAction;
 										int ticksUsed = (int) (System.currentTimeMillis() - this.startActionTimestamp) / 50;
 
-										if (!item.onRelease(this, ticksUsed)) {
+										if (!item.onRelease(this, ticksUsed, releaseItemData.headRot)) {
 											this.inventory.sendContents(this);
 										}
 									} else {
@@ -1468,6 +1470,7 @@ public class SynapsePlayer116 extends SynapsePlayer113 {
 								block = target.getSide(face);
 
 								this.level.sendBlocks(new Player[]{this}, new Block[]{target, block}, UpdateBlockPacket.FLAG_ALL_PRIORITY);
+								this.level.sendBlocks(new Player[]{this}, new Block[]{level.getExtraBlock(target), level.getExtraBlock(block)}, UpdateBlockPacket.FLAG_ALL_PRIORITY, 1);
 
 								if (target.isDoor()) {
 									BlockDoor door = (BlockDoor) target;
@@ -1511,6 +1514,7 @@ public class SynapsePlayer116 extends SynapsePlayer113 {
 								if (blockVector.distanceSquared(this) < 10000) {
 									target = this.level.getBlock(blockVector.asVector3());
 									this.level.sendBlocks(new Player[]{this}, new Block[]{target}, UpdateBlockPacket.FLAG_ALL_PRIORITY);
+									this.level.sendBlocks(new Player[]{this}, new Block[]{level.getExtraBlock(target)}, UpdateBlockPacket.FLAG_ALL_PRIORITY, 1);
 
 									BlockEntity blockEntity = this.level.getBlockEntityIfLoaded(blockVector);
 									if (blockEntity instanceof BlockEntitySpawnable) {

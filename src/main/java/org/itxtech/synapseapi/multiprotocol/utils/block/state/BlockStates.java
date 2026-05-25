@@ -199,6 +199,13 @@ public final class BlockStates {
             MINECRAFT_FACING_DIRECTION_WEST,
             MINECRAFT_FACING_DIRECTION_EAST));
     public static final IntegerBlockState MINECRAFT_MULTI_BLOCK_PART = register(new IntegerBlockState(BlockStateNames.MINECRAFT_MULTI_BLOCK_PART, MAX_MINECRAFT_MULTI_BLOCK_PART + 1));
+    public static final StringBlockState MINECRAFT_SIXTEEN_WAY_ROTATION = register(new StringBlockState(BlockStateNames.MINECRAFT_SIXTEEN_WAY_ROTATION,
+            MINECRAFT_SIXTEEN_WAY_ROTATION_DOWN,
+            MINECRAFT_SIXTEEN_WAY_ROTATION_UP,
+            MINECRAFT_SIXTEEN_WAY_ROTATION_NORTH,
+            MINECRAFT_SIXTEEN_WAY_ROTATION_SOUTH,
+            MINECRAFT_SIXTEEN_WAY_ROTATION_WEST,
+            MINECRAFT_SIXTEEN_WAY_ROTATION_EAST));
     public static final StringBlockState MINECRAFT_VERTICAL_HALF = register(new StringBlockState(BlockStateNames.MINECRAFT_VERTICAL_HALF,
             MINECRAFT_VERTICAL_HALF_BOTTOM,
             MINECRAFT_VERTICAL_HALF_TOP));
@@ -276,7 +283,8 @@ public final class BlockStates {
             POTENT_SULFUR_STATE_DRY,
             POTENT_SULFUR_STATE_WET,
             POTENT_SULFUR_STATE_DORMANT,
-            POTENT_SULFUR_STATE_ERUPTING));
+            POTENT_SULFUR_STATE_ERUPTING,
+            POTENT_SULFUR_STATE_CONTINUOUS));
     public static final BooleanBlockState POWERED_BIT = register(new BooleanBlockState(BlockStateNames.POWERED_BIT));
     public static final IntegerBlockState POWERED_SHELF_TYPE = register(new IntegerBlockState(BlockStateNames.POWERED_SHELF_TYPE, MAX_POWERED_SHELF_TYPE + 1));
     public static final StringBlockState PRISMARINE_BLOCK_TYPE = register(new StringBlockState(BlockStateNames.PRISMARINE_BLOCK_TYPE,

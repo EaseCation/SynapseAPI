@@ -24,4 +24,12 @@ public class EnvironmentAttribute {
     public int currentTransitionTicks;
     public int totalTransitionTicks;
     public EasingType easing;
+    /**
+     * @since 1.26.30
+     */
+    public int localTransitionTicks;
+    /**
+     * @since 1.26.30
+     */
+    public boolean noiseTransition;
 }

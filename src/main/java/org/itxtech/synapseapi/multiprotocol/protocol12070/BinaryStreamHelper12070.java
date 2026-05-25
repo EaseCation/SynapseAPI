@@ -1,7 +1,14 @@
 package org.itxtech.synapseapi.multiprotocol.protocol12070;
 
 import cn.nukkit.command.data.CommandParamType;
+import cn.nukkit.level.GameRule;
+import cn.nukkit.level.GameRules;
+import cn.nukkit.level.GameRules.Value;
+import cn.nukkit.utils.BinaryStream;
 import org.itxtech.synapseapi.multiprotocol.protocol12060.BinaryStreamHelper12060;
+
+import java.util.List;
+import java.util.Map.Entry;
 
 public class BinaryStreamHelper12070 extends BinaryStreamHelper12060 {
     public static BinaryStreamHelper12070 create() {
@@ -55,5 +62,23 @@ public class BinaryStreamHelper12070 extends BinaryStreamHelper12060 {
         this.registerCommandParameterType(CommandParamType.FILE_PATH, ARG_TYPE_FILE_PATH);
         this.registerCommandParameterType(CommandParamType.INTEGER_RANGE, ARG_TYPE_INTEGER_RANGE);
         this.registerCommandParameterType(CommandParamType.BLOCK_STATES, ARG_TYPE_BLOCK_STATES);
+    }
+
+    @Override
+    public void putGameRules(BinaryStream stream, GameRules gameRules, boolean network) {
+        if (gameRules == null) {
+            stream.putUnsignedVarInt(0);
+            return;
+        }
+
+        List<Entry<GameRule, Value>> rules = gameRules.getGameRules().entrySet().stream()
+                .filter(entry -> entry.getKey().getProtocol() <= this.protocol.getProtocolStart())
+                .toList();
+        stream.putUnsignedVarInt(rules.size());
+        rules.forEach(entry -> {
+            stream.putString(protocol.getProtocolStart() < entry.getKey().getProtocolDeprecated() ? entry.getKey().getName() : entry.getKey().getBedrockName());
+            stream.putBoolean(false); // isEditable
+            entry.getValue().write(stream, network);
+        });
     }
 }

@@ -79,6 +79,7 @@ public class AwardAchievementPacket121 extends Packet121 {
     public static final int ACHIEVEMENT_STAY_HYDRATED = 114;
     public static final int ACHIEVEMENT_MOB_KABOB = 115;
     public static final int ACHIEVEMENT_ADVENTURING_TIME = 116;
+    public static final int ACHIEVEMENT_UH_OH = 117;
 
     public int achievement;
 

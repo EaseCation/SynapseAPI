@@ -39,7 +39,7 @@ public class ClientMovementPredictionSyncPacket12170 extends Packet12170 {
 
     @Override
     public void decode() {
-        entityDataFlags = getBitSet(DataFlagTranslator.COUNT[helper.getProtocol().ordinal()]);
+        entityDataFlags = getBitSet(DataFlagTranslator.getBitSetSize(helper.getProtocol().ordinal(), neteaseMode));
 
         scale = getLFloat();
         width = getLFloat();

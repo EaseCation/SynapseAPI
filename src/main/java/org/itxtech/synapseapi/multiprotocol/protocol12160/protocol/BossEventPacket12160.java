@@ -26,8 +26,17 @@ public class BossEventPacket12160 extends Packet12160 {
     public static final int TYPE_UPDATE_PROPERTIES = 6;
     /* S2C: Sets color and overlay of the bar. */
     public static final int TYPE_TEXTURE = 7;
+    /**
+     * @since 1.18.10
+     */
     /* C2S: Client asking the server to resend all boss data. */
     public static final int TYPE_QUERY = 8;
+
+    public static final int OVERLAY_PROGRESS = 0;
+    public static final int OVERLAY_NOTCHED_6 = 1;
+    public static final int OVERLAY_NOTCHED_10 = 2;
+    public static final int OVERLAY_NOTCHED_12 = 3;
+    public static final int OVERLAY_NOTCHED_20 = 4;
 
     public long bossEid;
     public int type;
@@ -37,7 +46,7 @@ public class BossEventPacket12160 extends Packet12160 {
     public String filteredTitle = "";
     public int darkenScreen;
     public BossBarColor color = BossBarColor.PINK;
-    public int overlay;
+    public int overlay = OVERLAY_PROGRESS;
 
     @Override
     public int pid() {
@@ -61,7 +70,7 @@ public class BossEventPacket12160 extends Packet12160 {
             case TYPE_UPDATE_PROPERTIES:
                 this.darkenScreen = this.getLShort();
             case TYPE_TEXTURE:
-                this.color = this.getBossBarColor();
+                this.color = BossBarColor.getValues()[(int) this.getUnsignedVarInt()];
                 this.overlay = (int) this.getUnsignedVarInt();
                 break;
             case TYPE_HEALTH_PERCENT:
@@ -92,7 +101,7 @@ public class BossEventPacket12160 extends Packet12160 {
             case TYPE_UPDATE_PROPERTIES:
                 this.putLShort(this.darkenScreen);
             case TYPE_TEXTURE:
-                this.putBossBarColor(this.color);
+                this.putUnsignedVarInt(this.color.ordinal());
                 this.putUnsignedVarInt(this.overlay);
                 break;
             case TYPE_HEALTH_PERCENT:

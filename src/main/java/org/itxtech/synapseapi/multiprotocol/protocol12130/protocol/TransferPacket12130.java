@@ -11,7 +11,7 @@ public class TransferPacket12130 extends Packet12130 {
 
     public String address;
     public int port = 19132;
-    public boolean reloadWorld = true;
+    public boolean reloadWorld;
 
     @Override
     public int pid() {

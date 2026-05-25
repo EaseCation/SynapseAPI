@@ -245,7 +245,7 @@ public class DataFlagTranslator {
 	public static final int FLAG_12620_USES_UNIFORM_AIR_DRAG = 128;
 	public static final int FLAG_12620_NAMEPLATE_DEPTH_TESTED = 129;
 
-	public static final int[] COUNT = Utils.make(() -> {
+	private static final int[] COUNT = Utils.make(() -> {
 		int[] versions = new int[AbstractProtocol.getValues().length];
 		Arrays.fill(versions, 120);
 		versions[AbstractProtocol.PROTOCOL_121_60.ordinal()] = 120;
@@ -261,6 +261,7 @@ public class DataFlagTranslator {
 		versions[AbstractProtocol.PROTOCOL_126.ordinal()] = 127;
 		versions[AbstractProtocol.PROTOCOL_126_10.ordinal()] = 127;
 		versions[AbstractProtocol.PROTOCOL_126_20.ordinal()] = 130;
+		versions[AbstractProtocol.PROTOCOL_126_30.ordinal()] = 130;
 
         for (AbstractProtocol protocol : AbstractProtocol.getValues()) {
             if (protocol.ordinal() < AbstractProtocol.PROTOCOL_121_70.ordinal()) {
@@ -273,6 +274,11 @@ public class DataFlagTranslator {
 
 		return versions;
 	});
+
+	public static int getBitSetSize(int protocolOrdinal, boolean netease) {
+		int count = COUNT[protocolOrdinal];
+		return count;
+	}
 
 	static {
 		Arrays.fill(v12ToV14Book, -1);
@@ -720,5 +726,8 @@ public class DataFlagTranslator {
 			}
 		}
 		return new long[]{flags1, flags2, flags3, flags4};
+	}
+
+	public static void init() {
 	}
 }

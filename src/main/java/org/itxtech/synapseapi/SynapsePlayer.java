@@ -587,6 +587,7 @@ public class SynapsePlayer extends Player {
             this.sendItemComponents();
             this.sendBiomeDefinitionList();
             this.sendAvailableEntityIdentifiers();
+            this.initializeWorldClocks();
             this.syncFeatureRegistry();
             this.sendCameraPresets();
         } else {
@@ -1824,5 +1825,8 @@ public class SynapsePlayer extends Player {
     }
 
     protected void sendVoxelShapes() {
+    }
+
+    protected void initializeWorldClocks() {
     }
 }

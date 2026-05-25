@@ -1,5 +1,6 @@
 package org.itxtech.synapseapi.multiprotocol.protocol12190.protocol;
 
+import cn.nukkit.math.Vector2f;
 import cn.nukkit.math.Vector3f;
 import cn.nukkit.network.protocol.ProtocolInfo;
 import cn.nukkit.utils.BinaryStream;
@@ -8,6 +9,7 @@ import lombok.Builder;
 import lombok.Builder.Default;
 import lombok.NoArgsConstructor;
 import lombok.ToString;
+import org.itxtech.synapseapi.multiprotocol.AbstractProtocol;
 
 /**
  * Used by Scripting to send new, removed or modified debug shapes information to the client to be used for rendering.
@@ -33,7 +35,11 @@ public class ServerScriptDebugDrawerPacket12190 extends Packet12190 {
         putUnsignedVarInt(entries.length);
         for (Entry entry : entries) {
             putUnsignedVarLong(entry.id);
-            putOptional(entry.type, (stream, type) -> stream.putByte(type.ordinal()));
+            Type type = entry.type;
+            if (type != null && helper.getProtocol().ordinal() < type.protocol.ordinal()) {
+                type = null;
+            }
+            putOptional(type, (stream, t) -> stream.putByte(t.ordinal()));
             putOptional(entry.location, BinaryStream::putVector3f);
             putOptional(entry.scale, BinaryStream::putLFloat);
             putOptional(entry.rotation, BinaryStream::putVector3f);
@@ -101,6 +107,30 @@ public class ServerScriptDebugDrawerPacket12190 extends Packet12190 {
         public Float arrowHeadLength;
         public Float arrowHeadRadius;
         public Byte numSegments;
+        /**
+         * @since 1.26.30
+         */
+        public float width;
+        /**
+         * @since 1.26.30
+         */
+        public Float depth;
+        /**
+         * @since 1.26.30
+         */
+        public float height;
+        /**
+         * @since 1.26.30
+         */
+        public Vector2f radii;
+        /**
+         * @since 1.26.30
+         */
+        public Vector2f radii2;
+        /**
+         * @since 1.26.30
+         */
+        public Vector3f radii3;
 
         public Entry(long id, int dimension) {
             this.id = id;
@@ -115,20 +145,42 @@ public class ServerScriptDebugDrawerPacket12190 extends Packet12190 {
         CIRCLE(5),
         TEXT(2),
         ARROW(1),
+        /**
+         * @since 1.26.30
+         */
+        CYLINDER(6, AbstractProtocol.PROTOCOL_126_30),
+        /**
+         * @since 1.26.30
+         */
+        PYRAMID(7, AbstractProtocol.PROTOCOL_126_30),
+        /**
+         * @since 1.26.30
+         */
+        ELLIPSOID(8, AbstractProtocol.PROTOCOL_126_30),
+        /**
+         * @since 1.26.30
+         */
+        CONE(9, AbstractProtocol.PROTOCOL_126_30),
         ;
 
         private final int payloadType;
+        private final AbstractProtocol protocol;
 
         Type(int payloadType) {
+            this(payloadType, AbstractProtocol.PROTOCOL_121_90);
+        }
+
+        Type(int payloadType, AbstractProtocol protocol) {
             this.payloadType = payloadType;
+            this.protocol = protocol;
         }
 
         public int getPayloadType() {
             return payloadType;
         }
 
-        public static int getPayloadType(Type type) {
-            return type == null ? 0 : type.getPayloadType();
+        public static int getPayloadType(Type type, int protocolOrdinal) {
+            return type == null || protocolOrdinal < type.protocol.ordinal() ? 0 : type.getPayloadType();
         }
     }
 }

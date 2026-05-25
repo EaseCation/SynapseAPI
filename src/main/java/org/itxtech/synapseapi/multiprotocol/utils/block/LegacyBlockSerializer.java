@@ -1834,6 +1834,8 @@ public final class LegacyBlockSerializer {
                     return BlockSulfurPotent.DORMANT;
                 case POTENT_SULFUR_STATE_ERUPTING:
                     return BlockSulfurPotent.ERUPTING;
+                case POTENT_SULFUR_STATE_CONTINUOUS:
+                    return BlockSulfurPotent.CONTINUOUS;
             }
         });
 

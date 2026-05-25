@@ -208,6 +208,7 @@ public class SynapseAPI extends PluginBase implements Listener {
         this.getMessenger().registerIncomingPluginChannel(this, "nettest", new NetTest(this));
         this.getMessenger().registerOutgoingPluginChannel(this, "nettest");
 
+        DataFlagTranslator.init();
         AdvancedGlobalBlockPalette.init();
         AdvancedRuntimeItemPalette.init();
         TagManager.registerVanillaTags();

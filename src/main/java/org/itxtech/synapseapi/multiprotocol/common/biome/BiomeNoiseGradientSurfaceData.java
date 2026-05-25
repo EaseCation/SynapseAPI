@@ -15,7 +15,7 @@ import java.util.Collection;
 @ToString
 public class BiomeNoiseGradientSurfaceData {
     public Collection<Block> nonReplaceableBlocks;
-    public Collection<Block> gradientBlocks;
+    public Collection<SerializedNoiseBlockSpecifier> gradientBlocks;
     public String noiseSeedString;
     public int firstOctave;
     public FloatList amplitudes;

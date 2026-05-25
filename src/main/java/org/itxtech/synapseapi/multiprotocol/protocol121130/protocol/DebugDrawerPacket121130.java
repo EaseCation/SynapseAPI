@@ -38,9 +38,8 @@ public class DebugDrawerPacket121130 extends Packet121130 {
             putOptional(entry.color, BinaryStream::putLInt);
             putOptional(entry.dimension, BinaryStream::putVarInt);
 
-            putUnsignedVarInt(Type.getPayloadType(entry.type));
+            putUnsignedVarInt(Type.getPayloadType(entry.type, helper.getProtocol().ordinal()));
             switch (entry.type) {
-                case null -> {}
                 case ARROW -> {
                     putOptional(entry.lineEndLocation, BinaryStream::putVector3f);
                     putOptional(entry.arrowHeadLength, BinaryStream::putLFloat);
@@ -51,6 +50,7 @@ public class DebugDrawerPacket121130 extends Packet121130 {
                 case BOX -> putVector3f(entry.boxBound);
                 case LINE -> putVector3f(entry.lineEndLocation);
                 case SPHERE, CIRCLE -> putByte(entry.numSegments);
+                case null, default -> {}
             }
         }
     }
