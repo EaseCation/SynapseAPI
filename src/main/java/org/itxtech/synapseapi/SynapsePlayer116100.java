@@ -2176,7 +2176,7 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
                                 return;
                             }
 
-                            if (this.isBreakingBlock()) {
+                            if (this.isBreakingBlock(pos)) {
                                 block = this.level.getBlock(pos, false);
                                 face = BlockFace.fromIndex(playerActionPacket.data);
                                 Vector3 blockCenter = pos.blockCenter();
@@ -3847,9 +3847,11 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
 
                                 Item oldItem = i.clone();
 
-                                if (isBreakingBlock()
+                                if (isBreakingBlock(blockVector)
                                         && this.canInteract(blockVector.add(0.5, 0.5, 0.5), this.isCreative() ? MAX_REACH_DISTANCE_CREATIVE : MAX_REACH_DISTANCE_SURVIVAL)
                                         && (i = this.level.useBreakOn(blockVector.asVector3(), face, i, this, true)) != null) {
+                                    this.breakingBlock = null;
+                                    this.breakingBlockFace = null;
                                     if (this.isSurvival()) {
                                         this.getFoodData().updateFoodExpLevel(0.005f);
                                         if (!i.equals(oldItem) || i.getCount() != oldItem.getCount()) {

@@ -536,7 +536,7 @@ public class SynapsePlayer14 extends SynapsePlayer {
 							return;
 						}
 
-						if (this.isBreakingBlock()) {
+						if (this.isBreakingBlock(pos)) {
 							block = this.level.getBlock(pos, false);
 							face = BlockFace.fromIndex(playerActionPacket.data);
 							Vector3 blockCenter = pos.blockCenter();
