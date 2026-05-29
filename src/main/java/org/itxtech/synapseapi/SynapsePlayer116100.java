@@ -3777,6 +3777,7 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
                                             blockPos = blockVector.asVector3();
                                         }
                                         Boolean clientPrediction = AbstractProtocol.PROTOCOL_121_20.isOlderThanOrEqual(protocol) ? useItemData.clientInteractPrediction : null;
+                                        clientPrediction = normalizeUseItemClientPrediction(clientPrediction);
                                         if (this.level.useItemOn(blockPos, i, face, clickPos.x, clickPos.y, clickPos.z, this, clientPrediction) != null) {
                                             break packetswitch;
                                         }
@@ -3791,6 +3792,7 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
                                             blockPos = blockVector.asVector3();
                                         }
                                         Boolean clientPrediction = AbstractProtocol.PROTOCOL_121_20.isOlderThanOrEqual(protocol) ? useItemData.clientInteractPrediction : null;
+                                        clientPrediction = normalizeUseItemClientPrediction(clientPrediction);
                                         clientPredictedFailure = clientPrediction != null && !clientPrediction;
                                         if ((i = this.level.useItemOn(blockPos, i, face, clickPos.x, clickPos.y, clickPos.z, this, clientPrediction)) != null) {
                                             if (!i.equals(oldItem) || i.getCount() != oldItem.getCount()) {

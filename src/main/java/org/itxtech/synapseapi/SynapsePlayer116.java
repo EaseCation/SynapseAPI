@@ -97,6 +97,13 @@ public class SynapsePlayer116 extends SynapsePlayer113 {
 		super(interfaz, synapseEntry, clientID, socketAddress);
 	}
 
+	protected Boolean normalizeUseItemClientPrediction(Boolean clientPrediction) {
+		if (this.isJavaClient() && Boolean.TRUE.equals(clientPrediction)) {
+			return null;
+		}
+		return clientPrediction;
+	}
+
 	@Override
 	protected DataPacket generateStartGamePacket(Position spawnPosition) {
 		StartGamePacket116 startGamePacket = new StartGamePacket116();
@@ -409,6 +416,7 @@ public class SynapsePlayer116 extends SynapsePlayer113 {
 											blockPos = blockVector.asVector3();
 										}
 										Boolean clientPrediction = AbstractProtocol.PROTOCOL_121_20.isOlderThanOrEqual(protocol) ? useItemData.clientInteractPrediction : null;
+										clientPrediction = normalizeUseItemClientPrediction(clientPrediction);
 										if (this.level.useItemOn(blockPos, i, face, clickPos.x, clickPos.y, clickPos.z, this, clientPrediction) != null) {
 											break packetswitch;
 										}
@@ -423,6 +431,7 @@ public class SynapsePlayer116 extends SynapsePlayer113 {
 											blockPos = blockVector.asVector3();
 										}
 										Boolean clientPrediction = AbstractProtocol.PROTOCOL_121_20.isOlderThanOrEqual(protocol) ? useItemData.clientInteractPrediction : null;
+										clientPrediction = normalizeUseItemClientPrediction(clientPrediction);
 										clientPredictedFailure = clientPrediction != null && !clientPrediction;
 										if ((i = this.level.useItemOn(blockPos, i, face, clickPos.x, clickPos.y, clickPos.z, this, clientPrediction)) != null) {
 											if (!i.equals(oldItem) || i.getCount() != oldItem.getCount()) {
@@ -1436,6 +1445,7 @@ public class SynapsePlayer116 extends SynapsePlayer113 {
 											blockPos = blockVector.asVector3();
 										}
 										Boolean clientPrediction = AbstractProtocol.PROTOCOL_121_20.isOlderThanOrEqual(protocol) ? useItemData.clientInteractPrediction : null;
+										clientPrediction = normalizeUseItemClientPrediction(clientPrediction);
 										if (this.level.useItemOn(blockPos, i, face, clickPos.x, clickPos.y, clickPos.z, this, clientPrediction) != null) {
 											break;
 										}
@@ -1450,6 +1460,7 @@ public class SynapsePlayer116 extends SynapsePlayer113 {
 											blockPos = blockVector.asVector3();
 										}
 										Boolean clientPrediction = AbstractProtocol.PROTOCOL_121_20.isOlderThanOrEqual(protocol) ? useItemData.clientInteractPrediction : null;
+										clientPrediction = normalizeUseItemClientPrediction(clientPrediction);
 										if ((i = this.level.useItemOn(blockPos, i, face, clickPos.x, clickPos.y, clickPos.z, this, clientPrediction)) != null) {
 											if (i.getId() != 10000) {  // Hack
 												if (!i.equals(oldItem) || i.getCount() != oldItem.getCount()) {
