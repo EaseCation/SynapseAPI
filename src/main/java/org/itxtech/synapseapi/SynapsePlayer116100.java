@@ -3750,7 +3750,10 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
                                         lastRightClickData.blockPos.equalsVec(blockVector) &&
                                         lastRightClickData.clickPos.distanceSquared(clickPos) < Mth.EPSILON && // signature spam bug has 0 distance, but allow some error
                                         Block.equals(lastRightClickData.block, useItemData.block) &&
-                                        lastRightClickData.clientInteractPrediction == useItemData.clientInteractPrediction;
+                                        lastRightClickData.clientInteractPrediction == useItemData.clientInteractPrediction &&
+                                        lastRightClickData.clientCooldownState == useItemData.clientCooldownState &&
+//                                        lastRightClickData.itemInHand.equals(useItemData.itemInHand) &&
+                                        lastRightClickData.hotbarSlot == useItemData.hotbarSlot;
                                 if (spamBug /*&& !(useItemData.itemInHand instanceof ItemBlock)*/) {
                                     return;
                                 }
@@ -5850,7 +5853,7 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
             DisconnectPacket12620 packet = new DisconnectPacket12620();
             packet.reason = reason;
             if (message != null) {
-                packet.message = message;
+                packet.message = !isNetEaseClient() ? TextFormat.clean(message) : message;
             } else {
                 packet.hideDisconnectionScreen = true;
             }
@@ -5862,7 +5865,7 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
             DisconnectPacket12120 packet = new DisconnectPacket12120();
             packet.reason = reason;
             if (message != null) {
-                packet.message = message;
+                packet.message = !isNetEaseClient() && AbstractProtocol.PROTOCOL_121_100.isOlderThanOrEqual(getProtocol()) ? TextFormat.clean(message) : message;
             } else {
                 packet.hideDisconnectionScreen = true;
             }

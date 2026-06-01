@@ -389,7 +389,10 @@ public class SynapsePlayer116 extends SynapsePlayer113 {
 										lastRightClickData.blockPos.equalsVec(blockVector) &&
 										lastRightClickData.clickPos.distanceSquared(clickPos) < Mth.EPSILON && // signature spam bug has 0 distance, but allow some error
 										Block.equals(lastRightClickData.block, useItemData.block) &&
-										lastRightClickData.clientInteractPrediction == useItemData.clientInteractPrediction;
+										lastRightClickData.clientInteractPrediction == useItemData.clientInteractPrediction &&
+										lastRightClickData.clientCooldownState == useItemData.clientCooldownState &&
+//                                        lastRightClickData.itemInHand.equals(useItemData.itemInHand) &&
+										lastRightClickData.hotbarSlot == useItemData.hotbarSlot;
 								if (spamBug /*&& !(useItemData.itemInHand instanceof ItemBlock)*/) {
 									return;
 								}
@@ -1422,7 +1425,10 @@ public class SynapsePlayer116 extends SynapsePlayer113 {
 										lastRightClickData.blockPos.equalsVec(blockVector) &&
 										lastRightClickData.clickPos.distanceSquared(clickPos) < Mth.EPSILON &&
 										Block.equals(lastRightClickData.block, useItemData.block) &&
-										lastRightClickData.clientInteractPrediction == useItemData.clientInteractPrediction;
+										lastRightClickData.clientInteractPrediction == useItemData.clientInteractPrediction &&
+										lastRightClickData.clientCooldownState == useItemData.clientCooldownState &&
+//                                        lastRightClickData.itemInHand.equals(useItemData.itemInHand) &&
+										lastRightClickData.hotbarSlot == useItemData.hotbarSlot;
 								lastRightClickData = useItemData;
 								lastRightClickTime = System.currentTimeMillis();
 								if (spamBug /*&& !(useItemData.itemInHand instanceof ItemBlock)*/) {

@@ -3,8 +3,9 @@ package org.itxtech.synapseapi.multiprotocol.protocol12120.protocol;
 import cn.nukkit.network.protocol.DataPacket;
 import cn.nukkit.network.protocol.DisconnectPacket;
 import cn.nukkit.network.protocol.ProtocolInfo;
+import cn.nukkit.utils.TextFormat;
 import lombok.ToString;
-import org.itxtech.synapseapi.utils.ClassUtils;
+import org.itxtech.synapseapi.multiprotocol.AbstractProtocol;
 
 @ToString
 public class DisconnectPacket12120 extends Packet12120 {
@@ -159,14 +160,11 @@ public class DisconnectPacket12120 extends Packet12120 {
     }
 
     @Override
-    public DataPacket fromDefault(DataPacket pk) {
-        ClassUtils.requireInstance(pk, DisconnectPacket.class);
+    public DataPacket fromDefault(DataPacket pk, AbstractProtocol protocol, boolean netease) {
         DisconnectPacket packet = (DisconnectPacket) pk;
-
         this.reason = packet.reason;
         this.hideDisconnectionScreen = packet.hideDisconnectionScreen;
-        this.message = packet.message;
-
+        this.message = !netease && protocol.isNewerThanOrEqual(AbstractProtocol.PROTOCOL_121_100) ? TextFormat.clean(packet.message) : packet.message;
         return this;
     }
 
