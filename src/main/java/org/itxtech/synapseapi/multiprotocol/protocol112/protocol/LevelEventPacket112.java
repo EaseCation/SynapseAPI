@@ -142,7 +142,7 @@ public class LevelEventPacket112 extends Packet112 {
         }
 
         if ((this.evid & EVENT_ADD_PARTICLE_MASK) == EVENT_ADD_PARTICLE_MASK) {
-            this.evid = (short) (EVENT_ADD_PARTICLE_MASK | ParticleIdTranslator.translateTo(protocol, this.evid ^ EVENT_ADD_PARTICLE_MASK));
+            this.evid = (short) (EVENT_ADD_PARTICLE_MASK | ParticleIdTranslator.translateTo(protocol, netease, this.evid ^ EVENT_ADD_PARTICLE_MASK));
         }
 
         return this;

@@ -811,68 +811,86 @@ public final class ParticleIdTranslator {
         v12ToV12070Book[Particle.SULFUR_CUBE] = V12620_SULFUR_CUBE;
     }
 
-    public static int translateTo112(int particleId) {
+    public static int translateTo112(int particleId, boolean netease) {
         if (particleId < 0 || particleId >= Particle.UNDEFINED) {
             return particleId;
         }
         int value = v12ToV112Book[particleId];
+        if (netease && value > TYPE_SNEEZE) {
+            value++; // insert CommonParticle 58
+        }
         return value != -1 ? value : particleId;
     }
 
-    public static int translateTo114(int particleId) {
+    public static int translateTo114(int particleId, boolean netease) {
         if (particleId < 0 || particleId >= Particle.UNDEFINED) {
             return particleId;
         }
         int value = v12ToV114Book[particleId];
+        if (netease && value > V114_SNEEZE) {
+            value++; // insert CommonParticle 59
+        }
         return value != -1 ? value : particleId;
     }
 
-    public static int translateTo116220(int particleId) {
+    public static int translateTo116220(int particleId, boolean netease) {
         if (particleId < 0 || particleId >= Particle.UNDEFINED) {
             return particleId;
         }
         int value = v12ToV116220Book[particleId];
+        if (netease && value > V116220_SNEEZE) {
+            value++; // insert CommonParticle 61
+        }
         return value != -1 ? value : particleId;
     }
 
-    public static int translateTo11710(int particleId) {
+    public static int translateTo11710(int particleId, boolean netease) {
         if (particleId < 0 || particleId >= Particle.UNDEFINED) {
             return particleId;
         }
         int value = v12ToV11710Book[particleId];
+        if (netease && value > V11710_SNEEZE) {
+            value++; // insert CommonParticle 62
+        }
         return value != -1 ? value : particleId;
     }
 
-    public static int translateTo12060(int particleId) {
+    public static int translateTo12060(int particleId, boolean netease) {
         if (particleId < 0 || particleId >= Particle.UNDEFINED) {
             return particleId;
         }
         int value = v12ToV12060Book[particleId];
+        if (netease && value > V12060_SNEEZE) {
+            value++; // insert CommonParticle 63
+        }
         return value != -1 ? value : particleId;
     }
 
-    public static int translateTo12070(int particleId) {
+    public static int translateTo12070(int particleId, boolean netease) {
         if (particleId < 0 || particleId >= Particle.UNDEFINED) {
             return particleId;
         }
         int value = v12ToV12070Book[particleId];
+        if (netease && value > V12060_SNEEZE) {
+            value++; // insert CommonParticle 63
+        }
         return value != -1 ? value : particleId;
     }
 
-    public static int translateTo(AbstractProtocol protocol, int particleId) {
+    public static int translateTo(AbstractProtocol protocol, boolean netease, int particleId) {
         int ver = protocol.getProtocolStart();
         if (ver >= AbstractProtocol.PROTOCOL_120_70.getProtocolStart()) {
-            return translateTo12070(particleId);
+            return translateTo12070(particleId, netease);
         } else if (ver >= AbstractProtocol.PROTOCOL_120_60.getProtocolStart()) {
-            return translateTo12060(particleId);
+            return translateTo12060(particleId, netease);
         } else if (ver >= AbstractProtocol.PROTOCOL_117_10.getProtocolStart()) {
-            return translateTo11710(particleId);
+            return translateTo11710(particleId, netease);
         } else if (ver >= AbstractProtocol.PROTOCOL_116_220.getProtocolStart()) {
-            return translateTo116220(particleId);
+            return translateTo116220(particleId, netease);
         } else if (ver >= AbstractProtocol.PROTOCOL_114.getProtocolStart()) {
-            return translateTo114(particleId);
+            return translateTo114(particleId, netease);
         } else if (ver >= AbstractProtocol.PROTOCOL_112.getProtocolStart()) {
-            return translateTo112(particleId);
+            return translateTo112(particleId, netease);
         }
         return particleId;
     }
