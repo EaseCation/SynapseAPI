@@ -5313,7 +5313,7 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
 
     @Override
     public boolean isNeedLevelChangeLoadScreen() {
-        return (this.isNetEaseClient() || getProtocol() >= AbstractProtocol.PROTOCOL_126_30.getProtocolStart() || this.isJavaClient()) && this.isSubChunkRequestAvailable() /*&& this.isBlobCacheAvailable()*/;
+        return (this.isNetEaseClient() || getProtocol() >= AbstractProtocol.PROTOCOL_126_30.getProtocolStart()/* || this.isJavaClient()*/) && this.isSubChunkRequestAvailable() /*&& this.isBlobCacheAvailable()*/;
     }
 
     @Override

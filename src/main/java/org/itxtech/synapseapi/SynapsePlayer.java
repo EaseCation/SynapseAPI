@@ -850,14 +850,13 @@ public class SynapsePlayer extends Player {
 
             preChangeDimensionScreen(true);
 
-            if (this.isNeedLevelChangeLoadScreen()) {
-                if (this.isJavaClient()) {
-                    // Java 客户端：保持真实维度，ViaBedrock 通过备用名称处理同维度切换
-                    transferDimension = this.getDummyDimension();
-                } else {
-                    if (!isLevelChanging) {
-                        transferDimension = this.nextDummyDimension();
-                    }
+            if (this.isJavaClient()) {
+                // Java/ViaBedrock does not need the Bedrock preload loading screen.
+                // Only pass the current dummy dimension to the target server for chunk streaming.
+                this.transferExtra.addProperty("dummyDimension", this.dummyDimension);
+            } else if (this.isNeedLevelChangeLoadScreen()) {
+                if (!isLevelChanging) {
+                    transferDimension = this.nextDummyDimension();
                 }
 
                 if (getProtocol() >= AbstractProtocol.PROTOCOL_121_20.getProtocolStart()) {
