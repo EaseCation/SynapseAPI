@@ -16,7 +16,9 @@ import cn.nukkit.event.server.DataPacketSendEvent;
 import cn.nukkit.item.Item;
 import cn.nukkit.item.ItemMap;
 import cn.nukkit.level.*;
+import cn.nukkit.math.AxisAlignedBB;
 import cn.nukkit.math.NukkitMath;
+import cn.nukkit.math.SimpleAxisAlignedBB;
 import cn.nukkit.math.Vector3;
 import cn.nukkit.nbt.tag.CompoundTag;
 import cn.nukkit.nbt.tag.DoubleTag;
@@ -152,6 +154,52 @@ public class SynapsePlayer extends Player {
         return loginChainData != null
                 && loginChainData.getViaProxyAuthToken() != null
                 && !loginChainData.getViaProxyAuthToken().isEmpty();
+    }
+
+    /**
+     * Java 客户端的 maybeBackOffFromEdge(adjustMovementForSneaking) 按 0.05 步进回退边缘，
+     * 使其潜行站在虚空边缘时玩家中心可比基岩多探出近 0.05（实测 ~0.044）。服务端信任客户端上报的
+     * playerPos、并用与基岩相同的 0.6 盒做"防止把方块放进玩家自身"判定时，身体侧的放置点会落在收缩盒
+     * 覆盖范围外而漏判，于是 Java 客户端能放出基岩放不出的方块。
+     * <p>
+     * 这里仅当 {@code Java 客户端 + 潜行 + 在地面 + 脚下 footprint 部分悬空（边缘探出）} 时补偿：
+     * 只朝"有支撑"的水平方向把判定盒外扩 {@link #JAVA_PLACEMENT_BOX_MARGIN}，绝不朝虚空/正前(悬空)侧扩。
+     * 这样既复刻基岩对身体侧放置的拒绝，又不影响向前延伸搭路与普通贴方块放置。其余情况沿用默认 -0.01。
+     */
+    public static double JAVA_PLACEMENT_BOX_MARGIN = 0.01D;
+    private static final double SUPPORT_PROBE_DEPTH = 0.06D; // 略大于探边步进，探脚下支撑
+
+    @Override
+    public AxisAlignedBB adjustPlacementSelfCollisionBox(AxisAlignedBB bb) {
+        if (this.isJavaClient() && this.isSneaking() && this.isOnGround()) {
+            boolean supXMin = supportedUnder(bb, -1, 0);
+            boolean supXMax = supportedUnder(bb, 1, 0);
+            boolean supZMin = supportedUnder(bb, 0, -1);
+            boolean supZMax = supportedUnder(bb, 0, 1);
+            boolean overhang = !(supXMin && supXMax && supZMin && supZMax); // 至少一侧悬空 = 边缘探出
+            if (overhang) {
+                double m = JAVA_PLACEMENT_BOX_MARGIN;
+                double minX = bb.getMinX() - (supXMin ? m : 0);
+                double maxX = bb.getMaxX() + (supXMax ? m : 0);
+                double minZ = bb.getMinZ() - (supZMin ? m : 0);
+                double maxZ = bb.getMaxZ() + (supZMax ? m : 0);
+                // 在定向偏移结果上再叠加与 BE 默认一致的 -0.01 收缩
+                return new SimpleAxisAlignedBB(minX, bb.getMinY(), minZ, maxX, bb.getMaxY(), maxZ)
+                        .expand(-0.01, -0.01, -0.01);
+            }
+        }
+        return bb.expand(-0.01, -0.01, -0.01);
+    }
+
+    // 在 bb 指定水平边的脚下薄条里探测是否有实心支撑
+    private boolean supportedUnder(AxisAlignedBB bb, int sx, int sz) {
+        double feetY = bb.getMinY();
+        double minX = sx > 0 ? bb.getMaxX() - 1e-3 : bb.getMinX();
+        double maxX = sx < 0 ? bb.getMinX() + 1e-3 : bb.getMaxX();
+        double minZ = sz > 0 ? bb.getMaxZ() - 1e-3 : bb.getMinZ();
+        double maxZ = sz < 0 ? bb.getMinZ() + 1e-3 : bb.getMaxZ();
+        AxisAlignedBB probe = new SimpleAxisAlignedBB(minX, feetY - SUPPORT_PROBE_DEPTH, minZ, maxX, feetY, maxZ);
+        return this.level.getCollisionCubes(this, probe, false).length > 0;
     }
 
     public int nextDummyDimension() {
