@@ -641,6 +641,18 @@ public class SynapsePlayer extends Player {
         } else {
             this.locallyInitialized = true;
 
+            if (getProtocol() >= AbstractProtocol.PROTOCOL_119_50.getProtocolStart()) {
+                PlayerActionPacket119 ackPacket = new PlayerActionPacket119();
+                ackPacket.action = PlayerActionPacket.ACTION_DIMENSION_CHANGE_ACK;
+                ackPacket.entityId = getId();
+                dataPacket(ackPacket);
+            } else if (isNetEaseClient() && getProtocol() >= AbstractProtocol.PROTOCOL_118.getProtocolStart()) {
+                PlayerActionPacket14 ackPacket = new PlayerActionPacket14();
+                ackPacket.action = PlayerActionPacket.ACTION_DIMENSION_CHANGE_ACK;
+                ackPacket.entityId = getId();
+                dataPacket(ackPacket);
+            }
+
             if (this.isJavaClient()) {
                 // Java 客户端：始终发送真实维度以退出 loading 状态
                 // ViaBedrock 通过备用维度名称处理同维度切换
@@ -702,17 +714,7 @@ public class SynapsePlayer extends Player {
                     ackPacket.entityId = getId();
                     dataPacket(ackPacket);
                 }
-            }/* else if (getProtocol() >= AbstractProtocol.PROTOCOL_119_50.getProtocolStart()) {
-                PlayerActionPacket119 ackPacket = new PlayerActionPacket119();
-                ackPacket.action = PlayerActionPacket.ACTION_DIMENSION_CHANGE_ACK;
-                ackPacket.entityId = getId();
-                dataPacket(ackPacket);
-            } else if (isNetEaseClient() && getProtocol() >= AbstractProtocol.PROTOCOL_118.getProtocolStart()) {
-                PlayerActionPacket14 ackPacket = new PlayerActionPacket14();
-                ackPacket.action = PlayerActionPacket.ACTION_DIMENSION_CHANGE_ACK;
-                ackPacket.entityId = getId();
-                dataPacket(ackPacket);
-            }*/
+            }
 
             sendPosition(this, yaw, pitch, MovePlayerPacket.MODE_TELEPORT);
 
@@ -927,7 +929,7 @@ public class SynapsePlayer extends Player {
 
                 // 传递给下一个服务器玩家的虚拟维度信息
                 this.transferExtra.addProperty("dummyDimension", this.dummyDimension);
-
+/*
                 if (getProtocol() >= AbstractProtocol.PROTOCOL_119_50.getProtocolStart()) {
                     PlayerActionPacket119 ackPacket = new PlayerActionPacket119();
                     ackPacket.action = PlayerActionPacket.ACTION_DIMENSION_CHANGE_ACK;
@@ -939,6 +941,7 @@ public class SynapsePlayer extends Player {
                     ackPacket.entityId = getId();
                     dataPacket(ackPacket);
                 }
+*/
             } else if (this.getDummyDimension() != DimensionID.OVERWORLD) {
                 this.dummyDimension = DimensionID.OVERWORLD;
 
@@ -959,7 +962,7 @@ public class SynapsePlayer extends Player {
                     changeDimensionPacket1.loadingScreenId = nextLoadingScreenId();
                     dataPacket(changeDimensionPacket1);
                 }
-
+/*
                 if (getProtocol() >= AbstractProtocol.PROTOCOL_119_50.getProtocolStart()) {
                     PlayerActionPacket119 ackPacket = new PlayerActionPacket119();
                     ackPacket.action = PlayerActionPacket.ACTION_DIMENSION_CHANGE_ACK;
@@ -971,6 +974,7 @@ public class SynapsePlayer extends Player {
                     ackPacket.entityId = getId();
                     dataPacket(ackPacket);
                 }
+*/
             }
 
             Server.getInstance().getScheduler().scheduleDelayedTask(new Task() {
