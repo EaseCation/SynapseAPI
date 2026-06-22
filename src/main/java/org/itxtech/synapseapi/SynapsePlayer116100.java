@@ -9,6 +9,7 @@ import cn.nukkit.blockentity.*;
 import cn.nukkit.command.Command;
 import cn.nukkit.command.data.CommandPermission;
 import cn.nukkit.entity.*;
+import cn.nukkit.entity.attribute.Attribute;
 import cn.nukkit.entity.data.ByteEntityData;
 import cn.nukkit.entity.data.EntityMetadata;
 import cn.nukkit.entity.item.EntityBoat;
@@ -6661,6 +6662,29 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
                 new InitializeRegistryAction.Entry(7194480507151251734L, "minecraft:overworld", level.getTime(), false, TimeMarker.OVERWORLD),
         });
         dataPacket(packet);
+    }
+
+    @Override
+    public void sendAttributes() {
+        List<Attribute> attributes = new ArrayList<>();
+        attributes.add(Attribute.getAttribute(Attribute.HEALTH).setMaxValue(this.getMaxHealth()).setValue(health >= 1 ? (health < getMaxHealth() ? health : getMaxHealth()) : 0));
+        attributes.add(Attribute.getAttribute(Attribute.ABSORPTION).setValue(absorption));
+        attributes.add(Attribute.getAttribute(Attribute.PLAYER_HUNGER).setValue(this.getFoodData().getLevel()));
+        attributes.add(Attribute.getAttribute(Attribute.PLAYER_SATURATION).setValue(this.getFoodData().getFoodSaturationLevel()));
+        attributes.add(Attribute.getAttribute(Attribute.PLAYER_EXHAUSTION).setValue(this.getFoodData().getExhaustionLevel()));
+        attributes.add(movementSpeedAttribute.copy().setValue(movementSpeedAttribute.getModifiedValue()));
+        attributes.add(Attribute.getAttribute(Attribute.UNDERWATER_MOVEMENT));
+        attributes.add(Attribute.getAttribute(Attribute.LAVA_MOVEMENT));
+        attributes.add(Attribute.getAttribute(Attribute.PLAYER_LEVEL).setValue(this.getExperienceLevel()));
+        attributes.add(Attribute.getAttribute(Attribute.PLAYER_EXPERIENCE).setValue(Mth.clamp(((float) this.getExperience()) / calculateRequireExperience(this.getExperienceLevel()), 0, 1)));
+
+        if (getProtocol() >= AbstractProtocol.PROTOCOL_126_30.getProtocolStart()) {
+            attributes.add(Attribute.getAttribute(Attribute.FRICTION_MODIFIER));
+            attributes.add(Attribute.getAttribute(Attribute.BOUNCINESS));
+            attributes.add(Attribute.getAttribute(Attribute.AIR_DRAG_MODIFIER));
+        }
+
+        this.setAttribute(attributes.toArray(new Attribute[0]));
     }
 
     private record ShapeInstance(Shape shape, int expirationTick) {
