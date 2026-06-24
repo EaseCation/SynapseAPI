@@ -11,10 +11,9 @@ group = "org.itxtech.synapse"
 version = "1.0.0"
 description = "Synapse API"
 
-// Java 21 工具链配置
 java {
     toolchain {
-        languageVersion = JavaLanguageVersion.of(21)
+        languageVersion = JavaLanguageVersion.of(25)
     }
 }
 
@@ -27,7 +26,7 @@ repositories {
 dependencies {
     // API 依赖（会被打包到 shadow jar）
     api("org.msgpack:jackson-dataformat-msgpack:0.9.10") {
-        exclude(group = "com.fasterxml.jackson.core", module = "jackson-databind")
+        exclude(group = "com.fasterxml.jackson.core", "jackson-databind")
     }
 
     // 从 JitPack 引用已发布的 Nukkit

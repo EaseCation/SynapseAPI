@@ -65,7 +65,7 @@ dependencies {
 
 ## 构建说明
 
-本项目使用 Gradle 9.1.0 和 Java 21 构建。
+本项目使用 Gradle 构建。
 
 ```bash
 # 构建项目

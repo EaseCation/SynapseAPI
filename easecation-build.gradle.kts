@@ -7,7 +7,7 @@ extra.set("copyTo", listOf("{server}/plugins", "{login}/plugins", "{server1}/plu
 
 dependencies {
     api(libs.org.msgpack.msgpack.core) {
-        exclude("com.fasterxml.jackson.core", module = "jackson-databind")
+        exclude("com.fasterxml.jackson.core", "jackson-databind")
     }
     compileOnly(project(":nukkit"))
     compileOnly(project(":authlib-stub"))
