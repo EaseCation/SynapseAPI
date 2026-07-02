@@ -15,6 +15,7 @@ import cn.nukkit.entity.data.EntityMetadata;
 import cn.nukkit.entity.item.EntityBoat;
 import cn.nukkit.entity.item.EntityItem;
 import cn.nukkit.entity.item.EntityXPOrb;
+import cn.nukkit.entity.knockback.KnockbackProfile;
 import cn.nukkit.entity.projectile.EntityArrow;
 import cn.nukkit.entity.property.*;
 import cn.nukkit.event.entity.EntityDamageByEntityEvent;
@@ -4024,13 +4025,10 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
                                 Map<EntityDamageEvent.DamageModifier, Float> damage = new EnumMap<>(EntityDamageEvent.DamageModifier.class);
                                 damage.put(EntityDamageEvent.DamageModifier.BASE, itemDamage);
 
-                                float knockBackH = EntityDamageByEntityEvent.GLOBAL_KNOCKBACK_H;
-                                float knockBackV = EntityDamageByEntityEvent.GLOBAL_KNOCKBACK_V;
+                                KnockbackProfile targetProfile = this.getKnockbackProfile();
+                                float knockBackH = targetProfile.getBaseH();
+                                float knockBackV = targetProfile.getBaseV();
                                 int knockBackEnchantment = !item.is(Item.ENCHANTED_BOOK) ? item.getEnchantmentLevel(Enchantment.KNOCKBACK) : 0;
-                                if (knockBackEnchantment > 0) {
-                                    knockBackH += knockBackEnchantment * 0.1f;
-                                    knockBackV += knockBackEnchantment * 0.1f;
-                                }
 
                                 if (target instanceof Player) {
                                     if ((((Player) target).getGamemode() & 0x01) > 0) {
@@ -4041,6 +4039,7 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
                                 }
 
                                 EntityDamageByEntityEvent entityDamageByEntityEvent = new EntityDamageByEntityEvent(this, target, EntityDamageEvent.DamageCause.ENTITY_ATTACK, damage, knockBackH, knockBackV, enchantments);
+                                entityDamageByEntityEvent.getKnockbackProfile().setEnchantLevel(knockBackEnchantment);
                                 if (this.isSpectator()) entityDamageByEntityEvent.setCancelled();
                                 if (!target.attack(entityDamageByEntityEvent)) {
                                     if (item.isTool() && this.isSurvival()) {
