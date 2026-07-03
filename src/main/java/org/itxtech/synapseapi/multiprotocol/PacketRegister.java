@@ -110,6 +110,7 @@ import org.itxtech.synapseapi.multiprotocol.protocol121100.protocol.StartGamePac
 import org.itxtech.synapseapi.multiprotocol.protocol121111.protocol.GameRulesChangedPacket121111;
 import org.itxtech.synapseapi.multiprotocol.protocol121111.protocol.ServerboundPackSettingChangePacket121111;
 import org.itxtech.synapseapi.multiprotocol.protocol121120.protocol.AnimatePacket121120;
+import org.itxtech.synapseapi.multiprotocol.protocol121124.protocol.ContainerOpenPacket121124NE;
 import org.itxtech.synapseapi.multiprotocol.protocol121130.protocol.*;
 import org.itxtech.synapseapi.multiprotocol.protocol12120.protocol.*;
 import org.itxtech.synapseapi.multiprotocol.protocol12130.protocol.*;
@@ -480,6 +481,8 @@ public class PacketRegister {
         registerPacket(AbstractProtocol.PROTOCOL_121_111, ProtocolInfo.SERVERBOUND_PACK_SETTING_CHANGE_PACKET, ServerboundPackSettingChangePacket121111.class);
 
         registerPacket(AbstractProtocol.PROTOCOL_121_120, ProtocolInfo.ANIMATE_PACKET, AnimatePacket121120.class);
+
+        registerPacket(AbstractProtocol.PROTOCOL_121_124, ProtocolInfo.CONTAINER_OPEN_PACKET, ContainerOpenPacket121124NE.class);
 
         registerPacket(AbstractProtocol.PROTOCOL_121_130, ProtocolInfo.RESOURCE_PACK_STACK_PACKET, ResourcePackStackPacket121130.class);
         registerPacket(AbstractProtocol.PROTOCOL_121_130, ProtocolInfo.START_GAME_PACKET, StartGamePacket121130.class);

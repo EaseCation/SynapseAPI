@@ -6394,91 +6394,145 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
 
     @Override
     public void setSkyHorizonColor(Color color, String... biomeIdentifiers) {
+        if (AbstractProtocol.PROTOCOL_121_130.isNewerThan(getProtocol())) {
+            return;
+        }
         setGraphicsOverride(GraphicsOverrideParameterPacket121120.TYPE_SKY_HORIZON_COLOR, color, biomeIdentifiers);
     }
 
     @Override
     public void resetSkyHorizonColor(String... biomeIdentifiers) {
+        if (AbstractProtocol.PROTOCOL_121_130.isNewerThan(getProtocol())) {
+            return;
+        }
         resetGraphicsOverride(GraphicsOverrideParameterPacket121120.TYPE_SKY_HORIZON_COLOR, biomeIdentifiers);
     }
 
     @Override
     public void setHorizonBlendMin(float blendMin, String... biomeIdentifiers) {
+        if (AbstractProtocol.PROTOCOL_121_130.isNewerThan(getProtocol())) {
+            return;
+        }
         setGraphicsOverride(GraphicsOverrideParameterPacket121120.TYPE_HORIZON_BLEND_MIN, blendMin, biomeIdentifiers);
     }
 
     @Override
     public void resetHorizonBlendMin(String... biomeIdentifiers) {
+        if (AbstractProtocol.PROTOCOL_121_130.isNewerThan(getProtocol())) {
+            return;
+        }
         resetGraphicsOverride(GraphicsOverrideParameterPacket121120.TYPE_HORIZON_BLEND_MIN, biomeIdentifiers);
     }
 
     @Override
     public void setHorizonBlendMax(float blendMax, String... biomeIdentifiers) {
+        if (AbstractProtocol.PROTOCOL_121_130.isNewerThan(getProtocol())) {
+            return;
+        }
         setGraphicsOverride(GraphicsOverrideParameterPacket121120.TYPE_HORIZON_BLEND_MAX, blendMax, biomeIdentifiers);
     }
 
     @Override
     public void resetHorizonBlendMax(String... biomeIdentifiers) {
+        if (AbstractProtocol.PROTOCOL_121_130.isNewerThan(getProtocol())) {
+            return;
+        }
         resetGraphicsOverride(GraphicsOverrideParameterPacket121120.TYPE_HORIZON_BLEND_MAX, biomeIdentifiers);
     }
 
     @Override
     public void setHorizonBlendStart(float blendStart, String... biomeIdentifiers) {
+        if (AbstractProtocol.PROTOCOL_121_130.isNewerThan(getProtocol())) {
+            return;
+        }
         setGraphicsOverride(GraphicsOverrideParameterPacket121120.TYPE_HORIZON_BLEND_START, blendStart, biomeIdentifiers);
     }
 
     @Override
     public void resetHorizonBlendStart(String... biomeIdentifiers) {
+        if (AbstractProtocol.PROTOCOL_121_130.isNewerThan(getProtocol())) {
+            return;
+        }
         resetGraphicsOverride(GraphicsOverrideParameterPacket121120.TYPE_HORIZON_BLEND_START, biomeIdentifiers);
     }
 
     @Override
     public void setHorizonBlendMieStart(float blendMieStart, String... biomeIdentifiers) {
+        if (AbstractProtocol.PROTOCOL_121_130.isNewerThan(getProtocol())) {
+            return;
+        }
         setGraphicsOverride(GraphicsOverrideParameterPacket121120.TYPE_HORIZON_BLEND_MIE_START, blendMieStart, biomeIdentifiers);
     }
 
     @Override
     public void resetHorizonBlendMieStart(String... biomeIdentifiers) {
+        if (AbstractProtocol.PROTOCOL_121_130.isNewerThan(getProtocol())) {
+            return;
+        }
         resetGraphicsOverride(GraphicsOverrideParameterPacket121120.TYPE_HORIZON_BLEND_MIE_START, biomeIdentifiers);
     }
 
     @Override
     public void setRayleighStrength(float rayleighStrength, String... biomeIdentifiers) {
+        if (AbstractProtocol.PROTOCOL_121_130.isNewerThan(getProtocol())) {
+            return;
+        }
         setGraphicsOverride(GraphicsOverrideParameterPacket121120.TYPE_RAYLEIGH_STRENGTH, rayleighStrength, biomeIdentifiers);
     }
 
     @Override
     public void resetRayleighStrength(String... biomeIdentifiers) {
+        if (AbstractProtocol.PROTOCOL_121_130.isNewerThan(getProtocol())) {
+            return;
+        }
         resetGraphicsOverride(GraphicsOverrideParameterPacket121120.TYPE_RAYLEIGH_STRENGTH, biomeIdentifiers);
     }
 
     @Override
     public void setSunMieStrength(float sunMieStrength, String... biomeIdentifiers) {
+        if (AbstractProtocol.PROTOCOL_121_130.isNewerThan(getProtocol())) {
+            return;
+        }
         setGraphicsOverride(GraphicsOverrideParameterPacket121120.TYPE_SUN_MIE_STRENGTH, sunMieStrength, biomeIdentifiers);
     }
 
     @Override
     public void resetSunMieStrength(String... biomeIdentifiers) {
+        if (AbstractProtocol.PROTOCOL_121_130.isNewerThan(getProtocol())) {
+            return;
+        }
         resetGraphicsOverride(GraphicsOverrideParameterPacket121120.TYPE_SUN_MIE_STRENGTH, biomeIdentifiers);
     }
 
     @Override
     public void setMoonMieStrength(float moonMieStrength, String... biomeIdentifiers) {
+        if (AbstractProtocol.PROTOCOL_121_130.isNewerThan(getProtocol())) {
+            return;
+        }
         setGraphicsOverride(GraphicsOverrideParameterPacket121120.TYPE_MOON_MIE_STRENGTH, moonMieStrength, biomeIdentifiers);
     }
 
     @Override
     public void resetMoonMieStrength(String... biomeIdentifiers) {
+        if (AbstractProtocol.PROTOCOL_121_130.isNewerThan(getProtocol())) {
+            return;
+        }
         resetGraphicsOverride(GraphicsOverrideParameterPacket121120.TYPE_MOON_MIE_STRENGTH, biomeIdentifiers);
     }
 
     @Override
     public void setSunGlareShape(float sunGlareShape, String... biomeIdentifiers) {
+        if (AbstractProtocol.PROTOCOL_121_130.isNewerThan(getProtocol())) {
+            return;
+        }
         setGraphicsOverride(GraphicsOverrideParameterPacket121120.TYPE_SUN_GLARE_SHAPE, sunGlareShape, biomeIdentifiers);
     }
 
     @Override
     public void resetSunGlareShape(String... biomeIdentifiers) {
+        if (AbstractProtocol.PROTOCOL_121_130.isNewerThan(getProtocol())) {
+            return;
+        }
         resetGraphicsOverride(GraphicsOverrideParameterPacket121120.TYPE_SUN_GLARE_SHAPE, biomeIdentifiers);
     }
 
