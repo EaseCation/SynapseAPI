@@ -168,7 +168,7 @@ public final class ItemComponentDefinitions {
             });
             DEFINITIONS.put(AbstractProtocol.PROTOCOL_121_111, new Map[]{
                     load("item_components121110.nbt", AbstractProtocol.PROTOCOL_121_111, false),
-                    load("item_components121110.nbt", AbstractProtocol.PROTOCOL_121_111, true),
+                    null,
             });
             DEFINITIONS.put(AbstractProtocol.PROTOCOL_121_120, new Map[]{
                     load("item_components121120.nbt", AbstractProtocol.PROTOCOL_121_120, false),
@@ -176,7 +176,7 @@ public final class ItemComponentDefinitions {
             });
             DEFINITIONS.put(AbstractProtocol.PROTOCOL_121_124, new Map[]{
                     load("item_components121120.nbt", AbstractProtocol.PROTOCOL_121_124, false),
-                    null,
+                    load("item_components121120.nbt", AbstractProtocol.PROTOCOL_121_124, true),
             });
             DEFINITIONS.put(AbstractProtocol.PROTOCOL_121_130, new Map[]{
                     load("item_components121130.nbt", AbstractProtocol.PROTOCOL_121_130, false),
