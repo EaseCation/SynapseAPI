@@ -54,7 +54,11 @@ public final class CommunityTool {
 
         // creative content
 
-        Map<String, List<Map<String, Object>>> creative = JsonUtil.TRUSTED_JSON_MAPPER.readValue(Files.newInputStream(dirPath.resolve("creative_items.json")), new TypeReference<>() {
+        Path creativePath = dirPath.resolve("creative_items.json");
+        if (!Files.exists(creativePath)) {
+            return;
+        }
+        Map<String, List<Map<String, Object>>> creative = JsonUtil.TRUSTED_JSON_MAPPER.readValue(Files.newInputStream(creativePath), new TypeReference<>() {
         });
 
         BlockPalette microsoft = RuntimeBlockMapper.PALETTES.get(AbstractProtocol.fromRealProtocol(protocol))[0];

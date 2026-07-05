@@ -91,7 +91,7 @@ public class BinaryStreamHelper12010 extends BinaryStreamHelper120 {
             }
         });
     }
-/*
+
     @Override
     public void putSkin(BinaryStream stream, Skin skin) {
         if (!stream.neteaseMode) {
@@ -119,6 +119,7 @@ public class BinaryStreamHelper12010 extends BinaryStreamHelper120 {
         stream.putString(skin.getAnimationData());
         stream.putString(skin.getCapeId());
         //TODO: 中国版 1.20.10 ConfirmSkinPacket 导致其他玩家隐形问题的临时方案, 网易下个构建修复后恢复 -- 07/01/2024
+        // 中国版 1.21.120 ConfirmSkinPacket 导致玩家隐形问题的临时方案, 网易未来修复后恢复 -- 07/03/2026
         stream.putString(skin.getFullSkinId() + RandomStringUtils.random(8, 0, 0, true, true, null, ThreadLocalRandom.current()));
         stream.putString(skin.getArmSize());
         stream.putString(skin.getSkinColor());
@@ -149,5 +150,5 @@ public class BinaryStreamHelper12010 extends BinaryStreamHelper120 {
         stream.putBoolean(skin.isPrimaryUser());
         stream.putBoolean(skin.isOverridingPlayerAppearance());
     }
-*/
+
 }
