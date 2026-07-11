@@ -1,4 +1,7 @@
 import com.github.jengelman.gradle.plugins.shadow.transformers.Log4j2PluginsCacheFileTransformer
+import groovy.json.JsonOutput
+import groovy.json.JsonParserType
+import groovy.json.JsonSlurper
 import org.gradle.api.publish.maven.MavenPublication
 
 plugins {
@@ -42,6 +45,15 @@ dependencies {
 
     // 测试依赖
     testImplementation("com.github.EaseCation:Nukkit:master-SNAPSHOT")
+}
+
+tasks.processResources {
+    doLast {
+        val jsonSlurper = JsonSlurper().setType(JsonParserType.LAX)
+        outputs.files.asFileTree.matching { include("**/*.json") }.forEach { file ->
+            file.writeText(JsonOutput.toJson(jsonSlurper.parse(file)))
+        }
+    }
 }
 
 // 配置编译选项
