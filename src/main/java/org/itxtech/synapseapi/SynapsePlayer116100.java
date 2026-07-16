@@ -3574,7 +3574,7 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
                 crafter.spawnToAll();
                 break;
             case ProtocolInfo.INVENTORY_TRANSACTION_PACKET:
-                if (getProtocol() < AbstractProtocol.PROTOCOL_126_30.getProtocolStart()) {
+                if (JavaItemUseRouting.usesLegacyInventoryHandler(getProtocol())) {
                     super.handleDataPacket(packet);
                     break;
                 }
@@ -3731,380 +3731,427 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
                         this.sendAllInventories();
 
                         break packetswitch;
-                    case InventoryTransactionPacket.TYPE_USE_ITEM:
+                    case InventoryTransactionPacket.TYPE_USE_ITEM: {
                         UseItemData useItemData = (UseItemData) transactionPacket.transactionData;
 
                         Vector3f clickPos = useItemData.clickPos;
                         BlockVector3 blockVector = useItemData.blockPos;
                         BlockFace face = useItemData.face;
                         int type = useItemData.actionType;
+                        ItemUseHand interactionHand = JavaItemUseRouting.resolve(this.supportsExplicitItemUseHand(), useItemData.hotbarSlot);
+                        ItemUseHand previousHand = this.setItemInteractionHand(interactionHand);
 
-                        if (face == null && type != InventoryTransactionPacket.USE_ITEM_ACTION_CLICK_AIR) {
-                            break packetswitch;
-                        }
+                        try {
+                            if (interactionHand == ItemUseHand.OFF_HAND && !JavaItemUseRouting.supportsUseItemAction(type)) {
+                                this.inventory.sendHeldItem(this);
+                                break packetswitch;
+                            }
+                            if (face == null && type != InventoryTransactionPacket.USE_ITEM_ACTION_CLICK_AIR) {
+                                break packetswitch;
+                            }
 
-                        switch (type) {
-                            case InventoryTransactionPacket.USE_ITEM_ACTION_CLICK_BLOCK:
-                                // Remove if client bug is ever fixed
-                                boolean spamBug = lastRightClickData != null && System.currentTimeMillis() - lastRightClickTime < 100 &&
-                                        lastRightClickData.face == face &&
-                                        lastRightClickData.playerPos.distanceSquared(useItemData.playerPos) < Mth.EPSILON &&
-                                        lastRightClickData.blockPos.equalsVec(blockVector) &&
-                                        lastRightClickData.clickPos.distanceSquared(clickPos) < Mth.EPSILON && // signature spam bug has 0 distance, but allow some error
-                                        Block.equals(lastRightClickData.block, useItemData.block) &&
-                                        lastRightClickData.clientInteractPrediction == useItemData.clientInteractPrediction &&
-                                        lastRightClickData.clientCooldownState == useItemData.clientCooldownState &&
-//                                        lastRightClickData.itemInHand.equals(useItemData.itemInHand) &&
-                                        lastRightClickData.hotbarSlot == useItemData.hotbarSlot;
-                                if (spamBug /*&& !(useItemData.itemInHand instanceof ItemBlock)*/) {
-                                    return;
-                                }
-                                lastRightClickData = useItemData;
-                                lastRightClickTime = System.currentTimeMillis();
+                            switch (type) {
+                                case InventoryTransactionPacket.USE_ITEM_ACTION_CLICK_BLOCK:
+                                    // Remove if client bug is ever fixed
+                                    boolean spamBug = lastRightClickData != null && System.currentTimeMillis() - lastRightClickTime < 100 &&
+                                            lastRightClickData.face == face &&
+                                            lastRightClickData.playerPos.distanceSquared(useItemData.playerPos) < Mth.EPSILON &&
+                                            lastRightClickData.blockPos.equalsVec(blockVector) &&
+                                            lastRightClickData.clickPos.distanceSquared(clickPos) < Mth.EPSILON && // signature spam bug has 0 distance, but allow some error
+                                            Block.equals(lastRightClickData.block, useItemData.block) &&
+                                            lastRightClickData.clientInteractPrediction == useItemData.clientInteractPrediction &&
+                                            lastRightClickData.clientCooldownState == useItemData.clientCooldownState &&
+    //                                        lastRightClickData.itemInHand.equals(useItemData.itemInHand) &&
+                                            lastRightClickData.hotbarSlot == useItemData.hotbarSlot;
+                                    if (spamBug /*&& !(useItemData.itemInHand instanceof ItemBlock)*/) {
+                                        return;
+                                    }
+                                    lastRightClickData = useItemData;
+                                    lastRightClickTime = System.currentTimeMillis();
 
-                                Item i = inventory.getItemInHand();
-                                if (!i.is(Item.BRUSH)) {
-                                    this.setDataFlag(DATA_FLAG_ACTION, false);
-                                }
+                                    Item i = inventory.getItemInHand();
+                                    if (!i.is(Item.BRUSH)) {
+                                        this.setDataFlag(DATA_FLAG_ACTION, false);
+                                    }
 
-                                // 从useItemData中设置玩家坐标，用于最精准的碰撞箱判断
-                                this.newPosition = useItemData.playerPos.subtract(0, this.getBaseOffset(), 0);
-                                boolean clientPredictedFailure = false;
+                                    // 从useItemData中设置玩家坐标，用于最精准的碰撞箱判断
+                                    this.newPosition = useItemData.playerPos.subtract(0, this.getBaseOffset(), 0);
+                                    boolean clientPredictedFailure = false;
 
-                                if (this.canInteract(blockVector.add(0.5, 0.5, 0.5), this.isCreative() ? MAX_REACH_DISTANCE_CREATIVE : MAX_REACH_DISTANCE_SURVIVAL)) {
-                                    if (this.isCreative()) {
-                                        Vector3 blockPos;
-                                        Block clientBlock = useItemData.block;
-                                        if (clientBlock != null) {
-                                            clientBlock.position(blockVector, level);
-                                            blockPos = clientBlock;
-                                        } else {
-                                            blockPos = blockVector.asVector3();
+                                    if (this.canInteract(blockVector.add(0.5, 0.5, 0.5), this.isCreative() ? MAX_REACH_DISTANCE_CREATIVE : MAX_REACH_DISTANCE_SURVIVAL)) {
+                                        if (this.isCreative()) {
+                                            Vector3 blockPos;
+                                            Block clientBlock = useItemData.block;
+                                            if (clientBlock != null) {
+                                                clientBlock.position(blockVector, level);
+                                                blockPos = clientBlock;
+                                            } else {
+                                                blockPos = blockVector.asVector3();
+                                            }
+                                            Boolean clientPrediction = AbstractProtocol.PROTOCOL_121_20.isOlderThanOrEqual(protocol) ? useItemData.clientInteractPrediction : null;
+                                            clientPrediction = normalizeUseItemClientPrediction(clientPrediction);
+                                            if (this.level.useItemOn(blockPos, i, face, clickPos.x, clickPos.y, clickPos.z, this, clientPrediction) != null) {
+                                                break packetswitch;
+                                            }
+                                        } else if (i.equals(useItemData.itemInHand)) {
+                                            Item oldItem = i.clone();
+                                            Vector3 blockPos;
+                                            Block clientBlock = useItemData.block;
+                                            if (clientBlock != null) {
+                                                clientBlock.position(blockVector, level);
+                                                blockPos = clientBlock;
+                                            } else {
+                                                blockPos = blockVector.asVector3();
+                                            }
+                                            Boolean clientPrediction = AbstractProtocol.PROTOCOL_121_20.isOlderThanOrEqual(protocol) ? useItemData.clientInteractPrediction : null;
+                                            clientPrediction = normalizeUseItemClientPrediction(clientPrediction);
+                                            clientPredictedFailure = clientPrediction != null && !clientPrediction;
+                                            if ((i = this.level.useItemOn(blockPos, i, face, clickPos.x, clickPos.y, clickPos.z, this, clientPrediction)) != null) {
+                                                if (!i.equals(oldItem) || i.getCount() != oldItem.getCount()) {
+                                                    inventory.setItemInHand(i);
+                                                    inventory.sendHeldItem(this.getViewers().values());
+                                                }
+                                                break packetswitch;
+                                            }
                                         }
-                                        Boolean clientPrediction = AbstractProtocol.PROTOCOL_121_20.isOlderThanOrEqual(protocol) ? useItemData.clientInteractPrediction : null;
-                                        clientPrediction = normalizeUseItemClientPrediction(clientPrediction);
-                                        if (this.level.useItemOn(blockPos, i, face, clickPos.x, clickPos.y, clickPos.z, this, clientPrediction) != null) {
-                                            break packetswitch;
+                                    }
+
+                                    // 解决卡物品栏问题（只发送物品正确的物品栏）
+                                    if (inventory.getItemInHand().getId() == useItemData.itemInHand.getId() && inventory.getItemInHand().getCount() != useItemData.itemInHand.getCount()) {
+                                        inventory.sendHeldItem(this);
+                                    }
+
+                                    if (clientPredictedFailure) {
+                                        break packetswitch;
+                                    }
+
+                                    if (blockVector.distanceSquared(this) > 10000) {
+                                        break packetswitch;
+                                    }
+
+                                    Block target = level.getBlock(blockVector.asVector3());
+                                    Block block0 = target.getSide(face);
+
+                                    this.level.sendBlocks(new Player[]{this}, new Block[]{target, block0}, UpdateBlockPacket.FLAG_ALL_PRIORITY);
+                                    this.level.sendBlocks(new Player[]{this}, new Block[]{level.getExtraBlock(target), level.getExtraBlock(block0)}, UpdateBlockPacket.FLAG_ALL_PRIORITY, 1);
+
+                                    if (target instanceof BlockDoor) {
+                                        BlockDoor door = (BlockDoor) target;
+                                        Block part;
+
+                                        if (door.isTop()) {
+                                            part = target.down();
+
+                                            if (part.getId() == target.getId()) {
+                                                target = part;
+
+                                                this.level.sendBlocks(new Player[]{this}, new Block[]{target}, UpdateBlockPacket.FLAG_ALL_PRIORITY);
+                                            }
                                         }
-                                    } else if (i.equals(useItemData.itemInHand)) {
-                                        Item oldItem = i.clone();
-                                        Vector3 blockPos;
-                                        Block clientBlock = useItemData.block;
-                                        if (clientBlock != null) {
-                                            clientBlock.position(blockVector, level);
-                                            blockPos = clientBlock;
-                                        } else {
-                                            blockPos = blockVector.asVector3();
-                                        }
-                                        Boolean clientPrediction = AbstractProtocol.PROTOCOL_121_20.isOlderThanOrEqual(protocol) ? useItemData.clientInteractPrediction : null;
-                                        clientPrediction = normalizeUseItemClientPrediction(clientPrediction);
-                                        clientPredictedFailure = clientPrediction != null && !clientPrediction;
-                                        if ((i = this.level.useItemOn(blockPos, i, face, clickPos.x, clickPos.y, clickPos.z, this, clientPrediction)) != null) {
+                                    }
+                                    break packetswitch;
+                                case InventoryTransactionPacket.USE_ITEM_ACTION_BREAK_BLOCK:
+                                    if (!this.spawned || !this.isAlive()) {
+                                        break packetswitch;
+                                    }
+
+                                    this.resetCraftingGridType();
+
+                                    i = this.getInventory().getItemInHand();
+
+                                    Item oldItem = i.clone();
+
+                                    if (isBreakingBlock(blockVector)
+                                            && this.canInteract(blockVector.add(0.5, 0.5, 0.5), this.isCreative() ? MAX_REACH_DISTANCE_CREATIVE : MAX_REACH_DISTANCE_SURVIVAL)
+                                            && (i = this.level.useBreakOn(blockVector.asVector3(), face, i, this, true)) != null) {
+                                        this.breakingBlock = null;
+                                        this.breakingBlockFace = null;
+                                        if (this.isSurvival()) {
+                                            this.getFoodData().updateFoodExpLevel(0.005f);
                                             if (!i.equals(oldItem) || i.getCount() != oldItem.getCount()) {
                                                 inventory.setItemInHand(i);
                                                 inventory.sendHeldItem(this.getViewers().values());
                                             }
+                                        }
+                                        break packetswitch;
+                                    }
+
+                                    inventory.sendContents(this);
+                                    inventory.sendHeldItem(this);
+
+                                    if (blockVector.distanceSquared(this) < 10000) {
+                                        target = this.level.getBlock(blockVector.asVector3());
+                                        this.level.sendBlocks(new Player[]{this}, new Block[]{target}, UpdateBlockPacket.FLAG_ALL_PRIORITY);
+                                        this.level.sendBlocks(new Player[]{this}, new Block[]{level.getExtraBlock(target)}, UpdateBlockPacket.FLAG_ALL_PRIORITY, 1);
+
+                                        blockEntity = this.level.getBlockEntityIfLoaded(blockVector);
+                                        if (blockEntity instanceof BlockEntitySpawnable) {
+                                            ((BlockEntitySpawnable) blockEntity).spawnTo(this);
+                                        }
+                                    }
+
+                                    break packetswitch;
+                                case InventoryTransactionPacket.USE_ITEM_ACTION_CLICK_AIR:
+                                    Vector3 directionVector = this.getDirectionVector();
+
+                                    if (this.isCreative()) {
+                                        item = this.inventory.getItemInHand();
+                                    } else if (!this.inventory.getItemInHand().equals(useItemData.itemInHand)) {
+    //									server.getLogger().debug(getName() + " held desync\nC: " + useItemData.itemInHand + "\nS: " + inventory.getItemInHand());
+    //									this.inventory.sendHeldItem(this); // 这里不再强制同步, 尝试解决使用物品后快速切换物品的回弹问题
+                                        break packetswitch;
+                                    } else {
+                                        item = this.inventory.getItemInHand();
+                                    }
+
+                                    this.rebindStartedJavaItemUseHand(interactionHand);
+                                    PlayerInteractEvent interactEvent = new PlayerInteractEvent(this, item, directionVector, face, PlayerInteractEvent.Action.RIGHT_CLICK_AIR);
+                                    if (isSpectator()) {
+                                        interactEvent.setCancelled();
+                                    }
+                                    this.server.getPluginManager().callEvent(interactEvent);
+                                    if (interactEvent.isCancelled()) {
+                                        this.inventory.sendHeldItem(this);
+                                        break packetswitch;
+                                    }
+
+                                    boolean explicitShieldUse = JavaItemUseRouting.supportsExplicitShieldUse(this.supportsExplicitItemUseHand(), item.getId());
+                                    boolean itemAccepted = item.onClickAir(this, directionVector) || explicitShieldUse;
+                                    if (itemAccepted) {
+                                        if (this.isSurvivalLike()) {
+                                            this.inventory.setItemInHand(item);
+                                        }
+
+                                        if (!this.isUsingItem()) {
+                                            this.setUsingItem(item.canRelease() || explicitShieldUse);
                                             break packetswitch;
                                         }
-                                    }
-                                }
 
-                                // 解决卡物品栏问题（只发送物品正确的物品栏）
-                                if (inventory.getItemInHand().getId() == useItemData.itemInHand.getId() && inventory.getItemInHand().getCount() != useItemData.itemInHand.getCount()) {
-                                    inventory.sendHeldItem(this);
-                                }
+                                        // Used item
+                                        //int ticksUsed = this.server.getTick() - this.startAction;
+                                        int ticksUsed = (int) (System.currentTimeMillis() - this.startActionTimestamp) / 50;
 
-                                if (clientPredictedFailure) {
-                                    break packetswitch;
-                                }
+                                        this.setUsingItem(false);
 
-                                if (blockVector.distanceSquared(this) > 10000) {
-                                    break packetswitch;
-                                }
+                                        if (!item.onUse(this, ticksUsed)) {
+                                            this.inventory.sendContents(this);
+                                        }
 
-                                Block target = level.getBlock(blockVector.asVector3());
-                                Block block0 = target.getSide(face);
-
-                                this.level.sendBlocks(new Player[]{this}, new Block[]{target, block0}, UpdateBlockPacket.FLAG_ALL_PRIORITY);
-                                this.level.sendBlocks(new Player[]{this}, new Block[]{level.getExtraBlock(target), level.getExtraBlock(block0)}, UpdateBlockPacket.FLAG_ALL_PRIORITY, 1);
-
-                                if (target instanceof BlockDoor) {
-                                    BlockDoor door = (BlockDoor) target;
-                                    Block part;
-
-                                    if (door.isTop()) {
-                                        part = target.down();
-
-                                        if (part.getId() == target.getId()) {
-                                            target = part;
-
-                                            this.level.sendBlocks(new Player[]{this}, new Block[]{target}, UpdateBlockPacket.FLAG_ALL_PRIORITY);
+                                        if ((item.canRelease() || explicitShieldUse) && !item.isNull()) {
+                                            this.setUsingItem(true);
                                         }
                                     }
-                                }
+
+                                    break packetswitch;
+                                    default:
+                                        //unknown
+                                        break;
+                            }
+                        } finally {
+                            this.setItemInteractionHand(previousHand);
+                        }
+                        break;
+                    }
+                    case InventoryTransactionPacket.TYPE_USE_ITEM_ON_ENTITY: {
+                        UseItemOnEntityData useItemOnEntityData = (UseItemOnEntityData) transactionPacket.transactionData;
+                        int type = useItemOnEntityData.actionType;
+                        ItemUseHand interactionHand = JavaItemUseRouting.resolve(this.supportsExplicitItemUseHand(), useItemOnEntityData.hotbarSlot);
+                        ItemUseHand previousHand = this.setItemInteractionHand(interactionHand);
+
+                        try {
+                            if (interactionHand == ItemUseHand.OFF_HAND && !JavaItemUseRouting.supportsEntityAction(type)) {
+                                this.inventory.sendHeldItem(this);
                                 break packetswitch;
-                            case InventoryTransactionPacket.USE_ITEM_ACTION_BREAK_BLOCK:
-                                if (!this.spawned || !this.isAlive()) {
-                                    break packetswitch;
-                                }
-
-                                this.resetCraftingGridType();
-
-                                i = this.getInventory().getItemInHand();
-
-                                Item oldItem = i.clone();
-
-                                if (isBreakingBlock(blockVector)
-                                        && this.canInteract(blockVector.add(0.5, 0.5, 0.5), this.isCreative() ? MAX_REACH_DISTANCE_CREATIVE : MAX_REACH_DISTANCE_SURVIVAL)
-                                        && (i = this.level.useBreakOn(blockVector.asVector3(), face, i, this, true)) != null) {
-                                    this.breakingBlock = null;
-                                    this.breakingBlockFace = null;
-                                    if (this.isSurvival()) {
-                                        this.getFoodData().updateFoodExpLevel(0.005f);
-                                        if (!i.equals(oldItem) || i.getCount() != oldItem.getCount()) {
-                                            inventory.setItemInHand(i);
-                                            inventory.sendHeldItem(this.getViewers().values());
-                                        }
-                                    }
-                                    break packetswitch;
-                                }
-
-                                inventory.sendContents(this);
-                                inventory.sendHeldItem(this);
-
-                                if (blockVector.distanceSquared(this) < 10000) {
-                                    target = this.level.getBlock(blockVector.asVector3());
-                                    this.level.sendBlocks(new Player[]{this}, new Block[]{target}, UpdateBlockPacket.FLAG_ALL_PRIORITY);
-                                    this.level.sendBlocks(new Player[]{this}, new Block[]{level.getExtraBlock(target)}, UpdateBlockPacket.FLAG_ALL_PRIORITY, 1);
-
-                                    blockEntity = this.level.getBlockEntityIfLoaded(blockVector);
-                                    if (blockEntity instanceof BlockEntitySpawnable) {
-                                        ((BlockEntitySpawnable) blockEntity).spawnTo(this);
-                                    }
-                                }
-
-                                break packetswitch;
-                            case InventoryTransactionPacket.USE_ITEM_ACTION_CLICK_AIR:
-                                Vector3 directionVector = this.getDirectionVector();
-
-                                if (this.isCreative()) {
-                                    item = this.inventory.getItemInHand();
-                                } else if (!this.inventory.getItemInHand().equals(useItemData.itemInHand)) {
-//									server.getLogger().debug(getName() + " held desync\nC: " + useItemData.itemInHand + "\nS: " + inventory.getItemInHand());
-//									this.inventory.sendHeldItem(this); // 这里不再强制同步, 尝试解决使用物品后快速切换物品的回弹问题
-                                    break packetswitch;
-                                } else {
-                                    item = this.inventory.getItemInHand();
-                                }
-
-                                PlayerInteractEvent interactEvent = new PlayerInteractEvent(this, item, directionVector, face, PlayerInteractEvent.Action.RIGHT_CLICK_AIR);
+                            }
+                            Entity target = this.level.getEntity(useItemOnEntityData.entityRuntimeId);
+                            if (target == null) {
+                                item = this.inventory.getItemInHand();
+                                PlayerInteractEvent interactEvent = new PlayerInteractEvent(this, item, this.getDirectionVector(), BlockFace.UP, PlayerInteractEvent.Action.CLICK_UNKNOWN_ENTITY).setUnkownEntityId(useItemOnEntityData.entityRuntimeId);
                                 if (isSpectator()) {
                                     interactEvent.setCancelled();
                                 }
                                 this.server.getPluginManager().callEvent(interactEvent);
-                                if (interactEvent.isCancelled()) {
-                                    this.inventory.sendHeldItem(this);
-                                    break packetswitch;
-                                }
+                                return;
+                            }
 
-                                if (item.onClickAir(this, directionVector)) {
-                                    if (this.isSurvivalLike()) {
+                            if (!useItemOnEntityData.itemInHand.equalsExact(this.inventory.getItemInHand())) {
+                                this.inventory.sendHeldItem(this);
+                            }
+
+                            item = this.inventory.getItemInHand();
+
+                            switch (type) {
+                                case InventoryTransactionPacket.USE_ITEM_ON_ENTITY_ACTION_INTERACT:
+                                    if (!this.canInteract(target, isCreative() ? MAX_REACH_DISTANCE_ENTITY_INTERACTION : 5)) {
+                                        break;
+                                    }
+
+                                    PlayerInteractEntityEvent playerInteractEntityEvent = new PlayerInteractEntityEvent(this, target, item, useItemOnEntityData.clickPos);
+                                    if (this.isSpectator()) playerInteractEntityEvent.setCancelled();
+                                    getServer().getPluginManager().callEvent(playerInteractEntityEvent);
+
+                                    if (playerInteractEntityEvent.isCancelled()) {
+                                        break;
+                                    }
+                                    if (target.onInteract(this, item, useItemOnEntityData.clickPos) && this.isSurvival()) {
+                                        if (item.isTool()) {
+                                            if (item.useOn(target) && item.getDamage() > item.getMaxDurability()) {
+                                                item = Items.air();
+                                                level.addLevelSoundEvent(this, LevelSoundEventPacket.SOUND_BREAK);
+                                            }
+                                        } else {
+                                            if (item.count > 1) {
+                                                item.count--;
+                                            } else {
+                                                item = Items.air();
+                                            }
+                                        }
+
                                         this.inventory.setItemInHand(item);
                                     }
-
-                                    if (!this.isUsingItem()) {
-                                        this.setUsingItem(item.canRelease());
-                                        break packetswitch;
-                                    }
-
-                                    // Used item
-                                    //int ticksUsed = this.server.getTick() - this.startAction;
-                                    int ticksUsed = (int) (System.currentTimeMillis() - this.startActionTimestamp) / 50;
-
-                                    this.setUsingItem(false);
-
-                                    if (!item.onUse(this, ticksUsed)) {
-                                        this.inventory.sendContents(this);
-                                    }
-
-                                    if (item.canRelease() && !item.isNull()) {
-                                        this.setUsingItem(true);
-                                    }
-                                }
-
-                                break packetswitch;
-                            default:
-                                //unknown
-                                break;
-                        }
-                        break;
-                    case InventoryTransactionPacket.TYPE_USE_ITEM_ON_ENTITY:
-                        UseItemOnEntityData useItemOnEntityData = (UseItemOnEntityData) transactionPacket.transactionData;
-
-                        Entity target = this.level.getEntity(useItemOnEntityData.entityRuntimeId);
-                        if (target == null) {
-                            item = this.inventory.getItemInHand();
-                            PlayerInteractEvent interactEvent = new PlayerInteractEvent(this, item, this.getDirectionVector(), BlockFace.UP, PlayerInteractEvent.Action.CLICK_UNKNOWN_ENTITY).setUnkownEntityId(useItemOnEntityData.entityRuntimeId);
-                            if (isSpectator()) {
-                                interactEvent.setCancelled();
-                            }
-                            this.server.getPluginManager().callEvent(interactEvent);
-                            return;
-                        }
-
-                        type = useItemOnEntityData.actionType;
-
-                        if (!useItemOnEntityData.itemInHand.equalsExact(this.inventory.getItemInHand())) {
-                            this.inventory.sendHeldItem(this);
-                        }
-
-                        item = this.inventory.getItemInHand();
-
-                        switch (type) {
-                            case InventoryTransactionPacket.USE_ITEM_ON_ENTITY_ACTION_INTERACT:
-                                if (!this.canInteract(target, isCreative() ? MAX_REACH_DISTANCE_ENTITY_INTERACTION : 5)) {
                                     break;
-                                }
-
-                                PlayerInteractEntityEvent playerInteractEntityEvent = new PlayerInteractEntityEvent(this, target, item, useItemOnEntityData.clickPos);
-                                if (this.isSpectator()) playerInteractEntityEvent.setCancelled();
-                                getServer().getPluginManager().callEvent(playerInteractEntityEvent);
-
-                                if (playerInteractEntityEvent.isCancelled()) {
-                                    break;
-                                }
-                                if (target.onInteract(this, item, useItemOnEntityData.clickPos) && this.isSurvival()) {
-                                    if (item.isTool()) {
-                                        if (item.useOn(target) && item.getDamage() > item.getMaxDurability()) {
-                                            item = Items.air();
-                                            level.addLevelSoundEvent(this, LevelSoundEventPacket.SOUND_BREAK);
-                                        }
-                                    } else {
-                                        if (item.count > 1) {
-                                            item.count--;
-                                        } else {
-                                            item = Items.air();
-                                        }
+                                case InventoryTransactionPacket.USE_ITEM_ON_ENTITY_ACTION_ATTACK:
+    //								if (++currentTickAttackPacketCount >= 10) {
+    //									violation += 25; // 近期TPS不稳定容易误判, 先禁用
+    //									return;
+    //								}
+                                    if (++currentTickAttackPacketCount >= 2) {
+                                        return;
                                     }
 
-                                    this.inventory.setItemInHand(item);
-                                }
-                                break;
-                            case InventoryTransactionPacket.USE_ITEM_ON_ENTITY_ACTION_ATTACK:
-//								if (++currentTickAttackPacketCount >= 10) {
-//									violation += 25; // 近期TPS不稳定容易误判, 先禁用
-//									return;
-//								}
-                                if (++currentTickAttackPacketCount >= 2) {
-                                    return;
-                                }
-
-                                // 命中边缘时有极小概率没有看着实体 (InteractPacket::InteractUpdate-4)
-/*
+                                    // 命中边缘时有极小概率没有看着实体 (InteractPacket::InteractUpdate-4)
+    /*
 								if (this.lookAtEntity != target) {
 									this.violation += 6;
 									break;
 								}
-*/
-                                if (!this.canInteract(target, isCreative() ? MAX_REACH_DISTANCE_ENTITY_INTERACTION : 5)) {
-                                    break;
-                                }
-
-                                ItemAttackDamageEvent ev = new ItemAttackDamageEvent(item);
-                                this.server.getPluginManager().callEvent(ev);
-                                float itemDamage = ev.getAttackDamage();
-
-                                Enchantment[] enchantments = item.getId() != Item.ENCHANTED_BOOK ? item.getEnchantments() : Enchantment.EMPTY;
-
-                                float damageBonus = 0;
-                                for (Enchantment enchantment : enchantments) {
-                                    damageBonus += enchantment.getDamageBonus(this, target);
-                                }
-                                itemDamage += Mth.floor(damageBonus);
-
-                                Map<EntityDamageEvent.DamageModifier, Float> damage = new EnumMap<>(EntityDamageEvent.DamageModifier.class);
-                                damage.put(EntityDamageEvent.DamageModifier.BASE, itemDamage);
-
-                                KnockbackProfile targetProfile = this.getKnockbackProfile();
-                                float knockBackH = targetProfile.getBaseH();
-                                float knockBackV = targetProfile.getBaseV();
-                                int knockBackEnchantment = !item.is(Item.ENCHANTED_BOOK) ? item.getEnchantmentLevel(Enchantment.KNOCKBACK) : 0;
-
-                                if (target instanceof Player) {
-                                    if ((((Player) target).getGamemode() & 0x01) > 0) {
-                                        break;
-                                    } else if (!this.server.getConfiguration().isPvp() || this.level.getDifficulty() == 0 || !level.getGameRules().getBoolean(GameRule.PVP)) {
+    */
+                                    if (!this.canInteract(target, isCreative() ? MAX_REACH_DISTANCE_ENTITY_INTERACTION : 5)) {
                                         break;
                                     }
-                                }
 
-                                EntityDamageByEntityEvent entityDamageByEntityEvent = new EntityDamageByEntityEvent(this, target, EntityDamageEvent.DamageCause.ENTITY_ATTACK, damage, knockBackH, knockBackV, enchantments);
-                                entityDamageByEntityEvent.getKnockbackProfile().setEnchantLevel(knockBackEnchantment);
-                                if (this.isSpectator()) entityDamageByEntityEvent.setCancelled();
-                                if (!target.attack(entityDamageByEntityEvent)) {
+                                    ItemAttackDamageEvent ev = new ItemAttackDamageEvent(item);
+                                    this.server.getPluginManager().callEvent(ev);
+                                    float itemDamage = ev.getAttackDamage();
+
+                                    Enchantment[] enchantments = item.getId() != Item.ENCHANTED_BOOK ? item.getEnchantments() : Enchantment.EMPTY;
+
+                                    float damageBonus = 0;
+                                    for (Enchantment enchantment : enchantments) {
+                                        damageBonus += enchantment.getDamageBonus(this, target);
+                                    }
+                                    itemDamage += Mth.floor(damageBonus);
+
+                                    Map<EntityDamageEvent.DamageModifier, Float> damage = new EnumMap<>(EntityDamageEvent.DamageModifier.class);
+                                    damage.put(EntityDamageEvent.DamageModifier.BASE, itemDamage);
+
+                                    KnockbackProfile targetProfile = this.getKnockbackProfile();
+                                    float knockBackH = targetProfile.getBaseH();
+                                    float knockBackV = targetProfile.getBaseV();
+                                    int knockBackEnchantment = !item.is(Item.ENCHANTED_BOOK) ? item.getEnchantmentLevel(Enchantment.KNOCKBACK) : 0;
+
+                                    if (target instanceof Player) {
+                                        if ((((Player) target).getGamemode() & 0x01) > 0) {
+                                            break;
+                                        } else if (!this.server.getConfiguration().isPvp() || this.level.getDifficulty() == 0 || !level.getGameRules().getBoolean(GameRule.PVP)) {
+                                            break;
+                                        }
+                                    }
+
+                                    EntityDamageByEntityEvent entityDamageByEntityEvent = new EntityDamageByEntityEvent(this, target, EntityDamageEvent.DamageCause.ENTITY_ATTACK, damage, knockBackH, knockBackV, enchantments);
+                                    entityDamageByEntityEvent.getKnockbackProfile().setEnchantLevel(knockBackEnchantment);
+                                    if (this.isSpectator()) entityDamageByEntityEvent.setCancelled();
+                                    if (!target.attack(entityDamageByEntityEvent)) {
+                                        if (item.isTool() && this.isSurvival()) {
+                                            this.inventory.sendContents(this);
+                                        }
+                                        break;
+                                    }
+
+                                    for (Enchantment enchantment : enchantments) {
+                                        enchantment.doPostAttack(item, this, target, null);
+                                    }
+
                                     if (item.isTool() && this.isSurvival()) {
-                                        this.inventory.sendContents(this);
-                                    }
-                                    break;
-                                }
-
-                                for (Enchantment enchantment : enchantments) {
-                                    enchantment.doPostAttack(item, this, target, null);
-                                }
-
-                                if (item.isTool() && this.isSurvival()) {
-                                    if (item.useOn(target)) {
-                                        if (item.getDamage() > item.getMaxDurability()) {
-                                            this.inventory.setItemInHand(Items.air());
-                                            level.addLevelSoundEvent(this, LevelSoundEventPacket.SOUND_BREAK);
+                                        if (item.useOn(target)) {
+                                            if (item.getDamage() > item.getMaxDurability()) {
+                                                this.inventory.setItemInHand(Items.air());
+                                                level.addLevelSoundEvent(this, LevelSoundEventPacket.SOUND_BREAK);
+                                            } else {
+                                                this.inventory.setItemInHand(item);
+                                            }
                                         } else {
                                             this.inventory.setItemInHand(item);
                                         }
-                                    } else {
-                                        this.inventory.setItemInHand(item);
                                     }
-                                }
-                                return;
-                            default:
-                                break; //unknown
+                                    return;
+                                    default:
+                                        break; //unknown
+                            }
+                        } finally {
+                            this.setItemInteractionHand(previousHand);
                         }
 
                         break;
-                    case InventoryTransactionPacket.TYPE_RELEASE_ITEM:
+                    }
+                    case InventoryTransactionPacket.TYPE_RELEASE_ITEM: {
                         if (!callPacketReceiveEvent(packet)) break;
                         if (this.isSpectator()) {
                             this.sendAllInventories();
                             break packetswitch;
                         }
                         ReleaseItemData releaseItemData = (ReleaseItemData) transactionPacket.transactionData;
+                        ItemUseHand interactionHand = JavaItemUseRouting.resolve(this.supportsExplicitItemUseHand(), releaseItemData.hotbarSlot);
+                        if (this.supportsExplicitItemUseHand()
+                                && this.isUsingItem()
+                                && interactionHand != this.getUsingItemHand()) {
+                            ItemUseHand previousHand = this.setItemInteractionHand(this.getUsingItemHand());
+                            try {
+                                this.inventory.sendHeldItem(this);
+                            } finally {
+                                this.setItemInteractionHand(previousHand);
+                                this.setUsingItem(false);
+                            }
+                            break packetswitch;
+                        }
+                        ItemUseHand previousHand = this.setItemInteractionHand(interactionHand);
 
                         try {
-                            type = releaseItemData.actionType;
-                            switch (type) {
-                                case InventoryTransactionPacket.RELEASE_ITEM_ACTION_RELEASE:
-                                    if (this.isUsingItem()) {
-                                        item = this.inventory.getItemInHand();
+                            try {
+                                int type = releaseItemData.actionType;
+                                switch (type) {
+                                    case InventoryTransactionPacket.RELEASE_ITEM_ACTION_RELEASE:
+                                        if (this.isUsingItem()) {
+                                            item = this.inventory.getItemInHand();
+                                            if (this.isUsingOffhandItem() && !this.isUsingSameItem(item)) {
+                                                this.inventory.sendHeldItem(this);
+                                                return;
+                                            }
 
-                                        //int ticksUsed = this.server.getTick() - this.startAction;
-                                        int ticksUsed = (int) (System.currentTimeMillis() - this.startActionTimestamp) / 50;
+                                            //int ticksUsed = this.server.getTick() - this.startAction;
+                                            int ticksUsed = (int) (System.currentTimeMillis() - this.startActionTimestamp) / 50;
 
-                                        if (!item.onRelease(this, ticksUsed, releaseItemData.headRot)) {
+                                            if (!item.onRelease(this, ticksUsed, releaseItemData.headRot)) {
+                                                this.inventory.sendContents(this);
+                                            }
+                                        } else {
                                             this.inventory.sendContents(this);
                                         }
-                                    } else {
-                                        this.inventory.sendContents(this);
-                                    }
-                                    return;
-                                case InventoryTransactionPacket.RELEASE_ITEM_ACTION_CONSUME:
-                                    this.getServer().getLogger().debug("Unexpected release item action consume from " + this.getName());
-                                    return;
-                                default:
-                                    break;
+                                        return;
+                                    case InventoryTransactionPacket.RELEASE_ITEM_ACTION_CONSUME:
+                                        this.getServer().getLogger().debug("Unexpected release item action consume from " + this.getName());
+                                        return;
+                                    default:
+                                        break;
+                                }
+                            } finally {
+                                this.setUsingItem(false);
                             }
                         } finally {
-                            this.setUsingItem(false);
+                            this.setItemInteractionHand(previousHand);
                         }
                         break;
+                    }
                     default:
                         this.inventory.sendContents(this);
                         break;

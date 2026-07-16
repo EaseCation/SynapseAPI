@@ -13,6 +13,7 @@ import cn.nukkit.entity.data.StringEntityData;
 import cn.nukkit.event.player.*;
 import cn.nukkit.event.server.DataPacketReceiveEvent;
 import cn.nukkit.event.server.DataPacketSendEvent;
+import cn.nukkit.inventory.ItemUseHand;
 import cn.nukkit.item.Item;
 import cn.nukkit.item.ItemMap;
 import cn.nukkit.level.*;
@@ -154,6 +155,19 @@ public class SynapsePlayer extends Player {
         return loginChainData != null
                 && loginChainData.getViaProxyAuthToken() != null
                 && !loginChainData.getViaProxyAuthToken().isEmpty();
+    }
+
+    @Override
+    public boolean supportsExplicitItemUseHand() {
+        return this.isJavaClient() && super.supportsExplicitItemUseHand();
+    }
+
+    protected final void rebindStartedJavaItemUseHand(ItemUseHand interactionHand) {
+        if (JavaItemUseRouting.shouldRebindStartedUse(
+                this.supportsExplicitItemUseHand(), interactionHand,
+                this.isUsingItem(), this.getUsingItemHand())) {
+            this.setUsingItem(true);
+        }
     }
 
     /**

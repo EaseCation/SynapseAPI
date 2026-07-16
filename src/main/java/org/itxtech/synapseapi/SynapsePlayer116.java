@@ -26,6 +26,7 @@ import cn.nukkit.event.inventory.ItemAttackDamageEvent;
 import cn.nukkit.event.player.*;
 import cn.nukkit.inventory.ContainerInventory;
 import cn.nukkit.inventory.Inventory;
+import cn.nukkit.inventory.ItemUseHand;
 import cn.nukkit.inventory.transaction.CraftingTransaction;
 import cn.nukkit.inventory.transaction.EnchantTransaction;
 import cn.nukkit.inventory.transaction.InventoryTransaction;
@@ -369,19 +370,28 @@ public class SynapsePlayer116 extends SynapsePlayer113 {
 						this.sendAllInventories();
 
 						break packetswitch;
-					case InventoryTransactionPacket116.TYPE_USE_ITEM:
+					case InventoryTransactionPacket116.TYPE_USE_ITEM: {
 						UseItemData useItemData = (UseItemData) transactionPacket.transactionData;
 
 						Vector3f clickPos = useItemData.clickPos;
 						BlockVector3 blockVector = useItemData.blockPos;
 						BlockFace face = useItemData.face;
 						int type = useItemData.actionType;
+						ItemUseHand interactionHand = JavaItemUseRouting.resolve(
+								this.supportsExplicitItemUseHand(), useItemData.hotbarSlot);
+						ItemUseHand previousHand = this.setItemInteractionHand(interactionHand);
 
-						if (face == null && type != InventoryTransactionPacket116.USE_ITEM_ACTION_CLICK_AIR) {
-							break packetswitch;
-						}
+						try {
+							if (interactionHand == ItemUseHand.OFF_HAND
+									&& !JavaItemUseRouting.supportsUseItemAction(type)) {
+								this.inventory.sendHeldItem(this);
+								break packetswitch;
+							}
+							if (face == null && type != InventoryTransactionPacket116.USE_ITEM_ACTION_CLICK_AIR) {
+								break packetswitch;
+							}
 
-						switch (type) {
+							switch (type) {
 							case InventoryTransactionPacket116.USE_ITEM_ACTION_CLICK_BLOCK:
 								// Remove if client bug is ever fixed
 								boolean spamBug = lastRightClickData != null && System.currentTimeMillis() - lastRightClickTime < 100 &&
@@ -535,6 +545,7 @@ public class SynapsePlayer116 extends SynapsePlayer113 {
 									item = this.inventory.getItemInHand();
 								}
 
+								this.rebindStartedJavaItemUseHand(interactionHand);
 								PlayerInteractEvent interactEvent = new PlayerInteractEvent(this, item, directionVector, face, PlayerInteractEvent.Action.RIGHT_CLICK_AIR);
                                 if (isSpectator()) {
                                     interactEvent.setCancelled();
@@ -545,13 +556,16 @@ public class SynapsePlayer116 extends SynapsePlayer113 {
 									break packetswitch;
 								}
 
-								if (item.onClickAir(this, directionVector)) {
+								boolean explicitShieldUse = JavaItemUseRouting.supportsExplicitShieldUse(
+										this.supportsExplicitItemUseHand(), item.getId());
+								boolean itemAccepted = item.onClickAir(this, directionVector) || explicitShieldUse;
+								if (itemAccepted) {
 									if (this.isSurvivalLike()) {
 										this.inventory.setItemInHand(item);
 									}
 
 									if (!this.isUsingItem()) {
-										this.setUsingItem(item.canRelease());
+										this.setUsingItem(item.canRelease() || explicitShieldUse);
 										break packetswitch;
 									}
 
@@ -565,7 +579,7 @@ public class SynapsePlayer116 extends SynapsePlayer113 {
 										this.inventory.sendContents(this);
 									}
 
-									if (item.canRelease() && !item.isNull()) {
+									if ((item.canRelease() || explicitShieldUse) && !item.isNull()) {
 										this.setUsingItem(true);
 									}
 								}
@@ -574,12 +588,26 @@ public class SynapsePlayer116 extends SynapsePlayer113 {
 							default:
 								//unknown
 								break;
+							}
+						} finally {
+							this.setItemInteractionHand(previousHand);
 						}
 						break;
-					case InventoryTransactionPacket116.TYPE_USE_ITEM_ON_ENTITY:
+					}
+					case InventoryTransactionPacket116.TYPE_USE_ITEM_ON_ENTITY: {
 						UseItemOnEntityData useItemOnEntityData = (UseItemOnEntityData) transactionPacket.transactionData;
+						int type = useItemOnEntityData.actionType;
+						ItemUseHand interactionHand = JavaItemUseRouting.resolve(
+								this.supportsExplicitItemUseHand(), useItemOnEntityData.hotbarSlot);
+						ItemUseHand previousHand = this.setItemInteractionHand(interactionHand);
 
-						Entity target = this.level.getEntity(useItemOnEntityData.entityRuntimeId);
+						try {
+							if (interactionHand == ItemUseHand.OFF_HAND
+									&& !JavaItemUseRouting.supportsEntityAction(type)) {
+								this.inventory.sendHeldItem(this);
+								break packetswitch;
+							}
+							Entity target = this.level.getEntity(useItemOnEntityData.entityRuntimeId);
 						if (target == null) {
 							item = this.inventory.getItemInHand();
 							PlayerInteractEvent interactEvent = new PlayerInteractEvent(this, item, this.getDirectionVector(), BlockFace.UP, PlayerInteractEvent.Action.CLICK_UNKNOWN_ENTITY).setUnkownEntityId(useItemOnEntityData.entityRuntimeId);
@@ -589,8 +617,6 @@ public class SynapsePlayer116 extends SynapsePlayer113 {
 							this.server.getPluginManager().callEvent(interactEvent);
 							return;
 						}
-
-						type = useItemOnEntityData.actionType;
 
 						if (!useItemOnEntityData.itemInHand.equalsExact(this.inventory.getItemInHand())) {
 							this.inventory.sendHeldItem(this);
@@ -707,42 +733,71 @@ public class SynapsePlayer116 extends SynapsePlayer113 {
 								break; //unknown
 						}
 
+						} finally {
+							this.setItemInteractionHand(previousHand);
+						}
+
 						break;
-					case InventoryTransactionPacket116.TYPE_RELEASE_ITEM:
+					}
+					case InventoryTransactionPacket116.TYPE_RELEASE_ITEM: {
 						if (!callPacketReceiveEvent(packet)) break;
 						if (this.isSpectator()) {
 							this.sendAllInventories();
 							break packetswitch;
 						}
 						ReleaseItemData releaseItemData = (ReleaseItemData) transactionPacket.transactionData;
+						ItemUseHand interactionHand = JavaItemUseRouting.resolve(
+								this.supportsExplicitItemUseHand(), releaseItemData.hotbarSlot);
+						if (this.supportsExplicitItemUseHand()
+								&& this.isUsingItem()
+								&& interactionHand != this.getUsingItemHand()) {
+							ItemUseHand previousHand = this.setItemInteractionHand(this.getUsingItemHand());
+							try {
+								this.inventory.sendHeldItem(this);
+							} finally {
+								this.setItemInteractionHand(previousHand);
+								this.setUsingItem(false);
+							}
+							break packetswitch;
+						}
+						ItemUseHand previousHand = this.setItemInteractionHand(interactionHand);
 
 						try {
-							type = releaseItemData.actionType;
-							switch (type) {
-								case InventoryTransactionPacket116.RELEASE_ITEM_ACTION_RELEASE:
-									if (this.isUsingItem()) {
-										item = this.inventory.getItemInHand();
+							try {
+								int type = releaseItemData.actionType;
+								switch (type) {
+									case InventoryTransactionPacket116.RELEASE_ITEM_ACTION_RELEASE:
+										if (this.isUsingItem()) {
+											item = this.inventory.getItemInHand();
+											if (this.isUsingOffhandItem() && !this.isUsingSameItem(item)) {
+												this.inventory.sendHeldItem(this);
+												return;
+											}
 
-										//int ticksUsed = this.server.getTick() - this.startAction;
-										int ticksUsed = (int) (System.currentTimeMillis() - this.startActionTimestamp) / 50;
+											//int ticksUsed = this.server.getTick() - this.startAction;
+											int ticksUsed = (int) (System.currentTimeMillis() - this.startActionTimestamp) / 50;
 
-										if (!item.onRelease(this, ticksUsed, releaseItemData.headRot)) {
+											if (!item.onRelease(this, ticksUsed, releaseItemData.headRot)) {
+												this.inventory.sendContents(this);
+											}
+										} else {
 											this.inventory.sendContents(this);
 										}
-									} else {
-										this.inventory.sendContents(this);
-									}
-									return;
-								case InventoryTransactionPacket116.RELEASE_ITEM_ACTION_CONSUME:
-									this.getServer().getLogger().debug("Unexpected release item action consume from " + this.getName());
-									return;
-								default:
-									break;
+										return;
+									case InventoryTransactionPacket116.RELEASE_ITEM_ACTION_CONSUME:
+										this.getServer().getLogger().debug("Unexpected release item action consume from " + this.getName());
+										return;
+									default:
+										break;
+								}
+							} finally {
+								this.setUsingItem(false);
 							}
 						} finally {
-							this.setUsingItem(false);
+							this.setItemInteractionHand(previousHand);
 						}
 						break;
+					}
 					default:
 						this.inventory.sendContents(this);
 						break;
@@ -1414,9 +1469,14 @@ public class SynapsePlayer116 extends SynapsePlayer113 {
 					BlockVector3 blockVector = useItemData.blockPos;
 					BlockFace face = useItemData.face;
 					int type = useItemData.actionType;
+					ItemUseHand interactionHand = JavaItemUseRouting.resolveEmbeddedUse(
+							this.supportsExplicitItemUseHand(), useItemData.hotbarSlot, type);
 
-					if (face != null || type == InventoryTransactionPacket116.USE_ITEM_ACTION_CLICK_AIR) {
-						switch (type) {
+					if (interactionHand != null) {
+						ItemUseHand previousHand = this.setItemInteractionHand(interactionHand);
+						try {
+							if (face != null || type == InventoryTransactionPacket116.USE_ITEM_ACTION_CLICK_AIR) {
+								switch (type) {
 							case InventoryTransactionPacket116.USE_ITEM_ACTION_CLICK_BLOCK:
 								// Remove if client bug is ever fixed
 								boolean spamBug = lastRightClickData != null && System.currentTimeMillis() - lastRightClickTime < 100 &&
@@ -1592,6 +1652,10 @@ public class SynapsePlayer116 extends SynapsePlayer113 {
 								}
 
 								break;
+								}
+							}
+						} finally {
+							this.setItemInteractionHand(previousHand);
 						}
 					}
 				}

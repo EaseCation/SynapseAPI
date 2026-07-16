@@ -12,6 +12,7 @@ dependencies {
     compileOnly(project(":nukkit"))
     compileOnly(project(":authlib-stub"))
     testImplementation(project(":nukkit"))
+    testImplementation(libs.jupiter.engine)
 }
 
 group = "org.itxtech.synapse"
