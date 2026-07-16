@@ -6041,6 +6041,10 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
 
     @Override
     protected void tryDisruptIllegalClientBeforeStartGame() {
+        if (this.isJavaClient()) {
+            return;
+        }
+
         if (SERVER_AUTHORITATIVE_INVENTORY) {
             return;
         }
