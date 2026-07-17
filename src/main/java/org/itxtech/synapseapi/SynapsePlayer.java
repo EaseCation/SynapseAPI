@@ -162,9 +162,9 @@ public class SynapsePlayer extends Player {
         return this.isJavaClient() && super.supportsExplicitItemUseHand();
     }
 
-    protected final void rebindStartedJavaItemUseHand(ItemUseHand interactionHand) {
+    protected final void rebindStartedJavaItemUseHand(boolean offhandAllowed, ItemUseHand interactionHand) {
         if (JavaItemUseRouting.shouldRebindStartedUse(
-                this.supportsExplicitItemUseHand(), interactionHand,
+                offhandAllowed, interactionHand,
                 this.isUsingItem(), this.getUsingItemHand())) {
             this.setUsingItem(true);
         }

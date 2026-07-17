@@ -214,10 +214,24 @@ public class SynapsePlayer116 extends SynapsePlayer113 {
 						}
 					}
 				}
-				break;
-			case ProtocolInfo.INVENTORY_TRANSACTION_PACKET:
-				if (!callPacketReceiveEvent(packet)) break;
-				InventoryTransactionPacket116 transactionPacket = (InventoryTransactionPacket116) packet;
+					break;
+				case ProtocolInfo.INVENTORY_TRANSACTION_PACKET:
+					InventoryTransactionPacket116 transactionPacket = (InventoryTransactionPacket116) packet;
+					boolean javaClient = this.isJavaClient();
+					boolean explicitItemUseHandAllowed = javaClient && this.supportsExplicitItemUseHand();
+					JavaItemUseRouting.Route transactionRoute = JavaItemUseRouting.resolveTransaction(
+							javaClient, explicitItemUseHandAllowed,
+							transactionPacket.transactionType, transactionPacket.transactionData);
+					if (transactionRoute == JavaItemUseRouting.Route.REJECT) {
+						if (transactionPacket.transactionType == InventoryTransactionPacket.TYPE_RELEASE_ITEM
+								&& JavaItemUseRouting.shouldCancelRejectedRelease(
+								transactionPacket.transactionType, transactionRoute,
+								this.isUsingItem(), this.getUsingItemHand())) {
+							this.setUsingItem(false);
+						}
+						break;
+					}
+					if (!callPacketReceiveEvent(packet)) break;
 
 				Item item;
 				Block block;
@@ -377,8 +391,7 @@ public class SynapsePlayer116 extends SynapsePlayer113 {
 						BlockVector3 blockVector = useItemData.blockPos;
 						BlockFace face = useItemData.face;
 						int type = useItemData.actionType;
-						ItemUseHand interactionHand = JavaItemUseRouting.resolve(
-								this.supportsExplicitItemUseHand(), useItemData.hotbarSlot);
+						ItemUseHand interactionHand = transactionRoute.hand();
 						ItemUseHand previousHand = this.setItemInteractionHand(interactionHand);
 
 						try {
@@ -545,7 +558,7 @@ public class SynapsePlayer116 extends SynapsePlayer113 {
 									item = this.inventory.getItemInHand();
 								}
 
-								this.rebindStartedJavaItemUseHand(interactionHand);
+								this.rebindStartedJavaItemUseHand(explicitItemUseHandAllowed, interactionHand);
 								PlayerInteractEvent interactEvent = new PlayerInteractEvent(this, item, directionVector, face, PlayerInteractEvent.Action.RIGHT_CLICK_AIR);
                                 if (isSpectator()) {
                                     interactEvent.setCancelled();
@@ -557,7 +570,7 @@ public class SynapsePlayer116 extends SynapsePlayer113 {
 								}
 
 								boolean explicitShieldUse = JavaItemUseRouting.supportsExplicitShieldUse(
-										this.supportsExplicitItemUseHand(), item.getId());
+										explicitItemUseHandAllowed, item.getId());
 								boolean itemAccepted = item.onClickAir(this, directionVector) || explicitShieldUse;
 								if (itemAccepted) {
 									if (this.isSurvivalLike()) {
@@ -597,8 +610,7 @@ public class SynapsePlayer116 extends SynapsePlayer113 {
 					case InventoryTransactionPacket116.TYPE_USE_ITEM_ON_ENTITY: {
 						UseItemOnEntityData useItemOnEntityData = (UseItemOnEntityData) transactionPacket.transactionData;
 						int type = useItemOnEntityData.actionType;
-						ItemUseHand interactionHand = JavaItemUseRouting.resolve(
-								this.supportsExplicitItemUseHand(), useItemOnEntityData.hotbarSlot);
+						ItemUseHand interactionHand = transactionRoute.hand();
 						ItemUseHand previousHand = this.setItemInteractionHand(interactionHand);
 
 						try {
@@ -746,9 +758,8 @@ public class SynapsePlayer116 extends SynapsePlayer113 {
 							break packetswitch;
 						}
 						ReleaseItemData releaseItemData = (ReleaseItemData) transactionPacket.transactionData;
-						ItemUseHand interactionHand = JavaItemUseRouting.resolve(
-								this.supportsExplicitItemUseHand(), releaseItemData.hotbarSlot);
-						if (this.supportsExplicitItemUseHand()
+						ItemUseHand interactionHand = transactionRoute.hand();
+						if (explicitItemUseHandAllowed
 								&& this.isUsingItem()
 								&& interactionHand != this.getUsingItemHand()) {
 							ItemUseHand previousHand = this.setItemInteractionHand(this.getUsingItemHand());
@@ -1469,10 +1480,13 @@ public class SynapsePlayer116 extends SynapsePlayer113 {
 					BlockVector3 blockVector = useItemData.blockPos;
 					BlockFace face = useItemData.face;
 					int type = useItemData.actionType;
-					ItemUseHand interactionHand = JavaItemUseRouting.resolveEmbeddedUse(
-							this.supportsExplicitItemUseHand(), useItemData.hotbarSlot, type);
+					boolean embeddedJavaClient = this.isJavaClient();
+					JavaItemUseRouting.Route route = JavaItemUseRouting.resolveEmbeddedUse(
+							embeddedJavaClient, embeddedJavaClient && this.supportsExplicitItemUseHand(),
+							useItemData.hotbarSlot, type);
 
-					if (interactionHand != null) {
+					if (route != JavaItemUseRouting.Route.REJECT) {
+						ItemUseHand interactionHand = route.hand();
 						ItemUseHand previousHand = this.setItemInteractionHand(interactionHand);
 						try {
 							if (face != null || type == InventoryTransactionPacket116.USE_ITEM_ACTION_CLICK_AIR) {

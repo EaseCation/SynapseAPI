@@ -3578,8 +3578,22 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
                     super.handleDataPacket(packet);
                     break;
                 }
-                if (!callPacketReceiveEvent(packet)) break;
                 InventoryTransactionPacket12630 transactionPacket = (InventoryTransactionPacket12630) packet;
+                boolean javaClient = this.isJavaClient();
+                boolean explicitItemUseHandAllowed = javaClient && this.supportsExplicitItemUseHand();
+                JavaItemUseRouting.Route transactionRoute = JavaItemUseRouting.resolveTransaction(
+                        javaClient, explicitItemUseHandAllowed,
+                        transactionPacket.transactionType, transactionPacket.transactionData);
+                if (transactionRoute == JavaItemUseRouting.Route.REJECT) {
+                    if (transactionPacket.transactionType == InventoryTransactionPacket.TYPE_RELEASE_ITEM
+                            && JavaItemUseRouting.shouldCancelRejectedRelease(
+                            transactionPacket.transactionType, transactionRoute,
+                            this.isUsingItem(), this.getUsingItemHand())) {
+                        this.setUsingItem(false);
+                    }
+                    break;
+                }
+                if (!callPacketReceiveEvent(packet)) break;
 
                 Item item;
 
@@ -3738,7 +3752,7 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
                         BlockVector3 blockVector = useItemData.blockPos;
                         BlockFace face = useItemData.face;
                         int type = useItemData.actionType;
-                        ItemUseHand interactionHand = JavaItemUseRouting.resolve(this.supportsExplicitItemUseHand(), useItemData.hotbarSlot);
+                        ItemUseHand interactionHand = transactionRoute.hand();
                         ItemUseHand previousHand = this.setItemInteractionHand(interactionHand);
 
                         try {
@@ -3904,7 +3918,7 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
                                         item = this.inventory.getItemInHand();
                                     }
 
-                                    this.rebindStartedJavaItemUseHand(interactionHand);
+                                    this.rebindStartedJavaItemUseHand(explicitItemUseHandAllowed, interactionHand);
                                     PlayerInteractEvent interactEvent = new PlayerInteractEvent(this, item, directionVector, face, PlayerInteractEvent.Action.RIGHT_CLICK_AIR);
                                     if (isSpectator()) {
                                         interactEvent.setCancelled();
@@ -3915,7 +3929,7 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
                                         break packetswitch;
                                     }
 
-                                    boolean explicitShieldUse = JavaItemUseRouting.supportsExplicitShieldUse(this.supportsExplicitItemUseHand(), item.getId());
+                                    boolean explicitShieldUse = JavaItemUseRouting.supportsExplicitShieldUse(explicitItemUseHandAllowed, item.getId());
                                     boolean itemAccepted = item.onClickAir(this, directionVector) || explicitShieldUse;
                                     if (itemAccepted) {
                                         if (this.isSurvivalLike()) {
@@ -3955,7 +3969,7 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
                     case InventoryTransactionPacket.TYPE_USE_ITEM_ON_ENTITY: {
                         UseItemOnEntityData useItemOnEntityData = (UseItemOnEntityData) transactionPacket.transactionData;
                         int type = useItemOnEntityData.actionType;
-                        ItemUseHand interactionHand = JavaItemUseRouting.resolve(this.supportsExplicitItemUseHand(), useItemOnEntityData.hotbarSlot);
+                        ItemUseHand interactionHand = transactionRoute.hand();
                         ItemUseHand previousHand = this.setItemInteractionHand(interactionHand);
 
                         try {
@@ -4101,8 +4115,8 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
                             break packetswitch;
                         }
                         ReleaseItemData releaseItemData = (ReleaseItemData) transactionPacket.transactionData;
-                        ItemUseHand interactionHand = JavaItemUseRouting.resolve(this.supportsExplicitItemUseHand(), releaseItemData.hotbarSlot);
-                        if (this.supportsExplicitItemUseHand()
+                        ItemUseHand interactionHand = transactionRoute.hand();
+                        if (explicitItemUseHandAllowed
                                 && this.isUsingItem()
                                 && interactionHand != this.getUsingItemHand()) {
                             ItemUseHand previousHand = this.setItemInteractionHand(this.getUsingItemHand());
