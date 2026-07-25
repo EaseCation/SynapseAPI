@@ -15,8 +15,8 @@ public class PlayerSkinPacket11963 extends Packet11963 {
 
     public UUID uuid;
     public Skin skin;
-    public String newSkinName;
-    public String oldSkinName;
+    public String newSkinName = "";
+    public String oldSkinName = "";
 
     @Override
     public int pid() {

@@ -151,6 +151,7 @@ public class SynapsePlayer extends Player {
         return false;
     }
 
+    @Override
     public boolean isJavaClient() {
         return loginChainData != null
                 && loginChainData.getViaProxyAuthToken() != null

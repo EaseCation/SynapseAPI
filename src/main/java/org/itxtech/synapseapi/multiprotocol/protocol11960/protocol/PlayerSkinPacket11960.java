@@ -18,8 +18,8 @@ public class PlayerSkinPacket11960 extends Packet11960 {
 
     public UUID uuid;
     public Skin skin;
-    public String newSkinName;
-    public String oldSkinName;
+    public String newSkinName = "";
+    public String oldSkinName = "";
 
     public boolean extend;
     public boolean error = false;

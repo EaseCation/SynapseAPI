@@ -178,7 +178,7 @@ public class DataPacketEidReplacer {
                                 cloned = true;
                                 dp.entries = dp.entries.clone();
                             }
-                            Entry entry = dp.entries[i].copy();
+                            Entry entry = dp.entries[i].clone();
                             entry.entityId = to;
                             dp.entries[i] = entry;
                         }
