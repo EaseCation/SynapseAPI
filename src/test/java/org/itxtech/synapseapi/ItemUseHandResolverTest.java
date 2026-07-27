@@ -7,6 +7,7 @@ import cn.nukkit.inventory.transaction.data.UseItemData;
 import cn.nukkit.inventory.transaction.data.UseItemOnEntityData;
 import cn.nukkit.item.Item;
 import cn.nukkit.network.protocol.InventoryTransactionPacket;
+import cn.nukkit.network.protocol.PlayerActionPacket;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -105,6 +106,20 @@ class ItemUseHandResolverTest {
         assertTrue(JavaItemUseRouting.supportsExplicitShieldUse(true, Item.SHIELD));
         assertFalse(JavaItemUseRouting.supportsExplicitShieldUse(false, Item.SHIELD));
         assertFalse(JavaItemUseRouting.supportsExplicitShieldUse(true, Item.IRON_SWORD));
+    }
+
+    @Test
+    void startsBlockInteractionUseStateOnlyForNativeBedrockClients() {
+        assertFalse(JavaItemUseRouting.startsServerManagedItemUseOn(
+                true, PlayerActionPacket.ACTION_ITEM_USE_ON_START));
+        assertFalse(JavaItemUseRouting.startsServerManagedItemUseOn(
+                true, PlayerActionPacket.ACTION_ITEM_USE_ON_STOP));
+        assertTrue(JavaItemUseRouting.startsServerManagedItemUseOn(
+                false, PlayerActionPacket.ACTION_ITEM_USE_ON_START));
+        assertFalse(JavaItemUseRouting.startsServerManagedItemUseOn(
+                false, PlayerActionPacket.ACTION_ITEM_USE_ON_STOP));
+        assertFalse(JavaItemUseRouting.startsServerManagedItemUseOn(
+                false, PlayerActionPacket.ACTION_START_USING_ITEM));
     }
 
     @Test

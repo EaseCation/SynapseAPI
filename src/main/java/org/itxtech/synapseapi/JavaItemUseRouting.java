@@ -7,6 +7,7 @@ import cn.nukkit.inventory.transaction.data.UseItemData;
 import cn.nukkit.inventory.transaction.data.UseItemOnEntityData;
 import cn.nukkit.item.Item;
 import cn.nukkit.network.protocol.InventoryTransactionPacket;
+import cn.nukkit.network.protocol.PlayerActionPacket;
 
 final class JavaItemUseRouting {
 
@@ -76,6 +77,10 @@ final class JavaItemUseRouting {
 
     static boolean supportsExplicitShieldUse(boolean offhandAllowed, int itemId) {
         return offhandAllowed && itemId == Item.SHIELD;
+    }
+
+    static boolean startsServerManagedItemUseOn(boolean javaClient, int actionType) {
+        return !javaClient && actionType == PlayerActionPacket.ACTION_ITEM_USE_ON_START;
     }
 
     static boolean shouldRebindStartedUse(boolean offhandAllowed,

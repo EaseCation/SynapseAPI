@@ -2436,7 +2436,8 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
                             break;
                     }
 
-                    this.setUsingItem(playerActionPacket.action == PlayerActionPacket.ACTION_ITEM_USE_ON_START);
+                    this.setUsingItem(JavaItemUseRouting.startsServerManagedItemUseOn(
+                            this.isJavaClient(), playerActionPacket.action));
                     break;
                 }
 
