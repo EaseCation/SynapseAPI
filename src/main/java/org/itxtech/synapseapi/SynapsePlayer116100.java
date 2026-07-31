@@ -3997,7 +3997,7 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
 
                             switch (type) {
                                 case InventoryTransactionPacket.USE_ITEM_ON_ENTITY_ACTION_INTERACT:
-                                    if (!this.canInteract(target, isCreative() ? MAX_REACH_DISTANCE_ENTITY_INTERACTION : 5)) {
+                                    if (!this.canInteract(target, target.getBoundingBox(), isCreative() ? MAX_REACH_DISTANCE_CREATIVE_ENTITY_INTERACTION : MAX_REACH_DISTANCE_SURVIVAL_ENTITY_INTERACTION)) {
                                         break;
                                     }
 
@@ -4041,7 +4041,7 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
 									break;
 								}
     */
-                                    if (!this.canInteract(target, isCreative() ? MAX_REACH_DISTANCE_ENTITY_INTERACTION : 5)) {
+                                    if (!this.canInteract(target, target.getBoundingBox(), isCreative() ? MAX_REACH_DISTANCE_CREATIVE_ENTITY_INTERACTION : MAX_REACH_DISTANCE_SURVIVAL_ENTITY_INTERACTION)) {
                                         break;
                                     }
 

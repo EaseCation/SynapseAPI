@@ -53,7 +53,6 @@ import org.itxtech.synapseapi.multiprotocol.protocol113.protocol.RespawnPacket11
 import org.itxtech.synapseapi.multiprotocol.protocol113.protocol.SettingsCommandPacket113;
 import org.itxtech.synapseapi.multiprotocol.protocol113.protocol.StartGamePacket113;
 import org.itxtech.synapseapi.multiprotocol.protocol113.protocol.TickSyncPacket113;
-import org.itxtech.synapseapi.multiprotocol.protocol116.protocol.InventoryTransactionPacket116;
 import org.itxtech.synapseapi.multiprotocol.protocol14.protocol.PlayerActionPacket14;
 import org.itxtech.synapseapi.multiprotocol.protocol16.protocol.ResourcePackClientResponsePacket16;
 
@@ -511,7 +510,7 @@ public class SynapsePlayer113 extends SynapsePlayer112 {
 
 						switch (type) {
 							case InventoryTransactionPacket.USE_ITEM_ON_ENTITY_ACTION_INTERACT:
-								if (!this.canInteract(target, isCreative() ? MAX_REACH_DISTANCE_ENTITY_INTERACTION : 5)) {
+								if (!this.canInteract(target, target.getBoundingBox(), isCreative() ? MAX_REACH_DISTANCE_CREATIVE_ENTITY_INTERACTION : MAX_REACH_DISTANCE_SURVIVAL_ENTITY_INTERACTION)) {
 									break;
 								}
 
@@ -540,7 +539,7 @@ public class SynapsePlayer113 extends SynapsePlayer112 {
 								}
 								break;
 							case InventoryTransactionPacket.USE_ITEM_ON_ENTITY_ACTION_ATTACK:
-								if (!this.canInteract(target, isCreative() ? MAX_REACH_DISTANCE_ENTITY_INTERACTION : 5)) {
+								if (!this.canInteract(target, target.getBoundingBox(), isCreative() ? MAX_REACH_DISTANCE_CREATIVE_ENTITY_INTERACTION : MAX_REACH_DISTANCE_SURVIVAL_ENTITY_INTERACTION)) {
 									break;
 								} else if (target instanceof Player) {
 									if ((((Player) target).getGamemode() & 0x01) > 0) {
