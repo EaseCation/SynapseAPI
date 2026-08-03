@@ -1212,8 +1212,10 @@ public class SynapsePlayer116 extends SynapsePlayer113 {
 								if (!isAdventure()) {
 									switch (target.getId()) {
 										case Block.NOTEBLOCK:
-											((BlockNoteblock) target).emitSound();
-											break actionswitch;
+											if (!isCreative()) {
+												((BlockNoteblock) target).emitSound();
+											}
+											break;
 										case Block.DRAGON_EGG:
 											if (!this.isCreative()) {
 												((BlockDragonEgg) target).teleport();
