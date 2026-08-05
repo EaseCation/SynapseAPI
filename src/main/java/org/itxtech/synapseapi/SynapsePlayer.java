@@ -139,6 +139,7 @@ public class SynapsePlayer extends Player {
         return isSynapseLogin;
     }
 
+    @Override
     public boolean isFirstTimeLogin() {
         return isFirstTimeLogin;
     }
@@ -582,7 +583,6 @@ public class SynapsePlayer extends Player {
 	}
 
     @Override
-    @SuppressWarnings("deprecation")
     protected void completeLoginSequence() {
         if (!this.isSynapseLogin) {
             super.completeLoginSequence();
@@ -655,6 +655,7 @@ public class SynapsePlayer extends Player {
             this.sendCameraPresets();
         } else {
             this.locallyInitialized = true;
+            sentSkins.add(getUniqueId());
 
             if (getProtocol() >= AbstractProtocol.PROTOCOL_119_50.getProtocolStart()) {
                 PlayerActionPacket119 ackPacket = new PlayerActionPacket119();
@@ -1264,16 +1265,14 @@ public class SynapsePlayer extends Player {
         return super.orderChunks();
     }
 
-    @Override
+    /*@Override
     public void spawnTo(Player player) {
-        /*if (this.getSkin().isPersona() && player.isNetEaseClient() && player.getProtocol() >= AbstractProtocol.PROTOCOL_121_50.getProtocolStart()) {
+        if (this.getSkin().isPersona() && player.isNetEaseClient() && player.getProtocol() == AbstractProtocol.PROTOCOL_121_50.getProtocolStart()) {
             // 2026-02 中国版3.7BUG：如果是persona皮肤，则需要重发，否则会显示为史蒂夫
-            String uid = this.getLoginChainData().getNetEaseUID();
-            if (uid == null || uid.isEmpty()) uid = this.getLoginChainData().getXUID();
-            this.server.updatePlayerListData(this.getUniqueId(), this.getId(), this.getDisplayName(), this.skin, uid, new Player[]{player});
-        }*/
+            this.server.updatePlayerListData(this.getUniqueId(), this.getId(), this.getName(), this.skin, player);
+        }
         super.spawnTo(player);
-    }
+    }*/
 
     protected boolean callPacketReceiveEvent(DataPacket packet) {
         DataPacketReceiveEvent ev = new DataPacketReceiveEvent(this, packet);
