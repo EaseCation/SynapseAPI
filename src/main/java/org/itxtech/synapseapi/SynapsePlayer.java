@@ -39,6 +39,7 @@ import it.unimi.dsi.fastutil.longs.Long2ObjectMap;
 import org.itxtech.synapseapi.camera.CameraManager;
 import org.itxtech.synapseapi.dialogue.NPCDialoguePlayerHandler;
 import org.itxtech.synapseapi.event.player.SynapsePlayerConnectEvent;
+import org.itxtech.synapseapi.event.player.SynapsePlayerJavaCustomPayloadEvent;
 import org.itxtech.synapseapi.event.player.SynapsePlayerPreChatEvent;
 import org.itxtech.synapseapi.event.player.SynapsePlayerTransferEvent;
 import org.itxtech.synapseapi.event.player.SynapsePlayerUnexpectedBehaviorEvent;
@@ -56,6 +57,8 @@ import org.itxtech.synapseapi.multiprotocol.protocol12.utils.ClientChainData12Ur
 import org.itxtech.synapseapi.multiprotocol.protocol121.protocol.TextPacket121;
 import org.itxtech.synapseapi.multiprotocol.protocol121130.protocol.TextPacket121130;
 import org.itxtech.synapseapi.multiprotocol.protocol12120.protocol.ChangeDimensionPacket12120;
+import org.itxtech.synapseapi.multiprotocol.protocol11810.protocol.ScriptMessagePacket11810;
+import org.itxtech.synapseapi.java.JavaCustomPayloadEnvelope;
 import org.itxtech.synapseapi.multiprotocol.protocol126.protocol.TextPacket126;
 import org.itxtech.synapseapi.multiprotocol.protocol14.protocol.PlayerActionPacket14;
 import org.itxtech.synapseapi.multiprotocol.protocol14.protocol.TextPacket14;
@@ -1452,6 +1455,15 @@ public class SynapsePlayer extends Player {
                     }
                 }
 
+                break;
+            case ProtocolInfo.SCRIPT_MESSAGE_PACKET:
+                if (!callPacketReceiveEvent(packet) || !this.isJavaClient()
+                        || !(packet instanceof ScriptMessagePacket11810 scriptMessagePacket)) {
+                    break;
+                }
+                JavaCustomPayloadEnvelope.decode(scriptMessagePacket.messageId, scriptMessagePacket.value)
+                        .ifPresent(payload -> this.server.getPluginManager().callEvent(
+                                new SynapsePlayerJavaCustomPayloadEvent(this, payload.channel(), payload.payload())));
                 break;
             /*case ProtocolInfo.LEVEL_SOUND_EVENT_PACKET:
                 if (!callPacketReceiveEvent(packet)) break;
