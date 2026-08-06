@@ -7,16 +7,17 @@ import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 import java.util.Base64;
 import java.util.Optional;
+import java.util.regex.Pattern;
 
 /**
- * ViaBedrock 输出的受限 Java 自定义载荷信封解码器。
- * 与商业功能解耦，插件收到通用事件后自行决定是否处理频道。
+ * ViaBedrock 双向 Java 自定义载荷桥的 ScriptMessage 信封编解码器。
  */
 public final class JavaCustomPayloadEnvelope {
 
     public static final String SCRIPT_MESSAGE_ID = "easecation:java_custom_payload_v1";
     public static final int MAX_CHANNEL_BYTES = 128;
     public static final int MAX_PAYLOAD_BYTES = 8 * 1024;
+    private static final Pattern CHANNEL_PATTERN = Pattern.compile("[a-z0-9_.-]+:[a-z0-9/._-]+");
 
     private JavaCustomPayloadEnvelope() {
     }
@@ -50,6 +51,21 @@ public final class JavaCustomPayloadEnvelope {
         } catch (IllegalArgumentException | CharacterCodingException ignored) {
             return Optional.empty();
         }
+    }
+
+    public static Optional<String> encode(final String channel, final byte[] payload) {
+        if (channel == null || payload == null || !CHANNEL_PATTERN.matcher(channel).matches()) {
+            return Optional.empty();
+        }
+        final byte[] channelBytes = channel.getBytes(StandardCharsets.UTF_8);
+        if (channelBytes.length == 0 || channelBytes.length > MAX_CHANNEL_BYTES || payload.length > MAX_PAYLOAD_BYTES) {
+            return Optional.empty();
+        }
+        final byte[] envelope = new byte[1 + channelBytes.length + payload.length];
+        envelope[0] = (byte) channelBytes.length;
+        System.arraycopy(channelBytes, 0, envelope, 1, channelBytes.length);
+        System.arraycopy(payload, 0, envelope, 1 + channelBytes.length, payload.length);
+        return Optional.of(Base64.getUrlEncoder().withoutPadding().encodeToString(envelope));
     }
 
     private static boolean isUnpaddedBase64Url(String value) {

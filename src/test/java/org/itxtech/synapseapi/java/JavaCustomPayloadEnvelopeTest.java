@@ -33,6 +33,19 @@ class JavaCustomPayloadEnvelopeTest {
     }
 
     @Test
+    void encodesTheSameEnvelopeThatTheDecoderAccepts() {
+        byte[] payload = new byte[]{2, 1, 0, -1};
+
+        String encoded = JavaCustomPayloadEnvelope.encode("easecation:launcher_commerce", payload).orElseThrow();
+        JavaCustomPayloadEnvelope.Payload decoded = JavaCustomPayloadEnvelope.decode(
+                JavaCustomPayloadEnvelope.SCRIPT_MESSAGE_ID, encoded).orElseThrow();
+
+        assertEquals("easecation:launcher_commerce", decoded.channel());
+        assertArrayEquals(payload, decoded.payload());
+        assertTrue(JavaCustomPayloadEnvelope.encode("invalid channel", payload).isEmpty());
+    }
+
+    @Test
     void rejectsMalformedOrOverLimitEnvelopes() {
         byte[] malformedUtf8 = new byte[]{1, -1};
         byte[] oversized = new byte[1 + 1 + JavaCustomPayloadEnvelope.MAX_PAYLOAD_BYTES + 1];
