@@ -54,6 +54,25 @@ public class PlayerListPacket12180 extends Packet12180 {
             for (Entry entry : this.entries) { // Biggest wtf
                 this.putBoolean(entry.skin.isTrusted());
             }
+
+            if (!neteaseMode) {
+                return;
+            }
+            for (int i = 0; i < this.entries.length; i++) {
+                this.putBoolean(false);
+            }
+            for (int i = 0; i < this.entries.length; i++) {
+                this.putBoolean(false);
+            }
+            for (Entry entry : this.entries) {
+                this.putByteArray(entry.skin.getBloomData());
+            }
+            for (int i = 0; i < this.entries.length; i++) {
+                this.putLInt(0);
+            }
+            for (int i = 0; i < this.entries.length; i++) {
+                this.putBoolean(true);
+            }
         }
     }
 

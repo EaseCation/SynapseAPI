@@ -60,6 +60,11 @@ public final class ClientChainData12Urgency implements LoginChainData {
     }
 
     @Override
+    public String getNetEaseDataVersion() {
+        return "";
+    }
+
+    @Override
     public String getNetEasePlatform() {
         return "";
     }
@@ -86,6 +91,11 @@ public final class ClientChainData12Urgency implements LoginChainData {
 
     @Override
     public String getNetEaseClientBit() {
+        return "";
+    }
+
+    @Override
+    public String getNetEaseGameType() {
         return "";
     }
 
@@ -139,8 +149,108 @@ public final class ClientChainData12Urgency implements LoginChainData {
     }
 
     @Override
-    public String getCapeData() {
+    public String getPlatformOfflineId() {
+        return platformOfflineId;
+    }
+
+    @Override
+    public String getPlatformOnlineId() {
+        return platformOnlineId;
+    }
+
+    @Override
+    public boolean isEditorMode() {
+        return editorMode;
+    }
+
+    @Override
+    public boolean isEditorCapable() {
+        return editorCapable;
+    }
+
+    @Override
+    public int isEditorConnectionIntent() {
+        return editorConnectionIntent;
+    }
+
+    @Override
+    public boolean isSupportClientChunkGeneration() {
+        return supportClientChunkGeneration;
+    }
+
+    @Override
+    public int getPlatformType() {
+        return platformType;
+    }
+
+    @Override
+    public int getMemoryTier() {
+        return memoryTier;
+    }
+
+    @Override
+    public int getMaxViewDistance() {
+        return maxViewDistance;
+    }
+
+    @Override
+    public int getGraphicsMode() {
+        return graphicsMode;
+    }
+
+    @Override
+    public String getPartyId() {
+        return partyId;
+    }
+
+    @Override
+    public boolean isPartyLeader() {
+        return partyLeader;
+    }
+
+    @Override
+    public boolean isFilterProfanity() {
+        return filterProfanity;
+    }
+
+    @Override
+    public boolean isNetEaseReconnect() {
+        return false;
+    }
+
+    @Override
+    public String getNetEaseSkinIID() {
+        return "";
+    }
+
+    @Override
+    public int getNetEaseGrowthLevel() {
+        return 0;
+    }
+
+    @Override
+    public String getSubject() {
+        return "";
+    }
+
+    @Override
+    public String getPlayFabId() {
+        return "";
+    }
+
+    @Override
+    public Integer getPfcd() {
         return null;
+    }
+
+    @Override
+    public String getTitleId() {
+        return "";
+    }
+
+    @Override
+    public String getSandboxId() {
+        return "";
     }
 
     public String getXuid() {
@@ -180,8 +290,20 @@ public final class ClientChainData12Urgency implements LoginChainData {
     private String languageCode;
     private int currentInputMode;
     private int defaultInputMode;
-
     private int UIProfile;
+    private String platformOfflineId;
+    private String platformOnlineId;
+    private boolean editorMode;
+    private boolean editorCapable;
+    private int editorConnectionIntent;
+    private boolean supportClientChunkGeneration;
+    private int platformType;
+    private int memoryTier;
+    private int maxViewDistance;
+    private int graphicsMode;
+    private String partyId;
+    private boolean partyLeader;
+    private boolean filterProfanity;
 
     private String capeData;
 
@@ -214,6 +336,19 @@ public final class ClientChainData12Urgency implements LoginChainData {
         if (skinToken.has("DefaultInputMode")) this.defaultInputMode = skinToken.get("DefaultInputMode").getAsInt();
         if (skinToken.has("UIProfile")) this.UIProfile = skinToken.get("UIProfile").getAsInt();
         if (skinToken.has("CapeData")) this.capeData = skinToken.get("CapeData").getAsString();
+        if (skinToken.has("PlatformOfflineId")) this.platformOfflineId = skinToken.get("PlatformOfflineId").getAsString();
+        if (skinToken.has("PlatformOnlineId")) this.platformOnlineId = skinToken.get("PlatformOnlineId").getAsString();
+        if (skinToken.has("IsEditorMode")) this.editorMode = skinToken.get("IsEditorMode").getAsBoolean();
+        if (skinToken.has("CompatibleWithClientSideChunkGen")) this.supportClientChunkGeneration = skinToken.get("CompatibleWithClientSideChunkGen").getAsBoolean();
+        if (skinToken.has("PlatformType")) this.platformType = skinToken.get("PlatformType").getAsInt();
+        if (skinToken.has("MemoryTier")) this.memoryTier = skinToken.get("MemoryTier").getAsInt();
+        if (skinToken.has("MaxViewDistance")) this.maxViewDistance = skinToken.get("MaxViewDistance").getAsInt();
+        if (skinToken.has("GraphicsMode")) this.graphicsMode = skinToken.get("GraphicsMode").getAsInt();
+        if (skinToken.has("PartyId")) this.partyId = skinToken.get("PartyId").getAsString();
+        if (skinToken.has("IsPartyLeader")) this.partyLeader = skinToken.get("IsPartyLeader").getAsBoolean();
+        if (skinToken.has("FilterProfanity")) this.filterProfanity = skinToken.get("FilterProfanity").getAsBoolean();
+        if (skinToken.has("ClientIsEditorCapable")) this.editorCapable = skinToken.get("ClientIsEditorCapable").getAsBoolean();
+        if (skinToken.has("ClientEditorConnectionIntent")) this.editorConnectionIntent = skinToken.get("ClientEditorConnectionIntent").getAsInt();
         if (skinToken.has("ViaProxyAuthToken")) this.viaProxyAuthToken = skinToken.get("ViaProxyAuthToken").getAsString();
     }
 
@@ -232,7 +367,6 @@ public final class ClientChainData12Urgency implements LoginChainData {
         	decode = Base64.getDecoder().decode(base[1]);
         }
         String json = new String(decode, StandardCharsets.UTF_8);
-        //Server.getInstance().getLogger().debug(json);
         return GSON.fromJson(json, JsonObject.class);
     }
 
@@ -254,7 +388,6 @@ public final class ClientChainData12Urgency implements LoginChainData {
                 ", defaultInputMode=" + defaultInputMode +
                 ", UIProfile=" + UIProfile +
                 ", capeData='" + capeData + '\'' +
-                ", bs=" + bs +
                 '}';
     }
 }

@@ -100,6 +100,11 @@ public final class ClientChainDataXbox implements LoginChainData {
     }
 
     @Override
+    public String getNetEaseDataVersion() {
+        return neteaseDataVersion;
+    }
+
+    @Override
     public String getNetEasePlatform() {
         return neteasePlatform;
     }
@@ -127,6 +132,11 @@ public final class ClientChainDataXbox implements LoginChainData {
     @Override
     public String getNetEaseClientBit() {
         return neteaseClientBit;
+    }
+
+    @Override
+    public String getNetEaseGameType() {
+        return neteaseGameType;
     }
 
     @Override
@@ -189,11 +199,6 @@ public final class ClientChainDataXbox implements LoginChainData {
         return defaultInputMode;
     }
 
-    @Override
-    public String getCapeData() {
-        return capeData;
-    }
-
     public final static int UI_PROFILE_CLASSIC = 0;
     public final static int UI_PROFILE_POCKET = 1;
 
@@ -202,9 +207,114 @@ public final class ClientChainDataXbox implements LoginChainData {
         return UIProfile;
     }
 
+    @Override
+    public String getPlatformOfflineId() {
+        return platformOfflineId;
+    }
+
+    @Override
+    public String getPlatformOnlineId() {
+        return platformOnlineId;
+    }
+
+    @Override
+    public boolean isEditorMode() {
+        return editorMode;
+    }
+
+    @Override
+    public boolean isEditorCapable() {
+        return editorCapable;
+    }
+
+    @Override
+    public int isEditorConnectionIntent() {
+        return editorConnectionIntent;
+    }
+
+    @Override
+    public boolean isSupportClientChunkGeneration() {
+        return supportClientChunkGeneration;
+    }
+
+    @Override
+    public int getPlatformType() {
+        return platformType;
+    }
+
+    @Override
+    public int getMemoryTier() {
+        return memoryTier;
+    }
+
+    @Override
+    public int getMaxViewDistance() {
+        return maxViewDistance;
+    }
+
+    @Override
+    public int getGraphicsMode() {
+        return graphicsMode;
+    }
+
+    @Override
+    public String getPartyId() {
+        return partyId;
+    }
+
+    @Override
+    public boolean isPartyLeader() {
+        return partyLeader;
+    }
+
+    @Override
+    public boolean isFilterProfanity() {
+        return filterProfanity;
+    }
+
+    @Override
+    public boolean isNetEaseReconnect() {
+        return neteaseReconnect;
+    }
+
+    @Override
+    public String getNetEaseSkinIID() {
+        return neteaseSkinIID;
+    }
+
+    @Override
+    public int getNetEaseGrowthLevel() {
+        return neteaseGrowthLevel;
+    }
+
 //    @Override
     public String[] getOriginChainArr() {
         return originChainArr;
+    }
+
+    @Override
+    public String getSubject() {
+        return subject;
+    }
+
+    @Override
+    public String getPlayFabId() {
+        return playFabId;
+    }
+
+    @Override
+    public Integer getPfcd() {
+        return pfcd;
+    }
+
+    @Override
+    public String getTitleId() {
+        return titleId;
+    }
+
+    @Override
+    public String getSandboxId() {
+        return sandboxId;
     }
 
     ///////////////////////////////////////////////////////////////////////////
@@ -258,8 +368,24 @@ public final class ClientChainDataXbox implements LoginChainData {
     private int currentInputMode;
     private int defaultInputMode;
     private int UIProfile;
+    private String platformOfflineId;
+    private String platformOnlineId;
+    private boolean editorMode;
+    private boolean editorCapable;
+    private int editorConnectionIntent;
+    private boolean supportClientChunkGeneration;
+    private int platformType;
+    private int memoryTier;
+    private int maxViewDistance;
+    private int graphicsMode;
+    private String partyId;
+    private boolean partyLeader;
+    private boolean filterProfanity;
 
-    private String capeData;
+    private boolean neteaseReconnect;
+    private String neteaseSkinIID;
+    private int neteaseGrowthLevel;
+
     private String viaProxyAuthToken;
     private boolean xboxAuthed = true;
     private String[] originChainArr;
@@ -383,7 +509,24 @@ public final class ClientChainDataXbox implements LoginChainData {
         if (skinToken.has("CurrentInputMode")) this.currentInputMode = skinToken.get("CurrentInputMode").getAsInt();
         if (skinToken.has("DefaultInputMode")) this.defaultInputMode = skinToken.get("DefaultInputMode").getAsInt();
         if (skinToken.has("UIProfile")) this.UIProfile = skinToken.get("UIProfile").getAsInt();
-        if (skinToken.has("CapeData")) this.capeData = skinToken.get("CapeData").getAsString();
+        if (skinToken.has("PlatformOfflineId")) this.platformOfflineId = skinToken.get("PlatformOfflineId").getAsString();
+        if (skinToken.has("PlatformOnlineId")) this.platformOnlineId = skinToken.get("PlatformOnlineId").getAsString();
+        if (skinToken.has("IsEditorMode")) this.editorMode = skinToken.get("IsEditorMode").getAsBoolean();
+        if (skinToken.has("CompatibleWithClientSideChunkGen")) this.supportClientChunkGeneration = skinToken.get("CompatibleWithClientSideChunkGen").getAsBoolean();
+        if (skinToken.has("PlatformType")) this.platformType = skinToken.get("PlatformType").getAsInt();
+        if (skinToken.has("MemoryTier")) this.memoryTier = skinToken.get("MemoryTier").getAsInt();
+        if (skinToken.has("MaxViewDistance")) this.maxViewDistance = skinToken.get("MaxViewDistance").getAsInt();
+        if (skinToken.has("GraphicsMode")) this.graphicsMode = skinToken.get("GraphicsMode").getAsInt();
+        if (skinToken.has("PartyId")) this.partyId = skinToken.get("PartyId").getAsString();
+        if (skinToken.has("IsPartyLeader")) this.partyLeader = skinToken.get("IsPartyLeader").getAsBoolean();
+        if (skinToken.has("FilterProfanity")) this.filterProfanity = skinToken.get("FilterProfanity").getAsBoolean();
+        if (skinToken.has("ClientIsEditorCapable")) this.editorCapable = skinToken.get("ClientIsEditorCapable").getAsBoolean();
+        if (skinToken.has("ClientEditorConnectionIntent")) this.editorConnectionIntent = skinToken.get("ClientEditorConnectionIntent").getAsInt();
+
+        if (skinToken.has("IsReconnect")) this.neteaseReconnect = skinToken.get("IsReconnect").getAsBoolean();
+        if (skinToken.has("SkinIID")) this.neteaseSkinIID = skinToken.get("SkinIID").getAsString();
+        if (skinToken.has("GrowthLevel")) this.neteaseGrowthLevel = skinToken.get("GrowthLevel").getAsInt();
+
         if (skinToken.has("ViaProxyAuthToken")) this.viaProxyAuthToken = skinToken.get("ViaProxyAuthToken").getAsString();
     }
 
@@ -402,7 +545,6 @@ public final class ClientChainDataXbox implements LoginChainData {
             decode = Base64.getDecoder().decode(base[1]);
         }
         String json = new String(decode, StandardCharsets.UTF_8);
-        //Server.getInstance().getLogger().debug(json);
         return GSON.fromJson(json, JsonObject.class);
     }
 
@@ -423,8 +565,6 @@ public final class ClientChainDataXbox implements LoginChainData {
             ", currentInputMode=" + currentInputMode +
             ", defaultInputMode=" + defaultInputMode +
             ", UIProfile=" + UIProfile +
-            ", capeData='" + capeData + '\'' +
-            ", bs=" + bs +
             '}';
     }
 

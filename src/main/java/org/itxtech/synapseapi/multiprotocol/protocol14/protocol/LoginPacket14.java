@@ -2,6 +2,7 @@ package org.itxtech.synapseapi.multiprotocol.protocol14.protocol;
 
 import cn.nukkit.Server;
 import cn.nukkit.entity.data.Skin;
+import cn.nukkit.math.Mth;
 import cn.nukkit.network.protocol.ProtocolInfo;
 import cn.nukkit.utils.*;
 import com.google.gson.JsonElement;
@@ -73,7 +74,6 @@ public class LoginPacket14 extends Packet14 {
     public boolean reconnect;
     public String skinIID;
     public int growthLevel;
-    public String bloomData;
 
     @Override
     public int pid() {
@@ -387,7 +387,8 @@ public class LoginPacket14 extends Packet14 {
             skin.setCapeId(capeIdNode.asString());
         }
 
-        skin.setSkinData(getImage(skinToken, "Skin"));
+        SerializedImage skinImage = getImage(skinToken, "Skin");
+        skin.setSkinData(skinImage);
         skin.setCapeData(getImage(skinToken, "Cape"));
         JsonNode premiumSkinNode = skinToken.get("PremiumSkin");
         if (premiumSkinNode != null) {
@@ -530,6 +531,11 @@ public class LoginPacket14 extends Packet14 {
             this.editorConnectionIntent = clientEditorConnectionIntentNode.asInt();
         }
 
+        JsonNode profileHashNode = skinToken.get("ProfileHash");
+        if (profileHashNode != null) {
+            skin.setProfileHash(profileHashNode.asString());
+        }
+
         // NetEase only:
 
         JsonNode isReconnectNode = skinToken.get("IsReconnect");
@@ -544,12 +550,15 @@ public class LoginPacket14 extends Packet14 {
 
         JsonNode growthLevelNode = skinToken.get("GrowthLevel");
         if (growthLevelNode != null) {
-            this.growthLevel = growthLevelNode.asInt();
+            this.growthLevel = Mth.clamp(growthLevelNode.asInt(), 0, 50);
         }
 
         JsonNode bloomDataNode = skinToken.get("BloomData");
         if (bloomDataNode != null) {
-            this.bloomData = bloomDataNode.asString();
+            byte[] bloomData = Base64.getDecoder().decode(bloomDataNode.asString());
+            if (bloomData.length <= skinImage.data.length) {
+                skin.setBloomData(bloomData);
+            }
         }
 
         validSkin = skin.isValidStrict();

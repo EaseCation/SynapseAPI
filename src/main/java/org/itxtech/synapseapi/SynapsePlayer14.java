@@ -74,13 +74,13 @@ public class SynapsePlayer14 extends SynapsePlayer {
 					close("", "disconnect.loginFailed");
 					return;
 				}
-				if (pk instanceof org.itxtech.synapseapi.multiprotocol.protocol14.protocol.LoginPacket14) {
-					((org.itxtech.synapseapi.multiprotocol.protocol14.protocol.LoginPacket14) pk).isFirstTimeLogin = packet.isFirstTime;
-					if (packet.extra.has("username")) ((org.itxtech.synapseapi.multiprotocol.protocol14.protocol.LoginPacket14) pk).username = packet.extra.get("username").getAsString();
-					((org.itxtech.synapseapi.multiprotocol.protocol14.protocol.LoginPacket14) pk).clientUUID = packet.uuid;
-					if (packet.extra.has("xuid")) ((org.itxtech.synapseapi.multiprotocol.protocol14.protocol.LoginPacket14) pk).xuid = packet.extra.get("xuid").getAsString();
-					if (packet.extra.has("titleId")) ((LoginPacket14) pk).titleId = packet.extra.get("titleId").getAsString();
-					if (packet.extra.has("sandboxId")) ((LoginPacket14) pk).sandboxId = packet.extra.get("sandboxId").getAsString();
+				if (pk instanceof LoginPacket14 loginPacket) {
+					loginPacket.isFirstTimeLogin = packet.isFirstTime;
+					if (packet.extra.has("username")) loginPacket.username = packet.extra.get("username").getAsString();
+					loginPacket.clientUUID = packet.uuid;
+					if (packet.extra.has("xuid")) loginPacket.xuid = packet.extra.get("xuid").getAsString();
+					if (packet.extra.has("titleId")) loginPacket.titleId = packet.extra.get("titleId").getAsString();
+					if (packet.extra.has("sandboxId")) loginPacket.sandboxId = packet.extra.get("sandboxId").getAsString();
 					this.isNetEaseClient = Optional.ofNullable(packet.extra.get("netease")).orElseGet(() -> new JsonPrimitive(false)).getAsBoolean();
 				}
 				this.handleDataPacket(pk);
