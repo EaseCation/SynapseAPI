@@ -1,4 +1,4 @@
-package org.itxtech.synapseapi.java;
+package org.itxtech.synapseapi.messaging.java;
 
 import org.junit.jupiter.api.Test;
 

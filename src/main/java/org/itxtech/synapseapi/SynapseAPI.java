@@ -4,6 +4,8 @@ import cn.nukkit.Player;
 import cn.nukkit.Server;
 import cn.nukkit.event.EventHandler;
 import cn.nukkit.event.Listener;
+import cn.nukkit.event.player.PlayerQuitEvent;
+import cn.nukkit.event.plugin.PluginDisableEvent;
 import cn.nukkit.event.server.BatchPacketsEvent;
 import cn.nukkit.item.Item;
 import cn.nukkit.item.RuntimeItemPaletteInterface;
@@ -23,6 +25,8 @@ import org.itxtech.synapseapi.command.*;
 import org.itxtech.synapseapi.filtertext.FilterTextService;
 import org.itxtech.synapseapi.messaging.Messenger;
 import org.itxtech.synapseapi.messaging.StandardMessenger;
+import org.itxtech.synapseapi.messaging.java.JavaCustomPayloadMessenger;
+import org.itxtech.synapseapi.messaging.java.StandardJavaCustomPayloadMessenger;
 import org.itxtech.synapseapi.multiprotocol.AbstractProtocol;
 import org.itxtech.synapseapi.multiprotocol.PacketRegister;
 import org.itxtech.synapseapi.multiprotocol.utils.*;
@@ -50,6 +54,7 @@ public class SynapseAPI extends PluginBase implements Listener {
     private boolean recordPacketStack = false;
     private final Map<String, SynapseEntry> synapseEntries = new Object2ObjectOpenHashMap<>();
     private Messenger messenger;
+    private JavaCustomPayloadMessenger javaCustomPayloadMessenger;
     private boolean networkBroadcastPlayerMove;
     private int blobCacheChunkSendPreTick;
 
@@ -81,6 +86,7 @@ public class SynapseAPI extends PluginBase implements Listener {
         Player.setViolationListener(new SynapsePlayerViolationListener());
 
         this.messenger = new StandardMessenger();
+        this.javaCustomPayloadMessenger = new StandardJavaCustomPayloadMessenger();
         loadEntries();
 
         this.getServer().getPluginManager().registerEvents(this, this);
@@ -370,6 +376,26 @@ public class SynapseAPI extends PluginBase implements Listener {
 
     public Messenger getMessenger() {
         return messenger;
+    }
+
+    public JavaCustomPayloadMessenger getJavaCustomPayloadMessenger() {
+        return this.javaCustomPayloadMessenger;
+    }
+
+    @EventHandler
+    public void onPlayerQuit(final PlayerQuitEvent event) {
+        if (this.javaCustomPayloadMessenger != null && event.getPlayer() instanceof SynapsePlayer player) {
+            this.javaCustomPayloadMessenger.unregisterPlayerChannels(player);
+        }
+    }
+
+    @EventHandler
+    public void onPluginDisable(final PluginDisableEvent event) {
+        if (this.javaCustomPayloadMessenger == null) {
+            return;
+        }
+        this.javaCustomPayloadMessenger.unregisterIncomingPluginChannel(event.getPlugin());
+        this.javaCustomPayloadMessenger.unregisterOutgoingPluginChannel(event.getPlugin());
     }
 
     @EventHandler

@@ -1,4 +1,4 @@
-package org.itxtech.synapseapi.java;
+package org.itxtech.synapseapi.messaging.java;
 
 import java.nio.ByteBuffer;
 import java.nio.charset.CharacterCodingException;
@@ -15,11 +15,19 @@ import java.util.regex.Pattern;
 public final class JavaCustomPayloadEnvelope {
 
     public static final String SCRIPT_MESSAGE_ID = "easecation:java_custom_payload_v1";
-    public static final int MAX_CHANNEL_BYTES = 128;
-    public static final int MAX_PAYLOAD_BYTES = 8 * 1024;
+    public static final int MAX_CHANNEL_BYTES = JavaCustomPayloadMessenger.MAX_CHANNEL_SIZE;
+    public static final int MAX_PAYLOAD_BYTES = JavaCustomPayloadMessenger.MAX_MESSAGE_SIZE;
     private static final Pattern CHANNEL_PATTERN = Pattern.compile("[a-z0-9_.-]+:[a-z0-9/._-]+");
 
     private JavaCustomPayloadEnvelope() {
+    }
+
+    public static boolean isValidChannel(final String channel) {
+        if (channel == null || !CHANNEL_PATTERN.matcher(channel).matches()) {
+            return false;
+        }
+        final byte[] channelBytes = channel.getBytes(StandardCharsets.UTF_8);
+        return channelBytes.length > 0 && channelBytes.length <= MAX_CHANNEL_BYTES;
     }
 
     public static Optional<Payload> decode(final String messageId, final String encodedValue) {
@@ -54,11 +62,11 @@ public final class JavaCustomPayloadEnvelope {
     }
 
     public static Optional<String> encode(final String channel, final byte[] payload) {
-        if (channel == null || payload == null || !CHANNEL_PATTERN.matcher(channel).matches()) {
+        if (!isValidChannel(channel) || payload == null) {
             return Optional.empty();
         }
         final byte[] channelBytes = channel.getBytes(StandardCharsets.UTF_8);
-        if (channelBytes.length == 0 || channelBytes.length > MAX_CHANNEL_BYTES || payload.length > MAX_PAYLOAD_BYTES) {
+        if (payload.length > MAX_PAYLOAD_BYTES) {
             return Optional.empty();
         }
         final byte[] envelope = new byte[1 + channelBytes.length + payload.length];
