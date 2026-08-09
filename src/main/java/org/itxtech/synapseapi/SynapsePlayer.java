@@ -43,6 +43,7 @@ import org.itxtech.synapseapi.event.player.SynapsePlayerJavaCustomPayloadEvent;
 import org.itxtech.synapseapi.event.player.SynapsePlayerPreChatEvent;
 import org.itxtech.synapseapi.event.player.SynapsePlayerTransferEvent;
 import org.itxtech.synapseapi.event.player.SynapsePlayerUnexpectedBehaviorEvent;
+import org.itxtech.synapseapi.messaging.java.JavaCustomPayloadMessenger;
 import org.itxtech.synapseapi.multiprotocol.AbstractProtocol;
 import org.itxtech.synapseapi.multiprotocol.common.camera.CameraInstruction;
 import org.itxtech.synapseapi.multiprotocol.common.drawer.Shape;
@@ -58,7 +59,7 @@ import org.itxtech.synapseapi.multiprotocol.protocol121.protocol.TextPacket121;
 import org.itxtech.synapseapi.multiprotocol.protocol121130.protocol.TextPacket121130;
 import org.itxtech.synapseapi.multiprotocol.protocol12120.protocol.ChangeDimensionPacket12120;
 import org.itxtech.synapseapi.multiprotocol.protocol11810.protocol.ScriptMessagePacket11810;
-import org.itxtech.synapseapi.java.JavaCustomPayloadEnvelope;
+import org.itxtech.synapseapi.messaging.java.JavaCustomPayloadEnvelope;
 import org.itxtech.synapseapi.multiprotocol.protocol126.protocol.TextPacket126;
 import org.itxtech.synapseapi.multiprotocol.protocol14.protocol.PlayerActionPacket14;
 import org.itxtech.synapseapi.multiprotocol.protocol14.protocol.TextPacket14;
@@ -1462,8 +1463,12 @@ public class SynapsePlayer extends Player {
                     break;
                 }
                 JavaCustomPayloadEnvelope.decode(scriptMessagePacket.messageId, scriptMessagePacket.value)
-                        .ifPresent(payload -> this.server.getPluginManager().callEvent(
-                                new SynapsePlayerJavaCustomPayloadEvent(this, payload.channel(), payload.payload())));
+                        .ifPresent(payload -> {
+                            JavaCustomPayloadMessenger messenger = SynapseAPI.getInstance().getJavaCustomPayloadMessenger();
+                            messenger.dispatchIncomingMessage(this, payload.channel(), payload.payload());
+                            this.server.getPluginManager().callEvent(
+                                    new SynapsePlayerJavaCustomPayloadEvent(this, payload.channel(), payload.payload()));
+                        });
                 break;
             /*case ProtocolInfo.LEVEL_SOUND_EVENT_PACKET:
                 if (!callPacketReceiveEvent(packet)) break;
