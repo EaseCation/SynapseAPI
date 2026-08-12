@@ -10,6 +10,7 @@ import com.netease.mc.authlib.TokenChainEC;
 import org.itxtech.synapseapi.multiprotocol.AbstractProtocol;
 import org.itxtech.synapseapi.multiprotocol.protocol12.protocol.LoginPacket;
 
+import javax.annotation.Nullable;
 import java.nio.charset.StandardCharsets;
 import java.util.*;
 
@@ -340,6 +341,8 @@ public final class ClientChainData12NetEase implements LoginChainData {
     private int neteaseGrowthLevel;
 
     private String viaProxyAuthToken;
+    @Nullable
+    private String javaClientEncryptionKey;
 
     private final transient BinaryStream bs = new BinaryStream();
 
@@ -502,11 +505,18 @@ public final class ClientChainData12NetEase implements LoginChainData {
         if (skinToken.has("GrowthLevel")) this.neteaseGrowthLevel = skinToken.get("GrowthLevel").getAsInt();
 
         if (skinToken.has("ViaProxyAuthToken")) this.viaProxyAuthToken = skinToken.get("ViaProxyAuthToken").getAsString();
+        if (skinToken.has("JavaClientEncryptionKey")) this.javaClientEncryptionKey = skinToken.get("JavaClientEncryptionKey").getAsString();
     }
 
     @Override
     public String getViaProxyAuthToken() {
         return viaProxyAuthToken;
+    }
+
+    @Nullable
+    @Override
+    public String getJavaClientEncryptionKey() {
+        return javaClientEncryptionKey;
     }
 
     private JsonObject decodeToken(String token) {

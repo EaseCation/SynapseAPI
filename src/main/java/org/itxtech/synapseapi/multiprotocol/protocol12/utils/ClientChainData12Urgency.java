@@ -6,6 +6,7 @@ import com.google.gson.Gson;
 import com.google.gson.JsonObject;
 import org.itxtech.synapseapi.multiprotocol.protocol12.protocol.LoginPacket;
 
+import javax.annotation.Nullable;
 import java.nio.charset.StandardCharsets;
 import java.util.Base64;
 import java.util.Objects;
@@ -308,6 +309,8 @@ public final class ClientChainData12Urgency implements LoginChainData {
     private String capeData;
 
     private String viaProxyAuthToken;
+    @Nullable
+    private String javaClientEncryptionKey;
 
     private final transient BinaryStream bs = new BinaryStream();
 
@@ -350,11 +353,18 @@ public final class ClientChainData12Urgency implements LoginChainData {
         if (skinToken.has("ClientIsEditorCapable")) this.editorCapable = skinToken.get("ClientIsEditorCapable").getAsBoolean();
         if (skinToken.has("ClientEditorConnectionIntent")) this.editorConnectionIntent = skinToken.get("ClientEditorConnectionIntent").getAsInt();
         if (skinToken.has("ViaProxyAuthToken")) this.viaProxyAuthToken = skinToken.get("ViaProxyAuthToken").getAsString();
+        if (skinToken.has("JavaClientEncryptionKey")) this.javaClientEncryptionKey = skinToken.get("JavaClientEncryptionKey").getAsString();
     }
 
     @Override
     public String getViaProxyAuthToken() {
         return viaProxyAuthToken;
+    }
+
+    @Nullable
+    @Override
+    public String getJavaClientEncryptionKey() {
+        return javaClientEncryptionKey;
     }
 
     private JsonObject decodeToken(String token) {

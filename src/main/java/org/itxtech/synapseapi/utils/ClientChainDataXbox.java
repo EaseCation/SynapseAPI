@@ -12,6 +12,7 @@ import lombok.extern.log4j.Log4j2;
 import org.itxtech.synapseapi.multiprotocol.AbstractProtocol;
 import org.itxtech.synapseapi.multiprotocol.protocol12.protocol.LoginPacket;
 
+import javax.annotation.Nullable;
 import java.net.URI;
 import java.nio.charset.StandardCharsets;
 import java.security.KeyFactory;
@@ -387,6 +388,8 @@ public final class ClientChainDataXbox implements LoginChainData {
     private int neteaseGrowthLevel;
 
     private String viaProxyAuthToken;
+    @Nullable
+    private String javaClientEncryptionKey;
     private boolean xboxAuthed = true;
     private String[] originChainArr;
 
@@ -528,11 +531,18 @@ public final class ClientChainDataXbox implements LoginChainData {
         if (skinToken.has("GrowthLevel")) this.neteaseGrowthLevel = skinToken.get("GrowthLevel").getAsInt();
 
         if (skinToken.has("ViaProxyAuthToken")) this.viaProxyAuthToken = skinToken.get("ViaProxyAuthToken").getAsString();
+        if (skinToken.has("JavaClientEncryptionKey")) this.javaClientEncryptionKey = skinToken.get("JavaClientEncryptionKey").getAsString();
     }
 
     @Override
     public String getViaProxyAuthToken() {
         return viaProxyAuthToken;
+    }
+
+    @Nullable
+    @Override
+    public String getJavaClientEncryptionKey() {
+        return javaClientEncryptionKey;
     }
 
     private JsonObject decodeToken(String token) {
