@@ -742,18 +742,13 @@ public class SynapseEntry {
      * @param packetY 数据包中的Y坐标
      * @param packetZ 数据包中的Z坐标
      * @param player  玩家实例
-     * @return 坐标是否在合理范围内（XZ偏差不超过1个区块，Y偏差不超过6格）
+     * @return 坐标是否在合理范围内（XZ偏差不超过6，Y偏差不超过6格）
      */
     private static boolean isPositionNearPlayer(float packetX, float packetY, float packetZ, SynapsePlayer player) {
-        int packetChunkX = ((int) packetX) >> 4;
-        int packetChunkZ = ((int) packetZ) >> 4;
-        int playerChunkX = ((int) player.x) >> 4;
-        int playerChunkZ = ((int) player.z) >> 4;
-
         int yThreshold = player.isGliding() ? 20 : 6;
 
-        return Math.abs(packetChunkX - playerChunkX) <= 1
-                && Math.abs(packetChunkZ - playerChunkZ) <= 1
+        return Math.abs(packetX - player.x) <= 6
+                && Math.abs(packetZ - player.z) <= 6
                 && Math.abs((int) packetY - (int) player.y) <= yThreshold;
     }
 
