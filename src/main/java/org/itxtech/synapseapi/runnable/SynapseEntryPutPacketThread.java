@@ -113,7 +113,8 @@ public class SynapseEntryPutPacketThread extends Thread {
             Entry entry;
             while ((entry = queue.poll()) != null) {
                 try {
-                    if (!entry.player.closed) {
+                    // 断开包是玩家的"遗言"，在玩家 closed 之后也必须送达，否则客户端永远不会知道自己被踢出
+                    if (!entry.player.closed || entry.packet.pid() == ProtocolInfo.DISCONNECT_PACKET) {
                         DataPacket old = entry.packet;
 
                         entry.packet = PacketRegister.getCompatiblePacket(entry.packet, (entry.player).getProtocol(), entry.player.isNetEaseClient());
