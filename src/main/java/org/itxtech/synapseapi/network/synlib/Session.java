@@ -96,6 +96,13 @@ public class Session {
         return channel;
     }
 
+    public void close() {
+        Channel channel = this.channel;
+        if (channel != null) {
+            channel.close();
+        }
+    }
+
     public boolean update() throws Exception {
         if (this.client.needReconnect && this.connected) {
             this.connected = false;
@@ -118,9 +125,10 @@ public class Session {
     }
 
     public void writePacket(SynapseDataPacket pk) {
-        if (this.channel != null) {
+        Channel channel = this.channel;
+        if (channel != null) {
             //Server.getInstance().getLogger().debug("client-ChannelWrite: pk=" + pk.getClass().getSimpleName() + " pkLen=" + pk.getBuffer().length);
-            this.channel.writeAndFlush(pk);
+            channel.writeAndFlush(pk);
         }
     }
 

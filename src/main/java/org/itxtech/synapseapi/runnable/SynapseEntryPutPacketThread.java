@@ -2,7 +2,6 @@ package org.itxtech.synapseapi.runnable;
 
 import cn.nukkit.Server;
 import cn.nukkit.math.NukkitMath;
-import cn.nukkit.network.CompressionAlgorithm;
 import cn.nukkit.network.Compressor;
 import cn.nukkit.network.Network;
 import cn.nukkit.network.protocol.*;
@@ -113,7 +112,7 @@ public class SynapseEntryPutPacketThread extends Thread {
             Entry entry;
             while ((entry = queue.poll()) != null) {
                 try {
-                    if (!entry.player.closed) {
+                    if (!entry.player.isClosed() || entry.packet.pid() == ProtocolInfo.DISCONNECT_PACKET) {
                         DataPacket old = entry.packet;
 
                         entry.packet = PacketRegister.getCompatiblePacket(entry.packet, (entry.player).getProtocol(), entry.player.isNetEaseClient());

@@ -25,7 +25,6 @@ import io.netty.buffer.Unpooled;
 import it.unimi.dsi.fastutil.Pair;
 import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
 import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
-import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import it.unimi.dsi.fastutil.objects.ObjectIntPair;
 import lombok.extern.log4j.Log4j2;
@@ -51,6 +50,7 @@ import javax.annotation.Nullable;
 import java.lang.reflect.Constructor;
 import java.net.InetSocketAddress;
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.ThreadLocalRandom;
 
@@ -98,7 +98,7 @@ public class SynapseEntry {
     private long lastLogin;
     private long lastUpdate;
     private long lastRecvInfo;
-    private final Map<UUID, SynapsePlayer> players = new Object2ObjectOpenHashMap<>();
+    private final Map<UUID, SynapsePlayer> players = new ConcurrentHashMap<>();
     private SynLibInterface synLibInterface;
     private ClientData clientData;
     private String serverDescription;
@@ -381,6 +381,9 @@ public class SynapseEntry {
             RedirectPacketEntry redirectPacketEntry;
             Int2ObjectMap<int[]> playerPacketCountThisTick = new Int2ObjectOpenHashMap<>();
             while ((redirectPacketEntry = redirectPacketQueue.poll()) != null) {
+                if (redirectPacketEntry.player.isClosed()) {
+                    continue;
+                }
                 //Server.getInstance().getLogger().warning("C => S  " + redirectPacketEntry.dataPacket.getClass().getSimpleName());
                 DataPacket packet = DataPacketEidReplacer.replaceBack(redirectPacketEntry.dataPacket, SynapsePlayer.SYNAPSE_PLAYER_ENTITY_ID, redirectPacketEntry.player.getId());
                 globalPacketCountThisTick[packet.pid()]++;
@@ -525,7 +528,7 @@ public class SynapseEntry {
                 synapse.getServer().getNetwork().addDownloadStatistic(redirectPacket.mcpeBuffer.length);
 
                 SynapsePlayer player = this.players.get(redirectPacket.sessionId);
-                if (player != null && !player.isViolated()) {
+                if (player != null && !player.isClosed() && !player.isViolated()) {
                     DataPacket pk0 = PacketRegister.getFullPacket(redirectPacket.mcpeBuffer, redirectPacket.protocol);
                     //Server.getInstance().getLogger().info("to server : " + pk0.getClass().getName());
                     if (pk0 != null) {

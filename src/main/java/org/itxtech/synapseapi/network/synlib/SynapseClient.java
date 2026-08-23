@@ -86,7 +86,9 @@ public class SynapseClient extends Thread {
     }
 
     public void shutdown() {
-        this.shutdown.compareAndSet(false, true);
+        if (this.shutdown.compareAndSet(false, true)) {
+            this.session.close();
+        }
     }
 
     public boolean isClosing() {
