@@ -1,7 +1,10 @@
 package org.itxtech.synapseapi.multiprotocol.protocol12120.protocol;
 
 import cn.nukkit.network.protocol.ProtocolInfo;
+import cn.nukkit.utils.BinaryStream;
 import lombok.ToString;
+
+import javax.annotation.Nullable;
 
 @ToString
 public class CorrectPlayerMovePredictionPacket12120 extends Packet12120 {
@@ -19,7 +22,8 @@ public class CorrectPlayerMovePredictionPacket12120 extends Packet12120 {
     public float deltaZ;
     public float vehiclePitch;
     public float vehicleYaw;
-    public float vehicleAngularVelocity;
+    @Nullable
+    public Float vehicleAngularVelocity;
     public boolean onGround;
     public long tick;
 
@@ -40,7 +44,7 @@ public class CorrectPlayerMovePredictionPacket12120 extends Packet12120 {
         this.putVector3f(this.deltaX, this.deltaY, this.deltaZ);
         if (this.type == TYPE_VEHICLE) {
             this.putVector2f(this.vehiclePitch, this.vehicleYaw);
-            this.putLFloat(this.vehicleAngularVelocity);
+            this.putOptional(this.vehicleAngularVelocity, BinaryStream::putLFloat);
         }
         this.putBoolean(this.onGround);
         this.putUnsignedVarLong(this.tick);

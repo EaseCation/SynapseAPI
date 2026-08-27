@@ -140,9 +140,11 @@ import org.itxtech.synapseapi.multiprotocol.protocol12030.protocol.StartGamePack
 import org.itxtech.synapseapi.multiprotocol.protocol12040.protocol.BossEventPacket12040;
 import org.itxtech.synapseapi.multiprotocol.protocol12040.protocol.DisconnectPacket12040;
 import org.itxtech.synapseapi.multiprotocol.protocol12050.protocol.PlayerToggleCrafterSlotRequestPacket12050;
+import org.itxtech.synapseapi.multiprotocol.protocol12060.protocol.CorrectPlayerMovePredictionPacket12060;
 import org.itxtech.synapseapi.multiprotocol.protocol12060.protocol.SetHudPacket12060;
 import org.itxtech.synapseapi.multiprotocol.protocol12070.protocol.LecternUpdatePacket12070;
 import org.itxtech.synapseapi.multiprotocol.protocol12070.protocol.ResourcePacksInfoPacket12070;
+import org.itxtech.synapseapi.multiprotocol.protocol12080.protocol.CorrectPlayerMovePredictionPacket12080;
 import org.itxtech.synapseapi.multiprotocol.protocol12080.protocol.ResourcePackStackPacket12080;
 import org.itxtech.synapseapi.multiprotocol.protocol12080.protocol.StartGamePacket12080;
 import org.itxtech.synapseapi.multiprotocol.protocol12080.protocol.UpdatePlayerGameTypePacket12080;
@@ -151,6 +153,7 @@ import org.itxtech.synapseapi.multiprotocol.protocol121.protocol.StartGamePacket
 import org.itxtech.synapseapi.multiprotocol.protocol121.protocol.TextPacket121;
 import org.itxtech.synapseapi.multiprotocol.protocol121100.protocol.CameraAimAssistPacket120100;
 import org.itxtech.synapseapi.multiprotocol.protocol121100.protocol.CameraInstructionPacket121100;
+import org.itxtech.synapseapi.multiprotocol.protocol121100.protocol.CorrectPlayerMovePredictionPacket121100;
 import org.itxtech.synapseapi.multiprotocol.protocol121100.protocol.StartGamePacket121100;
 import org.itxtech.synapseapi.multiprotocol.protocol121120.protocol.AnimatePacket121120;
 import org.itxtech.synapseapi.multiprotocol.protocol121120.protocol.CameraInstructionPacket121120;
@@ -3790,7 +3793,7 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
                                     }
 
                                     // 从useItemData中设置玩家坐标，用于最精准的碰撞箱判断
-                                    this.newPosition = useItemData.playerPos.subtract(0, this.getBaseOffset(), 0);
+                                    //this.newPosition = useItemData.playerPos.subtract(0, this.getBaseOffset(), 0);
                                     boolean clientPredictedFailure = false;
 
                                     if (this.canInteract(blockVector.add(0.5, 0.5, 0.5), this.isCreative() ? MAX_REACH_DISTANCE_CREATIVE : MAX_REACH_DISTANCE_SURVIVAL)) {
@@ -5816,6 +5819,102 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
         packet.y = motionY;
         packet.z = motionZ;
         packet.onGround = onGround;
+        dataPacket(packet);
+    }
+
+    @Override
+    public void correctPlayerMovePrediction(float x, float y, float z, float deltaX, float deltaY, float deltaZ, boolean onGround, long tick) {
+        sendCorrectPlayerMovePredictionPacket(false, x, y, z, deltaX, deltaY, deltaZ, 0, 0, null, onGround, tick);
+    }
+
+    @Override
+    public void correctVehicleMovePrediction(float x, float y, float z, float deltaX, float deltaY, float deltaZ, float pitch, float yaw, boolean onGround, long tick) {
+        correctVehicleMovePrediction(x, y, z, deltaX, deltaY, deltaZ, pitch, yaw, null, onGround, tick);
+    }
+
+    @Override
+    public void correctVehicleMovePrediction(float x, float y, float z, float deltaX, float deltaY, float deltaZ, float pitch, float yaw, Float angularVelocity, boolean onGround, long tick) {
+        sendCorrectPlayerMovePredictionPacket(true, x, y, z, deltaX, deltaY, deltaZ, pitch, yaw, angularVelocity, onGround, tick);
+    }
+
+    private void sendCorrectPlayerMovePredictionPacket(boolean vehicle, float x, float y, float z, float deltaX, float deltaY, float deltaZ, float pitch, float yaw, @Nullable Float angularVelocity, boolean onGround, long tick) {
+        if (getProtocol() >= AbstractProtocol.PROTOCOL_121_100.getProtocolStart()) {
+            CorrectPlayerMovePredictionPacket121100 packet = new CorrectPlayerMovePredictionPacket121100();
+            packet.type = vehicle ? CorrectPlayerMovePredictionPacket121100.TYPE_VEHICLE : CorrectPlayerMovePredictionPacket121100.TYPE_PLAYER;
+            packet.x = x;
+            packet.y = y;
+            packet.z = z;
+            packet.deltaX = deltaX;
+            packet.deltaY = deltaY;
+            packet.deltaZ = deltaZ;
+            packet.vehiclePitch = pitch;
+            packet.vehicleYaw = yaw;
+            packet.vehicleAngularVelocity = angularVelocity;
+            packet.onGround = onGround;
+            packet.tick = tick;
+            dataPacket(packet);
+            return;
+        }
+
+        if (getProtocol() >= AbstractProtocol.PROTOCOL_121_20.getProtocolStart()) {
+            CorrectPlayerMovePredictionPacket12120 packet = new CorrectPlayerMovePredictionPacket12120();
+            packet.type = vehicle ? CorrectPlayerMovePredictionPacket12120.TYPE_VEHICLE : CorrectPlayerMovePredictionPacket12120.TYPE_PLAYER;
+            packet.x = x;
+            packet.y = y;
+            packet.z = z;
+            packet.deltaX = deltaX;
+            packet.deltaY = deltaY;
+            packet.deltaZ = deltaZ;
+            packet.vehiclePitch = pitch;
+            packet.vehicleYaw = yaw;
+            packet.vehicleAngularVelocity = angularVelocity;
+            packet.onGround = onGround;
+            packet.tick = tick;
+            dataPacket(packet);
+            return;
+        }
+
+        if (getProtocol() >= AbstractProtocol.PROTOCOL_120_80.getProtocolStart()) {
+            CorrectPlayerMovePredictionPacket12080 packet = new CorrectPlayerMovePredictionPacket12080();
+            packet.type = vehicle ? CorrectPlayerMovePredictionPacket12080.TYPE_VEHICLE : CorrectPlayerMovePredictionPacket12080.TYPE_PLAYER;
+            packet.x = x;
+            packet.y = y;
+            packet.z = z;
+            packet.deltaX = deltaX;
+            packet.deltaY = deltaY;
+            packet.deltaZ = deltaZ;
+            packet.vehiclePitch = pitch;
+            packet.vehicleYaw = yaw;
+            packet.onGround = onGround;
+            packet.tick = tick;
+            dataPacket(packet);
+            return;
+        }
+
+        if (getProtocol() >= AbstractProtocol.PROTOCOL_120_60.getProtocolStart()) {
+            CorrectPlayerMovePredictionPacket12060 packet = new CorrectPlayerMovePredictionPacket12060();
+            packet.type = vehicle ? CorrectPlayerMovePredictionPacket12060.TYPE_VEHICLE : CorrectPlayerMovePredictionPacket12060.TYPE_PLAYER;
+            packet.x = x;
+            packet.y = y;
+            packet.z = z;
+            packet.deltaX = deltaX;
+            packet.deltaY = deltaY;
+            packet.deltaZ = deltaZ;
+            packet.onGround = onGround;
+            packet.tick = tick;
+            dataPacket(packet);
+            return;
+        }
+
+        CorrectPlayerMovePredictionPacket116100 packet = new CorrectPlayerMovePredictionPacket116100();
+        packet.x = x;
+        packet.y = y;
+        packet.z = z;
+        packet.deltaX = deltaX;
+        packet.deltaY = deltaY;
+        packet.deltaZ = deltaZ;
+        packet.onGround = onGround;
+        packet.tick = tick;
         dataPacket(packet);
     }
 

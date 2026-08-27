@@ -429,7 +429,7 @@ public class SynapsePlayer116 extends SynapsePlayer113 {
                                 }
 
 								// 从useItemData中设置玩家坐标，用于最精准的碰撞箱判断
-								this.newPosition = useItemData.playerPos.subtract(0, this.getBaseOffset(), 0);
+								//this.newPosition = useItemData.playerPos.subtract(0, this.getBaseOffset(), 0);
 								boolean clientPredictedFailure = false;
 
 								if (this.canInteract(blockVector.add(0.5, 0.5, 0.5), this.isCreative() ? MAX_REACH_DISTANCE_CREATIVE : MAX_REACH_DISTANCE_SURVIVAL)) {
