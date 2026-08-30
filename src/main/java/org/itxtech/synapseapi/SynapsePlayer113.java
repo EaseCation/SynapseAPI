@@ -213,6 +213,9 @@ public class SynapsePlayer113 extends SynapsePlayer112 {
 			case ProtocolInfo.INVENTORY_TRANSACTION_PACKET:
 				if (!callPacketReceiveEvent(packet)) break;
 				InventoryTransactionPacket transactionPacket = (InventoryTransactionPacket) packet;
+				if (this.rejectSpectatorInventoryPart(transactionPacket)) {
+					return;
+				}
 
 				Item item;
 				Block block;
@@ -235,6 +238,10 @@ public class SynapsePlayer113 extends SynapsePlayer112 {
 					}
 
 					actions.add(a);
+				}
+
+				if (this.rejectSpectatorCraftingContinuation(actions)) {
+					return;
 				}
 
 				if (transactionPacket.isCraftingPart) {
@@ -269,11 +276,11 @@ public class SynapsePlayer113 extends SynapsePlayer112 {
 						this.repairItemTransaction.execute();
 						this.repairItemTransaction = null;
 						break;
+					} else if (this.repairItemTransaction.isInvalid() || this.repairItemTransaction.isComplete()) {
+						this.repairItemTransaction.execute();
+						this.repairItemTransaction = null;
 					}
-
-					if ((this.craftingType >> 3) != 2) {
-						break;
-					}
+					return;
 				}
 
 				if (this.craftingTransaction != null) {

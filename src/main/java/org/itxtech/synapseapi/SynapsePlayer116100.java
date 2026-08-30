@@ -20,7 +20,6 @@ import cn.nukkit.entity.projectile.EntityArrow;
 import cn.nukkit.entity.property.*;
 import cn.nukkit.event.entity.EntityDamageByEntityEvent;
 import cn.nukkit.event.entity.EntityDamageEvent;
-import cn.nukkit.event.inventory.InventoryCloseEvent;
 import cn.nukkit.event.inventory.ItemAttackDamageEvent;
 import cn.nukkit.event.player.*;
 import cn.nukkit.form.window.FormWindow;
@@ -77,6 +76,9 @@ import org.itxtech.synapseapi.camera.CameraManager;
 import org.itxtech.synapseapi.dialogue.NPCDialoguePlayerHandler;
 import org.itxtech.synapseapi.event.player.SynapsePlayerBroadcastLevelSoundEvent;
 import org.itxtech.synapseapi.filtertext.FilterTextService;
+import org.itxtech.synapseapi.inventory.PendingWindowCloseTracker;
+import org.itxtech.synapseapi.inventory.PendingWindowClose;
+import org.itxtech.synapseapi.inventory.PendingWindowOpen;
 import org.itxtech.synapseapi.multiprotocol.AbstractProtocol;
 import org.itxtech.synapseapi.multiprotocol.common.Experiments;
 import org.itxtech.synapseapi.multiprotocol.common.Experiments.Experiment;
@@ -232,6 +234,13 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
     protected final Long2ObjectMap<IntSet> subChunkSendQueue = new Long2ObjectOpenHashMap<>();
 
     public NPCDialoguePlayerHandler npcDialoguePlayerHandler;
+
+    private final PendingWindowCloseTracker pendingWindowCloseTracker = new PendingWindowCloseTracker();
+    @Nullable
+    private PendingWindowOpen pendingWindowOpen;
+    private boolean pendingPlayerInventoryOpen;
+    @Nullable
+    private Runnable pendingWindowOpenAction;
 
     private byte skinHack; // 1.19.62
 
@@ -1641,28 +1650,16 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
 
                 if (this.getProtocol() >= AbstractProtocol.PROTOCOL_121.getProtocolStart()) {
                     ContainerClosePacket121 containerClosePacket = (ContainerClosePacket121) packet;
-                    if (!this.spawned || containerClosePacket.windowId == ContainerIds.INVENTORY && !inventoryOpen) {
+                    if (this.handlePendingWindowClose(containerClosePacket.windowId)) {
                         break;
                     }
-
-                    Inventory windowInventory = this.windowIndex.get(containerClosePacket.windowId);
-                    if (windowInventory != null) {
-                        this.server.getPluginManager().callEvent(new InventoryCloseEvent(windowInventory, this));
-
-                        if (containerClosePacket.windowId == ContainerIds.INVENTORY) {
-                            this.inventoryOpen = false;
-                        }
-
-                        this.closingWindowId = containerClosePacket.windowId;
-                        this.removeWindow(this.windowIndex.get(containerClosePacket.windowId), true);
-                        this.closingWindowId = Integer.MIN_VALUE;
-                    } else if (containerClosePacket.windowId != -1) {
-                        this.getServer().getLogger().debug(getName() + " unopened window: " + containerClosePacket.windowId);
+                    if (this.acknowledgeStaleWindowClose(containerClosePacket.windowId, containerClosePacket.windowType)) {
+                        break;
                     }
-
-                    if (containerClosePacket.windowId == -1) {
-                        if (this.lastOpenedWindowId != -1) {
+                    if (containerClosePacket.windowId == ContainerIds.NONE) {
+                        if (this.lastOpenedWindowId != ContainerIds.NONE) {
                             log.debug("{} pushing a new container screen ({}) failed because a container screen that was already open on the client has not yet been closed", getName(), lastOpenedWindowId);
+                            int rejectedWindowId = this.lastOpenedWindowId;
 
                             if (this.inventoryOpen && this.lastOpenedWindowId == ContainerIds.INVENTORY) {
                                 this.inventoryOpen = false;
@@ -1670,11 +1667,17 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
 
                             Inventory lastOpenedInventory = this.windowIndex.get(this.lastOpenedWindowId);
                             if (lastOpenedInventory != null) {
+                                this.onWindowOpenRejected(lastOpenedInventory);
+                                int previousClosingWindowId = this.closingWindowId;
                                 this.closingWindowId = Integer.MAX_VALUE;
-                                this.removeWindow(lastOpenedInventory, true);
-                                this.closingWindowId = Integer.MIN_VALUE;
+                                try {
+                                    this.removeWindow(lastOpenedInventory, true);
+                                } finally {
+                                    this.closingWindowId = previousClosingWindowId;
+                                }
                             }
-                            this.lastOpenedWindowId = -1;
+                            this.lastOpenedWindowId = ContainerIds.NONE;
+                            this.sendContainerCloseResponse(rejectedWindowId, containerClosePacket.windowType);
                             return;
                         }
 
@@ -1684,54 +1687,57 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
 
                         ContainerClosePacket121 pk = new ContainerClosePacket121();
                         pk.wasServerInitiated = false;
-                        pk.windowId = -1;
+                        pk.windowId = ContainerIds.NONE;
                         this.dataPacket(pk);
-                    } else { // Close bugged inventory
-                        ContainerClosePacket121 pk = new ContainerClosePacket121();
-                        pk.windowId = containerClosePacket.windowId;
-                        this.dataPacket(pk);
-
-                        for (Inventory open : new ArrayList<>(this.windows.keySet())) {
-                            if (!(open instanceof ContainerInventory) && !(open instanceof PlayerEnderChestInventory)) {
-                                continue;
-                            }
-                            this.server.getPluginManager().callEvent(new InventoryCloseEvent(open, this));
-
-                            this.removeWindow(open, true);
-                        }
+                        break;
                     }
+
+                    if (containerClosePacket.windowId == ContainerIds.INVENTORY) {
+                        this.inventoryOpen = false;
+                    }
+                    boolean closed = this.closeWindowFromClient(containerClosePacket.windowId);
+                    if (closed) {
+                        break;
+                    }
+                    if (containerClosePacket.windowId != -1) {
+                        this.getServer().getLogger().debug("{} unopened window: {}", getName(), containerClosePacket.windowId);
+                    }
+
+                    this.sendContainerCloseResponse(containerClosePacket.windowId, containerClosePacket.windowType);
                     break;
                 }
 
                 ContainerClosePacket116100 containerClosePacket = (ContainerClosePacket116100) packet;
-                if (!this.spawned || containerClosePacket.windowId == ContainerIds.INVENTORY && !inventoryOpen) {
+                if (this.handlePendingWindowClose(containerClosePacket.windowId)) {
                     break;
                 }
-                //this.getServer().getLogger().warning("Got ContainerClosePacket: " + containerClosePacket);
-
-                Inventory windowInventory = this.windowIndex.get(containerClosePacket.windowId);
-                if (windowInventory != null) {
-                    this.server.getPluginManager().callEvent(new InventoryCloseEvent(windowInventory, this));
-
-                    if (containerClosePacket.windowId == ContainerIds.INVENTORY) this.inventoryOpen = false;
-
-                    this.closingWindowId = containerClosePacket.windowId;
-                    this.removeWindow(this.windowIndex.get(containerClosePacket.windowId), true);
-                    this.closingWindowId = Integer.MIN_VALUE;
-                } else if (containerClosePacket.windowId != -1) {
-                    this.getServer().getLogger().debug(getName() + " unopened window: " + containerClosePacket.windowId);
+                if (this.acknowledgeStaleWindowClose(containerClosePacket.windowId, ContainerType.NONE)) {
+                    break;
                 }
-
-                if (containerClosePacket.windowId == -1) {
+                if (containerClosePacket.windowId == ContainerIds.NONE) {
                     this.craftingType = CRAFTING_SMALL;
                     this.resetCraftingGridType();
                     this.addWindow(this.craftingGrid, ContainerIds.NONE);
 
                     ContainerClosePacket116100 pk = new ContainerClosePacket116100();
                     pk.wasServerInitiated = false;
-                    pk.windowId = -1;
+                    pk.windowId = ContainerIds.NONE;
                     this.dataPacket(pk);
+                    break;
                 }
+
+                if (containerClosePacket.windowId == ContainerIds.INVENTORY) {
+                    this.inventoryOpen = false;
+                }
+                boolean closed = this.closeWindowFromClient(containerClosePacket.windowId);
+                if (closed) {
+                    break;
+                }
+                if (containerClosePacket.windowId != -1) {
+                    this.getServer().getLogger().debug("{} unopened window: {}", getName(), containerClosePacket.windowId);
+                }
+
+                this.sendContainerCloseResponse(containerClosePacket.windowId, ContainerType.NONE);
                 break;
             case ProtocolInfo.MOVE_PLAYER_PACKET:
                 if (this.serverAuthoritativeMovement) {
@@ -3233,25 +3239,6 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
                             this.dataPacket(pk);
                             Server.broadcastPacket(this.getViewers().values(), pk);
                             break;
-                        case EntityEventPacket.ENCHANT:
-                            if (entityEventPacket.eid != this.getId()) {
-                                break;
-                            }
-                            if (this.getWindowById(ENCHANT_WINDOW_ID) != null) {
-                                break; //附魔现在在 EnchantTransaction 中扣减经验等级
-                            }
-
-                            Inventory inventory = this.getWindowById(ANVIL_WINDOW_ID);
-                            if (inventory instanceof AnvilInventory anvilInventory) {
-                                anvilInventory.setCost(-entityEventPacket.data);
-                            } else if (this.getWindowById(ENCHANT_WINDOW_ID) != null) {
-                                int levels = entityEventPacket.data; // Sent as negative number of levels lost
-                                if (levels < 0) {
-                                    this.setExperience(this.getExperience(), this.getExperienceLevel() + levels);
-                                }
-                                break;
-                            }
-                            break;
                     }
                     break;
                 }
@@ -3284,25 +3271,6 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
                         pk.data = (held.getId() << 16) | held.getDamage();
                         this.dataPacket(pk);
                         Server.broadcastPacket(this.getViewers().values(), pk);
-                        break;
-                    case EntityEventPacket.ENCHANT:
-                        if (entityEventPacket.eid != this.getId()) {
-                            break;
-                        }
-                        if (this.getWindowById(ENCHANT_WINDOW_ID) != null) {
-                            break; //附魔现在在 EnchantTransaction 中扣减经验等级
-                        }
-
-                        Inventory inventory = this.getWindowById(ANVIL_WINDOW_ID);
-                        if (inventory instanceof AnvilInventory anvilInventory) {
-                            anvilInventory.setCost(-entityEventPacket.data);
-                        } else if (this.getWindowById(ENCHANT_WINDOW_ID) != null) {
-                            int levels = entityEventPacket.data; // Sent as negative number of levels lost
-                            if (levels < 0) {
-                                this.setExperience(this.getExperience(), this.getExperienceLevel() + levels);
-                            }
-                            break;
-                        }
                         break;
                 }
                 break;
@@ -3376,8 +3344,9 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
                         && (interactPacket.target == getLocalEntityId() || isRiding() && interactPacket.target == riding.getId() && riding.getNetworkId() != EntityID.CHEST_BOAT && (!riding.getDataFlag(DATA_FLAG_TAMED) || riding.getNetworkId() == EntityID.SKELETON_HORSE))
                         && !this.inventoryOpen && !isSpectator()) {
 //					this.openInventory();
-                    this.inventory.open(this);
-                    this.inventoryOpen = true;
+                    if (!this.deferPlayerInventoryOpen()) {
+                        this.inventoryOpen = this.inventory.open(this);
+                    }
                     break;
                 }
 
@@ -3598,6 +3567,9 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
                     break;
                 }
                 if (!callPacketReceiveEvent(packet)) break;
+                if (this.rejectSpectatorInventoryPart(transactionPacket)) {
+                    return;
+                }
 
                 Item item;
 
@@ -3619,6 +3591,10 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
                     }
 
                     actions.add(a);
+                }
+
+                if (this.rejectSpectatorCraftingContinuation(actions)) {
+                    return;
                 }
 
                 if (transactionPacket.isCraftingPart) {
@@ -3673,11 +3649,11 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
                         this.repairItemTransaction.execute();
                         this.repairItemTransaction = null;
                         break;
+                    } else if (this.repairItemTransaction.isInvalid() || this.repairItemTransaction.isComplete()) {
+                        this.repairItemTransaction.execute();
+                        this.repairItemTransaction = null;
                     }
-
-                    if ((this.craftingType >> 3) != 2) {
-                        break;
-                    }
+                    return;
                 }
 
                 if (this.craftingTransaction != null) {
@@ -4188,11 +4164,23 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
         return npcDialoguePlayerHandler;
     }
 
+    @Override
+    public void openInventory() {
+        if (deferWindowOpen(this::openInventoryImmediately)) {
+            return;
+        }
+        super.openInventory();
+    }
+
 	@Override
 	public int addWindow(Inventory inventory, Integer forceId, boolean isPermanent, boolean alwaysOpen) {
 		Integer index = this.windows.get(inventory);
 		if (index != null) {
 			return index;
+		}
+		PendingWindowOpen deferredOpen = this.pendingWindowOpen;
+		if (deferredOpen != null && deferredOpen.inventory() == inventory) {
+			return deferredOpen.windowId();
 		}
 		int cnt;
 		if (forceId == null) {
@@ -4200,39 +4188,290 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
 		} else {
 			cnt = forceId;
 		}
-		this.windows.forcePut(inventory, cnt);
+
+        if (this.pendingWindowCloseTracker.hasPending() && cnt >= 0) {
+            if (this.pendingWindowOpen != null && this.pendingWindowOpen.inventory() != inventory) {
+                log.debug("{} replaced deferred container {} with {}", getName(), this.pendingWindowOpen.inventory(), inventory);
+            }
+            this.cancelPendingWindowOpen();
+            this.pendingPlayerInventoryOpen = false;
+            this.pendingWindowOpenAction = null;
+            this.pendingWindowOpen = new PendingWindowOpen(inventory, cnt, isPermanent, alwaysOpen);
+            return cnt;
+        }
+
+        return this.openWindow(inventory, cnt, isPermanent, alwaysOpen);
+	}
+
+    private int openWindow(Inventory inventory, int windowId, boolean isPermanent, boolean alwaysOpen) {
+        Integer index = this.windows.get(inventory);
+        if (index != null) {
+            return index;
+        }
+        this.windows.forcePut(inventory, windowId);
 
 		if (isPermanent) {
-			this.permanentWindows.add(cnt);
+			this.permanentWindows.add(windowId);
 		}
 
         if (inventoryOpen) {
-            log.debug("{} opened player inventory screen, ignore new container screen request: {}", getName(), cnt);
+            log.debug("{} opened player inventory screen, ignore new container screen request: {}", getName(), windowId);
         }
 
 		if (this.spawned && !inventoryOpen && inventory.open(this)) {
-			return cnt;
-		} else if (!alwaysOpen) {
-            if (!this.permanentWindows.contains(this.getWindowId(inventory)))
-                this.windows.remove(inventory);
-
+			return windowId;
+		}
+        if (!alwaysOpen) {
+			Integer currentWindowId = this.windows.get(inventory);
+			if (!isPermanent && currentWindowId != null && currentWindowId == windowId) {
+				this.windows.remove(inventory);
+			}
 			return -1;
 		} else {
 			inventory.getViewers().add(this);
 		}
 
-		return cnt;
-	}
+		return windowId;
+    }
 
     @Override
     public void removeWindow(Inventory inventory) {
+        if (!this.beginInventoryWindowRemoval(inventory)) {
+            return;
+        }
         this.removeWindow(inventory, false);
     }
 
     protected void removeWindow(Inventory inventory, boolean isResponse) {
-        inventory.close(this);
-        if (isResponse && !this.permanentWindows.contains(this.getWindowId(inventory)))
+        PendingWindowOpen deferredOpen = this.pendingWindowOpen;
+        if (deferredOpen != null && deferredOpen.inventory() == inventory) {
+            this.cancelPendingWindowOpen();
+            return;
+        }
+        if (this.pendingPlayerInventoryOpen && inventory == this.inventory) {
+            this.pendingPlayerInventoryOpen = false;
+            return;
+        }
+
+        Integer mappedWindowId = this.windows.get(inventory);
+        if (mappedWindowId == null) {
+            if (isResponse) {
+                this.onWindowCloseAccepted(inventory);
+                this.closeWindowInventory(inventory, null, false);
+            }
+            return;
+        }
+        int windowId = mappedWindowId;
+        boolean permanent = this.permanentWindows.contains(windowId);
+        // 1.21.x+ client bug may ignore some server initiated FakeBlockUI close packet.
+        // in the same level, wait for the player to close it; different level, complete locally.
+        boolean canWaitForResponse = !(inventory instanceof FakeBlockUIComponent component) || component.getHolder().getLevel() == this.getLevel();
+        boolean waitForResponse = canWaitForResponse && shouldWaitForResponse(isResponse, this.isConnected(), this.spawned, windowId, this.lastOpenedWindowId, this.inventoryOpen);
+        if (waitForResponse && !this.pendingWindowCloseTracker.begin(windowId, inventory, inventory instanceof FakeBlockUIComponent)) {
+            log.debug("{} ignored close request for container {} while another close is waiting for acknowledgement", getName(), windowId);
+            return;
+        }
+
+        boolean completeLocally = shouldCompleteLocally(isResponse, this.isConnected(), this.spawned, windowId, this.lastOpenedWindowId, this.inventoryOpen, canWaitForResponse);
+        if (completeLocally) {
+            this.lastOpenedWindowId = resolveLastOpenedAfterLocalClose(true, windowId, this.lastOpenedWindowId);
+            this.callInventoryCloseEventIfNeeded(inventory);
+        }
+        this.onWindowCloseAccepted(inventory);
+        if (windowId == ContainerIds.INVENTORY) {
+            this.inventoryOpen = false;
+        }
+        ContainerClosePacket closeRequest = null;
+        if (waitForResponse) {
+            closeRequest = new ContainerClosePacket();
+            closeRequest.windowId = windowId;
+            closeRequest.windowType = this.getNetworkWindowType(inventory);
+            closeRequest.wasServerInitiated = true;
+        }
+        boolean suppressClosePacket = shouldSuppressClosePacket(isResponse, this.isConnected(), this.spawned, windowId);
+        this.closeWindowInventory(inventory, closeRequest, suppressClosePacket);
+        Integer currentWindowId = this.windows.get(inventory);
+        if (!permanent && currentWindowId != null && currentWindowId == windowId) {
             this.windows.remove(inventory);
+        }
+        if (!this.isConnected()) {
+            this.clearPendingWindowState();
+        }
+    }
+
+    private static boolean shouldWaitForResponse(boolean isResponse, boolean connected, boolean spawned, int windowId, int lastOpenedWindowId, boolean inventoryOpen) {
+        return !isResponse && connected && spawned && windowId >= 0 && (windowId == lastOpenedWindowId || windowId == ContainerIds.INVENTORY && inventoryOpen);
+    }
+
+    private static boolean shouldSuppressClosePacket(boolean isResponse, boolean connected, boolean spawned, int windowId) {
+        return !isResponse && connected && spawned && windowId >= 0;
+    }
+
+    private static boolean shouldCompleteLocally(boolean isResponse, boolean connected, boolean spawned, int windowId, int lastOpenedWindowId, boolean inventoryOpen, boolean canWaitForResponse) {
+        return shouldSuppressClosePacket(isResponse, connected, spawned, windowId) && !(canWaitForResponse && shouldWaitForResponse(isResponse, connected, spawned, windowId, lastOpenedWindowId, inventoryOpen));
+    }
+
+    private static int resolveLastOpenedAfterLocalClose(boolean completeLocally, int windowId, int lastOpenedWindowId) {
+        return completeLocally && windowId == lastOpenedWindowId ? ContainerIds.NONE : lastOpenedWindowId;
+    }
+
+    private void closeWindowInventory(Inventory inventory, @Nullable ContainerClosePacket closeRequest, boolean suppressClosePacket) {
+        int previousClosingWindowId = this.closingWindowId;
+        Inventory previousInventoryCloseInProgress = this.inventoryCloseInProgress;
+        if (suppressClosePacket) {
+            this.closingWindowId = Integer.MAX_VALUE;
+        }
+        this.inventoryCloseInProgress = inventory;
+        try {
+            if (closeRequest != null) {
+                this.dataPacket(closeRequest);
+            }
+            inventory.close(this);
+        } finally {
+            this.inventoryCloseInProgress = previousInventoryCloseInProgress;
+            this.closingWindowId = previousClosingWindowId;
+        }
+    }
+
+    @Override
+    protected void removeWindowFromClient(Inventory inventory) {
+        if (this.beginInventoryWindowRemoval(inventory)) {
+            this.removeWindow(inventory, true);
+        }
+    }
+
+    @Override
+    protected boolean handlePendingWindowClose(int windowId) {
+        PendingWindowClose current = this.pendingWindowCloseTracker.getPending();
+        if (current == null) {
+            return false;
+        }
+        int acknowledgedWindowId = windowId == ContainerIds.NONE ? current.windowId() : windowId;
+        if (current.windowId() != acknowledgedWindowId) {
+            return false;
+        }
+
+        if (acknowledgedWindowId == ContainerIds.INVENTORY) {
+            this.inventoryOpen = false;
+        }
+        if (this.lastOpenedWindowId == acknowledgedWindowId) {
+            this.lastOpenedWindowId = ContainerIds.NONE;
+        }
+        this.sendContainerCloseResponse(acknowledgedWindowId, this.getNetworkWindowType(current.inventory()));
+
+        if (!current.closeEventFired()) {
+            this.callInventoryCloseEventIfNeeded(current.inventory());
+        }
+        if (this.pendingWindowCloseTracker.acknowledge(acknowledgedWindowId) == null) {
+            return true;
+        }
+        this.resumePendingWindowOpen();
+        return true;
+    }
+
+    private void resumePendingWindowOpen() {
+        PendingWindowOpen request = this.pendingWindowOpen;
+        boolean openPlayerInventory = this.pendingPlayerInventoryOpen;
+        Runnable openAction = this.pendingWindowOpenAction;
+        this.pendingWindowOpen = null;
+        this.pendingPlayerInventoryOpen = false;
+        this.pendingWindowOpenAction = null;
+        if (!this.isConnected() || this.pendingWindowCloseTracker.hasPending()) {
+            this.cancelPendingWindowOpen(request);
+            return;
+        }
+        if (!this.formWindows.isEmpty() || this.inventoryOpen || this.lastOpenedWindowId != ContainerIds.NONE) {
+            this.cancelPendingWindowOpen(request);
+            return;
+        }
+        if (request != null) {
+            Inventory current = this.getWindowById(request.windowId());
+            if (current != null && current != request.inventory()) {
+                log.debug("{} ignored deferred container {} because window ID {} is already in use", getName(), request.inventory(), request.windowId());
+                this.cancelPendingWindowOpen(request);
+                return;
+            }
+            if (this.openWindow(request.inventory(), request.windowId(), request.permanent(), request.alwaysOpen()) < 0) {
+                this.cancelPendingWindowOpen(request);
+            } else {
+                this.onDeferredWindowOpenCompleted(request.inventory());
+            }
+        } else if (openPlayerInventory) {
+            this.inventoryOpen = this.inventory.open(this);
+        } else if (openAction != null) {
+            openAction.run();
+        }
+    }
+
+    @Override
+    protected boolean deferPlayerInventoryOpen() {
+        if (!this.pendingWindowCloseTracker.hasPending()) {
+            return false;
+        }
+        if (this.pendingWindowOpen != null) {
+            log.debug("{} replaced deferred container {} with the player inventory", getName(), this.pendingWindowOpen.inventory());
+        }
+        this.cancelPendingWindowOpen();
+        this.pendingPlayerInventoryOpen = true;
+        this.pendingWindowOpenAction = null;
+        return true;
+    }
+
+    @Override
+    public boolean deferWindowOpen(Runnable opener) {
+        if (!this.pendingWindowCloseTracker.hasPending()) {
+            return false;
+        }
+        this.cancelPendingWindowOpen();
+        this.pendingPlayerInventoryOpen = false;
+        this.pendingWindowOpenAction = opener;
+        return true;
+    }
+
+    private void clearPendingWindowState() {
+        this.pendingWindowCloseTracker.clear();
+        this.cancelPendingWindowOpen();
+        this.pendingPlayerInventoryOpen = false;
+        this.pendingWindowOpenAction = null;
+    }
+
+    private void cancelPendingWindowOpen() {
+        PendingWindowOpen request = this.pendingWindowOpen;
+        this.pendingWindowOpen = null;
+        this.cancelPendingWindowOpen(request);
+    }
+
+    private void cancelPendingWindowOpen(@Nullable PendingWindowOpen request) {
+        if (request != null) {
+            this.onDeferredWindowOpenCancelled(request.inventory());
+        }
+    }
+
+    protected void onDeferredWindowOpenCancelled(Inventory inventory) {
+    }
+
+    protected void onDeferredWindowOpenCompleted(Inventory inventory) {
+    }
+
+    protected void onWindowOpenRejected(Inventory inventory) {
+    }
+
+    protected void onWindowCloseAccepted(Inventory inventory) {
+    }
+
+    @Override
+    public void removeAllWindows(boolean permanent) {
+        this.cancelPendingWindowOpen();
+        this.pendingPlayerInventoryOpen = false;
+        this.pendingWindowOpenAction = null;
+        if (permanent && !this.isConnected()) {
+            PendingWindowClose pending = this.pendingWindowCloseTracker.getPending();
+            this.clearPendingWindowState();
+            if (pending != null) {
+                this.windows.remove(pending.inventory());
+            }
+        }
+        super.removeAllWindows(permanent);
     }
 
     @Override
@@ -6087,6 +6326,12 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
             return;
         }
 
+        if (!this.deferWindowOpen(() -> this.openBlockEditorImmediately(x, y, z, type))) {
+            this.openBlockEditorImmediately(x, y, z, type);
+        }
+    }
+
+    private void openBlockEditorImmediately(int x, int y, int z, int type) {
         super.openBlockEditor(x, y, z, type);
     }
 

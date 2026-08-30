@@ -21,10 +21,8 @@ import cn.nukkit.entity.item.EntityBoat;
 import cn.nukkit.entity.knockback.KnockbackProfile;
 import cn.nukkit.event.entity.EntityDamageByEntityEvent;
 import cn.nukkit.event.entity.EntityDamageEvent;
-import cn.nukkit.event.inventory.InventoryCloseEvent;
 import cn.nukkit.event.inventory.ItemAttackDamageEvent;
 import cn.nukkit.event.player.*;
-import cn.nukkit.inventory.ContainerInventory;
 import cn.nukkit.inventory.Inventory;
 import cn.nukkit.inventory.ItemUseHand;
 import cn.nukkit.inventory.transaction.CraftingTransaction;
@@ -50,6 +48,7 @@ import cn.nukkit.network.protocol.*;
 import cn.nukkit.network.protocol.AnimatePacket.Action;
 import cn.nukkit.network.protocol.AnimatePacket.SwingSource;
 import cn.nukkit.network.protocol.types.ContainerIds;
+import cn.nukkit.network.protocol.types.ContainerType;
 import cn.nukkit.network.protocol.types.NetworkInventoryAction;
 import cn.nukkit.potion.Effect;
 import cn.nukkit.utils.ClientChainData;
@@ -171,52 +170,45 @@ public class SynapsePlayer116 extends SynapsePlayer113 {
 						&& (interactPacket.target == getLocalEntityId() || isRiding() && interactPacket.target == riding.getId() && riding.getNetworkId() != EntityID.CHEST_BOAT && (!riding.getDataFlag(DATA_FLAG_TAMED) || riding.getNetworkId() == EntityID.SKELETON_HORSE))
 						&& !this.inventoryOpen && !isSpectator()) {
 //					this.openInventory();
-					this.inventory.open(this);
-					this.inventoryOpen = true;
+					if (!this.deferPlayerInventoryOpen()) {
+						this.inventoryOpen = this.inventory.open(this);
+					}
 					break;
 				}
 				super.handleDataPacket(packet);
 				break;
 			case ProtocolInfo.CONTAINER_CLOSE_PACKET:
 				ContainerClosePacket containerClosePacket = (ContainerClosePacket) packet;
-				if (!this.spawned || containerClosePacket.windowId == ContainerIds.INVENTORY && !inventoryOpen) {
+				if (this.handlePendingWindowClose(containerClosePacket.windowId)) {
 					break;
 				}
-
-				Inventory windowInventory = this.windowIndex.get(containerClosePacket.windowId);
-				if (windowInventory != null) {
-					this.server.getPluginManager().callEvent(new InventoryCloseEvent(windowInventory, this));
-
-					if (containerClosePacket.windowId == ContainerIds.INVENTORY) this.inventoryOpen = false;
-
-					if (this instanceof SynapsePlayer116100) ((SynapsePlayer116100) this).removeWindow(this.windowIndex.get(containerClosePacket.windowId), true);
-					else this.removeWindow(this.windowIndex.get(containerClosePacket.windowId));
-				} else {
-					this.getServer().getLogger().debug(getName() + " unopened window: " + containerClosePacket.windowId);
+				if (this.acknowledgeStaleWindowClose(containerClosePacket.windowId, ContainerType.NONE)) {
+					break;
 				}
-
-				if (containerClosePacket.windowId == -1) {
+				if (containerClosePacket.windowId == ContainerIds.NONE) {
 					this.craftingType = CRAFTING_SMALL;
 					this.resetCraftingGridType();
 					this.addWindow(this.craftingGrid, ContainerIds.NONE);
 
 					ContainerClosePacket pk = new ContainerClosePacket();
-					pk.windowId = -1;
+					pk.windowId = ContainerIds.NONE;
 					this.dataPacket(pk);
-				} else { // Close bugged inventory
-					ContainerClosePacket pk = new ContainerClosePacket();
-					pk.windowId = containerClosePacket.windowId;
-					this.dataPacket(pk);
-
-					for (Inventory open : new ArrayList<>(this.windows.keySet())) {
-						if (open instanceof ContainerInventory) {
-							this.removeWindow(open);
-						}
-					}
-				}
 					break;
-				case ProtocolInfo.INVENTORY_TRANSACTION_PACKET:
-					InventoryTransactionPacket116 transactionPacket = (InventoryTransactionPacket116) packet;
+				}
+
+				if (containerClosePacket.windowId == ContainerIds.INVENTORY) {
+					this.inventoryOpen = false;
+				}
+				boolean closed = this.closeWindowFromClient(containerClosePacket.windowId);
+				if (closed) {
+					break;
+				}
+
+				this.getServer().getLogger().debug("{} unopened window: {}", getName(), containerClosePacket.windowId);
+				this.sendContainerCloseResponse(containerClosePacket.windowId, ContainerType.NONE);
+				break;
+			case ProtocolInfo.INVENTORY_TRANSACTION_PACKET:
+				InventoryTransactionPacket116 transactionPacket = (InventoryTransactionPacket116) packet;
 					boolean javaClient = this.isJavaClient();
 					boolean explicitItemUseHandAllowed = javaClient && this.supportsExplicitItemUseHand();
 					JavaItemUseRouting.Route transactionRoute = JavaItemUseRouting.resolveTransaction(
@@ -231,7 +223,10 @@ public class SynapsePlayer116 extends SynapsePlayer113 {
 						}
 						break;
 					}
-					if (!callPacketReceiveEvent(packet)) break;
+				if (!callPacketReceiveEvent(packet)) break;
+				if (this.rejectSpectatorInventoryPart(transactionPacket)) {
+					return;
+				}
 
 				Item item;
 				Block block;
@@ -254,6 +249,10 @@ public class SynapsePlayer116 extends SynapsePlayer113 {
 					}
 
 					actions.add(a);
+				}
+
+				if (this.rejectSpectatorCraftingContinuation(actions)) {
+					return;
 				}
 
 				if (transactionPacket.isCraftingPart) {
@@ -308,11 +307,11 @@ public class SynapsePlayer116 extends SynapsePlayer113 {
 						this.repairItemTransaction.execute();
 						this.repairItemTransaction = null;
 						break;
+					} else if (this.repairItemTransaction.isInvalid() || this.repairItemTransaction.isComplete()) {
+						this.repairItemTransaction.execute();
+						this.repairItemTransaction = null;
 					}
-
-					if ((this.craftingType >> 3) != 2) {
-						break;
-					}
+					return;
 				}
 
 				if (this.craftingTransaction != null) {
@@ -1931,9 +1930,45 @@ public class SynapsePlayer116 extends SynapsePlayer113 {
 
 	@Override
 	public void removeWindow(Inventory inventory) {
-		inventory.close(this);
-		if (!this.permanentWindows.contains(this.getWindowId(inventory)))
-			this.windows.remove(inventory);
+		if (!this.beginInventoryWindowRemoval(inventory)) {
+			return;
+		}
+		Inventory previousInventoryCloseInProgress = this.inventoryCloseInProgress;
+		this.inventoryCloseInProgress = inventory;
+		try {
+			inventory.close(this);
+			if (!this.permanentWindows.contains(this.getWindowId(inventory))) {
+				this.windows.remove(inventory);
+			}
+		} finally {
+			this.inventoryCloseInProgress = previousInventoryCloseInProgress;
+		}
+	}
+
+	protected boolean acknowledgeStaleWindowClose(int windowId, int windowType) {
+		if (!shouldAcknowledgeWithoutClosing(this.spawned, windowId, this.inventoryOpen)) {
+			return false;
+		}
+		if (this.lastOpenedWindowId == windowId) {
+			this.lastOpenedWindowId = ContainerIds.NONE;
+		}
+		if (windowId == ContainerIds.INVENTORY) {
+			this.inventoryOpen = false;
+		}
+		this.sendContainerCloseResponse(windowId, windowType);
+		return true;
+	}
+
+	protected boolean handlePendingWindowClose(int windowId) {
+		return false;
+	}
+
+	protected boolean deferPlayerInventoryOpen() {
+		return false;
+	}
+
+	private static boolean shouldAcknowledgeWithoutClosing(boolean spawned, int windowId, boolean inventoryOpen) {
+		return !spawned || windowId == ContainerIds.INVENTORY && !inventoryOpen;
 	}
 
 	@Override
@@ -1960,6 +1995,10 @@ public class SynapsePlayer116 extends SynapsePlayer113 {
 	}
 
 	public void openInventory() {
+		this.openInventoryImmediately();
+	}
+
+	protected void openInventoryImmediately() {
 		ContainerOpenPacket pk = new ContainerOpenPacket();
 		pk.windowId = this.getWindowId(this.inventory);
 		lastOpenedWindowId = pk.windowId;
