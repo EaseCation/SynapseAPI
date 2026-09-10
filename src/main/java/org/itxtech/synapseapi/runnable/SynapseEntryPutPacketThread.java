@@ -18,6 +18,7 @@ import org.itxtech.synapseapi.SynapsePlayer;
 import org.itxtech.synapseapi.multiprotocol.AbstractProtocol;
 import org.itxtech.synapseapi.multiprotocol.PacketRegister;
 import org.itxtech.synapseapi.multiprotocol.protocol16.protocol.CompatibilityPacket16;
+import org.itxtech.synapseapi.multiprotocol.protocol19.protocol.NetworkStackLatencyPacket19;
 import org.itxtech.synapseapi.network.SynapseInterface;
 import org.itxtech.synapseapi.network.SynapseMetrics;
 import org.itxtech.synapseapi.network.protocol.spp.RedirectPacket;
@@ -26,7 +27,9 @@ import org.itxtech.synapseapi.utils.PacketLogger;
 import java.io.IOException;
 import java.util.*;
 import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.atomic.AtomicLong;
 import java.util.function.Function;
+import java.util.function.LongConsumer;
 import java.util.stream.Collectors;
 
 import static org.itxtech.synapseapi.SynapseSharedConstants.CLIENTBOUND_PACKET_LOGGING;
@@ -41,6 +44,8 @@ import static org.itxtech.synapseapi.SynapseSharedConstants.CLIENTBOUND_PACKET_L
  */
 @Log4j2
 public class SynapseEntryPutPacketThread extends Thread {
+    // 使用独立递增 ID，避免把 System.nanoTime() 同时当作协议标识和延迟计时来源。
+    private static final AtomicLong BATCH_TAIL_LATENCY_ID = new AtomicLong(1);
     private static SynapseMetrics METRICS;
 
     private final SynapseInterface synapseInterface;
@@ -62,6 +67,16 @@ public class SynapseEntryPutPacketThread extends Thread {
     public void addMainToThread(SynapsePlayer player, DataPacket packet) {
         if (player.getSynapseEntry().getSynapse().isRecordPacketStack()) packet.stack = new Throwable();
         this.queue.offer(new Entry(player, packet));
+    }
+
+    /**
+     * 将数据包和它在 DataPacketSendEvent 中登记的尾部 NSL 请求一起入队。
+     * 回调只有在该数据包成功加入 outboundQueue 后才会转入当前 Batch。
+     */
+    public void addMainToThread(SynapsePlayer player, DataPacket packet,
+                                List<LongConsumer> batchTailLatencyCallbacks) {
+        if (player.getSynapseEntry().getSynapse().isRecordPacketStack()) packet.stack = new Throwable();
+        this.queue.offer(new Entry(player, packet, batchTailLatencyCallbacks));
     }
 
     public void addMainToThreadBroadcast(SynapsePlayer[] players, DataPacket[] packets) {
@@ -186,6 +201,8 @@ public class SynapseEntryPutPacketThread extends Thread {
                             }
 
                             entry.player.outboundQueue.add(buffer);
+                            // 必须先加入包，再登记它的回调；这样尾部 NSL 不可能跑到该包前面。
+                            entry.player.appendBatchTailLatencyCallbacks(entry.batchTailLatencyCallbacks);
 
                             queuedPlayers.put(entry.player.getId(), entry.player);
                         } else {
@@ -219,6 +236,7 @@ public class SynapseEntryPutPacketThread extends Thread {
                     continue;
                 }
 
+                appendBatchTailLatency(player, outboundQueue);
                 Compressor compressor = Compressor.byProtocol(player.getProtocol());
                 byte[] buffer;
                 try {
@@ -365,11 +383,20 @@ public class SynapseEntryPutPacketThread extends Thread {
 
     private static class Entry {
         private final SynapsePlayer player;
+        // 与 packet 同时入队，只有 packet 成功进入当前 Batch 后才会被转交执行。
+        private final List<LongConsumer> batchTailLatencyCallbacks;
         private DataPacket packet;
 
         public Entry(SynapsePlayer player, DataPacket packet) {
+            this(player, packet, List.of());
+        }
+
+        public Entry(SynapsePlayer player, DataPacket packet,
+                     List<LongConsumer> batchTailLatencyCallbacks) {
             this.player = player;
             this.packet = packet;
+            this.batchTailLatencyCallbacks = batchTailLatencyCallbacks == null
+                    ? List.of() : List.copyOf(batchTailLatencyCallbacks);
         }
     }
 
@@ -416,6 +443,52 @@ public class SynapseEntryPutPacketThread extends Thread {
         }
 
         return null;
+    }
+
+    /**
+     * 将一个协议兼容的 NSL 直接编码到当前 outboundQueue 尾部。
+     * 此处不能调用 player.dataPacket()，否则会重新触发发送事件并进入下一轮异步队列。
+     * 回调在 NSL 入队后、Batch 压缩前执行，同一批次的所有请求共享同一个 timestamp。
+     * 该保证只覆盖 autoCompress 的普通 outboundQueue，不改写预压缩 BatchPacket 和广播压缩路径。
+     */
+    private static void appendBatchTailLatency(SynapsePlayer player, List<byte[]> outboundQueue) {
+        List<LongConsumer> callbacks = player.drainBatchTailLatencyCallbacks();
+        if (callbacks.isEmpty()) {
+            return;
+        }
+
+        long timestamp = Math.floorMod(BATCH_TAIL_LATENCY_ID.getAndIncrement(), 1_000_000_000L);
+        NetworkStackLatencyPacket19 latencyPacket = new NetworkStackLatencyPacket19();
+        latencyPacket.timestamp = timestamp;
+        latencyPacket.isFromServer = true;
+        DataPacket packet;
+        try {
+            packet = PacketRegister.getCompatiblePacket(
+                    latencyPacket, player.getProtocol(), player.isNetEaseClient());
+            if (packet == null) {
+                MainLogger.getLogger().warning("Cannot append batch-tail latency packet for protocol "
+                        + player.getProtocol());
+                return;
+            }
+            packet.setHelper(AbstractProtocol.fromRealProtocol(player.getProtocol()).getHelper());
+            packet.neteaseMode = player.isNetEaseClient();
+            packet.tryEncode();
+            outboundQueue.add(packet.getBuffer());
+            player.onBatchTailNetworkStackLatencyAppended();
+        } catch (Exception exception) {
+            MainLogger.getLogger().warning("Cannot append batch-tail latency packet: "
+                    + exception.getMessage());
+            return;
+        }
+
+        for (LongConsumer callback : callbacks) {
+            try {
+                callback.accept(timestamp);
+            } catch (Throwable throwable) {
+                MainLogger.getLogger().warning("Batch-tail latency callback failed: "
+                        + throwable.getMessage());
+            }
+        }
     }
 
     private static byte[] batchPackets(List<byte[]> packets, Compressor compressor) throws IOException {

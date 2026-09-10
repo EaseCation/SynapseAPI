@@ -65,6 +65,7 @@ import org.itxtech.synapseapi.multiprotocol.protocol14.protocol.PlayerActionPack
 import org.itxtech.synapseapi.multiprotocol.protocol14.protocol.TextPacket14;
 import org.itxtech.synapseapi.multiprotocol.protocol17.protocol.TextPacket17;
 import org.itxtech.synapseapi.multiprotocol.utils.*;
+import org.itxtech.synapseapi.network.SynLibInterface;
 import org.itxtech.synapseapi.network.protocol.mod.ServerSubPacketHandler;
 import org.itxtech.synapseapi.network.protocol.spp.PlayerLoginPacket;
 import org.itxtech.synapseapi.network.protocol.spp.PlayerLogoutPacket;
@@ -77,8 +78,10 @@ import org.msgpack.value.Value;
 
 import java.net.InetSocketAddress;
 import java.util.*;
+import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.ThreadLocalRandom;
 import java.util.function.Function;
+import java.util.function.LongConsumer;
 
 import static org.itxtech.synapseapi.SynapseSharedConstants.DATA_VERSION;
 import static org.itxtech.synapseapi.SynapseSharedConstants.NETWORK_STACK_LATENCY_TELEMETRY;
@@ -131,6 +134,10 @@ public class SynapsePlayer extends Player {
     float lastAuthInputPitch;
 
     public final List<byte[]> outboundQueue = new ArrayList<>();
+    // 当前 Batch 已经接收的尾部 NSL 回调；数据包事件线程投递，Synapse 出站线程统一消费。
+    private final Queue<LongConsumer> batchTailLatencyCallbacks = new ConcurrentLinkedQueue<>();
+    // 仅在触发当前 DataPacketSendEvent 的线程中存在，用于把 NSL 请求绑定到当前数据包。
+    private final ThreadLocal<List<LongConsumer>> currentPacketLatencyCallbacks = new ThreadLocal<>();
 
     public SynapsePlayer(SourceInterface interfaz, SynapseEntry synapseEntry, Long clientID, InetSocketAddress socketAddress) {
         super(interfaz, clientID, socketAddress);
@@ -1550,6 +1557,58 @@ public class SynapsePlayer extends Player {
         return cleanTextColor;
     }
 
+    /**
+     * 请求在该玩家下一次正常 outbound Batch 的尾部追加一个 NSL。
+     * 在 {@link DataPacketSendEvent} 内调用时，请求会绑定当前数据包；事件被取消时请求也会被丢弃。
+     * 同一 Batch 内的多个请求会合并为一个 NSL，并共享同一个 timestamp。
+     *
+     * <p>同 Batch 保证仅适用于 Synapse autoCompress 的普通 outboundQueue；
+     * 预压缩 BatchPacket 和广播压缩路径不在本接口覆盖范围内。</p>
+     *
+     * <p>回调运行在 Synapse 出站线程，不应直接访问要求主线程执行的 Nukkit API。</p>
+     *
+     * @param onAppended 在 NSL 已追加到 Batch、但 Batch 尚未压缩时回调，参数为 timestamp
+     */
+    public void queueNetworkStackLatencyAtBatchTail(LongConsumer onAppended) {
+        LongConsumer callback = Objects.requireNonNull(onAppended, "onAppended");
+        List<LongConsumer> current = this.currentPacketLatencyCallbacks.get();
+        if (current == null) {
+            this.batchTailLatencyCallbacks.add(callback);
+        } else {
+            current.add(callback);
+        }
+    }
+
+    /**
+     * 当前数据包进入 outboundQueue 后，将它携带的回调合并到当前 Batch。
+     * 只应由 Synapse 出站线程调用。
+     */
+    public void appendBatchTailLatencyCallbacks(List<LongConsumer> callbacks) {
+        if (callbacks != null && !callbacks.isEmpty()) {
+            this.batchTailLatencyCallbacks.addAll(callbacks);
+        }
+    }
+
+    /**
+     * 取出出站线程在当前 Batch 中已经收集到的尾部 NSL 请求。
+     * 取出完成后才入队的请求由后续 Batch 处理。
+     */
+    public List<LongConsumer> drainBatchTailLatencyCallbacks() {
+        List<LongConsumer> callbacks = new ArrayList<>();
+        LongConsumer callback;
+        while ((callback = this.batchTailLatencyCallbacks.poll()) != null) {
+            callbacks.add(callback);
+        }
+        return callbacks;
+    }
+
+    /**
+     * 在 NSL 已追加到出站 Batch 后更新协议版本特有的 ping 状态。
+     * 协议版本实现可以覆盖此方法；默认版本没有额外状态。
+     */
+    public void onBatchTailNetworkStackLatencyAppended() {
+    }
+
     @Override
     public boolean dataPacket(DataPacket packet) {
         if (!this.isSynapseLogin) return super.dataPacket(packet);
@@ -1561,8 +1620,20 @@ public class SynapsePlayer extends Player {
         packet.setHelper(AbstractProtocol.fromRealProtocol(this.protocol).getHelper());
         packet.neteaseMode = isNetEaseClient();
 
+        // 事件监听器提出的尾部 NSL 请求必须先附着当前包；否则异步出站线程可能提前消费请求。
+        List<LongConsumer> packetLatencyCallbacks = new ArrayList<>();
+        List<LongConsumer> previousPacketLatencyCallbacks = this.currentPacketLatencyCallbacks.get();
+        this.currentPacketLatencyCallbacks.set(packetLatencyCallbacks);
         DataPacketSendEvent ev = new DataPacketSendEvent(this, packet);
-        this.server.getPluginManager().callEvent(ev);
+        try {
+            this.server.getPluginManager().callEvent(ev);
+        } finally {
+            if (previousPacketLatencyCallbacks == null) {
+                this.currentPacketLatencyCallbacks.remove();
+            } else {
+                this.currentPacketLatencyCallbacks.set(previousPacketLatencyCallbacks);
+            }
+        }
         if (ev.isCancelled()) {
             return false;
         }
@@ -1592,7 +1663,16 @@ public class SynapsePlayer extends Player {
             }
         }
 
-        this.interfaz.putPacket(this, packet);
+        if (packetLatencyCallbacks.isEmpty()) {
+            this.interfaz.putPacket(this, packet);
+        } else if (this.interfaz instanceof SynLibInterface synLibInterface) {
+            // SynLib 路径将包和回调装入同一个 Entry，确保回调覆盖的包必然位于尾部 NSL 之前。
+            synLibInterface.putPacket(this, packet, packetLatencyCallbacks);
+        } else {
+            // 非 SynLib 实现无法提供 Entry 绑定，只保留为玩家级 pending 请求；是否进入后续 Batch 由兼容发送实现决定。
+            this.appendBatchTailLatencyCallbacks(packetLatencyCallbacks);
+            this.interfaz.putPacket(this, packet);
+        }
         return true;
     }
 
