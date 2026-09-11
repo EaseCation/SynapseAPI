@@ -92,6 +92,7 @@ public class SynapsePlayer19 extends SynapsePlayer18 {
 				}
 				break;
 			case ProtocolInfo.NETWORK_STACK_LATENCY_PACKET:
+				if (!callPacketReceiveEvent(packet)) break;
 				NetworkStackLatencyPacket19 networkStackLatencyPacket = (NetworkStackLatencyPacket19) packet;
 				if (!networkStackLatencyPacket.isFromServer) {
 					NetworkStackLatencyPacket19 pong = new NetworkStackLatencyPacket19();
@@ -121,6 +122,7 @@ public class SynapsePlayer19 extends SynapsePlayer18 {
 				}
 				break;
 			case ProtocolInfo.LECTERN_UPDATE_PACKET:
+				if (!callPacketReceiveEvent(packet)) break;
 				if (getProtocol() >= AbstractProtocol.PROTOCOL_111.getProtocolStart()) {
 					LecternUpdatePacket111 lecternUpdatePacket = (LecternUpdatePacket111) packet;
 					if (lecternUpdatePacket.droppingBook) {

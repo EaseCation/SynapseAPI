@@ -1647,6 +1647,7 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
                     super.handleDataPacket(packet);
                     return;
                 }
+                if (!callPacketReceiveEvent(packet)) break;
 
                 if (this.getProtocol() >= AbstractProtocol.PROTOCOL_121.getProtocolStart()) {
                     ContainerClosePacket121 containerClosePacket = (ContainerClosePacket121) packet;
@@ -1740,6 +1741,7 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
                 this.sendContainerCloseResponse(containerClosePacket.windowId, ContainerType.NONE);
                 break;
             case ProtocolInfo.MOVE_PLAYER_PACKET:
+                if (!callPacketReceiveEvent(packet)) break;
                 if (this.serverAuthoritativeMovement) {
                     break;
                 }
@@ -1823,6 +1825,7 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
                 }
                 break;
             case ProtocolInfo.FILTER_TEXT_PACKET:
+                if (!callPacketReceiveEvent(packet)) break;
                 if (this.getProtocol() >= AbstractProtocol.PROTOCOL_116_200.getProtocolStart()) {
                     FilterTextPacket116200 filterTextPacket = (FilterTextPacket116200) packet;
                     if (filterTextPacket.text == null || filterTextPacket.text.length() > 64) {
@@ -2555,6 +2558,7 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
                 }
                 break;
             case ProtocolInfo.SUB_CHUNK_REQUEST_PACKET:
+                if (!callPacketReceiveEvent(packet)) break;
                 if (!this.isSubChunkRequestAvailable()) {
                     break;
                 }
@@ -2756,6 +2760,7 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
                 break;
             case ProtocolInfo.COMMAND_REQUEST_PACKET:
                 if (getProtocol() >= AbstractProtocol.PROTOCOL_121_130.getProtocolStart()) {
+                    if (!callPacketReceiveEvent(packet)) break;
                     CommandRequestPacket121130 commandRequestPacket = (CommandRequestPacket121130) packet;
 
                     if (!commandRequestPacket.command.startsWith("/")) {
@@ -2811,6 +2816,8 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
                 }
                 CommandRequestPacket11960 commandRequestPacket = (CommandRequestPacket11960) packet;
 
+                if (!callPacketReceiveEvent(packet)) break;
+
                 if (!commandRequestPacket.command.startsWith("/")) {
                     onPacketViolation(PacketViolationReason.IMPOSSIBLE_BEHAVIOR, "cmd_pf_chat", commandRequestPacket.command);
                     break;
@@ -2861,6 +2868,7 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
                     super.handleDataPacket(packet);
                     break;
                 }
+                if (!callPacketReceiveEvent(packet)) break;
                 SetPlayerGameTypePacket setPlayerGameTypePacket = (SetPlayerGameTypePacket) packet;
                 int gamemode = vanillaGamemodeToNukkitGamemode(setPlayerGameTypePacket.gamemode);
                 if (gamemode == this.gamemode) {
@@ -2886,6 +2894,7 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
                 this.dataPacket(updatePlayerGameTypePacket);
                 break;
             case ProtocolInfo.PLAYER_SKIN_PACKET:
+                if (!callPacketReceiveEvent(packet)) break;
                 if (getProtocol() >= AbstractProtocol.PROTOCOL_119_63.getProtocolStart()) {
                     PlayerSkinPacket11963 playerSkinPacket = (PlayerSkinPacket11963) packet;
 
@@ -2936,6 +2945,7 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
                     super.handleDataPacket(packet);
                     break;
                 }
+                if (!callPacketReceiveEvent(packet)) break;
 
                 RequestChunkRadiusPacket11980 requestChunkRadiusPacket = (RequestChunkRadiusPacket11980) packet;
                 this.viewDistance = Mth.clamp(requestChunkRadiusPacket.radius, 4, 96);
@@ -2962,6 +2972,7 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
                 break;
             case ProtocolInfo.EMOTE_PACKET:
                 if (getProtocol() >= AbstractProtocol.PROTOCOL_121_30.getProtocolStart()) {
+                    if (!callPacketReceiveEvent(packet)) break;
                     if (!this.spawned) {
                         break;
                     }
@@ -3180,6 +3191,7 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
                     super.handleDataPacket(packet);
                     break;
                 }
+                if (!callPacketReceiveEvent(packet)) break;
                 LecternUpdatePacket12070 lecternUpdatePacket = (LecternUpdatePacket12070) packet;
 
                 if (!canInteract(temporalVector.setComponents(lecternUpdatePacket.x + 0.5, lecternUpdatePacket.y + 0.5, lecternUpdatePacket.z + 0.5), isCreative() ? MAX_REACH_DISTANCE_CREATIVE : MAX_REACH_DISTANCE_SURVIVAL)) {
@@ -3275,6 +3287,7 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
                 }
                 break;
             case ProtocolInfo.CLIENT_CAMERA_AIM_ASSIST_PACKET:
+                if (!callPacketReceiveEvent(packet)) break;
                 ClientCameraAimAssistPacket12160 cameraAimAssistInstructionPacket = (ClientCameraAimAssistPacket12160) packet;
                 allowAimAssist = cameraAimAssistInstructionPacket.allowAimAssist;
                 switch (cameraAimAssistInstructionPacket.action) {
@@ -3296,6 +3309,7 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
                     super.handleDataPacket(packet);
                     break;
                 }
+                if (!callPacketReceiveEvent(packet)) break;
                 if (getProtocol() >= AbstractProtocol.PROTOCOL_126_30.getProtocolStart()) {
                     BossEventPacket12630 bossEventPacket = (BossEventPacket12630) packet;
                     switch (bossEventPacket.type) {
@@ -3520,6 +3534,7 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
                 sendQueuedChunk = true;
                 break;
             case ProtocolInfo.PLAYER_TOGGLE_CRAFTER_SLOT_REQUEST_PACKET:
+                if (!callPacketReceiveEvent(packet)) break;
                 PlayerToggleCrafterSlotRequestPacket12050 playerToggleCrafterSlotRequestPacket = (PlayerToggleCrafterSlotRequestPacket12050) packet;
 
                 if (!canInteract(temporalVector.setComponents(playerToggleCrafterSlotRequestPacket.x + 0.5, playerToggleCrafterSlotRequestPacket.y + 0.5, playerToggleCrafterSlotRequestPacket.z + 0.5), isCreative() ? MAX_REACH_DISTANCE_CREATIVE : MAX_REACH_DISTANCE_SURVIVAL)) {

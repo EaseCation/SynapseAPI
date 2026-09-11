@@ -657,6 +657,7 @@ public class SynapsePlayer14 extends SynapsePlayer {
 				break;*/
 			case ProtocolInfo.MOVE_ACTOR_ABSOLUTE_PACKET:
 				if (this.getProtocol() >= AbstractProtocol.PROTOCOL_15.getProtocolStart()) {
+					if (!callPacketReceiveEvent(packet)) break;
 					MoveEntityAbsolutePacket15 moveEntityAbsolutePacket = (MoveEntityAbsolutePacket15) packet;
 					if (!validateCoordinate(moveEntityAbsolutePacket.x) || !validateCoordinate(moveEntityAbsolutePacket.y) || !validateCoordinate(moveEntityAbsolutePacket.z)
 							|| !validateFloat(moveEntityAbsolutePacket.pitch) || !validateFloat(moveEntityAbsolutePacket.yaw) || !validateFloat(moveEntityAbsolutePacket.headYaw)) {
