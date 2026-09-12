@@ -105,6 +105,14 @@ public class RuntimeItemPalette implements AdvancedRuntimeItemPaletteInterface {
             registerItem(new Entry("minecraft:debug_stick", 1999, 735, null));
         }
 
+        Int2ObjectMap<Entry> entriesById = new Int2ObjectOpenHashMap<>(this.entries.size());
+        for (Entry entry : this.entries) {
+            Entry previousEntry = entriesById.putIfAbsent(entry.id, entry);
+            if (previousEntry != null) {
+                throw new AssertionError("Duplicate network item ID " + entry.id + " in " + runtimeItemIdJsonFile + ": " + previousEntry.name + " and " + entry.name);
+            }
+        }
+
         this.buildNetworkCache();
     }
 
@@ -322,8 +330,5 @@ public class RuntimeItemPalette implements AdvancedRuntimeItemPaletteInterface {
             stream.putLShort(entry.getIntValue());
         }
         return Hash.xxh64(stream.getBuffer());
-    }
-
-    private record RuntimeEntry(String name, int id) {
     }
 }
