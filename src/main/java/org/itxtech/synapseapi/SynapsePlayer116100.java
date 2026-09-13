@@ -3830,10 +3830,8 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
                                         }
                                     }
 
-                                    // 解决卡物品栏问题（只发送物品正确的物品栏）
-                                    if (inventory.getItemInHand().getId() == useItemData.itemInHand.getId() && inventory.getItemInHand().getCount() != useItemData.itemInHand.getCount()) {
-                                        inventory.sendHeldItem(this);
-                                    }
+                                    // 请求数量不代表客户端预测后的库存，放置失败时始终回发权威手持。
+                                    inventory.sendHeldItem(this);
 
                                     if (clientPredictedFailure) {
                                         break packetswitch;
