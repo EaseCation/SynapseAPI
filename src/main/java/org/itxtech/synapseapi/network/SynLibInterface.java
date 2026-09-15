@@ -5,6 +5,9 @@ import cn.nukkit.network.SourceInterface;
 import cn.nukkit.network.protocol.DataPacket;
 import org.itxtech.synapseapi.SynapsePlayer;
 
+import java.util.List;
+import java.util.function.LongConsumer;
+
 /**
  * Created by boybook on 16/6/24.
  */
@@ -48,6 +51,16 @@ public class SynLibInterface implements SourceInterface {
         if (player instanceof SynapsePlayer) this.synapseInterface.getPutPacketThread().addMainToThread((SynapsePlayer) player, packet);
         else throw new RuntimeException("putPacket (not SynapsePlayer) to SynLibInterface");
         return 0;  //这个返回值在nk中并没有被用到
+    }
+
+    /**
+     * 将尾部 NSL 回调与当前数据包放入同一个出站 Entry，避免出站线程在数据包入队前消费回调。
+     */
+    public Integer putPacket(SynapsePlayer player, DataPacket packet,
+                             List<LongConsumer> batchTailLatencyCallbacks) {
+        this.synapseInterface.getPutPacketThread().addMainToThread(
+                player, packet, batchTailLatencyCallbacks);
+        return 0;
     }
 
     @Override
