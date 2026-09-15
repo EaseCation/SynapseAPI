@@ -93,6 +93,7 @@ public class SynapsePlayer19 extends SynapsePlayer18 {
 				}
 				break;
 			case ProtocolInfo.NETWORK_STACK_LATENCY_PACKET:
+				if (!callPacketReceiveEvent(packet)) break;
 				NetworkStackLatencyPacket19 networkStackLatencyPacket = (NetworkStackLatencyPacket19) packet;
 				// 所有 NSL 包都先进入通用收包事件，上层再按方向和 timestamp 匹配 Batch 边界。
 				if (!this.callPacketReceiveEvent(packet)) {
@@ -126,6 +127,7 @@ public class SynapsePlayer19 extends SynapsePlayer18 {
 				}
 				break;
 			case ProtocolInfo.LECTERN_UPDATE_PACKET:
+				if (!callPacketReceiveEvent(packet)) break;
 				if (getProtocol() >= AbstractProtocol.PROTOCOL_111.getProtocolStart()) {
 					LecternUpdatePacket111 lecternUpdatePacket = (LecternUpdatePacket111) packet;
 					if (lecternUpdatePacket.droppingBook) {

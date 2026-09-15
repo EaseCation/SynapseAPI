@@ -169,6 +169,7 @@ public class SynapsePlayer116 extends SynapsePlayer113 {
 				if (interactPacket.action == InteractPacket113.ACTION_OPEN_INVENTORY
 						&& (interactPacket.target == getLocalEntityId() || isRiding() && interactPacket.target == riding.getId() && riding.getNetworkId() != EntityID.CHEST_BOAT && (!riding.getDataFlag(DATA_FLAG_TAMED) || riding.getNetworkId() == EntityID.SKELETON_HORSE))
 						&& !this.inventoryOpen && !isSpectator()) {
+					if (!callPacketReceiveEvent(interactPacket.toDefault())) break;
 //					this.openInventory();
 					if (!this.deferPlayerInventoryOpen()) {
 						this.inventoryOpen = this.inventory.open(this);
@@ -178,6 +179,7 @@ public class SynapsePlayer116 extends SynapsePlayer113 {
 				super.handleDataPacket(packet);
 				break;
 			case ProtocolInfo.CONTAINER_CLOSE_PACKET:
+				if (!callPacketReceiveEvent(packet)) break;
 				ContainerClosePacket containerClosePacket = (ContainerClosePacket) packet;
 				if (this.handlePendingWindowClose(containerClosePacket.windowId)) {
 					break;
@@ -469,10 +471,8 @@ public class SynapsePlayer116 extends SynapsePlayer113 {
 									}
 								}
 
-								// 解决卡物品栏问题（只发送物品正确的物品栏）
-                                if (inventory.getItemInHand().getId() == useItemData.itemInHand.getId() && inventory.getItemInHand().getCount() != useItemData.itemInHand.getCount()) {
-									inventory.sendHeldItem(this);
-								}
+								// 请求数量不代表客户端预测后的库存，放置失败时始终回发权威手持。
+								inventory.sendHeldItem(this);
 
 								if (clientPredictedFailure) {
 									break packetswitch;
@@ -830,6 +830,7 @@ public class SynapsePlayer116 extends SynapsePlayer113 {
 				this.getServer().getLogger().warning("context=" + packetViolationWarningPacket.context);
 				break;
 			case ProtocolInfo.SET_PLAYER_GAME_TYPE_PACKET:
+				if (!callPacketReceiveEvent(packet)) break;
 				SetPlayerGameTypePacket setPlayerGameTypePacket = (SetPlayerGameTypePacket) packet;
 				int gamemode = vanillaGamemodeToNukkitGamemode(setPlayerGameTypePacket.gamemode);
 				if (gamemode == this.gamemode) {

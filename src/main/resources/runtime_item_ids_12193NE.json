@@ -1390,7 +1390,7 @@
     },
     {
         "name": "minecraft:carpet",
-        "id": 753,
+        "id": 809,
         "version": 2
     },
     {
@@ -1646,7 +1646,7 @@
     },
     {
         "name": "minecraft:chest_boat",
-        "id": 685,
+        "id": 807,
         "version": 2
     },
     {
@@ -2114,17 +2114,17 @@
     },
     {
         "name": "minecraft:coral_block",
-        "id": 757,
+        "id": 813,
         "version": 2
     },
     {
         "name": "minecraft:coral_fan",
-        "id": 766,
+        "id": 822,
         "version": 2
     },
     {
         "name": "minecraft:coral_fan_dead",
-        "id": 767,
+        "id": 823,
         "version": 2
     },
     {
@@ -2830,7 +2830,7 @@
     },
     {
         "name": "minecraft:debug_stick",
-        "id": 627,
+        "id": 801,
         "oldId": 735
     },
     {
@@ -3150,25 +3150,25 @@
     },
     {
         "name": "minecraft:double_stone_block_slab",
-        "id": 762,
+        "id": 818,
         "version": 2,
         "oldId": 43
     },
     {
         "name": "minecraft:double_stone_block_slab2",
-        "id": 763,
+        "id": 819,
         "version": 2,
         "oldId": 181
     },
     {
         "name": "minecraft:double_stone_block_slab3",
-        "id": 764,
+        "id": 820,
         "version": 2,
         "oldId": -167
     },
     {
         "name": "minecraft:double_stone_block_slab4",
-        "id": 765,
+        "id": 821,
         "version": 2,
         "oldId": -168
     },
@@ -4232,7 +4232,7 @@
     },
     {
         "name": "minecraft:fence",
-        "id": 755,
+        "id": 811,
         "version": 2
     },
     {
@@ -6447,7 +6447,7 @@
     },
     {
         "name": "minecraft:log",
-        "id": 754,
+        "id": 810,
         "version": 2
     },
     {
@@ -6784,7 +6784,7 @@
     },
     {
         "name": "minecraft:mod_ex",
-        "id": 631,
+        "id": 826,
         "oldId": 498
     },
     {
@@ -7008,7 +7008,7 @@
     },
     {
         "name": "minecraft:music_disc_creator_music_box",
-        "id": 751,
+        "id": 824,
         "version": 2,
         "component": true,
         "oldId": 784
@@ -7057,7 +7057,7 @@
     },
     {
         "name": "minecraft:music_disc_precipice",
-        "id": 752,
+        "id": 825,
         "version": 2,
         "component": true,
         "oldId": 785
@@ -9309,7 +9309,7 @@
     },
     {
         "name": "minecraft:skull",
-        "id": 144,
+        "id": 806,
         "version": 2
     },
     {
@@ -9811,22 +9811,22 @@
     },
     {
         "name": "minecraft:stone_block_slab",
-        "id": 758,
+        "id": 814,
         "version": 2
     },
     {
         "name": "minecraft:stone_block_slab2",
-        "id": 759,
+        "id": 815,
         "version": 2
     },
     {
         "name": "minecraft:stone_block_slab3",
-        "id": 760,
+        "id": 816,
         "version": 2
     },
     {
         "name": "minecraft:stone_block_slab4",
-        "id": 761,
+        "id": 817,
         "version": 2
     },
     {
@@ -9907,7 +9907,7 @@
     },
     {
         "name": "minecraft:stonebrick",
-        "id": 756,
+        "id": 812,
         "version": 2
     },
     {
@@ -11251,7 +11251,7 @@
     },
     {
         "name": "minecraft:wool",
-        "id": 752,
+        "id": 808,
         "version": 2
     },
     {
