@@ -58,8 +58,17 @@ public class SynLibInterface implements SourceInterface {
      */
     public Integer putPacket(SynapsePlayer player, DataPacket packet,
                              List<LongConsumer> batchTailLatencyCallbacks) {
+        return this.putPacket(player, packet, List.of(), batchTailLatencyCallbacks);
+    }
+
+    /**
+     * 将当前包后置和 Batch 尾部 NSL 回调与当前数据包放入同一个出站 Entry。
+     */
+    public Integer putPacket(SynapsePlayer player, DataPacket packet,
+                             List<LongConsumer> afterPacketLatencyCallbacks,
+                             List<LongConsumer> batchTailLatencyCallbacks) {
         this.synapseInterface.getPutPacketThread().addMainToThread(
-                player, packet, batchTailLatencyCallbacks);
+                player, packet, afterPacketLatencyCallbacks, batchTailLatencyCallbacks);
         return 0;
     }
 

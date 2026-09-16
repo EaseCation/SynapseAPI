@@ -75,8 +75,17 @@ public class SynapseEntryPutPacketThread extends Thread {
      */
     public void addMainToThread(SynapsePlayer player, DataPacket packet,
                                 List<LongConsumer> batchTailLatencyCallbacks) {
+        addMainToThread(player, packet, List.of(), batchTailLatencyCallbacks);
+    }
+
+    /**
+     * 将数据包和两种 NSL 边界请求一起入队。
+     */
+    public void addMainToThread(SynapsePlayer player, DataPacket packet,
+                                List<LongConsumer> afterPacketLatencyCallbacks,
+                                List<LongConsumer> batchTailLatencyCallbacks) {
         if (player.getSynapseEntry().getSynapse().isRecordPacketStack()) packet.stack = new Throwable();
-        this.queue.offer(new Entry(player, packet, batchTailLatencyCallbacks));
+        this.queue.offer(new Entry(player, packet, afterPacketLatencyCallbacks, batchTailLatencyCallbacks));
     }
 
     public void addMainToThreadBroadcast(SynapsePlayer[] players, DataPacket[] packets) {
@@ -201,7 +210,10 @@ public class SynapseEntryPutPacketThread extends Thread {
                             }
 
                             entry.player.outboundQueue.add(buffer);
-                            // 必须先加入包，再登记它的回调；这样尾部 NSL 不可能跑到该包前面。
+                            // 当前包后置 NSL 必须在当前 packet 后立即编码入队。
+                            appendAfterPacketLatency(entry.player, entry.player.outboundQueue,
+                                    entry.afterPacketLatencyCallbacks);
+                            // Batch-tail NSL 继续延后到当前 outboundQueue 全部收集完成。
                             entry.player.appendBatchTailLatencyCallbacks(entry.batchTailLatencyCallbacks);
 
                             queuedPlayers.put(entry.player.getId(), entry.player);
@@ -384,17 +396,26 @@ public class SynapseEntryPutPacketThread extends Thread {
     private static class Entry {
         private final SynapsePlayer player;
         // 与 packet 同时入队，只有 packet 成功进入当前 Batch 后才会被转交执行。
+        private final List<LongConsumer> afterPacketLatencyCallbacks;
         private final List<LongConsumer> batchTailLatencyCallbacks;
         private DataPacket packet;
 
         public Entry(SynapsePlayer player, DataPacket packet) {
-            this(player, packet, List.of());
+            this(player, packet, List.of(), List.of());
         }
 
         public Entry(SynapsePlayer player, DataPacket packet,
                      List<LongConsumer> batchTailLatencyCallbacks) {
+            this(player, packet, List.of(), batchTailLatencyCallbacks);
+        }
+
+        public Entry(SynapsePlayer player, DataPacket packet,
+                     List<LongConsumer> afterPacketLatencyCallbacks,
+                     List<LongConsumer> batchTailLatencyCallbacks) {
             this.player = player;
             this.packet = packet;
+            this.afterPacketLatencyCallbacks = afterPacketLatencyCallbacks == null
+                    ? List.of() : List.copyOf(afterPacketLatencyCallbacks);
             this.batchTailLatencyCallbacks = batchTailLatencyCallbacks == null
                     ? List.of() : List.copyOf(batchTailLatencyCallbacks);
         }
@@ -445,6 +466,14 @@ public class SynapseEntryPutPacketThread extends Thread {
         return null;
     }
 
+    private static void appendAfterPacketLatency(SynapsePlayer player, List<byte[]> outboundQueue,
+                                                 List<LongConsumer> callbacks) {
+        if (callbacks == null || callbacks.isEmpty()) {
+            return;
+        }
+        appendLatency(player, outboundQueue, callbacks, "after-packet");
+    }
+
     /**
      * 将一个协议兼容的 NSL 直接编码到当前 outboundQueue 尾部。
      * 此处不能调用 player.dataPacket()，否则会重新触发发送事件并进入下一轮异步队列。
@@ -456,7 +485,11 @@ public class SynapseEntryPutPacketThread extends Thread {
         if (callbacks.isEmpty()) {
             return;
         }
+        appendLatency(player, outboundQueue, callbacks, "batch-tail");
+    }
 
+    private static void appendLatency(SynapsePlayer player, List<byte[]> outboundQueue,
+                                      List<LongConsumer> callbacks, String placement) {
         long timestamp = Math.floorMod(BATCH_TAIL_LATENCY_ID.getAndIncrement(), 1_000_000_000L);
         NetworkStackLatencyPacket19 latencyPacket = new NetworkStackLatencyPacket19();
         latencyPacket.timestamp = timestamp;
@@ -466,18 +499,18 @@ public class SynapseEntryPutPacketThread extends Thread {
             packet = PacketRegister.getCompatiblePacket(
                     latencyPacket, player.getProtocol(), player.isNetEaseClient());
             if (packet == null) {
-                MainLogger.getLogger().warning("Cannot append batch-tail latency packet for protocol "
-                        + player.getProtocol());
+                MainLogger.getLogger().warning("Cannot append " + placement
+                        + " latency packet for protocol " + player.getProtocol());
                 return;
             }
             packet.setHelper(AbstractProtocol.fromRealProtocol(player.getProtocol()).getHelper());
             packet.neteaseMode = player.isNetEaseClient();
             packet.tryEncode();
             outboundQueue.add(packet.getBuffer());
-            player.onBatchTailNetworkStackLatencyAppended();
+            player.onNetworkStackLatencyAppended();
         } catch (Exception exception) {
-            MainLogger.getLogger().warning("Cannot append batch-tail latency packet: "
-                    + exception.getMessage());
+            MainLogger.getLogger().warning("Cannot append " + placement
+                    + " latency packet: " + exception.getMessage());
             return;
         }
 
@@ -485,8 +518,8 @@ public class SynapseEntryPutPacketThread extends Thread {
             try {
                 callback.accept(timestamp);
             } catch (Throwable throwable) {
-                MainLogger.getLogger().warning("Batch-tail latency callback failed: "
-                        + throwable.getMessage());
+                MainLogger.getLogger().warning(placement
+                        + " latency callback failed: " + throwable.getMessage());
             }
         }
     }

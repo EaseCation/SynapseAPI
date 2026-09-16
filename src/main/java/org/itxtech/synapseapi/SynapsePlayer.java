@@ -138,6 +138,8 @@ public class SynapsePlayer extends Player {
     private final Queue<LongConsumer> batchTailLatencyCallbacks = new ConcurrentLinkedQueue<>();
     // 仅在触发当前 DataPacketSendEvent 的线程中存在，用于把 NSL 请求绑定到当前数据包。
     private final ThreadLocal<List<LongConsumer>> currentPacketLatencyCallbacks = new ThreadLocal<>();
+    // 当前 DataPacket 后立即插入的 NSL 回调，仅支持 autoCompress 普通 outboundQueue。
+    private final ThreadLocal<List<LongConsumer>> currentPacketAfterLatencyCallbacks = new ThreadLocal<>();
 
     public SynapsePlayer(SourceInterface interfaz, SynapseEntry synapseEntry, Long clientID, InetSocketAddress socketAddress) {
         super(interfaz, clientID, socketAddress);
@@ -1580,6 +1582,22 @@ public class SynapsePlayer extends Player {
     }
 
     /**
+     * 请求在当前数据包编码进入 outboundQueue 后立即追加一个 NSL。
+     * 只能在当前 DataPacketSendEvent 内调用；请求不会跨到下一个数据包。
+     * 该边界仅覆盖 Synapse autoCompress 的普通 outboundQueue。
+     *
+     * @param onAppended 在 NSL 已追加到当前 outboundQueue 后回调，参数为 timestamp
+     */
+    public void queueNetworkStackLatencyAfterCurrentPacket(LongConsumer onAppended) {
+        LongConsumer callback = Objects.requireNonNull(onAppended, "onAppended");
+        List<LongConsumer> current = this.currentPacketAfterLatencyCallbacks.get();
+        if (current == null) {
+            throw new IllegalStateException("No current DataPacketSendEvent");
+        }
+        current.add(callback);
+    }
+
+    /**
      * 当前数据包进入 outboundQueue 后，将它携带的回调合并到当前 Batch。
      * 只应由 Synapse 出站线程调用。
      */
@@ -1609,6 +1627,14 @@ public class SynapsePlayer extends Player {
     public void onBatchTailNetworkStackLatencyAppended() {
     }
 
+    /**
+     * 在任意 NSL 已追加到 outboundQueue 后更新协议版本特有的 ping 状态。
+     * 默认转发到旧的 Batch-tail hook，保持已有协议实现兼容。
+     */
+    public void onNetworkStackLatencyAppended() {
+        onBatchTailNetworkStackLatencyAppended();
+    }
+
     @Override
     public boolean dataPacket(DataPacket packet) {
         if (!this.isSynapseLogin) return super.dataPacket(packet);
@@ -1620,10 +1646,13 @@ public class SynapsePlayer extends Player {
         packet.setHelper(AbstractProtocol.fromRealProtocol(this.protocol).getHelper());
         packet.neteaseMode = isNetEaseClient();
 
-        // 事件监听器提出的尾部 NSL 请求必须先附着当前包；否则异步出站线程可能提前消费请求。
+        // 事件监听器提出的 NSL 请求必须先附着当前包；否则异步出站线程可能提前消费请求。
         List<LongConsumer> packetLatencyCallbacks = new ArrayList<>();
+        List<LongConsumer> afterPacketLatencyCallbacks = new ArrayList<>();
         List<LongConsumer> previousPacketLatencyCallbacks = this.currentPacketLatencyCallbacks.get();
+        List<LongConsumer> previousAfterPacketLatencyCallbacks = this.currentPacketAfterLatencyCallbacks.get();
         this.currentPacketLatencyCallbacks.set(packetLatencyCallbacks);
+        this.currentPacketAfterLatencyCallbacks.set(afterPacketLatencyCallbacks);
         DataPacketSendEvent ev = new DataPacketSendEvent(this, packet);
         try {
             this.server.getPluginManager().callEvent(ev);
@@ -1632,6 +1661,11 @@ public class SynapsePlayer extends Player {
                 this.currentPacketLatencyCallbacks.remove();
             } else {
                 this.currentPacketLatencyCallbacks.set(previousPacketLatencyCallbacks);
+            }
+            if (previousAfterPacketLatencyCallbacks == null) {
+                this.currentPacketAfterLatencyCallbacks.remove();
+            } else {
+                this.currentPacketAfterLatencyCallbacks.set(previousAfterPacketLatencyCallbacks);
             }
         }
         if (ev.isCancelled()) {
@@ -1663,14 +1697,15 @@ public class SynapsePlayer extends Player {
             }
         }
 
-        if (packetLatencyCallbacks.isEmpty()) {
+        if (packetLatencyCallbacks.isEmpty() && afterPacketLatencyCallbacks.isEmpty()) {
             this.interfaz.putPacket(this, packet);
         } else if (this.interfaz instanceof SynLibInterface synLibInterface) {
-            // SynLib 路径将包和回调装入同一个 Entry，确保回调覆盖的包必然位于尾部 NSL 之前。
-            synLibInterface.putPacket(this, packet, packetLatencyCallbacks);
+            // SynLib 路径将包和回调装入同一个 Entry，保持回调与当前 packet 的关系。
+            synLibInterface.putPacket(this, packet, afterPacketLatencyCallbacks, packetLatencyCallbacks);
         } else {
-            // 非 SynLib 实现无法提供 Entry 绑定，只保留为玩家级 pending 请求；是否进入后续 Batch 由兼容发送实现决定。
+            // 非 SynLib 实现无法提供当前 packet 后插入，只保留尾部 NSL 的兼容语义。
             this.appendBatchTailLatencyCallbacks(packetLatencyCallbacks);
+            this.appendBatchTailLatencyCallbacks(afterPacketLatencyCallbacks);
             this.interfaz.putPacket(this, packet);
         }
         return true;
