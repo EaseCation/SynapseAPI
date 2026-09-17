@@ -16,6 +16,7 @@ import cn.nukkit.utils.TextFormat;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonPrimitive;
 import org.itxtech.synapseapi.event.player.SynapsePlayerConnectEvent;
+import org.itxtech.synapseapi.multiprotocol.protocol12.utils.ClientChainData12NetEase;
 import org.itxtech.synapseapi.multiprotocol.protocol14.protocol.LoginPacket14;
 import org.itxtech.synapseapi.multiprotocol.protocol16.protocol.*;
 import org.itxtech.synapseapi.multiprotocol.protocol16.protocol.UpdateSoftEnumPacket16.Type;
@@ -83,43 +84,13 @@ public class SynapsePlayer16 extends SynapsePlayer14 {
 					if (packet.extra.has("sandboxId")) loginPacket.sandboxId = packet.extra.get("sandboxId").getAsString();
 					this.isNetEaseClient = Optional.ofNullable(packet.extra.get("netease")).orElseGet(() -> new JsonPrimitive(false)).getAsBoolean();
 				}
+				if (!checkTransferExtra()) {
+					setLoginChainData(ClientChainData12NetEase.read((LoginPacket14) pk));
+					rejoinGame("disconnectionScreen.blockMismatch");
+					return;
+				}
 				this.handleDataPacket(pk);
 
-				if (cachedExtra != null) {
-					JsonElement viewDistance = cachedExtra.get("viewDistance");
-					if (viewDistance != null) {
-						int distance = viewDistance.getAsInt();
-						if (distance >= 4 && distance <= 96) {
-							this.viewDistance = distance;
-							this.chunkRadius = Math.min(this.viewDistance, this.getMaxViewDistance());
-						}
-					}
-
-					JsonElement dataVersion = cachedExtra.get("DataVersion");
-					if (dataVersion != null && !checkDataVersion(dataVersion.getAsInt())) {
-						return;
-					}
-					JsonElement blocksChecksum = cachedExtra.get("blocks_checksum");
-					if (blocksChecksum != null && !checkBlockRegistryChecksum(blocksChecksum.getAsLong())) {
-						return;
-					}
-					JsonElement itemsChecksum = cachedExtra.get("items_checksum");
-					if (itemsChecksum != null && !checkItemRegistryChecksum(itemsChecksum.getAsLong())) {
-						return;
-					}
-					JsonElement biomesChecksum = cachedExtra.get("biomes_checksum");
-					if (biomesChecksum != null && !checkBiomeRegistryChecksum(biomesChecksum.getAsLong())) {
-						return;
-					}
-					JsonElement entitiesChecksum = cachedExtra.get("entities_checksum");
-					if (entitiesChecksum != null && !checkEntityRegistryChecksum(entitiesChecksum.getAsLong())) {
-						return;
-					}
-					JsonElement camerasChecksum = cachedExtra.get("cameras_checksum");
-					if (camerasChecksum != null && !checkCameraRegistryChecksum(camerasChecksum.getAsLong())) {
-						return;
-					}
-				}
 			} catch (Exception e) {
 				MainLogger.getLogger().logException(e);
 				this.close("", "disconnectionScreen.internalError.cantConnect");
