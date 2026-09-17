@@ -32,7 +32,6 @@ import java.util.concurrent.ThreadLocalRandom;
 import static org.itxtech.synapseapi.SynapseSharedConstants.*;
 
 public class SynapsePlayer19 extends SynapsePlayer18 {
-	// Batch 尾部 NSL 由出站线程登记，PONG 和超时检查由其他线程读取。
 	private volatile boolean pingNeedUpdate;
 
 	private volatile int waitingPongTicks = PONG_TIMEOUT_TICKS;
@@ -100,6 +99,9 @@ public class SynapsePlayer19 extends SynapsePlayer18 {
 					pong.isFromServer = false;
 					pong.timestamp = networkStackLatencyPacket.timestamp;
 					dataPacket(pong);
+					break;
+				}
+				if (consumeApplicationBoundaryPong(networkStackLatencyPacket.timestamp)) {
 					break;
 				}
 
@@ -301,15 +303,6 @@ public class SynapsePlayer19 extends SynapsePlayer18 {
 		packet.isFromServer = true;
 		packet.timestamp = time;
 		dataPacket(packet);
-	}
-
-	@Override
-	public void onBatchTailNetworkStackLatencyAppended() {
-		// 尾部 NSL 绕过 dataPacket() 直接编码，因此需要在实际入队后补齐现有 ping 状态。
-		pingNeedUpdate = true;
-		pingNs = System.nanoTime();
-		waitingPongTicks = PONG_TIMEOUT_TICKS;
-		pongTimeoutCount = 0;
 	}
 
 	@Override

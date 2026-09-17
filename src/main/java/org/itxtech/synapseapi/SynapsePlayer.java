@@ -134,10 +134,15 @@ public class SynapsePlayer extends Player {
     float lastAuthInputPitch;
 
     public final List<byte[]> outboundQueue = new ArrayList<>();
+    private final ApplicationBoundaryTimestampTracker applicationBoundaryTimestamps =
+            new ApplicationBoundaryTimestampTracker();
     // 当前 Batch 已经接收的尾部 NSL 回调；数据包事件线程投递，Synapse 出站线程统一消费。
     private final Queue<LongConsumer> batchTailLatencyCallbacks = new ConcurrentLinkedQueue<>();
     // 仅在触发当前 DataPacketSendEvent 的线程中存在，用于把 NSL 请求绑定到当前数据包。
     private final ThreadLocal<List<LongConsumer>> currentPacketLatencyCallbacks = new ThreadLocal<>();
+    // 当前 DataPacket 后立即插入的 NSL 回调，仅支持 autoCompress 普通 outboundQueue。
+    private final ThreadLocal<List<NetworkStackLatencyBoundaryCallback>> currentPacketAfterLatencyCallbacks =
+            new ThreadLocal<>();
 
     public SynapsePlayer(SourceInterface interfaz, SynapseEntry synapseEntry, Long clientID, InetSocketAddress socketAddress) {
         super(interfaz, clientID, socketAddress);
@@ -1579,6 +1584,47 @@ public class SynapsePlayer extends Player {
         }
     }
 
+    public boolean supportsNetworkStackLatencyAfterCurrentPacket() {
+        return this.interfaz instanceof SynLibInterface synLibInterface
+                && synLibInterface.supportsNetworkStackLatencyAfterCurrentPacket();
+    }
+
+    /**
+     * 请求在当前数据包编码进入 outboundQueue 后立即追加一个 NSL。
+     * 只能在当前 DataPacketSendEvent 内调用；请求不会跨到下一个数据包。
+     * 回调在包含该 NSL 的 Batch 已交给 Synapse transport 后执行。
+     *
+     * @param onAppended Batch 已交给 transport 后回调，参数为 timestamp
+     */
+    public void queueNetworkStackLatencyAfterCurrentPacket(LongConsumer onAppended) {
+        LongConsumer callback = Objects.requireNonNull(onAppended, "onAppended");
+        queueNetworkStackLatencyAfterCurrentPacket(new NetworkStackLatencyBoundaryCallback() {
+            @Override
+            public void onAppended(long timestamp) {
+                callback.accept(timestamp);
+            }
+
+            @Override
+            public void onDropped(NetworkStackLatencyBoundaryFailure reason) {
+            }
+        });
+    }
+
+    public void queueNetworkStackLatencyAfterCurrentPacket(
+            NetworkStackLatencyBoundaryCallback callback) {
+        Objects.requireNonNull(callback, "callback");
+        List<NetworkStackLatencyBoundaryCallback> current =
+                this.currentPacketAfterLatencyCallbacks.get();
+        if (current == null) {
+            throw new IllegalStateException("No current DataPacketSendEvent");
+        }
+        if (!supportsNetworkStackLatencyAfterCurrentPacket()) {
+            throw new UnsupportedOperationException(
+                    "Current network interface does not support after-packet latency boundaries");
+        }
+        current.add(new OnceNetworkStackLatencyBoundaryCallback(callback));
+    }
+
     /**
      * 当前数据包进入 outboundQueue 后，将它携带的回调合并到当前 Batch。
      * 只应由 Synapse 出站线程调用。
@@ -1602,11 +1648,29 @@ public class SynapsePlayer extends Player {
         return callbacks;
     }
 
-    /**
-     * 在 NSL 已追加到出站 Batch 后更新协议版本特有的 ping 状态。
-     * 协议版本实现可以覆盖此方法；默认版本没有额外状态。
-     */
-    public void onBatchTailNetworkStackLatencyAppended() {
+    public void recordApplicationBoundaryTimestamp(long timestamp) {
+        applicationBoundaryTimestamps.record(timestamp);
+    }
+
+    public void forgetApplicationBoundaryTimestamp(long timestamp) {
+        applicationBoundaryTimestamps.remove(timestamp);
+    }
+
+    protected final boolean consumeApplicationBoundaryPong(long timestamp) {
+        return applicationBoundaryTimestamps.consume(timestamp);
+    }
+
+    private static void dropBoundaryCallbacks(
+            List<NetworkStackLatencyBoundaryCallback> callbacks,
+            NetworkStackLatencyBoundaryFailure reason) {
+        for (NetworkStackLatencyBoundaryCallback callback : callbacks) {
+            try {
+                callback.onDropped(reason);
+            } catch (RuntimeException exception) {
+                MainLogger.getLogger().warning("Latency boundary drop callback failed: "
+                        + exception.getMessage());
+            }
+        }
     }
 
     @Override
@@ -1620,10 +1684,14 @@ public class SynapsePlayer extends Player {
         packet.setHelper(AbstractProtocol.fromRealProtocol(this.protocol).getHelper());
         packet.neteaseMode = isNetEaseClient();
 
-        // 事件监听器提出的尾部 NSL 请求必须先附着当前包；否则异步出站线程可能提前消费请求。
+        // 事件监听器提出的 NSL 请求必须先附着当前包；否则异步出站线程可能提前消费请求。
         List<LongConsumer> packetLatencyCallbacks = new ArrayList<>();
+        List<NetworkStackLatencyBoundaryCallback> afterPacketLatencyCallbacks = new ArrayList<>();
         List<LongConsumer> previousPacketLatencyCallbacks = this.currentPacketLatencyCallbacks.get();
+        List<NetworkStackLatencyBoundaryCallback> previousAfterPacketLatencyCallbacks =
+                this.currentPacketAfterLatencyCallbacks.get();
         this.currentPacketLatencyCallbacks.set(packetLatencyCallbacks);
+        this.currentPacketAfterLatencyCallbacks.set(afterPacketLatencyCallbacks);
         DataPacketSendEvent ev = new DataPacketSendEvent(this, packet);
         try {
             this.server.getPluginManager().callEvent(ev);
@@ -1633,8 +1701,15 @@ public class SynapsePlayer extends Player {
             } else {
                 this.currentPacketLatencyCallbacks.set(previousPacketLatencyCallbacks);
             }
+            if (previousAfterPacketLatencyCallbacks == null) {
+                this.currentPacketAfterLatencyCallbacks.remove();
+            } else {
+                this.currentPacketAfterLatencyCallbacks.set(previousAfterPacketLatencyCallbacks);
+            }
         }
         if (ev.isCancelled()) {
+            dropBoundaryCallbacks(afterPacketLatencyCallbacks,
+                    NetworkStackLatencyBoundaryFailure.EVENT_CANCELLED);
             return false;
         }
 
@@ -1663,14 +1738,15 @@ public class SynapsePlayer extends Player {
             }
         }
 
-        if (packetLatencyCallbacks.isEmpty()) {
+        if (packetLatencyCallbacks.isEmpty() && afterPacketLatencyCallbacks.isEmpty()) {
             this.interfaz.putPacket(this, packet);
         } else if (this.interfaz instanceof SynLibInterface synLibInterface) {
-            // SynLib 路径将包和回调装入同一个 Entry，确保回调覆盖的包必然位于尾部 NSL 之前。
-            synLibInterface.putPacket(this, packet, packetLatencyCallbacks);
+            // SynLib 路径将包和回调装入同一个 Entry，保持回调与当前 packet 的关系。
+            synLibInterface.putPacket(this, packet, afterPacketLatencyCallbacks, packetLatencyCallbacks);
         } else {
-            // 非 SynLib 实现无法提供 Entry 绑定，只保留为玩家级 pending 请求；是否进入后续 Batch 由兼容发送实现决定。
             this.appendBatchTailLatencyCallbacks(packetLatencyCallbacks);
+            dropBoundaryCallbacks(afterPacketLatencyCallbacks,
+                    NetworkStackLatencyBoundaryFailure.UNSUPPORTED_TRANSPORT);
             this.interfaz.putPacket(this, packet);
         }
         return true;
