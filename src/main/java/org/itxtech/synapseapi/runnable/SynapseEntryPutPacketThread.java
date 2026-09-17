@@ -13,6 +13,8 @@ import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import lombok.extern.log4j.Log4j2;
 import org.apache.commons.lang3.tuple.Pair;
+import org.itxtech.synapseapi.NetworkStackLatencyBoundaryCallback;
+import org.itxtech.synapseapi.NetworkStackLatencyBoundaryFailure;
 import org.itxtech.synapseapi.SynapseAPI;
 import org.itxtech.synapseapi.SynapsePlayer;
 import org.itxtech.synapseapi.multiprotocol.AbstractProtocol;
@@ -64,6 +66,10 @@ public class SynapseEntryPutPacketThread extends Thread {
         this.start();
     }
 
+    public boolean supportsAfterPacketLatency() {
+        return this.isAutoCompress;
+    }
+
     public void addMainToThread(SynapsePlayer player, DataPacket packet) {
         if (player.getSynapseEntry().getSynapse().isRecordPacketStack()) packet.stack = new Throwable();
         this.queue.offer(new Entry(player, packet));
@@ -82,10 +88,15 @@ public class SynapseEntryPutPacketThread extends Thread {
      * 将数据包和两种 NSL 边界请求一起入队。
      */
     public void addMainToThread(SynapsePlayer player, DataPacket packet,
-                                List<LongConsumer> afterPacketLatencyCallbacks,
+                                List<NetworkStackLatencyBoundaryCallback> afterPacketLatencyCallbacks,
                                 List<LongConsumer> batchTailLatencyCallbacks) {
         if (player.getSynapseEntry().getSynapse().isRecordPacketStack()) packet.stack = new Throwable();
-        this.queue.offer(new Entry(player, packet, afterPacketLatencyCallbacks, batchTailLatencyCallbacks));
+        Entry entry = new Entry(player, packet, afterPacketLatencyCallbacks,
+                batchTailLatencyCallbacks);
+        if (!this.queue.offer(entry)) {
+            dropBoundaryCallbacks(afterPacketLatencyCallbacks,
+                    NetworkStackLatencyBoundaryFailure.QUEUE_REJECTED);
+        }
     }
 
     public void addMainToThreadBroadcast(SynapsePlayer[] players, DataPacket[] packets) {
@@ -125,6 +136,7 @@ public class SynapseEntryPutPacketThread extends Thread {
     @Override
     public void run() {
         Long2ObjectMap<SynapsePlayer> queuedPlayers = new Long2ObjectOpenHashMap<>();
+        Long2ObjectMap<List<PendingBoundary>> pendingBoundaries = new Long2ObjectOpenHashMap<>();
 
         Network network = Server.getInstance().getNetwork();
         while (this.isRunning) {
@@ -143,6 +155,8 @@ public class SynapseEntryPutPacketThread extends Thread {
 
                         if (entry.packet == null) {
                             MainLogger.getLogger().info("NULL PACKET " + old.getClass().getSimpleName());
+                            dropBoundaryCallbacks(entry.afterPacketLatencyCallbacks,
+                                    NetworkStackLatencyBoundaryFailure.PROTOCOL_CONVERSION_FAILED);
                             continue;
                         }
 
@@ -156,22 +170,40 @@ public class SynapseEntryPutPacketThread extends Thread {
                         }
 
                         if (entry.packet instanceof BatchPacket batch) {
+                            dropBoundaryCallbacks(entry.afterPacketLatencyCallbacks,
+                                    NetworkStackLatencyBoundaryFailure.UNSUPPORTED_TRANSPORT);
                             List<byte[]> outboundQueue = entry.player.outboundQueue;
                             if (!outboundQueue.isEmpty()) {
+                                List<PendingBoundary> boundaries =
+                                        pendingBoundaries.remove(entry.player.getId());
                                 Compressor compressor = Compressor.byProtocol(entry.player.getProtocol());
                                 RedirectPacket pk = new RedirectPacket();
                                 pk.compressionAlgorithm = compressor.getAlgorithm();
                                 pk.sessionId = entry.player.getSessionId();
-                                pk.mcpeBuffer = batchPackets(outboundQueue, compressor);
+                                try {
+                                    pk.mcpeBuffer = batchPackets(outboundQueue, compressor);
+                                } catch (IOException exception) {
+                                    outboundQueue.clear();
+                                    dropPendingBoundaries(boundaries,
+                                            NetworkStackLatencyBoundaryFailure.BATCH_COMPRESSION_FAILED);
+                                    throw exception;
+                                }
                                 outboundQueue.clear();
 
-                                int bytes = pk.mcpeBuffer.length;
-                                network.addUploadStatistic(bytes);
-                                if (hasMetrics) {
-                                    metrics.bytesOut(bytes);
+                                try {
+                                    int bytes = pk.mcpeBuffer.length;
+                                    network.addUploadStatistic(bytes);
+                                    if (hasMetrics) {
+                                        metrics.bytesOut(bytes);
+                                    }
+                                    this.synapseInterface.putPacket(pk);
+                                } catch (RuntimeException exception) {
+                                    dropPendingBoundaries(boundaries,
+                                            NetworkStackLatencyBoundaryFailure.TRANSPORT_FAILED);
+                                    throw exception;
                                 }
-
-                                this.synapseInterface.putPacket(pk);
+                                completePendingBoundaries(boundaries);
+                                queuedPlayers.remove(entry.player.getId());
                             }
 
                             RedirectPacket pk = new RedirectPacket();
@@ -211,13 +243,20 @@ public class SynapseEntryPutPacketThread extends Thread {
 
                             entry.player.outboundQueue.add(buffer);
                             // 当前包后置 NSL 必须在当前 packet 后立即编码入队。
-                            appendAfterPacketLatency(entry.player, entry.player.outboundQueue,
+                            PendingBoundary pendingBoundary = appendAfterPacketLatency(
+                                    entry.player, entry.player.outboundQueue,
                                     entry.afterPacketLatencyCallbacks);
+                            if (pendingBoundary != null) {
+                                addPendingBoundary(pendingBoundaries,
+                                        entry.player.getId(), pendingBoundary);
+                            }
                             // Batch-tail NSL 继续延后到当前 outboundQueue 全部收集完成。
                             entry.player.appendBatchTailLatencyCallbacks(entry.batchTailLatencyCallbacks);
 
                             queuedPlayers.put(entry.player.getId(), entry.player);
                         } else {
+                            dropBoundaryCallbacks(entry.afterPacketLatencyCallbacks,
+                                    NetworkStackLatencyBoundaryFailure.UNSUPPORTED_TRANSPORT);
                             RedirectPacket pk = new RedirectPacket();
                             pk.compressionAlgorithm = entry.player.getServer().getCompressor().getAlgorithm();
                             pk.sessionId = entry.player.getSessionId();
@@ -232,10 +271,15 @@ public class SynapseEntryPutPacketThread extends Thread {
 
                             this.synapseInterface.putPacket(pk);
                         }
+                    } else {
+                        dropBoundaryCallbacks(entry.afterPacketLatencyCallbacks,
+                                NetworkStackLatencyBoundaryFailure.PLAYER_CLOSED);
                     }
                 } catch (Exception e) {
+                    dropBoundaryCallbacks(entry.afterPacketLatencyCallbacks,
+                            NetworkStackLatencyBoundaryFailure.ENCODE_FAILED);
                     MainLogger.getLogger().alert("Catch exception when put single packet", e);
-                    if (entry.packet.stack != null)
+                    if (entry.packet != null && entry.packet.stack != null)
                         MainLogger.getLogger().alert("Main thread stack", entry.packet.stack);
                 } finally {
                     if (entry.packet != null) entry.packet.stack = null;
@@ -243,8 +287,11 @@ public class SynapseEntryPutPacketThread extends Thread {
             }
 
             for (SynapsePlayer player : queuedPlayers.values()) {
+                List<PendingBoundary> boundaries = pendingBoundaries.remove(player.getId());
                 List<byte[]> outboundQueue = player.outboundQueue;
                 if (outboundQueue.isEmpty()) {
+                    dropPendingBoundaries(boundaries,
+                            NetworkStackLatencyBoundaryFailure.TRANSPORT_FAILED);
                     continue;
                 }
 
@@ -253,8 +300,11 @@ public class SynapseEntryPutPacketThread extends Thread {
                 byte[] buffer;
                 try {
                     buffer = batchPackets(outboundQueue, compressor);
-                } catch (IOException e) {
-                    log.throwing(e);
+                } catch (IOException exception) {
+                    outboundQueue.clear();
+                    dropPendingBoundaries(boundaries,
+                            NetworkStackLatencyBoundaryFailure.BATCH_COMPRESSION_FAILED);
+                    log.throwing(exception);
                     continue;
                 }
                 outboundQueue.clear();
@@ -263,7 +313,15 @@ public class SynapseEntryPutPacketThread extends Thread {
                 pk.compressionAlgorithm = compressor.getAlgorithm();
                 pk.mcpeBuffer = buffer;
                 pk.sessionId = player.getSessionId();
-                this.synapseInterface.putPacket(pk);
+                try {
+                    this.synapseInterface.putPacket(pk);
+                } catch (RuntimeException exception) {
+                    dropPendingBoundaries(boundaries,
+                            NetworkStackLatencyBoundaryFailure.TRANSPORT_FAILED);
+                    log.throwing(exception);
+                    continue;
+                }
+                completePendingBoundaries(boundaries);
 
                 int bytes = buffer.length;
                 network.addUploadStatistic(bytes);
@@ -272,6 +330,11 @@ public class SynapseEntryPutPacketThread extends Thread {
                 }
             }
             queuedPlayers.clear();
+            for (List<PendingBoundary> boundaries : pendingBoundaries.values()) {
+                dropPendingBoundaries(boundaries,
+                        NetworkStackLatencyBoundaryFailure.TRANSPORT_FAILED);
+            }
+            pendingBoundaries.clear();
 
             BroadcastEntry entry1;
             while ((entry1 = broadcastQueue.poll()) != null) {
@@ -396,7 +459,7 @@ public class SynapseEntryPutPacketThread extends Thread {
     private static class Entry {
         private final SynapsePlayer player;
         // 与 packet 同时入队，只有 packet 成功进入当前 Batch 后才会被转交执行。
-        private final List<LongConsumer> afterPacketLatencyCallbacks;
+        private final List<NetworkStackLatencyBoundaryCallback> afterPacketLatencyCallbacks;
         private final List<LongConsumer> batchTailLatencyCallbacks;
         private DataPacket packet;
 
@@ -410,7 +473,7 @@ public class SynapseEntryPutPacketThread extends Thread {
         }
 
         public Entry(SynapsePlayer player, DataPacket packet,
-                     List<LongConsumer> afterPacketLatencyCallbacks,
+                     List<NetworkStackLatencyBoundaryCallback> afterPacketLatencyCallbacks,
                      List<LongConsumer> batchTailLatencyCallbacks) {
             this.player = player;
             this.packet = packet;
@@ -419,6 +482,10 @@ public class SynapseEntryPutPacketThread extends Thread {
             this.batchTailLatencyCallbacks = batchTailLatencyCallbacks == null
                     ? List.of() : List.copyOf(batchTailLatencyCallbacks);
         }
+    }
+
+    private record PendingBoundary(SynapsePlayer player, long timestamp,
+                                   List<NetworkStackLatencyBoundaryCallback> callbacks) {
     }
 
     private static class BroadcastEntry {
@@ -466,18 +533,34 @@ public class SynapseEntryPutPacketThread extends Thread {
         return null;
     }
 
-    private static void appendAfterPacketLatency(SynapsePlayer player, List<byte[]> outboundQueue,
-                                                 List<LongConsumer> callbacks) {
+    private static PendingBoundary appendAfterPacketLatency(
+            SynapsePlayer player, List<byte[]> outboundQueue,
+            List<NetworkStackLatencyBoundaryCallback> callbacks) {
         if (callbacks == null || callbacks.isEmpty()) {
-            return;
+            return null;
         }
-        appendLatency(player, outboundQueue, callbacks, "after-packet");
+        long timestamp = nextBoundaryTimestamp();
+        DataPacket packet = createLatencyPacket(player, timestamp);
+        if (packet == null) {
+            dropBoundaryCallbacks(callbacks,
+                    NetworkStackLatencyBoundaryFailure.PROTOCOL_CONVERSION_FAILED);
+            return null;
+        }
+        try {
+            appendLatencyPacket(player, outboundQueue, packet, timestamp);
+        } catch (Exception exception) {
+            MainLogger.getLogger().warning("Cannot append after-packet latency packet: "
+                    + exception.getMessage());
+            dropBoundaryCallbacks(callbacks,
+                    NetworkStackLatencyBoundaryFailure.ENCODE_FAILED);
+            return null;
+        }
+        return new PendingBoundary(player, timestamp, List.copyOf(callbacks));
     }
 
     /**
      * 将一个协议兼容的 NSL 直接编码到当前 outboundQueue 尾部。
      * 此处不能调用 player.dataPacket()，否则会重新触发发送事件并进入下一轮异步队列。
-     * 回调在 NSL 入队后、Batch 压缩前执行，同一批次的所有请求共享同一个 timestamp。
      * 该保证只覆盖 autoCompress 的普通 outboundQueue，不改写预压缩 BatchPacket 和广播压缩路径。
      */
     private static void appendBatchTailLatency(SynapsePlayer player, List<byte[]> outboundQueue) {
@@ -485,41 +568,117 @@ public class SynapseEntryPutPacketThread extends Thread {
         if (callbacks.isEmpty()) {
             return;
         }
-        appendLatency(player, outboundQueue, callbacks, "batch-tail");
-    }
-
-    private static void appendLatency(SynapsePlayer player, List<byte[]> outboundQueue,
-                                      List<LongConsumer> callbacks, String placement) {
-        long timestamp = Math.floorMod(BATCH_TAIL_LATENCY_ID.getAndIncrement(), 1_000_000_000L);
-        NetworkStackLatencyPacket19 latencyPacket = new NetworkStackLatencyPacket19();
-        latencyPacket.timestamp = timestamp;
-        latencyPacket.isFromServer = true;
-        DataPacket packet;
-        try {
-            packet = PacketRegister.getCompatiblePacket(
-                    latencyPacket, player.getProtocol(), player.isNetEaseClient());
-            if (packet == null) {
-                MainLogger.getLogger().warning("Cannot append " + placement
-                        + " latency packet for protocol " + player.getProtocol());
-                return;
-            }
-            packet.setHelper(AbstractProtocol.fromRealProtocol(player.getProtocol()).getHelper());
-            packet.neteaseMode = player.isNetEaseClient();
-            packet.tryEncode();
-            outboundQueue.add(packet.getBuffer());
-            player.onNetworkStackLatencyAppended();
-        } catch (Exception exception) {
-            MainLogger.getLogger().warning("Cannot append " + placement
-                    + " latency packet: " + exception.getMessage());
+        long timestamp = nextBoundaryTimestamp();
+        DataPacket packet = createLatencyPacket(player, timestamp);
+        if (packet == null) {
             return;
         }
-
+        try {
+            appendLatencyPacket(player, outboundQueue, packet, timestamp);
+        } catch (Exception exception) {
+            MainLogger.getLogger().warning("Cannot append batch-tail latency packet: "
+                    + exception.getMessage());
+            return;
+        }
         for (LongConsumer callback : callbacks) {
             try {
                 callback.accept(timestamp);
             } catch (Throwable throwable) {
-                MainLogger.getLogger().warning(placement
-                        + " latency callback failed: " + throwable.getMessage());
+                MainLogger.getLogger().warning("batch-tail latency callback failed: "
+                        + throwable.getMessage());
+            }
+        }
+    }
+
+    private static long nextBoundaryTimestamp() {
+        return Math.floorMod(BATCH_TAIL_LATENCY_ID.getAndIncrement(), 1_000_000_000L);
+    }
+
+    private static DataPacket createLatencyPacket(SynapsePlayer player, long timestamp) {
+        NetworkStackLatencyPacket19 latencyPacket = new NetworkStackLatencyPacket19();
+        latencyPacket.timestamp = timestamp;
+        latencyPacket.isFromServer = true;
+        DataPacket packet = PacketRegister.getCompatiblePacket(
+                latencyPacket, player.getProtocol(), player.isNetEaseClient());
+        if (packet == null) {
+            MainLogger.getLogger().warning("Cannot create latency packet for protocol "
+                    + player.getProtocol());
+        }
+        return packet;
+    }
+
+    private static void appendLatencyPacket(SynapsePlayer player, List<byte[]> outboundQueue,
+                                            DataPacket packet, long timestamp) {
+        packet.setHelper(AbstractProtocol.fromRealProtocol(player.getProtocol()).getHelper());
+        packet.neteaseMode = player.isNetEaseClient();
+        packet.tryEncode();
+        byte[] buffer = packet.getBuffer();
+        outboundQueue.add(buffer);
+        player.recordApplicationBoundaryTimestamp(timestamp);
+        SynapseMetrics metrics = METRICS;
+        if (metrics != null) {
+            int packetId = packet instanceof CompatibilityPacket16
+                    ? ((CompatibilityPacket16) packet).origin.pid() : packet.pid();
+            try {
+                metrics.packetOut(packetId, buffer.length);
+            } catch (RuntimeException exception) {
+                MainLogger.getLogger().warning("Cannot record latency packet metric: "
+                        + exception.getMessage());
+            }
+        }
+    }
+
+    private static void addPendingBoundary(
+            Long2ObjectMap<List<PendingBoundary>> pendingBoundaries,
+            long playerId, PendingBoundary boundary) {
+        List<PendingBoundary> boundaries = pendingBoundaries.get(playerId);
+        if (boundaries == null) {
+            boundaries = new ArrayList<>();
+            pendingBoundaries.put(playerId, boundaries);
+        }
+        boundaries.add(boundary);
+    }
+
+    private static void completePendingBoundaries(List<PendingBoundary> boundaries) {
+        if (boundaries == null) {
+            return;
+        }
+        for (PendingBoundary boundary : boundaries) {
+            for (NetworkStackLatencyBoundaryCallback callback : boundary.callbacks()) {
+                try {
+                    callback.onAppended(boundary.timestamp());
+                } catch (Throwable throwable) {
+                    MainLogger.getLogger().warning("after-packet latency callback failed: "
+                            + throwable.getMessage());
+                }
+            }
+        }
+    }
+
+    private static void dropPendingBoundaries(
+            List<PendingBoundary> boundaries,
+            NetworkStackLatencyBoundaryFailure reason) {
+        if (boundaries == null) {
+            return;
+        }
+        for (PendingBoundary boundary : boundaries) {
+            boundary.player().forgetApplicationBoundaryTimestamp(boundary.timestamp());
+            dropBoundaryCallbacks(boundary.callbacks(), reason);
+        }
+    }
+
+    private static void dropBoundaryCallbacks(
+            List<NetworkStackLatencyBoundaryCallback> callbacks,
+            NetworkStackLatencyBoundaryFailure reason) {
+        if (callbacks == null) {
+            return;
+        }
+        for (NetworkStackLatencyBoundaryCallback callback : callbacks) {
+            try {
+                callback.onDropped(reason);
+            } catch (Throwable throwable) {
+                MainLogger.getLogger().warning("after-packet latency drop callback failed: "
+                        + throwable.getMessage());
             }
         }
     }

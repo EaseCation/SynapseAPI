@@ -301,6 +301,10 @@ public class SynapsePlayer16 extends SynapsePlayer14 {
 				if (!callPacketReceiveEvent(packet)) {
 					break;
 				}
+				NetworkStackLatencyPacket16 latencyPacket = (NetworkStackLatencyPacket16) packet;
+				if (consumeApplicationBoundaryPong(latencyPacket.timestamp)) {
+					break;
+				}
 				if (NETWORK_STACK_LATENCY_TELEMETRY) {
 					long latency = System.nanoTime() - pingNs;
 					if (latency < 10_000_000) {
@@ -518,12 +522,6 @@ public class SynapsePlayer16 extends SynapsePlayer14 {
 		NetworkStackLatencyPacket16 packet = new NetworkStackLatencyPacket16();
 		packet.timestamp = time;
 		dataPacket(packet);
-	}
-
-	@Override
-	public void onBatchTailNetworkStackLatencyAppended() {
-		// 尾部 NSL 绕过普通 ping()，在实际入队后单独记录延迟计时起点。
-		pingNs = System.nanoTime();
 	}
 
 	@Override

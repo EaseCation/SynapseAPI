@@ -3,6 +3,7 @@ package org.itxtech.synapseapi.network;
 import cn.nukkit.Player;
 import cn.nukkit.network.SourceInterface;
 import cn.nukkit.network.protocol.DataPacket;
+import org.itxtech.synapseapi.NetworkStackLatencyBoundaryCallback;
 import org.itxtech.synapseapi.SynapsePlayer;
 
 import java.util.List;
@@ -61,11 +62,15 @@ public class SynLibInterface implements SourceInterface {
         return this.putPacket(player, packet, List.of(), batchTailLatencyCallbacks);
     }
 
+    public boolean supportsNetworkStackLatencyAfterCurrentPacket() {
+        return this.synapseInterface.getPutPacketThread().supportsAfterPacketLatency();
+    }
+
     /**
      * 将当前包后置和 Batch 尾部 NSL 回调与当前数据包放入同一个出站 Entry。
      */
     public Integer putPacket(SynapsePlayer player, DataPacket packet,
-                             List<LongConsumer> afterPacketLatencyCallbacks,
+                             List<NetworkStackLatencyBoundaryCallback> afterPacketLatencyCallbacks,
                              List<LongConsumer> batchTailLatencyCallbacks) {
         this.synapseInterface.getPutPacketThread().addMainToThread(
                 player, packet, afterPacketLatencyCallbacks, batchTailLatencyCallbacks);

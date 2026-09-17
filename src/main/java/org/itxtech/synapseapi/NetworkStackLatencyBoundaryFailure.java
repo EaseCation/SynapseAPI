@@ -1,0 +1,12 @@
+package org.itxtech.synapseapi;
+
+public enum NetworkStackLatencyBoundaryFailure {
+    EVENT_CANCELLED,
+    UNSUPPORTED_TRANSPORT,
+    PLAYER_CLOSED,
+    QUEUE_REJECTED,
+    PROTOCOL_CONVERSION_FAILED,
+    ENCODE_FAILED,
+    BATCH_COMPRESSION_FAILED,
+    TRANSPORT_FAILED
+}
