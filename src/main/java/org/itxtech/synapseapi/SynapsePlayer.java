@@ -29,7 +29,6 @@ import cn.nukkit.network.SourceInterface;
 import cn.nukkit.network.protocol.*;
 import cn.nukkit.resourcepacks.ResourcePack;
 import cn.nukkit.scheduler.AsyncTask;
-import cn.nukkit.scheduler.Task;
 import cn.nukkit.utils.*;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
@@ -78,6 +77,7 @@ import org.msgpack.value.Value;
 import java.net.InetSocketAddress;
 import java.util.*;
 import java.util.concurrent.ThreadLocalRandom;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Function;
 
 import static org.itxtech.synapseapi.SynapseSharedConstants.DATA_VERSION;
@@ -104,6 +104,7 @@ public class SynapsePlayer extends Player {
     protected boolean betaClient;
     protected JsonObject cachedExtra = new JsonObject();
     protected final JsonObject transferExtra = new JsonObject();
+    private final AtomicBoolean transferInProgress = new AtomicBoolean();
     protected int dummyDimension;
     protected int transferDimension = -1;
     protected int loadingScreenId = ThreadLocalRandom.current().nextInt(0xffff, 0xfffffff);
@@ -250,6 +251,7 @@ public class SynapsePlayer extends Player {
         return gamemode;
     }
 
+    @Override
     public LoginChainData getLoginChainData() {
         return this.isSynapseLogin ? this.loginChainData : super.getLoginChainData();
     }
@@ -410,7 +412,9 @@ public class SynapsePlayer extends Player {
         TransferPacket packet = new TransferPacket();
         packet.address = split[0];
         packet.port = Integer.parseInt(split[1]);
-        dataPacket(packet);
+        if (!dataPacket(packet)) {
+            close("", reason);
+        }
     }
 
     public SynapseEntry getSynapseEntry() {
@@ -883,6 +887,9 @@ public class SynapsePlayer extends Player {
         Entry clientData = clients.clientList.get(hash);
 
         if (clientData != null) {
+            if (!this.transferInProgress.compareAndSet(false, true)) {
+                return false;
+            }
             // this.sendMessage(TextFormat.GRAY + " -> " + clientData.getDescription());
             if (extra != null) {
                 for (Map.Entry<String, JsonElement> entry : extra.entrySet()) {
@@ -893,6 +900,7 @@ public class SynapsePlayer extends Player {
             this.server.getPluginManager().callEvent(event);
 
             if (event.isCancelled()) {
+                this.transferInProgress.set(false);
                 return false;
             }
 
@@ -1000,35 +1008,30 @@ public class SynapsePlayer extends Player {
 */
             }
 
-            Server.getInstance().getScheduler().scheduleDelayedTask(new Task() {
-                @Override
-                public void onRun(int currentTick) {
-                    org.itxtech.synapseapi.network.protocol.spp.TransferPacket pk = new org.itxtech.synapseapi.network.protocol.spp.TransferPacket();
-                    pk.sessionId = getSessionId();
-                    pk.clientHash = hash;
-                    pk.extra = transferExtra;
-                    pk.extra.addProperty("username", originName);
-                    pk.extra.addProperty("xuid", getLoginChainData().getXUID());
-                    pk.extra.addProperty("netease", isNetEaseClient());
-                    pk.extra.addProperty("blob_cache", getClientCacheTrack() != null);
-                    //跨服时，传输到目标服务器当前玩家安装上的材质
-                    JsonArray resPacks = new JsonArray();
-                    getResourcePacks().keySet().forEach(resPacks::add);
-                    pk.extra.add("res_packs", resPacks);
-                    JsonArray behPacks = new JsonArray();
-                    getResourcePacks().keySet().forEach(behPacks::add);
-                    pk.extra.add("beh_packs", behPacks);
-                    pk.extra.addProperty("viewDistance", viewDistance);
-                    pk.extra.addProperty("viewDistanceMax", getClientMaxViewDistance());
-                    pk.extra.addProperty("DataVersion", DATA_VERSION);
-                    pk.extra.addProperty("blocks_checksum", AdvancedGlobalBlockPalette.getBlockRegistryChecksum());
-                    pk.extra.addProperty("items_checksum", AdvancedRuntimeItemPalette.getItemRegistryChecksum());
-                    pk.extra.addProperty("biomes_checksum", BiomeDefinitions.getBiomeRegistryChecksum());
-                    pk.extra.addProperty("entities_checksum", AvailableEntityIdentifiersPalette.getEntityRegistryChecksum());
-                    pk.extra.addProperty("cameras_checksum", CameraManager.getCameraRegistryChecksum());
-                    getSynapseEntry().sendDataPacket(pk);
-                }
-            }, 1);
+            org.itxtech.synapseapi.network.protocol.spp.TransferPacket pk = new org.itxtech.synapseapi.network.protocol.spp.TransferPacket();
+            pk.sessionId = getSessionId();
+            pk.clientHash = hash;
+            pk.extra = transferExtra;
+            pk.extra.addProperty("username", originName);
+            pk.extra.addProperty("xuid", getLoginChainData().getXUID());
+            pk.extra.addProperty("netease", isNetEaseClient());
+            pk.extra.addProperty("blob_cache", getClientCacheTrack() != null);
+            //跨服时，传输到目标服务器当前玩家安装上的材质
+            JsonArray resPacks = new JsonArray();
+            getResourcePacks().keySet().forEach(resPacks::add);
+            pk.extra.add("res_packs", resPacks);
+            JsonArray behPacks = new JsonArray();
+            getResourcePacks().keySet().forEach(behPacks::add);
+            pk.extra.add("beh_packs", behPacks);
+            pk.extra.addProperty("viewDistance", viewDistance);
+            pk.extra.addProperty("viewDistanceMax", getClientMaxViewDistance());
+            pk.extra.addProperty("DataVersion", DATA_VERSION);
+            pk.extra.addProperty("blocks_checksum", AdvancedGlobalBlockPalette.getBlockRegistryChecksum());
+            pk.extra.addProperty("items_checksum", AdvancedRuntimeItemPalette.getItemRegistryChecksum());
+            pk.extra.addProperty("biomes_checksum", BiomeDefinitions.getBiomeRegistryChecksum());
+            pk.extra.addProperty("entities_checksum", AvailableEntityIdentifiersPalette.getEntityRegistryChecksum());
+            pk.extra.addProperty("cameras_checksum", CameraManager.getCameraRegistryChecksum());
+            getSynapseEntry().getSynapseInterface().getPutPacketThread().addTransferBarrier(this, pk);
             // this.sendMessage(TextFormat.GRAY + "(synapse) -> " + clientData.getDescription());
 
             return true;
@@ -1047,6 +1050,19 @@ public class SynapsePlayer extends Player {
         this.dataPacket(pk);
         //String message = "Transferred to " + hostName + ":" + port;
         //this.close(message, message, false);
+    }
+
+    @Override
+    public boolean kick(PlayerKickEvent.Reason reason, String reasonString, boolean isAdmin) {
+        if (!super.kick(reason, reasonString, isAdmin)) {
+            return false;
+        }
+
+        PlayerLogoutPacket packet = new PlayerLogoutPacket();
+        packet.sessionId = getSessionId();
+        packet.reason = "disconnect.closed";
+        synapseEntry.sendDataPacket(packet);
+        return true;
     }
 
     @Override
