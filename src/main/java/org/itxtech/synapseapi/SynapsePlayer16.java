@@ -196,70 +196,9 @@ public class SynapsePlayer16 extends SynapsePlayer14 {
 							subPacketHandler.dispatch(subPacket);
 						}
 					} catch (Exception e) {
-						getServer().getLogger().error("Unable to handle netease rpc sub packet: " + getName(), e);
+						getServer().getLogger().error("Unable to handle netease rpc sub packet for " + getName(), e);
 					}
 				}
-				/*
-				NetEasePlayerPyRpcReceiveEvent pyRpcReceiveEvent = new NetEasePlayerPyRpcReceiveEvent(this, pyRpcPacket.data);
-				Server.getInstance().getPluginManager().callEvent(pyRpcReceiveEvent);
-				//Try decode ModEventC2S
-				Value data = pyRpcReceiveEvent.getData();
-				try {
-					if (data.isMapValue()) {
-						String json = data.toJson();
-						JsonObject obj = GSON.fromJson(json, JsonObject.class);
-						if (obj.has("value") && obj.get("value").isJsonArray()) {
-							JsonArray value0 = obj.get("value").getAsJsonArray();
-							if ("ModEventC2S".equals(value0.get(0).getAsString()) && value0.get(1).isJsonObject()) {
-								JsonObject obj1 = value0.get(1).getAsJsonObject();
-								if (obj1.has("value") && obj1.get("value").isJsonArray()) {
-									JsonArray value1 = obj1.get("value").getAsJsonArray();
-									String modName = value1.get(0).getAsString();
-									String systemName = value1.get(1).getAsString();
-									String eventName = value1.get(2).getAsString();
-									JsonObject eventData = value1.get(3).getAsJsonObject();
-									NetEasePlayerModEventC2SEvent modEventC2SEvent = new NetEasePlayerModEventC2SEvent(
-											this,
-											modName,
-											systemName,
-											eventName,
-											eventData
-									);
-									Server.getInstance().getPluginManager().callEvent(modEventC2SEvent);
-								}
-							} else if ("StoreBuySuccServerEvent".equals(value0.get(0).getAsString())) {
-								SynapsePlayerNetEaseStoreBuySuccEvent ev = new SynapsePlayerNetEaseStoreBuySuccEvent(this);
-								Server.getInstance().getPluginManager().callEvent(ev);
-							}
-						}
-					} else if (data.isArrayValue()) {
-						String json = data.toJson();
-						JsonArray array = GSON.fromJson(json, JsonArray.class);
-						if (array.size() >= 1 && array.get(0).isJsonPrimitive()) {
-							String type = array.get(0).getAsString();
-							if ("ModEventC2S".equals(type) && array.size() >= 2 && array.get(1).isJsonArray()) {
-								JsonArray value0 = array.get(1).getAsJsonArray();
-								String modName = value0.get(0).getAsString();
-								String systemName = value0.get(1).getAsString();
-								String eventName = value0.get(2).getAsString();
-								JsonObject eventData = value0.get(3).getAsJsonObject();
-								NetEasePlayerModEventC2SEvent modEventC2SEvent = new NetEasePlayerModEventC2SEvent(
-										this,
-										modName,
-										systemName,
-										eventName,
-										eventData
-								);
-								Server.getInstance().getPluginManager().callEvent(modEventC2SEvent);
-							} else if ("StoreBuySuccServerEvent".equals(type)) {
-								SynapsePlayerNetEaseStoreBuySuccEvent ev = new SynapsePlayerNetEaseStoreBuySuccEvent(this);
-								Server.getInstance().getPluginManager().callEvent(ev);
-							}
-						}
-					}
-				} catch (Exception e) {
-					//ignore
-				}*/
 				break;
 			case ProtocolInfo.SET_LOCAL_PLAYER_AS_INITIALIZED_PACKET:
 				if (!callPacketReceiveEvent(packet)) {
