@@ -9,6 +9,7 @@ import com.google.gson.reflect.TypeToken;
 import com.netease.mc.authlib.TokenChainEC;
 import org.itxtech.synapseapi.multiprotocol.AbstractProtocol;
 import org.itxtech.synapseapi.multiprotocol.protocol12.protocol.LoginPacket;
+import org.itxtech.synapseapi.multiprotocol.protocol14.protocol.LoginPacket14;
 
 import javax.annotation.Nullable;
 import java.nio.charset.StandardCharsets;
@@ -35,6 +36,10 @@ public final class ClientChainData12NetEase implements LoginChainData {
     }
 
     public static ClientChainData12NetEase read(LoginPacket pk) {
+        return of(pk.getBuffer(), pk.protocol);
+    }
+
+    public static ClientChainData12NetEase read(LoginPacket14 pk) {
         return of(pk.getBuffer(), pk.protocol);
     }
 

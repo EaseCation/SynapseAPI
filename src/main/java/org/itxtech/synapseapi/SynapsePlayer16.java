@@ -16,6 +16,7 @@ import cn.nukkit.utils.TextFormat;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonPrimitive;
 import org.itxtech.synapseapi.event.player.SynapsePlayerConnectEvent;
+import org.itxtech.synapseapi.multiprotocol.protocol12.utils.ClientChainData12NetEase;
 import org.itxtech.synapseapi.multiprotocol.protocol14.protocol.LoginPacket14;
 import org.itxtech.synapseapi.multiprotocol.protocol16.protocol.*;
 import org.itxtech.synapseapi.multiprotocol.protocol16.protocol.UpdateSoftEnumPacket16.Type;
@@ -84,43 +85,13 @@ public class SynapsePlayer16 extends SynapsePlayer14 {
 					if (packet.extra.has("sandboxId")) loginPacket.sandboxId = packet.extra.get("sandboxId").getAsString();
 					this.isNetEaseClient = Optional.ofNullable(packet.extra.get("netease")).orElseGet(() -> new JsonPrimitive(false)).getAsBoolean();
 				}
+				if (!checkTransferExtra()) {
+					setLoginChainData(ClientChainData12NetEase.read((LoginPacket14) pk));
+					rejoinGame("disconnectionScreen.blockMismatch");
+					return;
+				}
 				this.handleDataPacket(pk);
 
-				if (cachedExtra != null) {
-					JsonElement viewDistance = cachedExtra.get("viewDistance");
-					if (viewDistance != null) {
-						int distance = viewDistance.getAsInt();
-						if (distance >= 4 && distance <= 96) {
-							this.viewDistance = distance;
-							this.chunkRadius = Math.min(this.viewDistance, this.getMaxViewDistance());
-						}
-					}
-
-					JsonElement dataVersion = cachedExtra.get("DataVersion");
-					if (dataVersion != null && !checkDataVersion(dataVersion.getAsInt())) {
-						return;
-					}
-					JsonElement blocksChecksum = cachedExtra.get("blocks_checksum");
-					if (blocksChecksum != null && !checkBlockRegistryChecksum(blocksChecksum.getAsLong())) {
-						return;
-					}
-					JsonElement itemsChecksum = cachedExtra.get("items_checksum");
-					if (itemsChecksum != null && !checkItemRegistryChecksum(itemsChecksum.getAsLong())) {
-						return;
-					}
-					JsonElement biomesChecksum = cachedExtra.get("biomes_checksum");
-					if (biomesChecksum != null && !checkBiomeRegistryChecksum(biomesChecksum.getAsLong())) {
-						return;
-					}
-					JsonElement entitiesChecksum = cachedExtra.get("entities_checksum");
-					if (entitiesChecksum != null && !checkEntityRegistryChecksum(entitiesChecksum.getAsLong())) {
-						return;
-					}
-					JsonElement camerasChecksum = cachedExtra.get("cameras_checksum");
-					if (camerasChecksum != null && !checkCameraRegistryChecksum(camerasChecksum.getAsLong())) {
-						return;
-					}
-				}
 			} catch (Exception e) {
 				MainLogger.getLogger().logException(e);
 				this.close("", "disconnectionScreen.internalError.cantConnect");
@@ -226,70 +197,9 @@ public class SynapsePlayer16 extends SynapsePlayer14 {
 							subPacketHandler.dispatch(subPacket);
 						}
 					} catch (Exception e) {
-						getServer().getLogger().error("Unable to handle netease rpc sub packet: " + getName(), e);
+						getServer().getLogger().error("Unable to handle netease rpc sub packet for " + getName(), e);
 					}
 				}
-				/*
-				NetEasePlayerPyRpcReceiveEvent pyRpcReceiveEvent = new NetEasePlayerPyRpcReceiveEvent(this, pyRpcPacket.data);
-				Server.getInstance().getPluginManager().callEvent(pyRpcReceiveEvent);
-				//Try decode ModEventC2S
-				Value data = pyRpcReceiveEvent.getData();
-				try {
-					if (data.isMapValue()) {
-						String json = data.toJson();
-						JsonObject obj = GSON.fromJson(json, JsonObject.class);
-						if (obj.has("value") && obj.get("value").isJsonArray()) {
-							JsonArray value0 = obj.get("value").getAsJsonArray();
-							if ("ModEventC2S".equals(value0.get(0).getAsString()) && value0.get(1).isJsonObject()) {
-								JsonObject obj1 = value0.get(1).getAsJsonObject();
-								if (obj1.has("value") && obj1.get("value").isJsonArray()) {
-									JsonArray value1 = obj1.get("value").getAsJsonArray();
-									String modName = value1.get(0).getAsString();
-									String systemName = value1.get(1).getAsString();
-									String eventName = value1.get(2).getAsString();
-									JsonObject eventData = value1.get(3).getAsJsonObject();
-									NetEasePlayerModEventC2SEvent modEventC2SEvent = new NetEasePlayerModEventC2SEvent(
-											this,
-											modName,
-											systemName,
-											eventName,
-											eventData
-									);
-									Server.getInstance().getPluginManager().callEvent(modEventC2SEvent);
-								}
-							} else if ("StoreBuySuccServerEvent".equals(value0.get(0).getAsString())) {
-								SynapsePlayerNetEaseStoreBuySuccEvent ev = new SynapsePlayerNetEaseStoreBuySuccEvent(this);
-								Server.getInstance().getPluginManager().callEvent(ev);
-							}
-						}
-					} else if (data.isArrayValue()) {
-						String json = data.toJson();
-						JsonArray array = GSON.fromJson(json, JsonArray.class);
-						if (array.size() >= 1 && array.get(0).isJsonPrimitive()) {
-							String type = array.get(0).getAsString();
-							if ("ModEventC2S".equals(type) && array.size() >= 2 && array.get(1).isJsonArray()) {
-								JsonArray value0 = array.get(1).getAsJsonArray();
-								String modName = value0.get(0).getAsString();
-								String systemName = value0.get(1).getAsString();
-								String eventName = value0.get(2).getAsString();
-								JsonObject eventData = value0.get(3).getAsJsonObject();
-								NetEasePlayerModEventC2SEvent modEventC2SEvent = new NetEasePlayerModEventC2SEvent(
-										this,
-										modName,
-										systemName,
-										eventName,
-										eventData
-								);
-								Server.getInstance().getPluginManager().callEvent(modEventC2SEvent);
-							} else if ("StoreBuySuccServerEvent".equals(type)) {
-								SynapsePlayerNetEaseStoreBuySuccEvent ev = new SynapsePlayerNetEaseStoreBuySuccEvent(this);
-								Server.getInstance().getPluginManager().callEvent(ev);
-							}
-						}
-					}
-				} catch (Exception e) {
-					//ignore
-				}*/
 				break;
 			case ProtocolInfo.SET_LOCAL_PLAYER_AS_INITIALIZED_PACKET:
 				if (!callPacketReceiveEvent(packet)) {

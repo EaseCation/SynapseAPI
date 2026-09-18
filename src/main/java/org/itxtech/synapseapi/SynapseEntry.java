@@ -232,10 +232,12 @@ public class SynapseEntry {
         return lastRecvInfo;
     }
 
+    @Deprecated
     public void broadcastPacket(SynapsePlayer[] players, DataPacket packet) {
         this.broadcastPacket(players, packet, false);
     }
 
+    @Deprecated
     public void broadcastPacket(SynapsePlayer[] players, DataPacket packet, boolean direct) {
         packet.tryEncode();
         BroadcastPacket broadcastPacket = new BroadcastPacket();
