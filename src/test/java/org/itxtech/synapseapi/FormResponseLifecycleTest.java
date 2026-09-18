@@ -48,7 +48,8 @@ class FormResponseLifecycleTest {
     void closeClearsPreviousSelectionAndIsConsumedBeforeCallback() {
         TestPlayer player = player();
         FormWindowSimple form = window();
-        form.setResponse("0", player.getProtocol());
+        assertTrue(form.setResponse(0, player.getProtocol()));
+        assertNotNull(form.getResponse());
         player.putForm(1, form);
         PluginManager plugins = player.getServer().getPluginManager();
         doAnswer(call -> {
