@@ -12,11 +12,14 @@ import cn.nukkit.utils.MainLogger;
 import it.unimi.dsi.fastutil.longs.Long2ObjectMap;
 import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap;
 import lombok.extern.log4j.Log4j2;
+import org.itxtech.synapseapi.NetworkStackLatencyBoundaryCallback;
+import org.itxtech.synapseapi.NetworkStackLatencyBoundaryFailure;
 import org.itxtech.synapseapi.SynapseAPI;
 import org.itxtech.synapseapi.SynapsePlayer;
 import org.itxtech.synapseapi.multiprotocol.AbstractProtocol;
 import org.itxtech.synapseapi.multiprotocol.PacketRegister;
 import org.itxtech.synapseapi.multiprotocol.protocol16.protocol.CompatibilityPacket16;
+import org.itxtech.synapseapi.multiprotocol.protocol19.protocol.NetworkStackLatencyPacket19;
 import org.itxtech.synapseapi.network.SynapseInterface;
 import org.itxtech.synapseapi.network.SynapseMetrics;
 import org.itxtech.synapseapi.network.protocol.spp.RedirectPacket;
@@ -26,6 +29,8 @@ import org.itxtech.synapseapi.utils.PacketLogger;
 import java.io.IOException;
 import java.util.*;
 import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.atomic.AtomicLong;
+import java.util.function.LongConsumer;
 import javax.annotation.Nullable;
 
 import static cn.nukkit.SharedConstants.BREAKPOINT_DEBUGGING;
@@ -41,7 +46,9 @@ import static org.itxtech.synapseapi.SynapseSharedConstants.CLIENTBOUND_PACKET_L
  */
 @Log4j2
 public class SynapseEntryPutPacketThread extends Thread {
+    private static final AtomicLong BATCH_TAIL_LATENCY_ID = new AtomicLong(1);
     private static SynapseMetrics METRICS;
+    private final Long2ObjectMap<List<PendingBoundary>> pendingBoundaries = new Long2ObjectOpenHashMap<>();
 
     private final SynapseInterface synapseInterface;
     private final Queue<PacketEntry> queue = new LinkedBlockingQueue<>();
@@ -61,6 +68,29 @@ public class SynapseEntryPutPacketThread extends Thread {
     public void addMainToThread(SynapsePlayer player, DataPacket packet) {
         if (BREAKPOINT_DEBUGGING && player.getSynapseEntry().getSynapse().isRecordPacketStack()) packet.stack = new Throwable();
         this.queue.offer(new ForwardEntry(player, packet));
+    }
+
+    public boolean supportsAfterPacketLatency() {
+        return this.isAutoCompress;
+    }
+
+    public void addMainToThread(SynapsePlayer player, DataPacket packet,
+                                List<LongConsumer> batchTailLatencyCallbacks) {
+        addMainToThread(player, packet, List.of(), batchTailLatencyCallbacks);
+    }
+
+    public void addMainToThread(SynapsePlayer player, DataPacket packet,
+                                List<NetworkStackLatencyBoundaryCallback> afterPacketLatencyCallbacks,
+                                List<LongConsumer> batchTailLatencyCallbacks) {
+        if (BREAKPOINT_DEBUGGING && player.getSynapseEntry().getSynapse().isRecordPacketStack()) {
+            packet.stack = new Throwable();
+        }
+        ForwardEntry entry = new ForwardEntry(player, packet,
+                afterPacketLatencyCallbacks, batchTailLatencyCallbacks);
+        if (!this.queue.offer(entry)) {
+            dropBoundaryCallbacks(afterPacketLatencyCallbacks,
+                    NetworkStackLatencyBoundaryFailure.QUEUE_REJECTED);
+        }
     }
 
     public void addTransferBarrier(SynapsePlayer player, SynapseDataPacket packet) {
@@ -90,14 +120,14 @@ public class SynapseEntryPutPacketThread extends Thread {
                     queuedPlayers.remove(player.getId());
 
                     if (player.isClosed()) {
-                        player.outboundQueue.clear();
+                        clearPlayerOutboundState(player, NetworkStackLatencyBoundaryFailure.PLAYER_CLOSED);
                         failedPlayerQueues.remove(player);
                     } else if (blockedPlayerQueues.contains(player)) {
-                        player.outboundQueue.clear();
+                        clearPlayerOutboundState(player, NetworkStackLatencyBoundaryFailure.TRANSPORT_FAILED);
                         failedPlayerQueues.remove(player);
                         log.warn("Ignoring duplicate transfer marker for player: {}", player.getName());
                     } else if (failedPlayerQueues.remove(player)) {
-                        player.outboundQueue.clear();
+                        clearPlayerOutboundState(player, NetworkStackLatencyBoundaryFailure.TRANSPORT_FAILED);
                         scheduleTransferRecovery(player);
                         log.error("Cannot transfer player because a queued player packet failed: {}", player.getName());
                     } else {
@@ -107,7 +137,7 @@ public class SynapseEntryPutPacketThread extends Thread {
                             this.synapseInterface.putPacket(packet);
                         } catch (Exception e) {
                             blockedPlayerQueues.remove(player);
-                            player.outboundQueue.clear();
+                            clearPlayerOutboundState(player, NetworkStackLatencyBoundaryFailure.TRANSPORT_FAILED);
                             scheduleTransferRecovery(player);
                             log.error("Failed to flush player packets or submit transfer: {}", player.getName(), e);
                         }
@@ -117,6 +147,7 @@ public class SynapseEntryPutPacketThread extends Thread {
 
                 ForwardEntry entry = (ForwardEntry) packetEntry;
                 if (blockedPlayerQueues.contains(entry.player)) {
+                    dropBoundaryCallbacks(entry.after, NetworkStackLatencyBoundaryFailure.TRANSPORT_FAILED);
                     entry.packet.stack = null;
                     continue;
                 }
@@ -129,6 +160,7 @@ public class SynapseEntryPutPacketThread extends Thread {
 
                         if (entry.packet == null) {
                             MainLogger.getLogger().info("NULL PACKET " + old.getClass().getSimpleName());
+                            dropBoundaryCallbacks(entry.after, NetworkStackLatencyBoundaryFailure.PROTOCOL_CONVERSION_FAILED);
                             continue;
                         }
 
@@ -142,6 +174,8 @@ public class SynapseEntryPutPacketThread extends Thread {
                         }
 
                         if (entry.packet instanceof BatchPacket batch) {
+                            dropBoundaryCallbacks(entry.after,
+                                    NetworkStackLatencyBoundaryFailure.UNSUPPORTED_TRANSPORT);
                             flushPlayerOutboundQueue(entry.player, network, metrics);
                             queuedPlayers.remove(entry.player.getId());
 
@@ -181,9 +215,17 @@ public class SynapseEntryPutPacketThread extends Thread {
                             }
 
                             entry.player.outboundQueue.add(buffer);
-
+                            PendingBoundary boundary = appendAfterPacketLatency(
+                                    entry.player, entry.player.outboundQueue, entry.after);
+                            if (boundary != null) {
+                                pendingBoundaries.computeIfAbsent(entry.player.getId(),
+                                        ignored -> new ArrayList<>()).add(boundary);
+                            }
+                            entry.player.appendBatchTailLatencyCallbacks(entry.tail);
                             queuedPlayers.put(entry.player.getId(), entry.player);
                         } else {
+                            dropBoundaryCallbacks(entry.after,
+                                    NetworkStackLatencyBoundaryFailure.UNSUPPORTED_TRANSPORT);
                             RedirectPacket pk = new RedirectPacket();
                             pk.compressionAlgorithm = entry.player.getServer().getCompressor().getAlgorithm();
                             pk.sessionId = entry.player.getSessionId();
@@ -198,8 +240,13 @@ public class SynapseEntryPutPacketThread extends Thread {
 
                             this.synapseInterface.putPacket(pk);
                         }
+                    } else {
+                        dropBoundaryCallbacks(entry.after,
+                                NetworkStackLatencyBoundaryFailure.PLAYER_CLOSED);
                     }
                 } catch (Exception e) {
+                    dropBoundaryCallbacks(entry.after, NetworkStackLatencyBoundaryFailure.ENCODE_FAILED);
+                    dropPendingBoundaries(takePendingBoundaries(entry.player.getId()), NetworkStackLatencyBoundaryFailure.ENCODE_FAILED);
                     failedPlayerQueues.add(entry.player);
                     MainLogger.getLogger().alert("Catch exception when put single packet", e);
                     if (entry.packet != null && entry.packet.stack != null)
@@ -260,16 +307,20 @@ public class SynapseEntryPutPacketThread extends Thread {
     }
 
     private void flushPlayerOutboundQueue(SynapsePlayer player, Network network, @Nullable SynapseMetrics metrics) {
+        List<PendingBoundary> boundaries = takePendingBoundaries(player.getId());
         List<byte[]> outboundQueue = player.outboundQueue;
         if (outboundQueue.isEmpty()) {
+            dropPendingBoundaries(boundaries, NetworkStackLatencyBoundaryFailure.TRANSPORT_FAILED);
             return;
         }
 
+        appendBatchTailLatency(player, outboundQueue);
         Compressor compressor = Compressor.byProtocol(player.getProtocol());
         byte[] buffer;
         try {
             buffer = batchPackets(outboundQueue, compressor);
         } catch (IOException e) {
+            dropPendingBoundaries(boundaries, NetworkStackLatencyBoundaryFailure.BATCH_COMPRESSION_FAILED);
             log.warn("Failed to batch player packets, falling back to individual packets: {}", player.getName(), e);
             Iterator<byte[]> iterator = outboundQueue.iterator();
             while (iterator.hasNext()) {
@@ -294,14 +345,27 @@ public class SynapseEntryPutPacketThread extends Thread {
         packet.compressionAlgorithm = compressor.getAlgorithm();
         packet.mcpeBuffer = buffer;
         packet.sessionId = player.getSessionId();
-        this.synapseInterface.putPacket(packet);
+        try {
+            this.synapseInterface.putPacket(packet);
+        } catch (RuntimeException exception) {
+            dropPendingBoundaries(boundaries,
+                    NetworkStackLatencyBoundaryFailure.TRANSPORT_FAILED);
+            throw exception;
+        }
         outboundQueue.clear();
+        completePendingBoundaries(boundaries);
 
         int bytes = buffer.length;
         network.addUploadStatistic(bytes);
         if (metrics != null) {
             metrics.bytesOut(bytes);
         }
+    }
+
+    private void clearPlayerOutboundState(SynapsePlayer player,
+                                          NetworkStackLatencyBoundaryFailure reason) {
+        player.outboundQueue.clear();
+        dropPendingBoundaries(takePendingBoundaries(player.getId()), reason);
     }
 
     private interface PacketEntry {
@@ -313,10 +377,20 @@ public class SynapseEntryPutPacketThread extends Thread {
     private static class ForwardEntry implements PacketEntry {
         private final SynapsePlayer player;
         private DataPacket packet;
+        private final List<NetworkStackLatencyBoundaryCallback> after;
+        private final List<LongConsumer> tail;
 
         public ForwardEntry(SynapsePlayer player, DataPacket packet) {
+            this(player, packet, List.of(), List.of());
+        }
+
+        public ForwardEntry(SynapsePlayer player, DataPacket packet,
+                            List<NetworkStackLatencyBoundaryCallback> after,
+                            List<LongConsumer> tail) {
             this.player = player;
             this.packet = packet;
+            this.after = after == null ? List.of() : List.copyOf(after);
+            this.tail = tail == null ? List.of() : List.copyOf(tail);
         }
 
         @Override
@@ -331,6 +405,121 @@ public class SynapseEntryPutPacketThread extends Thread {
     }
 
     private record TransferEntry(SynapsePlayer player, SynapseDataPacket packet) implements PacketEntry {
+    }
+
+
+    private record PendingBoundary(SynapsePlayer player, long timestamp,
+                                   List<NetworkStackLatencyBoundaryCallback> callbacks) {
+    }
+
+    private List<PendingBoundary> takePendingBoundaries(long playerId) {
+        return pendingBoundaries.remove(playerId);
+    }
+
+    private static void completePendingBoundaries(List<PendingBoundary> boundaries) {
+        if (boundaries == null) {
+            return;
+        }
+        for (PendingBoundary boundary : boundaries) {
+            for (NetworkStackLatencyBoundaryCallback callback : boundary.callbacks()) {
+                try {
+                    callback.onAppended(boundary.timestamp());
+                } catch (Throwable throwable) {
+                    MainLogger.getLogger().warning("Latency boundary callback failed: "
+                            + throwable.getMessage());
+                }
+            }
+        }
+    }
+
+    private static void dropPendingBoundaries(List<PendingBoundary> boundaries,
+                                              NetworkStackLatencyBoundaryFailure reason) {
+        if (boundaries == null) {
+            return;
+        }
+        for (PendingBoundary boundary : boundaries) {
+            boundary.player().forgetApplicationBoundaryTimestamp(boundary.timestamp());
+            dropBoundaryCallbacks(boundary.callbacks(), reason);
+        }
+    }
+
+    private static void dropBoundaryCallbacks(List<NetworkStackLatencyBoundaryCallback> callbacks,
+                                              NetworkStackLatencyBoundaryFailure reason) {
+        if (callbacks == null) {
+            return;
+        }
+        for (NetworkStackLatencyBoundaryCallback callback : callbacks) {
+            try {
+                callback.onDropped(reason);
+            } catch (Throwable throwable) {
+                MainLogger.getLogger().warning("Latency boundary drop callback failed: "
+                        + throwable.getMessage());
+            }
+        }
+    }
+
+    private static PendingBoundary appendAfterPacketLatency(
+            SynapsePlayer player, List<byte[]> outboundQueue,
+            List<NetworkStackLatencyBoundaryCallback> callbacks) {
+        if (callbacks == null || callbacks.isEmpty()) {
+            return null;
+        }
+        long timestamp = nextBoundaryTimestamp();
+        try {
+            appendLatencyPacket(player, outboundQueue, createLatencyPacket(player, timestamp), timestamp);
+            return new PendingBoundary(player, timestamp, List.copyOf(callbacks));
+        } catch (Exception exception) {
+            dropBoundaryCallbacks(callbacks, NetworkStackLatencyBoundaryFailure.ENCODE_FAILED);
+            return null;
+        }
+    }
+
+    private static void appendBatchTailLatency(SynapsePlayer player, List<byte[]> outboundQueue) {
+        List<LongConsumer> callbacks = player.drainBatchTailLatencyCallbacks();
+        if (callbacks.isEmpty()) {
+            return;
+        }
+        long timestamp = nextBoundaryTimestamp();
+        try {
+            appendLatencyPacket(player, outboundQueue, createLatencyPacket(player, timestamp), timestamp);
+            for (LongConsumer callback : callbacks) {
+                callback.accept(timestamp);
+            }
+        } catch (Exception exception) {
+            MainLogger.getLogger().warning("Cannot append batch-tail latency packet: "
+                    + exception.getMessage());
+        }
+    }
+
+    private static long nextBoundaryTimestamp() {
+        return Math.floorMod(BATCH_TAIL_LATENCY_ID.getAndIncrement(), 1_000_000_000L);
+    }
+
+    private static DataPacket createLatencyPacket(SynapsePlayer player, long timestamp) {
+        NetworkStackLatencyPacket19 latency = new NetworkStackLatencyPacket19();
+        latency.timestamp = timestamp;
+        latency.isFromServer = true;
+        return PacketRegister.getCompatiblePacket(latency, player.getProtocol(), player.isNetEaseClient());
+    }
+
+    private static void appendLatencyPacket(SynapsePlayer player, List<byte[]> outboundQueue,
+                                            DataPacket packet, long timestamp) {
+        if (packet == null) {
+            throw new IllegalStateException();
+        }
+        packet.setHelper(AbstractProtocol.fromRealProtocol(player.getProtocol()).getHelper());
+        packet.neteaseMode = player.isNetEaseClient();
+        packet.tryEncode();
+        byte[] buffer = packet.getBuffer();
+        outboundQueue.add(buffer);
+        player.recordApplicationBoundaryTimestamp(timestamp);
+
+        SynapseMetrics metrics = METRICS;
+        if (metrics != null) {
+            int packetId = packet instanceof CompatibilityPacket16 compatibilityPacket
+                    ? compatibilityPacket.origin.pid() : packet.pid();
+            metrics.packetOut(packetId, buffer.length);
+        }
     }
 
     public double getTicksPerSecond() {
