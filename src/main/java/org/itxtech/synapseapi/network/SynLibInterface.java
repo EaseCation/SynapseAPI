@@ -3,11 +3,8 @@ package org.itxtech.synapseapi.network;
 import cn.nukkit.Player;
 import cn.nukkit.network.SourceInterface;
 import cn.nukkit.network.protocol.DataPacket;
-import org.itxtech.synapseapi.NetworkStackLatencyBoundaryCallback;
 import org.itxtech.synapseapi.SynapsePlayer;
 
-import java.util.List;
-import java.util.function.LongConsumer;
 
 /**
  * Created by boybook on 16/6/24.
@@ -54,27 +51,8 @@ public class SynLibInterface implements SourceInterface {
         return 0;  //这个返回值在nk中并没有被用到
     }
 
-    /**
-     * 将尾部 NSL 回调与当前数据包放入同一个出站 Entry，避免出站线程在数据包入队前消费回调。
-     */
-    public Integer putPacket(SynapsePlayer player, DataPacket packet,
-                             List<LongConsumer> batchTailLatencyCallbacks) {
-        return this.putPacket(player, packet, List.of(), batchTailLatencyCallbacks);
-    }
-
-    public boolean supportsNetworkStackLatencyAfterCurrentPacket() {
-        return this.synapseInterface.getPutPacketThread().supportsAfterPacketLatency();
-    }
-
-    /**
-     * 将当前包后置和 Batch 尾部 NSL 回调与当前数据包放入同一个出站 Entry。
-     */
-    public Integer putPacket(SynapsePlayer player, DataPacket packet,
-                             List<NetworkStackLatencyBoundaryCallback> afterPacketLatencyCallbacks,
-                             List<LongConsumer> batchTailLatencyCallbacks) {
-        this.synapseInterface.getPutPacketThread().addMainToThread(
-                player, packet, afterPacketLatencyCallbacks, batchTailLatencyCallbacks);
-        return 0;
+    public boolean supportsPacketSequences() {
+        return this.synapseInterface.getPutPacketThread().supportsPacketSequences();
     }
 
     @Override

@@ -32,10 +32,10 @@ import java.util.concurrent.ThreadLocalRandom;
 import static org.itxtech.synapseapi.SynapseSharedConstants.*;
 
 public class SynapsePlayer19 extends SynapsePlayer18 {
-	private volatile boolean pingNeedUpdate;
+	private boolean pingNeedUpdate;
 
-	private volatile int waitingPongTicks = PONG_TIMEOUT_TICKS;
-	private volatile int pongTimeoutCount;
+	private int waitingPongTicks = PONG_TIMEOUT_TICKS;
+	private int pongTimeoutCount;
 
 	public SynapsePlayer19(SourceInterface interfaz, SynapseEntry synapseEntry, Long clientID, InetSocketAddress socketAddress) {
 		super(interfaz, synapseEntry, clientID, socketAddress);
@@ -99,9 +99,6 @@ public class SynapsePlayer19 extends SynapsePlayer18 {
 					pong.isFromServer = false;
 					pong.timestamp = networkStackLatencyPacket.timestamp;
 					dataPacket(pong);
-					break;
-				}
-				if (consumeApplicationBoundaryPong(networkStackLatencyPacket.timestamp)) {
 					break;
 				}
 

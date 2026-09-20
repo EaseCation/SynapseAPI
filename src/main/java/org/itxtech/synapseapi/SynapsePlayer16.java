@@ -42,9 +42,8 @@ public class SynapsePlayer16 extends SynapsePlayer14 {
 
 	protected boolean spawnStatusSent;
 
-	// Batch 由 Synapse 出站线程组装，PONG 则由收包线程处理，因此需要保证跨线程可见性。
-	protected volatile long pingNs;
-	protected volatile long latencyNs;
+	protected long pingNs;
+	protected long latencyNs;
 
 	private final List<ServerSubPacketHandler<?>> subPacketHandlers = new ArrayList<>();
 
@@ -209,10 +208,6 @@ public class SynapsePlayer16 extends SynapsePlayer14 {
 				break;
 			case ProtocolInfo.NETWORK_STACK_LATENCY_PACKET:
 				if (!callPacketReceiveEvent(packet)) {
-					break;
-				}
-				NetworkStackLatencyPacket16 latencyPacket = (NetworkStackLatencyPacket16) packet;
-				if (consumeApplicationBoundaryPong(latencyPacket.timestamp)) {
 					break;
 				}
 				if (NETWORK_STACK_LATENCY_TELEMETRY) {
