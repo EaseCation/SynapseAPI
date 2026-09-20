@@ -33,7 +33,7 @@ dependencies {
     }
 
     // 从 JitPack 引用已发布的 Nukkit
-    compileOnly("com.github.EaseCation:Nukkit:master-SNAPSHOT")
+    compileOnly(libs.nukkit)
 
     // 从 JitPack 引用 authlib-stub（编译时存根，运行时由 AuthLibPackage 插件提供真实实现）
     compileOnly("com.github.EaseCation:authlib-stub:master-SNAPSHOT")
@@ -44,7 +44,7 @@ dependencies {
     annotationProcessor("org.projectlombok:lombok:1.18.38")
 
     // 测试依赖
-    testImplementation("com.github.EaseCation:Nukkit:master-SNAPSHOT")
+    testImplementation(libs.nukkit)
 }
 
 tasks.processResources {
@@ -160,7 +160,7 @@ publishing {
                 val nukkitDep = dependenciesNode.appendNode("dependency")
                 nukkitDep.appendNode("groupId", "com.github.EaseCation")
                 nukkitDep.appendNode("artifactId", "Nukkit")
-                nukkitDep.appendNode("version", "master-SNAPSHOT")
+                nukkitDep.appendNode("version", libs.versions.nukkit.get())
                 nukkitDep.appendNode("scope", "provided")
 
                 // 添加其他 compileOnly 依赖

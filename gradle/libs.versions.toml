@@ -1,0 +1,5 @@
+[versions]
+nukkit = "95ee44b9af4f8284ef56b44a1b3ae32308a10323"
+
+[libraries]
+nukkit = { module = "com.github.EaseCation:Nukkit", version.ref = "nukkit" }
