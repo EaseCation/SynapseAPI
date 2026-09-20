@@ -46,6 +46,7 @@ public class SetEntityMotionPacket12070 extends Packet12070 {
         this.motionX = packet.motionX;
         this.motionY = packet.motionY;
         this.motionZ = packet.motionZ;
+        this.tick = packet.tick;
         return this;
     }
 

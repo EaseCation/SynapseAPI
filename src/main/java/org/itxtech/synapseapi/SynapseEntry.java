@@ -642,6 +642,7 @@ public class SynapseEntry {
                                                         oldMovePacket.ridingEid = ((MovePlayerPacket116100NE) subPacket).ridingEid;
                                                         oldMovePacket.teleportCause = ((MovePlayerPacket116100NE) subPacket).teleportCause;
                                                         oldMovePacket.entityType = ((MovePlayerPacket116100NE) subPacket).teleportItem;
+//                                                        oldMovePacket.frame = ((MovePlayerPacket116100NE) subPacket).frame;
                                                         oldMovePacket.setChannel(DataPacket.CHANNEL_PLAYER_MOVING);
                                                     }
                                                     viewer.dataPacket(oldMovePacket);
@@ -675,6 +676,7 @@ public class SynapseEntry {
                                                 packet.yaw = authInputPacket.getYaw();
                                                 packet.headYaw = authInputPacket.getHeadYaw();
                                                 packet.pitch = authInputPacket.getPitch();
+//                                                packet.frame = tick;
                                                 packet.mode = authInputPacket.hasFlag(PlayerAuthInputFlags.HANDLED_TELEPORT) ? MovePlayerPacket.MODE_TELEPORT : MovePlayerPacket.MODE_NORMAL;
                                                 packet.onGround = player.onGround;
                                                 long ridingEid = authInputPacket.getPredictedVehicleEntityUniqueId();

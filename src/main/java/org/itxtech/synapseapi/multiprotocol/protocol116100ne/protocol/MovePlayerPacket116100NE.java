@@ -91,6 +91,7 @@ public class MovePlayerPacket116100NE extends Packet116100NE {
         this.ridingEid = packet.ridingEid;
         this.teleportCause = packet.teleportCause;
         this.teleportItem = packet.entityType;
+        this.frame = packet.frame;
 
         return this;
     }

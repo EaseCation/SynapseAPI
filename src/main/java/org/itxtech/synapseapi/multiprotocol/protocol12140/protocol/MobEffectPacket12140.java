@@ -51,6 +51,7 @@ public class MobEffectPacket12140 extends Packet12140 {
         this.amplifier = packet.amplifier;
         this.particles = packet.particles;
         this.duration = packet.duration;
+        this.tick = packet.tick;
         return this;
     }
 

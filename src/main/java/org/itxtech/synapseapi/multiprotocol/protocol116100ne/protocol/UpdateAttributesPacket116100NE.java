@@ -55,6 +55,7 @@ public class UpdateAttributesPacket116100NE extends Packet116100NE {
         UpdateAttributesPacket packet = (UpdateAttributesPacket) pk;
         this.entries = packet.entries;
         this.entityId = packet.entityId;
+        this.frame = packet.frame;
 
         return this;
     }
