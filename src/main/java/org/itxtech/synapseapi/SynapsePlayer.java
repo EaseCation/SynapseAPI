@@ -64,6 +64,9 @@ import org.itxtech.synapseapi.multiprotocol.protocol14.protocol.PlayerActionPack
 import org.itxtech.synapseapi.multiprotocol.protocol14.protocol.TextPacket14;
 import org.itxtech.synapseapi.multiprotocol.protocol17.protocol.TextPacket17;
 import org.itxtech.synapseapi.multiprotocol.utils.*;
+import org.itxtech.synapseapi.network.OutboundPacket;
+import org.itxtech.synapseapi.network.protocol.PacketSequence;
+import org.itxtech.synapseapi.network.SynLibInterface;
 import org.itxtech.synapseapi.network.protocol.mod.ServerSubPacketHandler;
 import org.itxtech.synapseapi.network.protocol.spp.PlayerLoginPacket;
 import org.itxtech.synapseapi.network.protocol.spp.PlayerLogoutPacket;
@@ -131,7 +134,7 @@ public class SynapsePlayer extends Player {
     float lastAuthInputYaw;
     float lastAuthInputPitch;
 
-    public final List<byte[]> outboundQueue = new ArrayList<>();
+    public final List<OutboundPacket> outboundQueue = new ArrayList<>();
 
     public SynapsePlayer(SourceInterface interfaz, SynapseEntry synapseEntry, Long clientID, InetSocketAddress socketAddress) {
         super(interfaz, clientID, socketAddress);
@@ -1569,25 +1572,52 @@ public class SynapsePlayer extends Player {
         return cleanTextColor;
     }
 
+    /**
+     * 包序列和批尾事件仅支持 Synapse autoCompress 的普通出站队列。
+     */
+    public boolean supportsPacketSequences() {
+        return this.isSynapseLogin && this.interfaz instanceof SynLibInterface synLibInterface
+                && synLibInterface.supportsPacketSequences();
+    }
+
     @Override
     public boolean dataPacket(DataPacket packet) {
         if (!this.isSynapseLogin) return super.dataPacket(packet);
-        /*if (!this.isFirstTimeLogin && packet instanceof ResourcePacksInfoPacket) {
-            this.processLogin();
-            return -1;
-        }*/
+        if (!(packet instanceof PacketSequence)) {
+            packet = DataPacketEidReplacer.replace(packet, this.getId(), SYNAPSE_PLAYER_ENTITY_ID);
+            packet.setHelper(AbstractProtocol.fromRealProtocol(this.protocol).getHelper());
+            packet.neteaseMode = isNetEaseClient();
+        }
+        DataPacketSendEvent event = new DataPacketSendEvent(this, packet);
+        try {
+            this.server.getPluginManager().callEvent(event);
+        } catch (RuntimeException exception) {
+            PacketSequence.discardReplaced(event.getReplacedPackets(), event.getFinalPacket());
+            PacketSequence.discard(event.getFinalPacket());
+            throw exception;
+        }
+        DataPacket finalPacket = event.getFinalPacket();
+        PacketSequence.discardReplaced(event.getReplacedPackets(), finalPacket);
+        if (event.isCancelled()) {
+            PacketSequence.discard(finalPacket);
+            return false;
+        }
+        try {
+            this.interfaz.putPacket(this, finalPacket);
+        } catch (RuntimeException exception) {
+            PacketSequence.discard(finalPacket);
+            throw exception;
+        }
+        return true;
+    }
+
+    /**
+     * 最终包与序列子包共用发送前处理
+     */
+    public DataPacket prepareOutboundPacket(DataPacket packet) {
         packet = DataPacketEidReplacer.replace(packet, this.getId(), SYNAPSE_PLAYER_ENTITY_ID);
         packet.setHelper(AbstractProtocol.fromRealProtocol(this.protocol).getHelper());
         packet.neteaseMode = isNetEaseClient();
-
-        DataPacketSendEvent ev = new DataPacketSendEvent(this, packet);
-        this.server.getPluginManager().callEvent(ev);
-        if (ev.isCancelled()) {
-            return false;
-        }
-
-        //packet.encode(); encoded twice?
-        //this.server.getLogger().warning("Send to player: " + Binary.bytesToHexString(new byte[]{packet.getBuffer()[0]}) + "  len: " + packet.getBuffer().length);
         if (this.cleanTextColor) {
             if (packet.pid() == ProtocolInfo.TEXT_PACKET) {
                 packet = packet.clone();
@@ -1611,8 +1641,7 @@ public class SynapsePlayer extends Player {
             }
         }
 
-        this.interfaz.putPacket(this, packet);
-        return true;
+        return packet;
     }
 
     public void sendLevelSoundEvent(int levelSound, Vector3 pos, int extraData, int pitch, String entityIdentifier, boolean isBabyMob, boolean isGlobal) {

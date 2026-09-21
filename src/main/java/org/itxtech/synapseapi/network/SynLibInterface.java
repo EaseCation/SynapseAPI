@@ -5,6 +5,7 @@ import cn.nukkit.network.SourceInterface;
 import cn.nukkit.network.protocol.DataPacket;
 import org.itxtech.synapseapi.SynapsePlayer;
 
+
 /**
  * Created by boybook on 16/6/24.
  */
@@ -48,6 +49,10 @@ public class SynLibInterface implements SourceInterface {
         if (player instanceof SynapsePlayer) this.synapseInterface.getPutPacketThread().addMainToThread((SynapsePlayer) player, packet);
         else throw new RuntimeException("putPacket (not SynapsePlayer) to SynLibInterface");
         return 0;  //这个返回值在nk中并没有被用到
+    }
+
+    public boolean supportsPacketSequences() {
+        return this.synapseInterface.getPutPacketThread().supportsPacketSequences();
     }
 
     @Override
