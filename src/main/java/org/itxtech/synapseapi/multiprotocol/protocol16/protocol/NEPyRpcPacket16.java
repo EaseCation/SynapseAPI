@@ -1,17 +1,17 @@
 package org.itxtech.synapseapi.multiprotocol.protocol16.protocol;
 
 import cn.nukkit.network.protocol.ProtocolInfo;
+import com.google.gson.Gson;
+import com.google.gson.JsonArray;
+import com.google.gson.JsonObject;
 import lombok.ToString;
 import org.itxtech.synapseapi.network.protocol.mod.AnimationEmotePacket;
 import org.itxtech.synapseapi.network.protocol.mod.StoreBuySuccessPacket;
 import org.itxtech.synapseapi.network.protocol.mod.SubPacket;
 import org.itxtech.synapseapi.network.protocol.mod.SubPacketHandler;
-import org.itxtech.synapseapi.utils.BoundedMessagePackUnpacker;
-import org.itxtech.synapseapi.utils.MessagePackValueUtil;
 import org.msgpack.core.MessageBufferPacker;
 import org.msgpack.core.MessagePack;
-import org.msgpack.value.ArrayValue;
-import org.msgpack.value.MapValue;
+import org.msgpack.core.MessageUnpacker;
 import org.msgpack.value.Value;
 
 import javax.annotation.Nullable;
@@ -27,18 +27,9 @@ import java.util.Set;
  */
 @ToString
 public class NEPyRpcPacket16 extends Packet16 {
+    private static final Gson GSON = new Gson();
 
     public static final int NETWORK_ID = ProtocolInfo.PACKET_PY_RPC;
-
-    private static final int MAX_PAYLOAD_BYTES = 1024 * 1024;
-    private static final BoundedMessagePackUnpacker.Limits MESSAGE_PACK_LIMITS = new BoundedMessagePackUnpacker.Limits(
-            MAX_PAYLOAD_BYTES,
-            32,
-            4096,
-            4096,
-            256 * 1024,
-            256,
-            16 * 1024);
 
     public Value data;
     public int msgId = 9753608;
@@ -60,122 +51,104 @@ public class NEPyRpcPacket16 extends Packet16 {
 
     @Override
     public void decode() {
-        byte[] payload = readPayload();
-        try {
-            data = BoundedMessagePackUnpacker.unpack(payload, MESSAGE_PACK_LIMITS);
+        try (MessageUnpacker unpacker = MessagePack.newDefaultUnpacker(this.getByteArray())) {
+            if (unpacker.hasNext()) {
+                data = unpacker.unpackValue();
+            }
         } catch (IOException e) {
-            throw new IllegalArgumentException("MessagePack decode failed: " + e.getMessage(), e);
-        }
-
-        if (!isReadable(Integer.BYTES)) {
-            throw new IllegalArgumentException("PyRpc message ID is truncated");
+            throw new RuntimeException("MsgPack decode failed: " + e.getMessage(), e);
         }
         msgId = this.getLInt();
-        subPackets = List.of();
-        decodeContent();
-    }
 
-    private byte[] readPayload() {
-        long length = this.getUnsignedVarInt();
-        if (length > MAX_PAYLOAD_BYTES) {
-            throw new IllegalArgumentException("PyRpc payload exceeds the byte limit");
+        try {
+            decodeContent();
+        } catch (Exception ignored) {
         }
-        if (!isReadable((int) length)) {
-            throw new IllegalArgumentException("PyRpc payload is truncated");
-        }
-        return this.get((int) length);
     }
 
     private void decodeContent() {
-        ArrayValue root = getRootArray();
-        if (root == null || root.size() == 0) {
-            return;
-        }
-
-        Value typeValue = root.get(0);
-        if (!typeValue.isStringValue() && !typeValue.isBinaryValue()) {
-            return;
-        }
-
-        String type = MessagePackValueUtil.asString(typeValue, "PyRpc type");
-        if ("ModEventC2S".equals(type)) {
-            decodeModEvent(root);
-        } else if ("StoreBuySuccServerEvent".equals(type)) {
-            subPackets = List.of(new StoreBuySuccessPacket());
-        }
-    }
-
-    @Nullable
-    private ArrayValue getRootArray() {
-        if (data.isArrayValue()) {
-            return data.asArrayValue();
-        }
-        if (!data.isMapValue()) {
-            return null;
-        }
-
-        Value wrapped = MessagePackValueUtil.getOptional(data.asMapValue(), "value");
-        if (wrapped == null) {
-            return null;
-        }
-        return MessagePackValueUtil.asArray(wrapped, "PyRpc value");
-    }
-
-    private void decodeModEvent(ArrayValue root) {
-        if (root.size() < 2) {
-            throw new IllegalArgumentException("ModEventC2S payload is missing");
-        }
-
-        ArrayValue event = unwrapArray(root.get(1), "ModEventC2S payload");
-        if (event.size() < 4) {
-            throw new IllegalArgumentException("ModEventC2S payload must contain four values");
-        }
-
-        String modName = MessagePackValueUtil.asString(event.get(0), "modName");
-        String systemName = MessagePackValueUtil.asString(event.get(1), "systemName");
-        String eventName = MessagePackValueUtil.asString(event.get(2), "eventName");
-        if (!(event.get(3) instanceof MapValue eventData)) {
-            return;
-        }
-
-        SubPacket<? extends SubPacketHandler<?>> subPacket = decodeSubPacket(
-                modName,
-                systemName,
-                eventName,
-                eventData
-        );
-        if (subPacket == null) {
-            for (SubPacketDeserializer deserializer : DESERIALIZER) {
-                subPacket = deserializer.deserialize(modName, systemName, eventName, eventData);
-                if (subPacket != null) {
-                    break;
+        if (data.isMapValue()) {
+            String json = data.toJson();
+            JsonObject obj = GSON.fromJson(json, JsonObject.class);
+            if (obj.has("value") && obj.get("value").isJsonArray()) {
+                JsonArray value0 = obj.get("value").getAsJsonArray();
+                if ("ModEventC2S".equals(value0.get(0).getAsString()) && value0.get(1).isJsonObject()) {
+                    JsonObject obj1 = value0.get(1).getAsJsonObject();
+                    if (obj1.has("value") && obj1.get("value").isJsonArray()) {
+                        JsonArray value1 = obj1.get("value").getAsJsonArray();
+                        String modName = value1.get(0).getAsString();
+                        String systemName = value1.get(1).getAsString();
+                        String eventName = value1.get(2).getAsString();
+                        JsonObject eventData = value1.get(3).getAsJsonObject();
+                        SubPacket<? extends SubPacketHandler<?>> subPacket = decodeSubPacket(modName, systemName, eventName, eventData);
+                        if (subPacket == null) {
+                            for (SubPacketDeserializer deserializer : DESERIALIZER) {
+                                subPacket = deserializer.deserialize(modName, systemName, eventName, eventData);
+                                if (subPacket != null) {
+                                    break;
+                                }
+                            }
+                            if (subPacket == null) {
+                                return;
+                            }
+                        }
+                        subPackets = List.of(subPacket);
+                    }
+                } else if ("StoreBuySuccServerEvent".equals(value0.get(0).getAsString())) {
+                    StoreBuySuccessPacket subPacket = new StoreBuySuccessPacket();
+                    subPackets = List.of(subPacket);
+                }
+            }
+        } else if (data.isArrayValue()) {
+            String json = data.toJson();
+            JsonArray array = GSON.fromJson(json, JsonArray.class);
+            if (!array.isEmpty() && array.get(0).isJsonPrimitive()) {
+                String type = array.get(0).getAsString();
+                if ("ModEventC2S".equals(type) && array.size() >= 2 && array.get(1).isJsonArray()) {
+                    JsonArray value0 = array.get(1).getAsJsonArray();
+                    String modName = value0.get(0).getAsString();
+                    String systemName = value0.get(1).getAsString();
+                    String eventName = value0.get(2).getAsString();
+                    JsonObject eventData = value0.get(3).getAsJsonObject();
+                    SubPacket<? extends SubPacketHandler<?>> subPacket = decodeSubPacket(modName, systemName, eventName, eventData);
+                    if (subPacket == null) {
+                        for (SubPacketDeserializer deserializer : DESERIALIZER) {
+                            subPacket = deserializer.deserialize(modName, systemName, eventName, eventData);
+                            if (subPacket != null) {
+                                break;
+                            }
+                        }
+                        if (subPacket == null) {
+                            return;
+                        }
+                    }
+                    subPackets = List.of(subPacket);
+                } else if ("StoreBuySuccServerEvent".equals(type)) {
+                    StoreBuySuccessPacket subPacket = new StoreBuySuccessPacket();
+                    subPackets = List.of(subPacket);
                 }
             }
         }
-        if (subPacket != null) {
-            subPackets = List.of(subPacket);
-        }
-    }
-
-    private static ArrayValue unwrapArray(Value value, String name) {
-        if (value.isArrayValue()) {
-            return value.asArrayValue();
-        }
-        MapValue wrapper = MessagePackValueUtil.asMap(value, name);
-        return MessagePackValueUtil.getArray(wrapper, "value");
     }
 
     @Nullable
-    private static SubPacket<? extends SubPacketHandler<?>> decodeSubPacket(
-            String modName,
-            String systemName,
-            String eventName,
-            MapValue eventData
-    ) {
-        if ("Minecraft".equals(modName)
-                && "emote".equals(systemName)
-                && "PlayEmoteEvent".equals(eventName)) {
-            return new AnimationEmotePacket(MessagePackValueUtil.getString(eventData, "animName"));
+    private static SubPacket<? extends SubPacketHandler<?>> decodeSubPacket(String modName, String systemName, String eventName, JsonObject eventData) {
+        switch (modName) {
+            case "Minecraft": {
+                switch (systemName) {
+                    case "emote": {
+                        switch (eventName) {
+                            case "PlayEmoteEvent": {
+                                return new AnimationEmotePacket(
+                                        eventData.get("animName").getAsString()
+                                );
+                            }
+                        }
+                        break;
+                    }
+                }
+                break;
+            }
         }
         return null;
     }
@@ -199,11 +172,6 @@ public class NEPyRpcPacket16 extends Packet16 {
     @FunctionalInterface
     public interface SubPacketDeserializer {
         @Nullable
-        SubPacket<? extends SubPacketHandler<?>> deserialize(
-                String modName,
-                String systemName,
-                String eventName,
-                MapValue eventData
-        );
+        SubPacket<? extends SubPacketHandler<?>> deserialize(String modName, String systemName, String eventName, JsonObject eventData);
     }
 }

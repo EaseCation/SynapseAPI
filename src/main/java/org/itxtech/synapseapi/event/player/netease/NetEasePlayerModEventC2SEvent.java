@@ -1,9 +1,9 @@
 package org.itxtech.synapseapi.event.player.netease;
 
 import cn.nukkit.event.HandlerList;
+import com.google.gson.JsonObject;
 import org.itxtech.synapseapi.SynapsePlayer;
 import org.itxtech.synapseapi.event.player.SynapsePlayerEvent;
-import org.msgpack.value.MapValue;
 
 public class NetEasePlayerModEventC2SEvent extends SynapsePlayerEvent {
 
@@ -12,9 +12,9 @@ public class NetEasePlayerModEventC2SEvent extends SynapsePlayerEvent {
     private final String modName;
     private final String systemName;
     private final String customEventName;
-    private final MapValue args;
+    private final JsonObject args;
 
-    public NetEasePlayerModEventC2SEvent(SynapsePlayer player, String modName, String systemName, String eventName, MapValue args) {
+    public NetEasePlayerModEventC2SEvent(SynapsePlayer player, String modName, String systemName, String eventName, JsonObject args) {
         super(player);
         this.modName = modName;
         this.systemName = systemName;
@@ -34,7 +34,7 @@ public class NetEasePlayerModEventC2SEvent extends SynapsePlayerEvent {
         return customEventName;
     }
 
-    public MapValue getArgs() {
+    public JsonObject getArgs() {
         return args;
     }
 
