@@ -84,6 +84,7 @@ import org.itxtech.synapseapi.multiprotocol.protocol120.protocol.EmotePacket120;
 import org.itxtech.synapseapi.multiprotocol.protocol120.protocol.StartGamePacket120;
 import org.itxtech.synapseapi.multiprotocol.protocol120.protocol.UnlockedRecipesPacket120;
 import org.itxtech.synapseapi.multiprotocol.protocol12010.protocol.AvailableCommandsPacket12010;
+import org.itxtech.synapseapi.multiprotocol.protocol12010.protocol.NESyncSkinPacket12010;
 import org.itxtech.synapseapi.multiprotocol.protocol12030.protocol.ResourcePacksInfoPacket12030;
 import org.itxtech.synapseapi.multiprotocol.protocol12030.protocol.StartGamePacket12030;
 import org.itxtech.synapseapi.multiprotocol.protocol12040.protocol.BossEventPacket12040;
@@ -400,6 +401,7 @@ public class PacketRegister {
         registerPacket(AbstractProtocol.PROTOCOL_120, ProtocolInfo.UNLOCKED_RECIPES_PACKET, UnlockedRecipesPacket120.class);
 
         registerPacket(AbstractProtocol.PROTOCOL_120_10, ProtocolInfo.AVAILABLE_COMMANDS_PACKET, AvailableCommandsPacket12010.class);
+        registerPacket(AbstractProtocol.PROTOCOL_120_10, ProtocolInfo.PACKET_SYNC_SKIN, NESyncSkinPacket12010.class);
 
         registerPacket(AbstractProtocol.PROTOCOL_120_30, ProtocolInfo.RESOURCE_PACKS_INFO_PACKET, ResourcePacksInfoPacket12030.class);
         registerPacket(AbstractProtocol.PROTOCOL_120_30, ProtocolInfo.START_GAME_PACKET, StartGamePacket12030.class);
