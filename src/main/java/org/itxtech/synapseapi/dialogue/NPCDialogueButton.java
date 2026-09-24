@@ -10,6 +10,7 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.function.Consumer;
+import java.util.function.UnaryOperator;
 import java.util.stream.Collectors;
 
 public class NPCDialogueButton {
@@ -131,13 +132,22 @@ public class NPCDialogueButton {
         return forceCloseOnClick;
     }
 
-    public JsonObject toJsonObject() {
+    public JsonObject toJsonObject(UnaryOperator<String> textFormatter) {
         JsonObject obj = new JsonObject();
-        obj.addProperty("button_name", button_name);
-        obj.addProperty("text", text);
+        obj.addProperty("button_name", textFormatter.apply(button_name));
+        obj.addProperty("text", textFormatter.apply(text));
         obj.addProperty("mode", mode);
         obj.addProperty("type", type);
-        obj.add("data", this.data != null ? GSON.toJsonTree(this.data) : JsonNull.INSTANCE);
+        if (this.data == null) {
+            obj.add("data", JsonNull.INSTANCE);
+            return obj;
+        }
+        List<CmdLine> formattedData = this.data.stream().map(command -> {
+            CmdLine formatted = new CmdLine(textFormatter.apply(command.cmd_line));
+            formatted.vmd_ver = command.vmd_ver;
+            return formatted;
+        }).collect(Collectors.toList());
+        obj.add("data", GSON.toJsonTree(formattedData));
         return obj;
     }
 }
