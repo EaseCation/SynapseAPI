@@ -1,20 +1,17 @@
 package org.itxtech.synapseapi.utils;
 
+import org.msgpack.core.MessageStringCodingException;
 import org.msgpack.value.ArrayValue;
 import org.msgpack.value.IntegerValue;
 import org.msgpack.value.MapValue;
 import org.msgpack.value.Value;
 
 import javax.annotation.Nullable;
-import java.nio.ByteBuffer;
-import java.nio.charset.CharacterCodingException;
-import java.nio.charset.CodingErrorAction;
-import java.nio.charset.StandardCharsets;
 import java.util.Map;
 import java.util.Objects;
 
 /**
- * Provides strictly typed access to the MessagePack tree for PyRpc.
+ * 对 PyRpc 的 MessagePack 数据提供严格类型访问。
  */
 public final class MessagePackValueUtil {
 
@@ -30,6 +27,9 @@ public final class MessagePackValueUtil {
     public static Value getOptional(MapValue map, String key) {
         Objects.requireNonNull(map, "map");
         Objects.requireNonNull(key, "key");
+        if (map instanceof IndexedMessagePackMap indexed) {
+            return indexed.getTextField(key);
+        }
         for (Map.Entry<Value, Value> entry : map.entrySet()) {
             Value mapKey = entry.getKey();
             if (mapKey.isRawValue() && key.equals(asString(mapKey, "map key"))) {
@@ -82,12 +82,9 @@ public final class MessagePackValueUtil {
         }
 
         try {
-            return StandardCharsets.UTF_8.newDecoder()
-                    .onMalformedInput(CodingErrorAction.REPORT)
-                    .onUnmappableCharacter(CodingErrorAction.REPORT)
-                    .decode(ByteBuffer.wrap(value.asRawValue().asByteArray()))
-                    .toString();
-        } catch (CharacterCodingException e) {
+            // asString 会严格校验 UTF-8，并缓存解码结果；不能改用容错的 toString。
+            return value.asRawValue().asString();
+        } catch (MessageStringCodingException e) {
             throw new IllegalArgumentException("MessagePack value " + name + " is not valid UTF-8", e);
         }
     }

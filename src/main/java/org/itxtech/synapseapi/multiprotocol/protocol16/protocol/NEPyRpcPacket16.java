@@ -1,18 +1,22 @@
 package org.itxtech.synapseapi.multiprotocol.protocol16.protocol;
 
 import cn.nukkit.network.protocol.ProtocolInfo;
+import com.google.common.util.concurrent.RateLimiter;
 import lombok.ToString;
+import lombok.extern.log4j.Log4j2;
 import org.itxtech.synapseapi.network.protocol.mod.AnimationEmotePacket;
 import org.itxtech.synapseapi.network.protocol.mod.StoreBuySuccessPacket;
 import org.itxtech.synapseapi.network.protocol.mod.SubPacket;
 import org.itxtech.synapseapi.network.protocol.mod.SubPacketHandler;
 import org.itxtech.synapseapi.utils.BoundedMessagePackUnpacker;
 import org.itxtech.synapseapi.utils.MessagePackValueUtil;
+import org.itxtech.synapseapi.utils.MessagePackLimitException;
 import org.msgpack.core.MessageBufferPacker;
 import org.msgpack.core.MessagePack;
 import org.msgpack.value.ArrayValue;
 import org.msgpack.value.MapValue;
 import org.msgpack.value.Value;
+import org.msgpack.value.ValueFactory;
 
 import javax.annotation.Nullable;
 import java.io.IOException;
@@ -20,25 +24,32 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Objects;
 import java.util.Set;
+import java.util.concurrent.atomic.AtomicLong;
 
 /**
  * author: MagicDroidX
  * Nukkit Project
  */
 @ToString
+@Log4j2
 public class NEPyRpcPacket16 extends Packet16 {
 
     public static final int NETWORK_ID = ProtocolInfo.PACKET_PY_RPC;
 
-    private static final int MAX_PAYLOAD_BYTES = 1024 * 1024;
+    public static final int MAX_PAYLOAD_BYTES = 1024 * 1024;
+    public static final int MAX_RAW_BYTES = 256 * 1024;
     private static final BoundedMessagePackUnpacker.Limits MESSAGE_PACK_LIMITS = new BoundedMessagePackUnpacker.Limits(
             MAX_PAYLOAD_BYTES,
             32,
             4096,
             4096,
-            256 * 1024,
+            MAX_RAW_BYTES,
             256,
             16 * 1024);
+
+    // 全局限频，避免客户端重复上报错误造成日志和异常上报风暴。
+    private static final RateLimiter DISCARD_LOG_LIMITER = RateLimiter.create(0.1);
+    private static final AtomicLong DISCARDED_EVENTS = new AtomicLong();
 
     public Value data;
     public int msgId = 9753608;
@@ -60,30 +71,50 @@ public class NEPyRpcPacket16 extends Packet16 {
 
     @Override
     public void decode() {
-        byte[] payload = readPayload();
+        data = ValueFactory.newNil();
+        subPackets = List.of();
+        long length = getUnsignedVarInt();
+        // 即使业务数据超限，也必须先验证外层长度和消息编号完整，才能安全跳过。
+        if (length < 0 || length > (long) getCount() - getOffset() - Integer.BYTES) {
+            throw new IllegalArgumentException("PyRpc payload or message ID is truncated");
+        }
+        if (length > MAX_PAYLOAD_BYTES) {
+            skip((int) length);
+            msgId = getLInt();
+            reportDiscard("payload byte limit", null);
+            return;
+        }
+        byte[] payload = get((int) length);
+        msgId = getLInt();
         try {
             data = BoundedMessagePackUnpacker.unpack(payload, MESSAGE_PACK_LIMITS);
+        } catch (MessagePackLimitException e) {
+            reportDiscard(e.getMessage(), null);
+            return;
         } catch (IOException e) {
             throw new IllegalArgumentException("MessagePack decode failed: " + e.getMessage(), e);
         }
 
-        if (!isReadable(Integer.BYTES)) {
-            throw new IllegalArgumentException("PyRpc message ID is truncated");
+        try {
+            decodeContent();
+        } catch (RuntimeException e) {
+            // 业务字段或插件解析失败只丢弃当前事件，不影响同批移动、交互等游戏包。
+            subPackets = List.of();
+            reportDiscard("application decode failure", e);
         }
-        msgId = this.getLInt();
-        subPackets = List.of();
-        decodeContent();
     }
 
-    private byte[] readPayload() {
-        long length = this.getUnsignedVarInt();
-        if (length > MAX_PAYLOAD_BYTES) {
-            throw new IllegalArgumentException("PyRpc payload exceeds the byte limit");
+    private static void reportDiscard(String reason, @Nullable RuntimeException exception) {
+        DISCARDED_EVENTS.incrementAndGet();
+        if (!DISCARD_LOG_LIMITER.tryAcquire()) {
+            return;
         }
-        if (!isReadable((int) length)) {
-            throw new IllegalArgumentException("PyRpc payload is truncated");
+        long count = DISCARDED_EVENTS.getAndSet(0);
+        if (exception == null) {
+            log.warn("Discarded {} PyRpc events since the last report; reason={}", count, reason);
+        } else {
+            log.warn("Discarded {} PyRpc events since the last report; reason={}", count, reason, exception);
         }
-        return this.get((int) length);
     }
 
     private void decodeContent() {

@@ -1,8 +1,12 @@
 package org.itxtech.synapseapi.utils;
 
+import it.unimi.dsi.fastutil.objects.Object2IntMap;
+import it.unimi.dsi.fastutil.objects.Object2IntOpenHashMap;
 import org.msgpack.core.MessageFormat;
 import org.msgpack.core.MessagePack;
 import org.msgpack.core.MessageUnpacker;
+import org.msgpack.core.MessageStringCodingException;
+import org.msgpack.value.ImmutableRawValue;
 import org.msgpack.value.ImmutableValue;
 import org.msgpack.value.Value;
 import org.msgpack.value.ValueFactory;
@@ -10,33 +14,29 @@ import org.msgpack.value.ValueType;
 
 import java.io.IOException;
 import java.math.BigInteger;
-import java.nio.ByteBuffer;
-import java.nio.charset.CharacterCodingException;
-import java.nio.charset.CodingErrorAction;
-import java.nio.charset.StandardCharsets;
-import java.util.HashSet;
 import java.util.Objects;
-import java.util.Set;
 
 /**
- * A MessagePack reader that performs bounds checking before allocating containers and primitive values.
+ * 分配容器和数据之前先校验预算，并复用文本校验与字段索引。
  */
 public final class BoundedMessagePackUnpacker {
 
     private final MessageUnpacker unpacker;
     private final Limits limits;
+    private final int payloadBytes;
     private int nodes;
 
-    private BoundedMessagePackUnpacker(MessageUnpacker unpacker, Limits limits) {
+    private BoundedMessagePackUnpacker(MessageUnpacker unpacker, Limits limits, int payloadBytes) {
         this.unpacker = unpacker;
         this.limits = limits;
+        this.payloadBytes = payloadBytes;
     }
 
     public static Value unpack(byte[] payload, Limits limits) throws IOException {
         Objects.requireNonNull(payload, "payload");
         Objects.requireNonNull(limits, "limits");
         if (payload.length > limits.maxPayloadBytes()) {
-            throw new IOException("MessagePack payload exceeds the byte limit");
+            throw new MessagePackLimitException("MessagePack payload exceeds the byte limit");
         }
 
         try (MessageUnpacker unpacker = MessagePack.newDefaultUnpacker(payload)) {
@@ -44,7 +44,7 @@ public final class BoundedMessagePackUnpacker {
                 throw new IOException("MessagePack payload is empty");
             }
 
-            BoundedMessagePackUnpacker reader = new BoundedMessagePackUnpacker(unpacker, limits);
+            BoundedMessagePackUnpacker reader = new BoundedMessagePackUnpacker(unpacker, limits, payload.length);
             Value value = reader.readValue(0);
             if (unpacker.hasNext()) {
                 throw new IOException("MessagePack payload contains trailing values");
@@ -96,8 +96,9 @@ public final class BoundedMessagePackUnpacker {
     private ImmutableValue readString(int maxBytes, String description) throws IOException {
         int length = unpacker.unpackRawStringHeader();
         byte[] bytes = readRaw(length, maxBytes, description);
-        decodeUtf8(bytes, description);
-        return ValueFactory.newString(bytes, true);
+        ImmutableRawValue value = ValueFactory.newString(bytes, true);
+        decodeUtf8(value, description);
+        return value;
     }
 
     private ImmutableValue readBinary(int maxBytes, String description) throws IOException {
@@ -108,17 +109,19 @@ public final class BoundedMessagePackUnpacker {
 
     private byte[] readRaw(int length, int maxBytes, String description) throws IOException {
         if (length < 0 || length > maxBytes) {
-            throw new IOException(description + " exceeds the byte limit");
+            throw new MessagePackLimitException(description + " exceeds the byte limit");
         }
+        requireAvailableBytes(length);
         return unpacker.readPayload(length);
     }
 
     private ImmutableValue readArray(int depth) throws IOException {
         int size = unpacker.unpackArrayHeader();
         if (size < 0 || size > limits.maxArrayElements()) {
-            throw new IOException("MessagePack array exceeds the element limit");
+            throw new MessagePackLimitException("MessagePack array exceeds the element limit");
         }
         ensureMinimumNodes(size);
+        requireAvailableBytes(size);
 
         Value[] values = new Value[size];
         for (int index = 0; index < size; index++) {
@@ -130,21 +133,23 @@ public final class BoundedMessagePackUnpacker {
     private ImmutableValue readMap(int depth) throws IOException {
         int size = unpacker.unpackMapHeader();
         if (size < 0 || size > limits.maxMapEntries()) {
-            throw new IOException("MessagePack map exceeds the entry limit");
+            throw new MessagePackLimitException("MessagePack map exceeds the entry limit");
         }
         ensureMinimumNodes((long) size * 2);
+        requireAvailableBytes((long) size * 2);
 
         Value[] keyValues = new Value[size * 2];
-        Set<String> keys = new HashSet<>(size);
+        Object2IntMap<String> offsets = new Object2IntOpenHashMap<>(size);
+        offsets.defaultReturnValue(-1);
         for (int index = 0; index < size; index++) {
             MapKey key = readMapKey(depth + 1);
-            if (!keys.add(key.text())) {
+            if (offsets.putIfAbsent(key.text(), index * 2) >= 0) {
                 throw new IOException("MessagePack map contains a duplicate key");
             }
             keyValues[index * 2] = key.value();
             keyValues[index * 2 + 1] = readValue(depth + 1);
         }
-        return ValueFactory.newMap(keyValues, true);
+        return new IndexedMessagePackMap(keyValues, offsets);
     }
 
     private MapKey readMapKey(int depth) throws IOException {
@@ -155,18 +160,14 @@ public final class BoundedMessagePackUnpacker {
         if (type == ValueType.STRING) {
             int length = unpacker.unpackRawStringHeader();
             byte[] bytes = readRaw(length, limits.maxMapKeyBytes(), "MessagePack map key");
-            return new MapKey(
-                    ValueFactory.newString(bytes, true),
-                    decodeUtf8(bytes, "MessagePack map key")
-            );
+            ImmutableRawValue value = ValueFactory.newString(bytes, true);
+            return new MapKey(value, decodeUtf8(value, "MessagePack map key"));
         }
         if (type == ValueType.BINARY) {
             int length = unpacker.unpackBinaryHeader();
             byte[] bytes = readRaw(length, limits.maxMapKeyBytes(), "MessagePack map key");
-            return new MapKey(
-                    ValueFactory.newBinary(bytes, true),
-                    decodeUtf8(bytes, "MessagePack map key")
-            );
+            ImmutableRawValue value = ValueFactory.newBinary(bytes, true);
+            return new MapKey(value, decodeUtf8(value, "MessagePack map key"));
         }
         if (type == ValueType.INTEGER) {
             BigInteger integer = unpacker.unpackBigInteger();
@@ -178,31 +179,34 @@ public final class BoundedMessagePackUnpacker {
 
     private void checkDepth(int depth) throws IOException {
         if (depth > limits.maxDepth()) {
-            throw new IOException("MessagePack nesting exceeds the depth limit");
+            throw new MessagePackLimitException("MessagePack nesting exceeds the depth limit");
         }
     }
 
     private void consumeNode() throws IOException {
         nodes++;
         if (nodes > limits.maxNodes()) {
-            throw new IOException("MessagePack payload exceeds the node limit");
+            throw new MessagePackLimitException("MessagePack payload exceeds the node limit");
         }
     }
 
     private void ensureMinimumNodes(long additionalNodes) throws IOException {
         if ((long) nodes + additionalNodes > limits.maxNodes()) {
-            throw new IOException("MessagePack payload exceeds the node limit");
+            throw new MessagePackLimitException("MessagePack payload exceeds the node limit");
         }
     }
 
-    private static String decodeUtf8(byte[] bytes, String description) throws IOException {
+    private void requireAvailableBytes(long minimumBytes) throws IOException {
+        // 每个节点至少占一个字节；先检查实际剩余数据，避免短报文放大内存分配。
+        if (minimumBytes > payloadBytes - unpacker.getTotalReadBytes()) {
+            throw new IOException("MessagePack payload is truncated");
+        }
+    }
+
+    private static String decodeUtf8(ImmutableRawValue value, String description) throws IOException {
         try {
-            return StandardCharsets.UTF_8.newDecoder()
-                    .onMalformedInput(CodingErrorAction.REPORT)
-                    .onUnmappableCharacter(CodingErrorAction.REPORT)
-                    .decode(ByteBuffer.wrap(bytes))
-                    .toString();
-        } catch (CharacterCodingException e) {
+            return value.asString();
+        } catch (MessageStringCodingException e) {
             throw new IOException(description + " is not valid UTF-8", e);
         }
     }
