@@ -59,6 +59,7 @@ public class SetEntityDataPacket11940 extends Packet11940 {
         this.metadata = EntityMetadataGenerator.generateFrom(packet.metadata, protocol, netease);
         this.intProperties = packet.intProperties;
         this.floatProperties = packet.floatProperties;
+        this.frame = packet.frame;
 
         return this;
     }

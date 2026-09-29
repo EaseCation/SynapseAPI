@@ -7,28 +7,30 @@ import cn.nukkit.network.Network;
 import cn.nukkit.network.protocol.*;
 import cn.nukkit.network.protocol.BatchPacket.Track;
 import cn.nukkit.utils.Binary;
-import cn.nukkit.utils.MainLogger;
+import cn.nukkit.utils.BinaryStream;
 import it.unimi.dsi.fastutil.longs.Long2ObjectMap;
 import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap;
-import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import lombok.extern.log4j.Log4j2;
-import org.apache.commons.lang3.tuple.Pair;
 import org.itxtech.synapseapi.SynapseAPI;
 import org.itxtech.synapseapi.SynapsePlayer;
 import org.itxtech.synapseapi.multiprotocol.AbstractProtocol;
 import org.itxtech.synapseapi.multiprotocol.PacketRegister;
 import org.itxtech.synapseapi.multiprotocol.protocol16.protocol.CompatibilityPacket16;
+import org.itxtech.synapseapi.event.player.SynapsePlayerBatchSendEvent;
+import org.itxtech.synapseapi.network.OutboundPacket;
+import org.itxtech.synapseapi.network.protocol.PacketSequence;
 import org.itxtech.synapseapi.network.SynapseInterface;
 import org.itxtech.synapseapi.network.SynapseMetrics;
 import org.itxtech.synapseapi.network.protocol.spp.RedirectPacket;
+import org.itxtech.synapseapi.network.protocol.spp.SynapseDataPacket;
 import org.itxtech.synapseapi.utils.PacketLogger;
 
 import java.io.IOException;
 import java.util.*;
 import java.util.concurrent.LinkedBlockingQueue;
-import java.util.function.Function;
-import java.util.stream.Collectors;
+import javax.annotation.Nullable;
 
+import static cn.nukkit.SharedConstants.BREAKPOINT_DEBUGGING;
 import static org.itxtech.synapseapi.SynapseSharedConstants.CLIENTBOUND_PACKET_LOGGING;
 
 /**
@@ -44,8 +46,7 @@ public class SynapseEntryPutPacketThread extends Thread {
     private static SynapseMetrics METRICS;
 
     private final SynapseInterface synapseInterface;
-    private final Queue<Entry> queue = new LinkedBlockingQueue<>();
-    private final Queue<BroadcastEntry> broadcastQueue = new LinkedBlockingQueue<>();
+    private final Queue<PacketEntry> queue = new LinkedBlockingQueue<>();
 
     private final boolean isAutoCompress;
     private long tickUseTime = 0;
@@ -60,327 +61,392 @@ public class SynapseEntryPutPacketThread extends Thread {
     }
 
     public void addMainToThread(SynapsePlayer player, DataPacket packet) {
-        if (player.getSynapseEntry().getSynapse().isRecordPacketStack()) packet.stack = new Throwable();
-        this.queue.offer(new Entry(player, packet));
+        if (BREAKPOINT_DEBUGGING && player.getSynapseEntry().getSynapse().isRecordPacketStack()) {
+            packet.stack = new Throwable();
+        }
+        if (!enqueue(new ForwardEntry(player, packet))) {
+            PacketSequence.discard(packet);
+            packet.stack = null;
+        }
     }
 
-    public void addMainToThreadBroadcast(SynapsePlayer[] players, DataPacket[] packets) {
-        if(players.length == 0 || packets.length == 0) {
-            return;
-        }
+    public boolean supportsPacketSequences() {
+        return this.isAutoCompress;
+    }
 
-        this.broadcastQueue.offer(new BroadcastEntry(players, packets));
+    public void addTransferBarrier(SynapsePlayer player, SynapseDataPacket packet) {
+        enqueue(new TransferEntry(player, packet));
+    }
+
+    private boolean enqueue(PacketEntry entry) {
+        return isRunning && queue.offer(entry);
     }
 
     public void setRunning(boolean running) {
         isRunning = running;
     }
 
-    private static final List<AbstractProtocol> fullProtocols = Arrays.stream(AbstractProtocol.getValues())
-            .filter(protocol -> protocol != AbstractProtocol.PROTOCOL_11)
-            .toList();
-
-    private static class BatchPacketEntry {
-        private final DataPacket normal;
-        private final DataPacket netease;
-
-        private BatchPacketEntry(DataPacket normal, DataPacket netease) {
-            this.normal = normal;
-            this.netease = netease;
-        }
-
-        private DataPacket getNormalVersion() {
-            return normal;
-        }
-
-        private DataPacket getNetEaseVersion() {
-            return netease != null ? netease : normal;
-        }
-    }
-
     @Override
     public void run() {
         Long2ObjectMap<SynapsePlayer> queuedPlayers = new Long2ObjectOpenHashMap<>();
+        Set<SynapsePlayer> blockedPlayerQueues = Collections.newSetFromMap(new WeakHashMap<>());
+        Set<SynapsePlayer> failedPlayerQueues = Collections.newSetFromMap(new WeakHashMap<>());
 
         Network network = Server.getInstance().getNetwork();
-        while (this.isRunning) {
-//            long start = System.currentTimeMillis();
+        try {
+            while (this.isRunning) {
+    //            long start = System.currentTimeMillis();
 
-            SynapseMetrics metrics = METRICS;
-            boolean hasMetrics = metrics != null;
+                SynapseMetrics metrics = METRICS;
 
-            Entry entry;
-            while ((entry = queue.poll()) != null) {
-                try {
-                    if (!entry.player.isClosed() || entry.packet.pid() == ProtocolInfo.DISCONNECT_PACKET) {
-                        DataPacket old = entry.packet;
+                PacketEntry packetEntry;
+                while (this.isRunning && (packetEntry = queue.poll()) != null) {
+                    if (packetEntry instanceof TransferEntry(SynapsePlayer player, SynapseDataPacket packet)) {
+                        queuedPlayers.remove(player.getId());
 
-                        entry.packet = PacketRegister.getCompatiblePacket(entry.packet, (entry.player).getProtocol(), entry.player.isNetEaseClient());
-
-                        if (entry.packet == null) {
-                            MainLogger.getLogger().info("NULL PACKET " + old.getClass().getSimpleName());
-                            continue;
-                        }
-
-                        if (entry.packet != old) { //数据包进行了对应版本的转换
-                            entry.packet.neteaseMode = entry.player.isNetEaseClient();
-                        }
-
-                        if (!entry.packet.isEncoded) {
-                            entry.packet.setHelper(AbstractProtocol.fromRealProtocol(entry.player.getProtocol()).getHelper());
-                            entry.packet.tryEncode();
-                        }
-
-                        if (entry.packet instanceof BatchPacket batch) {
-                            List<byte[]> outboundQueue = entry.player.outboundQueue;
-                            if (!outboundQueue.isEmpty()) {
-                                Compressor compressor = Compressor.byProtocol(entry.player.getProtocol());
-                                RedirectPacket pk = new RedirectPacket();
-                                pk.compressionAlgorithm = compressor.getAlgorithm();
-                                pk.sessionId = entry.player.getSessionId();
-                                pk.mcpeBuffer = batchPackets(outboundQueue, compressor);
-                                outboundQueue.clear();
-
-                                int bytes = pk.mcpeBuffer.length;
-                                network.addUploadStatistic(bytes);
-                                if (hasMetrics) {
-                                    metrics.bytesOut(bytes);
-                                }
-
-                                this.synapseInterface.putPacket(pk);
-                            }
-
-                            RedirectPacket pk = new RedirectPacket();
-                            pk.compressionAlgorithm = entry.player.getServer().getCompressor().getAlgorithm();
-                            pk.sessionId = entry.player.getSessionId();
-
-                            if (hasMetrics) {
-                                Track[] tracks = batch.tracks;
-                                if (tracks != null) {
-                                    for (Track track : tracks) {
-                                        metrics.packetOut(track.packetId, track.size);
-                                    }
-                                } else {
-                                    metrics.packetOut(batch.pid(), 1 + batch.payload.length); //TODO: check me
-                                }
-                            }
-
-                            pk.mcpeBuffer = Binary.appendBytes((byte) ProtocolInfo.BATCH_PACKET, batch.payload);
-
-                            int bytes = pk.mcpeBuffer.length;
-                            network.addUploadStatistic(bytes);
-                            if (hasMetrics) {
-                                metrics.bytesOut(bytes);
-                            }
-
-                            this.synapseInterface.putPacket(pk);
-                        } else if (this.isAutoCompress) {
-                            byte[] buffer = entry.packet.getBuffer();
-
-                            if (hasMetrics) {
-                                metrics.packetOut(entry.packet instanceof CompatibilityPacket16 ? ((CompatibilityPacket16) entry.packet).origin.pid() : entry.packet.pid(), buffer.length);
-                            }
-
-                            if (CLIENTBOUND_PACKET_LOGGING && log.isTraceEnabled()) {
-                                PacketLogger.handleClientboundPacket(entry.player, entry.packet);
-                            }
-
-                            entry.player.outboundQueue.add(buffer);
-
-                            queuedPlayers.put(entry.player.getId(), entry.player);
+                        if (player.isClosed()) {
+                            clearPlayerOutboundState(player);
+                            failedPlayerQueues.remove(player);
+                        } else if (blockedPlayerQueues.contains(player)) {
+                            clearPlayerOutboundState(player);
+                            failedPlayerQueues.remove(player);
+                            log.warn("Ignoring duplicate transfer marker for player: {}", player.getName());
+                        } else if (failedPlayerQueues.remove(player)) {
+                            clearPlayerOutboundState(player);
+                            scheduleTransferRecovery(player);
+                            log.error("Cannot transfer player because a queued player packet failed: {}", player.getName());
                         } else {
-                            RedirectPacket pk = new RedirectPacket();
-                            pk.compressionAlgorithm = entry.player.getServer().getCompressor().getAlgorithm();
-                            pk.sessionId = entry.player.getSessionId();
-                            pk.mcpeBuffer = entry.packet.getBuffer();
-
-                            int bytes = pk.mcpeBuffer.length;
-                            network.addUploadStatistic(bytes);
-                            if (hasMetrics) {
-                                metrics.packetOut(entry.packet instanceof CompatibilityPacket16 ? ((CompatibilityPacket16) entry.packet).origin.pid() : entry.packet.pid(), bytes);
-                                metrics.bytesOut(bytes);
-                            }
-
-                            this.synapseInterface.putPacket(pk);
-                        }
-                    }
-                } catch (Exception e) {
-                    MainLogger.getLogger().alert("Catch exception when put single packet", e);
-                    if (entry.packet.stack != null)
-                        MainLogger.getLogger().alert("Main thread stack", entry.packet.stack);
-                } finally {
-                    if (entry.packet != null) entry.packet.stack = null;
-                }
-            }
-
-            for (SynapsePlayer player : queuedPlayers.values()) {
-                List<byte[]> outboundQueue = player.outboundQueue;
-                if (outboundQueue.isEmpty()) {
-                    continue;
-                }
-
-                Compressor compressor = Compressor.byProtocol(player.getProtocol());
-                byte[] buffer;
-                try {
-                    buffer = batchPackets(outboundQueue, compressor);
-                } catch (IOException e) {
-                    log.throwing(e);
-                    continue;
-                }
-                outboundQueue.clear();
-
-                RedirectPacket pk = new RedirectPacket();
-                pk.compressionAlgorithm = compressor.getAlgorithm();
-                pk.mcpeBuffer = buffer;
-                pk.sessionId = player.getSessionId();
-                this.synapseInterface.putPacket(pk);
-
-                int bytes = buffer.length;
-                network.addUploadStatistic(bytes);
-                if (hasMetrics) {
-                    metrics.bytesOut(bytes);
-                }
-            }
-            queuedPlayers.clear();
-
-            BroadcastEntry entry1;
-            while ((entry1 = broadcastQueue.poll()) != null) {
-                try {
-                    //筛选出需要进行batch包装的协议，避免不需要的多余的包装浪费性能
-                    List<SynapsePlayer> players = Arrays.stream(entry1.player).filter(Objects::nonNull).toList();
-                    boolean haveNetEasePlayer = players.stream().anyMatch(SynapsePlayer::isNetEaseClient);
-                    boolean[] haveNetEasePacket = new boolean[]{false};
-                    Map<AbstractProtocol, List<BatchPacketEntry>> needPackets =
-                            fullProtocols.stream()
-                                    .filter(protocol ->
-                                            players.stream()
-                                                    .anyMatch(p -> AbstractProtocol.fromRealProtocol(p.getProtocol()) == protocol))
-                                    .collect(Collectors.toMap(Function.identity(), v -> new ObjectArrayList<>()));
-
-                    for (DataPacket targetPk : entry1.packet) {
-                        /*RedirectPacket pk = new RedirectPacket();
-                        pk.uuid = entry.player.getUniqueId();
-                        pk.direct = entry.immediate;*/
-
-                        if (targetPk.pid() == BatchPacket.NETWORK_ID) {
-                            needPackets.forEach((protocol, packets) -> packets.add(new BatchPacketEntry(targetPk, null)));
-                            continue;
-                        }
-
-                        needPackets.forEach((protocol, packets) -> {
                             try {
-                                DataPacket packet = PacketRegister.getCompatiblePacket(targetPk, protocol, false);
-                                DataPacket neteaseVersion = (haveNetEasePlayer && PacketRegister.isNetEaseSpecial(protocol, targetPk.pid())) ? PacketRegister.getCompatiblePacket(targetPk, protocol, true) : null;
-                                if (neteaseVersion != null) haveNetEasePacket[0] = true;
-                                if (packet != null) packets.add(new BatchPacketEntry(packet, neteaseVersion));
+                                flushPlayerOutboundQueue(player, network, metrics);
+                                blockedPlayerQueues.add(player);
+                                this.synapseInterface.putPacket(packet);
                             } catch (Exception e) {
-                                MainLogger.getLogger().alert("Catch exception when put broadcast packet", e);
-                                if (targetPk.stack != null) {
-                                    MainLogger.getLogger().alert("Main thread stack", targetPk.stack);
-                                }
-                            } finally {
-                                targetPk.stack = null;
-                            }
-                        });
-                    }
-
-                    Map<AbstractProtocol, Pair<byte[][], Track[][]>> finalData = new EnumMap<>(AbstractProtocol.class);
-                    needPackets.forEach((protocol, packets) -> {
-                        DataPacket[] dataPackets = packets.stream().map(BatchPacketEntry::getNormalVersion).toArray(DataPacket[]::new);
-                        BatchPacket batch = batchPackets(dataPackets, protocol);
-                        if (batch != null) {
-                            if (haveNetEasePacket[0]) {
-                                DataPacket[] neteasePackets = packets.stream().map(BatchPacketEntry::getNetEaseVersion).toArray(DataPacket[]::new);
-                                BatchPacket batchNetEase = batchPackets(neteasePackets, protocol);
-                                if (batchNetEase != null) {
-                                    finalData.put(protocol, Pair.of(new byte[][]{Binary.appendBytes((byte) ProtocolInfo.BATCH_PACKET, batch.payload), Binary.appendBytes((byte) ProtocolInfo.BATCH_PACKET, batchNetEase.payload)}, new Track[][]{batch.tracks, batchNetEase.tracks}));
-                                } else {
-                                    finalData.put(protocol, Pair.of(new byte[][]{Binary.appendBytes((byte) ProtocolInfo.BATCH_PACKET, batch.payload)}, new Track[][]{batch.tracks}));
-                                }
-                            } else {
-                                finalData.put(protocol, Pair.of(new byte[][]{Binary.appendBytes((byte) ProtocolInfo.BATCH_PACKET, batch.payload)}, new Track[][]{batch.tracks}));
+                                blockedPlayerQueues.remove(player);
+                                clearPlayerOutboundState(player);
+                                scheduleTransferRecovery(player);
+                                log.error("Failed to flush player packets or submit transfer: {}", player.getName(), e);
                             }
                         }
-                    });
+                        break;
+                    }
 
-                    for (SynapsePlayer player : entry1.player) {
-                        if (player.closed) {
+                    ForwardEntry entry = (ForwardEntry) packetEntry;
+                    if (blockedPlayerQueues.contains(entry.player)) {
+                        PacketSequence.discard(entry.packet);
+                        entry.packet.stack = null;
+                        continue;
+                    }
+                    try {
+                        if (entry.player.isClosed() && entry.packet.pid() != ProtocolInfo.DISCONNECT_PACKET) {
+                            PacketSequence.discard(entry.packet);
                             continue;
                         }
-
-                        AbstractProtocol protocol = AbstractProtocol.fromRealProtocol(player.getProtocol());
-                        Pair<byte[][], Track[][]> pair = finalData.get(protocol);
-                        if (pair != null) {
-                            RedirectPacket pk = new RedirectPacket();
-                            pk.compressionAlgorithm = player.getServer().getCompressor().getAlgorithm();
-                            pk.protocol = player.getProtocol();
-                            pk.sessionId = player.getSessionId();
-
-                            byte[][] datas = pair.getLeft();
-                            Track[][] trackPairs = pair.getRight();
-                            Track[] tracks;
-                            if (datas.length >= 2 && player.isNetEaseClient()) {
-                                pk.mcpeBuffer = datas[1];
-                                tracks = trackPairs[1];
-                            } else {
-                                pk.mcpeBuffer = datas[0];
-                                tracks = trackPairs[0];
-                            }
-
-                            if (hasMetrics) {
-                                for (Track track : tracks) {
-                                    metrics.packetOut(track.packetId, track.size);
+                        if (entry.packet instanceof BatchPacket batch) {
+                            flushPlayerOutboundQueue(entry.player, network, metrics);
+                            queuedPlayers.remove(entry.player.getId());
+                            forwardBatch(entry.player, batch, network, metrics);
+                        } else if (this.isAutoCompress) {
+                            OutboundPacket packet = encodePacket(entry.player, entry.packet, false);
+                            if (packet == null) {
+                                if (entry.packet instanceof PacketSequence) {
+                                    failedPlayerQueues.add(entry.player);
                                 }
-
-                                int bytes = pk.mcpeBuffer.length;
-                                network.addUploadStatistic(bytes);
-                                metrics.bytesOut(bytes);
+                                continue;
                             }
-
-                            this.synapseInterface.putPacket(pk);
+                            entry.player.outboundQueue.add(packet);
+                            queuedPlayers.put(entry.player.getId(), entry.player);
+                            PacketSequence.appended(entry.packet);
+                        } else if (entry.packet instanceof PacketSequence) {
+                            PacketSequence.discard(entry.packet);
+                        } else {
+                            OutboundPacket packet = encodePacket(entry.player, entry.packet, false);
+                            if (packet == null) {
+                                continue;
+                            }
+                            RedirectPacket redirect = new RedirectPacket();
+                            redirect.compressionAlgorithm = entry.player.getServer().getCompressor().getAlgorithm();
+                            redirect.sessionId = entry.player.getSessionId();
+                            redirect.mcpeBuffer = packet.buffers().getFirst();
+                            this.synapseInterface.putPacket(redirect);
+                            network.addUploadStatistic(redirect.mcpeBuffer.length);
+                            if (metrics != null) {
+                                metrics.bytesOut(redirect.mcpeBuffer.length);
+                            }
                         }
+                    } catch (Exception exception) {
+                        PacketSequence.discard(entry.packet);
+                        failedPlayerQueues.add(entry.player);
+                        log.error("Failed to encode or submit player packet: {}", entry.player.getName(), exception);
+                        if (entry.packet.stack != null) {
+                            log.error("Main thread packet creation stack", entry.packet.stack);
+                        }
+                    } finally {
+                        entry.packet.stack = null;
                     }
-                } catch (Exception e) {
-                    Server.getInstance().getLogger().alert("Catch exception when Synapse Entry Put Packet: ", e);
                 }
-            }
 
-            try {
-                Thread.sleep(1);
-            } catch (InterruptedException ignored) {
-            }
-            /*tickUseTime = System.currentTimeMillis() - start;
-            if (tickUseTime < 10){
+                for (SynapsePlayer player : queuedPlayers.values()) {
+                    try {
+                        if (!isRunning) {
+                            clearPlayerOutboundState(player);
+                            continue;
+                        }
+                        flushPlayerOutboundQueue(player, network, metrics);
+                    } catch (Exception e) {
+                        failedPlayerQueues.add(player);
+                        log.error("Failed to flush queued player packets: {}", player.getName(), e);
+                    }
+                }
+                queuedPlayers.clear();
+
                 try {
-                    Thread.sleep(10 - tickUseTime);
-                } catch (InterruptedException e) {
-                    //ignore
+                    Thread.sleep(1);
+                } catch (InterruptedException ignored) {
                 }
-            }*/ /*else if (System.currentTimeMillis() - lastWarning >= 5000) {
-                Server.getInstance().getLogger().warning("SynapseOutgoing<" + synapseInterface.getSynapse().getHash() + "> Async Thread is overloading! TPS: " + getTicksPerSecond() + " tickUseTime: " + tickUseTime);
-                lastWarning = System.currentTimeMillis();
-            }*/
+                /*tickUseTime = System.currentTimeMillis() - start;
+                if (tickUseTime < 10){
+                    try {
+                        Thread.sleep(10 - tickUseTime);
+                    } catch (InterruptedException e) {
+                        //ignore
+                    }
+                }*/ /*else if (System.currentTimeMillis() - lastWarning >= 5000) {
+                    Server.getInstance().getLogger().warning("SynapseOutgoing<" + synapseInterface.getSynapse().getHash() + "> Async Thread is overloading! TPS: " + getTicksPerSecond() + " tickUseTime: " + tickUseTime);
+                    lastWarning = System.currentTimeMillis();
+                }*/
+            }
+        } finally {
+            setRunning(false);
+            PacketEntry remaining;
+            while ((remaining = queue.poll()) != null) {
+                if (remaining instanceof ForwardEntry entry) {
+                    PacketSequence.discard(entry.packet);
+                    entry.packet.stack = null;
+                }
+            }
+            for (SynapsePlayer player : queuedPlayers.values()) {
+                clearPlayerOutboundState(player);
+            }
         }
     }
 
-    private static class Entry {
-        private final SynapsePlayer player;
-        private DataPacket packet;
-
-        public Entry(SynapsePlayer player, DataPacket packet) {
-            this.player = player;
-            this.packet = packet;
+    private void scheduleTransferRecovery(SynapsePlayer player) {
+        try {
+            Server.getInstance().getScheduler().scheduleTask(SynapseAPI.getInstance(), () -> {
+                if (!player.isOnline()) {
+                    return;
+                }
+                try {
+                    player.rejoinGame("disconnectionScreen.internalError");
+                } catch (Exception e) {
+                    log.error("Failed to recover player after transfer failure: {}", player.getName(), e);
+                    try {
+                        player.close("", "disconnectionScreen.internalError");
+                    } catch (Exception closeException) {
+                        log.error("Failed to close player after transfer recovery failed: {}", player.getName(), closeException);
+                    }
+                }
+            });
+        } catch (Exception e) {
+            log.error("Failed to schedule transfer recovery: {}", player.getName(), e);
         }
     }
 
-    private static class BroadcastEntry {
-        private final SynapsePlayer[] player;
-        private final DataPacket[] packet;
-
-        public BroadcastEntry(SynapsePlayer[] player, DataPacket[] packet) {
-            this.player = player;
-            this.packet = packet;
+    private void forwardBatch(SynapsePlayer player, BatchPacket batch, Network network, @Nullable SynapseMetrics metrics) {
+        if (metrics != null) {
+            Track[] tracks = batch.tracks;
+            if (tracks != null) {
+                for (Track track : tracks) {
+                    metrics.packetOut(track.packetId, track.size);
+                }
+            } else {
+                metrics.packetOut(batch.pid(), 1 + batch.payload.length);
+            }
         }
+        RedirectPacket packet = new RedirectPacket();
+        packet.compressionAlgorithm = player.getServer().getCompressor().getAlgorithm();
+        packet.sessionId = player.getSessionId();
+        packet.mcpeBuffer = Binary.appendBytes((byte) ProtocolInfo.BATCH_PACKET, batch.payload);
+        this.synapseInterface.putPacket(packet);
+        network.addUploadStatistic(packet.mcpeBuffer.length);
+        if (metrics != null) {
+            metrics.bytesOut(packet.mcpeBuffer.length);
+        }
+    }
+
+    private void flushPlayerOutboundQueue(SynapsePlayer player, Network network, @Nullable SynapseMetrics metrics) {
+        List<OutboundPacket> outboundQueue = player.outboundQueue;
+        if (outboundQueue.isEmpty()) {
+            return;
+        }
+        if (player.isClosed()) {
+            discardSequences(outboundQueue);
+        } else {
+            List<DataPacket> packets = new ArrayList<>(outboundQueue.size());
+            for (OutboundPacket packet : outboundQueue) {
+                packets.add(packet.packet());
+            }
+            SynapsePlayerBatchSendEvent event = new SynapsePlayerBatchSendEvent(player, packets);
+            try {
+                event.call();
+                for (DataPacket additional : event.getAdditionalPackets()) {
+                    OutboundPacket packet = encodePacket(player, additional, true);
+                    if (packet != null) {
+                        outboundQueue.add(packet);
+                        PacketSequence.appended(additional);
+                    }
+                }
+            } catch (Exception exception) {
+                for (DataPacket additional : event.getAdditionalPackets()) {
+                    PacketSequence.discard(additional);
+                }
+                discardTailPackets(outboundQueue);
+                log.error("Batch send event failed for player: {}", player.getName(), exception);
+            }
+        }
+        if (outboundQueue.isEmpty()) {
+            return;
+        }
+
+        Compressor compressor = Compressor.byProtocol(player.getProtocol());
+        byte[] buffer;
+        try {
+            try {
+                buffer = batchPackets(outboundQueue, compressor);
+            } catch (IOException exception) {
+                discardSequences(outboundQueue);
+                log.warn("Failed to batch player packets, falling back to ordinary packets: {}", player.getName(), exception);
+                Iterator<OutboundPacket> iterator = outboundQueue.iterator();
+                while (iterator.hasNext()) {
+                    OutboundPacket original = iterator.next();
+                    byte[] packetBuffer = original.buffers().getFirst();
+                    RedirectPacket packet = new RedirectPacket();
+                    packet.compressionAlgorithm = compressor.getAlgorithm();
+                    packet.mcpeBuffer = packetBuffer;
+                    packet.sessionId = player.getSessionId();
+                    this.synapseInterface.putPacket(packet);
+                    iterator.remove();
+                    network.addUploadStatistic(packetBuffer.length);
+                    if (metrics != null) {
+                        metrics.bytesOut(packetBuffer.length);
+                    }
+                }
+                return;
+            }
+            RedirectPacket packet = new RedirectPacket();
+            packet.compressionAlgorithm = compressor.getAlgorithm();
+            packet.mcpeBuffer = buffer;
+            packet.sessionId = player.getSessionId();
+            this.synapseInterface.putPacket(packet);
+            outboundQueue.clear();
+        } catch (RuntimeException exception) {
+            discardSequences(outboundQueue);
+            throw exception;
+        }
+        network.addUploadStatistic(buffer.length);
+        if (metrics != null) {
+            metrics.bytesOut(buffer.length);
+        }
+    }
+
+    private static void clearPlayerOutboundState(SynapsePlayer player) {
+        for (OutboundPacket packet : player.outboundQueue) {
+            packet.discard();
+        }
+        player.outboundQueue.clear();
+    }
+
+    private static void discardSequences(List<OutboundPacket> packets) {
+        Iterator<OutboundPacket> iterator = packets.iterator();
+        while (iterator.hasNext()) {
+            OutboundPacket packet = iterator.next();
+            if (packet.requiresBatch()) {
+                packet.discard();
+                iterator.remove();
+            }
+        }
+    }
+
+    private static void discardTailPackets(List<OutboundPacket> packets) {
+        Iterator<OutboundPacket> iterator = packets.iterator();
+        while (iterator.hasNext()) {
+            OutboundPacket packet = iterator.next();
+            if (packet.batchTail()) {
+                packet.discard();
+                iterator.remove();
+            }
+        }
+    }
+
+    private interface PacketEntry {
+        SynapsePlayer player();
+
+        BinaryStream packet();
+    }
+
+    private record ForwardEntry(SynapsePlayer player, DataPacket packet) implements PacketEntry {
+    }
+
+    private record TransferEntry(SynapsePlayer player, SynapseDataPacket packet) implements PacketEntry {
+    }
+
+    @Nullable
+    private static OutboundPacket encodePacket(SynapsePlayer player, DataPacket original, boolean batchTail) {
+        try {
+            if (!(original instanceof PacketSequence)) {
+                byte[] buffer = encodeSinglePacket(player, original);
+                return buffer == null ? null : new OutboundPacket(original, List.of(buffer), batchTail);
+            }
+            List<byte[]> buffers = new ArrayList<>();
+            Deque<DataPacket> pending = new ArrayDeque<>();
+            pending.add(original);
+            while (!pending.isEmpty()) {
+                DataPacket packet = pending.removeFirst();
+                if (packet instanceof PacketSequence sequence) {
+                    List<DataPacket> children = sequence.getPackets();
+                    for (int index = children.size() - 1; index >= 0; index--) {
+                        pending.addFirst(children.get(index));
+                    }
+                } else {
+                    byte[] buffer = encodeSinglePacket(player, packet);
+                    if (buffer == null) {
+                        PacketSequence.discard(original);
+                        return null;
+                    }
+                    buffers.add(buffer);
+                }
+            }
+            return new OutboundPacket(original, buffers, batchTail);
+        } catch (RuntimeException exception) {
+            PacketSequence.discard(original);
+            throw exception;
+        }
+    }
+
+    @Nullable
+    private static byte[] encodeSinglePacket(SynapsePlayer player, DataPacket packet) {
+        if (packet instanceof BatchPacket) {
+            return null;
+        }
+        packet = player.prepareOutboundPacket(packet);
+        packet = PacketRegister.getCompatiblePacket(packet, player.getProtocol(), player.isNetEaseClient());
+        if (packet == null) {
+            return null;
+        }
+        packet.setHelper(AbstractProtocol.fromRealProtocol(player.getProtocol()).getHelper());
+        packet.neteaseMode = player.isNetEaseClient();
+        packet.tryEncode();
+        byte[] buffer = packet.getBuffer();
+        SynapseMetrics metrics = METRICS;
+        if (metrics != null) {
+            int packetId = packet instanceof CompatibilityPacket16 compatibilityPacket
+                    ? compatibilityPacket.origin.pid() : packet.pid();
+            metrics.packetOut(packetId, buffer.length);
+        }
+        if (CLIENTBOUND_PACKET_LOGGING && log.isTraceEnabled()) {
+            PacketLogger.handleClientboundPacket(player, packet);
+        }
+        return buffer;
     }
 
     public double getTicksPerSecond() {
@@ -389,43 +455,18 @@ public class SynapseEntryPutPacketThread extends Thread {
         return NukkitMath.round(10d / this.tickUseTime, 3) * 100;
     }
 
-    private static BatchPacket batchPackets(DataPacket[] packets, AbstractProtocol protocol) {
-        Track[] tracks = new Track[packets.length];
-        try {
-            byte[][] payload = new byte[packets.length * 2][];
-            for (int i = 0; i < packets.length; i++) {
-                DataPacket p = packets[i];
-                int idx = i * 2;
-                if (!p.isEncoded) {
-                    p.setHelper(protocol.getHelper());
-                    p.tryEncode();
-                }
-                byte[] buf = p.getBuffer();
-                payload[idx] = Binary.writeUnsignedVarInt(buf.length);
-                payload[idx + 1] = buf;
-
-                tracks[i] = new Track(p instanceof CompatibilityPacket16 ? ((CompatibilityPacket16) p).origin.pid() : p.pid(), p.getCount());
-            }
-
-            BatchPacket packet = new BatchPacket();
-            packet.payload = protocol.getCompressor().compress(payload, Server.getInstance().networkCompressionLevel);
-            packet.tracks = tracks;
-            return packet;
-        } catch (Exception e) {
-            MainLogger.getLogger().logException(e);
+    private static byte[] batchPackets(List<OutboundPacket> packets, Compressor compressor) throws IOException {
+        int count = 0;
+        for (OutboundPacket packet : packets) {
+            count += packet.buffers().size();
         }
-
-        return null;
-    }
-
-    private static byte[] batchPackets(List<byte[]> packets, Compressor compressor) throws IOException {
-        int count = packets.size();
         byte[][] payload = new byte[count * 2][];
-        for (int i = 0; i < count; i++) {
-            byte[] buffer = packets.get(i);
-            int idx = i * 2;
-            payload[idx] = Binary.writeUnsignedVarInt(buffer.length);
-            payload[idx + 1] = buffer;
+        int index = 0;
+        for (OutboundPacket packet : packets) {
+            for (byte[] buffer : packet.buffers()) {
+                payload[index++] = Binary.writeUnsignedVarInt(buffer.length);
+                payload[index++] = buffer;
+            }
         }
         byte[] result = compressor.compress(payload, Server.getInstance().networkCompressionLevel);
         return Binary.appendBytes((byte) ProtocolInfo.BATCH_PACKET, result);

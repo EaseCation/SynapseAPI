@@ -2603,20 +2603,29 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
 
                 ModalFormResponsePacket11920 modalFormPacket = (ModalFormResponsePacket11920) packet;
 
-                FormWindow window = formWindows.get(modalFormPacket.formId);
+                // 界面忙表示表单未显示，不能触发取消/返回回调并再次打开表单。
+                if (modalFormPacket.canceled && modalFormPacket.cancelReason == ModalFormResponsePacket11920.CANCEL_REASON_USER_BUSY) {
+                    formWindows.remove(modalFormPacket.formId);
+                    break;
+                }
+
+                FormWindow window = formWindows.remove(modalFormPacket.formId);
                 if (window != null) {
-                    window.setResponse(modalFormPacket.data.trim(), getProtocol());
+                    if (!window.setResponse(modalFormPacket.data, getProtocol())) {
+                        break;
+                    }
 
                     PlayerFormRespondedEvent event = new PlayerFormRespondedEvent(this, modalFormPacket.formId, window);
                     getServer().getPluginManager().callEvent(event);
 
-                    formWindows.remove(modalFormPacket.formId);
                     break;
                 }
 
                 window = serverSettings.get(modalFormPacket.formId);
                 if (window != null) {
-                    window.setResponse(modalFormPacket.data.trim(), getProtocol());
+                    if (!window.setResponse(modalFormPacket.data, getProtocol())) {
+                        break;
+                    }
 
                     PlayerSettingsRespondedEvent event = new PlayerSettingsRespondedEvent(this, modalFormPacket.formId, window);
                     getServer().getPluginManager().callEvent(event);
@@ -3825,10 +3834,8 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
                                         }
                                     }
 
-                                    // 解决卡物品栏问题（只发送物品正确的物品栏）
-                                    if (inventory.getItemInHand().getId() == useItemData.itemInHand.getId() && inventory.getItemInHand().getCount() != useItemData.itemInHand.getCount()) {
-                                        inventory.sendHeldItem(this);
-                                    }
+                                    // 请求数量不代表客户端预测后的库存，放置失败时始终回发权威手持。
+                                    inventory.sendHeldItem(this);
 
                                     if (clientPredictedFailure) {
                                         break packetswitch;

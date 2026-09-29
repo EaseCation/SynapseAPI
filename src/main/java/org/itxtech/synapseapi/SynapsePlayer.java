@@ -29,7 +29,6 @@ import cn.nukkit.network.SourceInterface;
 import cn.nukkit.network.protocol.*;
 import cn.nukkit.resourcepacks.ResourcePack;
 import cn.nukkit.scheduler.AsyncTask;
-import cn.nukkit.scheduler.Task;
 import cn.nukkit.utils.*;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
@@ -65,6 +64,9 @@ import org.itxtech.synapseapi.multiprotocol.protocol14.protocol.PlayerActionPack
 import org.itxtech.synapseapi.multiprotocol.protocol14.protocol.TextPacket14;
 import org.itxtech.synapseapi.multiprotocol.protocol17.protocol.TextPacket17;
 import org.itxtech.synapseapi.multiprotocol.utils.*;
+import org.itxtech.synapseapi.network.OutboundPacket;
+import org.itxtech.synapseapi.network.protocol.PacketSequence;
+import org.itxtech.synapseapi.network.SynLibInterface;
 import org.itxtech.synapseapi.network.protocol.mod.ServerSubPacketHandler;
 import org.itxtech.synapseapi.network.protocol.spp.PlayerLoginPacket;
 import org.itxtech.synapseapi.network.protocol.spp.PlayerLogoutPacket;
@@ -78,6 +80,7 @@ import org.msgpack.value.Value;
 import java.net.InetSocketAddress;
 import java.util.*;
 import java.util.concurrent.ThreadLocalRandom;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Function;
 
 import static org.itxtech.synapseapi.SynapseSharedConstants.DATA_VERSION;
@@ -104,6 +107,7 @@ public class SynapsePlayer extends Player {
     protected boolean betaClient;
     protected JsonObject cachedExtra = new JsonObject();
     protected final JsonObject transferExtra = new JsonObject();
+    private final AtomicBoolean transferInProgress = new AtomicBoolean();
     protected int dummyDimension;
     protected int transferDimension = -1;
     protected int loadingScreenId = ThreadLocalRandom.current().nextInt(0xffff, 0xfffffff);
@@ -130,7 +134,7 @@ public class SynapsePlayer extends Player {
     float lastAuthInputYaw;
     float lastAuthInputPitch;
 
-    public final List<byte[]> outboundQueue = new ArrayList<>();
+    public final List<OutboundPacket> outboundQueue = new ArrayList<>();
 
     public SynapsePlayer(SourceInterface interfaz, SynapseEntry synapseEntry, Long clientID, InetSocketAddress socketAddress) {
         super(interfaz, clientID, socketAddress);
@@ -250,6 +254,7 @@ public class SynapsePlayer extends Player {
         return gamemode;
     }
 
+    @Override
     public LoginChainData getLoginChainData() {
         return this.isSynapseLogin ? this.loginChainData : super.getLoginChainData();
     }
@@ -283,48 +288,57 @@ public class SynapsePlayer extends Player {
                     if (packet.extra.has("xuid")) ((org.itxtech.synapseapi.multiprotocol.protocol12.protocol.LoginPacket) pk).xuid = packet.extra.get("xuid").getAsString();
                     this.isNetEaseClient = Optional.ofNullable(packet.extra.get("netease")).orElseGet(() -> new JsonPrimitive(false)).getAsBoolean();
                 }
+                if (!checkTransferExtra()) {
+                    setLoginChainData(ClientChainData12NetEase.read((LoginPacket) pk));
+                    rejoinGame("disconnectionScreen.blockMismatch");
+                    return;
+                }
                 this.handleDataPacket(pk);
 
-                if (cachedExtra != null) {
-                    JsonElement viewDistance = cachedExtra.get("viewDistance");
-                    if (viewDistance != null) {
-                        int distance = viewDistance.getAsInt();
-                        if (distance >= 4 && distance <= 96) {
-                            this.viewDistance = distance;
-                            this.chunkRadius = Math.min(this.viewDistance, this.getMaxViewDistance());
-                        }
-                    }
-
-                    JsonElement dataVersion = cachedExtra.get("DataVersion");
-                    if (dataVersion != null && !checkDataVersion(dataVersion.getAsInt())) {
-                        return;
-                    }
-                    JsonElement blocksChecksum = cachedExtra.get("blocks_checksum");
-                    if (blocksChecksum != null && !checkBlockRegistryChecksum(blocksChecksum.getAsLong())) {
-                        return;
-                    }
-                    JsonElement itemsChecksum = cachedExtra.get("items_checksum");
-                    if (itemsChecksum != null && !checkItemRegistryChecksum(itemsChecksum.getAsLong())) {
-                        return;
-                    }
-                    JsonElement biomesChecksum = cachedExtra.get("biomes_checksum");
-                    if (biomesChecksum != null && !checkBiomeRegistryChecksum(biomesChecksum.getAsLong())) {
-                        return;
-                    }
-                    JsonElement entitiesChecksum = cachedExtra.get("entities_checksum");
-                    if (entitiesChecksum != null && !checkEntityRegistryChecksum(entitiesChecksum.getAsLong())) {
-                        return;
-                    }
-                    JsonElement camerasChecksum = cachedExtra.get("cameras_checksum");
-                    if (camerasChecksum != null && !checkCameraRegistryChecksum(camerasChecksum.getAsLong())) {
-                        return;
-                    }
-                }
             } catch (Exception e) {
                 MainLogger.getLogger().logException(e);
                 this.close("", "disconnectionScreen.internalError.cantConnect");
             }
         }
+    }
+
+    protected boolean checkTransferExtra() {
+        if (cachedExtra != null) {
+            JsonElement viewDistance = cachedExtra.get("viewDistance");
+            if (viewDistance != null) {
+                int distance = viewDistance.getAsInt();
+                if (distance >= 4 && distance <= 96) {
+                    this.viewDistance = distance;
+                    this.chunkRadius = Math.min(this.viewDistance, this.getMaxViewDistance());
+                }
+            }
+
+            JsonElement dataVersion = cachedExtra.get("DataVersion");
+            if (dataVersion != null && !checkDataVersion(dataVersion.getAsInt())) {
+                return false;
+            }
+            JsonElement blocksChecksum = cachedExtra.get("blocks_checksum");
+            if (blocksChecksum != null && !checkBlockRegistryChecksum(blocksChecksum.getAsLong())) {
+                return false;
+            }
+            JsonElement itemsChecksum = cachedExtra.get("items_checksum");
+            if (itemsChecksum != null && !checkItemRegistryChecksum(itemsChecksum.getAsLong())) {
+                return false;
+            }
+            JsonElement biomesChecksum = cachedExtra.get("biomes_checksum");
+            if (biomesChecksum != null && !checkBiomeRegistryChecksum(biomesChecksum.getAsLong())) {
+                return false;
+            }
+            JsonElement entitiesChecksum = cachedExtra.get("entities_checksum");
+            if (entitiesChecksum != null && !checkEntityRegistryChecksum(entitiesChecksum.getAsLong())) {
+                return false;
+            }
+            JsonElement camerasChecksum = cachedExtra.get("cameras_checksum");
+            if (camerasChecksum != null && !checkCameraRegistryChecksum(camerasChecksum.getAsLong())) {
+                return false;
+            }
+        }
+        return true;
     }
 
     protected boolean checkDataVersion(int previousDataVersion) {
@@ -333,7 +347,6 @@ public class SynapsePlayer extends Player {
         }
 
         SynapseAPI.getInstance().getLogger().info("玩家 {} 触发原生跨服由于先前的数据版本 {} 与本服 {} 不同", getName(), previousDataVersion, DATA_VERSION);
-        rejoinGame("disconnectionScreen.blockMismatch");
         return false;
     }
 
@@ -344,7 +357,6 @@ public class SynapsePlayer extends Player {
         }
 
         SynapseAPI.getInstance().getLogger().info("玩家 {} 触发原生跨服由于先前的方块注册表 {} 与本服 {} 不同", getName(), previousChecksum, checksum);
-        rejoinGame("disconnectionScreen.blockMismatch");
         return false;
     }
 
@@ -355,7 +367,6 @@ public class SynapsePlayer extends Player {
         }
 
         SynapseAPI.getInstance().getLogger().info("玩家 {} 触发原生跨服由于先前的物品注册表 {} 与本服 {} 不同", getName(), previousChecksum, checksum);
-        rejoinGame("disconnectionScreen.blockMismatch");
         return false;
     }
 
@@ -366,7 +377,6 @@ public class SynapsePlayer extends Player {
         }
 
         SynapseAPI.getInstance().getLogger().info("玩家 {} 触发原生跨服由于先前的生物群系注册表 {} 与本服 {} 不同", getName(), previousChecksum, checksum);
-        rejoinGame("disconnectionScreen.blockMismatch");
         return false;
     }
 
@@ -377,7 +387,6 @@ public class SynapsePlayer extends Player {
         }
 
         SynapseAPI.getInstance().getLogger().info("玩家 {} 触发原生跨服由于先前的实体注册表 {} 与本服 {} 不同", getName(), previousChecksum, checksum);
-        rejoinGame("disconnectionScreen.blockMismatch");
         return false;
     }
 
@@ -388,7 +397,6 @@ public class SynapsePlayer extends Player {
         }
 
         SynapseAPI.getInstance().getLogger().info("玩家 {} 触发原生跨服由于先前的相机注册表 {} 与本服 {} 不同", getName(), previousChecksum, checksum);
-        rejoinGame("disconnectionScreen.blockMismatch");
         return false;
     }
 
@@ -407,7 +415,9 @@ public class SynapsePlayer extends Player {
         TransferPacket packet = new TransferPacket();
         packet.address = split[0];
         packet.port = Integer.parseInt(split[1]);
-        dataPacket(packet);
+        if (!dataPacket(packet)) {
+            close("", reason);
+        }
     }
 
     public SynapseEntry getSynapseEntry() {
@@ -880,6 +890,9 @@ public class SynapsePlayer extends Player {
         Entry clientData = clients.clientList.get(hash);
 
         if (clientData != null) {
+            if (!this.transferInProgress.compareAndSet(false, true)) {
+                return false;
+            }
             // this.sendMessage(TextFormat.GRAY + " -> " + clientData.getDescription());
             if (extra != null) {
                 for (Map.Entry<String, JsonElement> entry : extra.entrySet()) {
@@ -890,6 +903,7 @@ public class SynapsePlayer extends Player {
             this.server.getPluginManager().callEvent(event);
 
             if (event.isCancelled()) {
+                this.transferInProgress.set(false);
                 return false;
             }
 
@@ -997,35 +1011,30 @@ public class SynapsePlayer extends Player {
 */
             }
 
-            Server.getInstance().getScheduler().scheduleDelayedTask(new Task() {
-                @Override
-                public void onRun(int currentTick) {
-                    org.itxtech.synapseapi.network.protocol.spp.TransferPacket pk = new org.itxtech.synapseapi.network.protocol.spp.TransferPacket();
-                    pk.sessionId = getSessionId();
-                    pk.clientHash = hash;
-                    pk.extra = transferExtra;
-                    pk.extra.addProperty("username", originName);
-                    pk.extra.addProperty("xuid", getLoginChainData().getXUID());
-                    pk.extra.addProperty("netease", isNetEaseClient());
-                    pk.extra.addProperty("blob_cache", getClientCacheTrack() != null);
-                    //跨服时，传输到目标服务器当前玩家安装上的材质
-                    JsonArray resPacks = new JsonArray();
-                    getResourcePacks().keySet().forEach(resPacks::add);
-                    pk.extra.add("res_packs", resPacks);
-                    JsonArray behPacks = new JsonArray();
-                    getResourcePacks().keySet().forEach(behPacks::add);
-                    pk.extra.add("beh_packs", behPacks);
-                    pk.extra.addProperty("viewDistance", viewDistance);
-                    pk.extra.addProperty("viewDistanceMax", getClientMaxViewDistance());
-                    pk.extra.addProperty("DataVersion", DATA_VERSION);
-                    pk.extra.addProperty("blocks_checksum", AdvancedGlobalBlockPalette.getBlockRegistryChecksum());
-                    pk.extra.addProperty("items_checksum", AdvancedRuntimeItemPalette.getItemRegistryChecksum());
-                    pk.extra.addProperty("biomes_checksum", BiomeDefinitions.getBiomeRegistryChecksum());
-                    pk.extra.addProperty("entities_checksum", AvailableEntityIdentifiersPalette.getEntityRegistryChecksum());
-                    pk.extra.addProperty("cameras_checksum", CameraManager.getCameraRegistryChecksum());
-                    getSynapseEntry().sendDataPacket(pk);
-                }
-            }, 1);
+            org.itxtech.synapseapi.network.protocol.spp.TransferPacket pk = new org.itxtech.synapseapi.network.protocol.spp.TransferPacket();
+            pk.sessionId = getSessionId();
+            pk.clientHash = hash;
+            pk.extra = transferExtra;
+            pk.extra.addProperty("username", originName);
+            pk.extra.addProperty("xuid", getLoginChainData().getXUID());
+            pk.extra.addProperty("netease", isNetEaseClient());
+            pk.extra.addProperty("blob_cache", getClientCacheTrack() != null);
+            //跨服时，传输到目标服务器当前玩家安装上的材质
+            JsonArray resPacks = new JsonArray();
+            getResourcePacks().keySet().forEach(resPacks::add);
+            pk.extra.add("res_packs", resPacks);
+            JsonArray behPacks = new JsonArray();
+            getResourcePacks().keySet().forEach(behPacks::add);
+            pk.extra.add("beh_packs", behPacks);
+            pk.extra.addProperty("viewDistance", viewDistance);
+            pk.extra.addProperty("viewDistanceMax", getClientMaxViewDistance());
+            pk.extra.addProperty("DataVersion", DATA_VERSION);
+            pk.extra.addProperty("blocks_checksum", AdvancedGlobalBlockPalette.getBlockRegistryChecksum());
+            pk.extra.addProperty("items_checksum", AdvancedRuntimeItemPalette.getItemRegistryChecksum());
+            pk.extra.addProperty("biomes_checksum", BiomeDefinitions.getBiomeRegistryChecksum());
+            pk.extra.addProperty("entities_checksum", AvailableEntityIdentifiersPalette.getEntityRegistryChecksum());
+            pk.extra.addProperty("cameras_checksum", CameraManager.getCameraRegistryChecksum());
+            getSynapseEntry().getSynapseInterface().getPutPacketThread().addTransferBarrier(this, pk);
             // this.sendMessage(TextFormat.GRAY + "(synapse) -> " + clientData.getDescription());
 
             return true;
@@ -1044,6 +1053,19 @@ public class SynapsePlayer extends Player {
         this.dataPacket(pk);
         //String message = "Transferred to " + hostName + ":" + port;
         //this.close(message, message, false);
+    }
+
+    @Override
+    public boolean kick(PlayerKickEvent.Reason reason, String reasonString, boolean isAdmin) {
+        if (!super.kick(reason, reasonString, isAdmin)) {
+            return false;
+        }
+
+        PlayerLogoutPacket packet = new PlayerLogoutPacket();
+        packet.sessionId = getSessionId();
+        packet.reason = "disconnect.closed";
+        synapseEntry.sendDataPacket(packet);
+        return true;
     }
 
     @Override
@@ -1550,25 +1572,52 @@ public class SynapsePlayer extends Player {
         return cleanTextColor;
     }
 
+    /**
+     * 包序列和批尾事件仅支持 Synapse autoCompress 的普通出站队列。
+     */
+    public boolean supportsPacketSequences() {
+        return this.isSynapseLogin && this.interfaz instanceof SynLibInterface synLibInterface
+                && synLibInterface.supportsPacketSequences();
+    }
+
     @Override
     public boolean dataPacket(DataPacket packet) {
         if (!this.isSynapseLogin) return super.dataPacket(packet);
-        /*if (!this.isFirstTimeLogin && packet instanceof ResourcePacksInfoPacket) {
-            this.processLogin();
-            return -1;
-        }*/
+        if (!(packet instanceof PacketSequence)) {
+            packet = DataPacketEidReplacer.replace(packet, this.getId(), SYNAPSE_PLAYER_ENTITY_ID);
+            packet.setHelper(AbstractProtocol.fromRealProtocol(this.protocol).getHelper());
+            packet.neteaseMode = isNetEaseClient();
+        }
+        DataPacketSendEvent event = new DataPacketSendEvent(this, packet);
+        try {
+            this.server.getPluginManager().callEvent(event);
+        } catch (RuntimeException exception) {
+            PacketSequence.discardReplaced(event.getReplacedPackets(), event.getFinalPacket());
+            PacketSequence.discard(event.getFinalPacket());
+            throw exception;
+        }
+        DataPacket finalPacket = event.getFinalPacket();
+        PacketSequence.discardReplaced(event.getReplacedPackets(), finalPacket);
+        if (event.isCancelled()) {
+            PacketSequence.discard(finalPacket);
+            return false;
+        }
+        try {
+            this.interfaz.putPacket(this, finalPacket);
+        } catch (RuntimeException exception) {
+            PacketSequence.discard(finalPacket);
+            throw exception;
+        }
+        return true;
+    }
+
+    /**
+     * 最终包与序列子包共用发送前处理
+     */
+    public DataPacket prepareOutboundPacket(DataPacket packet) {
         packet = DataPacketEidReplacer.replace(packet, this.getId(), SYNAPSE_PLAYER_ENTITY_ID);
         packet.setHelper(AbstractProtocol.fromRealProtocol(this.protocol).getHelper());
         packet.neteaseMode = isNetEaseClient();
-
-        DataPacketSendEvent ev = new DataPacketSendEvent(this, packet);
-        this.server.getPluginManager().callEvent(ev);
-        if (ev.isCancelled()) {
-            return false;
-        }
-
-        //packet.encode(); encoded twice?
-        //this.server.getLogger().warning("Send to player: " + Binary.bytesToHexString(new byte[]{packet.getBuffer()[0]}) + "  len: " + packet.getBuffer().length);
         if (this.cleanTextColor) {
             if (packet.pid() == ProtocolInfo.TEXT_PACKET) {
                 packet = packet.clone();
@@ -1592,8 +1641,7 @@ public class SynapsePlayer extends Player {
             }
         }
 
-        this.interfaz.putPacket(this, packet);
-        return true;
+        return packet;
     }
 
     public void sendLevelSoundEvent(int levelSound, Vector3 pos, int extraData, int pitch, String entityIdentifier, boolean isBabyMob, boolean isGlobal) {

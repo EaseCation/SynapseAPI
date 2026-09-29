@@ -6,7 +6,7 @@ import org.itxtech.synapseapi.event.SynapseEvent;
 /**
  * Created by boybook on 16/6/25.
  */
-public class SynapsePlayerEvent extends SynapseEvent {
+public abstract class SynapsePlayerEvent extends SynapseEvent {
 
     protected SynapsePlayer player;
 

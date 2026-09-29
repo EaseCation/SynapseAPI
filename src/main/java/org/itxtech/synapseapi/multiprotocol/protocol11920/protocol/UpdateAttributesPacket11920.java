@@ -79,6 +79,7 @@ public class UpdateAttributesPacket11920 extends Packet11920 {
         UpdateAttributesPacket packet = (UpdateAttributesPacket) pk;
         this.entries = packet.entries;
         this.entityId = packet.entityId;
+        this.frame = packet.frame;
 
         return this;
     }

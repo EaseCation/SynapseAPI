@@ -6,7 +6,6 @@ import cn.nukkit.event.EventHandler;
 import cn.nukkit.event.Listener;
 import cn.nukkit.event.player.PlayerQuitEvent;
 import cn.nukkit.event.plugin.PluginDisableEvent;
-import cn.nukkit.event.server.BatchPacketsEvent;
 import cn.nukkit.item.Item;
 import cn.nukkit.item.RuntimeItemPaletteInterface;
 import cn.nukkit.item.RuntimeItems;
@@ -36,7 +35,6 @@ import org.itxtech.synapseapi.utils.NetTest;
 import org.itxtech.synapseapi.utils.SynapsePlayerViolationListener;
 
 import java.util.*;
-import java.util.Map.Entry;
 import java.util.stream.Collectors;
 
 import static org.itxtech.synapseapi.SynapseSharedConstants.*;
@@ -395,49 +393,6 @@ public class SynapseAPI extends PluginBase implements Listener {
         }
         this.javaCustomPayloadMessenger.unregisterIncomingPluginChannel(event.getPlugin());
         this.javaCustomPayloadMessenger.unregisterOutgoingPluginChannel(event.getPlugin());
-    }
-
-    @EventHandler
-    public void onBatchPackets(BatchPacketsEvent e) {
-        e.setCancelled();
-       /* Set<DataPacket> sortedPackets = new HashSet<>();
-        Set<DataPacket> sortedPackets11 = new HashSet<>();*/
-
-        DataPacket[] packets = e.getPackets();
-        Player[] players = e.getPlayers();
-        HashMap<SynapseEntry, List<SynapsePlayer>> map = new HashMap<>();
-
-        for(Player p : players) {
-            SynapsePlayer player = (SynapsePlayer) p;
-
-            SynapseEntry entry = player.getSynapseEntry();
-            if (entry == null) continue;
-            List<SynapsePlayer> list = map.get(entry);
-            if(list == null) {
-                list = new ArrayList<>();
-            }
-
-            list.add(player);
-            map.put(entry, list);
-        }
-
-        for (Entry<SynapseEntry, List<SynapsePlayer>> entry : map.entrySet()) {
-            entry.getKey().getSynapseInterface().getPutPacketThread().addMainToThreadBroadcast(entry.getValue().toArray(new SynapsePlayer[0]), packets);
-        }
-
-        /*for(DataPacket pk : packets) {
-            if(pk instanceof Packet11) {
-                sortedPackets11.add(pk);
-                sortedPackets.add(((Packet11) pk).toDefault());
-            } else {
-                sortedPackets.add(pk);
-                DataPacket compatible = PacketRegister.getCompatiblePacket(pk, 113, true);
-
-                if(compatible != null) {
-                    sortedPackets11.add(compatible);
-                }
-            }
-        }*/
     }
 
     public List<ClientData.Entry> getAllClientDataEntries() {

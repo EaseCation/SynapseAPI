@@ -43,6 +43,7 @@ public class SetEntityDataPacket116100NE extends Packet116100NE {
         SetEntityDataPacket packet = (SetEntityDataPacket) pk;
         this.eid = packet.eid;
         this.metadata = EntityMetadataGenerator.generateFrom(packet.metadata, protocol, netease);
+        this.frame = packet.frame;
 
         return this;
     }
