@@ -3,6 +3,13 @@ disable-rak: false
 enable: true
 autoCompress: true
 
+# 初始化时读取，修改后重启；两端可独立开启，协议格式不变。
+network-event-driven: false
+# 默认关闭。开启后异步输出有界追踪，达到时限或记录上限自动停止。
+network-latency-trace-enabled: false
+network-latency-trace-directory: latency-traces
+network-latency-trace-duration-seconds: 300
+
 entries:
   - server-ip: 127.0.0.1
     server-port: 10305
