@@ -12,6 +12,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.UUID;
 import java.util.function.Consumer;
+import java.util.function.UnaryOperator;
 import java.util.stream.Collectors;
 
 public class NPCDialogueScene {
@@ -78,13 +79,14 @@ public class NPCDialogueScene {
      * 请不要直接调用这个，而应该调用 NPCDialoguePlayerHandler.openScene，这样才能正常注册回调
      */
     public void sendTo(Player player, long entityId, String npcName) {
+        UnaryOperator<String> textFormatter = text -> formatTextForClient(text, player.isJavaClient());
         NpcDialoguePacket11710 packet = new NpcDialoguePacket11710();
         packet.npcEntityUniqueId = entityId;
         packet.actionType = NpcDialoguePacket11710.ACTION_OPEN;
-        packet.dialogue = this.text;
-        packet.npcName = npcName;
+        packet.dialogue = textFormatter.apply(this.text);
+        packet.npcName = textFormatter.apply(npcName);
         packet.sceneName = sceneName;
-        packet.actionJson = GSON.toJson(buttons.stream().map(NPCDialogueButton::toJsonObject).collect(Collectors.toList()));
+        packet.actionJson = GSON.toJson(buttons.stream().map(button -> button.toJsonObject(textFormatter)).collect(Collectors.toList()));
         player.dataPacket(packet);
     }
 
@@ -98,14 +100,24 @@ public class NPCDialogueScene {
     }
 
     public void close(Player player, long entityId, String npcName) {
+        UnaryOperator<String> textFormatter = text -> formatTextForClient(text, player.isJavaClient());
         NpcDialoguePacket11710 packet = new NpcDialoguePacket11710();
         packet.npcEntityUniqueId = entityId;
         packet.actionType = NpcDialoguePacket11710.ACTION_CLOSE;
-        packet.dialogue = this.text;
-        packet.npcName = npcName;
+        packet.dialogue = textFormatter.apply(this.text);
+        packet.npcName = textFormatter.apply(npcName);
         packet.sceneName = sceneName;
-        packet.actionJson = GSON.toJson(buttons.stream().map(NPCDialogueButton::toJsonObject).collect(Collectors.toList()));
+        packet.actionJson = GSON.toJson(buttons.stream().map(button -> button.toJsonObject(textFormatter)).collect(Collectors.toList()));
         player.dataPacket(packet);
+    }
+
+    static String formatTextForClient(String text, boolean javaClient) {
+        if (!javaClient || text == null || text.isEmpty()) {
+            return text;
+        }
+        return text.replace("§0", "§f")
+            .replace("§7", "§f")
+            .replace("§8", "§f");
     }
 
 }
