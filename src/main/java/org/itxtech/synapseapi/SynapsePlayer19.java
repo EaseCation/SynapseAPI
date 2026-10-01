@@ -13,6 +13,7 @@ import cn.nukkit.network.SourceInterface;
 import cn.nukkit.network.protocol.DataPacket;
 import cn.nukkit.network.protocol.ProtocolInfo;
 import cn.nukkit.resourcepacks.ResourcePack;
+import com.nukkitx.network.util.LatencyTrace;
 import org.itxtech.synapseapi.event.player.SynapsePlayerBroadcastLevelSoundEvent;
 import org.itxtech.synapseapi.event.player.SynapsePlayerNetworkStackLatencyUpdateEvent;
 import org.itxtech.synapseapi.multiprotocol.AbstractProtocol;
@@ -106,10 +107,21 @@ public class SynapsePlayer19 extends SynapsePlayer18 {
 					break;
 				}
 
+				if (server.isPingPongWakeupExperimentEnabled()
+						&& networkStackLatencyPacket.timestamp != pingNs
+						&& networkStackLatencyPacket.timestamp != pingNs * 1_000_000L) {
+					// 实验允许低于 10ms 的合法回复，以时间戳匹配排除旧探针和重复回包。
+					break;
+				}
+
 				if (NETWORK_STACK_LATENCY_TELEMETRY) {
 					long latency = System.nanoTime() - pingNs;
-					if (latency < 10_000_000) {
-						// 原版延迟最低1tick, <10ms可能是跨服时触发了重复发送bug
+					if (LatencyTrace.enabled()) {
+						LatencyTrace.record("backend.pong", getSessionId().toString(), Long.toString(networkStackLatencyPacket.timestamp),
+								Long.toString(pingNs), networkStackLatencyPacket.getCount(), latency);
+					}
+					if (latency < 10_000_000 && !server.isPingPongWakeupExperimentEnabled()) {
+						// 旧路径使用 10ms 经验阈值过滤重复回包；实验路径改为上面的时间戳匹配。
 						break;
 					}
 					latencyNs = latency;
@@ -299,6 +311,9 @@ public class SynapsePlayer19 extends SynapsePlayer18 {
 		NetworkStackLatencyPacket19 packet = new NetworkStackLatencyPacket19();
 		packet.isFromServer = true;
 		packet.timestamp = time;
+		if (LatencyTrace.enabled()) {
+			LatencyTrace.record("backend.ping", getSessionId().toString(), Long.toString(time), "", 0, -1);
+		}
 		dataPacket(packet);
 	}
 

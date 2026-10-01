@@ -1,6 +1,7 @@
 package org.itxtech.synapseapi.network;
 
 import cn.nukkit.Server;
+import com.nukkitx.network.util.LatencyTrace;
 import org.itxtech.synapseapi.SynapseEntry;
 import org.itxtech.synapseapi.network.protocol.spp.*;
 import org.itxtech.synapseapi.network.synlib.SynapseClient;
@@ -20,7 +21,7 @@ public class SynapseInterface {
 
     public SynapseInterface(SynapseEntry server, String ip, int port) {
         this.synapse = server;
-        this.client = new SynapseClient(Server.getInstance().getLogger(), port, ip);
+        this.client = new SynapseClient(Server.getInstance().getLogger(), port, ip, server.getSynapse().isNetworkEventDriven());
         this.putPacketThread = new SynapseEntryPutPacketThread(this);
     }
 
@@ -31,7 +32,8 @@ public class SynapseInterface {
 
         SynapseDataPacket clazz = packetPool[pid];
         if (clazz != null) {
-            SynapseDataPacket pk = clazz.clone();
+            SynapseDataPacket pk = pid == SynapseInfo.REDIRECT_PACKET && LatencyTrace.enabled()
+                    ? new TracedRedirectPacket() : clazz.clone();
             pk.setBuffer(buffer, 0);
             return pk;
         }
@@ -71,6 +73,9 @@ public class SynapseInterface {
             pk.encode();
         }
 
+        if (pk instanceof TracedRedirectPacket traced && LatencyTrace.enabled()) {
+            traced.traceEnqueue("backend.synapse.enqueue", synapse.getHash());
+        }
         this.client.pushMainToThreadPacket(pk);
     }
 
@@ -96,6 +101,9 @@ public class SynapseInterface {
 
     public void handlePacket(SynapseDataPacket pk) {
         if (pk != null) {
+            if (pk instanceof TracedRedirectPacket traced && LatencyTrace.enabled()) {
+                traced.traceDequeue("backend.synapse.inbound_queue", synapse.getHash());
+            }
             pk.decode();
             this.synapse.handleDataPacket(pk);
         }
