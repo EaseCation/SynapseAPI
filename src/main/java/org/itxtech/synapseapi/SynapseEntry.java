@@ -398,14 +398,7 @@ public class SynapseEntry {
                 if (redirectPacketEntry.player.isClosed()) {
                     continue;
                 }
-                if (redirectPacketEntry instanceof TracedRedirectPacketEntry traced && LatencyTrace.enabled()) {
-                    DataPacket tracedPacket = redirectPacketEntry.dataPacket;
-                    String probeKey = tracedPacket instanceof NetworkStackLatencyPacket19 latencyPacket
-                            ? Long.toString(latencyPacket.timestamp) : traced.batchKey;
-                    LatencyTrace.record("backend.main.queue", redirectPacketEntry.player.getSessionId().toString(),
-                            probeKey, traced.batchKey, tracedPacket.getCount(),
-                            System.nanoTime() - traced.queuedNanos);
-                }
+                traceMainQueue(redirectPacketEntry);
                 //Server.getInstance().getLogger().warning("C => S  " + redirectPacketEntry.dataPacket.getClass().getSimpleName());
                 DataPacket packet = DataPacketEidReplacer.replaceBack(redirectPacketEntry.dataPacket, SynapsePlayer.SYNAPSE_PLAYER_ENTITY_ID, redirectPacketEntry.player.getId());
                 globalPacketCountThisTick[packet.pid()]++;
@@ -622,7 +615,7 @@ public class SynapseEntry {
                                         continue;
                                     }
 
-                                    this.redirectPacketQueue.offer(createRedirectEntry(player, subPacket, redirectPacket));
+                                    enqueueRedirect(player, subPacket, redirectPacket);
 
                                     if (SynapseAPI.getInstance().isNetworkBroadcastPlayerMove() && player.isOnline()) {
                                         //玩家体验优化：直接不经过主线程广播玩家移动，插件过度干预可能会造成移动鬼畜问题
@@ -746,7 +739,7 @@ public class SynapseEntry {
                                 player.violationIncomingThread = player.getViolationLevel();
                             }
                         } else {
-                            this.redirectPacketQueue.offer(createRedirectEntry(player, pk0, redirectPacket));
+                            enqueueRedirect(player, pk0, redirectPacket);
                             if (SynapseAPI.getInstance().isNetworkBroadcastPlayerMove() && !player.isServerAuthoritativeMovementEnabled() && pk0 instanceof MovePlayerPacket movePacket) {
                                 // 玩家体验优化：直接不经过主线程广播玩家移动，插件过度干预可能会造成移动鬼畜问题
                                 // 判断是否和玩家自身在附近区块，过滤 TP 后客户端发来的旧坐标包
@@ -786,6 +779,42 @@ public class SynapseEntry {
         return Math.abs(packetX - player.x) <= 6
                 && Math.abs(packetZ - player.z) <= 6
                 && Math.abs((int) packetY - (int) player.y) <= yThreshold;
+    }
+
+    private void enqueueRedirect(SynapsePlayer player, DataPacket packet, RedirectPacket batch) {
+        RedirectPacketEntry entry = createRedirectEntry(player, packet, batch);
+        Server server = synapse.getServer();
+        // 仅探针走实验入口；队列满时退回原路径，业务包继续等待正常 tick。
+        if (packet instanceof NetworkStackLatencyPacket19 && server.isPingPongWakeupExperimentEnabled()
+                && server.tryExecuteNetworkTaskBetweenTicks(() -> {
+                    if (!server.isPrimaryThread()) {
+                        throw new IllegalStateException("Latency probe must run on the server main thread");
+                    }
+                    if (player.isClosed()) {
+                        return;
+                    }
+                    traceMainQueue(entry);
+                    if (LatencyTrace.enabled()) {
+                        LatencyTrace.record("backend.pong.idle_main", player.getSessionId().toString(),
+                                Long.toString(((NetworkStackLatencyPacket19) packet).timestamp),
+                                Integer.toString(server.getTick()), packet.getCount(), -1);
+                    }
+                    player.handleDataPacket(packet);
+                })) {
+            return;
+        }
+        redirectPacketQueue.offer(entry);
+    }
+
+    private static void traceMainQueue(RedirectPacketEntry redirectPacketEntry) {
+        if (redirectPacketEntry instanceof TracedRedirectPacketEntry traced && LatencyTrace.enabled()) {
+            DataPacket tracedPacket = redirectPacketEntry.dataPacket;
+            String probeKey = tracedPacket instanceof NetworkStackLatencyPacket19 latencyPacket
+                    ? Long.toString(latencyPacket.timestamp) : traced.batchKey;
+            LatencyTrace.record("backend.main.queue", redirectPacketEntry.player.getSessionId().toString(),
+                    probeKey, traced.batchKey, tracedPacket.getCount(),
+                    System.nanoTime() - traced.queuedNanos);
+        }
     }
 
     private static RedirectPacketEntry createRedirectEntry(SynapsePlayer player, DataPacket packet, RedirectPacket batch) {
