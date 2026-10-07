@@ -26,6 +26,7 @@ import org.itxtech.synapseapi.multiprotocol.utils.AdvancedGlobalBlockPalette;
 
 import javax.annotation.Nullable;
 import java.util.ArrayDeque;
+import java.util.BitSet;
 
 import static org.itxtech.synapseapi.SynapseSharedConstants.*;
 
@@ -109,9 +110,7 @@ public class PlayerAuthInputPacket116220 extends Packet116220 implements Invento
     public float headYaw;
     public float moveVecX;
     public float moveVecZ;
-//    public BitSet inputFlags;
-    public long inputFlags;
-    public long inputFlags2;
+    public BitSet inputFlags;
     public int inputMode;
     public int playMode;
     /**
@@ -236,35 +235,9 @@ public class PlayerAuthInputPacket116220 extends Packet116220 implements Invento
         this.headYaw = this.getLFloat();
         if (protocol.getProtocolStart() >= AbstractProtocol.PROTOCOL_121_50.getProtocolStart()) {
             int flagCount = PlayerAuthInputFlags.COUNT[protocol.ordinal()] + neteaseFlagsVersion;
-/*
             inputFlags = getBitSet(flagCount);
-*/
-            boolean flag2 = false;
-            int shift = 0;
-            while (true) {
-                if (shift >= flagCount) {
-                    throw new IllegalArgumentException("VarBitSet was too large");
-                }
-                byte b = getSignedByte();
-                long bits = b & 0x7f;
-                int nextShift = shift + 7;
-                if (flag2) {
-                    inputFlags2 |= bits << shift;
-                } else {
-                    inputFlags |= bits << shift; // extra bits will be discarded
-                    if (nextShift >= 64) {
-                        nextShift -= 64;
-                        inputFlags2 = bits >> (7 - nextShift);
-                        flag2 = true;
-                    }
-                }
-                if ((b & 0x80) == 0) {
-                    break;
-                }
-                shift = nextShift;
-            }
         } else {
-            this.inputFlags = this.getUnsignedVarLong();
+            this.inputFlags = BitSet.valueOf(new long[]{this.getUnsignedVarLong()});
         }
         this.inputMode = (int) this.getUnsignedVarInt();
         this.playMode = (int) this.getUnsignedVarInt();
@@ -528,13 +501,8 @@ public class PlayerAuthInputPacket116220 extends Packet116220 implements Invento
     }
 
     @Override
-    public long getInputFlags() {
+    public BitSet getInputFlags() {
         return this.inputFlags;
-    }
-
-    @Override
-    public long getInputFlags2() {
-        return this.inputFlags2;
     }
 
     @Override

@@ -136,6 +136,7 @@ import org.itxtech.synapseapi.multiprotocol.protocol11980.protocol.StartGamePack
 import org.itxtech.synapseapi.multiprotocol.protocol120.protocol.EmotePacket120;
 import org.itxtech.synapseapi.multiprotocol.protocol120.protocol.StartGamePacket120;
 import org.itxtech.synapseapi.multiprotocol.protocol120.protocol.TrimDataPacket120;
+import org.itxtech.synapseapi.multiprotocol.protocol12010.protocol.NESyncSkinPacket12010;
 import org.itxtech.synapseapi.multiprotocol.protocol12030.protocol.CameraInstructionPacket12030;
 import org.itxtech.synapseapi.multiprotocol.protocol12030.protocol.ResourcePacksInfoPacket12030;
 import org.itxtech.synapseapi.multiprotocol.protocol12030.protocol.StartGamePacket12030;
@@ -2937,16 +2938,8 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
                     dataPacket(skinResponse);
                 }
 
-                //TODO: PlayerChangeSkinEvent
-                /*
-                LoginChainData loginData = getLoginChainData();
-                String uid = loginData.getNetEaseUID();
-                if (uid == null || uid.isEmpty()) {
-                    uid = loginData.getXUID();
-                }
-                server.updatePlayerListData(getUniqueId(), getId(), getDisplayName(), skin, uid, new Player[]{this});
-
-                super.handleDataPacket(packet);
+                /* //TODO: PlayerChangeSkinEvent
+                server.updatePlayerListData(getUniqueId(), getId(), getDisplayName(), skin, this);
                 */
                 break;
             case ProtocolInfo.REQUEST_CHUNK_RADIUS_PACKET:
@@ -4172,6 +4165,24 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
                         this.inventory.sendContents(this);
                         break;
                 }
+                break;
+            case ProtocolInfo.PACKET_SYNC_SKIN:
+                if (!callPacketReceiveEvent(packet)) {
+                    break;
+                }
+                if (!NETEASE_SKIN_FLOW) {
+                    break;
+                }
+                NESyncSkinPacket12010 syncSkinPacket = (NESyncSkinPacket12010) packet;
+
+                NESyncSkinPacket12010 skinResponse = new NESyncSkinPacket12010();
+                skinResponse.entries = syncSkinPacket.entries;
+                skinResponse.skin = syncSkinPacket.skin;
+                dataPacket(skinResponse);
+
+                /* //TODO: PlayerChangeSkinEvent
+                server.updatePlayerListData(getUniqueId(), getId(), getDisplayName(), skin, this);
+                */
                 break;
             default:
                 super.handleDataPacket(packet);

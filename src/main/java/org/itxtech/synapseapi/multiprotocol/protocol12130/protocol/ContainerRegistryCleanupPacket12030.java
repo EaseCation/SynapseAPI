@@ -1,6 +1,7 @@
 package org.itxtech.synapseapi.multiprotocol.protocol12130.protocol;
 
 import cn.nukkit.network.protocol.ProtocolInfo;
+import cn.nukkit.utils.BinaryStream;
 import it.unimi.dsi.fastutil.ints.IntObjectPair;
 import lombok.ToString;
 import org.itxtech.synapseapi.multiprotocol.protocol12120.protocol.Packet12120;
@@ -33,7 +34,7 @@ public class ContainerRegistryCleanupPacket12030 extends Packet12120 {
         putUnsignedVarInt(removedContainers.length);
         for (IntObjectPair<Integer> container : removedContainers) {
             putByte(container.leftInt()); // containerSlotType
-            putOptional(container.right(), (stream, dynamicContainerId) -> stream.putUnsignedVarInt(dynamicContainerId));
+            putOptional(container.right(), BinaryStream::putLInt);
         }
     }
 }

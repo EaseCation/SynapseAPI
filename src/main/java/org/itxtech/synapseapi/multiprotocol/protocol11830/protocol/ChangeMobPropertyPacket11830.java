@@ -26,7 +26,8 @@ public class ChangeMobPropertyPacket11830 extends Packet11830 {
 
     @Override
     public void encode() {
-        this.putLong(this.uniqueEntityId);
+        this.reset();
+        this.putEntityUniqueId(this.uniqueEntityId);
         this.putString(this.property);
         this.putBoolean(this.boolValue);
         this.putString(this.stringValue == null ? "" : this.stringValue);

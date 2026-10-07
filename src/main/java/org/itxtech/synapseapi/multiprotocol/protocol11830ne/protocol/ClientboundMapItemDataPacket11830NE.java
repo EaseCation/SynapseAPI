@@ -116,8 +116,8 @@ public class ClientboundMapItemDataPacket11830NE extends Packet11830NE {
             this.putUnsignedVarInt((long) width * height);
 
             if (image != null) {
-                for (int y = 0; y < width; y++) {
-                    for (int x = 0; x < height; x++) {
+                for (int y = 0; y < height; y++) {
+                    for (int x = 0; x < width; x++) {
                         this.putUnsignedVarInt(Utils.toABGR(this.image.getRGB(x, y)));
                     }
                 }

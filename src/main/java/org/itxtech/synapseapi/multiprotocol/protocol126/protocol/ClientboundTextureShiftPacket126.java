@@ -43,8 +43,8 @@ public class ClientboundTextureShiftPacket126 extends Packet126 {
         putString(fromStep);
         putString(toStep);
         putArray(allSteps, BinaryStream::putString);
-        putLLong(currentLengthInTicks);
-        putLLong(totalLengthInTicks);
+        putUnsignedVarLong(currentLengthInTicks);
+        putUnsignedVarLong(totalLengthInTicks);
         putBoolean(enabled);
     }
 }

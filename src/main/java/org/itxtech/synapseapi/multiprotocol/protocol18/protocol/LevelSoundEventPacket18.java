@@ -19,7 +19,7 @@ public class LevelSoundEventPacket18 extends Packet18 {
 
     @Override
     public void decode() {
-        this.sound = (int) this.getUnsignedVarInt();
+        this.sound = this.getByte();
         Vector3f v = this.getVector3f();
         this.x = v.x;
         this.y = v.y;
@@ -33,7 +33,7 @@ public class LevelSoundEventPacket18 extends Packet18 {
     @Override
     public void encode() {
         this.reset();
-        this.putUnsignedVarInt(this.sound);
+        this.putByte(this.sound);
         this.putVector3f(this.x, this.y, this.z);
         this.putVarInt(this.extraData);
         this.putVarInt(this.pitch);

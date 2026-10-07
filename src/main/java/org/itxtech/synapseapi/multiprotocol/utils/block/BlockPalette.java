@@ -34,6 +34,12 @@ import java.util.zip.GZIPInputStream;
 @Log4j2
 @ToString
 public class BlockPalette {
+    /*
+     * CompoundTag::toString() ???
+     */
+    private static final byte VANILLA_STATE_CHECKSUM_BYTE = (byte) Hash.xxh64("3 entries".getBytes(StandardCharsets.UTF_8)); // name (str), version (int), states (compound)
+    private static final byte NETEASE_STATE_CHECKSUM_BYTE = (byte) Hash.xxh64("4 entries".getBytes(StandardCharsets.UTF_8)); // name, version, val (short), states
+
     public final List<BlockData> palette = new ObjectArrayList<>();
 
     /**
@@ -244,6 +250,15 @@ public class BlockPalette {
 
         netease.sortHash();
         return netease;
+    }
+
+    /**
+     * @return block registry checksum in StartGamePacket
+     */
+    public long calculateVanillaChecksum(boolean netease) {
+        byte[] stateHashes = new byte[palette.size()];
+        Arrays.fill(stateHashes, netease ? NETEASE_STATE_CHECKSUM_BYTE : VANILLA_STATE_CHECKSUM_BYTE);
+        return Hash.xxh64(stateHashes);
     }
 
     public long calculateInternalChecksum() {

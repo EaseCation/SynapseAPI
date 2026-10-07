@@ -9,7 +9,7 @@ import lombok.ToString;
 
 @ToString
 public class StructureBlockUpdatePacket11930 extends Packet11930 {
-    public static final int NETWORK_ID = ProtocolInfo.COMMAND_BLOCK_UPDATE_PACKET;
+    public static final int NETWORK_ID = ProtocolInfo.STRUCTURE_BLOCK_UPDATE_PACKET;
 
     public int x;
     public int y;

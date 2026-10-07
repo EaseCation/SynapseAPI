@@ -20,6 +20,8 @@ public class AnimatePacket121130 extends Packet121130 {
     @Nullable
     public SwingSource swingSource;
 
+    public long attackId = -1;
+
     @Override
     public int pid() {
         return NETWORK_ID;
@@ -40,6 +42,10 @@ public class AnimatePacket121130 extends Packet121130 {
         this.putEntityRuntimeId(this.eid);
         this.putLFloat(this.data);
         this.putOptionalEnum(this.swingSource, SwingSource::getName);
+
+        if (neteaseMode) {
+            this.putEntityUniqueId(this.attackId);
+        }
     }
 
     @Override

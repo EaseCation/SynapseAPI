@@ -1,7 +1,10 @@
 package org.itxtech.synapseapi.multiprotocol.protocol16.protocol;
 
 import cn.nukkit.network.protocol.ProtocolInfo;
+import cn.nukkit.utils.JsonUtil;
 import lombok.ToString;
+import org.itxtech.synapseapi.multiprotocol.common.netease.NetEaseJsonEvent;
+import org.itxtech.synapseapi.multiprotocol.common.netease.NetEaseJsonServerEvent;
 
 /**
  * author: MagicDroidX
@@ -11,7 +14,7 @@ import lombok.ToString;
 public class NENetEaseJsonPacket16 extends Packet16 {
     public static final int NETWORK_ID = ProtocolInfo.PACKET_NETEASE_JSON;
 
-    public String json;
+    public NetEaseJsonEvent event;
 
     @Override
     public int pid() {
@@ -20,13 +23,13 @@ public class NENetEaseJsonPacket16 extends Packet16 {
 
     @Override
     public void decode() {
-        this.json = this.getString();
+        this.event = JsonUtil.UNTRUSTED_JSON_MAPPER.readValue(this.getByteArray(), NetEaseJsonServerEvent.class);
     }
 
     @Override
     public void encode() {
         this.reset();
-        this.putString(json);
+        this.putByteArray(this.event.toJsonAsBytes());
     }
 
 }

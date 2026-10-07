@@ -32,6 +32,6 @@ public class SetDisplayObjectivePacket extends Packet16 {
         this.putString(this.objectiveName);
         this.putString(this.objectiveDisplayName);
         this.putString(this.criteriaName);
-        this.putByte((byte) this.sortOrder);
+        this.putVarInt(this.sortOrder);
     }
 }

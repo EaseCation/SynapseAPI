@@ -31,6 +31,8 @@ public class SetPlayerInventoryOptionsPacket12050 extends Packet12050 {
     public int layout = LAYOUT_NONE;
     public int craftingLayout = LAYOUT_NONE;
 
+    public int categoryStartIndex;
+
     @Override
     public int pid() {
         return NETWORK_ID;
@@ -43,6 +45,10 @@ public class SetPlayerInventoryOptionsPacket12050 extends Packet12050 {
         filtering = getBoolean();
         layout = getVarInt();
         craftingLayout = getVarInt();
+
+        if (neteaseMode && !feof()) {
+            categoryStartIndex = getVarInt();
+        }
     }
 
     @Override
@@ -53,5 +59,9 @@ public class SetPlayerInventoryOptionsPacket12050 extends Packet12050 {
         putBoolean(filtering);
         putVarInt(layout);
         putVarInt(craftingLayout);
+
+        if (neteaseMode) {
+            putVarInt(categoryStartIndex);
+        }
     }
 }

@@ -116,8 +116,8 @@ public class ClientboundMapItemDataPacket15 extends Packet15 {
             this.putUnsignedVarInt(width * height);
 
             if (image != null) {
-                for (int y = 0; y < width; y++) {
-                    for (int x = 0; x < height; x++) {
+                for (int y = 0; y < height; y++) {
+                    for (int x = 0; x < width; x++) {
                         Color color = new Color(image.getRGB(x, y), true);
                         byte red = (byte) color.getRed();
                         byte green = (byte) color.getGreen();

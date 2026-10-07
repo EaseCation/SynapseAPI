@@ -31,7 +31,7 @@ public class SetScoreboardIdentityPacket extends Packet16 {
         for (ScoreboardIdentityPacketEntry entry : this.entries) {
             this.putVarLong(entry.scoreboardId);
             if (this.type == TYPE_UPDATE_IDENTITY) {
-                this.putUUID(entry.uuid);
+                this.putEntityUniqueId(entry.playerUniqueId);
             }
         }
     }

@@ -1,10 +1,10 @@
-package org.itxtech.synapseapi.multiprotocol.protocol16.protocol;
+package org.itxtech.synapseapi.multiprotocol.protocol116200.protocol;
 
 import cn.nukkit.network.protocol.ProtocolInfo;
 import lombok.ToString;
 
 @ToString
-public class NESetDimensionLocalTimePacket16 extends Packet16 {
+public class NESetDimensionLocalTimePacket116200 extends Packet116200 {
 	public static final int NETWORK_ID = ProtocolInfo.PACKET_SET_DIMENSION_LOCAL_TIME;
 
 	public boolean useLocalTime;

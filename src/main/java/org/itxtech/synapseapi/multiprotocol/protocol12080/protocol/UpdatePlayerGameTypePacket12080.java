@@ -25,6 +25,6 @@ public class UpdatePlayerGameTypePacket12080 extends Packet12080 {
         this.reset();
         this.putVarInt(this.gamemode);
         this.putEntityUniqueId(this.playerEntityUniqueId);
-        this.putUnsignedVarInt(this.tick);
+        this.putUnsignedVarLong(this.tick);
     }
 }

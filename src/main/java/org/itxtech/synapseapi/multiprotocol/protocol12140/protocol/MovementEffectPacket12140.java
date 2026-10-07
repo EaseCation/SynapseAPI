@@ -34,8 +34,8 @@ public class MovementEffectPacket12140 extends Packet12140 {
     public void encode() {
         reset();
         putEntityRuntimeId(entityRuntimeId);
-        putUnsignedVarInt(effectType);
-        putUnsignedVarInt(effectDuration);
+        putVarInt(effectType);
+        putVarInt(effectDuration);
         putUnsignedVarLong(tick);
     }
 }

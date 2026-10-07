@@ -31,7 +31,7 @@ public class Box extends Shape {
         if (AbstractProtocol.PROTOCOL_126_10.isOlderThanOrEqual(protocol)) {
             // backward compatibility: currently in the center
             float scale = entry.scale != null ? entry.scale : 1;
-            entry.location.setComponents(entry.location.add(bound.multiply(scale * 0.5f)));
+            entry.location = entry.location.add(bound.multiply(scale * 0.5f));
         }
     }
 

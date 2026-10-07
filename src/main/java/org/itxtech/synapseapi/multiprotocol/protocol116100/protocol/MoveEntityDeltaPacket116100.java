@@ -66,6 +66,7 @@ public class MoveEntityDeltaPacket116100 extends Packet116100 {
     @Override
     public DataPacket fromDefault(DataPacket pk) {
         MoveEntityDeltaPacket packet = (MoveEntityDeltaPacket) pk;
+        this.entityRuntimeId = packet.entityRuntimeId;
         this.flags = packet.flags;
         this.x = packet.x;
         this.y = packet.y;

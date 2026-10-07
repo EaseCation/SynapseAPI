@@ -4,6 +4,7 @@ import cn.nukkit.block.Block;
 import cn.nukkit.entity.Entity;
 import cn.nukkit.entity.data.*;
 import cn.nukkit.item.Item;
+import cn.nukkit.nbt.tag.CompoundTag;
 import org.itxtech.synapseapi.multiprotocol.AbstractProtocol;
 
 public class EntityMetadataGenerator {
@@ -189,6 +190,10 @@ public class EntityMetadataGenerator {
 				int data = entityData.getDataAsShort();
 				ShortEntityData shortEntityData = new ShortEntityData(newId, data);
 				entityMetadata.put(shortEntityData);
+			} else if (entityData instanceof NBTEntityData item) {
+				CompoundTag data = item.getData();
+				NBTEntityData nbtEntityData = new NBTEntityData(newId, data.clone());
+				entityMetadata.put(nbtEntityData);
 			} else if(entityData instanceof SlotEntityData) {
 				Item data = ((SlotEntityData)entityData).getData();
 				if (protocol.ordinal() >= AbstractProtocol.PROTOCOL_112.ordinal()) {

@@ -11,6 +11,8 @@ import lombok.ToString;
 public class NEStoreBuySuccPacket16 extends Packet16 {
     public static final int NETWORK_ID = ProtocolInfo.PACKET_STORE_BUY_SUCC;
 
+    public String data;
+
     @Override
     public int pid() {
         return NETWORK_ID;
@@ -18,11 +20,13 @@ public class NEStoreBuySuccPacket16 extends Packet16 {
 
     @Override
     public void decode() {
+        if (!feof()) {
+            data = getString();
+        }
     }
 
     @Override
     public void encode() {
-        this.reset();
     }
 
 }

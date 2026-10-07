@@ -38,6 +38,7 @@ public class CompletedUsingItemPacket113 extends Packet113 {
 
     @Override
     public void encode() {
+        this.reset();
         this.putLShort(this.itemId);
         this.putLInt(this.action);
     }

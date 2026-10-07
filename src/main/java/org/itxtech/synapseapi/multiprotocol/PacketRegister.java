@@ -21,6 +21,7 @@ import org.itxtech.synapseapi.multiprotocol.protocol116100ne.protocol.TextPacket
 import org.itxtech.synapseapi.multiprotocol.protocol116100ne.protocol.UpdateAttributesPacket116100NE;
 import org.itxtech.synapseapi.multiprotocol.protocol11620.protocol.StartGamePacket11620;
 import org.itxtech.synapseapi.multiprotocol.protocol116200.protocol.FilterTextPacket116200;
+import org.itxtech.synapseapi.multiprotocol.protocol116200.protocol.NEWithdrawFurnaceXpPacket116200;
 import org.itxtech.synapseapi.multiprotocol.protocol116200.protocol.ResourcePacksInfoPacket116200;
 import org.itxtech.synapseapi.multiprotocol.protocol116210.protocol.CameraShakePacket116210;
 import org.itxtech.synapseapi.multiprotocol.protocol116210.protocol.PlayerAuthInputPacket116210;
@@ -203,6 +204,7 @@ public class PacketRegister {
         registerPacket(AbstractProtocol.PROTOCOL_16, ProtocolInfo.PACKET_STORE_BUY_SUCC, NEStoreBuySuccPacket16.class);
         registerPacket(AbstractProtocol.PROTOCOL_16, ProtocolInfo.PACKET_NETEASE_JSON, NENetEaseJsonPacket16.class);
         registerPacket(AbstractProtocol.PROTOCOL_16, ProtocolInfo.PACKET_PY_RPC, NEPyRpcPacket16.class);
+        registerPacket(AbstractProtocol.PROTOCOL_16, ProtocolInfo.PACKET_ADDICTION, NEAddictionPacket16.class);
         registerPacket(AbstractProtocol.PROTOCOL_16, ProtocolInfo.SET_LOCAL_PLAYER_AS_INITIALIZED_PACKET, SetLocalPlayerAsInitializedPacket16.class);
 
         registerPacket(AbstractProtocol.PROTOCOL_17, ProtocolInfo.ADD_ACTOR_PACKET, AddEntityPacket17.class);
@@ -313,6 +315,7 @@ public class PacketRegister {
         registerPacket(AbstractProtocol.PROTOCOL_116_200, ProtocolInfo.RESOURCE_PACKS_INFO_PACKET, ResourcePacksInfoPacket116200.class);
         registerPacket(AbstractProtocol.PROTOCOL_116_200, ProtocolInfo.FILTER_TEXT_PACKET, FilterTextPacket116200.class);
         registerPacket(AbstractProtocol.PROTOCOL_116_200, ProtocolInfo.START_GAME_PACKET, StartGamePacket116200.class);
+        registerPacket(AbstractProtocol.PROTOCOL_116_200, ProtocolInfo.PACKET_WITHDRAW_FURNACE_XP, NEWithdrawFurnaceXpPacket116200.class);
 
         registerPacket(AbstractProtocol.PROTOCOL_116_210, ProtocolInfo.PLAYER_AUTH_INPUT_PACKET, PlayerAuthInputPacket116210.class);
         registerPacket(AbstractProtocol.PROTOCOL_116_210, ProtocolInfo.CAMERA_SHAKE_PACKET, CameraShakePacket116210.class);
@@ -493,6 +496,7 @@ public class PacketRegister {
         registerPacket(AbstractProtocol.PROTOCOL_121_130, ProtocolInfo.ANIMATE_PACKET, AnimatePacket121130.class);
         registerPacket(AbstractProtocol.PROTOCOL_121_130, ProtocolInfo.TEXT_PACKET, TextPacket121130.class);
         registerPacket(AbstractProtocol.PROTOCOL_121_130, ProtocolInfo.COMMAND_REQUEST_PACKET, CommandRequestPacket121130.class);
+        registerPacket(AbstractProtocol.PROTOCOL_121_130, ProtocolInfo.COMMAND_OUTPUT_PACKET, CommandOutputPacket121130.class);
         registerPacket(AbstractProtocol.PROTOCOL_121_130, ProtocolInfo.MOB_EFFECT_PACKET, MobEffectPacket121130.class);
         registerPacket(AbstractProtocol.PROTOCOL_121_130, ProtocolInfo.SERVERBOUND_DATA_STORE_PACKET, ServerboundDataStorePacket121130.class);
 

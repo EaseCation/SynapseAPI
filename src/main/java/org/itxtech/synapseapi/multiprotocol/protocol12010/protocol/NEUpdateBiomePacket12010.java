@@ -48,7 +48,7 @@ public class NEUpdateBiomePacket12010 extends Packet12010 {
 			int maxZ
 	) {
 		public static final int TYPE_SINGLE = 0;
-		public static final int TYPE_RANGE = 0;
+		public static final int TYPE_RANGE = 1;
 
 		public Entry(int dimension, String biome, int x, int y, int z) {
 			this(TYPE_SINGLE, dimension, biome, x, y, z, x, y, z);

@@ -9,6 +9,7 @@ import org.itxtech.synapseapi.multiprotocol.common.PlayerAuthInputFlags;
 import org.itxtech.synapseapi.multiprotocol.common.inventory.LegacySetItemSlotData;
 
 import javax.annotation.Nullable;
+import java.util.BitSet;
 
 public interface IPlayerAuthInputPacket extends InventoryTransactionPacketInterface {
 
@@ -20,10 +21,7 @@ public interface IPlayerAuthInputPacket extends InventoryTransactionPacketInterf
     float getHeadYaw();
     float getMoveVecX();
     float getMoveVecZ();
-    long getInputFlags();
-    default long getInputFlags2() {
-        return 0;
-    }
+    BitSet getInputFlags();
     int getInputMode();
     int getPlayMode();
     float getVrGazeDirectionX();
@@ -153,7 +151,7 @@ public interface IPlayerAuthInputPacket extends InventoryTransactionPacketInterf
         if (flagId >= PlayerAuthInputFlags.ACK_ENTITY_DATA) {
             flagId += getNeteaseFlagsVersion();
         }
-        return ((flagId >= 64 ? getInputFlags2() : getInputFlags()) & (1L << flagId)) != 0;
+        return getInputFlags().get(flagId);
     }
 
     default int getNeteaseFlagsVersion() {

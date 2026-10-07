@@ -53,7 +53,7 @@ public class MobArmorEquipmentPacket12120 extends Packet12120 {
         MobArmorEquipmentPacket packet = (MobArmorEquipmentPacket) pk;
 
         this.eid = packet.eid;
-        this.slots = packet.slots;
+        this.slots = packet.slots.clone();
 
         Item body = packet.body;
         if (body != null) {

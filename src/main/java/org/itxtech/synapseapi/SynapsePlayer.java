@@ -1061,10 +1061,13 @@ public class SynapsePlayer extends Player {
             return false;
         }
 
-        PlayerLogoutPacket packet = new PlayerLogoutPacket();
-        packet.sessionId = getSessionId();
-        packet.reason = "disconnect.closed";
-        synapseEntry.sendDataPacket(packet);
+        SynapseEntry synapseEntry = getSynapseEntry();
+        if (synapseEntry != null) {
+            PlayerLogoutPacket packet = new PlayerLogoutPacket();
+            packet.sessionId = getSessionId();
+            packet.reason = "disconnect.closed";
+            synapseEntry.sendDataPacket(packet);
+        }
         return true;
     }
 

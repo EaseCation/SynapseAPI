@@ -12,12 +12,14 @@ import cn.nukkit.network.protocol.types.ItemStackRequest;
 import cn.nukkit.network.protocol.types.NetworkInventoryAction;
 import lombok.ToString;
 import org.itxtech.synapseapi.multiprotocol.AbstractProtocol;
+import org.itxtech.synapseapi.multiprotocol.common.PlayerAuthInputFlags;
 import org.itxtech.synapseapi.multiprotocol.common.inventory.LegacySetItemSlotData;
 import org.itxtech.synapseapi.multiprotocol.protocol113.protocol.IPlayerAuthInputPacket;
 import org.itxtech.synapseapi.multiprotocol.protocol116.protocol.PlayerAuthInputPacket116;
 import org.itxtech.synapseapi.multiprotocol.utils.AdvancedGlobalBlockPalette;
 
 import javax.annotation.Nullable;
+import java.util.BitSet;
 
 @ToString
 public class PlayerAuthInputPacket116210 extends Packet116210 implements InventoryTransactionPacketInterface, IPlayerAuthInputPacket {
@@ -85,7 +87,7 @@ public class PlayerAuthInputPacket116210 extends Packet116210 implements Invento
     public float headYaw;
     public float moveVecX;
     public float moveVecZ;
-    public long inputFlags;
+    public BitSet inputFlags;
     public int inputMode;
     public int playMode;
     public float vrGazeDirectionX;
@@ -133,7 +135,7 @@ public class PlayerAuthInputPacket116210 extends Packet116210 implements Invento
         this.moveVecX = this.getLFloat();
         this.moveVecZ = this.getLFloat();
         this.headYaw = this.getLFloat();
-        this.inputFlags = this.getUnsignedVarLong();
+        this.inputFlags = BitSet.valueOf(new long[]{this.getUnsignedVarLong()});
         this.inputMode = (int) this.getUnsignedVarInt();
         this.playMode = (int) this.getUnsignedVarInt();
         if (this.playMode == PLAY_MODE_VR) {
@@ -152,7 +154,7 @@ public class PlayerAuthInputPacket116210 extends Packet116210 implements Invento
             this.cameraDeparted = this.getBoolean();
         }
 
-        if ((this.inputFlags & (1L << FLAG_PERFORM_ITEM_INTERACTION)) != 0) {
+        if (hasFlag(PlayerAuthInputFlags.PERFORM_ITEM_INTERACTION)) {
             this.legacyRequestId = this.getVarInt();
             if (this.legacyRequestId != 0) {
                 int length = (int) this.getUnsignedVarInt();
@@ -202,11 +204,11 @@ public class PlayerAuthInputPacket116210 extends Packet116210 implements Invento
             this.useItemData = itemData;
         }
 
-        if ((this.inputFlags & (1L << FLAG_PERFORM_ITEM_STACK_REQUEST)) != 0) {
+        if (hasFlag(PlayerAuthInputFlags.PERFORM_ITEM_STACK_REQUEST)) {
             itemStackRequest = helper.getItemStackRequest(this);
         }
 
-        if ((this.inputFlags & (1L << FLAG_PERFORM_BLOCK_ACTIONS)) != 0) {
+        if (hasFlag(PlayerAuthInputFlags.PERFORM_BLOCK_ACTIONS)) {
             int size = this.getVarInt();
             if (size > 100) {
                 throw new IndexOutOfBoundsException("Too many block actions in PlayerAuthInputPacket");
@@ -345,7 +347,7 @@ public class PlayerAuthInputPacket116210 extends Packet116210 implements Invento
     }
 
     @Override
-    public long getInputFlags() {
+    public BitSet getInputFlags() {
         return this.inputFlags;
     }
 

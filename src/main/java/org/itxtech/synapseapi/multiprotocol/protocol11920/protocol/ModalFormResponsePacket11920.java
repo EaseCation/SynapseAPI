@@ -34,7 +34,7 @@ public class ModalFormResponsePacket11920 extends Packet11920 {
 
     @Override
     public void decode() {
-        this.formId = this.getVarInt();
+        this.formId = (int) this.getUnsignedVarInt();
 
         this.hasData = this.getBoolean();
         if (this.hasData) {

@@ -72,7 +72,6 @@ public class LoginPacket14 extends Packet14 {
     public boolean netEaseClient;
 
     public boolean reconnect;
-    public String skinIID;
     public int growthLevel;
 
     @Override
@@ -92,6 +91,13 @@ public class LoginPacket14 extends Packet14 {
         }
 
         tryDecodeLoginChainData();
+
+        if (decodedLoginChainData != null) {
+            String udid = decodedLoginChainData.getNetEaseUID();
+            if (udid != null) {
+                skin.setUdid(udid);
+            }
+        }
     }
 
     public void tryDecodeLoginChainData() {
@@ -545,7 +551,7 @@ public class LoginPacket14 extends Packet14 {
 
         JsonNode skinIIDNode = skinToken.get("SkinIID");
         if (skinIIDNode != null) {
-            this.skinIID = skinIIDNode.asString();
+            skin.setItemId(skinIIDNode.asString());
         }
 
         JsonNode growthLevelNode = skinToken.get("GrowthLevel");
