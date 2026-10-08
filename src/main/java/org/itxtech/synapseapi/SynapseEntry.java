@@ -440,9 +440,11 @@ public class SynapseEntry {
             player.setUniqueId(uuid);
             player.setSessionId(sessionId);
             player.bindInputSession(inputSession, packet.receivedChannel);
-            players.put(sessionId, player);
+            if (inputDispatcher == null) players.put(sessionId, player);
             synapse.getServer().addPlayer(address, player);
             player.handleLoginPacket(packet);
+            // 新模式只有同步登录初始化完成后才允许异步解码，首批沿原 FIFO 延后。
+            if (inputDispatcher != null && !player.isClosed()) players.put(sessionId, player);
         } catch (Exception exception) {
             synapse.getServer().getLogger().logException(exception);
         }
