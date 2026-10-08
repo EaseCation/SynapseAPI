@@ -12,6 +12,8 @@ import org.itxtech.synapseapi.network.protocol.spp.SynapseDataPacket;
 
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.locks.LockSupport;
+import javax.annotation.Nullable;
 
 /**
  * Created by boybook on 16/6/24.
@@ -30,14 +32,22 @@ public class SynapseClient extends Thread {
     private final AtomicBoolean shutdown;
     private final AtomicBoolean closing;
     private boolean needAuth = true;
-    private boolean connected = false;
+    private volatile boolean connected = false;
     private final Session session;
+    private final boolean recordInputTime;
+    @Nullable
+    private volatile Thread inboundConsumerThread;
 
     public SynapseClient(Logger logger, int port) {
         this(logger, port, "127.0.0.1");
     }
 
     public SynapseClient(Logger logger, int port, String interfaz) {
+        this(logger, port, interfaz, false);
+    }
+
+    public SynapseClient(Logger logger, int port, String interfaz, boolean recordInputTime) {
+        this.recordInputTime = recordInputTime;
         this.logger = logger;
         this.interfaz = interfaz;
         this.port = port;
@@ -117,6 +127,7 @@ public class SynapseClient extends Thread {
 
     public void pushMainToThreadPacket(SynapseDataPacket data) {
         this.internalQueue.offer(data);
+        if (this.recordInputTime) LockSupport.unpark(this);
     }
 
     public SynapseDataPacket readMainToThreadPacket() {
@@ -127,8 +138,18 @@ public class SynapseClient extends Thread {
         return this.internalQueue.size();
     }
 
+    boolean isRecordInputTime() {
+        return recordInputTime;
+    }
+
     public void pushThreadToMainPacket(SynapseDataPacket data) {
         this.externalQueue.offer(data);
+        if (this.recordInputTime) LockSupport.unpark(this.inboundConsumerThread);
+    }
+
+    /** 只唤醒已有解包消费者；游戏输入仍由原 FIFO 投递到主线程。 */
+    public void setInboundConsumerThread(@Nullable Thread thread) {
+        this.inboundConsumerThread = thread;
     }
 
     public SynapseDataPacket readThreadToMainPacket() {

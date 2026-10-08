@@ -28,6 +28,7 @@ import org.itxtech.synapseapi.multiprotocol.utils.LevelSoundEventUtil;
 
 import java.net.InetSocketAddress;
 import java.util.concurrent.ThreadLocalRandom;
+import javax.annotation.Nullable;
 
 import static org.itxtech.synapseapi.SynapseSharedConstants.*;
 
@@ -36,9 +37,13 @@ public class SynapsePlayer19 extends SynapsePlayer18 {
 
 	private int waitingPongTicks = PONG_TIMEOUT_TICKS;
 	private int pongTimeoutCount;
+	@Nullable
+	private final PendingPing inputPing;
+	private int inputPingTick = Integer.MIN_VALUE;
 
 	public SynapsePlayer19(SourceInterface interfaz, SynapseEntry synapseEntry, Long clientID, InetSocketAddress socketAddress) {
 		super(interfaz, synapseEntry, clientID, socketAddress);
+		this.inputPing = this.isMainThreadInputEnabled() ? new PendingPing() : null;
 		// this.levelChangeLoadScreen = true;
 	}
 
@@ -107,13 +112,19 @@ public class SynapsePlayer19 extends SynapsePlayer18 {
 				}
 
 				if (NETWORK_STACK_LATENCY_TELEMETRY) {
-					long latency = System.nanoTime() - pingNs;
-					if (latency < 10_000_000) {
-						// 原版延迟最低1tick, <10ms可能是跨服时触发了重复发送bug
+					long now = System.nanoTime();
+					long latency = inputPing == null ? now - pingNs
+							: inputPing.acknowledge(networkStackLatencyPacket.timestamp, now);
+					if (latency < 0 || inputPing == null && latency < 10_000_000) {
+						// 新模式拒绝不匹配的请求；旧模式保留原有 10ms 启发规则。
 						break;
 					}
 					latencyNs = latency;
-					ping();
+					if (inputPing == null) {
+						ping();
+					} else {
+						pongTimeoutCount = 0;
+					}
 				}
 
 				if (pingNeedUpdate) {
@@ -291,10 +302,19 @@ public class SynapsePlayer19 extends SynapsePlayer18 {
 	@Override
 	public void ping() {
 		long time = System.nanoTime();
+		if (inputPing != null) {
+			int tick = this.server.getTick();
+			if (inputPingTick == tick || !inputPing.begin(time)) {
+				return;
+			}
+			inputPingTick = tick;
+		}
 		pingNs = time;
 
 		waitingPongTicks = PONG_TIMEOUT_TICKS;
-		pongTimeoutCount = 0;
+		if (inputPing == null) {
+			pongTimeoutCount = 0;
+		}
 
 		NetworkStackLatencyPacket19 packet = new NetworkStackLatencyPacket19();
 		packet.isFromServer = true;
@@ -306,7 +326,11 @@ public class SynapsePlayer19 extends SynapsePlayer18 {
 	public boolean onUpdate(int currentTick) {
 		int tickDiff = currentTick - this.lastUpdate;
 		if (tickDiff > 0) {
-			if (pingNs != 0) {
+			// 快速回包不在等待间隙递归发送新请求，采样频率仍由真实玩家 tick 约束。
+			if (inputPing != null && pingNs != 0 && !inputPing.isPending()) {
+				ping();
+			}
+			if (pingNs != 0 && (inputPing == null || inputPing.isPending())) {
 				if (waitingPongTicks > 0) {
 					waitingPongTicks--;
 				} else if (++pongTimeoutCount > PONG_TIMEOUT_DISCONNECT_THRESHOLD) {
@@ -314,6 +338,9 @@ public class SynapsePlayer19 extends SynapsePlayer18 {
 					pongTimeoutCount = 0;
 				} else {
 					// retry
+					if (inputPing != null) {
+						inputPing.expire();
+					}
 					ping();
 				}
 			}

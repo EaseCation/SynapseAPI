@@ -54,6 +54,7 @@ public class SynapseAPI extends PluginBase implements Listener {
     private Messenger messenger;
     private JavaCustomPayloadMessenger javaCustomPayloadMessenger;
     private boolean networkBroadcastPlayerMove;
+    private boolean mainThreadInput;
     private int blobCacheChunkSendPreTick;
 
     public static SynapseAPI getInstance() {
@@ -64,8 +65,13 @@ public class SynapseAPI extends PluginBase implements Listener {
         return autoConnect;
     }
 
+    /** 新输入模式以有效提交发布替代 raw 广播；任一端关闭时保留旧路径。 */
     public boolean isNetworkBroadcastPlayerMove() {
-        return networkBroadcastPlayerMove;
+        return networkBroadcastPlayerMove && (!mainThreadInput || getServer().getInputDispatcher() == null);
+    }
+
+    public boolean isMainThreadInput() {
+        return mainThreadInput;
     }
 
     public int getBlobCacheChunkSendPreTick() {
@@ -85,6 +91,7 @@ public class SynapseAPI extends PluginBase implements Listener {
 
         this.messenger = new StandardMessenger();
         this.javaCustomPayloadMessenger = new StandardJavaCustomPayloadMessenger();
+        this.mainThreadInput = this.getConfig().getBoolean("main-thread-input", false);
         loadEntries();
 
         this.getServer().getPluginManager().registerEvents(this, this);
@@ -381,8 +388,13 @@ public class SynapseAPI extends PluginBase implements Listener {
 
     @EventHandler
     public void onPlayerQuit(final PlayerQuitEvent event) {
-        if (this.javaCustomPayloadMessenger != null && event.getPlayer() instanceof SynapsePlayer player) {
-            this.javaCustomPayloadMessenger.unregisterPlayerChannels(player);
+        if (event.getPlayer() instanceof SynapsePlayer player) {
+            if (player.isMainThreadInputEnabled()) {
+                player.getSynapseEntry().handlePlayerQuit(player);
+            }
+            if (this.javaCustomPayloadMessenger != null) {
+                this.javaCustomPayloadMessenger.unregisterPlayerChannels(player);
+            }
         }
     }
 

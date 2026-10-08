@@ -1,6 +1,8 @@
 package org.itxtech.synapseapi.network;
 
 import cn.nukkit.Server;
+import io.netty.channel.Channel;
+import javax.annotation.Nullable;
 import org.itxtech.synapseapi.SynapseEntry;
 import org.itxtech.synapseapi.network.protocol.spp.*;
 import org.itxtech.synapseapi.network.synlib.SynapseClient;
@@ -16,11 +18,13 @@ public class SynapseInterface {
     private final SynapseEntry synapse;
     private final SynapseClient client;
     private boolean connected = false;
+    @Nullable
+    private Channel connectedChannel;
     private final SynapseEntryPutPacketThread putPacketThread;
 
     public SynapseInterface(SynapseEntry server, String ip, int port) {
         this.synapse = server;
-        this.client = new SynapseClient(Server.getInstance().getLogger(), port, ip);
+        this.client = new SynapseClient(Server.getInstance().getLogger(), port, ip, server.isMainThreadInputEnabled());
         this.putPacketThread = new SynapseEntryPutPacketThread(this);
     }
 
@@ -79,6 +83,7 @@ public class SynapseInterface {
     }
 
     public void process() {
+        if (this.synapse.isMainThreadInputEnabled()) this.updateInputConnection();
         SynapseDataPacket pk = this.client.readThreadToMainPacket();
 
         while (pk != null) {
@@ -86,7 +91,11 @@ public class SynapseInterface {
             pk = this.client.readThreadToMainPacket();
         }
 
-        this.connected = this.client.isConnected();
+        if (!this.synapse.isMainThreadInputEnabled()) {
+            boolean wasConnected = this.connected;
+            this.connected = this.client.isConnected();
+            if (wasConnected && !this.connected) this.synapse.invalidateInputSessions();
+        }
         if (this.connected && this.client.isNeedAuth()) {
             this.synapse.connect();
             this.synapse.updateLastLogin();
@@ -96,9 +105,25 @@ public class SynapseInterface {
 
     public void handlePacket(SynapseDataPacket pk) {
         if (pk != null) {
+            if (this.synapse.isMainThreadInputEnabled()) {
+                this.updateInputConnection();
+                if (!this.connected || pk.receivedChannel == null
+                        || pk.receivedChannel != this.connectedChannel || !pk.receivedChannel.isActive()) return;
+            }
             pk.decode();
             this.synapse.handleDataPacket(pk);
         }
+    }
+
+    /** 先撤销旧输入来源，再让新连接的原序控制包进入入口。 */
+    private void updateInputConnection() {
+        Channel channel = this.client.getSession().getChannel();
+        boolean active = this.client.isConnected() && channel != null && channel.isActive();
+        if (this.connected && (!active || channel != this.connectedChannel)) {
+            this.synapse.invalidateInputSessions();
+        }
+        this.connected = active;
+        this.connectedChannel = channel;
     }
 
     static {

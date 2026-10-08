@@ -10,6 +10,9 @@ import cn.nukkit.network.Compressor;
 import cn.nukkit.network.Network;
 import cn.nukkit.network.PacketViolationReason;
 import cn.nukkit.network.SourceInterface;
+import cn.nukkit.network.input.ServerInputDispatcher;
+import cn.nukkit.network.input.ServerInputTask;
+import cn.nukkit.network.input.InboundContext;
 import cn.nukkit.network.protocol.BatchPacket;
 import cn.nukkit.network.protocol.DataPacket;
 import cn.nukkit.network.protocol.MovePlayerPacket;
@@ -38,6 +41,7 @@ import org.itxtech.synapseapi.multiprotocol.protocol113.protocol.IPlayerAuthInpu
 import org.itxtech.synapseapi.multiprotocol.protocol113.protocol.InteractPacket113;
 import org.itxtech.synapseapi.multiprotocol.protocol116100ne.protocol.MovePlayerPacket116100NE;
 import org.itxtech.synapseapi.multiprotocol.protocol121130.protocol.InteractPacket121130;
+import org.itxtech.synapseapi.multiprotocol.protocol19.protocol.NetworkStackLatencyPacket19;
 import org.itxtech.synapseapi.network.SynLibInterface;
 import org.itxtech.synapseapi.network.SynapseInterface;
 import org.itxtech.synapseapi.network.protocol.spp.*;
@@ -47,12 +51,15 @@ import org.itxtech.synapseapi.utils.DataPacketEidReplacer;
 import org.itxtech.synapseapi.utils.PacketLogger;
 
 import javax.annotation.Nullable;
+import io.netty.channel.Channel;
 import java.lang.reflect.Constructor;
 import java.net.InetSocketAddress;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.ThreadLocalRandom;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.locks.LockSupport;
 
 import static org.itxtech.synapseapi.SynapseSharedConstants.*;
 
@@ -88,6 +95,14 @@ public class SynapseEntry {
     }
 
     private final SynapseAPI synapse;
+    @Nullable
+    private final ServerInputDispatcher inputDispatcher;
+    @Nullable
+    private final Map<UUID, ServerInputDispatcher.Session> inputSessions;
+    @Nullable
+    private final Int2ObjectMap<int[]> inputPacketCounts;
+    private int inputCountTick = Integer.MIN_VALUE;
+    private static int inputGlobalCountTick = Integer.MIN_VALUE;
     private boolean enable;
     private String serverIp;
     private int port;
@@ -106,6 +121,9 @@ public class SynapseEntry {
 
     public SynapseEntry(SynapseAPI synapse, String serverIp, int port, boolean isMainServer, String password, String serverDescription) {
         this.synapse = synapse;
+        this.inputDispatcher = synapse.isMainThreadInput() ? synapse.getServer().getInputDispatcher() : null;
+        this.inputSessions = inputDispatcher == null ? null : new ConcurrentHashMap<>();
+        this.inputPacketCounts = inputDispatcher == null ? null : new Int2ObjectOpenHashMap<>();
         this.serverIp = serverIp;
         this.port = port;
         this.isMainServer = isMainServer;
@@ -126,6 +144,7 @@ public class SynapseEntry {
         this.getSynapse().getServer().getScheduler().scheduleRepeatingTask(SynapseAPI.getInstance(), new Ticker(this), 1);
 
         Thread asyncTicker = new Thread(new AsyncTicker(), "SynapseAPI Async Ticker");
+        if (this.inputDispatcher != null) this.synapseInterface.getClient().setInboundConsumerThread(asyncTicker);
         asyncTicker.start();
 /*
         this.getSynapse().getServer().getScheduler().scheduleRepeatingTask(SynapseAPI.getInstance(), new Task() {
@@ -160,6 +179,16 @@ public class SynapseEntry {
         return this.synapse;
     }
 
+    public boolean isMainThreadInputEnabled() {
+        return this.inputDispatcher != null;
+    }
+
+    /** 原连接的存活和身份由本机通道决定，不读取客户端声明。 */
+    public boolean isCurrentInputConnection(@Nullable Channel channel) {
+        return channel != null && channel == this.synapseInterface.getClient().getSession().getChannel()
+                && channel.isActive();
+    }
+
     public boolean isEnable() {
         return enable;
     }
@@ -177,6 +206,7 @@ public class SynapseEntry {
     }
 
     public void shutdown() {
+        invalidateInputSessions();
         if (this.synapseInterface != null) {
             this.synapseInterface.markClosing();
         }
@@ -296,9 +326,16 @@ public class SynapseEntry {
                 }
                 tickUseTime = System.currentTimeMillis() - startTime;
                 if (tickUseTime < 10) {
-                    try {
-                        Thread.sleep(10 - tickUseTime);
-                    } catch (InterruptedException ignore) {}
+                    if (inputDispatcher != null) {
+                        if (synapseInterface.getClient().getExternalQueue().isEmpty()) {
+                            LockSupport.parkNanos(this, TimeUnit.MILLISECONDS.toNanos(10 - tickUseTime));
+                        }
+                        Thread.interrupted();
+                    } else {
+                        try {
+                            Thread.sleep(10 - tickUseTime);
+                        } catch (InterruptedException ignore) {}
+                    }
                 } else if (System.currentTimeMillis() - lastWarning >= 5000) {
                     Server.getInstance().getLogger().warning("SynapseEntry<" + getHash() + "> Async Thread is overloading! TPS: " + getTicksPerSecond() + " tickUseTime: " + tickUseTime);
                     lastWarning = System.currentTimeMillis();
@@ -332,86 +369,218 @@ public class SynapseEntry {
                 lastLogin = System.currentTimeMillis();
             }
 
+            if (inputDispatcher != null) {
+                return;
+            }
+
             Arrays.fill(globalPacketCountThisTick, 0);
 
             PlayerLoginPacket playerLoginPacket;
-            Random random = ThreadLocalRandom.current();
-            LOGIN:
             while ((playerLoginPacket = playerLoginQueue.poll()) != null) {
-                globalPacketCountThisTick[ProtocolInfo.LOGIN_PACKET]++;
-
-                UUID uuid = playerLoginPacket.uuid;
-                UUID sessionId = playerLoginPacket.sessionId;
-
-                for (Player player : synapse.getServer().getOnlinePlayerList()) {
-                    if (uuid.equals(player.getUniqueId())) {
-                        try {
-                            player.kick(PlayerKickEvent.Reason.NEW_CONNECTION, "disconnectionScreen.loggedinOtherLocation", false);
-                        } catch (Exception e) {
-                            log.throwing(e);
-                        }
-
-                        PlayerLogoutPacket pk = new PlayerLogoutPacket();
-                        pk.sessionId = sessionId;
-                        pk.reason = "disconnectionScreen.serverIdConflict";
-                        sendDataPacket(pk);
-                        continue LOGIN;
-                    }
-                }
-
-                int protocol = playerLoginPacket.protocol;
-                InetSocketAddress socketAddress = InetSocketAddress.createUnresolved(playerLoginPacket.address, playerLoginPacket.port);
-
-                Class<? extends SynapsePlayer> clazz = determinePlayerClass(protocol);
-                SynapsePlayerCreationEvent ev = new SynapsePlayerCreationEvent(synLibInterface, clazz, clazz, random.nextLong(), socketAddress);
-                getSynapse().getServer().getPluginManager().callEvent(ev);
-                clazz = ev.getPlayerClass();
-
-                try {
-                    Constructor<? extends SynapsePlayer> constructor = clazz.getConstructor(SourceInterface.class, SynapseEntry.class, Long.class, InetSocketAddress.class);
-                    SynapsePlayer player = constructor.newInstance(synLibInterface, this.entry, ev.getClientId(), ev.getSocketAddress());
-                    player.setUniqueId(uuid);
-                    player.setSessionId(sessionId);
-                    players.put(sessionId, player);
-                    getSynapse().getServer().addPlayer(socketAddress, player);
-                    player.handleLoginPacket(playerLoginPacket);
-                } catch (Exception e) {
-                    Server.getInstance().getLogger().logException(e);
-                }
+                handlePlayerLogin(playerLoginPacket);
             }
 
             RedirectPacketEntry redirectPacketEntry;
             Int2ObjectMap<int[]> playerPacketCountThisTick = new Int2ObjectOpenHashMap<>();
             while ((redirectPacketEntry = redirectPacketQueue.poll()) != null) {
-                if (redirectPacketEntry.player.isClosed()) {
-                    continue;
-                }
-                //Server.getInstance().getLogger().warning("C => S  " + redirectPacketEntry.dataPacket.getClass().getSimpleName());
-                DataPacket packet = DataPacketEidReplacer.replaceBack(redirectPacketEntry.dataPacket, SynapsePlayer.SYNAPSE_PLAYER_ENTITY_ID, redirectPacketEntry.player.getId());
-                globalPacketCountThisTick[packet.pid()]++;
-                int[] counter = playerPacketCountThisTick.get((int) redirectPacketEntry.player.getLoaderId());
-                if (counter == null) {
-                    playerPacketCountThisTick.put((int) redirectPacketEntry.player.getLoaderId(), counter = new int[]{1});
-                }
-                counter[0]++;
-                if (redirectPacketEntry.player.isOnline() && counter[0] > 10000) {
-                    redirectPacketEntry.player.onPacketViolation(PacketViolationReason.RECEIVING_PACKETS_TOO_FAST, "sync");
-                    continue;
-                }
-                if (SERVERBOUND_PACKET_LOGGING && log.isTraceEnabled()) {
-                    PacketLogger.handleServerboundPacket(redirectPacketEntry.player, packet);
-                }
-                redirectPacketEntry.player.handleDataPacket(packet);
+                handleRedirectOnMain(redirectPacketEntry, playerPacketCountThisTick);
             }
 
             PlayerLogoutPacket playerLogoutPacket;
             while ((playerLogoutPacket = playerLogoutQueue.poll()) != null) {
-                UUID sessionId = playerLogoutPacket.sessionId;
-                Player player = players.get(sessionId);
-                if (player != null) {
-                    player.close("", playerLogoutPacket.reason, true);
-                    removePlayer(sessionId);
+                handlePlayerLogout(playerLogoutPacket);
+            }
+        }
+    }
+
+    private void handlePlayerLogin(PlayerLoginPacket packet) {
+        handlePlayerLogin(packet, null);
+    }
+
+    private void handlePlayerLogin(PlayerLoginPacket packet, @Nullable ServerInputDispatcher.Session inputSession) {
+        if (inputDispatcher != null) {
+            prepareInputCounts();
+        }
+        globalPacketCountThisTick[ProtocolInfo.LOGIN_PACKET]++;
+        UUID uuid = packet.uuid;
+        UUID sessionId = packet.sessionId;
+        for (Player player : synapse.getServer().getOnlinePlayerList()) {
+            if (uuid.equals(player.getUniqueId())) {
+                if (inputDispatcher != null && player instanceof SynapsePlayer previous
+                        && previous.getSynapseEntry() == this && !previous.isInputSessionActive()) {
+                    // 旧来源已退休，关闭原对象后允许当前连接重建；活跃重复登录仍拒绝。
+                    previous.close("", "disconnectionScreen.disconnected", true);
+                    players.remove(previous.getSessionId(), previous);
+                    continue;
                 }
+                try {
+                    player.kick(PlayerKickEvent.Reason.NEW_CONNECTION, "disconnectionScreen.loggedinOtherLocation", false);
+                } catch (Exception exception) {
+                    log.throwing(exception);
+                }
+                PlayerLogoutPacket logout = new PlayerLogoutPacket();
+                logout.sessionId = sessionId;
+                logout.reason = "disconnectionScreen.serverIdConflict";
+                sendDataPacket(logout);
+                return;
+            }
+        }
+        InetSocketAddress address = InetSocketAddress.createUnresolved(packet.address, packet.port);
+        Class<? extends SynapsePlayer> clazz = determinePlayerClass(packet.protocol);
+        SynapsePlayerCreationEvent event = new SynapsePlayerCreationEvent(synLibInterface, clazz, clazz,
+                ThreadLocalRandom.current().nextLong(), address);
+        synapse.getServer().getPluginManager().callEvent(event);
+        if (inputSession != null && packet.receivedChannel != null
+                && !this.isCurrentInputConnection(packet.receivedChannel)) return;
+        clazz = event.getPlayerClass();
+        try {
+            Constructor<? extends SynapsePlayer> constructor = clazz.getConstructor(SourceInterface.class,
+                    SynapseEntry.class, Long.class, InetSocketAddress.class);
+            SynapsePlayer player = constructor.newInstance(synLibInterface, this, event.getClientId(), event.getSocketAddress());
+            player.setUniqueId(uuid);
+            player.setSessionId(sessionId);
+            player.bindInputSession(inputSession, packet.receivedChannel);
+            players.put(sessionId, player);
+            synapse.getServer().addPlayer(address, player);
+            player.handleLoginPacket(packet);
+        } catch (Exception exception) {
+            synapse.getServer().getLogger().logException(exception);
+        }
+    }
+
+    private void handleRedirectOnMain(RedirectPacketEntry entry, Int2ObjectMap<int[]> counts) {
+        if (entry.player.isClosed()) {
+            return;
+        }
+        DataPacket packet = DataPacketEidReplacer.replaceBack(entry.dataPacket,
+                SynapsePlayer.SYNAPSE_PLAYER_ENTITY_ID, entry.player.getId());
+        if (inputDispatcher != null && packet instanceof IPlayerAuthInputPacket input) {
+            long tick = input.getTick();
+            if (entry.player.lastAuthInputPacketTick > tick) {
+                entry.player.setViolated("input_tick");
+                entry.player.onPacketViolation(PacketViolationReason.IMPOSSIBLE_BEHAVIOR, "input_tick", String.valueOf(tick));
+                return;
+            }
+            entry.player.lastAuthInputPacketTick = tick;
+        }
+        globalPacketCountThisTick[packet.pid()]++;
+        int[] counter = counts.get((int) entry.player.getLoaderId());
+        if (counter == null) {
+            counts.put((int) entry.player.getLoaderId(), counter = new int[]{1});
+        }
+        counter[0]++;
+        if (entry.player.isOnline() && counter[0] > 10000) {
+            entry.player.onPacketViolation(PacketViolationReason.RECEIVING_PACKETS_TOO_FAST, "sync");
+            return;
+        }
+        if (SERVERBOUND_PACKET_LOGGING && log.isTraceEnabled()) {
+            PacketLogger.handleServerboundPacket(entry.player, packet);
+        }
+        if (inputDispatcher == null) {
+            entry.player.handleDataPacket(packet);
+        } else {
+            entry.player.handleInputDataPacket(packet, entry.movementEpoch);
+        }
+    }
+
+    private void handlePlayerLogout(PlayerLogoutPacket packet) {
+        Player player = players.get(packet.sessionId);
+        if (player != null) {
+            player.close("", packet.reason, true);
+            removePlayer(packet.sessionId);
+        }
+    }
+
+    private void prepareInputCounts() {
+        int tick = synapse.getServer().getTick();
+        if (inputGlobalCountTick != tick) {
+            inputGlobalCountTick = tick;
+            Arrays.fill(globalPacketCountThisTick, 0);
+        }
+        if (inputCountTick != tick) {
+            inputCountTick = tick;
+            inputPacketCounts.clear();
+        }
+    }
+
+    private void submitInput(ServerInputDispatcher.Session session, int bytes, Runnable action) {
+        submitInput(session, bytes, context -> action.run(), false);
+    }
+
+    private void submitInput(ServerInputDispatcher.Session session, int bytes, ServerInputTask task, boolean betweenTicks) {
+        submitInput(session, bytes, task, betweenTicks, 0);
+    }
+
+    private void submitInput(ServerInputDispatcher.Session session, int bytes, ServerInputTask task, boolean betweenTicks, long receivedNanos) {
+        ServerInputDispatcher.OfferResult result = inputDispatcher.offer(session, task, bytes, betweenTicks, receivedNanos);
+        if (result == ServerInputDispatcher.OfferResult.OVERLOADED) {
+            synapse.getServer().getScheduler().scheduleTask(synapse, () -> {
+                if (inputSessions.remove(session.getId(), session)) {
+                    PlayerLogoutPacket logout = new PlayerLogoutPacket();
+                    logout.sessionId = session.getId();
+                    logout.reason = "disconnectionScreen.serverFull";
+                    sendDataPacket(logout);
+                    handlePlayerLogout(logout);
+                }
+            });
+        }
+    }
+
+    private void publishRedirect(SynapsePlayer player, DataPacket packet, long movementEpoch, long receivedNanos) {
+        RedirectPacketEntry entry = new RedirectPacketEntry(player, packet, movementEpoch);
+        if (inputDispatcher == null) {
+            redirectPacketQueue.offer(entry);
+            return;
+        }
+        ServerInputDispatcher.Session session = inputSessions.get(player.getSessionId());
+        if (session == null || !session.isActive()) {
+            return;
+        }
+        if (synapse.getServer().isPrimaryThread()) {
+            // 未就绪连接的原始批包在自己的任务内完成，不能把子包追加到队尾而重排。
+            prepareInputCounts();
+            handleRedirectOnMain(entry, inputPacketCounts);
+        } else {
+            int bytes = packet.getCount();
+            boolean betweenTicks = BetweenTickPackets.supports(packet);
+            submitInput(session, bytes, new ServerInputTask() {
+                @Override
+                public boolean isValid() {
+                    return inputSessions.get(player.getSessionId()) == session
+                            && players.get(player.getSessionId()) == player && player.isAcceptingInputPackets();
+                }
+
+                @Override
+                public boolean canRunBetweenTicks() {
+                    return BetweenTickPackets.canRunBetweenTicks(player, packet);
+                }
+
+                @Override
+                public void run(InboundContext context) {
+                    if (this.isValid() && !player.isViolated()) {
+                        prepareInputCounts();
+                        handleRedirectOnMain(entry, inputPacketCounts);
+                    }
+                }
+            }, betweenTicks, receivedNanos);
+        }
+    }
+
+    public void invalidateInputSessions() {
+        if (inputDispatcher != null) {
+            List<SynapsePlayer> stalePlayers = inputSessions.keySet().stream()
+                    .map(players::get).filter(Objects::nonNull).toList();
+            inputSessions.values().forEach(inputDispatcher::invalidate);
+            inputSessions.clear();
+            if (!stalePlayers.isEmpty()) {
+                synapse.getServer().getScheduler().scheduleTask(synapse, () -> {
+                    for (SynapsePlayer player : stalePlayers) {
+                        if (players.get(player.getSessionId()) == player) {
+                            player.close("", "disconnectionScreen.disconnected", true);
+                            players.remove(player.getSessionId(), player);
+                        }
+                    }
+                });
             }
         }
     }
@@ -469,6 +638,19 @@ public class SynapseEntry {
         this.players.remove(sessionId);
     }
 
+    /** 主线程退出立即失效原代际，残留任务不能继续挡住全局 FIFO 队头。 */
+    void handlePlayerQuit(SynapsePlayer player) {
+        if (inputDispatcher == null) {
+            return;
+        }
+        ServerInputDispatcher.Session session = player.getInputSession();
+        if (session != null) {
+            inputDispatcher.invalidate(session);
+            inputSessions.remove(session.getId(), session);
+        }
+        players.remove(player.getSessionId(), player);
+    }
+
     private final Queue<PlayerLoginPacket> playerLoginQueue = new LinkedBlockingQueue<>();
     private final Queue<PlayerLogoutPacket> playerLogoutQueue = new LinkedBlockingQueue<>();
     private final Queue<RedirectPacketEntry> redirectPacketQueue = new LinkedBlockingQueue<>();
@@ -478,6 +660,7 @@ public class SynapseEntry {
         HANDLER:
         switch (pk.pid()) {
             case SynapseInfo.DISCONNECT_PACKET:
+                invalidateInputSessions();
                 DisconnectPacket disconnectPacket = (DisconnectPacket) pk;
                 this.verified = false;
                 switch (disconnectPacket.type) {
@@ -523,14 +706,69 @@ public class SynapseEntry {
             case SynapseInfo.PLAYER_LOGIN_PACKET:
                 PlayerLoginPacket loginPacket = (PlayerLoginPacket) pk;
                 synapse.getServer().getNetwork().addDownloadStatistic(loginPacket.cachedLoginPacket.length);
-                this.playerLoginQueue.offer(loginPacket);
+                if (inputDispatcher == null) {
+                    this.playerLoginQueue.offer(loginPacket);
+                } else {
+                    ServerInputDispatcher.Session session = new ServerInputDispatcher.Session(loginPacket.sessionId);
+                    ServerInputDispatcher.Session previous = inputSessions.putIfAbsent(loginPacket.sessionId, session);
+                    if (previous == null) {
+                        Channel loginChannel = loginPacket.receivedChannel != null ? loginPacket.receivedChannel
+                                : this.synapseInterface.getClient().getSession().getChannel();
+                        submitInput(session, loginPacket.cachedLoginPacket.length, () -> {
+                            try {
+                                if (!isCurrentInputConnection(loginChannel)) return;
+                                handlePlayerLogin(loginPacket, session);
+                            } finally {
+                                SynapsePlayer created = players.get(loginPacket.sessionId);
+                                if (!isCurrentInputConnection(loginChannel) && created != null
+                                        && created.getInputSession() == session) {
+                                    created.close("", "disconnectionScreen.disconnected", true);
+                                    players.remove(loginPacket.sessionId, created);
+                                }
+                                if (!isCurrentInputConnection(loginChannel) || created == null || created.isClosed()) {
+                                    inputDispatcher.invalidate(session);
+                                    inputSessions.remove(loginPacket.sessionId, session);
+                                }
+                            }
+                        });
+                    } else {
+                        inputDispatcher.invalidate(previous);
+                        synapse.getServer().getScheduler().scheduleTask(synapse, () -> {
+                            PlayerLogoutPacket logout = new PlayerLogoutPacket();
+                            logout.sessionId = loginPacket.sessionId;
+                            logout.reason = "disconnectionScreen.serverIdConflict";
+                            handlePlayerLogout(logout);
+                            sendDataPacket(logout);
+                        });
+                    }
+                }
                 break;
             case SynapseInfo.REDIRECT_PACKET:
                 RedirectPacket redirectPacket = (RedirectPacket) pk;
                 synapse.getServer().getNetwork().addDownloadStatistic(redirectPacket.mcpeBuffer.length);
 
                 SynapsePlayer player = this.players.get(redirectPacket.sessionId);
+                if (inputDispatcher != null) {
+                    ServerInputDispatcher.Session session = inputSessions.get(redirectPacket.sessionId);
+                    if (session == null || !session.isActive()) {
+                        break;
+                    }
+                }
+                if (inputDispatcher != null && player == null && !synapse.getServer().isPrimaryThread()) {
+                    ServerInputDispatcher.Session session = inputSessions.get(redirectPacket.sessionId);
+                    if (session != null && session.isActive()) {
+                        // 仅登录首批缺少 Player 的情况延后解码，正常连接保持原异步解包路径。
+                        submitInput(session, redirectPacket.mcpeBuffer.length, context -> {
+                            if (inputSessions.get(redirectPacket.sessionId) == session) {
+                                handleDataPacket(redirectPacket);
+                            }
+                        }, false, redirectPacket.receivedNanos);
+                    }
+                    break;
+                }
                 if (player != null && !player.isClosed() && !player.isViolated()) {
+                    // 同一原始批包共享接入代际，解包期间发生传送也不能给后半批旧输入换代。
+                    long movementEpoch = inputDispatcher == null ? 0 : player.getMovementEpoch();
                     DataPacket pk0 = PacketRegister.getFullPacket(redirectPacket.mcpeBuffer, redirectPacket.protocol);
                     //Server.getInstance().getLogger().info("to server : " + pk0.getClass().getName());
                     if (pk0 != null) {
@@ -593,7 +831,7 @@ public class SynapseEntry {
                                         continue;
                                     }
 
-                                    this.redirectPacketQueue.offer(new RedirectPacketEntry(player, subPacket));
+                                    publishRedirect(player, subPacket, movementEpoch, redirectPacket.receivedNanos);
 
                                     if (SynapseAPI.getInstance().isNetworkBroadcastPlayerMove() && player.isOnline()) {
                                         //玩家体验优化：直接不经过主线程广播玩家移动，插件过度干预可能会造成移动鬼畜问题
@@ -717,8 +955,9 @@ public class SynapseEntry {
                                 player.violationIncomingThread = player.getViolationLevel();
                             }
                         } else {
-                            this.redirectPacketQueue.offer(new RedirectPacketEntry(player, pk0));
-                            if (SynapseAPI.getInstance().isNetworkBroadcastPlayerMove() && !player.isServerAuthoritativeMovementEnabled() && pk0 instanceof MovePlayerPacket movePacket) {
+                            publishRedirect(player, pk0, movementEpoch, redirectPacket.receivedNanos);
+                            if (SynapseAPI.getInstance().isNetworkBroadcastPlayerMove() && !player.isServerAuthoritativeMovementEnabled()
+                                    && pk0 instanceof MovePlayerPacket movePacket) {
                                 // 玩家体验优化：直接不经过主线程广播玩家移动，插件过度干预可能会造成移动鬼畜问题
                                 // 判断是否和玩家自身在附近区块，过滤 TP 后客户端发来的旧坐标包
                                 if (isPositionNearPlayer(movePacket.x, movePacket.y, movePacket.z, player)) {
@@ -731,7 +970,19 @@ public class SynapseEntry {
                 }
                 break;
             case SynapseInfo.PLAYER_LOGOUT_PACKET:
-                this.playerLogoutQueue.offer((PlayerLogoutPacket) pk);
+                PlayerLogoutPacket logout = (PlayerLogoutPacket) pk;
+                if (inputDispatcher == null) {
+                    this.playerLogoutQueue.offer(logout);
+                } else {
+                    ServerInputDispatcher.Session session = inputSessions.get(logout.sessionId);
+                    if (session != null && session.isActive()) {
+                        submitInput(session, 0, () -> {
+                            handlePlayerLogout(logout);
+                            inputDispatcher.invalidate(session);
+                            inputSessions.remove(logout.sessionId, session);
+                        });
+                    }
+                }
                 break;
             case SynapseInfo.PLUGIN_MESSAGE_PACKET:
                 PluginMessagePacket messagePacket = (PluginMessagePacket) pk;
@@ -762,10 +1013,12 @@ public class SynapseEntry {
     private static class RedirectPacketEntry {
         private final SynapsePlayer player;
         private final DataPacket dataPacket;
+        private final long movementEpoch;
 
-        private RedirectPacketEntry(SynapsePlayer player, DataPacket dataPacket) {
+        private RedirectPacketEntry(SynapsePlayer player, DataPacket dataPacket, long movementEpoch) {
             this.player = player;
             this.dataPacket = dataPacket;
+            this.movementEpoch = movementEpoch;
         }
     }
 
