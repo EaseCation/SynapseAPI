@@ -193,6 +193,9 @@ public class SynapsePlayer16 extends SynapsePlayer14 {
 				for (SubPacket<? extends SubPacketHandler<?>> subPacket : pyRpcPacket.subPackets) {
 					try {
 						for (ServerSubPacketHandler<?> subPacketHandler : subPacketHandlers) {
+							if (this.isMainThreadInputEnabled() && !this.isAcceptingInputPackets()) {
+								return;
+							}
 							subPacketHandler.dispatch(subPacket);
 						}
 					} catch (Exception e) {

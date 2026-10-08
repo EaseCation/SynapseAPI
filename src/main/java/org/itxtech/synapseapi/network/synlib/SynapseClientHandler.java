@@ -37,6 +37,8 @@ public class SynapseClientHandler extends ChannelInboundHandlerAdapter {
 
     @Override
     public void channelInactive(ChannelHandlerContext ctx) throws Exception {
+        if (this.synapseClient.isRecordInputTime()
+                && this.synapseClient.getSession().getChannel() != ctx.channel()) return;
         //Server.getInstance().getLogger().debug("client-ChannelInactive");
         this.getSynapseClient().setConnected(false);
         this.getSynapseClient().reconnect();
@@ -47,6 +49,10 @@ public class SynapseClientHandler extends ChannelInboundHandlerAdapter {
     public void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception {
         if (msg instanceof SynapseDataPacket) {
             SynapseDataPacket packet = (SynapseDataPacket) msg;
+            // 诊断夹具可在解码器之后投递；已绑定的旧来源不能被当前 handler 覆盖。
+            if (this.synapseClient.isRecordInputTime() && packet.receivedChannel == null) {
+                packet.receivedChannel = ctx.channel();
+            }
             this.getSynapseClient().pushThreadToMainPacket(packet);
         }
     }
@@ -55,6 +61,9 @@ public class SynapseClientHandler extends ChannelInboundHandlerAdapter {
     public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) {
         if (cause instanceof Exception) Server.getInstance().getLogger().logException(cause);
         ctx.close();
-        this.getSynapseClient().setConnected(false);
+        if (!this.synapseClient.isRecordInputTime()
+                || this.synapseClient.getSession().getChannel() == ctx.channel()) {
+            this.getSynapseClient().setConnected(false);
+        }
     }
 }

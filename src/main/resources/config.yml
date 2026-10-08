@@ -2,6 +2,8 @@
 disable-rak: false
 enable: true
 autoCompress: true
+# 与 Nukkit network.input-dispatcher.enabled 同时开启才接入统一输入队列。
+main-thread-input: false
 
 entries:
   - server-ip: 127.0.0.1
