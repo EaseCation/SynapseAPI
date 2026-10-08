@@ -487,7 +487,11 @@ public class SynapseEntry {
         Player player = players.get(packet.sessionId);
         if (player != null) {
             player.close("", packet.reason, true);
-            removePlayer(packet.sessionId);
+            if (inputDispatcher == null) {
+                removePlayer(packet.sessionId);
+            } else {
+                players.remove(packet.sessionId, player);
+            }
         }
     }
 
@@ -734,11 +738,14 @@ public class SynapseEntry {
                     } else {
                         inputDispatcher.invalidate(previous);
                         synapse.getServer().getScheduler().scheduleTask(synapse, () -> {
+                            // 只清理原代际；尚无玩家也释放旧键，不能关闭后来同 ID 的新连接。
+                            if (!inputSessions.remove(loginPacket.sessionId, previous)) return;
                             PlayerLogoutPacket logout = new PlayerLogoutPacket();
                             logout.sessionId = loginPacket.sessionId;
                             logout.reason = "disconnectionScreen.serverIdConflict";
                             handlePlayerLogout(logout);
-                            sendDataPacket(logout);
+                            // 退出回调可以建立新代际，旧拒绝不能再通知同 ID 的新代理会话。
+                            if (!inputSessions.containsKey(loginPacket.sessionId)) sendDataPacket(logout);
                         });
                     }
                 }
