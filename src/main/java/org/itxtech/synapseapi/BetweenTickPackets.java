@@ -18,6 +18,8 @@ import org.itxtech.synapseapi.multiprotocol.protocol121120.protocol.AnimatePacke
 import org.itxtech.synapseapi.multiprotocol.protocol121130.protocol.AnimatePacket121130;
 import org.itxtech.synapseapi.multiprotocol.protocol16.protocol.NEPyRpcPacket16;
 
+import java.util.BitSet;
+
 /** 仅分类已审计的协议工作，不从客户端状态推导服务端物理或权限。 */
 final class BetweenTickPackets {
     private static final long MOVEMENT_FLAGS = ((1L << PlayerAuthInputFlags.START_GLIDING) - 1)
@@ -103,7 +105,14 @@ final class BetweenTickPackets {
                 | (embeddedUse ? 1L << PlayerAuthInputFlags.PERFORM_ITEM_INTERACTION : 0);
         long allowed2 = (CONTEXT_FLAGS2 << shift)
                 | (shift == 0 ? 0 : CONTEXT_FLAGS >>> (Long.SIZE - shift));
-        return (input.getInputFlags() & ~allowed) == 0 && (input.getInputFlags2() & ~allowed2) == 0;
+        BitSet flags = input.getInputFlags();
+        if (flags == null) return false;
+        for (int bit = flags.nextSetBit(0); bit >= 0; bit = flags.nextSetBit(bit + 1)) {
+            if (bit >= Long.SIZE * 2 || ((bit < Long.SIZE ? allowed : allowed2) & (1L << bit)) == 0) {
+                return false;
+            }
+        }
+        return true;
     }
 
     /** 按工作职责读取当前状态；切槽和释放不能被同一玩家的持续使用状态锁住。 */

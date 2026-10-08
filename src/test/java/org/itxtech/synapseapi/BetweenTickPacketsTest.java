@@ -14,6 +14,7 @@ import org.itxtech.synapseapi.multiprotocol.protocol16.protocol.NEPyRpcPacket16;
 import org.itxtech.synapseapi.network.protocol.mod.StoreBuySuccessPacket;
 
 import java.util.List;
+import java.util.BitSet;
 import cn.nukkit.network.protocol.DataPacket;
 import cn.nukkit.network.protocol.types.ItemStackRequest;
 import cn.nukkit.network.protocol.types.NetworkInventoryAction;
@@ -172,23 +173,19 @@ class BetweenTickPacketsTest {
         return packet;
     }
     private static DataPacket movement() {
-        return mock(DataPacket.class, withSettings().extraInterfaces(IPlayerAuthInputPacket.class));
+        DataPacket packet = mock(DataPacket.class, withSettings().extraInterfaces(IPlayerAuthInputPacket.class));
+        when(((IPlayerAuthInputPacket) packet).getInputFlags()).thenReturn(new BitSet());
+        return packet;
     }
 
     private static void flags(IPlayerAuthInputPacket input, int layout, int... flags) {
-        long lower = 0;
-        long upper = 0;
+        BitSet bits = new BitSet();
         for (int flag : flags) {
             int bit = flag >= PlayerAuthInputFlags.ACK_ENTITY_DATA ? flag + layout : flag;
-            if (bit < Long.SIZE) {
-                lower |= 1L << bit;
-            } else {
-                upper |= 1L << (bit - Long.SIZE);
-            }
+            bits.set(bit);
         }
         when(input.getNeteaseFlagsVersion()).thenReturn(layout);
-        when(input.getInputFlags()).thenReturn(lower);
-        when(input.getInputFlags2()).thenReturn(upper);
+        when(input.getInputFlags()).thenReturn(bits);
     }
 
     @Test
@@ -320,9 +317,9 @@ class BetweenTickPacketsTest {
     void unknownBitsAndUnknownLayoutsDoNotAcquireIdleEligibility() {
         DataPacket packet = movement();
         IPlayerAuthInputPacket input = (IPlayerAuthInputPacket) packet;
-        when(input.getInputFlags2()).thenReturn(1L << 20);
+        input.getInputFlags().set(Long.SIZE + 20);
         assertFalse(BetweenTickPackets.supports(packet));
-        when(input.getInputFlags2()).thenReturn(0L);
+        input.getInputFlags().clear(Long.SIZE + 20);
         when(input.getNeteaseFlagsVersion()).thenReturn(3);
         assertFalse(BetweenTickPackets.supports(packet));
         when(input.getNeteaseFlagsVersion()).thenReturn(-1);

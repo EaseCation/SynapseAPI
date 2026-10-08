@@ -19,6 +19,7 @@ import org.junit.jupiter.api.Test;
 import java.net.InetSocketAddress;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.BitSet;
 import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -43,6 +44,7 @@ class ItemActionAdmissionTest {
         ServerInputDispatcher.Session session = new ServerInputDispatcher.Session(UUID.randomUUID());
         List<String> order = new ArrayList<>();
         PlayerAuthInputPacket116220 movement = new PlayerAuthInputPacket116220();
+        movement.inputFlags = new BitSet();
         InventoryTransactionPacket116 release = new InventoryTransactionPacket116();
         dispatcher.offer(session, task(player, movement, () -> {
             assertTrue(dispatcher.getCurrentContext().betweenTicks());
