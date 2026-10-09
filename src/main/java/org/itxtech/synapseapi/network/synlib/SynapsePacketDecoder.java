@@ -5,6 +5,7 @@ import io.netty.buffer.ByteBuf;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.handler.codec.ReplayingDecoder;
 import org.itxtech.synapseapi.network.SynapseInterface;
+import org.itxtech.synapseapi.network.protocol.spp.SynapseDataPacket;
 
 import java.util.List;
 
@@ -19,11 +20,17 @@ public class SynapsePacketDecoder extends ReplayingDecoder<SynapsePacketDecoder.
 
     private static final int MAX_BODY_SIZE = 1024 * 1024 * 64;
 
+    private final boolean recordInputTime;
     private final SynapseProtocolHeader header = new SynapseProtocolHeader();
 
     public SynapsePacketDecoder() {
+        this(false);
+    }
+
+    public SynapsePacketDecoder(boolean recordInputTime) {
         //设置(下文#state()的默认返回对象)
         super(State.HEADER_MAGIC);
+        this.recordInputTime = recordInputTime;
     }
 
     @Override
@@ -42,7 +49,12 @@ public class SynapsePacketDecoder extends ReplayingDecoder<SynapsePacketDecoder.
                 int bodyLength = checkBodyLength(header.bodyLength());
                 byte[] bytes = new byte[bodyLength];
                 in.readBytes(bytes);
-                out.add(SynapseInterface.getPacket((byte) header.pid(), bytes));
+                SynapseDataPacket packet = SynapseInterface.getPacket((byte) header.pid(), bytes);
+                if (recordInputTime && packet != null) {
+                    packet.receivedNanos = System.nanoTime();
+                    packet.receivedChannel = ctx.channel();
+                }
+                out.add(packet);
                 break;
             default:
                 break;

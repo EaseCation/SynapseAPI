@@ -1,5 +1,6 @@
 package org.itxtech.synapseapi;
 
+import cn.nukkit.inventory.InventorySlotReference;
 import cn.nukkit.AdventureSettings.Type;
 import cn.nukkit.Player;
 import cn.nukkit.Server;
@@ -65,6 +66,7 @@ import org.itxtech.synapseapi.multiprotocol.protocol116220.protocol.PlayerAuthIn
 import org.itxtech.synapseapi.multiprotocol.protocol14.protocol.PlayerActionPacket14;
 import org.itxtech.synapseapi.multiprotocol.utils.CreativeItemsPalette;
 
+import javax.annotation.Nullable;
 import java.net.InetSocketAddress;
 import java.util.*;
 import java.util.concurrent.ThreadLocalRandom;
@@ -91,11 +93,29 @@ public class SynapsePlayer116 extends SynapsePlayer113 {
 	protected BlockFace breakingBlockFace;
 
 	protected int currentTickAttackPacketCount;
+	@Nullable
+	private final AttackAttempts inputAttackAttempts;
 
 	private boolean emotedCurrentTick;
 
 	public SynapsePlayer116(SourceInterface interfaz, SynapseEntry synapseEntry, Long clientID, InetSocketAddress socketAddress) {
 		super(interfaz, synapseEntry, clientID, socketAddress);
+		this.inputAttackAttempts = this.isMainThreadInputEnabled() ? new AttackAttempts(2) : null;
+	}
+
+	/** 到达原攻击计数点后才消费额度，所有输入阶段共用真实 tick 窗口。 */
+	protected final boolean claimAttackAttempt() {
+		return this.inputAttackAttempts == null ? ++this.currentTickAttackPacketCount < 2
+				: this.inputAttackAttempts.claim(this.server.getTick());
+	}
+
+	public final int getInputAttackWindowTick() {
+		return this.inputAttackAttempts == null ? Integer.MIN_VALUE : this.inputAttackAttempts.tick();
+	}
+
+	public final int getAttackAttemptsInCurrentWindow() {
+		return this.inputAttackAttempts == null ? this.currentTickAttackPacketCount
+				: this.inputAttackAttempts.count(this.server.getTick());
 	}
 
 	protected Boolean normalizeUseItemClientPrediction(Boolean clientPrediction) {
@@ -424,8 +444,14 @@ public class SynapsePlayer116 extends SynapsePlayer113 {
 								lastRightClickData = useItemData;
 								lastRightClickTime = System.currentTimeMillis();
 
+                                long itemSlotEpoch = this.getMovementEpoch();
+                                boolean itemSlotReady = this.prepareItemUseSlot(useItemData.hotbarSlot, useItemData.itemInHand, interactionHand);
+                                if (!itemSlotReady && (!this.isOnline() || !this.isAlive() || !this.isInputSessionActive()
+                                        || this.getMovementEpoch() != itemSlotEpoch || !this.isCurrentInputPosition())) {
+                                    break packetswitch;
+                                }
                                 Item i = inventory.getItemInHand();
-								if (!i.is(Item.BRUSH)) {
+								if (itemSlotReady && !i.is(Item.BRUSH)) {
                                     this.setDataFlag(DATA_FLAG_ACTION, false);
                                 }
 
@@ -433,7 +459,7 @@ public class SynapsePlayer116 extends SynapsePlayer113 {
 								//this.newPosition = useItemData.playerPos.subtract(0, this.getBaseOffset(), 0);
 								boolean clientPredictedFailure = false;
 
-								if (this.canInteract(blockVector.add(0.5, 0.5, 0.5), this.isCreative() ? MAX_REACH_DISTANCE_CREATIVE : MAX_REACH_DISTANCE_SURVIVAL)) {
+								if (itemSlotReady && this.canInteract(blockVector.add(0.5, 0.5, 0.5), this.isCreative() ? MAX_REACH_DISTANCE_CREATIVE : MAX_REACH_DISTANCE_SURVIVAL)) {
 									if (this.isCreative()) {
 										Vector3 blockPos;
 										Block clientBlock = useItemData.block;
@@ -445,7 +471,7 @@ public class SynapsePlayer116 extends SynapsePlayer113 {
 										}
 										Boolean clientPrediction = AbstractProtocol.PROTOCOL_121_20.isOlderThanOrEqual(protocol) ? useItemData.clientInteractPrediction : null;
 										clientPrediction = normalizeUseItemClientPrediction(clientPrediction);
-										if (this.level.useItemOn(blockPos, i, face, clickPos.x, clickPos.y, clickPos.z, this, clientPrediction) != null) {
+										if (this.useItemOnBlock(blockPos, i, face, clickPos.x, clickPos.y, clickPos.z, clientPrediction) != null) {
 											break packetswitch;
 										}
 									} else if (i.equals(useItemData.itemInHand)) {
@@ -461,8 +487,8 @@ public class SynapsePlayer116 extends SynapsePlayer113 {
 										Boolean clientPrediction = AbstractProtocol.PROTOCOL_121_20.isOlderThanOrEqual(protocol) ? useItemData.clientInteractPrediction : null;
 										clientPrediction = normalizeUseItemClientPrediction(clientPrediction);
 										clientPredictedFailure = clientPrediction != null && !clientPrediction;
-										if ((i = this.level.useItemOn(blockPos, i, face, clickPos.x, clickPos.y, clickPos.z, this, clientPrediction)) != null) {
-											if (!i.equals(oldItem) || i.getCount() != oldItem.getCount()) {
+										if ((i = this.useItemOnBlock(blockPos, i, face, clickPos.x, clickPos.y, clickPos.z, clientPrediction)) != null) {
+											if (!this.isMainThreadInputEnabled() && (!i.equals(oldItem) || i.getCount() != oldItem.getCount())) {
 												inventory.setItemInHand(i);
 												inventory.sendHeldItem(this.getViewers().values());
 											}
@@ -545,6 +571,9 @@ public class SynapsePlayer116 extends SynapsePlayer113 {
 
 								break packetswitch;
 							case InventoryTransactionPacket116.USE_ITEM_ACTION_CLICK_AIR:
+							    if (!this.prepareItemUseSlot(useItemData.hotbarSlot, useItemData.itemInHand, interactionHand)) {
+							        break packetswitch;
+							    }
 								Vector3 directionVector = this.getDirectionVector();
 
 								if (this.isCreative()) {
@@ -558,14 +587,21 @@ public class SynapsePlayer116 extends SynapsePlayer113 {
 								}
 
 								this.rebindStartedJavaItemUseHand(explicitItemUseHandAllowed, interactionHand);
+								InventorySlotReference itemSource = this.isMainThreadInputEnabled() ? this.inventory.captureHeldItem() : null;
+								long itemSourceEpoch = itemSource == null ? 0 : this.getMovementEpoch();
 								PlayerInteractEvent interactEvent = new PlayerInteractEvent(this, item, directionVector, face, PlayerInteractEvent.Action.RIGHT_CLICK_AIR);
                                 if (isSpectator()) {
                                     interactEvent.setCancelled();
                                 }
 								this.server.getPluginManager().callEvent(interactEvent);
-								if (interactEvent.isCancelled()) {
-									this.inventory.sendHeldItem(this);
-									break packetswitch;
+								if (interactEvent.isCancelled()
+								        || itemSource != null && !this.canStartItemUse(itemSource, itemSourceEpoch)) {
+								    if (itemSource == null) {
+								        this.inventory.sendHeldItem(this);
+								    } else {
+								        this.resyncItemUse(itemSource);
+								    }
+								    break packetswitch;
 								}
 
 								boolean explicitShieldUse = JavaItemUseRouting.supportsExplicitShieldUse(
@@ -573,7 +609,17 @@ public class SynapsePlayer116 extends SynapsePlayer113 {
 								boolean itemAccepted = item.onClickAir(this, directionVector) || explicitShieldUse;
 								if (itemAccepted) {
 									if (this.isSurvivalLike()) {
-										this.inventory.setItemInHand(item);
+										if (itemSource == null) {
+										    this.inventory.setItemInHand(item);
+										} else if (!itemSource.setItem(item)) {
+										    this.resyncItemUse(itemSource);
+										    break packetswitch;
+										}
+									}
+
+									if (itemSource != null && (!this.isOnline() || !this.isInputSessionActive()
+									        || this.getMovementEpoch() != itemSourceEpoch || !itemSource.isSelectedBy(this.inventory))) {
+									    break packetswitch;
 									}
 
 									if (!this.isUsingItem()) {
@@ -585,15 +631,7 @@ public class SynapsePlayer116 extends SynapsePlayer113 {
 									//int ticksUsed = this.server.getTick() - this.startAction;
 									int ticksUsed = (int) (System.currentTimeMillis() - this.startActionTimestamp) / 50;
 
-									this.setUsingItem(false);
-
-									if (!item.onUse(this, ticksUsed)) {
-										this.inventory.sendContents(this);
-									}
-
-									if ((item.canRelease() || explicitShieldUse) && !item.isNull()) {
-										this.setUsingItem(true);
-									}
+									this.completeItemUse(item, ticksUsed, explicitShieldUse);
 								}
 
 								break packetswitch;
@@ -641,14 +679,25 @@ public class SynapsePlayer116 extends SynapsePlayer113 {
 									break;
 								}
 
+								InventorySlotReference interactionSource = this.isMainThreadInputEnabled() ? this.inventory.captureHeldItem() : null;
+								long interactionEpoch = interactionSource == null ? 0 : this.getMovementEpoch();
+								long interactionTargetEpoch = interactionSource != null && target instanceof Player targetPlayer ? targetPlayer.getMovementEpoch() : 0;
 								PlayerInteractEntityEvent playerInteractEntityEvent = new PlayerInteractEntityEvent(this, target, item, useItemOnEntityData.clickPos);
 								if (this.isSpectator()) playerInteractEntityEvent.setCancelled();
 								getServer().getPluginManager().callEvent(playerInteractEntityEvent);
 
-								if (playerInteractEntityEvent.isCancelled()) {
+								if (playerInteractEntityEvent.isCancelled()
+								        || interactionSource != null && !this.canStartEntityInteraction(interactionSource, interactionEpoch, target, interactionTargetEpoch)) {
+								    if (interactionSource != null) {
+								        this.resyncItemUse(interactionSource);
+								    }
 									break;
 								}
 								if (target.onInteract(this, item, useItemOnEntityData.clickPos) && this.isSurvival()) {
+								    if (interactionSource != null) {
+								        this.finishEntityInteractionItem(interactionSource, item, target);
+								        break;
+								    }
 									if (item.isTool()) {
 										if (item.useOn(target) && item.getDamage() > item.getMaxDurability()) {
 											item = Items.air();
@@ -670,7 +719,7 @@ public class SynapsePlayer116 extends SynapsePlayer113 {
 //									violation += 25; // 近期TPS不稳定容易误判, 先禁用
 //									return;
 //								}
-								if (++currentTickAttackPacketCount >= 2) {
+								if (!this.claimAttackAttempt()) {
 									return;
 								}
 
@@ -685,6 +734,9 @@ public class SynapsePlayer116 extends SynapsePlayer113 {
 									break;
 								}
 
+								InventorySlotReference attackSource = this.isMainThreadInputEnabled() ? this.inventory.captureHeldItem() : null;
+								long attackEpoch = attackSource == null ? 0 : this.getMovementEpoch();
+								long targetEpoch = attackSource != null && target instanceof Player targetPlayer ? targetPlayer.getMovementEpoch() : 0;
 								ItemAttackDamageEvent event = new ItemAttackDamageEvent(item);
 								this.server.getPluginManager().callEvent(event);
 								float itemDamage = event.getAttackDamage();
@@ -713,6 +765,16 @@ public class SynapsePlayer116 extends SynapsePlayer113 {
 									}
 								}
 
+								// 伤害计算扩展可能切槽、替换物品或改变两端的位置代际。
+								if (attackSource != null && (!this.canStartItemUse(attackSource, attackEpoch)
+								        || target.isClosed() || !target.isAlive() || target.getLevel() != this.level
+								        || this.level.getEntity(target.getId()) != target
+								        || target instanceof Player targetPlayer && targetPlayer.getMovementEpoch() != targetEpoch
+								        || !this.canInteract(target, target.getBoundingBox(), isCreative() ? MAX_REACH_DISTANCE_CREATIVE_ENTITY_INTERACTION : this.level.getMaxEntityInteractionReachDistanceInSurvival()))) {
+								    this.resyncItemUse(attackSource);
+								    break;
+								}
+
 								EntityDamageByEntityEvent entityDamageByEntityEvent = new EntityDamageByEntityEvent(this, target, EntityDamageEvent.DamageCause.ENTITY_ATTACK, damage, knockBackH, knockBackV, enchantments);
 								entityDamageByEntityEvent.getKnockbackProfile().setEnchantLevel(knockBackEnchantment);
 								if (this.isSpectator()) entityDamageByEntityEvent.setCancelled();
@@ -728,6 +790,10 @@ public class SynapsePlayer116 extends SynapsePlayer113 {
 								}
 
 								if (item.isTool() && this.isSurvival()) {
+								    if (attackSource != null) {
+								        this.finishAttackItem(attackSource, item, target);
+								        return;
+								    }
 									if (item.useOn(target)) {
 										if (item.getDamage() > item.getMaxDurability()) {
 											this.inventory.setItemInHand(Items.air());
@@ -751,7 +817,8 @@ public class SynapsePlayer116 extends SynapsePlayer113 {
 						break;
 					}
 					case InventoryTransactionPacket116.TYPE_RELEASE_ITEM: {
-						if (!callPacketReceiveEvent(packet)) break;
+						// 新模式已在事务入口完成全部包监听，不能重复派发释放事件。
+						if (!this.isMainThreadInputEnabled() && !callPacketReceiveEvent(packet)) break;
 						if (this.isSpectator()) {
 							this.sendAllInventories();
 							break packetswitch;
@@ -897,6 +964,7 @@ public class SynapsePlayer116 extends SynapsePlayer113 {
 				break;
 			case ProtocolInfo.PLAYER_AUTH_INPUT_PACKET:
 				if (!callPacketReceiveEvent(packet)) break;
+				if (!this.canContinueInputState()) return;
 
 				if (!isServerAuthoritativeMovementEnabled()) {
 					onPacketViolation(PacketViolationReason.IMPOSSIBLE_BEHAVIOR, "auth_input");
@@ -925,11 +993,13 @@ public class SynapsePlayer116 extends SynapsePlayer113 {
 				}
 
 				this.onClientTickUpdated(playerAuthInputPacket.getTick());
+				if (!this.canContinueInputState()) return;
 
 				if (this.getLoginChainData().getCurrentInputMode() != playerAuthInputPacket.getInputMode()) {
 					int from = this.getLoginChainData().getCurrentInputMode();
 					this.getLoginChainData().setCurrentInputMode(playerAuthInputPacket.getInputMode());
 					this.getServer().getPluginManager().callEvent(new SynapsePlayerInputModeChangeEvent(this, from, playerAuthInputPacket.getInputMode()));
+					if (!this.canContinueInputState()) return;
 				}
 
 				if (playerAuthInputPacket.hasFlag(PlayerAuthInputFlags.START_SPRINTING) && !this.isSprinting()) {
@@ -938,59 +1008,72 @@ public class SynapsePlayer116 extends SynapsePlayer113 {
 						playerToggleSprintEvent.setCancelled();
 					}
 					this.server.getPluginManager().callEvent(playerToggleSprintEvent);
+					if (!this.canContinueInputState()) return;
 					if (playerToggleSprintEvent.isCancelled()) {
 						this.sendData(this);
 					} else {
 						this.setSprinting(true);
 					}
+					if (!this.canContinueInputState()) return;
 				}
 				if (playerAuthInputPacket.hasFlag(PlayerAuthInputFlags.STOP_SPRINTING) && this.isSprinting()) {
 					PlayerToggleSprintEvent playerToggleSprintEvent = new PlayerToggleSprintEvent(this, false);
 					this.server.getPluginManager().callEvent(playerToggleSprintEvent);
+					if (!this.canContinueInputState()) return;
 					if (playerToggleSprintEvent.isCancelled()) {
 						this.sendData(this);
 					} else {
 						this.setSprinting(false);
 					}
+					if (!this.canContinueInputState()) return;
 				}
 				if (playerAuthInputPacket.hasFlag(PlayerAuthInputFlags.START_SNEAKING) && !this.isSneaking()) {
 					PlayerToggleSneakEvent playerToggleSneakEvent = new PlayerToggleSneakEvent(this, true);
 					this.server.getPluginManager().callEvent(playerToggleSneakEvent);
+					if (!this.canContinueInputState()) return;
 					if (playerToggleSneakEvent.isCancelled()) {
 						this.sendData(this);
 					} else {
 						this.setSneaking(true);
 					}
+					if (!this.canContinueInputState()) return;
 				}
 				if (playerAuthInputPacket.hasFlag(PlayerAuthInputFlags.STOP_SNEAKING) && this.isSneaking()) {
 					PlayerToggleSneakEvent playerToggleSneakEvent = new PlayerToggleSneakEvent(this, false);
 					this.server.getPluginManager().callEvent(playerToggleSneakEvent);
+					if (!this.canContinueInputState()) return;
 					if (playerToggleSneakEvent.isCancelled()) {
 						this.sendData(this);
 					} else {
 						this.setSneaking(false);
 					}
+					if (!this.canContinueInputState()) return;
 				}
 				if (playerAuthInputPacket.hasFlag(PlayerAuthInputFlags.START_SWIMMING) && !this.isSwimming()) {
 					PlayerToggleSwimEvent playerToggleSwimEvent = new PlayerToggleSwimEvent(this, true);
 					this.server.getPluginManager().callEvent(playerToggleSwimEvent);
+					if (!this.canContinueInputState()) return;
 					if (playerToggleSwimEvent.isCancelled()) {
 						this.sendData(this);
 					} else {
 						this.setSwimming(true);
 					}
+					if (!this.canContinueInputState()) return;
 				}
 				if (playerAuthInputPacket.hasFlag(PlayerAuthInputFlags.STOP_SWIMMING) && this.isSwimming()) {
 					PlayerToggleSwimEvent playerToggleSwimEvent = new PlayerToggleSwimEvent(this, false);
 					this.server.getPluginManager().callEvent(playerToggleSwimEvent);
+					if (!this.canContinueInputState()) return;
 					if (playerToggleSwimEvent.isCancelled()) {
 						this.sendData(this);
 					} else {
 						this.setSwimming(false);
 					}
+					if (!this.canContinueInputState()) return;
 				}
 				if (playerAuthInputPacket.hasFlag(PlayerAuthInputFlags.START_JUMPING)) {
 					this.server.getPluginManager().callEvent(new PlayerJumpEvent(this));
+					if (!this.canContinueInputState()) return;
 
 					if (EXPERIMENTAL_COMBAT_KNOCKBACK_TEST && this.isSprinting()) {
 						this.motionX = playerAuthInputPacket.getDeltaX();
@@ -1005,40 +1088,52 @@ public class SynapsePlayer116 extends SynapsePlayer113 {
 						playerToggleGlideEvent.setCancelled();
 					}
 					this.server.getPluginManager().callEvent(playerToggleGlideEvent);
+					if (!this.canContinueInputState()) return;
 					if (playerToggleGlideEvent.isCancelled()) {
 						this.sendData(this);
 					} else {
 						this.setGliding(true);
 					}
+					if (!this.canContinueInputState()) return;
 				}
 				if (playerAuthInputPacket.hasFlag(PlayerAuthInputFlags.STOP_GLIDING) && this.isGliding()) {
 					PlayerToggleGlideEvent playerToggleGlideEvent = new PlayerToggleGlideEvent(this, false);
 					this.server.getPluginManager().callEvent(playerToggleGlideEvent);
+					if (!this.canContinueInputState()) return;
 					if (playerToggleGlideEvent.isCancelled()) {
 						this.sendData(this);
 					} else {
 						this.setGliding(false);
 					}
+					if (!this.canContinueInputState()) return;
 				}
 				if (playerAuthInputPacket.hasFlag(PlayerAuthInputFlags.START_CRAWLING) && !this.isCrawling()) {
 					PlayerToggleCrawlEvent playerToggleCrawlEvent = new PlayerToggleCrawlEvent(this, true);
 					this.server.getPluginManager().callEvent(playerToggleCrawlEvent);
+					if (!this.canContinueInputState()) return;
 					if (playerToggleCrawlEvent.isCancelled()) {
 						this.sendData(this);
 					} else {
 						this.setCrawling(true);
 					}
+					if (!this.canContinueInputState()) return;
 				}
 				if (playerAuthInputPacket.hasFlag(PlayerAuthInputFlags.STOP_CRAWLING) && this.isCrawling()) {
 					PlayerToggleCrawlEvent playerToggleCrawlEvent = new PlayerToggleCrawlEvent(this, false);
 					this.server.getPluginManager().callEvent(playerToggleCrawlEvent);
+					if (!this.canContinueInputState()) return;
 					if (playerToggleCrawlEvent.isCancelled()) {
 						this.sendData(this);
 					} else {
 						this.setCrawling(false);
 					}
+					if (!this.canContinueInputState()) return;
 				}
 				if (playerAuthInputPacket.hasFlag(PlayerAuthInputFlags.START_FLYING) && !getAdventureSettings().get(Type.FLYING)) {
+					if (!this.canApplyFlightState(true)) {
+						this.sendAbilities(this, this.getAdventureSettings());
+						return;
+					}
 					if (!server.getAllowFlight() && !getAdventureSettings().get(Type.ALLOW_FLIGHT)) {
 						kick(PlayerKickEvent.Reason.FLYING_DISABLED, "Flying is not enabled on this server", false);
 						break;
@@ -1049,11 +1144,13 @@ public class SynapsePlayer116 extends SynapsePlayer113 {
 						playerToggleFlightEvent.setCancelled();
 					}
 					this.server.getPluginManager().callEvent(playerToggleFlightEvent);
-					if (playerToggleFlightEvent.isCancelled()) {
+					if (!this.canContinueInputState()) return;
+					if (playerToggleFlightEvent.isCancelled() || !this.canApplyFlightState(playerToggleFlightEvent.isFlying())) {
 						this.sendAbilities(this, this.getAdventureSettings());
 					} else {
 						this.getAdventureSettings().set(Type.FLYING, playerToggleFlightEvent.isFlying());
 					}
+					if (!this.canContinueInputState()) return;
 				}
 				if (playerAuthInputPacket.hasFlag(PlayerAuthInputFlags.STOP_FLYING) && getAdventureSettings().get(Type.FLYING)) {
 					PlayerToggleFlightEvent playerToggleFlightEvent = new PlayerToggleFlightEvent(this, false);
@@ -1061,11 +1158,13 @@ public class SynapsePlayer116 extends SynapsePlayer113 {
 						playerToggleFlightEvent.setCancelled();
 					}
 					this.server.getPluginManager().callEvent(playerToggleFlightEvent);
-					if (playerToggleFlightEvent.isCancelled()) {
+					if (!this.canContinueInputState()) return;
+					if (playerToggleFlightEvent.isCancelled() || !this.canApplyFlightState(playerToggleFlightEvent.isFlying())) {
 						this.sendAbilities(this, this.getAdventureSettings());
 					} else {
 						this.getAdventureSettings().set(Type.FLYING, playerToggleFlightEvent.isFlying());
 					}
+					if (!this.canContinueInputState()) return;
 				}
 				if (playerAuthInputPacket.hasFlag(PlayerAuthInputFlags.START_SPIN_ATTACK)) {
 					if (isSpectator()) {
@@ -1077,6 +1176,7 @@ public class SynapsePlayer116 extends SynapsePlayer113 {
 							if (riptide > 0) {
 								//TODO: check water/rain
 								if (setDataFlag(DATA_FLAG_SPIN_ATTACK, true)) {
+									if (!this.canContinueInputState()) return;
 									damageNearbyMobsTick = 20;
 									level.addLevelSoundEvent(this.add(0, getHeight() * 0.5f, 0), switch (riptide) {
 										case 1 -> LevelSoundEventPacket.SOUND_ITEM_TRIDENT_RIPTIDE_1;
@@ -1087,10 +1187,12 @@ public class SynapsePlayer116 extends SynapsePlayer113 {
 							}
 						}
 					}
+					if (!this.canContinueInputState()) return;
 				}
 				if (playerAuthInputPacket.hasFlag(PlayerAuthInputFlags.STOP_SPIN_ATTACK)) {
 					damageNearbyMobsTick = 0;
 					setDataFlag(DATA_FLAG_SPIN_ATTACK, false);
+					if (!this.canContinueInputState()) return;
 				}
 
 				emoting = playerAuthInputPacket.hasFlag(PlayerAuthInputFlags.EMOTING);
@@ -1100,7 +1202,11 @@ public class SynapsePlayer116 extends SynapsePlayer113 {
 				}
 
 				if (playerAuthInputPacket.hasFlag(PlayerAuthInputFlags.MISSED_SWING) && isServerAuthoritativeSoundEnabled() && !isSpectator()) {
+                    long animationEpoch = this.getMovementEpoch();
 					level.addLevelSoundEvent(this, inventory.getItemInHand().getAttackMissSound(), EntityFullNames.PLAYER);
+                    // 声音发包回调可退休或传送来源，停止尚未开始的触摸动画。
+                    if (this.isMainThreadInputEnabled()
+                            && (!this.canContinueInputState() || this.getMovementEpoch() != animationEpoch)) return;
 
 					// touch bug: https://bugs.mojang.com/browse/MCPE-107865
 					if (getLoginChainData().getCurrentInputMode() == ClientChainData.INPUT_TOUCH) {
@@ -1109,14 +1215,21 @@ public class SynapsePlayer116 extends SynapsePlayer113 {
 						pk.action = Action.SWING_ARM;
                         pk.swingSource = SwingSource.ATTACK;
 						dataPacket(pk);
+                        // 自发动画回调之后仍需绑定原来源，不能继续向观察者发布旧动作。
+                        if (this.isMainThreadInputEnabled()
+                                && (!this.canContinueInputState() || this.getMovementEpoch() != animationEpoch)) return;
 						Server.broadcastPacket(getViewers().values(), pk);
 					}
 				}
 
 				if (riding instanceof EntityRideable rideable) {
 					rideable.updatePlayerJump(this, playerAuthInputPacket.hasFlag(PlayerAuthInputFlags.JUMPING));
+					if (!this.canContinueInputState()) return;
 				}
 
+				if (!this.canContinueInputState()) {
+					return;
+				}
 				boolean predictedInVehicle = playerAuthInputPacket.hasFlag(PlayerAuthInputFlags.IN_CLIENT_PREDICTED_IN_VEHICLE);
 				boolean inPredictedVehicle = predictedInVehicle && riding != null && riding.getId() == playerAuthInputPacket.getPredictedVehicleEntityUniqueId();
 
@@ -1155,12 +1268,15 @@ public class SynapsePlayer116 extends SynapsePlayer113 {
 							yaw += 360;
 						}
 
-						this.setRotation(yaw, pitch);
-						this.newPosition = newPos;
+						this.setPendingMovement(newPos, yaw, pitch);
 						this.forceMovement = null;
 					}
 				}
 
+				if (this.isMainThreadInputEnabled() && this.riding == null
+						&& !this.commitReceivedMovement()) {
+					return;
+				}
 				PlayerBlockAction[] blockActions = playerAuthInputPacket.getBlockActions();
 				if (blockActions != null && blockActions.length != 0) {
                     if (isNetEaseClient() && blockActions.length > 1) {
@@ -1180,6 +1296,9 @@ public class SynapsePlayer116 extends SynapsePlayer113 {
                         }
                     }
 					for (PlayerBlockAction blockAction : blockActions) {
+						if (!this.canContinueInputState()) {
+							return;
+						}
 						Vector3 pos = new Vector3(blockAction.x, blockAction.y, blockAction.z);
 						BlockFace face = null;
 						boolean distanceChecked = false;
@@ -1205,6 +1324,7 @@ public class SynapsePlayer116 extends SynapsePlayer113 {
 								Block target = this.level.getBlock(pos, false);
 								PlayerInteractEvent playerInteractEvent = new PlayerInteractEvent(this, this.inventory.getItemInHand(), target, face, target.getId() == Block.AIR ? PlayerInteractEvent.Action.LEFT_CLICK_AIR : PlayerInteractEvent.Action.LEFT_CLICK_BLOCK);
 								this.getServer().getPluginManager().callEvent(playerInteractEvent);
+								if (!this.canContinueInputState()) return;
 								if (playerInteractEvent.isCancelled()) {
 									this.inventory.sendHeldItem(this);
 									break;
@@ -1334,6 +1454,9 @@ public class SynapsePlayer116 extends SynapsePlayer113 {
 					this.setUsingItem(false);
 				}
 
+				if (!this.canContinueInputState()) {
+					return;
+				}
 				NetworkInventoryAction[] inventoryActions = playerAuthInputPacket.getInventoryActions();
 				if (inventoryActions != null && inventoryActions.length != 0) {
 					boolean resolve = true;
@@ -1476,6 +1599,9 @@ public class SynapsePlayer116 extends SynapsePlayer113 {
 					}
 				}
 
+				if (!this.canContinueInputState()) {
+					return;
+				}
 				UseItemData useItemData = playerAuthInputPacket.getUseItemData();
 				if (useItemData != null) {
 					Vector3f clickPos = useItemData.clickPos;
@@ -1510,12 +1636,18 @@ public class SynapsePlayer116 extends SynapsePlayer113 {
 									break;
 								}
 
+                                long itemSlotEpoch = this.getMovementEpoch();
+                                boolean itemSlotReady = this.prepareItemUseSlot(useItemData.hotbarSlot, useItemData.itemInHand, interactionHand);
+                                if (!itemSlotReady && (!this.isOnline() || !this.isAlive() || !this.isInputSessionActive()
+                                        || this.getMovementEpoch() != itemSlotEpoch || !this.isCurrentInputPosition())) {
+                                    break;
+                                }
                                 Item i = inventory.getItemInHand();
-                                if (!i.is(Item.BRUSH)) {
+                                if (itemSlotReady && !i.is(Item.BRUSH)) {
                                     this.setDataFlag(DATA_FLAG_ACTION, false);
                                 }
 
-								if (this.canInteract(blockVector.add(0.5, 0.5, 0.5), this.isCreative() ? MAX_REACH_DISTANCE_CREATIVE : MAX_REACH_DISTANCE_SURVIVAL)) {
+								if (itemSlotReady && this.canInteract(blockVector.add(0.5, 0.5, 0.5), this.isCreative() ? MAX_REACH_DISTANCE_CREATIVE : MAX_REACH_DISTANCE_SURVIVAL)) {
 									if (this.isCreative()) {
 										Vector3 blockPos;
 										Block clientBlock = useItemData.block;
@@ -1527,7 +1659,7 @@ public class SynapsePlayer116 extends SynapsePlayer113 {
 										}
 										Boolean clientPrediction = AbstractProtocol.PROTOCOL_121_20.isOlderThanOrEqual(protocol) ? useItemData.clientInteractPrediction : null;
 										clientPrediction = normalizeUseItemClientPrediction(clientPrediction);
-										if (this.level.useItemOn(blockPos, i, face, clickPos.x, clickPos.y, clickPos.z, this, clientPrediction) != null) {
+										if (this.useItemOnBlock(blockPos, i, face, clickPos.x, clickPos.y, clickPos.z, clientPrediction) != null) {
 											break;
 										}
 									} else if (i.equals(useItemData.itemInHand)) {
@@ -1542,9 +1674,9 @@ public class SynapsePlayer116 extends SynapsePlayer113 {
 										}
 										Boolean clientPrediction = AbstractProtocol.PROTOCOL_121_20.isOlderThanOrEqual(protocol) ? useItemData.clientInteractPrediction : null;
 										clientPrediction = normalizeUseItemClientPrediction(clientPrediction);
-										if ((i = this.level.useItemOn(blockPos, i, face, clickPos.x, clickPos.y, clickPos.z, this, clientPrediction)) != null) {
+										if ((i = this.useItemOnBlock(blockPos, i, face, clickPos.x, clickPos.y, clickPos.z, clientPrediction)) != null) {
 											if (i.getId() != 10000) {  // Hack
-												if (!i.equals(oldItem) || i.getCount() != oldItem.getCount()) {
+												if (!this.isMainThreadInputEnabled() && (!i.equals(oldItem) || i.getCount() != oldItem.getCount())) {
 													inventory.setItemInHand(i);
 													inventory.sendHeldItem(this.getViewers().values());
 												}
@@ -1620,6 +1752,9 @@ public class SynapsePlayer116 extends SynapsePlayer113 {
 
 								break;
 							case InventoryTransactionPacket116.USE_ITEM_ACTION_CLICK_AIR:
+							    if (!this.prepareItemUseSlot(useItemData.hotbarSlot, useItemData.itemInHand, interactionHand)) {
+							        break;
+							    }
 								Vector3 directionVector = this.getDirectionVector();
 
 								if (this.isCreative()) {
@@ -1632,19 +1767,37 @@ public class SynapsePlayer116 extends SynapsePlayer113 {
 									item = this.inventory.getItemInHand();
 								}
 
+								InventorySlotReference itemSource = this.isMainThreadInputEnabled() ? this.inventory.captureHeldItem() : null;
+								long itemSourceEpoch = itemSource == null ? 0 : this.getMovementEpoch();
 								PlayerInteractEvent interactEvent = new PlayerInteractEvent(this, item, directionVector, face, PlayerInteractEvent.Action.RIGHT_CLICK_AIR);
                                 if (isSpectator()) {
                                     interactEvent.setCancelled();
                                 }
 								this.server.getPluginManager().callEvent(interactEvent);
-								if (interactEvent.isCancelled()) {
-									this.inventory.sendHeldItem(this);
-									break;
+								if (!this.canContinueInputState()) return;
+								if (interactEvent.isCancelled()
+								        || itemSource != null && !this.canStartItemUse(itemSource, itemSourceEpoch)) {
+								    if (itemSource == null) {
+								        this.inventory.sendHeldItem(this);
+								    } else {
+								        this.resyncItemUse(itemSource);
+								    }
+								    break;
 								}
 
 								if (item.onClickAir(this, directionVector)) {
 									if (this.isSurvivalLike()) {
-										this.inventory.setItemInHand(item);
+										if (itemSource == null) {
+										    this.inventory.setItemInHand(item);
+										} else if (!itemSource.setItem(item)) {
+										    this.resyncItemUse(itemSource);
+										    break;
+										}
+									}
+
+									if (itemSource != null && (!this.isOnline() || !this.isInputSessionActive()
+									        || this.getMovementEpoch() != itemSourceEpoch || !itemSource.isSelectedBy(this.inventory))) {
+									    break;
 									}
 
 									if (!this.isUsingItem()) {
@@ -1656,15 +1809,7 @@ public class SynapsePlayer116 extends SynapsePlayer113 {
 									//int ticksUsed = this.server.getTick() - this.startAction;
 									int ticksUsed = (int) (System.currentTimeMillis() - this.startActionTimestamp) / 50;
 
-									this.setUsingItem(false);
-
-									if (!item.onUse(this, ticksUsed)) {
-										this.inventory.sendContents(this);
-									}
-
-									if (item.canRelease() && !item.isNull()) {
-										this.setUsingItem(true);
-									}
+									this.completeItemUse(item, ticksUsed, false);
 								}
 
 								break;
@@ -2043,6 +2188,7 @@ public class SynapsePlayer116 extends SynapsePlayer113 {
 			}
 
 			this.emotedCurrentTick = false;
+			// 新模式使用独立真实 tick 窗口；此处只清兼容路径的旧计数。
 			this.currentTickAttackPacketCount = 0;
 
 			if (clientTickCheckCd > 0) {

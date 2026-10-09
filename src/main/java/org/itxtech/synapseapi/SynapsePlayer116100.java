@@ -1,5 +1,6 @@
 package org.itxtech.synapseapi;
 
+import cn.nukkit.inventory.InventorySlotReference;
 import cn.nukkit.AdventureSettings;
 import cn.nukkit.AdventureSettings.Type;
 import cn.nukkit.Player;
@@ -1783,8 +1784,7 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
                         movePlayerPacket.yaw += 360;
                     }
 
-                    this.setRotation(movePlayerPacket.yaw, movePlayerPacket.pitch);
-                    this.newPosition = newPos;
+                    this.setPendingMovement(newPos, movePlayerPacket.yaw, movePlayerPacket.pitch);
                     this.forceMovement = null;
                 }
                 break;
@@ -2669,7 +2669,7 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
                             BlockEntityItemFrame itemFrame = (BlockEntityItemFrame) blockEntity;
                             Item item = itemFrame.getItem();
                             if (item instanceof ItemMap && ((ItemMap) item).getMapId() == mapInfoRequestPacket.mapId) {
-                                ((ItemMap) item).sendImage(this);
+                                this.sendMapImage((ItemMap) item);
                                 break;
                             }
                         }
@@ -2677,18 +2677,11 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
                 }
 
                 if (mapItem != null) {
-                    final Player player = this;
-                    final Item mapItemFinal = mapItem;
                     PlayerMapInfoRequestEvent event;
                     getServer().getPluginManager().callEvent(event = new PlayerMapInfoRequestEvent(this, mapItem));
 
                     if (!event.isCancelled()) {
-                        this.getServer().getScheduler().scheduleAsyncTask(SynapseAPI.getInstance(), new AsyncTask() {
-                            @Override
-                            public void onRun() {
-                                ((ItemMap) mapItemFinal).sendImage(player);
-                            }
-                        });
+                        this.sendMapImageAsync((ItemMap) mapItem);
                     }
                 }
 
@@ -2705,6 +2698,10 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
                 }
                 RequestAbilityPacket119 requestAbilityPacket = (RequestAbilityPacket119) packet;
                 if (requestAbilityPacket.ability == PlayerAbility.FLYING && requestAbilityPacket.type == RequestAbilityPacket119.TYPE_BOOL) {
+                    if (!this.canApplyFlightState(requestAbilityPacket.boolValue)) {
+                        this.sendAbilities(this, this.getAdventureSettings());
+                        break;
+                    }
                     if (requestAbilityPacket.boolValue && !server.getAllowFlight() && !getAdventureSettings().get(Type.ALLOW_FLIGHT)) {
                         this.kick(PlayerKickEvent.Reason.FLYING_DISABLED, "Flying is not enabled on this server", false);
                         break;
@@ -2719,7 +2716,10 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
                         playerToggleFlightEvent.setCancelled();
                     }
                     this.server.getPluginManager().callEvent(playerToggleFlightEvent);
-                    if (playerToggleFlightEvent.isCancelled()) {
+                    if (!this.canContinueInputState()) {
+                        break;
+                    }
+                    if (playerToggleFlightEvent.isCancelled() || !this.canApplyFlightState(playerToggleFlightEvent.isFlying())) {
                         this.sendAbilities(this, this.getAdventureSettings());
                     } else {
                         this.getAdventureSettings().set(Type.FLYING, playerToggleFlightEvent.isFlying());
@@ -2740,6 +2740,12 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
                     pk.sceneName = sceneName;
                     dataPacket(pk);
                     break;  // 世界中不存在这个实体
+                }
+                if (this.isMainThreadInputEnabled()) {
+                    Entity dialogueEntity = this.getNpcDialoguePlayerHandler().getCurrentEntity();
+                    if (dialogueEntity != null && dialogueEntity != entity) {
+                        break;
+                    }
                 }
                 if (npcRequestPacket.type == NPCRequestPacket11710.TYPE_EXECUTE_COMMAND_ACTION) {
                     if (!this.getNpcDialoguePlayerHandler().onDialogueResponse(sceneName, npcRequestPacket.actionIndex)) {
@@ -2812,11 +2818,7 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
 
                     PlayerCommandPreprocessEvent playerCommandPreprocessEvent = new PlayerCommandPreprocessEvent(this, command);
                     playerCommandPreprocessEvent.call();
-                    if (playerCommandPreprocessEvent.isCancelled()) {
-                        break;
-                    }
-
-                    this.server.dispatchCommand(playerCommandPreprocessEvent.getPlayer(), playerCommandPreprocessEvent.getMessage().substring(1));
+                    this.dispatchPreprocessedCommand(playerCommandPreprocessEvent);
                     break;
                 }
 
@@ -2867,11 +2869,7 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
 
                 PlayerCommandPreprocessEvent playerCommandPreprocessEvent = new PlayerCommandPreprocessEvent(this, command);
                 playerCommandPreprocessEvent.call();
-                if (playerCommandPreprocessEvent.isCancelled()) {
-                    break;
-                }
-
-                this.server.dispatchCommand(playerCommandPreprocessEvent.getPlayer(), playerCommandPreprocessEvent.getMessage().substring(1));
+                this.dispatchPreprocessedCommand(playerCommandPreprocessEvent);
                 break;
             case ProtocolInfo.SET_PLAYER_GAME_TYPE_PACKET:
                 if (getProtocol() < AbstractProtocol.PROTOCOL_120_80.getProtocolStart()) {
@@ -3087,9 +3085,11 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
                         break;
                     }
 
+                    long animationEpoch = this.getMovementEpoch();
                     PlayerAnimationEvent animationEvent = new PlayerAnimationEvent(this, animatePk.action);
                     this.server.getPluginManager().callEvent(animationEvent);
-                    if (animationEvent.isCancelled()) {
+                    if (animationEvent.isCancelled() || this.isMainThreadInputEnabled()
+                            && (!this.canContinueInputState() || this.getMovementEpoch() != animationEpoch)) {
                         break;
                     }
 
@@ -3135,9 +3135,11 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
                         break;
                     }
 
+                    long animationEpoch = this.getMovementEpoch();
                     PlayerAnimationEvent animationEvent = new PlayerAnimationEvent(this, animatePk.action);
                     this.server.getPluginManager().callEvent(animationEvent);
-                    if (animationEvent.isCancelled()) {
+                    if (animationEvent.isCancelled() || this.isMainThreadInputEnabled()
+                            && (!this.canContinueInputState() || this.getMovementEpoch() != animationEpoch)) {
                         break;
                     }
 
@@ -3780,8 +3782,14 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
                                     lastRightClickData = useItemData;
                                     lastRightClickTime = System.currentTimeMillis();
 
+                                    long itemSlotEpoch = this.getMovementEpoch();
+                                    boolean itemSlotReady = this.prepareItemUseSlot(useItemData.hotbarSlot, useItemData.itemInHand, interactionHand);
+                                    if (!itemSlotReady && (!this.isOnline() || !this.isAlive() || !this.isInputSessionActive()
+                                            || this.getMovementEpoch() != itemSlotEpoch || !this.isCurrentInputPosition())) {
+                                        break packetswitch;
+                                    }
                                     Item i = inventory.getItemInHand();
-                                    if (!i.is(Item.BRUSH)) {
+                                    if (itemSlotReady && !i.is(Item.BRUSH)) {
                                         this.setDataFlag(DATA_FLAG_ACTION, false);
                                     }
 
@@ -3789,7 +3797,7 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
                                     //this.newPosition = useItemData.playerPos.subtract(0, this.getBaseOffset(), 0);
                                     boolean clientPredictedFailure = false;
 
-                                    if (this.canInteract(blockVector.add(0.5, 0.5, 0.5), this.isCreative() ? MAX_REACH_DISTANCE_CREATIVE : MAX_REACH_DISTANCE_SURVIVAL)) {
+                                    if (itemSlotReady && this.canInteract(blockVector.add(0.5, 0.5, 0.5), this.isCreative() ? MAX_REACH_DISTANCE_CREATIVE : MAX_REACH_DISTANCE_SURVIVAL)) {
                                         if (this.isCreative()) {
                                             Vector3 blockPos;
                                             Block clientBlock = useItemData.block;
@@ -3801,7 +3809,7 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
                                             }
                                             Boolean clientPrediction = AbstractProtocol.PROTOCOL_121_20.isOlderThanOrEqual(protocol) ? useItemData.clientInteractPrediction : null;
                                             clientPrediction = normalizeUseItemClientPrediction(clientPrediction);
-                                            if (this.level.useItemOn(blockPos, i, face, clickPos.x, clickPos.y, clickPos.z, this, clientPrediction) != null) {
+                                            if (this.useItemOnBlock(blockPos, i, face, clickPos.x, clickPos.y, clickPos.z, clientPrediction) != null) {
                                                 break packetswitch;
                                             }
                                         } else if (i.equals(useItemData.itemInHand)) {
@@ -3817,8 +3825,8 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
                                             Boolean clientPrediction = AbstractProtocol.PROTOCOL_121_20.isOlderThanOrEqual(protocol) ? useItemData.clientInteractPrediction : null;
                                             clientPrediction = normalizeUseItemClientPrediction(clientPrediction);
                                             clientPredictedFailure = clientPrediction != null && !clientPrediction;
-                                            if ((i = this.level.useItemOn(blockPos, i, face, clickPos.x, clickPos.y, clickPos.z, this, clientPrediction)) != null) {
-                                                if (!i.equals(oldItem) || i.getCount() != oldItem.getCount()) {
+                                            if ((i = this.useItemOnBlock(blockPos, i, face, clickPos.x, clickPos.y, clickPos.z, clientPrediction)) != null) {
+                                                if (!this.isMainThreadInputEnabled() && (!i.equals(oldItem) || i.getCount() != oldItem.getCount())) {
                                                     inventory.setItemInHand(i);
                                                     inventory.sendHeldItem(this.getViewers().values());
                                                 }
@@ -3901,6 +3909,9 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
 
                                     break packetswitch;
                                 case InventoryTransactionPacket.USE_ITEM_ACTION_CLICK_AIR:
+                                    if (!this.prepareItemUseSlot(useItemData.hotbarSlot, useItemData.itemInHand, interactionHand)) {
+                                        break packetswitch;
+                                    }
                                     Vector3 directionVector = this.getDirectionVector();
 
                                     if (this.isCreative()) {
@@ -3914,13 +3925,20 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
                                     }
 
                                     this.rebindStartedJavaItemUseHand(explicitItemUseHandAllowed, interactionHand);
+                                    InventorySlotReference itemSource = this.isMainThreadInputEnabled() ? this.inventory.captureHeldItem() : null;
+                                    long itemSourceEpoch = itemSource == null ? 0 : this.getMovementEpoch();
                                     PlayerInteractEvent interactEvent = new PlayerInteractEvent(this, item, directionVector, face, PlayerInteractEvent.Action.RIGHT_CLICK_AIR);
                                     if (isSpectator()) {
                                         interactEvent.setCancelled();
                                     }
                                     this.server.getPluginManager().callEvent(interactEvent);
-                                    if (interactEvent.isCancelled()) {
-                                        this.inventory.sendHeldItem(this);
+                                    if (interactEvent.isCancelled()
+                                            || itemSource != null && !this.canStartItemUse(itemSource, itemSourceEpoch)) {
+                                        if (itemSource == null) {
+                                            this.inventory.sendHeldItem(this);
+                                        } else {
+                                            this.resyncItemUse(itemSource);
+                                        }
                                         break packetswitch;
                                     }
 
@@ -3928,7 +3946,17 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
                                     boolean itemAccepted = item.onClickAir(this, directionVector) || explicitShieldUse;
                                     if (itemAccepted) {
                                         if (this.isSurvivalLike()) {
-                                            this.inventory.setItemInHand(item);
+                                            if (itemSource == null) {
+                                                this.inventory.setItemInHand(item);
+                                            } else if (!itemSource.setItem(item)) {
+                                                this.resyncItemUse(itemSource);
+                                                break packetswitch;
+                                            }
+                                        }
+
+                                        if (itemSource != null && (!this.isOnline() || !this.isInputSessionActive()
+                                                || this.getMovementEpoch() != itemSourceEpoch || !itemSource.isSelectedBy(this.inventory))) {
+                                            break packetswitch;
                                         }
 
                                         if (!this.isUsingItem()) {
@@ -3940,15 +3968,7 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
                                         //int ticksUsed = this.server.getTick() - this.startAction;
                                         int ticksUsed = (int) (System.currentTimeMillis() - this.startActionTimestamp) / 50;
 
-                                        this.setUsingItem(false);
-
-                                        if (!item.onUse(this, ticksUsed)) {
-                                            this.inventory.sendContents(this);
-                                        }
-
-                                        if ((item.canRelease() || explicitShieldUse) && !item.isNull()) {
-                                            this.setUsingItem(true);
-                                        }
+                                        this.completeItemUse(item, ticksUsed, explicitShieldUse);
                                     }
 
                                     break packetswitch;
@@ -3995,14 +4015,25 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
                                         break;
                                     }
 
+                                    InventorySlotReference interactionSource = this.isMainThreadInputEnabled() ? this.inventory.captureHeldItem() : null;
+                                    long interactionEpoch = interactionSource == null ? 0 : this.getMovementEpoch();
+                                    long interactionTargetEpoch = interactionSource != null && target instanceof Player targetPlayer ? targetPlayer.getMovementEpoch() : 0;
                                     PlayerInteractEntityEvent playerInteractEntityEvent = new PlayerInteractEntityEvent(this, target, item, useItemOnEntityData.clickPos);
                                     if (this.isSpectator()) playerInteractEntityEvent.setCancelled();
                                     getServer().getPluginManager().callEvent(playerInteractEntityEvent);
 
-                                    if (playerInteractEntityEvent.isCancelled()) {
+                                    if (playerInteractEntityEvent.isCancelled()
+                                            || interactionSource != null && !this.canStartEntityInteraction(interactionSource, interactionEpoch, target, interactionTargetEpoch)) {
+                                        if (interactionSource != null) {
+                                            this.resyncItemUse(interactionSource);
+                                        }
                                         break;
                                     }
                                     if (target.onInteract(this, item, useItemOnEntityData.clickPos) && this.isSurvival()) {
+                                        if (interactionSource != null) {
+                                            this.finishEntityInteractionItem(interactionSource, item, target);
+                                            break;
+                                        }
                                         if (item.isTool()) {
                                             if (item.useOn(target) && item.getDamage() > item.getMaxDurability()) {
                                                 item = Items.air();
@@ -4024,7 +4055,7 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
     //									violation += 25; // 近期TPS不稳定容易误判, 先禁用
     //									return;
     //								}
-                                    if (++currentTickAttackPacketCount >= 2) {
+                                    if (!this.claimAttackAttempt()) {
                                         return;
                                     }
 
@@ -4039,6 +4070,9 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
                                         break;
                                     }
 
+                                    InventorySlotReference attackSource = this.isMainThreadInputEnabled() ? this.inventory.captureHeldItem() : null;
+                                    long attackEpoch = attackSource == null ? 0 : this.getMovementEpoch();
+                                    long targetEpoch = attackSource != null && target instanceof Player targetPlayer ? targetPlayer.getMovementEpoch() : 0;
                                     ItemAttackDamageEvent ev = new ItemAttackDamageEvent(item);
                                     this.server.getPluginManager().callEvent(ev);
                                     float itemDamage = ev.getAttackDamage();
@@ -4067,6 +4101,16 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
                                         }
                                     }
 
+                                    // 伤害计算扩展可能切槽、替换物品或改变两端的位置代际。
+                                    if (attackSource != null && (!this.canStartItemUse(attackSource, attackEpoch)
+                                            || target.isClosed() || !target.isAlive() || target.getLevel() != this.level
+                                            || this.level.getEntity(target.getId()) != target
+                                            || target instanceof Player targetPlayer && targetPlayer.getMovementEpoch() != targetEpoch
+                                            || !this.canInteract(target, target.getBoundingBox(), isCreative() ? MAX_REACH_DISTANCE_CREATIVE_ENTITY_INTERACTION : this.level.getMaxEntityInteractionReachDistanceInSurvival()))) {
+                                        this.resyncItemUse(attackSource);
+                                        break;
+                                    }
+
                                     EntityDamageByEntityEvent entityDamageByEntityEvent = new EntityDamageByEntityEvent(this, target, EntityDamageEvent.DamageCause.ENTITY_ATTACK, damage, knockBackH, knockBackV, enchantments);
                                     entityDamageByEntityEvent.getKnockbackProfile().setEnchantLevel(knockBackEnchantment);
                                     if (this.isSpectator()) entityDamageByEntityEvent.setCancelled();
@@ -4082,6 +4126,10 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
                                     }
 
                                     if (item.isTool() && this.isSurvival()) {
+                                        if (attackSource != null) {
+                                            this.finishAttackItem(attackSource, item, target);
+                                            return;
+                                        }
                                         if (item.useOn(target)) {
                                             if (item.getDamage() > item.getMaxDurability()) {
                                                 this.inventory.setItemInHand(Items.air());
@@ -4104,7 +4152,8 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
                         break;
                     }
                     case InventoryTransactionPacket.TYPE_RELEASE_ITEM: {
-                        if (!callPacketReceiveEvent(packet)) break;
+                        // 新模式已在事务入口完成全部包监听，不能重复派发释放事件。
+                        if (!this.isMainThreadInputEnabled() && !callPacketReceiveEvent(packet)) break;
                         if (this.isSpectator()) {
                             this.sendAllInventories();
                             break packetswitch;
@@ -4704,6 +4753,7 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
 
     @Override
     public void sendChunk(int dimension, int x, int z, int subChunkCount, ChunkCachedData cachedData, DataPacket packet) {
+        @Nullable ChunkSendContext chunkContext = this.captureChunkSendContext();
         if (dimension == transferDimension) {
             return;
         }
@@ -4715,6 +4765,7 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
             return;
         }
         this.noticeChunkPublisherUpdate();
+        if (chunkContext != null && !chunkContext.isCurrent(this)) return;
         long chunkHash = Level.chunkHash(x, z);
         this.usedChunks.put(chunkHash, true);
         this.chunkLoadCount++;
@@ -4749,6 +4800,7 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
                 pk.blobIds = blobIds;
                 pk.data = blobCache.getFullChunkPayload();
                 this.dataPacket(pk);
+                if (chunkContext != null && !chunkContext.isCurrent(this)) return;
 
                 this.sendQueuedChunk = false;
 
@@ -4768,6 +4820,7 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
                 pk.subChunkCount = subChunkCount;
                 pk.data = ((LevelChunkPacket12060) packet).data;
                 this.dataPacket(pk);
+                if (chunkContext != null && !chunkContext.isCurrent(this)) return;
             }
         } else if (this.isBlobCacheAvailable() && this.isSubModeLevelChunkBlobCacheEnabled() && !centerChunk) {
             ChunkBlobCache blobCache = cachedData.getBlobCache();
@@ -4794,6 +4847,7 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
             pk.cacheEnabled = true;
             pk.data = blobCache.getSubRequestModeFullChunkPayload();
             this.dataPacket(pk);
+            if (chunkContext != null && !chunkContext.isCurrent(this)) return;
         } else if (protocol >= AbstractProtocol.PROTOCOL_120_60.getProtocolStart()) {
             LevelChunkPacket pk = createLevelChunkPacket();
             pk.chunkX = x;
@@ -4803,8 +4857,10 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
             pk.subChunkRequestLimit = subChunkCount;
             pk.data = ((LevelChunkPacket12060) packet).data;
             this.dataPacket(pk);
+            if (chunkContext != null && !chunkContext.isCurrent(this)) return;
         } else {
             this.dataPacket(packet);
+            if (chunkContext != null && !chunkContext.isCurrent(this)) return;
         }
 
         for (BlockEntity blockEntity : this.level.getChunkBlockEntities(x, z).values()) {
@@ -4812,6 +4868,7 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
                 continue;
             }
             ((BlockEntitySpawnable) blockEntity).spawnTo(this);
+            if (chunkContext != null && !chunkContext.isCurrent(this)) return;
         }
 
         //TODO: move to sub chunk response?
@@ -4819,6 +4876,7 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
             for (Entity entity : this.level.getChunkEntities(x, z).values()) {
                 if (this != entity && !entity.closed && entity.isAlive() && entity.isWithinEntityViewDistance(this)) {
                     entity.spawnTo(this);
+                    if (chunkContext != null && !chunkContext.isCurrent(this)) return;
                 }
             }
         }
@@ -4826,6 +4884,7 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
 
     @Override
     public void sendChunk(int dimension, int x, int z, int subChunkCount, ChunkCachedData cachedData, byte[] payload, byte[] subModePayload) {
+        @Nullable ChunkSendContext chunkContext = this.captureChunkSendContext();
         if (dimension == transferDimension) {
             return;
         }
@@ -4837,6 +4896,7 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
             return;
         }
         this.noticeChunkPublisherUpdate();
+        if (chunkContext != null && !chunkContext.isCurrent(this)) return;
         long chunkHash = Level.chunkHash(x, z);
         this.usedChunks.put(chunkHash, true);
         this.chunkLoadCount++;
@@ -4916,12 +4976,14 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
             pk.data = subModePayload;
         }
         this.dataPacket(pk);
+        if (chunkContext != null && !chunkContext.isCurrent(this)) return;
 
         for (BlockEntity blockEntity : this.level.getChunkBlockEntities(x, z).values()) {
             if (!(blockEntity instanceof BlockEntitySpawnable)) {
                 continue;
             }
             ((BlockEntitySpawnable) blockEntity).spawnTo(this);
+            if (chunkContext != null && !chunkContext.isCurrent(this)) return;
         }
 
         //TODO: move to sub chunk response?
@@ -4929,6 +4991,7 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
             for (Entity entity : this.level.getChunkEntities(x, z).values()) {
                 if (this != entity && !entity.closed && entity.isAlive() && entity.isWithinEntityViewDistance(this)) {
                     entity.spawnTo(this);
+                    if (chunkContext != null && !chunkContext.isCurrent(this)) return;
                 }
             }
         }
@@ -4936,6 +4999,7 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
 
     @Override
     public void sendSubChunks(int dimension, int x, int z, int subChunkCount, ChunkCachedData cachedData, Map<StaticVersion, byte[][]> payload, byte[] heightMapType, byte[][] heightMap) {
+        @Nullable ChunkSendContext chunkContext = this.captureChunkSendContext();
         if (!this.connected) {
             return;
         }
@@ -4980,6 +5044,7 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
                 }
                 pk.requestResult = SubChunkPacket.REQUEST_RESULT_SUCCESS_ALL_AIR;
                 this.dataPacket(pk);
+                if (chunkContext != null && !chunkContext.isCurrent(this)) return;
                 iter.remove();
                 continue;
             } else if (index >= subChunkCount) {
@@ -4987,6 +5052,7 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
                 pk.heightMapType = SubChunkPacket.HEIGHT_MAP_TYPE_ALL_TOO_LOW;
                 pk.requestResult = SubChunkPacket.REQUEST_RESULT_SUCCESS_ALL_AIR;
                 this.dataPacket(pk);
+                if (chunkContext != null && !chunkContext.isCurrent(this)) return;
                 iter.remove();
                 continue;
             }
@@ -5021,12 +5087,14 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
                 pk.heightMap = heightMap[index];
             }
             this.dataPacket(pk);
+            if (chunkContext != null && !chunkContext.isCurrent(this)) return;
             iter.remove();
         }
     }
 
     @Override
     public void sendSubChunks(int dimension, int x, int z, int subChunkCount, ChunkCachedData cachedData, byte[] heightMapType, byte[][] heightMap) {
+        @Nullable ChunkSendContext chunkContext = this.captureChunkSendContext();
         if (!this.connected) {
             return;
         }
@@ -5073,6 +5141,7 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
                 }
                 pk.requestResult = SubChunkPacket.REQUEST_RESULT_SUCCESS_ALL_AIR;
                 this.dataPacket(pk);
+                if (chunkContext != null && !chunkContext.isCurrent(this)) return;
                 iter.remove();
                 continue;
             } else if (index >= subChunkCount) {
@@ -5085,6 +5154,7 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
                 pk.heightMapType = SubChunkPacket.HEIGHT_MAP_TYPE_ALL_TOO_LOW;
                 pk.requestResult = SubChunkPacket.REQUEST_RESULT_SUCCESS_ALL_AIR;
                 this.dataPacket(pk);
+                if (chunkContext != null && !chunkContext.isCurrent(this)) return;
                 iter.remove();
                 continue;
             }
@@ -5103,6 +5173,7 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
                     pk.heightMap = heightMap[index];
                 }
                 this.dataPacket(pk);
+                if (chunkContext != null && !chunkContext.isCurrent(this)) return;
             } else if (this.isBlobCacheAvailable() && this.isSubChunkBlobCacheEnabled() && !centerChunk) {
                 long[] ids;
                 Long2ObjectMap<byte[]> blobs;
@@ -5128,6 +5199,7 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
                 pk.heightMapType = heightMapType[index];
                 pk.heightMap = heightMap[index];
                 this.dataPacket(pk);
+                if (chunkContext != null && !chunkContext.isCurrent(this)) return;
             } else if (isNeedLevelChangeLoadScreen()) {
                 SubChunkPacket uncompressed = packetsUncompressed[index];
 
@@ -5141,8 +5213,10 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
                 pk.heightMapType = uncompressed.heightMapType;
                 pk.heightMap = uncompressed.heightMap;
                 this.dataPacket(pk);
+                if (chunkContext != null && !chunkContext.isCurrent(this)) return;
             } else {
                 this.dataPacket(packets[index]);
+                if (chunkContext != null && !chunkContext.isCurrent(this)) return;
             }
 
             iter.remove();
@@ -5151,6 +5225,7 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
 
     @Override
     public void onSubChunkRequestFail(int dimension, int x, int z) {
+        @Nullable ChunkSendContext chunkContext = this.captureChunkSendContext();
         if (!this.connected) {
             return;
         }
@@ -5180,6 +5255,7 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
             pk.subChunkZ = z;
             pk.requestResult = SubChunkPacket.REQUEST_RESULT_NO_SUCH_CHUNK;
             this.dataPacket(pk);
+            if (chunkContext != null && !chunkContext.isCurrent(this)) return;
 
             iter.remove();
         }

@@ -476,15 +476,7 @@ public class SynapsePlayer113 extends SynapsePlayer112 {
 									//int ticksUsed = this.server.getTick() - this.startAction;
 									int ticksUsed = (int) (System.currentTimeMillis() - this.startActionTimestamp) / 50;
 
-									this.setUsingItem(false);
-
-									if (!item.onUse(this, ticksUsed)) {
-										this.inventory.sendContents(this);
-									}
-
-									if (item.canRelease() && !item.isNull()) {
-										this.setUsingItem(true);
-									}
+									this.completeItemUse(item, ticksUsed, false);
 								}
 
 								break packetswitch;
@@ -712,11 +704,7 @@ public class SynapsePlayer113 extends SynapsePlayer112 {
 
 				PlayerCommandPreprocessEvent playerCommandPreprocessEvent = new PlayerCommandPreprocessEvent(this, command);
 				this.server.getPluginManager().callEvent(playerCommandPreprocessEvent);
-				if (playerCommandPreprocessEvent.isCancelled()) {
-					break;
-				}
-
-				this.server.dispatchCommand(playerCommandPreprocessEvent.getPlayer(), playerCommandPreprocessEvent.getMessage().substring(1));
+				this.dispatchPreprocessedCommand(playerCommandPreprocessEvent);
 				break;
 			case ProtocolInfo.INTERACT_PACKET:
 				InteractPacket113 interactPacket = (InteractPacket113) packet;

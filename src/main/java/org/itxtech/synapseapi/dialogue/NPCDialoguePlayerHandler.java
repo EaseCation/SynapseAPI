@@ -9,6 +9,7 @@ import javax.annotation.Nullable;
 public class NPCDialoguePlayerHandler {
 
     private final SynapsePlayer player;
+    @Nullable
     private NPCDialogueState state = null;
 
     public NPCDialoguePlayerHandler(SynapsePlayer player) {
@@ -29,24 +30,24 @@ public class NPCDialoguePlayerHandler {
         return state == null ? null : state.currentEntity();
     }
 
+    private boolean isCurrentState(@Nullable NPCDialogueState expected) {
+        return !player.isMainThreadInputEnabled() || player.isAcceptingInputPackets()
+                && player.getNpcDialoguePlayerHandler() == this && this.state == expected;
+    }
+
     public void openDialogue(NPCDialogueScene scene) {
-        if (scene == null) {
+        @Nullable NPCDialogueState previous = this.state;
+        if (scene == null || !isCurrentState(previous)) {
             return;
         }
         SynapseAPI.getInstance().getLogger().trace("玩家(" + player.getName() + ") 尝试打开对话框(" + scene.getSceneName() + ")" );
 
-        switch (this.state) {
-            case NPCDialogueState.Opening opening -> {
-                scene.sendTo(player, opening.currentEntity().getId(), opening.currentNpcName());
-                state = new NPCDialogueState.Opening(scene, opening.currentEntity(), opening.currentNpcName());
-            }
-            case NPCDialogueState.Responded responded -> {
-                scene.sendTo(player, responded.currentEntity().getId(), responded.currentNpcName());
-                state = new NPCDialogueState.Opening(scene, responded.currentEntity(), responded.currentNpcName());
-            }
-            case null -> {
-                throw new IllegalStateException("首次发送，请先调用 openDialogue(NPCDialogueScene scene, Entity entity)");
-            }
+        if (previous == null) {
+            throw new IllegalStateException("首次发送，请先调用 openDialogue(NPCDialogueScene scene, Entity entity)");
+        }
+        scene.sendTo(player, previous.currentEntity().getId(), previous.currentNpcName());
+        if (isCurrentState(previous)) {
+            this.state = new NPCDialogueState.Opening(scene, previous.currentEntity(), previous.currentNpcName());
         }
     }
 
@@ -55,30 +56,22 @@ public class NPCDialoguePlayerHandler {
     }
 
     public void openDialogue(NPCDialogueScene scene, Entity entity, String name) {
-        if (scene == null) {
+        @Nullable NPCDialogueState previous = this.state;
+        if (scene == null || !isCurrentState(previous)) {
             return;
         }
         SynapseAPI.getInstance().getLogger().trace("玩家(" + player.getName() + ") 尝试打开对话框(" + scene.getSceneName() + ")" );
 
-        switch (this.state) {
-            case NPCDialogueState.Opening opening -> {
-                if (entity != opening.currentEntity()) {
-                    closeDialogue();
-                }
-                scene.sendTo(player, entity.getId(), name);
-                this.state = new NPCDialogueState.Opening(scene, entity, name);
+        if (previous != null && entity != previous.currentEntity()) {
+            closeDialogue();
+            if (!isCurrentState(null)) {
+                return;
             }
-            case NPCDialogueState.Responded responded -> {
-                if (entity != responded.currentEntity()) {
-                    closeDialogue();
-                }
-                scene.sendTo(player, entity.getId(), name);
-                this.state = new NPCDialogueState.Opening(scene, entity, name);
-            }
-            case null -> {
-                scene.sendTo(player, entity.getId(), name);
-                this.state = new NPCDialogueState.Opening(scene, entity, name);
-            }
+            previous = this.state;
+        }
+        scene.sendTo(player, entity.getId(), name);
+        if (isCurrentState(previous)) {
+            this.state = new NPCDialogueState.Opening(scene, entity, name);
         }
     }
 
@@ -87,21 +80,27 @@ public class NPCDialoguePlayerHandler {
      * 用于多NPC轮流对话场景
      */
     public void openDialogueSeamless(NPCDialogueScene scene, Entity entity, String name) {
-        if (scene == null) {
+        @Nullable NPCDialogueState previous = this.state;
+        if (scene == null || !isCurrentState(previous)) {
             return;
         }
         SynapseAPI.getInstance().getLogger().trace("玩家(" + player.getName() + ") 无缝切换对话框(" + scene.getSceneName() + ")");
         scene.sendTo(player, entity.getId(), name);
-        this.state = new NPCDialogueState.Opening(scene, entity, name);
+        if (isCurrentState(previous)) {
+            this.state = new NPCDialogueState.Opening(scene, entity, name);
+        }
     }
 
     public void closeDialogue() {
-        if (state == null) {
+        @Nullable NPCDialogueState closing = this.state;
+        if (closing == null || !isCurrentState(closing)) {
             return;
         }
 
-        this.state.currentScene().close(player, state.currentEntity().getId(), state.currentNpcName());
-        this.state = null;
+        closing.currentScene().close(player, closing.currentEntity().getId(), closing.currentNpcName());
+        if (isCurrentState(closing)) {
+            this.state = null;
+        }
     }
 
     public boolean onDialogueResponse(String sceneName, int buttonId) {
@@ -119,16 +118,25 @@ public class NPCDialoguePlayerHandler {
                     this.state = null;
                     return false;
                 }
-                this.state = new NPCDialogueState.Responded(opening.currentScene(), opening.currentEntity(), opening.currentNpcName());
+                NPCDialogueState.Responded response = new NPCDialogueState.Responded(opening.currentScene(), opening.currentEntity(), opening.currentNpcName());
+                this.state = response;
 
                 if (button.getClickCallback() != null) {
                     button.getClickCallback().accept(this);
+                }
+                // 回调可以退休会话或替换 handler，原响应已消费但不能继续旧来源的工作。
+                if (!isCurrentState(this.state)) {
+                    return true;
                 }
                 if (button.isForceCloseOnClick()) {
                     closeDialogue();
                 } else {
                     // 如果下一tick仍未打开新对话框，则自动关闭
                     SynapseAPI.getInstance().getServer().getScheduler().scheduleTask(SynapseAPI.getInstance(), () -> {
+                        // 延期关闭只归属本次响应，不能影响后来同场景的响应或退休会话。
+                        if (!isCurrentState(response)) {
+                            return;
+                        }
                         switch (this.state) {
                             case NPCDialogueState.Responded responded -> {
                                 if (responded.currentScene().getSceneName().equals(sceneName)) {

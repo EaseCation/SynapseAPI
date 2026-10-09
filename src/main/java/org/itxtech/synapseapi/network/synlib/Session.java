@@ -6,11 +6,13 @@ import lombok.extern.log4j.Log4j2;
 import org.itxtech.synapseapi.network.protocol.spp.SynapseDataPacket;
 
 import java.net.InetSocketAddress;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.locks.LockSupport;
 
 @Log4j2
 public class Session {
 
-    public Channel channel;
+    public volatile Channel channel;
     private String ip;
     private int port;
     private final SynapseClient client;
@@ -48,9 +50,17 @@ public class Session {
                 long time = System.currentTimeMillis() - start;
                 this.tickUseTime = time;
                 if (time < 10) {
-                    try {
-                        Thread.sleep(10 - time);
-                    } catch (InterruptedException ignored) {
+                    if (this.client.isRecordInputTime()) {
+                        // 许可可早于 park 到达；已有队列继续负责顺序和原批次预算。
+                        if (this.client.getInternalQueue().isEmpty()) {
+                            LockSupport.parkNanos(this, TimeUnit.MILLISECONDS.toNanos(10 - time));
+                        }
+                        Thread.interrupted();
+                    } else {
+                        try {
+                            Thread.sleep(10 - time);
+                        } catch (InterruptedException ignored) {
+                        }
                     }
                 }
             }

@@ -9,9 +9,9 @@ public final class SynapseSharedConstants {
     public static final boolean ENABLE_CHEMISTRY_FEATURE = false;
 
     /**
-     * 强制识别连接来自中国版客户端, 用于 ProxyPass 抓包调试.
+     * 仅在隔离调试 JVM 显式开启时，强制识别无认证中国版客户端。
      */
-    public static final boolean FORCE_NETEASE_PLAYER = false;
+    public static final boolean FORCE_NETEASE_PLAYER = Boolean.getBoolean("synapseapi.force-netease-player");
 
     /**
      * Enables new inventory system.

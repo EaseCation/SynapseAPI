@@ -14,10 +14,14 @@ import cn.nukkit.event.player.*;
 import cn.nukkit.event.server.DataPacketReceiveEvent;
 import cn.nukkit.event.server.DataPacketSendEvent;
 import cn.nukkit.inventory.ItemUseHand;
+import cn.nukkit.inventory.InventorySlotReference;
+import cn.nukkit.network.protocol.types.ContainerIds;
 import cn.nukkit.item.Item;
+import cn.nukkit.item.Items;
 import cn.nukkit.item.ItemMap;
 import cn.nukkit.level.*;
 import cn.nukkit.math.AxisAlignedBB;
+import cn.nukkit.math.BlockFace;
 import cn.nukkit.math.NukkitMath;
 import cn.nukkit.math.SimpleAxisAlignedBB;
 import cn.nukkit.math.Vector3;
@@ -26,6 +30,11 @@ import cn.nukkit.nbt.tag.DoubleTag;
 import cn.nukkit.nbt.tag.ListTag;
 import cn.nukkit.network.PacketViolationReason;
 import cn.nukkit.network.SourceInterface;
+import cn.nukkit.network.input.InputValidationResult;
+import cn.nukkit.network.input.MovementCommitResult;
+import cn.nukkit.network.input.MovementCommit;
+import cn.nukkit.network.input.PlayerInputProcessor;
+import cn.nukkit.network.input.ServerInputDispatcher;
 import cn.nukkit.network.protocol.*;
 import cn.nukkit.resourcepacks.ResourcePack;
 import cn.nukkit.scheduler.AsyncTask;
@@ -34,10 +43,13 @@ import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonPrimitive;
+import io.netty.channel.Channel;
 import it.unimi.dsi.fastutil.longs.Long2ObjectMap;
 import org.itxtech.synapseapi.camera.CameraManager;
 import org.itxtech.synapseapi.dialogue.NPCDialoguePlayerHandler;
+import org.itxtech.synapseapi.dialogue.NPCDialogueState;
 import org.itxtech.synapseapi.event.player.SynapsePlayerConnectEvent;
+import javax.annotation.Nullable;
 import org.itxtech.synapseapi.event.player.SynapsePlayerJavaCustomPayloadEvent;
 import org.itxtech.synapseapi.event.player.SynapsePlayerPreChatEvent;
 import org.itxtech.synapseapi.event.player.SynapsePlayerTransferEvent;
@@ -47,8 +59,10 @@ import org.itxtech.synapseapi.multiprotocol.AbstractProtocol;
 import org.itxtech.synapseapi.multiprotocol.common.camera.CameraInstruction;
 import org.itxtech.synapseapi.multiprotocol.common.drawer.Shape;
 import org.itxtech.synapseapi.multiprotocol.common.level.DimensionDefinition;
+import org.itxtech.synapseapi.multiprotocol.protocol113.protocol.IPlayerAuthInputPacket;
 import org.itxtech.synapseapi.multiprotocol.protocol116100.protocol.TextPacket116100;
 import org.itxtech.synapseapi.multiprotocol.protocol116100ne.protocol.TextPacket116100NE;
+import org.itxtech.synapseapi.multiprotocol.protocol11710.protocol.NpcDialoguePacket11710;
 import org.itxtech.synapseapi.multiprotocol.protocol119.protocol.PlayerActionPacket119;
 import org.itxtech.synapseapi.multiprotocol.protocol12.protocol.LoginPacket;
 import org.itxtech.synapseapi.multiprotocol.protocol12.utils.ClientChainData12;
@@ -82,6 +96,7 @@ import java.util.*;
 import java.util.concurrent.ThreadLocalRandom;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Function;
+import java.util.function.Predicate;
 
 import static org.itxtech.synapseapi.SynapseSharedConstants.DATA_VERSION;
 import static org.itxtech.synapseapi.SynapseSharedConstants.NETWORK_STACK_LATENCY_TELEMETRY;
@@ -99,6 +114,11 @@ public class SynapsePlayer extends Player {
     protected UUID sessionId;
     public boolean isSynapseLogin;
     protected SynapseEntry synapseEntry;
+    @Nullable
+    private InputValidationResult inputValidation = InputValidationResult.ACCEPTED;
+    private ServerInputDispatcher.Session inputSession;
+    @Nullable
+    private Channel inputChannel;
     protected boolean isFirstTimeLogin;
     private boolean cleanTextColor;
 
@@ -108,6 +128,7 @@ public class SynapsePlayer extends Player {
     protected JsonObject cachedExtra = new JsonObject();
     protected final JsonObject transferExtra = new JsonObject();
     private final AtomicBoolean transferInProgress = new AtomicBoolean();
+    private volatile boolean inputTransferCommitted;
     protected int dummyDimension;
     protected int transferDimension = -1;
     protected int loadingScreenId = ThreadLocalRandom.current().nextInt(0xffff, 0xfffffff);
@@ -133,6 +154,8 @@ public class SynapsePlayer extends Player {
     float lastAuthInputY;
     float lastAuthInputYaw;
     float lastAuthInputPitch;
+    private boolean handlingInputPacket;
+    private long inputMovementEpoch;
 
     public final List<OutboundPacket> outboundQueue = new ArrayList<>();
 
@@ -423,6 +446,34 @@ public class SynapsePlayer extends Player {
     public SynapseEntry getSynapseEntry() {
         return synapseEntry;
     }
+
+    /** 创建时绑定具体输入代际，退出不能按 UUID 误失效后来建立的同 ID 连接。 */
+    final void bindInputSession(@Nullable ServerInputDispatcher.Session session) {
+        this.bindInputSession(session, null);
+    }
+
+    /** 网络创建的玩家保留原 TCP 对象；内部无网络夹具沿用已有绑定入口。 */
+    final void bindInputSession(@Nullable ServerInputDispatcher.Session session, @Nullable Channel channel) {
+        this.inputSession = session;
+        this.inputChannel = session == null ? null : channel;
+    }
+
+    @Nullable
+    final ServerInputDispatcher.Session getInputSession() {
+        return this.inputSession;
+    }
+
+    public final boolean isInputSessionActive() {
+        return this.inputSession != null && this.inputSession.isActive()
+                && (this.inputChannel == null || this.synapseEntry.isCurrentInputConnection(this.inputChannel));
+    }
+
+    /** 转服只终止源游戏输入；原连接会话继续负责代理 logout 清理。 */
+    @Override
+    public final boolean isAcceptingInputPackets() {
+        return this.isInputSessionActive() && !this.inputTransferCommitted;
+    }
+
 
     @Override
     protected void processLogin() {
@@ -907,6 +958,10 @@ public class SynapsePlayer extends Player {
                 return false;
             }
 
+            if (this.isMainThreadInputEnabled()) {
+                this.inputTransferCommitted = true;
+                this.clearPendingMovement();
+            }
             this.clearSubChunkQueues();
 
             this.removeAllChunks();
@@ -1136,6 +1191,38 @@ public class SynapsePlayer extends Player {
     }
 
     @Override
+    protected void onLevelChangeAccepted(Level targetLevel) {
+        super.onLevelChangeAccepted(targetLevel);
+        if (this.isMainThreadInputEnabled()) {
+            this.prepareLevelChangeView();
+        }
+    }
+
+    private void prepareLevelChangeView() {
+        if (this.isMainThreadInputEnabled()) {
+            Level origin = this.level;
+            long epoch = this.getMovementEpoch();
+            for (DummyBossBar bar : this.getDummyBossBars().values()) {
+                bar.destroy();
+                if (!this.isTeleportStateCurrent(origin, epoch)) return;
+            }
+            for (Entity entity : origin.getEntities()) {
+                if (!this.isTeleportStateCurrent(origin, epoch)) return;
+                if (entity.getViewers().get(this.getLoaderId()) == this) entity.despawnFrom(this);
+            }
+            if (this.isTeleportStateCurrent(origin, epoch)) this.isLevelChange = true;
+            return;
+        }
+        this.getDummyBossBars().values().forEach(DummyBossBar::destroy);
+        for (Entity entity : this.getLevel().getEntities()) {
+            if (entity.getViewers().containsKey(this.getLoaderId())) {
+                entity.despawnFrom(this);
+            }
+        }
+        this.isLevelChange = true;
+    }
+
+    @Override
     public boolean teleport(Location location, PlayerTeleportEvent.TeleportCause cause) {
         if (!this.isOnline()) {
             return false;
@@ -1144,20 +1231,15 @@ public class SynapsePlayer extends Player {
         Location from = this.getLocation();
 
         boolean isLevelChanging = this.isLevelChange;
-        if (location.level != null && from.getLevel() != location.level) {
-            this.getDummyBossBars().values().forEach(DummyBossBar::destroy);  //游戏崩溃问题
-            for (Entity entity : this.getLevel().getEntities()) {
-                if (entity.getViewers().containsKey(this.getLoaderId())) {
-                    entity.despawnFrom(this);
-                }
-            }
-            this.isLevelChange = true;
+        if (!this.isMainThreadInputEnabled() && location.level != null && from.getLevel() != location.level) {
+            this.prepareLevelChangeView();
         }
         if (super.teleport(location, cause)) {
-            if (location.level != null && from.getLevel() != location.level && this.spawned) {
+            Level destinationLevel = this.isMainThreadInputEnabled() ? this.level : location.level;
+            if (destinationLevel != null && from.getLevel() != destinationLevel && this.spawned) {
                 preChangeDimensionScreen(false);
 
-                Dimension newDimension = location.level.getDimension();
+                Dimension newDimension = destinationLevel.getDimension();
 
                 if (this.isJavaClient()) {
                     // Java 客户端：始终发送真实维度
@@ -1305,8 +1387,235 @@ public class SynapsePlayer extends Player {
 
     protected boolean callPacketReceiveEvent(DataPacket packet) {
         DataPacketReceiveEvent ev = new DataPacketReceiveEvent(this, packet);
+        boolean stalePosition = this.handlingInputPacket && packet instanceof IPlayerAuthInputPacket
+                && !this.isCurrentInputPosition();
+        if (stalePosition) {
+            ev.setCancelled();
+        }
         this.server.getPluginManager().callEvent(ev);
+        if (this.isMainThreadInputEnabled()) {
+            if (!this.isAcceptingInputPackets()) {
+                return false;
+            }
+            boolean cancelled = stalePosition || ev.isCancelled()
+                    || packet instanceof IPlayerAuthInputPacket && !this.isCurrentInputPosition();
+            PlayerInputProcessor processor = this.server.getPlayerInputProcessor();
+            if (processor != null) {
+                InputValidationResult validation = processor.validateReceivedPacket(this, packet, cancelled);
+                if (packet instanceof IPlayerAuthInputPacket) {
+                    this.inputValidation = validation;
+                }
+                return !cancelled && validation.accepted() && !this.isClosed()
+                        && (!(packet instanceof IPlayerAuthInputPacket) || this.isCurrentInputPosition());
+            }
+            return !cancelled && !this.isClosed();
+        }
         return !ev.isCancelled();
+    }
+
+    /** 绑定接入时的位置代际，原虚拟 handler 及包事件仍恰好执行一次。 */
+    final void handleInputDataPacket(DataPacket packet, long movementEpoch) {
+        if (!this.server.isPrimaryThread()) {
+            throw new IllegalStateException("Input packets require the main thread");
+        }
+        if (!this.isAcceptingInputPackets()) {
+            return;
+        }
+        boolean previousHandling = this.handlingInputPacket;
+        long previousEpoch = this.inputMovementEpoch;
+        InputValidationResult previousValidation = this.inputValidation;
+        this.inputValidation = InputValidationResult.ACCEPTED;
+        this.handlingInputPacket = true;
+        this.inputMovementEpoch = movementEpoch;
+        try {
+            this.handleDataPacket(packet);
+        } finally {
+            this.handlingInputPacket = previousHandling;
+            this.inputMovementEpoch = previousEpoch;
+            this.inputValidation = previousValidation;
+        }
+    }
+
+    protected final boolean isCurrentInputPosition() {
+        return !this.isClosed() && !this.inputTransferCommitted
+                && (!this.handlingInputPacket || this.inputMovementEpoch == this.getMovementEpoch());
+    }
+
+    /** 同一输入中的回调失效后，不能继续写姿态或执行其后动作。 */
+    protected final boolean canContinueInputState() {
+        return !this.isMainThreadInputEnabled() || this.isOnline() && this.isAlive()
+                && this.isAcceptingInputPackets() && this.isCurrentInputPosition();
+    }
+
+    /** 新模式以当前玩家许可授权飞行，全局旧浮空检测开关不授予能力。 */
+    protected final boolean canApplyFlightState(boolean flying) {
+        return !this.isMainThreadInputEnabled() || this.canContinueInputState()
+                && !this.isSpectator() && (!flying || this.getAdventureSettings().get(Type.ALLOW_FLIGHT));
+    }
+
+    @Override
+    public boolean isMainThreadInputEnabled() {
+        return this.isSynapseLogin && this.synapseEntry.isMainThreadInputEnabled();
+    }
+
+    /** 基岩使用事务携带本次动作的槽位；库存始终来自服务端，不等待或重排装备包。 */
+    protected final boolean prepareItemUseSlot(int slot, @Nullable Item claimedItem, ItemUseHand hand) {
+        if (!this.isMainThreadInputEnabled() || this.isJavaClient() || hand != ItemUseHand.MAIN_HAND) {
+            return true;
+        }
+        if (!this.isOnline() || !this.isInputSessionActive() || !this.isAlive() || !this.spawned || !this.isCurrentInputPosition()) {
+            return false;
+        }
+        if (slot < 0 || slot >= this.inventory.getHotbarSize()
+                || !this.inventory.getItem(slot).equalsExact(claimedItem)) {
+            this.resyncItemUse(null);
+            return false;
+        }
+        long movementEpoch = this.getMovementEpoch();
+        if (!this.inventory.equipItem(slot)) {
+            this.resyncItemUse(null);
+            return false;
+        }
+        // 选槽事件可以改库存或触发生命周期边界，开始世界副作用前必须重新核对。
+        if (!this.isOnline() || !this.isInputSessionActive() || !this.isAlive() || !this.spawned
+                || this.getMovementEpoch() != movementEpoch || !this.isCurrentInputPosition()) {
+            return false;
+        }
+        if (this.inventory.getHeldItemIndex() != slot || !this.inventory.getItem(slot).equalsExact(claimedItem)) {
+            this.resyncItemUse(null);
+            return false;
+        }
+        return true;
+    }
+
+    /** 世界副作用开始前检查原槽及生命周期；不把检查移到副作用之后。 */
+    protected final boolean canStartItemUse(InventorySlotReference source, long movementEpoch) {
+        return this.canContinueItemUse(movementEpoch)
+                && source.isSelectedBy(this.inventory) && source.isCurrent();
+    }
+
+    /** 放置/激活共用动作来源；世界效果成立后只结算原槽，不重新解析当前手。 */
+    @Nullable
+    protected final Item useItemOnBlock(Vector3 position, Item item, BlockFace face,
+                                       float clickX, float clickY, float clickZ, @Nullable Boolean clientPrediction) {
+        if (!this.isMainThreadInputEnabled()) {
+            return this.level.useItemOn(position, item, face, clickX, clickY, clickZ, this, clientPrediction);
+        }
+        InventorySlotReference source = this.inventory.captureHeldItem();
+        long epoch = this.getMovementEpoch();
+        Level actionLevel = this.level;
+        if (!source.getSnapshot().equalsExact(item) || !this.canStartItemUse(source, epoch)) {
+            this.resyncItemUse(source);
+            return null;
+        }
+        Item before = item.clone();
+        Item result = actionLevel.useItemOn(position, item, face, clickX, clickY, clickZ, this, clientPrediction,
+                () -> this.level == actionLevel && this.canStartItemUse(source, epoch));
+        if (result == null) {
+            this.resyncItemUse(source);
+            return null;
+        }
+        if (this.isSurvivalLike() && !result.equalsExact(before)) {
+            if (!this.isOnline() || !this.isInputSessionActive() || !source.setItem(result)) {
+                this.resyncItemUse(source);
+            } else {
+                this.inventory.sendHeldItem(this.getViewers().values());
+            }
+        }
+        return result;
+    }
+
+    @Override
+    public boolean canContinueItemUse(long movementEpoch) {
+        return super.canContinueItemUse(movementEpoch)
+                && this.isAcceptingInputPackets() && this.isCurrentInputPosition();
+    }
+
+    /** 交互事件之后，原物品和目标仍须属于本次动作。 */
+    protected final boolean canStartEntityInteraction(InventorySlotReference source, long movementEpoch,
+                                                     Entity target, long targetEpoch) {
+        return this.canStartItemUse(source, movementEpoch)
+                && !target.isClosed() && target.isAlive() && target.getLevel() == this.level
+                && this.level.getEntity(target.getId()) == target
+                && (!(target instanceof Player targetPlayer) || targetPlayer.getMovementEpoch() == targetEpoch)
+                && this.canInteract(target, target.getBoundingBox(), this.isCreative()
+                ? MAX_REACH_DISTANCE_CREATIVE_ENTITY_INTERACTION : this.level.getMaxEntityInteractionReachDistanceInSurvival());
+    }
+
+    /** 交互副作用已经成立；选槽变化不免除原槽消耗，来源替换则不能覆盖新物品。 */
+    protected final void finishEntityInteractionItem(InventorySlotReference source, Item item, Entity target) {
+        boolean broken = item.isTool() && item.useOn(target) && item.getDamage() > item.getMaxDurability();
+        if (broken) {
+            item = Items.air();
+        } else if (!item.isTool()) {
+            if (item.count > 1) {
+                item.count--;
+            } else {
+                item = Items.air();
+            }
+        }
+        if (!this.isOnline() || !this.isInputSessionActive() || !source.setItem(item)) {
+            this.resyncItemUse(source);
+            return;
+        }
+        if (broken) {
+            this.level.addLevelSoundEvent(this, LevelSoundEventPacket.SOUND_BREAK);
+        }
+    }
+
+    /** 伤害已发生后只结算原武器；回调换槽不免除消耗，替换来源则不覆盖新物品。 */
+    protected final void finishAttackItem(InventorySlotReference source, Item item, Entity target) {
+        boolean broken = item.useOn(target) && item.getDamage() > item.getMaxDurability();
+        if (!this.isOnline() || !this.isInputSessionActive() || !source.setItem(broken ? Items.air() : item)) {
+            this.resyncItemUse(source);
+            return;
+        }
+        if (broken) {
+            this.level.addLevelSoundEvent(this, LevelSoundEventPacket.SOUND_BREAK);
+        }
+    }
+
+    protected final void resyncItemUse(@Nullable InventorySlotReference source) {
+        if (!this.isOnline() || !this.isInputSessionActive()) {
+            return;
+        }
+        if (source == null) {
+            this.inventory.sendContents(this);
+        } else {
+            source.sendContents(this);
+        }
+        PlayerHotbarPacket packet = new PlayerHotbarPacket();
+        packet.selectedHotbarSlot = this.inventory.getHeldItemIndex();
+        packet.windowId = ContainerIds.INVENTORY;
+        packet.selectHotbarSlot = true;
+        this.dataPacket(packet);
+    }
+
+    /** 消费时读取真实服务端状态，尚未完成验证的持续使用与特殊姿态仍等待原阶段。 */
+    final boolean canProcessMovementBetweenTicks() {
+        return this.spawned && this.isOnline() && this.isAlive() && this.riding == null
+                && this.isServerAuthoritativeMovementEnabled() && this.supportsPacketSequences()
+                && this.server.getPlayerInputProcessor() != null
+                && !this.isSleeping() && !this.isUsingItem() && !this.isSwimming()
+                && !this.isGliding() && !this.isCrawling()
+                && !this.getAdventureSettings().get(Type.FLYING)
+                && !this.getDataFlag(DATA_FLAG_SPIN_ATTACK);
+    }
+
+    /** 只修改输入状态的任务沿用原 handler，不要求玩家已经结束使用物品。 */
+    final boolean canProcessInputStateBetweenTicks() {
+        return this.spawned && this.isOnline() && this.isAlive() && this.isAcceptingInputPackets()
+                && this.supportsPacketSequences() && this.server.getPlayerInputProcessor() != null;
+    }
+
+    /** 世界动作只使用已就绪的当前位置；传送和未完成的库存多包事务继续等待。 */
+    final boolean canProcessItemActionBetweenTicks() {
+        return this.canProcessInputStateBetweenTicks() && this.teleportPosition == null
+                && this.isServerAuthoritativeMovementEnabled() && this.riding == null
+                && !this.isSleeping() && !this.isSwimming() && !this.isGliding() && !this.isCrawling()
+                && !this.getAdventureSettings().get(Type.FLYING) && !this.getDataFlag(DATA_FLAG_SPIN_ATTACK)
+                && this.craftingTransaction == null && this.enchantTransaction == null
+                && this.repairItemTransaction == null;
     }
 
     @Override
@@ -1458,7 +1767,7 @@ public class SynapsePlayer extends Player {
                             BlockEntityItemFrame itemFrame1 = (BlockEntityItemFrame) be;
 
                             if (itemFrame1.getItem() instanceof ItemMap && ((ItemMap) itemFrame1.getItem()).getMapId() == pk.mapId) {
-                                ((ItemMap) itemFrame1.getItem()).sendImage(this);
+                                this.sendMapImage((ItemMap) itemFrame1.getItem());
                                 break;
                             }
                         }
@@ -1466,18 +1775,11 @@ public class SynapsePlayer extends Player {
                 }
 
                 if (mapItem != null) {
-                    final Player player = this;
-                    final Item mapItemFinal = mapItem;
                     PlayerMapInfoRequestEvent event;
                     getServer().getPluginManager().callEvent(event = new PlayerMapInfoRequestEvent(this, mapItem));
 
                     if (!event.isCancelled()) {
-                        this.getServer().getScheduler().scheduleAsyncTask(SynapseAPI.getInstance(), new AsyncTask() {
-                            @Override
-                            public void onRun() {
-                                ((ItemMap) mapItemFinal).sendImage(player);
-                            }
-                        });
+                        this.sendMapImageAsync((ItemMap) mapItem);
                     }
                 }
 
@@ -1491,6 +1793,9 @@ public class SynapsePlayer extends Player {
                         .ifPresent(payload -> {
                             JavaCustomPayloadMessenger messenger = SynapseAPI.getInstance().getJavaCustomPayloadMessenger();
                             messenger.dispatchIncomingMessage(this, payload.channel(), payload.payload());
+                            if (this.isMainThreadInputEnabled() && !this.isAcceptingInputPackets()) {
+                                return;
+                            }
                             this.server.getPluginManager().callEvent(
                                     new SynapsePlayerJavaCustomPayloadEvent(this, payload.channel(), payload.payload()));
                         });
@@ -1553,6 +1858,46 @@ public class SynapsePlayer extends Player {
         return update;
     }
 
+    @Override
+    protected void processMovement(int tickDiff) {
+        if (!this.isSynapseLogin || !this.synapseEntry.isMainThreadInputEnabled()) {
+            super.processMovement(tickDiff);
+            return;
+        }
+        this.completeInputMovement(tickDiff);
+        this.finishInputMovementTick();
+    }
+
+    /** 依赖位置的内嵌动作只读取本帧已完成提交的状态。 */
+    protected final boolean commitReceivedMovement() {
+        if (!this.isCurrentInputPosition() || !this.isAlive() || !this.spawned
+                || this.teleportPosition != null || this.isSleeping()) {
+            return false;
+        }
+        MovementCommit commit = this.completeInputMovement(1);
+        return (commit.isAccepted() || commit.result() == MovementCommitResult.NO_PENDING)
+                && commit.isCurrent(this) && this.isCurrentInputPosition()
+                && this.forceMovement == null && this.teleportPosition == null;
+    }
+
+    private MovementCommit completeInputMovement(int tickDiff) {
+        long expectedEpoch = this.getMovementEpoch();
+        MovementCommitResult result = this.commitPendingMovement(tickDiff, true, this.inputValidation);
+        if (result != MovementCommitResult.NO_PENDING) {
+            this.inputValidation = this.inputValidation.withoutGroundJump();
+        }
+        MovementCommit commit = MovementCommit.capture(this, result, expectedEpoch);
+        PlayerInputProcessor processor = this.server.getPlayerInputProcessor();
+        if (processor != null && result != MovementCommitResult.NO_PENDING && !this.isClosed()) {
+            processor.onMovementCommitted(this, commit);
+        }
+        if (result == MovementCommitResult.APPLIED && !this.isClosed()
+                && commit.isCurrent(this)) {
+            this.addMovement(commit.x(), commit.y(), commit.z(), commit.yaw(), commit.pitch(), commit.yaw());
+        }
+        return commit;
+    }
+
     public void setUniqueId(UUID uuid) {
         this.uuid = uuid;
     }
@@ -1586,11 +1931,25 @@ public class SynapsePlayer extends Player {
     @Override
     public boolean dataPacket(DataPacket packet) {
         if (!this.isSynapseLogin) return super.dataPacket(packet);
+        if (this.isStaleMapImage(packet)) {
+            PacketSequence.discard(packet);
+            return false;
+        }
+        @Nullable DialoguePacketSource dialogue = this.captureDialoguePacketSource(packet);
+        if (dialogue != null && !dialogue.isCurrent(this)) {
+            PacketSequence.discard(packet);
+            return false;
+        }
+        @Nullable MovementPacketSource source = this.captureMovementPacketSource(packet);
+        @Nullable MotionPacketSource motion = this.captureMotionPacketSource(packet);
+        List<MetadataFlagsSource> metadataSources = this.captureMetadataFlagsSources(packet);
         if (!(packet instanceof PacketSequence)) {
             packet = DataPacketEidReplacer.replace(packet, this.getId(), SYNAPSE_PLAYER_ENTITY_ID);
             packet.setHelper(AbstractProtocol.fromRealProtocol(this.protocol).getHelper());
             packet.neteaseMode = isNetEaseClient();
         }
+        @Nullable ViewRemovalSource removal = this.captureViewRemovalSource(packet);
+        @Nullable ChunkSendContext chunk = this.captureChunkSequenceContext(packet);
         DataPacketSendEvent event = new DataPacketSendEvent(this, packet);
         try {
             this.server.getPluginManager().callEvent(event);
@@ -1601,7 +1960,15 @@ public class SynapsePlayer extends Player {
         }
         DataPacket finalPacket = event.getFinalPacket();
         PacketSequence.discardReplaced(event.getReplacedPackets(), finalPacket);
-        if (event.isCancelled()) {
+        if (event.isCancelled() || this.isStaleMapImage(finalPacket)
+                || dialogue != null && !dialogue.isCurrent(this)
+                && containsPacket(finalPacket, dialogue::references)
+                || source != null && !source.isCurrent(this)
+                && containsPacket(finalPacket, source::references)
+                || motion != null && !motion.isCurrent(this) && containsPacket(finalPacket, motion::references)
+                || removal != null && !removal.isCurrent(this) && containsPacket(finalPacket, removal::references)
+                || chunk != null && !chunk.isCurrent(this) && containsPacket(finalPacket, chunk::references)
+                || hasStaleMetadataFlags(finalPacket, metadataSources)) {
             PacketSequence.discard(finalPacket);
             return false;
         }
@@ -1612,6 +1979,104 @@ public class SynapsePlayer extends Player {
             throw exception;
         }
         return true;
+    }
+
+    /** 图片通知绑定原接入玩家，移除地图或普通传送不撤销同连接的缓存更新。 */
+    protected final void sendMapImage(ItemMap map) {
+        if (this.isMainThreadInputEnabled() && !this.isAcceptingInputPackets()) return;
+        map.sendImage(this);
+    }
+
+    protected final void sendMapImageAsync(ItemMap map) {
+        if (this.isMainThreadInputEnabled() && !this.isAcceptingInputPackets()) return;
+        this.server.getScheduler().scheduleAsyncTask(SynapseAPI.getInstance(), new AsyncTask() {
+            @Override
+            public void onRun() {
+                sendMapImage(map);
+            }
+        });
+    }
+
+    private boolean isStaleMapImage(DataPacket packet) {
+        if (!this.isMainThreadInputEnabled() || this.isAcceptingInputPackets()) return false;
+        return containsPacket(packet, child -> child instanceof ClientboundMapItemDataPacket);
+    }
+
+    @Nullable
+    private DialoguePacketSource captureDialoguePacketSource(DataPacket packet) {
+        if (!(packet instanceof NpcDialoguePacket11710 dialogue) || !this.isMainThreadInputEnabled()
+                || !this.server.isPrimaryThread()) return null;
+        @Nullable NPCDialoguePlayerHandler handler = this.getNpcDialoguePlayerHandler();
+        return handler == null ? null : new DialoguePacketSource(handler, handler.getState(),
+                dialogue.npcEntityUniqueId, dialogue.sceneName, dialogue.actionType);
+    }
+
+    private record DialoguePacketSource(NPCDialoguePlayerHandler handler, @Nullable NPCDialogueState state,
+                                        long entityId, @Nullable String sceneName, int action) {
+        private boolean isCurrent(SynapsePlayer player) {
+            return player.isAcceptingInputPackets() && player.getNpcDialoguePlayerHandler() == handler
+                    && handler.getState() == state;
+        }
+
+        private boolean references(DataPacket packet) {
+            return packet instanceof NpcDialoguePacket11710 dialogue && dialogue.npcEntityUniqueId == entityId
+                    && dialogue.actionType == action && Objects.equals(dialogue.sceneName, sceneName);
+        }
+    }
+
+    private List<MetadataFlagsSource> captureMetadataFlagsSources(DataPacket packet) {
+        if (!this.isMainThreadInputEnabled() || !this.server.isPrimaryThread()) return List.of();
+        if (!(packet instanceof PacketSequence sequence)) {
+            @Nullable MetadataFlagsSource source = this.captureMetadataFlagsSource(packet);
+            return source == null ? List.of() : List.of(source);
+        }
+        List<MetadataFlagsSource> sources = new ArrayList<>();
+        Deque<DataPacket> pending = new ArrayDeque<>(sequence.getPackets());
+        while (!pending.isEmpty()) {
+            DataPacket child = pending.removeFirst();
+            if (child instanceof PacketSequence nested) pending.addAll(nested.getPackets());
+            else {
+                @Nullable MetadataFlagsSource source = this.captureMetadataFlagsSource(child);
+                if (source != null) sources.add(source);
+            }
+        }
+        return sources;
+    }
+
+    private boolean hasStaleMetadataFlags(DataPacket packet, List<MetadataFlagsSource> sources) {
+        for (MetadataFlagsSource source : sources) {
+            if (source.isCurrent(this)) continue;
+            if (containsPacket(packet, child -> source.references(child, this))) return true;
+        }
+        return false;
+    }
+
+    @Nullable
+    private ChunkSendContext captureChunkSequenceContext(DataPacket packet) {
+        if (!this.isMainThreadInputEnabled() || !this.server.isPrimaryThread()) return null;
+        if (!(packet instanceof PacketSequence sequence)) return this.captureChunkSendContext(packet);
+        Deque<DataPacket> pending = new ArrayDeque<>(sequence.getPackets());
+        while (!pending.isEmpty()) {
+            DataPacket child = pending.removeFirst();
+            if (child instanceof PacketSequence nested) pending.addAll(nested.getPackets());
+            else {
+                @Nullable ChunkSendContext source = this.captureChunkSendContext(child);
+                if (source != null) return source;
+            }
+        }
+        return null;
+    }
+
+    /** 同源替包共用序列检查；独立替包不继承旧操作的来源限制。 */
+    private static boolean containsPacket(DataPacket packet, Predicate<DataPacket> predicate) {
+        if (!(packet instanceof PacketSequence sequence)) return predicate.test(packet);
+        Deque<DataPacket> pending = new ArrayDeque<>(sequence.getPackets());
+        while (!pending.isEmpty()) {
+            DataPacket child = pending.removeFirst();
+            if (child instanceof PacketSequence nested) pending.addAll(nested.getPackets());
+            else if (predicate.test(child)) return true;
+        }
+        return false;
     }
 
     /**
@@ -1734,7 +2199,7 @@ public class SynapsePlayer extends Player {
 
     @Override
     public boolean isNetEaseClient() {
-        if (SynapseSharedConstants.FORCE_NETEASE_PLAYER) {
+        if (SynapseSharedConstants.FORCE_NETEASE_PLAYER && !this.isJavaClient()) {
             return true;
         }
         return super.isNetEaseClient();
@@ -1945,9 +2410,13 @@ public class SynapsePlayer extends Player {
 
     @Override
     public void preChat(String message) {
+        // 异步过滤完成仍属于原玩家；转服或退出后的旧回调不能进入插件事件。
+        if (this.isMainThreadInputEnabled() && !this.isAcceptingInputPackets()) {
+            return;
+        }
         SynapsePlayerPreChatEvent event = new SynapsePlayerPreChatEvent(this, message);
         event.call();
-        if (event.isCancelled()) {
+        if (event.isCancelled() || this.isMainThreadInputEnabled() && !this.isAcceptingInputPackets()) {
             return;
         }
         chat(event.getMessage());
