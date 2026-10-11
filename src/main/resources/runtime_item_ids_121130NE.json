@@ -1990,7 +1990,7 @@
     },
     {
         "name": "minecraft:command_block_minecart",
-        "id": 602,
+        "id": 600,
         "version": 2,
         "oldId": 443
     },
@@ -6595,7 +6595,7 @@
     },
     {
         "name": "minecraft:lingering_potion",
-        "id": 601,
+        "id": 602,
         "version": 2,
         "oldId": 441
     },
@@ -9876,7 +9876,7 @@
     },
     {
         "name": "minecraft:splash_potion",
-        "id": 600,
+        "id": 601,
         "version": 2,
         "oldId": 438
     },

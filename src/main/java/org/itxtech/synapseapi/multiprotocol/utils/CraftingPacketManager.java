@@ -2,6 +2,7 @@ package org.itxtech.synapseapi.multiprotocol.utils;
 
 import cn.nukkit.Server;
 import cn.nukkit.inventory.*;
+import cn.nukkit.item.Item;
 import cn.nukkit.item.armortrim.TrimMaterial;
 import cn.nukkit.item.armortrim.TrimMaterials;
 import cn.nukkit.item.armortrim.TrimPattern;
@@ -62,7 +63,11 @@ public final class CraftingPacketManager {
         }
 
         for (BrewingRecipe recipe : Server.getInstance().getCraftingManager().getBrewingRecipes().values()) {
-            pk.addBrewingRecipe(recipe);
+            int inputMeta = recipe.getInput().getDamage();
+            int outputMeta = recipe.getResult().getDamage();
+            pk.addBrewingRecipe(new BrewingRecipe(Item.get(Item.POTION, inputMeta), recipe.getIngredient(), Item.get(Item.POTION, outputMeta)));
+            pk.addBrewingRecipe(new BrewingRecipe(Item.get(Item.SPLASH_POTION, inputMeta), recipe.getIngredient(), Item.get(Item.SPLASH_POTION, outputMeta)));
+            pk.addBrewingRecipe(new BrewingRecipe(Item.get(Item.LINGERING_POTION, inputMeta), recipe.getIngredient(), Item.get(Item.LINGERING_POTION, outputMeta)));
         }
 
         for (ContainerRecipe recipe : Server.getInstance().getCraftingManager().getContainerRecipes().values()) {
