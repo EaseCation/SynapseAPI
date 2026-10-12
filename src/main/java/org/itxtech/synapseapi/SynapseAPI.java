@@ -18,6 +18,7 @@ import cn.nukkit.network.SourceInterface;
 import cn.nukkit.network.protocol.DataPacket;
 import cn.nukkit.plugin.PluginBase;
 import cn.nukkit.utils.ConfigSection;
+import com.nukkitx.network.util.LatencyTrace;
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
 import org.itxtech.synapseapi.camera.CameraManager;
 import org.itxtech.synapseapi.command.*;
@@ -38,6 +39,7 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 import static org.itxtech.synapseapi.SynapseSharedConstants.*;
+import javax.annotation.Nullable;
 
 /**
  * @author boybook
@@ -54,6 +56,13 @@ public class SynapseAPI extends PluginBase implements Listener {
     private Messenger messenger;
     private JavaCustomPayloadMessenger javaCustomPayloadMessenger;
     private boolean networkBroadcastPlayerMove;
+    private boolean networkEventDriven;
+    @Nullable
+    private LatencyTrace.Session latencyTrace;
+
+    public boolean isNetworkEventDriven() {
+        return networkEventDriven;
+    }
     private int blobCacheChunkSendPreTick;
 
     public static SynapseAPI getInstance() {
@@ -317,7 +326,13 @@ public class SynapseAPI extends PluginBase implements Listener {
 
     @Override
     public void onDisable() {
-        this.shutdownAll();
+        try {
+            this.shutdownAll();
+        } finally {
+            if (latencyTrace != null) {
+                latencyTrace.close();
+            }
+        }
     }
 
     public static DataPacket getPacket(byte[] buffer) {
@@ -339,10 +354,16 @@ public class SynapseAPI extends PluginBase implements Listener {
         this.saveDefaultConfig();
         enable = this.getConfig().getBoolean("enable", true);
         this.autoCompress = this.getConfig().getBoolean("autoCompress", true);
+        this.networkEventDriven = this.getConfig().getBoolean("network-event-driven", false);
         if (!enable) {
             this.getLogger().warning("The SynapseAPI is not be enabled!");
             this.setEnabled(false);
         } else {
+            if (this.getConfig().getBoolean("network-latency-trace-enabled", false)) {
+                latencyTrace = LatencyTrace.start(getDataFolder().toPath(),
+                        this.getConfig().getString("network-latency-trace-directory", "latency-traces"), "synapse",
+                        this.getConfig().getInt("network-latency-trace-duration-seconds", 300));
+            }
             if (this.getConfig().getBoolean("disable-rak")) {
                 for (SourceInterface sourceInterface : this.getServer().getNetwork().getInterfaces()) {
                     if (sourceInterface instanceof RakNetInterface) {

@@ -1,11 +1,15 @@
 package org.itxtech.synapseapi.network.synlib;
 
 import cn.nukkit.Server;
+import com.nukkitx.network.util.LatencyTrace;
 import io.netty.channel.Channel;
 import lombok.extern.log4j.Log4j2;
 import org.itxtech.synapseapi.network.protocol.spp.SynapseDataPacket;
+import org.itxtech.synapseapi.network.protocol.spp.TracedRedirectPacket;
 
 import java.net.InetSocketAddress;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.locks.LockSupport;
 
 @Log4j2
 public class Session {
@@ -47,7 +51,14 @@ public class Session {
             } finally {
                 long time = System.currentTimeMillis() - start;
                 this.tickUseTime = time;
-                if (time < 10) {
+                if (client.isNetworkEventDriven() && connected) {
+                    Channel currentChannel = channel;
+                    // 等待新数据或背压解除；入队时的 unpark 许可不会因检查与等待之间的竞态丢失。
+                    if (client.getInternalQueue().isEmpty() || currentChannel == null || !currentChannel.isWritable()) {
+                        LockSupport.parkNanos(TimeUnit.MILLISECONDS.toNanos(10));
+                        Thread.interrupted();
+                    }
+                } else if (time < 10) {
                     try {
                         Thread.sleep(10 - time);
                     } catch (InterruptedException ignored) {
@@ -72,8 +83,14 @@ public class Session {
     }
 
     private int sendPacket() throws Exception {
+        if (client.isNetworkEventDriven() && (channel == null || !channel.isWritable())) {
+            return -1;
+        }
         SynapseDataPacket packet = this.client.readMainToThreadPacket();
         if (packet != null) {
+            if (packet instanceof TracedRedirectPacket traced && LatencyTrace.enabled()) {
+                traced.traceDequeue("backend.synapse.outbound_queue", getHash());
+            }
             this.writePacket(packet);
             return packet.getBuffer().length;
         }
@@ -128,7 +145,16 @@ public class Session {
         Channel channel = this.channel;
         if (channel != null) {
             //Server.getInstance().getLogger().debug("client-ChannelWrite: pk=" + pk.getClass().getSimpleName() + " pkLen=" + pk.getBuffer().length);
-            channel.writeAndFlush(pk);
+            if (pk instanceof TracedRedirectPacket traced && LatencyTrace.enabled()) {
+                long startedNanos = LatencyTrace.clock();
+                String key = traced.getLatencyTraceKey();
+                int bytes = pk.getBuffer().length;
+                channel.writeAndFlush(pk).addListener(future -> LatencyTrace.elapsed(
+                        future.isSuccess() ? "backend.synapse.write_complete" : "backend.synapse.write_failed",
+                        getHash(), key, bytes, startedNanos));
+            } else {
+                channel.writeAndFlush(pk);
+            }
         }
     }
 

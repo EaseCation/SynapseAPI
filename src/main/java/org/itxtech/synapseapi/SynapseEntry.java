@@ -19,6 +19,7 @@ import cn.nukkit.utils.BinaryStream;
 import cn.nukkit.utils.MainLogger;
 import cn.nukkit.utils.Zlib;
 import com.google.gson.JsonObject;
+import com.nukkitx.network.util.LatencyTrace;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.ByteBufUtil;
 import io.netty.buffer.Unpooled;
@@ -38,6 +39,7 @@ import org.itxtech.synapseapi.multiprotocol.protocol113.protocol.IPlayerAuthInpu
 import org.itxtech.synapseapi.multiprotocol.protocol113.protocol.InteractPacket113;
 import org.itxtech.synapseapi.multiprotocol.protocol116100ne.protocol.MovePlayerPacket116100NE;
 import org.itxtech.synapseapi.multiprotocol.protocol121130.protocol.InteractPacket121130;
+import org.itxtech.synapseapi.multiprotocol.protocol19.protocol.NetworkStackLatencyPacket19;
 import org.itxtech.synapseapi.network.SynLibInterface;
 import org.itxtech.synapseapi.network.SynapseInterface;
 import org.itxtech.synapseapi.network.protocol.spp.*;
@@ -53,6 +55,8 @@ import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.ThreadLocalRandom;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.locks.LockSupport;
 
 import static org.itxtech.synapseapi.SynapseSharedConstants.*;
 
@@ -126,6 +130,7 @@ public class SynapseEntry {
         this.getSynapse().getServer().getScheduler().scheduleRepeatingTask(SynapseAPI.getInstance(), new Ticker(this), 1);
 
         Thread asyncTicker = new Thread(new AsyncTicker(), "SynapseAPI Async Ticker");
+        this.synapseInterface.getClient().setInboundThread(asyncTicker);
         asyncTicker.start();
 /*
         this.getSynapse().getServer().getScheduler().scheduleRepeatingTask(SynapseAPI.getInstance(), new Task() {
@@ -296,9 +301,16 @@ public class SynapseEntry {
                 }
                 tickUseTime = System.currentTimeMillis() - startTime;
                 if (tickUseTime < 10) {
-                    try {
-                        Thread.sleep(10 - tickUseTime);
-                    } catch (InterruptedException ignore) {}
+                    if (synapse.isNetworkEventDriven()) {
+                        if (synapseInterface.getClient().getExternalQueue().isEmpty()) {
+                            LockSupport.parkNanos(TimeUnit.MILLISECONDS.toNanos(10));
+                            Thread.interrupted();
+                        }
+                    } else {
+                        try {
+                            Thread.sleep(10 - tickUseTime);
+                        } catch (InterruptedException ignore) {}
+                    }
                 } else if (System.currentTimeMillis() - lastWarning >= 5000) {
                     Server.getInstance().getLogger().warning("SynapseEntry<" + getHash() + "> Async Thread is overloading! TPS: " + getTicksPerSecond() + " tickUseTime: " + tickUseTime);
                     lastWarning = System.currentTimeMillis();
@@ -385,6 +397,14 @@ public class SynapseEntry {
             while ((redirectPacketEntry = redirectPacketQueue.poll()) != null) {
                 if (redirectPacketEntry.player.isClosed()) {
                     continue;
+                }
+                if (redirectPacketEntry instanceof TracedRedirectPacketEntry traced && LatencyTrace.enabled()) {
+                    DataPacket tracedPacket = redirectPacketEntry.dataPacket;
+                    String probeKey = tracedPacket instanceof NetworkStackLatencyPacket19 latencyPacket
+                            ? Long.toString(latencyPacket.timestamp) : traced.batchKey;
+                    LatencyTrace.record("backend.main.queue", redirectPacketEntry.player.getSessionId().toString(),
+                            probeKey, traced.batchKey, tracedPacket.getCount(),
+                            System.nanoTime() - traced.queuedNanos);
                 }
                 //Server.getInstance().getLogger().warning("C => S  " + redirectPacketEntry.dataPacket.getClass().getSimpleName());
                 DataPacket packet = DataPacketEidReplacer.replaceBack(redirectPacketEntry.dataPacket, SynapsePlayer.SYNAPSE_PLAYER_ENTITY_ID, redirectPacketEntry.player.getId());
@@ -517,6 +537,10 @@ public class SynapseEntry {
                     SynapsePlayer player = this.players.get(entry.left());
                     if (player != null) {
                         player.rakNetLatency = entry.rightInt();
+                        if (LatencyTrace.enabled() && entry.rightInt() >= 0) {
+                            LatencyTrace.record("backend.raknet_rtt", player.getSessionId().toString(), "", "", 0,
+                                    entry.rightInt() * 1_000_000L);
+                        }
                     }
                 }
                 break;
@@ -562,7 +586,12 @@ public class SynapseEntry {
                             player.incomingPacketBatchBudget--;
 */
 
+                            long decodeStartedNanos = LatencyTrace.clock();
                             List<DataPacket> packets = processBatch((BatchPacket) pk0, redirectPacket.protocol, player.isNetEaseClient(), redirectPacket.compressionAlgorithm);
+                            if (LatencyTrace.enabled()) {
+                                LatencyTrace.elapsed("backend.batch.decode", player.getSessionId().toString(),
+                                        redirectPacket.getLatencyTraceKey(), redirectPacket.mcpeBuffer.length, decodeStartedNanos);
+                            }
                             if (packets == null) {
                                 player.setViolated("packet_bad_batch");
                                 synapse.getServer().getScheduler().scheduleTask(synapse, () -> {
@@ -593,7 +622,7 @@ public class SynapseEntry {
                                         continue;
                                     }
 
-                                    this.redirectPacketQueue.offer(new RedirectPacketEntry(player, subPacket));
+                                    this.redirectPacketQueue.offer(createRedirectEntry(player, subPacket, redirectPacket));
 
                                     if (SynapseAPI.getInstance().isNetworkBroadcastPlayerMove() && player.isOnline()) {
                                         //玩家体验优化：直接不经过主线程广播玩家移动，插件过度干预可能会造成移动鬼畜问题
@@ -717,7 +746,7 @@ public class SynapseEntry {
                                 player.violationIncomingThread = player.getViolationLevel();
                             }
                         } else {
-                            this.redirectPacketQueue.offer(new RedirectPacketEntry(player, pk0));
+                            this.redirectPacketQueue.offer(createRedirectEntry(player, pk0, redirectPacket));
                             if (SynapseAPI.getInstance().isNetworkBroadcastPlayerMove() && !player.isServerAuthoritativeMovementEnabled() && pk0 instanceof MovePlayerPacket movePacket) {
                                 // 玩家体验优化：直接不经过主线程广播玩家移动，插件过度干预可能会造成移动鬼畜问题
                                 // 判断是否和玩家自身在附近区块，过滤 TP 后客户端发来的旧坐标包
@@ -759,6 +788,11 @@ public class SynapseEntry {
                 && Math.abs((int) packetY - (int) player.y) <= yThreshold;
     }
 
+    private static RedirectPacketEntry createRedirectEntry(SynapsePlayer player, DataPacket packet, RedirectPacket batch) {
+        return LatencyTrace.enabled() ? new TracedRedirectPacketEntry(player, packet, batch.getLatencyTraceKey())
+                : new RedirectPacketEntry(player, packet);
+    }
+
     private static class RedirectPacketEntry {
         private final SynapsePlayer player;
         private final DataPacket dataPacket;
@@ -766,6 +800,20 @@ public class SynapseEntry {
         private RedirectPacketEntry(SynapsePlayer player, DataPacket dataPacket) {
             this.player = player;
             this.dataPacket = dataPacket;
+        }
+    }
+
+    private static final class TracedRedirectPacketEntry extends RedirectPacketEntry {
+        private final long queuedNanos = System.nanoTime();
+        private final String batchKey;
+
+        private TracedRedirectPacketEntry(SynapsePlayer player, DataPacket packet, String batchKey) {
+            super(player, packet);
+            this.batchKey = batchKey;
+            if (packet instanceof NetworkStackLatencyPacket19 latencyPacket) {
+                LatencyTrace.record("backend.pong.decoded", player.getSessionId().toString(),
+                        Long.toString(latencyPacket.timestamp), batchKey, packet.getCount(), -1);
+            }
         }
     }
 

@@ -1,10 +1,12 @@
 package org.itxtech.synapseapi.network.synlib;
 
 import cn.nukkit.Server;
+import com.nukkitx.network.util.LatencyTrace;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInboundHandlerAdapter;
 import org.itxtech.synapseapi.SynapseAPI;
 import org.itxtech.synapseapi.network.protocol.spp.SynapseDataPacket;
+import org.itxtech.synapseapi.network.protocol.spp.TracedRedirectPacket;
 
 import java.net.InetSocketAddress;
 
@@ -47,8 +49,19 @@ public class SynapseClientHandler extends ChannelInboundHandlerAdapter {
     public void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception {
         if (msg instanceof SynapseDataPacket) {
             SynapseDataPacket packet = (SynapseDataPacket) msg;
+            if (packet instanceof TracedRedirectPacket traced && LatencyTrace.enabled()) {
+                traced.traceEnqueue("backend.synapse.received", ctx.channel().remoteAddress().toString());
+            }
             this.getSynapseClient().pushThreadToMainPacket(packet);
         }
+    }
+
+    @Override
+    public void channelWritabilityChanged(ChannelHandlerContext ctx) throws Exception {
+        if (synapseClient.isNetworkEventDriven() && ctx.channel().isWritable()) {
+            synapseClient.wakeWriter();
+        }
+        super.channelWritabilityChanged(ctx);
     }
 
     @Override

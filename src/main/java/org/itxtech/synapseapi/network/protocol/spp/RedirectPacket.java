@@ -1,6 +1,7 @@
 package org.itxtech.synapseapi.network.protocol.spp;
 
 import cn.nukkit.network.CompressionAlgorithm;
+import com.nukkitx.network.util.LatencyTrace;
 
 import java.util.UUID;
 
@@ -8,6 +9,14 @@ import java.util.UUID;
  * Created by boybook on 16/6/24.
  */
 public class RedirectPacket extends SynapseDataPacket {
+
+    public static RedirectPacket create() {
+        return LatencyTrace.enabled() ? new TracedRedirectPacket() : new RedirectPacket();
+    }
+
+    public String getLatencyTraceKey() {
+        return "";
+    }
 
     public static final int NETWORK_ID = SynapseInfo.REDIRECT_PACKET;
 

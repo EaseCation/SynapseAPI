@@ -8,6 +8,7 @@ import cn.nukkit.network.protocol.*;
 import cn.nukkit.network.protocol.BatchPacket.Track;
 import cn.nukkit.utils.Binary;
 import cn.nukkit.utils.BinaryStream;
+import com.nukkitx.network.util.LatencyTrace;
 import it.unimi.dsi.fastutil.longs.Long2ObjectMap;
 import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap;
 import lombok.extern.log4j.Log4j2;
@@ -17,6 +18,7 @@ import org.itxtech.synapseapi.multiprotocol.AbstractProtocol;
 import org.itxtech.synapseapi.multiprotocol.PacketRegister;
 import org.itxtech.synapseapi.multiprotocol.protocol16.protocol.CompatibilityPacket16;
 import org.itxtech.synapseapi.event.player.SynapsePlayerBatchSendEvent;
+import org.itxtech.synapseapi.multiprotocol.protocol19.protocol.NetworkStackLatencyPacket19;
 import org.itxtech.synapseapi.network.OutboundPacket;
 import org.itxtech.synapseapi.network.protocol.PacketSequence;
 import org.itxtech.synapseapi.network.SynapseInterface;
@@ -64,7 +66,9 @@ public class SynapseEntryPutPacketThread extends Thread {
         if (BREAKPOINT_DEBUGGING && player.getSynapseEntry().getSynapse().isRecordPacketStack()) {
             packet.stack = new Throwable();
         }
-        if (!enqueue(new ForwardEntry(player, packet))) {
+        ForwardEntry entry = new ForwardEntry(player, packet);
+        PacketEntry queued = LatencyTrace.enabled() ? new TracedForwardEntry(entry, System.nanoTime()) : entry;
+        if (!enqueue(queued)) {
             PacketSequence.discard(packet);
             packet.stack = null;
         }
@@ -130,7 +134,13 @@ public class SynapseEntryPutPacketThread extends Thread {
                         break;
                     }
 
-                    ForwardEntry entry = (ForwardEntry) packetEntry;
+                    ForwardEntry entry = packetEntry instanceof TracedForwardEntry traced ? traced.entry : (ForwardEntry) packetEntry;
+                    if (packetEntry instanceof TracedForwardEntry traced && LatencyTrace.enabled()) {
+                        String probeKey = entry.packet instanceof NetworkStackLatencyPacket19 latencyPacket
+                                ? Long.toString(latencyPacket.timestamp) : "";
+                        LatencyTrace.elapsed("backend.encoder.queue", entry.player.getSessionId().toString(),
+                                probeKey, entry.packet.getCount(), traced.queuedNanos);
+                    }
                     if (blockedPlayerQueues.contains(entry.player)) {
                         PacketSequence.discard(entry.packet);
                         entry.packet.stack = null;
@@ -163,7 +173,7 @@ public class SynapseEntryPutPacketThread extends Thread {
                             if (packet == null) {
                                 continue;
                             }
-                            RedirectPacket redirect = new RedirectPacket();
+                            RedirectPacket redirect = RedirectPacket.create();
                             redirect.compressionAlgorithm = entry.player.getServer().getCompressor().getAlgorithm();
                             redirect.sessionId = entry.player.getSessionId();
                             redirect.mcpeBuffer = packet.buffers().getFirst();
@@ -263,7 +273,7 @@ public class SynapseEntryPutPacketThread extends Thread {
                 metrics.packetOut(batch.pid(), 1 + batch.payload.length);
             }
         }
-        RedirectPacket packet = new RedirectPacket();
+        RedirectPacket packet = RedirectPacket.create();
         packet.compressionAlgorithm = player.getServer().getCompressor().getAlgorithm();
         packet.sessionId = player.getSessionId();
         packet.mcpeBuffer = Binary.appendBytes((byte) ProtocolInfo.BATCH_PACKET, batch.payload);
@@ -320,7 +330,7 @@ public class SynapseEntryPutPacketThread extends Thread {
                 while (iterator.hasNext()) {
                     OutboundPacket original = iterator.next();
                     byte[] packetBuffer = original.buffers().getFirst();
-                    RedirectPacket packet = new RedirectPacket();
+                    RedirectPacket packet = RedirectPacket.create();
                     packet.compressionAlgorithm = compressor.getAlgorithm();
                     packet.mcpeBuffer = packetBuffer;
                     packet.sessionId = player.getSessionId();
@@ -333,11 +343,19 @@ public class SynapseEntryPutPacketThread extends Thread {
                 }
                 return;
             }
-            RedirectPacket packet = new RedirectPacket();
+            RedirectPacket packet = RedirectPacket.create();
             packet.compressionAlgorithm = compressor.getAlgorithm();
             packet.mcpeBuffer = buffer;
             packet.sessionId = player.getSessionId();
             this.synapseInterface.putPacket(packet);
+            if (LatencyTrace.enabled()) {
+                for (OutboundPacket original : outboundQueue) {
+                    for (byte[] member : original.buffers()) {
+                        LatencyTrace.record("backend.batch.member", player.getSessionId().toString(),
+                                LatencyTrace.key(member), packet.getLatencyTraceKey(), member.length, -1);
+                    }
+                }
+            }
             outboundQueue.clear();
         } catch (RuntimeException exception) {
             discardSequences(outboundQueue);
@@ -387,6 +405,18 @@ public class SynapseEntryPutPacketThread extends Thread {
     private record ForwardEntry(SynapsePlayer player, DataPacket packet) implements PacketEntry {
     }
 
+    private record TracedForwardEntry(ForwardEntry entry, long queuedNanos) implements PacketEntry {
+        @Override
+        public SynapsePlayer player() {
+            return entry.player;
+        }
+
+        @Override
+        public BinaryStream packet() {
+            return entry.packet;
+        }
+    }
+
     private record TransferEntry(SynapsePlayer player, SynapseDataPacket packet) implements PacketEntry {
     }
 
@@ -428,6 +458,7 @@ public class SynapseEntryPutPacketThread extends Thread {
         if (packet instanceof BatchPacket) {
             return null;
         }
+        long startedNanos = LatencyTrace.clock();
         packet = player.prepareOutboundPacket(packet);
         packet = PacketRegister.getCompatiblePacket(packet, player.getProtocol(), player.isNetEaseClient());
         if (packet == null) {
@@ -437,6 +468,14 @@ public class SynapseEntryPutPacketThread extends Thread {
         packet.neteaseMode = player.isNetEaseClient();
         packet.tryEncode();
         byte[] buffer = packet.getBuffer();
+        if (LatencyTrace.enabled()) {
+            String key = LatencyTrace.key(buffer);
+            LatencyTrace.elapsed("backend.encoder.encode", player.getSessionId().toString(), key, buffer.length, startedNanos);
+            if (packet instanceof NetworkStackLatencyPacket19 latencyPacket) {
+                LatencyTrace.record("backend.ping.encoded", player.getSessionId().toString(),
+                        Long.toString(latencyPacket.timestamp), key, buffer.length, -1);
+            }
+        }
         SynapseMetrics metrics = METRICS;
         if (metrics != null) {
             int packetId = packet instanceof CompatibilityPacket16 compatibilityPacket

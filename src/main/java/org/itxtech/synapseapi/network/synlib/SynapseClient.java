@@ -12,6 +12,8 @@ import org.itxtech.synapseapi.network.protocol.spp.SynapseDataPacket;
 
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.locks.LockSupport;
+import javax.annotation.Nullable;
 
 /**
  * Created by boybook on 16/6/24.
@@ -32,12 +34,34 @@ public class SynapseClient extends Thread {
     private boolean needAuth = true;
     private boolean connected = false;
     private final Session session;
+    private final boolean networkEventDriven;
+
+    public boolean isNetworkEventDriven() {
+        return networkEventDriven;
+    }
+    @Nullable
+    private volatile Thread inboundThread;
+
+    public void setInboundThread(Thread thread) {
+        this.inboundThread = thread;
+    }
+
+    public void wakeWriter() {
+        if (networkEventDriven) {
+            LockSupport.unpark(this);
+        }
+    }
 
     public SynapseClient(Logger logger, int port) {
         this(logger, port, "127.0.0.1");
     }
 
     public SynapseClient(Logger logger, int port, String interfaz) {
+        this(logger, port, interfaz, false);
+    }
+
+    public SynapseClient(Logger logger, int port, String interfaz, boolean networkEventDriven) {
+        this.networkEventDriven = networkEventDriven;
         this.logger = logger;
         this.interfaz = interfaz;
         this.port = port;
@@ -88,6 +112,7 @@ public class SynapseClient extends Thread {
     public void shutdown() {
         if (this.shutdown.compareAndSet(false, true)) {
             this.session.close();
+            wakeWriter();
         }
     }
 
@@ -117,6 +142,7 @@ public class SynapseClient extends Thread {
 
     public void pushMainToThreadPacket(SynapseDataPacket data) {
         this.internalQueue.offer(data);
+        wakeWriter();
     }
 
     public SynapseDataPacket readMainToThreadPacket() {
@@ -129,6 +155,9 @@ public class SynapseClient extends Thread {
 
     public void pushThreadToMainPacket(SynapseDataPacket data) {
         this.externalQueue.offer(data);
+        if (networkEventDriven) {
+            LockSupport.unpark(inboundThread);
+        }
     }
 
     public SynapseDataPacket readThreadToMainPacket() {
