@@ -16,7 +16,9 @@ dependencyResolutionManagement {
     repositories {
         mavenLocal()
         maven { url = uri("https://maven-central.storage-download.googleapis.com/maven2") }
-        mavenCentral()
+        mavenCentral {
+            content { excludeGroupByRegex("com\\.github\\..*") }
+        }
         maven { url = uri("https://jitpack.io") }
     }
 }
