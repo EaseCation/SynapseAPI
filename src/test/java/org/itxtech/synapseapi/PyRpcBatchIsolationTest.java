@@ -53,16 +53,18 @@ class PyRpcBatchIsolationTest {
         int protocol = GameVersion.V1_21_80.getProtocol();
         Server server = mock(Server.class);
         when(server.getCompressor()).thenReturn(Compressor.SNAPPY);
-        try (MockedStatic<Server> servers = mockStatic(Server.class);
-             MockedStatic<PacketRegister> registry = mockStatic(PacketRegister.class)) {
+        try (MockedStatic<Server> servers = mockStatic(Server.class)) {
             servers.when(Server::getInstance).thenReturn(server);
-            registry.when(() -> PacketRegister.getPacket(ProtocolInfo.PACKET_PY_RPC, protocol))
-                    .thenAnswer(call -> new NEPyRpcPacket16());
-            BinaryStream buffer = new BinaryStream();
-            for (byte[] packet : packets) buffer.putByteArray(packet);
-            BatchPacket batch = new BatchPacket();
-            batch.payload = buffer.getBuffer();
-            return SynapseEntry.processBatch(batch, protocol, true, CompressionAlgorithm.NONE);
+            // 协议注册表初始化依赖 Server，必须先绑定单例再创建其 mock。
+            try (MockedStatic<PacketRegister> registry = mockStatic(PacketRegister.class)) {
+                registry.when(() -> PacketRegister.getPacket(ProtocolInfo.PACKET_PY_RPC, protocol))
+                        .thenAnswer(call -> new NEPyRpcPacket16());
+                BinaryStream buffer = new BinaryStream();
+                for (byte[] packet : packets) buffer.putByteArray(packet);
+                BatchPacket batch = new BatchPacket();
+                batch.payload = buffer.getBuffer();
+                return SynapseEntry.processBatch(batch, protocol, true, CompressionAlgorithm.NONE);
+            }
         }
     }
 

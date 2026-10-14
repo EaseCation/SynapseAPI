@@ -27,6 +27,8 @@ import org.itxtech.synapseapi.multiprotocol.protocol112.protocol.StartGamePacket
 import org.itxtech.synapseapi.multiprotocol.utils.BiomeDefinitions;
 import org.itxtech.synapseapi.utils.BlobTrack;
 
+import javax.annotation.Nullable;
+
 import java.net.InetSocketAddress;
 import java.util.List;
 import java.util.concurrent.ThreadLocalRandom;
@@ -116,6 +118,7 @@ public class SynapsePlayer112 extends SynapsePlayer19 {
 
 	@Override
 	public void sendChunk(int dimension, int x, int z, int subChunkCount, ChunkCachedData cachedData, DataPacket packet) {
+		@Nullable ChunkSendContext chunkContext = this.captureChunkSendContext();
 		if (!this.isBlobCacheAvailable() || this.isBlobCacheDisabled()) {
 			super.sendChunk(dimension, x, z, subChunkCount, cachedData, packet);
 		} else {
@@ -123,6 +126,7 @@ public class SynapsePlayer112 extends SynapsePlayer19 {
 				return;
 			}
 			this.noticeChunkPublisherUpdate();
+			if (chunkContext != null && !chunkContext.isCurrent(this)) return;
 			long chunkHash = Level.chunkHash(x, z);
 
 			ChunkBlobCache blobCache = cachedData.getBlobCache();
@@ -149,6 +153,7 @@ public class SynapsePlayer112 extends SynapsePlayer19 {
 			pk.data = blobCache.getFullChunkPayload();
 			pk.setReliability(RakNetReliability.RELIABLE_ORDERED);
 			this.dataPacket(pk);
+			if (chunkContext != null && !chunkContext.isCurrent(this)) return;
 
 			this.sendQueuedChunk = false;
 
@@ -157,12 +162,14 @@ public class SynapsePlayer112 extends SynapsePlayer19 {
 					continue;
 				}
 				((BlockEntitySpawnable) blockEntity).spawnTo(this);
+				if (chunkContext != null && !chunkContext.isCurrent(this)) return;
 			}
 
 			if (this.spawned) {
 				for (Entity entity : this.level.getChunkEntities(x, z).values()) {
 					if (this != entity && !entity.closed && entity.isAlive() && entity.isWithinEntityViewDistance(this)) {
 						entity.spawnTo(this);
+						if (chunkContext != null && !chunkContext.isCurrent(this)) return;
 					}
 				}
 			}
@@ -180,10 +187,12 @@ public class SynapsePlayer112 extends SynapsePlayer19 {
 
 	@Override
 	public void sendChunk(int dimension, int x, int z, int subChunkCount, ChunkCachedData cachedData, byte[] payload, byte[] subModePayload) {
+		@Nullable ChunkSendContext chunkContext = this.captureChunkSendContext();
 		if (!this.connected) {
 			return;
 		}
 		this.noticeChunkPublisherUpdate();
+		if (chunkContext != null && !chunkContext.isCurrent(this)) return;
 		long chunkHash = Level.chunkHash(x, z);
 
 		this.usedChunks.put(chunkHash, true);
@@ -237,18 +246,21 @@ public class SynapsePlayer112 extends SynapsePlayer19 {
 		}
 
 		this.dataPacket(pk);
+		if (chunkContext != null && !chunkContext.isCurrent(this)) return;
 
 		for (BlockEntity blockEntity : this.level.getChunkBlockEntities(x, z).values()) {
 			if (!(blockEntity instanceof BlockEntitySpawnable)) {
 				continue;
 			}
 			((BlockEntitySpawnable) blockEntity).spawnTo(this);
+			if (chunkContext != null && !chunkContext.isCurrent(this)) return;
 		}
 
 		if (this.spawned) {
 			for (Entity entity : this.level.getChunkEntities(x, z).values()) {
 				if (this != entity && !entity.closed && entity.isAlive() && entity.isWithinEntityViewDistance(this)) {
 					entity.spawnTo(this);
+					if (chunkContext != null && !chunkContext.isCurrent(this)) return;
 				}
 			}
 		}

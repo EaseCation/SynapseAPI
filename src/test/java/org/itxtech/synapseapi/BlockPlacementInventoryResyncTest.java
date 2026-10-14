@@ -1,6 +1,7 @@
 package org.itxtech.synapseapi;
 
 import cn.nukkit.Server;
+import cn.nukkit.Player;
 import cn.nukkit.block.Block;
 import cn.nukkit.inventory.ItemUseHand;
 import cn.nukkit.inventory.PlayerInventory;
@@ -52,7 +53,21 @@ class BlockPlacementInventoryResyncTest {
         verifyFailureResync(false);
     }
 
+    @Test
+    void rejectedModernSlotStillCorrectsPredictedBlockAndInventory() {
+        verifyFailureResync(true, true);
+    }
+
+    @Test
+    void rejectedLegacySlotStillCorrectsPredictedBlockAndInventory() {
+        verifyFailureResync(false, true);
+    }
+
     private void verifyFailureResync(boolean modern) {
+        verifyFailureResync(modern, false);
+    }
+
+    private void verifyFailureResync(boolean modern, boolean cancelledSlot) {
         TestPlayer player = mock(TestPlayer.class, CALLS_REAL_METHODS);
         PlayerInventory inventory = mock(PlayerInventory.class);
         Level level = mock(Level.class);
@@ -60,6 +75,7 @@ class BlockPlacementInventoryResyncTest {
                 : AbstractProtocol.PROTOCOL_121_20.getProtocolStart();
         player.configure(mock(Server.class), level, inventory, protocol);
         doReturn(true).when(player).isInitialized();
+        doReturn(cancelledSlot).when(player).isMainThreadInputEnabled();
         doReturn(true).when(player).isAlive();
         doReturn(false).when(player).isJavaClient();
         doReturn(false).when(player).isNetEaseClient();
@@ -69,6 +85,18 @@ class BlockPlacementInventoryResyncTest {
         doReturn(true).when(player).canInteract(any(Vector3.class), anyDouble());
         Item held = Item.get(ItemID.STONE, 0, 2);
         when(inventory.getItemInHand()).thenReturn(held.clone());
+        if (cancelledSlot) {
+            doReturn(true).when(player).isOnline();
+            doReturn(true).when(player).isInputSessionActive();
+            doReturn(false).when(player).isClosed();
+            doReturn(true).when(player).dataPacket(any());
+            when(inventory.getHotbarSize()).thenReturn(9);
+            when(inventory.getItem(0)).thenReturn(held.clone());
+            when(inventory.equipItem(0)).thenReturn(false);
+            Block target = mock(Block.class);
+            when(level.getBlock(any(Vector3.class))).thenReturn(target);
+            when(target.getSide(BlockFace.UP)).thenReturn(mock(Block.class));
+        }
         UseItemData data = new UseItemData();
         data.actionType = InventoryTransactionPacket.USE_ITEM_ACTION_CLICK_BLOCK;
         data.blockPos = new BlockVector3(0, 1, 0);
@@ -95,6 +123,12 @@ class BlockPlacementInventoryResyncTest {
         verify(inventory).sendHeldItem(player);
         verify(inventory, never()).setItemInHand(any());
         assertEquals(2, held.getCount());
+        if (cancelledSlot) {
+            verify(inventory).sendContents(player);
+            verify(level, times(1)).sendBlocks(any(Player[].class), any(Block[].class), anyInt());
+            verify(level, times(1)).sendBlocks(any(Player[].class), any(Block[].class), anyInt(), eq(1));
+            verify(player, never()).canInteract(any(Vector3.class), anyDouble());
+        }
     }
 
     static class TestPlayer extends SynapsePlayer116100 {

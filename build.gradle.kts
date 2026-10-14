@@ -22,7 +22,10 @@ java {
 
 repositories {
     mavenLocal()
-    mavenCentral()
+    maven { url = uri("https://maven-central.storage-download.googleapis.com/maven2") }
+    mavenCentral {
+        content { excludeGroupByRegex("com\\.github\\..*") }
+    }
     maven { url = uri("https://jitpack.io") }
 }
 
@@ -39,9 +42,9 @@ dependencies {
     compileOnly("com.github.EaseCation:authlib-stub:master-SNAPSHOT")
 
     // 注解处理和编译时依赖
-    compileOnly("org.projectlombok:lombok:1.18.38")
+    compileOnly(libs.lombok)
     compileOnly("com.google.code.findbugs:jsr305:3.0.2")
-    annotationProcessor("org.projectlombok:lombok:1.18.38")
+    annotationProcessor(libs.lombok)
 
     // 测试依赖
     testImplementation(libs.nukkit)

@@ -233,7 +233,8 @@ public final class StandardJavaCustomPayloadMessenger implements JavaCustomPaylo
      */
     @Override
     public void dispatchIncomingMessage(final SynapsePlayer player, final String channel, final byte[] payload) {
-        if (player == null || channel == null || payload == null || payload.length > JavaCustomPayloadEnvelope.MAX_PAYLOAD_BYTES) {
+        if (player == null || channel == null || payload == null || payload.length > JavaCustomPayloadEnvelope.MAX_PAYLOAD_BYTES
+                || player.isMainThreadInputEnabled() && !player.isAcceptingInputPackets()) {
             return;
         }
         if (JavaCustomPayloadMessenger.REGISTER_CHANNEL.equals(channel)) {
@@ -260,6 +261,9 @@ public final class StandardJavaCustomPayloadMessenger implements JavaCustomPaylo
             return;
         }
         for (JavaCustomPayloadListenerRegistration registration : registrations) {
+            if (player.isMainThreadInputEnabled() && !player.isAcceptingInputPackets()) {
+                return;
+            }
             Plugin plugin = registration.getPlugin();
             if (!plugin.isEnabled()) {
                 unregisterIncomingPluginChannel(plugin);
