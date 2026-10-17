@@ -2441,6 +2441,13 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
                                 return;
                             }
                             break;
+                        case PlayerActionPacket.ACTION_ITEM_USE_ON_START:
+                        case PlayerActionPacket.ACTION_ITEM_USE_ON_STOP:
+                            // Java 方块动作不结束随后由事务启动的食用；松手仍由 RELEASE_ITEM 处理。
+                            if (this.isJavaClient()) {
+                                break packetswitch;
+                            }
+                            break;
                         case PlayerActionPacket.ACTION_START_USING_ITEM:
                             if (isServerAuthoritativeMovementEnabled()) {
                                 onPacketViolation(PacketViolationReason.IMPOSSIBLE_BEHAVIOR, "action37");
@@ -3789,6 +3796,10 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
                                         break packetswitch;
                                     }
                                     Item i = inventory.getItemInHand();
+                                    Runnable unhandledUse = this.isJavaClient() && i instanceof ItemEdible && i.canBePlaced()
+                                            && i.equalsExact(useItemData.itemInHand)
+                                            ? () -> this.handleUseItemInAir(useItemData, interactionHand, explicitItemUseHandAllowed, true)
+                                            : null;
                                     if (itemSlotReady && !i.is(Item.BRUSH)) {
                                         this.setDataFlag(DATA_FLAG_ACTION, false);
                                     }
@@ -3809,7 +3820,7 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
                                             }
                                             Boolean clientPrediction = AbstractProtocol.PROTOCOL_121_20.isOlderThanOrEqual(protocol) ? useItemData.clientInteractPrediction : null;
                                             clientPrediction = normalizeUseItemClientPrediction(clientPrediction);
-                                            if (this.useItemOnBlock(blockPos, i, face, clickPos.x, clickPos.y, clickPos.z, clientPrediction) != null) {
+                                            if (this.useItemOnBlock(blockPos, i, face, clickPos.x, clickPos.y, clickPos.z, clientPrediction, unhandledUse) != null) {
                                                 break packetswitch;
                                             }
                                         } else if (i.equals(useItemData.itemInHand)) {
@@ -3825,8 +3836,8 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
                                             Boolean clientPrediction = AbstractProtocol.PROTOCOL_121_20.isOlderThanOrEqual(protocol) ? useItemData.clientInteractPrediction : null;
                                             clientPrediction = normalizeUseItemClientPrediction(clientPrediction);
                                             clientPredictedFailure = clientPrediction != null && !clientPrediction;
-                                            if ((i = this.useItemOnBlock(blockPos, i, face, clickPos.x, clickPos.y, clickPos.z, clientPrediction)) != null) {
-                                                if (!this.isMainThreadInputEnabled() && (!i.equals(oldItem) || i.getCount() != oldItem.getCount())) {
+                                            if ((i = this.useItemOnBlock(blockPos, i, face, clickPos.x, clickPos.y, clickPos.z, clientPrediction, unhandledUse)) != null) {
+                                                if (!this.isMainThreadInputEnabled() && unhandledUse == null && (!i.equals(oldItem) || i.getCount() != oldItem.getCount())) {
                                                     inventory.setItemInHand(i);
                                                     inventory.sendHeldItem(this.getViewers().values());
                                                 }
@@ -3909,68 +3920,7 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
 
                                     break packetswitch;
                                 case InventoryTransactionPacket.USE_ITEM_ACTION_CLICK_AIR:
-                                    if (!this.prepareItemUseSlot(useItemData.hotbarSlot, useItemData.itemInHand, interactionHand)) {
-                                        break packetswitch;
-                                    }
-                                    Vector3 directionVector = this.getDirectionVector();
-
-                                    if (this.isCreative()) {
-                                        item = this.inventory.getItemInHand();
-                                    } else if (!this.inventory.getItemInHand().equals(useItemData.itemInHand)) {
-    //									server.getLogger().debug(getName() + " held desync\nC: " + useItemData.itemInHand + "\nS: " + inventory.getItemInHand());
-    //									this.inventory.sendHeldItem(this); // 这里不再强制同步, 尝试解决使用物品后快速切换物品的回弹问题
-                                        break packetswitch;
-                                    } else {
-                                        item = this.inventory.getItemInHand();
-                                    }
-
-                                    this.rebindStartedJavaItemUseHand(explicitItemUseHandAllowed, interactionHand);
-                                    InventorySlotReference itemSource = this.isMainThreadInputEnabled() ? this.inventory.captureHeldItem() : null;
-                                    long itemSourceEpoch = itemSource == null ? 0 : this.getMovementEpoch();
-                                    PlayerInteractEvent interactEvent = new PlayerInteractEvent(this, item, directionVector, face, PlayerInteractEvent.Action.RIGHT_CLICK_AIR);
-                                    if (isSpectator()) {
-                                        interactEvent.setCancelled();
-                                    }
-                                    this.server.getPluginManager().callEvent(interactEvent);
-                                    if (interactEvent.isCancelled()
-                                            || itemSource != null && !this.canStartItemUse(itemSource, itemSourceEpoch)) {
-                                        if (itemSource == null) {
-                                            this.inventory.sendHeldItem(this);
-                                        } else {
-                                            this.resyncItemUse(itemSource);
-                                        }
-                                        break packetswitch;
-                                    }
-
-                                    boolean explicitShieldUse = JavaItemUseRouting.supportsExplicitShieldUse(explicitItemUseHandAllowed, item.getId());
-                                    boolean itemAccepted = item.onClickAir(this, directionVector) || explicitShieldUse;
-                                    if (itemAccepted) {
-                                        if (this.isSurvivalLike()) {
-                                            if (itemSource == null) {
-                                                this.inventory.setItemInHand(item);
-                                            } else if (!itemSource.setItem(item)) {
-                                                this.resyncItemUse(itemSource);
-                                                break packetswitch;
-                                            }
-                                        }
-
-                                        if (itemSource != null && (!this.isOnline() || !this.isInputSessionActive()
-                                                || this.getMovementEpoch() != itemSourceEpoch || !itemSource.isSelectedBy(this.inventory))) {
-                                            break packetswitch;
-                                        }
-
-                                        if (!this.isUsingItem()) {
-                                            this.setUsingItem(item.canRelease() || explicitShieldUse);
-                                            break packetswitch;
-                                        }
-
-                                        // Used item
-                                        //int ticksUsed = this.server.getTick() - this.startAction;
-                                        int ticksUsed = (int) (System.currentTimeMillis() - this.startActionTimestamp) / 50;
-
-                                        this.completeItemUse(item, ticksUsed, explicitShieldUse);
-                                    }
-
+                                    this.handleUseItemInAir(useItemData, interactionHand, explicitItemUseHandAllowed, false);
                                     break packetswitch;
                                     default:
                                         //unknown
@@ -7261,4 +7211,5 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
 
     private record ShapeInstance(Shape shape, int expirationTick) {
     }
+
 }
