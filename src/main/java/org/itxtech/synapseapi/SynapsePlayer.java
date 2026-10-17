@@ -1498,7 +1498,17 @@ public class SynapsePlayer extends Player {
     @Nullable
     protected final Item useItemOnBlock(Vector3 position, Item item, BlockFace face,
                                        float clickX, float clickY, float clickZ, @Nullable Boolean clientPrediction) {
-        if (!this.isMainThreadInputEnabled()) {
+        return this.useItemOnBlock(position, item, face, clickX, clickY, clickZ, clientPrediction, null);
+    }
+
+    /**
+     * 仅未处理的交互可继续空气使用；沿用方块动作捕获的原槽及位置代际。
+     */
+    @Nullable
+    protected final Item useItemOnBlock(Vector3 position, Item item, BlockFace face,
+                                       float clickX, float clickY, float clickZ, @Nullable Boolean clientPrediction,
+                                       @Nullable Runnable unhandledUse) {
+        if (!this.isMainThreadInputEnabled() && unhandledUse == null) {
             return this.level.useItemOn(position, item, face, clickX, clickY, clickZ, this, clientPrediction);
         }
         InventorySlotReference source = this.inventory.captureHeldItem();
@@ -1509,9 +1519,14 @@ public class SynapsePlayer extends Player {
             return null;
         }
         Item before = item.clone();
-        Item result = actionLevel.useItemOn(position, item, face, clickX, clickY, clickZ, this, clientPrediction,
+        ItemUseResult blockResult = actionLevel.useItemOnResult(position, item, face, clickX, clickY, clickZ, this, clientPrediction,
                 () -> this.level == actionLevel && this.canStartItemUse(source, epoch));
+        Item result = blockResult.item();
         if (result == null) {
+            if (blockResult.status() == ItemUseResult.Status.PASS && unhandledUse != null
+                    && this.level == actionLevel && this.canStartItemUse(source, epoch)) {
+                unhandledUse.run();
+            }
             this.resyncItemUse(source);
             return null;
         }
