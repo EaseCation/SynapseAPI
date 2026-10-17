@@ -3837,7 +3837,7 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
                                             clientPrediction = normalizeUseItemClientPrediction(clientPrediction);
                                             clientPredictedFailure = clientPrediction != null && !clientPrediction;
                                             if ((i = this.useItemOnBlock(blockPos, i, face, clickPos.x, clickPos.y, clickPos.z, clientPrediction, unhandledUse)) != null) {
-                                                if (!this.isMainThreadInputEnabled() && (!i.equals(oldItem) || i.getCount() != oldItem.getCount())) {
+                                                if (!this.isMainThreadInputEnabled() && unhandledUse == null && (!i.equals(oldItem) || i.getCount() != oldItem.getCount())) {
                                                     inventory.setItemInHand(i);
                                                     inventory.sendHeldItem(this.getViewers().values());
                                                 }
