@@ -2244,8 +2244,8 @@ public class SynapsePlayer116 extends SynapsePlayer113 {
                 }
             }
 
-            if (itemSource != null && (!this.isOnline() || !this.isInputSessionActive()
-                    || this.getMovementEpoch() != itemSourceEpoch || !itemSource.isSelectedBy(this.inventory))) {
+            if (itemSource != null && (!this.canContinueItemUse(itemSourceEpoch)
+                    || !itemSource.isSelectedBy(this.inventory))) {
                 return;
             }
 

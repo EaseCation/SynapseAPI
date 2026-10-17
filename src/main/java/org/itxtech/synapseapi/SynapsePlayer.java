@@ -1531,7 +1531,7 @@ public class SynapsePlayer extends Player {
             return null;
         }
         if (this.isSurvivalLike() && !result.equalsExact(before)) {
-            if (!this.isOnline() || !this.isInputSessionActive() || !source.setItem(result)) {
+            if (!this.canContinueItemUse(epoch) || !source.setItem(result)) {
                 this.resyncItemUse(source);
             } else {
                 this.inventory.sendHeldItem(this.getViewers().values());
@@ -1542,8 +1542,7 @@ public class SynapsePlayer extends Player {
 
     @Override
     public boolean canContinueItemUse(long movementEpoch) {
-        return super.canContinueItemUse(movementEpoch)
-                && this.isAcceptingInputPackets() && this.isCurrentInputPosition();
+        return super.canContinueItemUse(movementEpoch) && this.canContinueInputState();
     }
 
     /** 交互事件之后，原物品和目标仍须属于本次动作。 */
@@ -1591,7 +1590,7 @@ public class SynapsePlayer extends Player {
     }
 
     protected final void resyncItemUse(@Nullable InventorySlotReference source) {
-        if (!this.isOnline() || !this.isInputSessionActive()) {
+        if (!this.isOnline() || this.isMainThreadInputEnabled() && !this.isInputSessionActive()) {
             return;
         }
         if (source == null) {
