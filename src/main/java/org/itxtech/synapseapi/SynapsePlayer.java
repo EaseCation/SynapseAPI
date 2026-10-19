@@ -1466,8 +1466,9 @@ public class SynapsePlayer extends Player {
         if (!this.isOnline() || !this.isInputSessionActive() || !this.isAlive() || !this.spawned || !this.isCurrentInputPosition()) {
             return false;
         }
+        // 客户端数量是动作快照，不要求与当前库存相等；实际物品及扣减仍由服务端决定。
         if (slot < 0 || slot >= this.inventory.getHotbarSize()
-                || !this.inventory.getItem(slot).equalsExact(claimedItem)) {
+                || !this.inventory.getItem(slot).equals(claimedItem)) {
             this.resyncItemUse(null);
             return false;
         }
@@ -1481,7 +1482,7 @@ public class SynapsePlayer extends Player {
                 || this.getMovementEpoch() != movementEpoch || !this.isCurrentInputPosition()) {
             return false;
         }
-        if (this.inventory.getHeldItemIndex() != slot || !this.inventory.getItem(slot).equalsExact(claimedItem)) {
+        if (this.inventory.getHeldItemIndex() != slot || !this.inventory.getItem(slot).equals(claimedItem)) {
             this.resyncItemUse(null);
             return false;
         }
