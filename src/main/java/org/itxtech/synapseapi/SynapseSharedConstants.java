@@ -14,6 +14,13 @@ public final class SynapseSharedConstants {
     public static final boolean FORCE_NETEASE_PLAYER = Boolean.getBoolean("synapseapi.force-netease-player");
 
     /**
+     * 本地 mcpy 运行时支持中国版 ModUI，但使用原版 1.21.130 文字协议。
+     * 必须同时开启隔离调试 JVM 的强制中国版标记，默认保留线上协议。
+     */
+    public static final boolean LOCAL_VANILLA_TEXT = FORCE_NETEASE_PLAYER
+            && Boolean.getBoolean("synapseapi.local-vanilla-text");
+
+    /**
      * Enables new inventory system.
      */
     public static final boolean SERVER_AUTHORITATIVE_INVENTORY = false; //WIP

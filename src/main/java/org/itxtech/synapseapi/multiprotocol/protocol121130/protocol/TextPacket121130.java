@@ -6,6 +6,7 @@ import cn.nukkit.network.protocol.TextPacket;
 import cn.nukkit.utils.BinaryStream;
 import cn.nukkit.utils.Utils;
 import lombok.ToString;
+import org.itxtech.synapseapi.SynapseSharedConstants;
 
 import javax.annotation.Nullable;
 
@@ -78,7 +79,7 @@ public class TextPacket121130 extends Packet121130 {
         this.platformIdString = this.getString();
         this.filteredMessage = this.getOptional(BinaryStream::getString);
 
-        if (this.neteaseMode) {
+        if (this.neteaseMode && !SynapseSharedConstants.LOCAL_VANILLA_TEXT) {
             if (this.type == TYPE_CHAT || this.type == TYPE_POPUP) {
                 this.unknownNE = this.getString();
             }
@@ -148,7 +149,7 @@ public class TextPacket121130 extends Packet121130 {
         this.putString(this.platformIdString);
         this.putOptional(this.filteredMessage, BinaryStream::putString);
 
-        if (this.neteaseMode) {
+        if (this.neteaseMode && !SynapseSharedConstants.LOCAL_VANILLA_TEXT) {
             if (this.type == TYPE_CHAT || this.type == TYPE_POPUP) {
                 this.putString(this.unknownNE);
             }
