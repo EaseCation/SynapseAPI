@@ -150,6 +150,9 @@ final class BetweenTickPackets {
         }
         if (packet instanceof IPlayerAuthInputPacket input) {
             return player.canProcessMovementBetweenTicks()
+                    // 使用中只提前纯移动，内嵌使用与挥空继续沿原世界阶段处理。
+                    && (!player.isUsingItem() || input.getUseItemData() == null
+                    && !input.hasFlag(PlayerAuthInputFlags.MISSED_SWING))
                     // 挥空音效沿原处理器执行；开启声音时也需要当前世界动作资格。
                     && (input.getUseItemData() == null
                     && (!input.hasFlag(PlayerAuthInputFlags.MISSED_SWING) || !player.isServerAuthoritativeSoundEnabled())
