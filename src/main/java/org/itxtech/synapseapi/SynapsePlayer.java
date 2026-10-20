@@ -17,6 +17,7 @@ import cn.nukkit.inventory.ItemUseHand;
 import cn.nukkit.inventory.InventorySlotReference;
 import cn.nukkit.network.protocol.types.ContainerIds;
 import cn.nukkit.item.Item;
+import cn.nukkit.item.ItemBow;
 import cn.nukkit.item.Items;
 import cn.nukkit.item.ItemMap;
 import cn.nukkit.level.*;
@@ -1648,7 +1649,11 @@ public class SynapsePlayer extends Player {
         return this.spawned && this.isOnline() && this.isAlive() && this.riding == null
                 && this.isServerAuthoritativeMovementEnabled() && this.supportsPacketSequences()
                 && this.server.getPlayerInputProcessor() != null
-                && !this.isSleeping() && !this.isUsingItem() && !this.isSwimming()
+                && !this.isSleeping()
+                // 仅开放原生基岩主手普通弓；食物、弩、定制物品和 Java 使用仍保留原屏障。
+                && (!this.isUsingItem() || !this.isJavaClient() && !this.isUsingOffhandItem()
+                && this.inventory != null && this.inventory.getItemInHand().getClass() == ItemBow.class)
+                && !this.isSwimming()
                 && !this.isGliding() && !this.isCrawling()
                 && !this.getAdventureSettings().get(Type.FLYING)
                 && !this.getDataFlag(DATA_FLAG_SPIN_ATTACK);
