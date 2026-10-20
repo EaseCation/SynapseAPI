@@ -216,9 +216,9 @@ class BlockPlacementInventoryResyncTest {
             doReturn(server).when(level).getServer();
             doReturn(HeightRange.MINIMUM).when(level).getHeightRange();
             Block support = Block.get(BlockID.STONE);
-            support.position(new Vector3(0, 1, 0), level);
+            support.position(new BlockVector3(0, 1, 0), level);
             Block air = Block.get(BlockID.AIR);
-            air.position(new Vector3(0, 2, 0), level);
+            air.position(new BlockVector3(0, 2, 0), level);
             doReturn(support).when(level).getBlock(any(Vector3.class));
             doReturn(air).when(level).getBlock(0, 2, 0);
             doReturn(air).when(level).getExtraBlock(any(Vector3.class));
