@@ -509,8 +509,18 @@ public class SynapseEntry {
         }
     }
 
-    private void submitInput(ServerInputDispatcher.Session session, int bytes, Runnable action) {
-        submitInput(session, bytes, context -> action.run(), false);
+    private void submitInput(ServerInputDispatcher.Session session, int bytes, String type, Runnable action) {
+        submitInput(session, bytes, new ServerInputTask() {
+            @Override
+            public String diagnosticType() {
+                return type;
+            }
+
+            @Override
+            public void run(InboundContext context) {
+                action.run();
+            }
+        }, false);
     }
 
     private void submitInput(ServerInputDispatcher.Session session, int bytes, ServerInputTask task, boolean betweenTicks) {
@@ -550,6 +560,11 @@ public class SynapseEntry {
             int bytes = packet.getCount();
             boolean betweenTicks = BetweenTickPackets.supports(packet);
             submitInput(session, bytes, new ServerInputTask() {
+                @Override
+                public String diagnosticType() {
+                    return packet.getClass().getSimpleName();
+                }
+
                 @Override
                 public boolean isValid() {
                     return inputSessions.get(player.getSessionId()) == session
@@ -720,7 +735,7 @@ public class SynapseEntry {
                     if (previous == null) {
                         Channel loginChannel = loginPacket.receivedChannel != null ? loginPacket.receivedChannel
                                 : this.synapseInterface.getClient().getSession().getChannel();
-                        submitInput(session, loginPacket.cachedLoginPacket.length, () -> {
+                        submitInput(session, loginPacket.cachedLoginPacket.length, "PlayerLogin", () -> {
                             try {
                                 if (!isCurrentInputConnection(loginChannel)) return;
                                 handlePlayerLogin(loginPacket, session);
@@ -767,9 +782,17 @@ public class SynapseEntry {
                     ServerInputDispatcher.Session session = inputSessions.get(redirectPacket.sessionId);
                     if (session != null && session.isActive()) {
                         // 仅登录首批缺少 Player 的情况延后解码，正常连接保持原异步解包路径。
-                        submitInput(session, redirectPacket.mcpeBuffer.length, context -> {
-                            if (inputSessions.get(redirectPacket.sessionId) == session) {
-                                handleDataPacket(redirectPacket);
+                        submitInput(session, redirectPacket.mcpeBuffer.length, new ServerInputTask() {
+                            @Override
+                            public String diagnosticType() {
+                                return "UndecodedLoginBatch";
+                            }
+
+                            @Override
+                            public void run(InboundContext context) {
+                                if (inputSessions.get(redirectPacket.sessionId) == session) {
+                                    handleDataPacket(redirectPacket);
+                                }
                             }
                         }, false, redirectPacket.receivedNanos);
                     }
@@ -985,7 +1008,7 @@ public class SynapseEntry {
                 } else {
                     ServerInputDispatcher.Session session = inputSessions.get(logout.sessionId);
                     if (session != null && session.isActive()) {
-                        submitInput(session, 0, () -> {
+                        submitInput(session, 0, "PlayerLogout", () -> {
                             handlePlayerLogout(logout);
                             inputDispatcher.invalidate(session);
                             inputSessions.remove(logout.sessionId, session);
