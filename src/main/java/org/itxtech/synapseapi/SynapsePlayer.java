@@ -1466,8 +1466,9 @@ public class SynapsePlayer extends Player {
         if (!this.isOnline() || !this.isInputSessionActive() || !this.isAlive() || !this.spawned || !this.isCurrentInputPosition()) {
             return false;
         }
+        // 客户端数量是动作快照，不要求与当前库存相等；实际物品及扣减仍由服务端决定。
         if (slot < 0 || slot >= this.inventory.getHotbarSize()
-                || !this.inventory.getItem(slot).equalsExact(claimedItem)) {
+                || !this.inventory.getItem(slot).equals(claimedItem)) {
             this.resyncItemUse(null);
             return false;
         }
@@ -1481,7 +1482,7 @@ public class SynapsePlayer extends Player {
                 || this.getMovementEpoch() != movementEpoch || !this.isCurrentInputPosition()) {
             return false;
         }
-        if (this.inventory.getHeldItemIndex() != slot || !this.inventory.getItem(slot).equalsExact(claimedItem)) {
+        if (this.inventory.getHeldItemIndex() != slot || !this.inventory.getItem(slot).equals(claimedItem)) {
             this.resyncItemUse(null);
             return false;
         }
@@ -1498,31 +1499,82 @@ public class SynapsePlayer extends Player {
     @Nullable
     protected final Item useItemOnBlock(Vector3 position, Item item, BlockFace face,
                                        float clickX, float clickY, float clickZ, @Nullable Boolean clientPrediction) {
-        if (!this.isMainThreadInputEnabled()) {
-            return this.level.useItemOn(position, item, face, clickX, clickY, clickZ, this, clientPrediction);
+        return this.useItemOnBlock(position, item, face, clickX, clickY, clickZ, clientPrediction, null);
+    }
+
+    /**
+     * 客户端快照只决定是否省略重复同步，不参与服务端库存授权及扣减。
+     */
+    @Nullable
+    protected final Item useItemOnBlock(Vector3 position, Item item, BlockFace face,
+                                       float clickX, float clickY, float clickZ, @Nullable Boolean clientPrediction,
+                                       @Nullable Item claimedItem) {
+        return this.useItemOnBlockWithSync(position, item, face, clickX, clickY, clickZ, clientPrediction, claimedItem).item();
+    }
+
+    /**
+     * 以同一次动作的结果控制内外两层库存纠正，不把未消耗误当作成功放置。
+     */
+    protected final BlockItemUseResult useItemOnBlockWithSync(Vector3 position, Item item, BlockFace face,
+                                                             float clickX, float clickY, float clickZ,
+                                                             @Nullable Boolean clientPrediction, @Nullable Item claimedItem) {
+        boolean inputMode = this.isMainThreadInputEnabled();
+        boolean unchangedPrediction = Boolean.FALSE.equals(clientPrediction) && !this.isJavaClient()
+                && item.canBePlaced() && item.equalsExact(claimedItem);
+        if (!inputMode && !unchangedPrediction) {
+            Item result = this.level.useItemOn(position, item, face, clickX, clickY, clickZ, this, clientPrediction);
+            return new BlockItemUseResult(result, true);
         }
         InventorySlotReference source = this.inventory.captureHeldItem();
         long epoch = this.getMovementEpoch();
         Level actionLevel = this.level;
-        if (!source.getSnapshot().equalsExact(item) || !this.canStartItemUse(source, epoch)) {
+        if (inputMode && (!source.getSnapshot().equalsExact(item) || !this.canStartItemUse(source, epoch))) {
             this.resyncItemUse(source);
-            return null;
+            return BlockItemUseResult.REJECTED;
         }
         Item before = item.clone();
-        Item result = actionLevel.useItemOn(position, item, face, clickX, clickY, clickZ, this, clientPrediction,
-                () -> this.level == actionLevel && this.canStartItemUse(source, epoch));
+        Player predictedConsumer = this.predictedBlockConsumer(before, claimedItem, clientPrediction);
+        Item result = inputMode
+                ? actionLevel.useItemOn(position, item, face, clickX, clickY, clickZ, this, clientPrediction,
+                        () -> this.level == actionLevel && this.canStartItemUse(source, epoch))
+                : actionLevel.useItemOn(position, item, face, clickX, clickY, clickZ, this, clientPrediction);
         if (result == null) {
-            this.resyncItemUse(source);
-            return null;
+            if (unchangedPrediction && this.level == actionLevel && source.getSnapshot().equalsExact(before)
+                    && super.canContinueItemUse(epoch) && this.isCurrentInputPosition()
+                    && (!inputMode || this.isAcceptingInputPackets())
+                    && source.isSelectedBy(this.inventory) && source.isCurrent()) {
+                return BlockItemUseResult.UNCHANGED;
+            }
+            if (inputMode) this.resyncItemUse(source);
+            return BlockItemUseResult.REJECTED;
         }
-        if (this.isSurvivalLike() && !result.equalsExact(before)) {
-            if (!this.isOnline() || !this.isInputSessionActive() || !source.setItem(result)) {
+        if (inputMode && this.isSurvivalLike() && !result.equalsExact(before)) {
+            if (!this.isOnline() || !this.isInputSessionActive()
+                    || !(predictedConsumer == null ? source.setItem(result) : source.setItem(result, predictedConsumer))) {
                 this.resyncItemUse(source);
             } else {
                 this.inventory.sendHeldItem(this.getViewers().values());
             }
         }
-        return result;
+        return new BlockItemUseResult(result, true);
+    }
+
+    /**
+     * 未放置时单独保留是否需要库存纠正，不能用伪成功跳过原有方块纠正。
+     */
+    protected record BlockItemUseResult(@Nullable Item item, boolean inventorySyncRequired) {
+        private static final BlockItemUseResult REJECTED = new BlockItemUseResult(null, true);
+        private static final BlockItemUseResult UNCHANGED = new BlockItemUseResult(null, false);
+    }
+
+    /**
+     * 仅为原生基岩已预测成功且动作前库存完全一致的方块使用省略本人同步。
+     */
+    @Nullable
+    protected final Player predictedBlockConsumer(Item before, @Nullable Item claimedItem,
+                                                  @Nullable Boolean clientPrediction) {
+        return Boolean.TRUE.equals(clientPrediction) && !this.isJavaClient()
+                && before.canBePlaced() && before.equalsExact(claimedItem) ? this : null;
     }
 
     @Override
