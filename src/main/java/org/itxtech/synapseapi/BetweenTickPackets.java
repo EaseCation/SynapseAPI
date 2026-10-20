@@ -4,6 +4,7 @@ import cn.nukkit.network.protocol.DataPacket;
 import cn.nukkit.network.protocol.AnimatePacket;
 import cn.nukkit.network.protocol.MobEquipmentPacket;
 import cn.nukkit.network.protocol.PlayerHotbarPacket;
+import cn.nukkit.network.protocol.ResourcePackChunkRequestPacket;
 import cn.nukkit.network.protocol.types.ContainerIds;
 import cn.nukkit.network.protocol.types.NetworkInventoryAction;
 import cn.nukkit.inventory.transaction.data.ReleaseItemData;
@@ -45,7 +46,7 @@ final class BetweenTickPackets {
     }
 
     static boolean supports(DataPacket packet) {
-        if (packet instanceof NetworkStackLatencyPacket19) {
+        if (packet instanceof NetworkStackLatencyPacket19 || packet instanceof ResourcePackChunkRequestPacket) {
             return true;
         }
         if (packet instanceof NEPyRpcPacket16 rpc) {
@@ -117,7 +118,8 @@ final class BetweenTickPackets {
 
     /** 按工作职责读取当前状态；切槽和释放不能被同一玩家的持续使用状态锁住。 */
     static boolean canRunBetweenTicks(SynapsePlayer player, DataPacket packet) {
-        if (packet instanceof NetworkStackLatencyPacket19) {
+        if (packet instanceof NetworkStackLatencyPacket19 || packet instanceof ResourcePackChunkRequestPacket) {
+            // 资源下载早于出生，只登记原请求；有效连接由外层校验，发送仍遵守 checkNetwork 节流。
             return true;
         }
         if (packet instanceof InventoryTransactionPacket116) {
