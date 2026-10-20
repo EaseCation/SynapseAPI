@@ -4,6 +4,7 @@ import cn.nukkit.network.protocol.DataPacket;
 import cn.nukkit.network.protocol.AnimatePacket;
 import cn.nukkit.network.protocol.MobEquipmentPacket;
 import cn.nukkit.network.protocol.PlayerHotbarPacket;
+import cn.nukkit.network.protocol.ResourcePackChunkRequestPacket;
 import cn.nukkit.network.protocol.types.ContainerIds;
 import cn.nukkit.network.protocol.types.NetworkInventoryAction;
 import cn.nukkit.inventory.transaction.data.ReleaseItemData;
@@ -11,17 +12,22 @@ import cn.nukkit.inventory.transaction.data.UseItemData;
 import cn.nukkit.inventory.transaction.data.UseItemOnEntityData;
 import org.itxtech.synapseapi.multiprotocol.common.PlayerAuthInputFlags;
 import org.itxtech.synapseapi.multiprotocol.protocol113.protocol.IPlayerAuthInputPacket;
+import org.itxtech.synapseapi.multiprotocol.protocol113.protocol.InteractPacket113;
 import org.itxtech.synapseapi.multiprotocol.protocol19.protocol.NetworkStackLatencyPacket19;
 import org.itxtech.synapseapi.multiprotocol.protocol14.protocol.PlayerHotbarPacket14;
 import org.itxtech.synapseapi.multiprotocol.protocol116.protocol.InventoryTransactionPacket116;
 import org.itxtech.synapseapi.multiprotocol.protocol121120.protocol.AnimatePacket121120;
 import org.itxtech.synapseapi.multiprotocol.protocol121130.protocol.AnimatePacket121130;
 import org.itxtech.synapseapi.multiprotocol.protocol16.protocol.NEPyRpcPacket16;
+import org.itxtech.synapseapi.multiprotocol.protocol112.protocol.ClientCacheBlobStatusPacket112;
+import org.itxtech.synapseapi.multiprotocol.protocol11810.protocol.SubChunkRequestPacket11810;
 
 import java.util.BitSet;
 
 /** 仅分类已审计的协议工作，不从客户端状态推导服务端物理或权限。 */
 final class BetweenTickPackets {
+    // 限制补充阶段的原处理器遍历量；大包保持完整，回到普通世界阶段处理。
+    static final int MAX_CHUNK_ENTRIES_BETWEEN_TICKS = 64;
     private static final long MOVEMENT_FLAGS = ((1L << PlayerAuthInputFlags.START_GLIDING) - 1)
             & ~((1L << PlayerAuthInputFlags.START_SWIMMING) | (1L << PlayerAuthInputFlags.STOP_SWIMMING))
             | (1L << PlayerAuthInputFlags.HANDLED_TELEPORT);
@@ -45,8 +51,22 @@ final class BetweenTickPackets {
     }
 
     static boolean supports(DataPacket packet) {
-        if (packet instanceof NetworkStackLatencyPacket19) {
+        if (packet instanceof NetworkStackLatencyPacket19 || packet instanceof ResourcePackChunkRequestPacket) {
             return true;
+        }
+        if (packet instanceof SubChunkRequestPacket11810 request) {
+            // 只登记原子区块队列；构建和正常发送仍由 checkNetwork 的原节流驱动。
+            return request.positionOffsets != null
+                    && request.positionOffsets.length <= MAX_CHUNK_ENTRIES_BETWEEN_TICKS;
+        }
+        if (packet instanceof ClientCacheBlobStatusPacket112 status) {
+            // 确认记账保持输入原序；回复沿原出站队列异步编码，不重放或延后确认本身。
+            return status.hitSet != null && status.missSet != null
+                    && status.hitSet.size() + status.missSet.size() <= MAX_CHUNK_ENTRIES_BETWEEN_TICKS;
+        }
+        if (packet instanceof InteractPacket113 interact) {
+            // 看向实体沿原事件与提示更新处理；开库存、下车等动作仍保持世界阶段屏障。
+            return interact.action == InteractPacket113.ACTION_MOUSEOVER;
         }
         if (packet instanceof NEPyRpcPacket16 rpc) {
             // JE 的输入扩展先于普通交互包；解码限额及每个回调后的会话复检沿用原实现。
@@ -117,7 +137,12 @@ final class BetweenTickPackets {
 
     /** 按工作职责读取当前状态；切槽和释放不能被同一玩家的持续使用状态锁住。 */
     static boolean canRunBetweenTicks(SynapsePlayer player, DataPacket packet) {
-        if (packet instanceof NetworkStackLatencyPacket19) {
+        if (packet instanceof NetworkStackLatencyPacket19 || packet instanceof ResourcePackChunkRequestPacket) {
+            // 资源下载早于出生，只登记原请求；有效连接由外层校验，发送仍遵守 checkNetwork 节流。
+            return true;
+        }
+        if (packet instanceof SubChunkRequestPacket11810 || packet instanceof ClientCacheBlobStatusPacket112) {
+            // 地形下载和缓存确认早于出生；连接归属由原任务检查，不能依赖物理输入就绪。
             return true;
         }
         if (packet instanceof InventoryTransactionPacket116) {
