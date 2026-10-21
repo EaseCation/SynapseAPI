@@ -266,7 +266,8 @@ class BetweenTickPacketsTest {
         when(input.hasFlag(anyInt())).thenCallRealMethod();
         for (int layout = 0; layout <= 2; layout++) {
             for (int flag : new int[]{PlayerAuthInputFlags.START_FLYING, PlayerAuthInputFlags.STOP_FLYING,
-                    PlayerAuthInputFlags.START_SWIMMING, PlayerAuthInputFlags.STOP_SWIMMING}) {
+                    PlayerAuthInputFlags.START_SWIMMING, PlayerAuthInputFlags.STOP_SWIMMING,
+                    PlayerAuthInputFlags.START_CRAWLING, PlayerAuthInputFlags.STOP_CRAWLING}) {
                 flags(input, layout, PlayerAuthInputFlags.UP, flag);
                 assertTrue(BetweenTickPackets.supports(packet));
                 flags(input, layout, flag, PlayerAuthInputFlags.MISSED_SWING);
@@ -308,11 +309,22 @@ class BetweenTickPacketsTest {
     }
 
     @Test
+    void crawlingMovementKeepsEmbeddedActionBoundary() {
+        ItemActionAdmissionTest.TestPlayer player = ItemActionAdmissionTest.player();
+        doReturn(true).when(player).isCrawling();
+        DataPacket packet = movement();
+        assertTrue(BetweenTickPackets.canRunBetweenTicks(player, packet));
+        when(((IPlayerAuthInputPacket) packet).getUseItemData()).thenReturn(new UseItemData());
+        assertFalse(BetweenTickPackets.canRunBetweenTicks(player, packet));
+        assertEquals(InputBlockReason.CRAWLING, BetweenTickPackets.movementBlockReason(player, (IPlayerAuthInputPacket) packet));
+        verify(player, never()).onUpdate(anyInt());
+    }
+
+    @Test
     void unreviewedActionsAndVehicleHintsRemainWholePacketBarriers() {
         DataPacket packet = movement();
         IPlayerAuthInputPacket input = (IPlayerAuthInputPacket) packet;
         int[] barriers = {PlayerAuthInputFlags.START_GLIDING,
-                PlayerAuthInputFlags.START_CRAWLING,
                 PlayerAuthInputFlags.START_USING_ITEM, PlayerAuthInputFlags.START_SPIN_ATTACK,
                 PlayerAuthInputFlags.IN_CLIENT_PREDICTED_IN_VEHICLE, PlayerAuthInputFlags.PADDLE_LEFT,
                 PlayerAuthInputFlags.PERFORM_ITEM_INTERACTION, PlayerAuthInputFlags.PERFORM_BLOCK_ACTIONS,

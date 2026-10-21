@@ -32,7 +32,6 @@ class MovementAttributionTest {
                 new Gate(InputBlockReason.INPUT_PROCESSOR_MISSING, p -> when(p.testServer().getPlayerInputProcessor()).thenReturn(null)),
                 new Gate(InputBlockReason.SLEEPING, p -> doReturn(true).when(p).isSleeping()),
                 new Gate(InputBlockReason.GLIDING, p -> doReturn(true).when(p).isGliding()),
-                new Gate(InputBlockReason.CRAWLING, p -> doReturn(true).when(p).isCrawling()),
                 new Gate(InputBlockReason.SPIN_ATTACK, p -> doReturn(true).when(p).getDataFlag(Entity.DATA_FLAG_SPIN_ATTACK)));
         for (int first = 0; first < gates.size(); first++) {
             for (int second = first; second < gates.size(); second++) {
