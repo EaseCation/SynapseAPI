@@ -171,8 +171,9 @@ final class BetweenTickPackets {
             // 地形下载和缓存确认早于出生；连接归属由原任务检查，不能依赖物理输入就绪。
             return true;
         }
-        if (packet instanceof InventoryTransactionPacket116) {
-            return player.canProcessItemActionBetweenTicks();
+        if (packet instanceof InventoryTransactionPacket116 transaction) {
+            return transaction.transactionType == InventoryTransactionPacket116.TYPE_MISMATCH
+                    ? player.canProcessInputStateBetweenTicks() : player.canProcessItemActionBetweenTicks();
         }
         if (packet instanceof IPlayerAuthInputPacket input) {
             return movementBlockReason(player, input) == InputBlockReason.NONE;
@@ -199,6 +200,8 @@ final class BetweenTickPackets {
             return false;
         }
         return switch (packet.transactionType) {
+            // 空同步仍完整经过原事件和待事务处理，不单独摘出库存回复。
+            case InventoryTransactionPacket116.TYPE_MISMATCH -> packet.actions.length == 0;
             case InventoryTransactionPacket116.TYPE_USE_ITEM_ON_ENTITY ->
                     packet.transactionData instanceof UseItemOnEntityData data
                             && data.actionType == InventoryTransactionPacket116.USE_ITEM_ON_ENTITY_ACTION_ATTACK
