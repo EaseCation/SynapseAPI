@@ -1,5 +1,6 @@
 package org.itxtech.synapseapi;
 
+import cn.nukkit.AdventureSettings;
 import cn.nukkit.inventory.transaction.data.UseItemData;
 import cn.nukkit.inventory.transaction.data.UseItemOnEntityData;
 import cn.nukkit.inventory.transaction.data.ReleaseItemData;
@@ -259,11 +260,46 @@ class BetweenTickPacketsTest {
     }
 
     @Test
+    void flightTransitionsAreEligibleButDoNotOpenMixedWorldActions() {
+        DataPacket packet = movement();
+        IPlayerAuthInputPacket input = (IPlayerAuthInputPacket) packet;
+        when(input.hasFlag(anyInt())).thenCallRealMethod();
+        for (int layout = 0; layout <= 2; layout++) {
+            for (int flag : new int[]{PlayerAuthInputFlags.START_FLYING, PlayerAuthInputFlags.STOP_FLYING}) {
+                flags(input, layout, PlayerAuthInputFlags.UP, flag);
+                assertTrue(BetweenTickPackets.supports(packet));
+                flags(input, layout, flag, PlayerAuthInputFlags.MISSED_SWING);
+                assertFalse(BetweenTickPackets.supports(packet));
+                UseItemData use = new UseItemData();
+                use.itemInHand = mock(Item.class);
+                use.actionType = InventoryTransactionPacket116.USE_ITEM_ACTION_CLICK_AIR;
+                when(input.getUseItemData()).thenReturn(use);
+                when(input.getInventoryActions()).thenReturn(new NetworkInventoryAction[0]);
+                flags(input, layout, flag, PlayerAuthInputFlags.PERFORM_ITEM_INTERACTION);
+                assertFalse(BetweenTickPackets.supports(packet));
+                when(input.getUseItemData()).thenReturn(null);
+            }
+        }
+    }
+
+    @Test
+    void flyingMovementDoesNotNeedAWorldTickButEmbeddedActionsKeepTheirBoundary() {
+        ItemActionAdmissionTest.TestPlayer player = ItemActionAdmissionTest.player();
+        when(player.getAdventureSettings().get(AdventureSettings.Type.FLYING)).thenReturn(true);
+        DataPacket packet = movement();
+        assertTrue(BetweenTickPackets.canRunBetweenTicks(player, packet));
+        when(((IPlayerAuthInputPacket) packet).getUseItemData()).thenReturn(new UseItemData());
+        assertFalse(BetweenTickPackets.canRunBetweenTicks(player, packet));
+        assertEquals(InputBlockReason.FLYING, BetweenTickPackets.movementBlockReason(player, (IPlayerAuthInputPacket) packet));
+        verify(player, never()).onUpdate(anyInt());
+    }
+
+    @Test
     void unreviewedActionsAndVehicleHintsRemainWholePacketBarriers() {
         DataPacket packet = movement();
         IPlayerAuthInputPacket input = (IPlayerAuthInputPacket) packet;
         int[] barriers = {PlayerAuthInputFlags.START_SWIMMING, PlayerAuthInputFlags.START_GLIDING,
-                PlayerAuthInputFlags.START_CRAWLING, PlayerAuthInputFlags.START_FLYING,
+                PlayerAuthInputFlags.START_CRAWLING,
                 PlayerAuthInputFlags.START_USING_ITEM, PlayerAuthInputFlags.START_SPIN_ATTACK,
                 PlayerAuthInputFlags.IN_CLIENT_PREDICTED_IN_VEHICLE, PlayerAuthInputFlags.PADDLE_LEFT,
                 PlayerAuthInputFlags.PERFORM_ITEM_INTERACTION, PlayerAuthInputFlags.PERFORM_BLOCK_ACTIONS,

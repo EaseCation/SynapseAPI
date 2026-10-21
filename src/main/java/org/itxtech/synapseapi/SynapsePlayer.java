@@ -1663,7 +1663,6 @@ public class SynapsePlayer extends Player {
         if (this.isSwimming()) return InputBlockReason.SWIMMING;
         if (this.isGliding()) return InputBlockReason.GLIDING;
         if (this.isCrawling()) return InputBlockReason.CRAWLING;
-        if (this.getAdventureSettings().get(Type.FLYING)) return InputBlockReason.FLYING;
         if (this.getDataFlag(DATA_FLAG_SPIN_ATTACK)) return InputBlockReason.SPIN_ATTACK;
         return InputBlockReason.NONE;
     }

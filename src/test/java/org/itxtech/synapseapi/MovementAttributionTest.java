@@ -1,6 +1,5 @@
 package org.itxtech.synapseapi;
 
-import cn.nukkit.AdventureSettings;
 import cn.nukkit.entity.Entity;
 import cn.nukkit.inventory.PlayerInventory;
 import cn.nukkit.inventory.transaction.CraftingTransaction;
@@ -35,7 +34,6 @@ class MovementAttributionTest {
                 new Gate(InputBlockReason.SWIMMING, p -> doReturn(true).when(p).isSwimming()),
                 new Gate(InputBlockReason.GLIDING, p -> doReturn(true).when(p).isGliding()),
                 new Gate(InputBlockReason.CRAWLING, p -> doReturn(true).when(p).isCrawling()),
-                new Gate(InputBlockReason.FLYING, p -> when(p.getAdventureSettings().get(AdventureSettings.Type.FLYING)).thenReturn(true)),
                 new Gate(InputBlockReason.SPIN_ATTACK, p -> doReturn(true).when(p).getDataFlag(Entity.DATA_FLAG_SPIN_ATTACK)));
         for (int first = 0; first < gates.size(); first++) {
             for (int second = first; second < gates.size(); second++) {
