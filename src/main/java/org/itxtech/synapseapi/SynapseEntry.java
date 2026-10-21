@@ -1,5 +1,7 @@
 package org.itxtech.synapseapi;
 
+import org.itxtech.synapseapi.multiprotocol.protocol113.protocol.IPlayerAuthInputPacket;
+
 import cn.nukkit.Nukkit;
 import cn.nukkit.Player;
 import cn.nukkit.Server;
@@ -560,6 +562,13 @@ public class SynapseEntry {
             int bytes = packet.getCount();
             boolean betweenTicks = BetweenTickPackets.supports(packet);
             submitInput(session, bytes, new ServerInputTask() {
+                private InputBlockReason blockReason = InputBlockReason.UNCLASSIFIED;
+
+                @Override
+                public String diagnosticReason() {
+                    return blockReason.name();
+                }
+
                 @Override
                 public String diagnosticType() {
                     return packet.getClass().getSimpleName();
@@ -573,6 +582,10 @@ public class SynapseEntry {
 
                 @Override
                 public boolean canRunBetweenTicks() {
+                    if (packet instanceof IPlayerAuthInputPacket input) {
+                        blockReason = BetweenTickPackets.movementBlockReason(player, input);
+                        return blockReason == InputBlockReason.NONE;
+                    }
                     return BetweenTickPackets.canRunBetweenTicks(player, packet);
                 }
 

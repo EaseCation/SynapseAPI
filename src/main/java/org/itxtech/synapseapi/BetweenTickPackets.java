@@ -149,16 +149,26 @@ final class BetweenTickPackets {
             return player.canProcessItemActionBetweenTicks();
         }
         if (packet instanceof IPlayerAuthInputPacket input) {
-            return player.canProcessMovementBetweenTicks()
-                    // 使用中只提前纯移动，内嵌使用与挥空继续沿原世界阶段处理。
-                    && (!player.isUsingItem() || input.getUseItemData() == null
-                    && !input.hasFlag(PlayerAuthInputFlags.MISSED_SWING))
-                    // 挥空音效沿原处理器执行；开启声音时也需要当前世界动作资格。
-                    && (input.getUseItemData() == null
-                    && (!input.hasFlag(PlayerAuthInputFlags.MISSED_SWING) || !player.isServerAuthoritativeSoundEnabled())
-                    || player.canProcessItemActionBetweenTicks());
+            return movementBlockReason(player, input) == InputBlockReason.NONE;
         }
         return player.canProcessInputStateBetweenTicks();
+    }
+
+    /**
+     * 一次消费判定交出首次失败原因；不在诊断阶段重新读取玩家状态。
+     */
+    static InputBlockReason movementBlockReason(SynapsePlayer player, IPlayerAuthInputPacket input) {
+        InputBlockReason reason = player.movementBlockReason();
+        if (reason != InputBlockReason.NONE) return reason;
+        if (player.isUsingItem() && (input.getUseItemData() != null
+                || input.hasFlag(PlayerAuthInputFlags.MISSED_SWING))) {
+            return InputBlockReason.USING_WITH_EMBEDDED_ACTION;
+        }
+        if (input.getUseItemData() == null
+                && (!input.hasFlag(PlayerAuthInputFlags.MISSED_SWING) || !player.isServerAuthoritativeSoundEnabled())) {
+            return InputBlockReason.NONE;
+        }
+        return player.itemActionBlockReason();
     }
 
     private static boolean supportsItemAction(InventoryTransactionPacket116 packet) {

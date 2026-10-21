@@ -1,6 +1,10 @@
 package org.itxtech.synapseapi;
 
 import cn.nukkit.AdventureSettings;
+import cn.nukkit.entity.Entity;
+import cn.nukkit.inventory.transaction.CraftingTransaction;
+import cn.nukkit.inventory.transaction.EnchantTransaction;
+import cn.nukkit.inventory.transaction.RepairItemTransaction;
 import cn.nukkit.inventory.transaction.data.UseItemData;
 import cn.nukkit.Server;
 import cn.nukkit.inventory.PlayerInventory;
@@ -206,7 +210,7 @@ class ItemActionAdmissionTest {
         assertFalse(player.canProcessItemActionBetweenTicks());
     }
 
-    private static TestPlayer player() {
+    static TestPlayer player() {
         TestPlayer player = mock(TestPlayer.class, CALLS_REAL_METHODS);
         Server server = mock(Server.class);
         when(server.getPlayerInputProcessor()).thenReturn(mock(PlayerInputProcessor.class));
@@ -238,6 +242,12 @@ class ItemActionAdmissionTest {
             this.spawned = true;
         }
 
+        void spawned(boolean value) { this.spawned = value; }
+        void ride(Entity value) { this.riding = value; }
+        Server testServer() { return this.server; }
+        void pendingCraft(CraftingTransaction value) { this.craftingTransaction = value; }
+        void pendingEnchant(EnchantTransaction value) { this.enchantTransaction = value; }
+        void pendingRepair(RepairItemTransaction value) { this.repairItemTransaction = value; }
         void useInventory(PlayerInventory inventory) { this.inventory = inventory; }
 
         void awaitTeleport() {
