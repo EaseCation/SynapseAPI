@@ -47,11 +47,11 @@ class BetweenTickPacketsTest {
         assertFalse(BetweenTickPackets.supports(packet));
     }
     @Test
-    void stateAndReleaseCanProgressWhileMovementWaitsForItemUse() {
+    void stateAndReleaseCanProgressWhileMovementWaitsForPosture() {
         SynapsePlayer player = mock(SynapsePlayer.class);
         when(player.canProcessInputStateBetweenTicks()).thenReturn(true);
         when(player.canProcessItemActionBetweenTicks()).thenReturn(true);
-        when(player.movementBlockReason()).thenReturn(InputBlockReason.USING_NON_STANDARD_BOW);
+        when(player.movementBlockReason()).thenReturn(InputBlockReason.GLIDING);
         MobEquipmentPacket equipment = new MobEquipmentPacket();
         assertTrue(BetweenTickPackets.canRunBetweenTicks(player, equipment));
         assertTrue(BetweenTickPackets.canRunBetweenTicks(player, release()));

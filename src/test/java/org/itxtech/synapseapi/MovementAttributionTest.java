@@ -9,7 +9,6 @@ import cn.nukkit.inventory.transaction.RepairItemTransaction;
 import cn.nukkit.inventory.transaction.data.UseItemData;
 import cn.nukkit.item.Item;
 import cn.nukkit.item.ItemBow;
-import cn.nukkit.item.ItemBread;
 import cn.nukkit.item.ItemCrossbow;
 import org.itxtech.synapseapi.multiprotocol.common.PlayerAuthInputFlags;
 import org.itxtech.synapseapi.multiprotocol.protocol116220.protocol.PlayerAuthInputPacket116220;
@@ -33,10 +32,6 @@ class MovementAttributionTest {
                 new Gate(InputBlockReason.PACKET_SEQUENCE_UNSUPPORTED, p -> doReturn(false).when(p).supportsPacketSequences()),
                 new Gate(InputBlockReason.INPUT_PROCESSOR_MISSING, p -> when(p.testServer().getPlayerInputProcessor()).thenReturn(null)),
                 new Gate(InputBlockReason.SLEEPING, p -> doReturn(true).when(p).isSleeping()),
-                new Gate(InputBlockReason.USING_JAVA_ITEM, p -> { doReturn(true).when(p).isUsingItem(); doReturn(true).when(p).isJavaClient(); }),
-                new Gate(InputBlockReason.USING_OFFHAND_ITEM, p -> { doReturn(true).when(p).isUsingItem(); doReturn(true).when(p).isUsingOffhandItem(); }),
-                new Gate(InputBlockReason.USING_ITEM_WITHOUT_INVENTORY, p -> { doReturn(true).when(p).isUsingItem(); p.useInventory(null); }),
-                new Gate(InputBlockReason.USING_NON_STANDARD_BOW, p -> { doReturn(true).when(p).isUsingItem(); inventory(p, new ItemBread()); }),
                 new Gate(InputBlockReason.SWIMMING, p -> doReturn(true).when(p).isSwimming()),
                 new Gate(InputBlockReason.GLIDING, p -> doReturn(true).when(p).isGliding()),
                 new Gate(InputBlockReason.CRAWLING, p -> doReturn(true).when(p).isCrawling()),
@@ -44,8 +39,6 @@ class MovementAttributionTest {
                 new Gate(InputBlockReason.SPIN_ATTACK, p -> doReturn(true).when(p).getDataFlag(Entity.DATA_FLAG_SPIN_ATTACK)));
         for (int first = 0; first < gates.size(); first++) {
             for (int second = first; second < gates.size(); second++) {
-                // 库存不存在与后续库存设置互斥；其余任意双条件均要求首个失败优先。
-                if (first == 10 && second == 11) continue;
                 ItemActionAdmissionTest.TestPlayer player = ItemActionAdmissionTest.player();
                 inventory(player, new ItemBow());
                 gates.get(second).setup.accept(player);
@@ -65,7 +58,7 @@ class MovementAttributionTest {
     }
 
     @Test
-    void bowExceptionAndEmbeddedActionKeepTheirExistingScope() {
+    void sustainedUseIsNotAnEligibilityGateButEmbeddedActionsStillAre() {
         ItemActionAdmissionTest.TestPlayer player = ItemActionAdmissionTest.player();
         PlayerAuthInputPacket116220 input = mock(PlayerAuthInputPacket116220.class);
         assertEquals(InputBlockReason.NONE, BetweenTickPackets.movementBlockReason(player, input));
@@ -77,10 +70,11 @@ class MovementAttributionTest {
         when(input.getUseItemData()).thenReturn(null);
         when(input.hasFlag(PlayerAuthInputFlags.MISSED_SWING)).thenReturn(true);
         assertEquals(InputBlockReason.USING_WITH_EMBEDDED_ACTION, BetweenTickPackets.movementBlockReason(player, input));
+        when(input.hasFlag(PlayerAuthInputFlags.MISSED_SWING)).thenReturn(false);
         inventory(player, new ItemCrossbow());
-        assertEquals(InputBlockReason.USING_NON_STANDARD_BOW, BetweenTickPackets.movementBlockReason(player, input));
+        assertEquals(InputBlockReason.NONE, BetweenTickPackets.movementBlockReason(player, input));
         inventory(player, new ItemBow() { });
-        assertEquals(InputBlockReason.USING_NON_STANDARD_BOW, BetweenTickPackets.movementBlockReason(player, input));
+        assertEquals(InputBlockReason.NONE, BetweenTickPackets.movementBlockReason(player, input));
     }
 
     @Test

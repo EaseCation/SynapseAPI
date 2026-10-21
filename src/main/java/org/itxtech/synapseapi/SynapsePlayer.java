@@ -17,7 +17,6 @@ import cn.nukkit.inventory.ItemUseHand;
 import cn.nukkit.inventory.InventorySlotReference;
 import cn.nukkit.network.protocol.types.ContainerIds;
 import cn.nukkit.item.Item;
-import cn.nukkit.item.ItemBow;
 import cn.nukkit.item.Items;
 import cn.nukkit.item.ItemMap;
 import cn.nukkit.level.*;
@@ -1660,13 +1659,7 @@ public class SynapsePlayer extends Player {
         if (!this.supportsPacketSequences()) return InputBlockReason.PACKET_SEQUENCE_UNSUPPORTED;
         if (this.server.getPlayerInputProcessor() == null) return InputBlockReason.INPUT_PROCESSOR_MISSING;
         if (this.isSleeping()) return InputBlockReason.SLEEPING;
-        // 仅开放原生基岩主手普通弓；不为归因读取额外物品信息或选择物理分支。
-        if (this.isUsingItem()) {
-            if (this.isJavaClient()) return InputBlockReason.USING_JAVA_ITEM;
-            if (this.isUsingOffhandItem()) return InputBlockReason.USING_OFFHAND_ITEM;
-            if (this.inventory == null) return InputBlockReason.USING_ITEM_WITHOUT_INVENTORY;
-            if (this.inventory.getItemInHand().getClass() != ItemBow.class) return InputBlockReason.USING_NON_STANDARD_BOW;
-        }
+        // 持续使用的纯移动不依赖物品类型；原Nya与世界tick负责验证和使用结算。
         if (this.isSwimming()) return InputBlockReason.SWIMMING;
         if (this.isGliding()) return InputBlockReason.GLIDING;
         if (this.isCrawling()) return InputBlockReason.CRAWLING;

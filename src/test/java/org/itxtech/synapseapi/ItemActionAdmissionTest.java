@@ -34,7 +34,7 @@ import static org.mockito.Mockito.*;
 
 class ItemActionAdmissionTest {
     @Test
-    void nativeMainHandBowMovementAndReleaseKeepFifoAndOtherUseBarriers() {
+    void allSustainedItemsAllowPureMovementButKeepEmbeddedActionBarriers() {
         TestPlayer player = player();
         PlayerInventory inventory = mock(PlayerInventory.class);
         player.useInventory(inventory);
@@ -42,17 +42,17 @@ class ItemActionAdmissionTest {
         when(inventory.getItemInHand()).thenReturn(new ItemBow());
         assertTrue(player.canProcessMovementBetweenTicks());
         doReturn(true).when(player).isJavaClient();
-        assertFalse(player.canProcessMovementBetweenTicks());
+        assertTrue(player.canProcessMovementBetweenTicks());
         doReturn(false).when(player).isJavaClient();
         doReturn(true).when(player).isUsingOffhandItem();
-        assertFalse(player.canProcessMovementBetweenTicks());
+        assertTrue(player.canProcessMovementBetweenTicks());
         doReturn(false).when(player).isUsingOffhandItem();
         when(inventory.getItemInHand()).thenReturn(new ItemBread());
-        assertFalse(player.canProcessMovementBetweenTicks());
+        assertTrue(player.canProcessMovementBetweenTicks());
         when(inventory.getItemInHand()).thenReturn(new ItemCrossbow());
-        assertFalse(player.canProcessMovementBetweenTicks());
+        assertTrue(player.canProcessMovementBetweenTicks());
         when(inventory.getItemInHand()).thenReturn(new ItemBow() { });
-        assertFalse(player.canProcessMovementBetweenTicks());
+        assertTrue(player.canProcessMovementBetweenTicks());
         when(inventory.getItemInHand()).thenReturn(new ItemBow());
 
         ServerInputDispatcher dispatcher = new ServerInputDispatcher(Thread.currentThread(),
@@ -77,11 +77,11 @@ class ItemActionAdmissionTest {
     }
 
     @Test
-    void sustainedUseDoesNotBlockItsOwnSlotAndReleaseDependencies() {
+    void sustainedUseDoesNotBlockMovementSlotOrRelease() {
         TestPlayer player = player();
         doReturn(true).when(player).isUsingItem();
 
-        assertFalse(player.canProcessMovementBetweenTicks());
+        assertTrue(player.canProcessMovementBetweenTicks());
         assertTrue(player.canProcessInputStateBetweenTicks());
         assertTrue(player.canProcessItemActionBetweenTicks());
     }
