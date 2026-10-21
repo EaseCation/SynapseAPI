@@ -1660,7 +1660,6 @@ public class SynapsePlayer extends Player {
         if (this.server.getPlayerInputProcessor() == null) return InputBlockReason.INPUT_PROCESSOR_MISSING;
         if (this.isSleeping()) return InputBlockReason.SLEEPING;
         // 持续使用的纯移动不依赖物品类型；原Nya与世界tick负责验证和使用结算。
-        if (this.isGliding()) return InputBlockReason.GLIDING;
         if (this.getDataFlag(DATA_FLAG_SPIN_ATTACK)) return InputBlockReason.SPIN_ATTACK;
         return InputBlockReason.NONE;
     }

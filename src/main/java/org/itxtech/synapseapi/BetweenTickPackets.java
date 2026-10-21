@@ -36,7 +36,9 @@ final class BetweenTickPackets {
             | (1L << PlayerAuthInputFlags.START_SWIMMING)
             | (1L << PlayerAuthInputFlags.STOP_SWIMMING)
             | (1L << PlayerAuthInputFlags.START_CRAWLING)
-            | (1L << PlayerAuthInputFlags.STOP_CRAWLING);
+            | (1L << PlayerAuthInputFlags.STOP_CRAWLING)
+            | (1L << PlayerAuthInputFlags.START_GLIDING)
+            | (1L << PlayerAuthInputFlags.STOP_GLIDING);
     private static final long CONTEXT_FLAGS = (1L << PlayerAuthInputFlags.ACK_ENTITY_DATA)
             | (1L << PlayerAuthInputFlags.BLOCK_BREAKING_DELAY_ENABLED)
             | (1L << PlayerAuthInputFlags.HORIZONTAL_COLLISION)

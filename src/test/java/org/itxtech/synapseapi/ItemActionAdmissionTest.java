@@ -120,12 +120,14 @@ class ItemActionAdmissionTest {
     void sustainedUseCannotCarryReleasePastAnUnmigratedMovementBoundary() {
         TestPlayer player = player();
         doReturn(true).when(player).isUsingItem();
-        doReturn(true).when(player).isGliding();
+        doReturn(true).when(player).isSleeping();
         ServerInputDispatcher dispatcher = new ServerInputDispatcher(Thread.currentThread(),
                 16, 1024, 16, 1024, exception -> fail(exception));
         ServerInputDispatcher.Session session = new ServerInputDispatcher.Session(UUID.randomUUID());
         List<String> order = new ArrayList<>();
-        dispatcher.offer(session, task(player, new PlayerAuthInputPacket116220(),
+        PlayerAuthInputPacket116220 movement = new PlayerAuthInputPacket116220();
+        movement.inputFlags = new BitSet();
+        dispatcher.offer(session, task(player, movement,
                 () -> order.add("movement")), 1, true);
         dispatcher.offer(session, task(player, new InventoryTransactionPacket116(),
                 () -> order.add("release")), 1, true);
