@@ -16,6 +16,7 @@ import org.itxtech.synapseapi.network.protocol.mod.StoreBuySuccessPacket;
 
 import java.util.List;
 import java.util.BitSet;
+import cn.nukkit.entity.Entity;
 import cn.nukkit.network.protocol.DataPacket;
 import cn.nukkit.network.protocol.types.ItemStackRequest;
 import cn.nukkit.network.protocol.types.NetworkInventoryAction;
@@ -268,7 +269,8 @@ class BetweenTickPacketsTest {
             for (int flag : new int[]{PlayerAuthInputFlags.START_FLYING, PlayerAuthInputFlags.STOP_FLYING,
                     PlayerAuthInputFlags.START_SWIMMING, PlayerAuthInputFlags.STOP_SWIMMING,
                     PlayerAuthInputFlags.START_CRAWLING, PlayerAuthInputFlags.STOP_CRAWLING,
-                    PlayerAuthInputFlags.START_GLIDING, PlayerAuthInputFlags.STOP_GLIDING}) {
+                    PlayerAuthInputFlags.START_GLIDING, PlayerAuthInputFlags.STOP_GLIDING,
+                    PlayerAuthInputFlags.START_SPIN_ATTACK, PlayerAuthInputFlags.STOP_SPIN_ATTACK}) {
                 flags(input, layout, PlayerAuthInputFlags.UP, flag);
                 assertTrue(BetweenTickPackets.supports(packet));
                 flags(input, layout, flag, PlayerAuthInputFlags.MISSED_SWING);
@@ -334,11 +336,33 @@ class BetweenTickPacketsTest {
     }
 
     @Test
+    void simultaneousSpinEdgesRemainOneEligiblePacketAcrossLayouts() {
+        DataPacket packet = movement();
+        IPlayerAuthInputPacket input = (IPlayerAuthInputPacket) packet;
+        for (int layout = 0; layout <= 2; layout++) {
+            flags(input, layout, PlayerAuthInputFlags.START_SPIN_ATTACK, PlayerAuthInputFlags.STOP_SPIN_ATTACK);
+            assertTrue(BetweenTickPackets.supports(packet));
+        }
+    }
+
+    @Test
+    void spinMovementKeepsEmbeddedActionBoundary() {
+        ItemActionAdmissionTest.TestPlayer player = ItemActionAdmissionTest.player();
+        doReturn(true).when(player).getDataFlag(Entity.DATA_FLAG_SPIN_ATTACK);
+        DataPacket packet = movement();
+        assertTrue(BetweenTickPackets.canRunBetweenTicks(player, packet));
+        when(((IPlayerAuthInputPacket) packet).getUseItemData()).thenReturn(new UseItemData());
+        assertFalse(BetweenTickPackets.canRunBetweenTicks(player, packet));
+        assertEquals(InputBlockReason.SPIN_ATTACK, BetweenTickPackets.movementBlockReason(player, (IPlayerAuthInputPacket) packet));
+        verify(player, never()).onUpdate(anyInt());
+    }
+
+    @Test
     void unreviewedActionsAndVehicleHintsRemainWholePacketBarriers() {
         DataPacket packet = movement();
         IPlayerAuthInputPacket input = (IPlayerAuthInputPacket) packet;
         int[] barriers = {
-                PlayerAuthInputFlags.START_USING_ITEM, PlayerAuthInputFlags.START_SPIN_ATTACK,
+                PlayerAuthInputFlags.START_USING_ITEM,
                 PlayerAuthInputFlags.IN_CLIENT_PREDICTED_IN_VEHICLE, PlayerAuthInputFlags.PADDLE_LEFT,
                 PlayerAuthInputFlags.PERFORM_ITEM_INTERACTION, PlayerAuthInputFlags.PERFORM_BLOCK_ACTIONS,
                 PlayerAuthInputFlags.PERFORM_ITEM_STACK_REQUEST};

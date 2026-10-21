@@ -39,6 +39,9 @@ final class BetweenTickPackets {
             | (1L << PlayerAuthInputFlags.STOP_CRAWLING)
             | (1L << PlayerAuthInputFlags.START_GLIDING)
             | (1L << PlayerAuthInputFlags.STOP_GLIDING);
+    // 旋转标志在网易扩展位之后；只登记原攻击计时，碰撞攻击仍由世界周期执行。
+    private static final long SPIN_FLAGS = (1L << PlayerAuthInputFlags.START_SPIN_ATTACK)
+            | (1L << PlayerAuthInputFlags.STOP_SPIN_ATTACK);
     private static final long CONTEXT_FLAGS = (1L << PlayerAuthInputFlags.ACK_ENTITY_DATA)
             | (1L << PlayerAuthInputFlags.BLOCK_BREAKING_DELAY_ENABLED)
             | (1L << PlayerAuthInputFlags.HORIZONTAL_COLLISION)
@@ -132,7 +135,7 @@ final class BetweenTickPackets {
         long allowed = MOVEMENT_FLAGS | (1L << PlayerAuthInputFlags.MISSED_SWING) | formatFlags | (CONTEXT_FLAGS << shift)
                 | (embeddedUse ? 1L << PlayerAuthInputFlags.PERFORM_ITEM_INTERACTION : 0)
                 // 独立姿态切换沿原handler；混合世界动作仍保留尚未迁移的阶段边界。
-                | (!embeddedUse && !input.hasFlag(PlayerAuthInputFlags.MISSED_SWING) ? PURE_POSE_FLAGS : 0);
+                | (!embeddedUse && !input.hasFlag(PlayerAuthInputFlags.MISSED_SWING) ? PURE_POSE_FLAGS | (SPIN_FLAGS << shift) : 0);
         long allowed2 = (CONTEXT_FLAGS2 << shift)
                 | (shift == 0 ? 0 : CONTEXT_FLAGS >>> (Long.SIZE - shift));
         BitSet flags = input.getInputFlags();

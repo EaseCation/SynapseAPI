@@ -30,8 +30,7 @@ class MovementAttributionTest {
                 new Gate(InputBlockReason.MOVEMENT_AUTHORITY_DISABLED, p -> doReturn(false).when(p).isServerAuthoritativeMovementEnabled()),
                 new Gate(InputBlockReason.PACKET_SEQUENCE_UNSUPPORTED, p -> doReturn(false).when(p).supportsPacketSequences()),
                 new Gate(InputBlockReason.INPUT_PROCESSOR_MISSING, p -> when(p.testServer().getPlayerInputProcessor()).thenReturn(null)),
-                new Gate(InputBlockReason.SLEEPING, p -> doReturn(true).when(p).isSleeping()),
-                new Gate(InputBlockReason.SPIN_ATTACK, p -> doReturn(true).when(p).getDataFlag(Entity.DATA_FLAG_SPIN_ATTACK)));
+                new Gate(InputBlockReason.SLEEPING, p -> doReturn(true).when(p).isSleeping()));
         for (int first = 0; first < gates.size(); first++) {
             for (int second = first; second < gates.size(); second++) {
                 ItemActionAdmissionTest.TestPlayer player = ItemActionAdmissionTest.player();
