@@ -1,6 +1,7 @@
 package org.itxtech.synapseapi;
 
 import cn.nukkit.Server;
+import cn.nukkit.utils.LoginChainData;
 import cn.nukkit.event.server.DataPacketReceiveEvent;
 import cn.nukkit.network.input.InputValidationResult;
 import cn.nukkit.network.input.ServerInputDispatcher;
@@ -29,6 +30,7 @@ import static org.mockito.Mockito.anyBoolean;
 import static org.mockito.Mockito.anyLong;
 import static org.mockito.Mockito.anyInt;
 import static org.mockito.Mockito.doAnswer;
+import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
@@ -199,6 +201,69 @@ class PacketReceiveValidationContractTest {
         verify(player, never()).onUpdate(anyInt());
     }
 
+    @Test void sleepingInputKeepsPositionAndReleasesFollower() { checkSleepingInput("normal", true); }
+    @Test void sleepingInputStillUsesOriginalValidatorRejection() { checkSleepingInput("reject", true); }
+    @Test void cancelledSleepingInputCannotBecomePendingMovement() { checkSleepingInput("cancel", true); }
+    @Test void changedEpochDuringSleepingInputCannotWritePendingMovement() { checkSleepingInput("epoch", true); }
+    @Test void sleepingLegacyHandlerDoesNotCallNewValidator() { checkSleepingInput("normal", false); }
+
+    private void checkSleepingInput(String variant, boolean enabled) {
+        Fixture fixture = new Fixture(enabled);
+        ProbePlayer player = fixture.player;
+        player.spawned = true;
+        doReturn(true).when(player).isOnline();
+        doReturn(true).when(player).isAlive();
+        doReturn(true).when(player).isServerAuthoritativeMovementEnabled();
+        doReturn(true).when(player).supportsPacketSequences();
+        doReturn(true).when(player).isSleeping();
+        doReturn(false).when(player).isUsingItem();
+        doReturn(mock(LoginChainData.class)).when(player).getLoginChainData();
+        doNothing().when(player).onClientTickUpdated(anyLong());
+        when(fixture.packet.pid()).thenReturn(ProtocolInfo.PLAYER_AUTH_INPUT_PACKET);
+        when(fixture.packet.getInputFlags()).thenReturn(new BitSet());
+        when(fixture.packet.getX()).thenReturn(1.0f);
+        List<String> phases = new ArrayList<>();
+        doAnswer(call -> {
+            phases.add("event");
+            if (variant.equals("cancel")) ((DataPacketReceiveEvent) call.getArgument(0)).setCancelled();
+            if (variant.equals("epoch")) doReturn(false).when(player).isCurrentInputPosition();
+            return null;
+        }).when(fixture.plugins).callEvent(any());
+        when(fixture.processor.validateReceivedPacket(any(), any(), anyBoolean())).thenAnswer(call -> {
+            assertEquals(List.of("event"), phases);
+            phases.add("validator");
+            assertEquals(!variant.equals("normal") && !variant.equals("reject"), call.getArgument(2));
+            return variant.equals("reject") ? InputValidationResult.REJECTED : InputValidationResult.ACCEPTED;
+        });
+        if (enabled) {
+            ServerInputDispatcher dispatcher = new ServerInputDispatcher(Thread.currentThread(), 16, 1024, 16, 1024, error -> fail(error));
+            dispatcher.offer(new ServerInputDispatcher.Session(UUID.randomUUID()), new ServerInputTask() {
+                @Override public boolean canRunBetweenTicks() { return BetweenTickPackets.canRunBetweenTicks(player, fixture.packet); }
+                @Override public void run(InboundContext context) {
+                    assertTrue(context.betweenTicks());
+                    player.handleDataPacket(fixture.packet);
+                }
+            }, 1, true);
+            dispatcher.offer(new ServerInputDispatcher.Session(UUID.randomUUID()), context -> phases.add("follower"), 1, true);
+            assertEquals(2, dispatcher.drain(true, 42, Long.MAX_VALUE));
+            assertEquals(0, dispatcher.snapshot().queuedTasks());
+            assertEquals("follower", phases.getLast());
+        } else {
+            player.handleDataPacket(fixture.packet);
+        }
+        verify(fixture.plugins).callEvent(any(DataPacketReceiveEvent.class));
+        verify(fixture.processor, times(enabled ? 1 : 0)).validateReceivedPacket(any(), any(), anyBoolean());
+        assertEquals(0.0, player.x);
+        verify(player, never()).onUpdate(anyInt());
+        if (variant.equals("normal")) {
+            assertTrue(player.hasPendingMovement());
+            assertFalse(player.commitReceivedMovement());
+            verify(fixture.processor, never()).onMovementCommitted(any(), any());
+        } else {
+            assertFalse(player.hasPendingMovement());
+        }
+    }
+
     private static final class Fixture {
         final ProbePlayer player = mock(ProbePlayer.class, CALLS_REAL_METHODS);
         final PluginManager plugins = mock(PluginManager.class);
@@ -221,6 +286,8 @@ class PacketReceiveValidationContractTest {
         ProbePlayer() {
             super(null, null, 1L, new InetSocketAddress("127.0.0.1", 19132));
         }
+
+        boolean hasPendingMovement() { return this.newPosition != null; }
 
         void configure(Server server) {
             this.server = server;

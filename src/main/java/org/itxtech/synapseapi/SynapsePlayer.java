@@ -1657,7 +1657,6 @@ public class SynapsePlayer extends Player {
         if (!this.isServerAuthoritativeMovementEnabled()) return InputBlockReason.MOVEMENT_AUTHORITY_DISABLED;
         if (!this.supportsPacketSequences()) return InputBlockReason.PACKET_SEQUENCE_UNSUPPORTED;
         if (this.server.getPlayerInputProcessor() == null) return InputBlockReason.INPUT_PROCESSOR_MISSING;
-        if (this.isSleeping()) return InputBlockReason.SLEEPING;
         // 持续使用的纯移动不依赖物品类型；原Nya与世界tick负责验证和使用结算。
         return InputBlockReason.NONE;
     }

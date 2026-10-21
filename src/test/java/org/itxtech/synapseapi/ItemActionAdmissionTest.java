@@ -117,7 +117,7 @@ class ItemActionAdmissionTest {
     }
 
     @Test
-    void sustainedUseCannotCarryReleasePastAnUnmigratedMovementBoundary() {
+    void sleepingMovementDoesNotReleaseTheStillGuardedItemAction() {
         TestPlayer player = player();
         doReturn(true).when(player).isUsingItem();
         doReturn(true).when(player).isSleeping();
@@ -133,8 +133,8 @@ class ItemActionAdmissionTest {
                 () -> order.add("release")), 1, true);
 
         dispatcher.drain(true, 40, Long.MAX_VALUE);
-        assertTrue(order.isEmpty());
-        assertEquals(2, dispatcher.snapshot().queuedTasks());
+        assertEquals(List.of("movement"), order);
+        assertEquals(1, dispatcher.snapshot().queuedTasks());
 
         dispatcher.drain(false, 41, Long.MAX_VALUE);
         assertEquals(List.of("movement", "release"), order);
