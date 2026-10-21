@@ -3,6 +3,13 @@ package org.itxtech.synapseapi;
 import cn.nukkit.Server;
 import cn.nukkit.event.server.DataPacketReceiveEvent;
 import cn.nukkit.network.input.InputValidationResult;
+import cn.nukkit.network.input.ServerInputDispatcher;
+import cn.nukkit.network.input.ServerInputTask;
+import cn.nukkit.network.input.InboundContext;
+import cn.nukkit.network.protocol.ProtocolInfo;
+import org.itxtech.synapseapi.multiprotocol.common.PlayerAuthInputFlags;
+import java.util.BitSet;
+import java.util.UUID;
 import cn.nukkit.network.input.PlayerInputProcessor;
 import cn.nukkit.plugin.PluginManager;
 import org.itxtech.synapseapi.multiprotocol.protocol116220.protocol.PlayerAuthInputPacket116220;
@@ -15,9 +22,12 @@ import java.util.List;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.fail;
 import static org.mockito.Mockito.CALLS_REAL_METHODS;
 import static org.mockito.Mockito.any;
 import static org.mockito.Mockito.anyBoolean;
+import static org.mockito.Mockito.anyLong;
+import static org.mockito.Mockito.anyInt;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.mock;
@@ -122,6 +132,71 @@ class PacketReceiveValidationContractTest {
         }).when(fixture.plugins).callEvent(any());
         assertFalse(fixture.player.callPacketReceiveEvent(fixture.packet));
         verify(fixture.processor, never()).validateReceivedPacket(any(), any(), anyBoolean());
+    }
+
+    @Test void deadInputReachesRejectingValidatorWithoutBlockingFollower() { checkDeadInput("reject"); }
+    @Test void deadInputCannotApplyPoseEvenIfValidatorAccepts() { checkDeadInput("accept"); }
+    @Test void cancelledDeadInputCannotBeReopened() { checkDeadInput("cancel"); }
+    @Test void respawnEpochDuringEventKeepsOldInputCancelled() { checkDeadInput("respawn"); }
+    @Test void retirementDuringDeadInputStopsValidation() { checkDeadInput("retire-event"); }
+    @Test void invalidatedDeadSessionIsDiscardedBeforeEligibility() { checkDeadInput("retired-session"); }
+
+    private void checkDeadInput(String variant) {
+        Fixture fixture = new Fixture(true);
+        ProbePlayer player = fixture.player;
+        player.spawned = true;
+        doReturn(true).when(player).isOnline();
+        doReturn(false).when(player).isAlive();
+        doReturn(true).when(player).isServerAuthoritativeMovementEnabled();
+        doReturn(true).when(player).supportsPacketSequences();
+        doReturn(false).when(player).isSleeping();
+        doReturn(false).when(player).isUsingItem();
+        when(fixture.packet.pid()).thenReturn(ProtocolInfo.PLAYER_AUTH_INPUT_PACKET);
+        BitSet flags = new BitSet();
+        flags.set(PlayerAuthInputFlags.START_SPRINTING);
+        when(fixture.packet.getInputFlags()).thenReturn(flags);
+        when(fixture.packet.hasFlag(PlayerAuthInputFlags.START_SPRINTING)).thenReturn(true);
+        List<String> phases = new ArrayList<>();
+        doAnswer(call -> {
+            phases.add("event");
+            if (variant.equals("cancel")) ((DataPacketReceiveEvent) call.getArgument(0)).setCancelled();
+            if (variant.equals("respawn")) {
+                doReturn(true).when(player).isAlive();
+                doReturn(false).when(player).isCurrentInputPosition();
+            }
+            if (variant.equals("retire-event")) doReturn(false).when(player).isAcceptingInputPackets();
+            return null;
+        }).when(fixture.plugins).callEvent(any());
+        when(fixture.processor.validateReceivedPacket(any(), any(), anyBoolean())).thenAnswer(call -> {
+            assertEquals(List.of("event"), phases);
+            assertEquals(variant.equals("cancel") || variant.equals("respawn"), call.getArgument(2));
+            phases.add("validate");
+            return variant.equals("reject") ? InputValidationResult.REJECTED : InputValidationResult.ACCEPTED_GROUND_JUMP;
+        });
+        ServerInputDispatcher dispatcher = new ServerInputDispatcher(Thread.currentThread(), 16, 1024, 16, 1024, error -> fail(error));
+        ServerInputDispatcher.Session session = new ServerInputDispatcher.Session(UUID.randomUUID());
+        ServerInputDispatcher.Session other = new ServerInputDispatcher.Session(UUID.randomUUID());
+        assertTrue(BetweenTickPackets.supports(fixture.packet));
+        dispatcher.offer(session, new ServerInputTask() {
+            @Override public boolean isValid() { return player.isAcceptingInputPackets(); }
+            @Override public boolean canRunBetweenTicks() { return BetweenTickPackets.canRunBetweenTicks(player, fixture.packet); }
+            @Override public void run(InboundContext context) {
+                assertTrue(context.betweenTicks());
+                player.handleDataPacket(fixture.packet);
+            }
+        }, 1, true);
+        dispatcher.offer(other, context -> phases.add("follower"), 1, true);
+        if (variant.equals("retired-session")) dispatcher.invalidate(session);
+        assertEquals(variant.equals("retired-session") ? 1 : 2, dispatcher.drain(true, 42, Long.MAX_VALUE));
+        assertEquals(0, dispatcher.snapshot().queuedTasks());
+        int validations = variant.equals("retired-session") || variant.equals("retire-event") ? 0 : 1;
+        verify(fixture.processor, times(validations)).validateReceivedPacket(any(), any(), anyBoolean());
+        verify(fixture.plugins, times(variant.equals("retired-session") ? 0 : 1)).callEvent(any());
+        assertEquals("follower", phases.getLast());
+        verify(player, never()).onClientTickUpdated(anyLong());
+        verify(player, never()).setSprinting(anyBoolean());
+        verify(player, never()).commitReceivedMovement();
+        verify(player, never()).onUpdate(anyInt());
     }
 
     private static final class Fixture {

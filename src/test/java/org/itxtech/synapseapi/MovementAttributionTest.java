@@ -25,7 +25,6 @@ class MovementAttributionTest {
         List<Gate> gates = List.of(
                 new Gate(InputBlockReason.NOT_SPAWNED, p -> p.spawned(false)),
                 new Gate(InputBlockReason.OFFLINE, p -> doReturn(false).when(p).isOnline()),
-                new Gate(InputBlockReason.DEAD, p -> doReturn(false).when(p).isAlive()),
                 new Gate(InputBlockReason.RIDING, p -> p.ride(mock(Entity.class))),
                 new Gate(InputBlockReason.MOVEMENT_AUTHORITY_DISABLED, p -> doReturn(false).when(p).isServerAuthoritativeMovementEnabled()),
                 new Gate(InputBlockReason.PACKET_SEQUENCE_UNSUPPORTED, p -> doReturn(false).when(p).supportsPacketSequences()),

@@ -358,6 +358,18 @@ class BetweenTickPacketsTest {
     }
 
     @Test
+    void deadPureMovementCanReachOriginalRejectionWhileActionsKeepTheirGate() {
+        ItemActionAdmissionTest.TestPlayer player = ItemActionAdmissionTest.player();
+        doReturn(false).when(player).isAlive();
+        DataPacket packet = movement();
+        assertTrue(BetweenTickPackets.canRunBetweenTicks(player, packet));
+        when(((IPlayerAuthInputPacket) packet).getUseItemData()).thenReturn(new UseItemData());
+        assertFalse(BetweenTickPackets.canRunBetweenTicks(player, packet));
+        assertEquals(InputBlockReason.DEAD, BetweenTickPackets.movementBlockReason(player, (IPlayerAuthInputPacket) packet));
+        verify(player, never()).onUpdate(anyInt());
+    }
+
+    @Test
     void unreviewedActionsAndVehicleHintsRemainWholePacketBarriers() {
         DataPacket packet = movement();
         IPlayerAuthInputPacket input = (IPlayerAuthInputPacket) packet;
