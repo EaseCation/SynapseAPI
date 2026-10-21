@@ -275,7 +275,7 @@ class BetweenTickPacketsTest {
                 flags(input, layout, PlayerAuthInputFlags.UP, flag);
                 assertTrue(BetweenTickPackets.supports(packet));
                 flags(input, layout, flag, PlayerAuthInputFlags.MISSED_SWING);
-                assertFalse(BetweenTickPackets.supports(packet));
+                assertTrue(BetweenTickPackets.supports(packet));
                 UseItemData use = new UseItemData();
                 use.itemInHand = mock(Item.class);
                 use.actionType = InventoryTransactionPacket116.USE_ITEM_ACTION_CLICK_AIR;

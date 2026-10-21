@@ -73,7 +73,7 @@ class ItemActionAdmissionTest {
         when(embedded.getUseItemData()).thenReturn(use);
         assertFalse(BetweenTickPackets.canRunBetweenTicks(player, embedded));
         movement.inputFlags.set(PlayerAuthInputFlags.MISSED_SWING);
-        assertFalse(BetweenTickPackets.canRunBetweenTicks(player, movement));
+        assertTrue(BetweenTickPackets.canRunBetweenTicks(player, movement));
     }
 
     @Test
@@ -159,7 +159,7 @@ class ItemActionAdmissionTest {
     }
 
     @Test
-    void missedSwingSoundNeedsCurrentWorldActionEligibility() {
+    void missedSwingPresentationDoesNotRequireItemActionEligibility() {
         TestPlayer player = player();
         PlayerAuthInputPacket116220 input = mock(PlayerAuthInputPacket116220.class);
         doReturn(true).when(input).hasFlag(PlayerAuthInputFlags.MISSED_SWING);
@@ -168,12 +168,12 @@ class ItemActionAdmissionTest {
         doReturn(true).when(player).isServerAuthoritativeSoundEnabled();
         assertTrue(BetweenTickPackets.canRunBetweenTicks(player, input));
         player.awaitTeleport();
-        assertFalse(BetweenTickPackets.canRunBetweenTicks(player, input));
+        assertTrue(BetweenTickPackets.canRunBetweenTicks(player, input));
         doReturn(false).when(player).isServerAuthoritativeSoundEnabled();
         assertTrue(BetweenTickPackets.canRunBetweenTicks(player, input));
         player.clearTeleport();
         doReturn(true).when(player).isUsingItem();
-        assertFalse(BetweenTickPackets.canRunBetweenTicks(player, input));
+        assertTrue(BetweenTickPackets.canRunBetweenTicks(player, input));
     }
 
     @Test

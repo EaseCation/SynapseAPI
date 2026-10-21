@@ -137,8 +137,8 @@ final class BetweenTickPackets {
         long formatFlags = ((1L << shift) - 1) << PlayerAuthInputFlags.ACK_ENTITY_DATA;
         long allowed = MOVEMENT_FLAGS | (1L << PlayerAuthInputFlags.MISSED_SWING) | formatFlags | (CONTEXT_FLAGS << shift)
                 | (embeddedUse ? 1L << PlayerAuthInputFlags.PERFORM_ITEM_INTERACTION : 0)
-                // 独立姿态切换沿原handler；混合世界动作仍保留尚未迁移的阶段边界。
-                | (!embeddedUse && !input.hasFlag(PlayerAuthInputFlags.MISSED_SWING) ? PURE_POSE_FLAGS | ((SPIN_FLAGS | VEHICLE_FLAGS) << shift) : 0);
+                // 姿态与挥空表现沿原handler；真实内嵌使用仍保留尚未迁移的阶段边界。
+                | (!embeddedUse ? PURE_POSE_FLAGS | ((SPIN_FLAGS | VEHICLE_FLAGS) << shift) : 0);
         long allowed2 = (CONTEXT_FLAGS2 << shift)
                 | (shift == 0 ? 0 : CONTEXT_FLAGS >>> (Long.SIZE - shift));
         BitSet flags = input.getInputFlags();
@@ -176,14 +176,10 @@ final class BetweenTickPackets {
     static InputBlockReason movementBlockReason(SynapsePlayer player, IPlayerAuthInputPacket input) {
         InputBlockReason reason = player.movementBlockReason();
         if (reason != InputBlockReason.NONE) return reason;
-        if (player.isUsingItem() && (input.getUseItemData() != null
-                || input.hasFlag(PlayerAuthInputFlags.MISSED_SWING))) {
-            return InputBlockReason.USING_WITH_EMBEDDED_ACTION;
-        }
-        if (input.getUseItemData() == null
-                && (!input.hasFlag(PlayerAuthInputFlags.MISSED_SWING) || !player.isServerAuthoritativeSoundEnabled())) {
+        if (input.getUseItemData() == null) {
             return InputBlockReason.NONE;
         }
+        if (player.isUsingItem()) return InputBlockReason.USING_WITH_EMBEDDED_ACTION;
         return player.itemActionBlockReason();
     }
 
