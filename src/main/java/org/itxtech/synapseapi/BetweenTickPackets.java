@@ -147,8 +147,8 @@ final class BetweenTickPackets {
         long formatFlags = ((1L << shift) - 1) << PlayerAuthInputFlags.ACK_ENTITY_DATA;
         long allowed = MOVEMENT_FLAGS | (1L << PlayerAuthInputFlags.MISSED_SWING) | formatFlags | (CONTEXT_FLAGS << shift)
                 | (embeddedUse ? 1L << PlayerAuthInputFlags.PERFORM_ITEM_INTERACTION : 0)
-                // 姿态与挥空表现沿原handler；真实内嵌使用仍保留尚未迁移的阶段边界。
-                | (!embeddedUse ? PURE_POSE_FLAGS | ((SPIN_FLAGS | VEHICLE_FLAGS) << shift) : 0);
+                // 同包姿态与已支持的对空使用保持原handler顺序，不拆分执行。
+                | PURE_POSE_FLAGS | ((SPIN_FLAGS | VEHICLE_FLAGS) << shift);
         long allowed2 = (CONTEXT_FLAGS2 << shift)
                 | (shift == 0 ? 0 : CONTEXT_FLAGS >>> (Long.SIZE - shift));
         BitSet flags = input.getInputFlags();
@@ -184,12 +184,7 @@ final class BetweenTickPackets {
      * 一次消费判定交出首次失败原因；不在诊断阶段重新读取玩家状态。
      */
     static InputBlockReason movementBlockReason(SynapsePlayer player, IPlayerAuthInputPacket input) {
-        InputBlockReason reason = player.movementBlockReason();
-        if (reason != InputBlockReason.NONE) return reason;
-        if (input.getUseItemData() == null) {
-            return InputBlockReason.NONE;
-        }
-        return player.itemActionBlockReason();
+        return player.movementBlockReason();
     }
 
     private static boolean supportsItemAction(InventoryTransactionPacket116 packet) {

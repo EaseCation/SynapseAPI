@@ -20,7 +20,7 @@ class MovementAttributionTest {
     private record Gate(InputBlockReason reason, Consumer<ItemActionAdmissionTest.TestPlayer> setup) { }
 
     @Test
-    void capabilityConditionsRemainOnUnmigratedEmbeddedActionsOnly() {
+    void capabilityConditionsRemainOnIndependentActionsOnly() {
         List<Gate> gates = List.of(
                 new Gate(InputBlockReason.MOVEMENT_AUTHORITY_DISABLED, p -> doReturn(false).when(p).isServerAuthoritativeMovementEnabled()),
                 new Gate(InputBlockReason.PACKET_SEQUENCE_UNSUPPORTED, p -> doReturn(false).when(p).supportsPacketSequences()),
@@ -31,7 +31,8 @@ class MovementAttributionTest {
             gate.setup.accept(player);
             assertEquals(InputBlockReason.NONE, BetweenTickPackets.movementBlockReason(player, input));
             when(input.getUseItemData()).thenReturn(new UseItemData());
-            assertEquals(gate.reason, BetweenTickPackets.movementBlockReason(player, input));
+            assertEquals(InputBlockReason.NONE, BetweenTickPackets.movementBlockReason(player, input));
+            assertEquals(gate.reason, player.itemActionBlockReason());
         }
     }
 
@@ -62,7 +63,7 @@ class MovementAttributionTest {
     }
 
     @Test
-    void embeddedActionReportsTheActualPendingBoundaryWithoutRestrictingPureMovement() {
+    void embeddedUseDoesNotBorrowIndependentTransactionState() {
         List<Gate> gates = List.of(
                 new Gate(InputBlockReason.INPUT_NOT_ACCEPTING, p -> doReturn(false).when(p).isAcceptingInputPackets()),
                 new Gate(InputBlockReason.TELEPORT_PENDING, ItemActionAdmissionTest.TestPlayer::awaitTeleport),
@@ -75,8 +76,9 @@ class MovementAttributionTest {
             gate.setup.accept(player);
             assertEquals(InputBlockReason.NONE, BetweenTickPackets.movementBlockReason(player, input));
             when(input.getUseItemData()).thenReturn(new UseItemData());
-            assertEquals(gate.reason, BetweenTickPackets.movementBlockReason(player, input));
-            assertFalse(BetweenTickPackets.canRunBetweenTicks(player, input));
+            assertEquals(InputBlockReason.NONE, BetweenTickPackets.movementBlockReason(player, input));
+            assertEquals(gate.reason, player.itemActionBlockReason());
+            assertTrue(BetweenTickPackets.canRunBetweenTicks(player, input));
         }
     }
 

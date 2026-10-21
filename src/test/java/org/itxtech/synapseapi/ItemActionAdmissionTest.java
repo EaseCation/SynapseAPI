@@ -177,14 +177,15 @@ class ItemActionAdmissionTest {
     }
 
     @Test
-    void embeddedWorldActionNeedsBothMovementAndItemLifecycleEligibility() {
+    void embeddedUseReachesOriginalCommitRejectionWithoutStageBarrier() {
         TestPlayer player = player();
         PlayerAuthInputPacket116220 input = mock(PlayerAuthInputPacket116220.class);
         doReturn(null).when(input).getUseItemData();
         player.awaitTeleport();
         assertTrue(BetweenTickPackets.canRunBetweenTicks(player, input));
         doReturn(new UseItemData()).when(input).getUseItemData();
-        assertFalse(BetweenTickPackets.canRunBetweenTicks(player, input));
+        assertTrue(BetweenTickPackets.canRunBetweenTicks(player, input));
+        assertFalse(player.canProcessItemActionBetweenTicks());
         player.clearTeleport();
         assertTrue(BetweenTickPackets.canRunBetweenTicks(player, input));
         doReturn(true).when(player).isUsingItem();

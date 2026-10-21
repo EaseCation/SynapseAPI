@@ -3,10 +3,15 @@ package org.itxtech.synapseapi;
 import cn.nukkit.PlayerFood;
 import cn.nukkit.AdventureSettings;
 import cn.nukkit.entity.data.EntityMetadata;
+import cn.nukkit.entity.Entity;
+import cn.nukkit.inventory.transaction.CraftingTransaction;
+import cn.nukkit.inventory.transaction.EnchantTransaction;
+import cn.nukkit.inventory.transaction.RepairItemTransaction;
 import cn.nukkit.Server;
 import cn.nukkit.block.Block;
 import cn.nukkit.event.player.PlayerInteractEvent;
 import cn.nukkit.event.player.PlayerItemConsumeEvent;
+import cn.nukkit.event.player.PlayerToggleSwimEvent;
 import cn.nukkit.event.server.DataPacketReceiveEvent;
 import cn.nukkit.inventory.ItemUseHand;
 import cn.nukkit.inventory.PlayerInventory;
@@ -61,6 +66,27 @@ class EmbeddedUseLifecycleAdmissionTest {
     @Test void initialAirUseStartsWithoutCompleting() { check("start", true); }
     @Test void disabledModeKeepsOriginalCompletion() { check("mature", false); }
 
+    @Test void sleepingUsesOriginalCommitRejectionBeforeUse() { check("sleep", true); }
+    @Test void pendingTeleportUsesOriginalCommitRejectionBeforeUse() { check("teleport", true); }
+    @Test void unspawnedUsesOriginalCommitRejectionBeforeUse() { check("unspawned", true); }
+    @Test void deadInputCannotReachUse() { check("dead", true); }
+    @Test void offlineInputCannotReachUse() { check("offline", true); }
+    @Test void retiredSourceCannotReachUse() { check("retired", true); }
+    @Test void eventPositionChangeCannotReachUse() { check("event-epoch", true); }
+    @Test void glidingCanUseWithoutExtraWorldStep() { check("gliding", true); }
+    @Test void swimmingCanUseWithoutExtraWorldStep() { check("swimming", true); }
+    @Test void crawlingCanUseWithoutExtraWorldStep() { check("crawling", true); }
+    @Test void flyingCanUseWithoutExtraWorldStep() { check("flying", true); }
+    @Test void riderKeepsOriginalUsePathWithoutForcedMovementCommit() { check("riding", true); }
+    @Test void pendingCraftDoesNotConsumeItsActionsDuringAirUse() { check("craft", true); }
+    @Test void pendingEnchantDoesNotConsumeItsActionsDuringAirUse() { check("enchant", true); }
+    @Test void pendingRepairDoesNotConsumeItsActionsDuringAirUse() { check("repair", true); }
+
+    @Test void swimEdgeAndUseFollowOriginalPoseCommitUseOrder() { check("swim-edge", true); }
+    @Test void cancelledSwimEdgeDoesNotCancelIndependentAirUse() { check("swim-cancel", true); }
+    @Test void poseCallbackEpochChangeStopsOldAirUse() { check("swim-epoch", true); }
+    @Test void deniedFlightEdgeCannotReachSamePacketUse() { check("flight-denied", true); }
+
     private void check(String variant, boolean enabled) {
         ProbePlayer player = mock(ProbePlayer.class, CALLS_REAL_METHODS);
         Server server = mock(Server.class);
@@ -107,6 +133,9 @@ class EmbeddedUseLifecycleAdmissionTest {
             doNothing().when(player).setButtonText(anyString());
             doNothing().when(player).onClientTickUpdated(anyLong());
             doReturn(Vector3.ZERO).when(player).getDirectionVector();
+            doReturn(true).when(player).setSwimming(anyBoolean());
+            doNothing().when(player).sendData(player);
+            doNothing().when(player).sendAbilities(eq(player), any());
             doAnswer(call -> using.get()).when(player).isUsingItem();
             doAnswer(call -> { boolean value = call.getArgument(0); using.set(value); player.setUseClock(value); return null; }).when(player).setUsingItem(anyBoolean());
             doAnswer(call -> { order.add("commit"); return !variant.equals("move-reject"); }).when(player).commitReceivedMovement();
@@ -120,6 +149,11 @@ class EmbeddedUseLifecycleAdmissionTest {
                 Object event = call.getArgument(0);
                 if (event instanceof DataPacketReceiveEvent received) {
                     order.add("event"); if (variant.equals("packet-cancel")) received.setCancelled();
+                    if (variant.equals("event-epoch")) doReturn(false).when(player).isCurrentInputPosition();
+                } else if (event instanceof PlayerToggleSwimEvent swim) {
+                    order.add("pose");
+                    if (variant.equals("swim-cancel")) swim.setCancelled();
+                    if (variant.equals("swim-epoch")) doReturn(false).when(player).isCurrentInputPosition();
                 } else if (event instanceof PlayerInteractEvent interact) {
                     order.add("interact");
                     if (variant.equals("interact-cancel")) interact.setCancelled();
@@ -137,6 +171,8 @@ class EmbeddedUseLifecycleAdmissionTest {
             when(packet.pid()).thenReturn(ProtocolInfo.PLAYER_AUTH_INPUT_PACKET);
             BitSet flags = new BitSet(); flags.set(PlayerAuthInputFlags.START_USING_ITEM);
             if (!variant.equals("edge-only")) flags.set(PlayerAuthInputFlags.PERFORM_ITEM_INTERACTION);
+            if (variant.startsWith("swim-")) flags.set(PlayerAuthInputFlags.START_SWIMMING);
+            if (variant.equals("flight-denied")) flags.set(PlayerAuthInputFlags.START_FLYING);
             when(packet.getInputFlags()).thenReturn(flags);
             when(packet.hasFlag(anyInt())).thenCallRealMethod();
             when(packet.getInventoryActions()).thenReturn(new NetworkInventoryAction[0]);
@@ -145,6 +181,24 @@ class EmbeddedUseLifecycleAdmissionTest {
                 data.hotbarSlot = 0; data.itemInHand = new ItemBread(0, 8);
                 when(packet.getUseItemData()).thenReturn(data);
             }
+            if (variant.equals("sleep")) doReturn(true).when(player).isSleeping();
+            if (variant.equals("teleport")) player.awaitTeleport();
+            if (variant.equals("unspawned")) player.spawned = false;
+            if (List.of("sleep", "teleport", "unspawned").contains(variant)) {
+                doCallRealMethod().when(player).commitReceivedMovement();
+            }
+            if (variant.equals("dead")) doReturn(false).when(player).isAlive();
+            if (variant.equals("offline")) doReturn(false).when(player).isOnline();
+            if (variant.equals("retired")) doReturn(false).when(player).isAcceptingInputPackets();
+            if (variant.equals("gliding")) doReturn(true).when(player).isGliding();
+            if (variant.equals("swimming")) doReturn(true).when(player).isSwimming();
+            if (variant.equals("crawling")) doReturn(true).when(player).isCrawling();
+            if (variant.equals("flying")) when(player.getAdventureSettings().get(AdventureSettings.Type.FLYING)).thenReturn(true);
+            if (variant.equals("riding")) player.riding = mock(Entity.class);
+            CraftingTransaction craft = mock(CraftingTransaction.class);
+            EnchantTransaction enchant = mock(EnchantTransaction.class);
+            RepairItemTransaction repair = mock(RepairItemTransaction.class);
+            player.setPendingTransactions(variant.equals("craft") ? craft : null, variant.equals("enchant") ? enchant : null, variant.equals("repair") ? repair : null);
             int count = variant.equals("mature") ? 2 : 1;
             player.setInitialElapsed(variant.equals("early") ? 0 : 1700);
             if (enabled) {
@@ -159,16 +213,23 @@ class EmbeddedUseLifecycleAdmissionTest {
                 assertEquals(count + 1, dispatcher.drain(true, 40, Long.MAX_VALUE));
                 assertEquals("follower", order.getLast());
             } else for (int i = 0; i < count; i++) player.handleDataPacket(packet);
-            boolean consumed = variant.equals("mature");
+            boolean consumed = List.of("mature", "gliding", "swimming", "crawling", "flying", "riding", "craft", "enchant", "repair", "swim-edge", "swim-cancel").contains(variant);
             assertEquals(consumed ? 7 : 8, inventory.getItem(0).getCount());
             verify(food, times(consumed ? 1 : 0)).addFoodLevel(any(Food.class));
-            verify(processor, times(enabled ? count : 0)).validateReceivedPacket(any(), any(), anyBoolean());
+            verify(processor, times(enabled && !variant.equals("retired") ? count : 0)).validateReceivedPacket(any(), any(), anyBoolean());
             verify(plugins, times(count)).callEvent(any(DataPacketReceiveEvent.class));
             if (variant.equals("edge-only")) { assertFalse(using.get()); verify(player, never()).setUsingItem(anyBoolean()); }
             if (variant.equals("start")) { assertTrue(using.get()); verify(plugins, never()).callEvent(any(PlayerItemConsumeEvent.class)); }
-            if (order.contains("interact") && enabled) assertTrue(order.indexOf("commit") < order.indexOf("interact"));
+            if (order.contains("interact") && enabled && !variant.equals("riding")) assertTrue(order.indexOf("commit") < order.indexOf("interact"));
             if (variant.equals("packet-cancel")) verify(player, never()).commitReceivedMovement();
             if (variant.equals("move-reject")) verify(plugins, never()).callEvent(any(PlayerInteractEvent.class));
+            if (List.of("sleep", "teleport", "unspawned", "dead", "offline", "retired", "event-epoch", "swim-epoch", "flight-denied").contains(variant)) verify(plugins, never()).callEvent(any(PlayerInteractEvent.class));
+            if (variant.equals("riding")) verify(player, never()).commitReceivedMovement();
+            if (variant.equals("swim-edge") || variant.equals("swim-cancel")) assertTrue(order.indexOf("pose") < order.indexOf("commit"));
+            if (variant.equals("swim-cancel")) verify(player, never()).setSwimming(true);
+            if (variant.equals("flight-denied")) verify(player, never()).commitReceivedMovement();
+            assertTrue(player.pendingTransactionsAre(variant.equals("craft") ? craft : null, variant.equals("enchant") ? enchant : null, variant.equals("repair") ? repair : null));
+            verifyNoInteractions(craft, enchant, repair);
             verify(player, never()).onUpdate(anyInt());
         }
     }
@@ -179,6 +240,13 @@ class EmbeddedUseLifecycleAdmissionTest {
             this.server = server; this.level = level; this.inventory = inventory; this.offhandInventory = offhand;
             this.isSynapseLogin = true; this.spawned = true; this.startAction = 1;
             this.startActionTimestamp = System.currentTimeMillis() - elapsed;
+        }
+        void awaitTeleport() { this.teleportPosition = new Vector3(); }
+        void setPendingTransactions(CraftingTransaction craft, EnchantTransaction enchant, RepairItemTransaction repair) {
+            this.craftingTransaction = craft; this.enchantTransaction = enchant; this.repairItemTransaction = repair;
+        }
+        boolean pendingTransactionsAre(CraftingTransaction craft, EnchantTransaction enchant, RepairItemTransaction repair) {
+            return this.craftingTransaction == craft && this.enchantTransaction == enchant && this.repairItemTransaction == repair;
         }
         void setInitialElapsed(int elapsed) { this.startActionTimestamp = System.currentTimeMillis() - elapsed; }
         void setUseClock(boolean value) { this.startAction = value ? 40 : -1; this.startActionTimestamp = value ? System.currentTimeMillis() : -1; }
