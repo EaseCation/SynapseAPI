@@ -22,8 +22,6 @@ class MovementAttributionTest {
     @Test
     void individualGatesAndFirstFailureMatchTheOriginalShortCircuitOrder() {
         List<Gate> gates = List.of(
-                new Gate(InputBlockReason.NOT_SPAWNED, p -> p.spawned(false)),
-                new Gate(InputBlockReason.OFFLINE, p -> doReturn(false).when(p).isOnline()),
                 new Gate(InputBlockReason.MOVEMENT_AUTHORITY_DISABLED, p -> doReturn(false).when(p).isServerAuthoritativeMovementEnabled()),
                 new Gate(InputBlockReason.PACKET_SEQUENCE_UNSUPPORTED, p -> doReturn(false).when(p).supportsPacketSequences()),
                 new Gate(InputBlockReason.INPUT_PROCESSOR_MISSING, p -> when(p.testServer().getPlayerInputProcessor()).thenReturn(null)));
@@ -89,10 +87,10 @@ class MovementAttributionTest {
     @Test
     void diagnosticDoesNotReadPastFirstFailure() {
         ItemActionAdmissionTest.TestPlayer player = ItemActionAdmissionTest.player();
-        player.spawned(false);
+        doReturn(false).when(player).isServerAuthoritativeMovementEnabled();
         clearInvocations(player);
-        assertEquals(InputBlockReason.NOT_SPAWNED, player.movementBlockReason());
-        verify(player, never()).isOnline();
+        assertEquals(InputBlockReason.MOVEMENT_AUTHORITY_DISABLED, player.movementBlockReason());
+        verify(player, never()).supportsPacketSequences();
         verify(player, never()).isUsingItem();
         verify(player, never()).getAdventureSettings();
     }

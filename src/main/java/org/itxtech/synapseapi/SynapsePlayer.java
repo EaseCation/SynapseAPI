@@ -1651,8 +1651,11 @@ public class SynapsePlayer extends Player {
     }
 
     final InputBlockReason movementBlockReason() {
-        if (!this.spawned) return InputBlockReason.NOT_SPAWNED;
-        if (!this.isOnline()) return InputBlockReason.OFFLINE;
+        // 现代入口已有初始化前置拒绝；目标以外的旧入口保留原就绪门禁。
+        if (!(this instanceof SynapsePlayer116100)) {
+            if (!this.spawned) return InputBlockReason.NOT_SPAWNED;
+            if (!this.isOnline()) return InputBlockReason.OFFLINE;
+        }
         if (!this.isServerAuthoritativeMovementEnabled()) return InputBlockReason.MOVEMENT_AUTHORITY_DISABLED;
         if (!this.supportsPacketSequences()) return InputBlockReason.PACKET_SEQUENCE_UNSUPPORTED;
         if (this.server.getPlayerInputProcessor() == null) return InputBlockReason.INPUT_PROCESSOR_MISSING;
