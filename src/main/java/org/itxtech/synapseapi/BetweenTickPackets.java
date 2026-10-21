@@ -15,6 +15,7 @@ import org.itxtech.synapseapi.multiprotocol.common.PlayerAuthInputFlags;
 import org.itxtech.synapseapi.multiprotocol.protocol113.protocol.IPlayerAuthInputPacket;
 import org.itxtech.synapseapi.multiprotocol.protocol113.protocol.InteractPacket113;
 import org.itxtech.synapseapi.multiprotocol.protocol19.protocol.NetworkStackLatencyPacket19;
+import org.itxtech.synapseapi.multiprotocol.protocol119.protocol.PlayerActionPacket119;
 import org.itxtech.synapseapi.multiprotocol.protocol14.protocol.PlayerHotbarPacket14;
 import org.itxtech.synapseapi.multiprotocol.protocol116.protocol.InventoryTransactionPacket116;
 import org.itxtech.synapseapi.multiprotocol.protocol116100.protocol.EntityEventPacket116100;
@@ -114,6 +115,11 @@ final class BetweenTickPackets {
         if (packet instanceof AnimatePacket121130 animation) {
             return animation.action == AnimatePacket.Action.SWING_ARM && Float.isFinite(animation.data);
         }
+        if (packet instanceof PlayerActionPacket119 action) {
+            // 方块使用起止沿原事件和服务端计时处理，不阻塞同序使用及后继移动。
+            return action.action == PlayerActionPacket119.ACTION_ITEM_USE_ON_START
+                    || action.action == PlayerActionPacket119.ACTION_ITEM_USE_ON_STOP;
+        }
         if (packet instanceof InventoryTransactionPacket116 transaction) {
             return supportsItemAction(transaction);
         }
@@ -130,6 +136,7 @@ final class BetweenTickPackets {
         if (embeddedUse) {
             // 仍由原 AuthInput handler 在有效移动提交后完整处理，不拆分内嵌动作。
             if (use.actionType != InventoryTransactionPacket116.USE_ITEM_ACTION_CLICK_AIR
+                    && use.actionType != InventoryTransactionPacket116.USE_ITEM_ACTION_CLICK_BLOCK
                     || use.itemInHand == null || !supportsInventoryActions(input.getInventoryActions())) {
                 return false;
             }
@@ -147,7 +154,7 @@ final class BetweenTickPackets {
         long allowed = MOVEMENT_FLAGS | (1L << PlayerAuthInputFlags.MISSED_SWING)
                 | (1L << PlayerAuthInputFlags.PERFORM_BLOCK_ACTIONS) | formatFlags | (CONTEXT_FLAGS << shift)
                 | (embeddedUse ? 1L << PlayerAuthInputFlags.PERFORM_ITEM_INTERACTION : 0)
-                // 同包姿态与已支持的对空使用保持原handler顺序，不拆分执行。
+                // 同包姿态与已支持的物品使用保持原handler顺序，不拆分执行。
                 | PURE_POSE_FLAGS | ((SPIN_FLAGS | VEHICLE_FLAGS) << shift);
         long allowed2 = (CONTEXT_FLAGS2 << shift)
                 | (shift == 0 ? 0 : CONTEXT_FLAGS >>> (Long.SIZE - shift));
@@ -208,7 +215,8 @@ final class BetweenTickPackets {
                             && data.itemInHand != null;
             case InventoryTransactionPacket116.TYPE_USE_ITEM ->
                     packet.transactionData instanceof UseItemData data
-                            && data.actionType == InventoryTransactionPacket116.USE_ITEM_ACTION_CLICK_AIR
+                            && (data.actionType == InventoryTransactionPacket116.USE_ITEM_ACTION_CLICK_AIR
+                            || data.actionType == InventoryTransactionPacket116.USE_ITEM_ACTION_CLICK_BLOCK)
                             && data.itemInHand != null;
             case InventoryTransactionPacket116.TYPE_RELEASE_ITEM ->
                     packet.transactionData instanceof ReleaseItemData data

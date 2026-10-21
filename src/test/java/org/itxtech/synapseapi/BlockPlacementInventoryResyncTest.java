@@ -1,10 +1,12 @@
 package org.itxtech.synapseapi;
 
 import cn.nukkit.Server;
+import cn.nukkit.AdventureSettings;
 import cn.nukkit.Player;
 import cn.nukkit.block.Block;
 import cn.nukkit.block.BlockID;
 import cn.nukkit.event.Event;
+import cn.nukkit.entity.data.EntityMetadata;
 import cn.nukkit.event.player.PlayerInteractEvent;
 import cn.nukkit.inventory.ItemUseHand;
 import cn.nukkit.inventory.PlayerInventory;
@@ -18,6 +20,12 @@ import cn.nukkit.math.BlockVector3;
 import cn.nukkit.math.Vector3;
 import cn.nukkit.math.Vector3f;
 import cn.nukkit.network.SourceInterface;
+import cn.nukkit.network.input.PlayerInputProcessor;
+import cn.nukkit.network.input.ServerInputDispatcher;
+import cn.nukkit.network.input.ServerInputTask;
+import cn.nukkit.network.input.InboundContext;
+import cn.nukkit.network.protocol.ProtocolInfo;
+import cn.nukkit.utils.LoginChainData;
 import cn.nukkit.network.Compressor;
 import cn.nukkit.network.protocol.DataPacket;
 import cn.nukkit.network.protocol.InventoryTransactionPacket;
@@ -27,6 +35,8 @@ import cn.nukkit.network.protocol.types.ContainerIds;
 import cn.nukkit.network.protocol.types.NetworkInventoryAction;
 import cn.nukkit.plugin.PluginManager;
 import org.itxtech.synapseapi.multiprotocol.AbstractProtocol;
+import org.itxtech.synapseapi.multiprotocol.common.PlayerAuthInputFlags;
+import org.itxtech.synapseapi.multiprotocol.protocol116220.protocol.PlayerAuthInputPacket116220;
 import org.itxtech.synapseapi.multiprotocol.protocol116.protocol.InventoryTransactionPacket116;
 import org.itxtech.synapseapi.multiprotocol.protocol12630.protocol.InventoryTransactionPacket12630;
 import org.junit.jupiter.api.BeforeAll;
@@ -37,6 +47,8 @@ import java.net.InetSocketAddress;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.BitSet;
+import java.util.UUID;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Consumer;
 
@@ -114,6 +126,75 @@ class BlockPlacementInventoryResyncTest {
     @Test
     void rejectedLegacySlotStillCorrectsPredictedBlockAndInventory() {
         verifyFailureResync(false, true);
+    }
+
+    @Test
+    void supplementalEmbeddedUnchangedPredictionKeepsOriginalNoInventoryCorrection() {
+        try (InventorySyncFixture fixture = new InventorySyncFixture(false, true)) {
+            fixture.request(false, 10, true, true, false);
+            assertEquals(1, fixture.interactions.get());
+            assertEquals(10, fixture.inventory.getItem(0).getCount());
+            assertTrue(fixture.inventoryPackets().isEmpty());
+        }
+    }
+
+    @Test
+    void supplementalIndependentUnchangedPredictionKeepsOriginalNoInventoryCorrection() {
+        try (InventorySyncFixture fixture = new InventorySyncFixture(false, true)) {
+            fixture.request(false, 10, false, true, false);
+            assertEquals(1, fixture.interactions.get());
+            assertEquals(10, fixture.inventory.getItem(0).getCount());
+            assertTrue(fixture.inventoryPackets().isEmpty());
+        }
+    }
+
+    @Test
+    void supplementalEmbeddedDifferentClaimStillGetsAuthoritativeInventory() {
+        try (InventorySyncFixture fixture = new InventorySyncFixture(false, true)) {
+            fixture.request(false, 9, true, true, false);
+            assertEquals(10, fixture.inventory.getItem(0).getCount());
+            fixture.assertCorrectionsContain(10);
+        }
+    }
+
+    @Test
+    void supplementalEmbeddedCallbackReplacementIsNotOverwritten() {
+        try (InventorySyncFixture fixture = new InventorySyncFixture(false, true)) {
+            fixture.onInteract = event -> fixture.inventory.setItem(0, wool(6), false);
+            fixture.request(false, 10, true, true, false);
+            assertEquals(6, fixture.inventory.getItem(0).getCount());
+            fixture.assertCorrectionsContain(6);
+        }
+    }
+
+    @Test
+    void supplementalEmbeddedCancellationCannotConsumePredictedStack() {
+        try (InventorySyncFixture fixture = new InventorySyncFixture(false, true)) {
+            fixture.onInteract = PlayerInteractEvent::setCancelled;
+            fixture.request(true, 10, true, true, false);
+            assertEquals(1, fixture.interactions.get());
+            assertEquals(10, fixture.inventory.getItem(0).getCount());
+            fixture.assertCorrectionsContain(10);
+        }
+    }
+
+    @Test
+    void rejectedEmbeddedMovementDoesNotReachBlockInteraction() {
+        try (InventorySyncFixture fixture = new InventorySyncFixture(false, true)) {
+            fixture.request(true, 10, true, true, true);
+            assertEquals(0, fixture.interactions.get());
+            assertEquals(10, fixture.inventory.getItem(0).getCount());
+        }
+    }
+
+    @Test
+    void disabledEmbeddedUnchangedPredictionKeepsOriginalInventory() {
+        try (InventorySyncFixture fixture = new InventorySyncFixture(false, false)) {
+            fixture.request(false, 10, true, false, false);
+            assertEquals(1, fixture.interactions.get());
+            assertEquals(10, fixture.inventory.getItem(0).getCount());
+            assertTrue(fixture.inventoryPackets().isEmpty());
+        }
     }
 
     private void verifyUnchangedInventory(boolean modern, boolean inputMode) {
@@ -267,6 +348,11 @@ class BlockPlacementInventoryResyncTest {
         }
 
         private void request(boolean predictedSuccess, int claimedCount) {
+            request(predictedSuccess, claimedCount, false, false, false);
+        }
+
+        private void request(boolean predictedSuccess, int claimedCount, boolean embedded,
+                             boolean supplemental, boolean rejectMovement) {
             UseItemData data = new UseItemData();
             data.actionType = InventoryTransactionPacket.USE_ITEM_ACTION_CLICK_BLOCK;
             data.blockPos = new BlockVector3(0, 1, 0);
@@ -275,18 +361,63 @@ class BlockPlacementInventoryResyncTest {
             data.clickPos = new Vector3f(0.5f, 1, 0.5f);
             data.itemInHand = wool(claimedCount);
             data.clientInteractPrediction = predictedSuccess;
-            if (modern) {
+            DataPacket packet;
+            if (embedded) {
+                PlayerAuthInputPacket116220 input = mock(PlayerAuthInputPacket116220.class);
+                BitSet flags = new BitSet();
+                flags.set(PlayerAuthInputFlags.PERFORM_ITEM_INTERACTION);
+                when(input.pid()).thenReturn(ProtocolInfo.PLAYER_AUTH_INPUT_PACKET);
+                when(input.getUseItemData()).thenReturn(data);
+                when(input.getInputFlags()).thenReturn(flags);
+                when(input.hasFlag(anyInt())).thenCallRealMethod();
+                when(input.getInventoryActions()).thenReturn(new NetworkInventoryAction[0]);
+                doReturn(mock(LoginChainData.class)).when(player).getLoginChainData();
+                doReturn(!rejectMovement).when(player).commitReceivedMovement();
+                doReturn(true).when(player).isServerAuthoritativeMovementEnabled();
+                doNothing().when(player).onClientTickUpdated(anyLong());
+                doNothing().when(player).setUsingItem(anyBoolean());
+                packet = input;
+            } else if (modern) {
                 InventoryTransactionPacket12630 transaction = new InventoryTransactionPacket12630();
                 transaction.transactionType = InventoryTransactionPacket.TYPE_USE_ITEM;
                 transaction.transactionData = data;
                 transaction.actions = new NetworkInventoryAction[0];
-                player.handleDataPacket(transaction);
+                packet = transaction;
             } else {
                 InventoryTransactionPacket116 transaction = new InventoryTransactionPacket116();
                 transaction.transactionType = InventoryTransactionPacket.TYPE_USE_ITEM;
                 transaction.transactionData = data;
                 transaction.actions = new NetworkInventoryAction[0];
-                player.handleDataPacket(transaction);
+                packet = transaction;
+            }
+            if (supplemental) {
+                doReturn(new EntityMetadata()).when(player).getDataProperties();
+                doReturn(true).when(player).supportsPacketSequences();
+                when(player.getServer().getPlayerInputProcessor()).thenReturn(mock(PlayerInputProcessor.class));
+                doReturn(true).when(player).isServerAuthoritativeMovementEnabled();
+                doReturn(mock(AdventureSettings.class)).when(player).getAdventureSettings();
+                assertTrue(BetweenTickPackets.supports(packet));
+                ServerInputDispatcher dispatcher = new ServerInputDispatcher(Thread.currentThread(),
+                        16, 1024, 16, 1024, error -> fail(error));
+                List<String> order = new ArrayList<>();
+                dispatcher.offer(new ServerInputDispatcher.Session(UUID.randomUUID()), new ServerInputTask() {
+                    @Override
+                    public boolean canRunBetweenTicks() {
+                        return BetweenTickPackets.canRunBetweenTicks(player, packet);
+                    }
+
+                    @Override
+                    public void run(InboundContext context) {
+                        assertTrue(context.betweenTicks());
+                        player.handleDataPacket(packet);
+                        order.add("block-use");
+                    }
+                }, 1, true);
+                dispatcher.offer(new ServerInputDispatcher.Session(UUID.randomUUID()), context -> order.add("follower"), 1, true);
+                assertEquals(2, dispatcher.drain(true, 42, Long.MAX_VALUE));
+                assertEquals(List.of("block-use", "follower"), order);
+            } else {
+                player.handleDataPacket(packet);
             }
         }
 

@@ -162,7 +162,7 @@ class BetweenTickPacketsTest {
         packet.transactionData = use;
         assertTrue(BetweenTickPackets.supports(packet));
         use.actionType = InventoryTransactionPacket116.USE_ITEM_ACTION_CLICK_BLOCK;
-        assertFalse(BetweenTickPackets.supports(packet));
+        assertTrue(BetweenTickPackets.supports(packet));
     }
 
     private static InventoryTransactionPacket116 release() {
@@ -259,7 +259,7 @@ class BetweenTickPacketsTest {
         assertTrue(BetweenTickPackets.supports(packet));
         when(input.getBlockActions()).thenReturn(null);
         use.actionType = InventoryTransactionPacket116.USE_ITEM_ACTION_CLICK_BLOCK;
-        assertFalse(BetweenTickPackets.supports(packet));
+        assertTrue(BetweenTickPackets.supports(packet));
     }
 
     @Test
