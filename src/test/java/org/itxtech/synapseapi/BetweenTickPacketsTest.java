@@ -18,6 +18,7 @@ import java.util.List;
 import java.util.BitSet;
 import cn.nukkit.entity.Entity;
 import cn.nukkit.network.protocol.DataPacket;
+import cn.nukkit.network.protocol.PlayerActionPacket;
 import cn.nukkit.network.protocol.types.ItemStackRequest;
 import cn.nukkit.network.protocol.types.NetworkInventoryAction;
 import org.itxtech.synapseapi.multiprotocol.common.PlayerAuthInputFlags;
@@ -231,7 +232,7 @@ class BetweenTickPacketsTest {
     }
 
     @Test
-    void embeddedUseCannotAdmitContainerCraftingOrMixedWorldActions() {
+    void embeddedUseAndBlockActionsKeepContainerAndCraftingBoundaries() {
         DataPacket packet = movement();
         IPlayerAuthInputPacket input = (IPlayerAuthInputPacket) packet;
         when(input.hasFlag(anyInt())).thenCallRealMethod();
@@ -253,8 +254,9 @@ class BetweenTickPacketsTest {
         when(input.isCraftingPart()).thenReturn(true);
         assertFalse(BetweenTickPackets.supports(packet));
         when(input.isCraftingPart()).thenReturn(false);
-        when(input.getBlockActions()).thenReturn(new PlayerBlockAction[1]);
-        assertFalse(BetweenTickPackets.supports(packet));
+        when(input.getBlockActions()).thenReturn(new PlayerBlockAction[]{
+                new PlayerBlockAction(PlayerActionPacket.ACTION_START_BREAK, 1, 0, 0, 1)});
+        assertTrue(BetweenTickPackets.supports(packet));
         when(input.getBlockActions()).thenReturn(null);
         use.actionType = InventoryTransactionPacket116.USE_ITEM_ACTION_CLICK_BLOCK;
         assertFalse(BetweenTickPackets.supports(packet));
@@ -375,7 +377,7 @@ class BetweenTickPacketsTest {
         DataPacket packet = movement();
         IPlayerAuthInputPacket input = (IPlayerAuthInputPacket) packet;
         int[] barriers = {
-                PlayerAuthInputFlags.PERFORM_ITEM_INTERACTION, PlayerAuthInputFlags.PERFORM_BLOCK_ACTIONS,
+                PlayerAuthInputFlags.PERFORM_ITEM_INTERACTION,
                 PlayerAuthInputFlags.PERFORM_ITEM_STACK_REQUEST};
         for (int layout = 0; layout <= 2; layout++) {
             for (int flag : barriers) {
@@ -398,8 +400,9 @@ class BetweenTickPacketsTest {
         when(input.getInventoryActions()).thenReturn(new NetworkInventoryAction[1]);
         assertFalse(BetweenTickPackets.supports(packet));
         when(input.getInventoryActions()).thenReturn(null);
-        when(input.getBlockActions()).thenReturn(new PlayerBlockAction[1]);
-        assertFalse(BetweenTickPackets.supports(packet));
+        when(input.getBlockActions()).thenReturn(new PlayerBlockAction[]{
+                new PlayerBlockAction(PlayerActionPacket.ACTION_START_BREAK, 1, 0, 0, 1)});
+        assertTrue(BetweenTickPackets.supports(packet));
         when(input.getBlockActions()).thenReturn(null);
         when(input.getRequestChangedSlots()).thenReturn(new LegacySetItemSlotData[1]);
         assertFalse(BetweenTickPackets.supports(packet));

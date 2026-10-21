@@ -124,8 +124,7 @@ final class BetweenTickPackets {
         boolean embeddedUse = use != null;
         if (input.hasFlag(PlayerAuthInputFlags.PERFORM_ITEM_INTERACTION) != embeddedUse
                 || input.getItemStackRequest() != null || input.isCraftingPart()
-                || input.isEnchantingPart() || input.isRepairItemPart()
-                || input.getBlockActions() != null && input.getBlockActions().length != 0) {
+                || input.isEnchantingPart() || input.isRepairItemPart()) {
             return false;
         }
         if (embeddedUse) {
@@ -145,7 +144,8 @@ final class BetweenTickPackets {
             return false;
         }
         long formatFlags = ((1L << shift) - 1) << PlayerAuthInputFlags.ACK_ENTITY_DATA;
-        long allowed = MOVEMENT_FLAGS | (1L << PlayerAuthInputFlags.MISSED_SWING) | formatFlags | (CONTEXT_FLAGS << shift)
+        long allowed = MOVEMENT_FLAGS | (1L << PlayerAuthInputFlags.MISSED_SWING)
+                | (1L << PlayerAuthInputFlags.PERFORM_BLOCK_ACTIONS) | formatFlags | (CONTEXT_FLAGS << shift)
                 | (embeddedUse ? 1L << PlayerAuthInputFlags.PERFORM_ITEM_INTERACTION : 0)
                 // 同包姿态与已支持的对空使用保持原handler顺序，不拆分执行。
                 | PURE_POSE_FLAGS | ((SPIN_FLAGS | VEHICLE_FLAGS) << shift);
