@@ -1653,7 +1653,6 @@ public class SynapsePlayer extends Player {
     final InputBlockReason movementBlockReason() {
         if (!this.spawned) return InputBlockReason.NOT_SPAWNED;
         if (!this.isOnline()) return InputBlockReason.OFFLINE;
-        if (this.riding != null) return InputBlockReason.RIDING;
         if (!this.isServerAuthoritativeMovementEnabled()) return InputBlockReason.MOVEMENT_AUTHORITY_DISABLED;
         if (!this.supportsPacketSequences()) return InputBlockReason.PACKET_SEQUENCE_UNSUPPORTED;
         if (this.server.getPlayerInputProcessor() == null) return InputBlockReason.INPUT_PROCESSOR_MISSING;

@@ -1,6 +1,5 @@
 package org.itxtech.synapseapi;
 
-import cn.nukkit.entity.Entity;
 import cn.nukkit.inventory.PlayerInventory;
 import cn.nukkit.inventory.transaction.CraftingTransaction;
 import cn.nukkit.inventory.transaction.EnchantTransaction;
@@ -25,7 +24,6 @@ class MovementAttributionTest {
         List<Gate> gates = List.of(
                 new Gate(InputBlockReason.NOT_SPAWNED, p -> p.spawned(false)),
                 new Gate(InputBlockReason.OFFLINE, p -> doReturn(false).when(p).isOnline()),
-                new Gate(InputBlockReason.RIDING, p -> p.ride(mock(Entity.class))),
                 new Gate(InputBlockReason.MOVEMENT_AUTHORITY_DISABLED, p -> doReturn(false).when(p).isServerAuthoritativeMovementEnabled()),
                 new Gate(InputBlockReason.PACKET_SEQUENCE_UNSUPPORTED, p -> doReturn(false).when(p).supportsPacketSequences()),
                 new Gate(InputBlockReason.INPUT_PROCESSOR_MISSING, p -> when(p.testServer().getPlayerInputProcessor()).thenReturn(null)));

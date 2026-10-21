@@ -261,7 +261,7 @@ class BetweenTickPacketsTest {
     }
 
     @Test
-    void poseTransitionsAreEligibleButDoNotOpenMixedWorldActions() {
+    void poseAndVehicleInputsAreEligibleButDoNotOpenMixedWorldActions() {
         DataPacket packet = movement();
         IPlayerAuthInputPacket input = (IPlayerAuthInputPacket) packet;
         when(input.hasFlag(anyInt())).thenCallRealMethod();
@@ -270,7 +270,8 @@ class BetweenTickPacketsTest {
                     PlayerAuthInputFlags.START_SWIMMING, PlayerAuthInputFlags.STOP_SWIMMING,
                     PlayerAuthInputFlags.START_CRAWLING, PlayerAuthInputFlags.STOP_CRAWLING,
                     PlayerAuthInputFlags.START_GLIDING, PlayerAuthInputFlags.STOP_GLIDING,
-                    PlayerAuthInputFlags.START_SPIN_ATTACK, PlayerAuthInputFlags.STOP_SPIN_ATTACK}) {
+                    PlayerAuthInputFlags.START_SPIN_ATTACK, PlayerAuthInputFlags.STOP_SPIN_ATTACK,
+                    PlayerAuthInputFlags.IN_CLIENT_PREDICTED_IN_VEHICLE, PlayerAuthInputFlags.PADDLE_LEFT, PlayerAuthInputFlags.PADDLE_RIGHT}) {
                 flags(input, layout, PlayerAuthInputFlags.UP, flag);
                 assertTrue(BetweenTickPackets.supports(packet));
                 flags(input, layout, flag, PlayerAuthInputFlags.MISSED_SWING);
@@ -370,12 +371,11 @@ class BetweenTickPacketsTest {
     }
 
     @Test
-    void unreviewedActionsAndVehicleHintsRemainWholePacketBarriers() {
+    void unreviewedActionsRemainWholePacketBarriers() {
         DataPacket packet = movement();
         IPlayerAuthInputPacket input = (IPlayerAuthInputPacket) packet;
         int[] barriers = {
                 PlayerAuthInputFlags.START_USING_ITEM,
-                PlayerAuthInputFlags.IN_CLIENT_PREDICTED_IN_VEHICLE, PlayerAuthInputFlags.PADDLE_LEFT,
                 PlayerAuthInputFlags.PERFORM_ITEM_INTERACTION, PlayerAuthInputFlags.PERFORM_BLOCK_ACTIONS,
                 PlayerAuthInputFlags.PERFORM_ITEM_STACK_REQUEST};
         for (int layout = 0; layout <= 2; layout++) {
