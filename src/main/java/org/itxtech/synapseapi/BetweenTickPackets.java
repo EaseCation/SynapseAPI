@@ -2,6 +2,7 @@ package org.itxtech.synapseapi;
 
 import cn.nukkit.network.protocol.DataPacket;
 import cn.nukkit.network.protocol.AnimatePacket;
+import cn.nukkit.network.protocol.EntityEventPacket;
 import cn.nukkit.network.protocol.MobEquipmentPacket;
 import cn.nukkit.network.protocol.PlayerHotbarPacket;
 import cn.nukkit.network.protocol.ResourcePackChunkRequestPacket;
@@ -16,6 +17,8 @@ import org.itxtech.synapseapi.multiprotocol.protocol113.protocol.InteractPacket1
 import org.itxtech.synapseapi.multiprotocol.protocol19.protocol.NetworkStackLatencyPacket19;
 import org.itxtech.synapseapi.multiprotocol.protocol14.protocol.PlayerHotbarPacket14;
 import org.itxtech.synapseapi.multiprotocol.protocol116.protocol.InventoryTransactionPacket116;
+import org.itxtech.synapseapi.multiprotocol.protocol116100.protocol.EntityEventPacket116100;
+import org.itxtech.synapseapi.multiprotocol.protocol12620.protocol.EntityEventPacket12620;
 import org.itxtech.synapseapi.multiprotocol.protocol121120.protocol.AnimatePacket121120;
 import org.itxtech.synapseapi.multiprotocol.protocol121130.protocol.AnimatePacket121130;
 import org.itxtech.synapseapi.multiprotocol.protocol16.protocol.NEPyRpcPacket16;
@@ -66,6 +69,12 @@ final class BetweenTickPackets {
     }
 
     static boolean supports(DataPacket packet) {
+        if (packet instanceof EntityEventPacket116100 event) {
+            return event.event == EntityEventPacket.EATING_ITEM;
+        }
+        if (packet instanceof EntityEventPacket12620 event) {
+            return event.event == EntityEventPacket.EATING_ITEM;
+        }
         if (packet instanceof NetworkStackLatencyPacket19 || packet instanceof ResourcePackChunkRequestPacket) {
             return true;
         }
