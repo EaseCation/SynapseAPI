@@ -373,7 +373,7 @@ class BetweenTickPacketsTest {
     }
 
     @Test
-    void unreviewedActionsRemainWholePacketBarriers() {
+    void legacyInterfaceKeepsUnreviewedActionsAsWholePacketBarriers() {
         DataPacket packet = movement();
         IPlayerAuthInputPacket input = (IPlayerAuthInputPacket) packet;
         int[] barriers = {
@@ -426,7 +426,7 @@ class BetweenTickPacketsTest {
     }
 
     @Test
-    void unknownBitsAndUnknownLayoutsDoNotAcquireIdleEligibility() {
+    void legacyInterfaceKeepsUnknownBitsAndLayoutsAsBarriers() {
         DataPacket packet = movement();
         IPlayerAuthInputPacket input = (IPlayerAuthInputPacket) packet;
         input.getInputFlags().set(Long.SIZE + 20);

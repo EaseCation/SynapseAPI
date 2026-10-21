@@ -16,6 +16,7 @@ import org.itxtech.synapseapi.multiprotocol.protocol113.protocol.IPlayerAuthInpu
 import org.itxtech.synapseapi.multiprotocol.protocol113.protocol.InteractPacket113;
 import org.itxtech.synapseapi.multiprotocol.protocol19.protocol.NetworkStackLatencyPacket19;
 import org.itxtech.synapseapi.multiprotocol.protocol119.protocol.PlayerActionPacket119;
+import org.itxtech.synapseapi.multiprotocol.protocol116220.protocol.PlayerAuthInputPacket116220;
 import org.itxtech.synapseapi.multiprotocol.protocol14.protocol.PlayerHotbarPacket14;
 import org.itxtech.synapseapi.multiprotocol.protocol116.protocol.InventoryTransactionPacket116;
 import org.itxtech.synapseapi.multiprotocol.protocol116100.protocol.EntityEventPacket116100;
@@ -122,6 +123,10 @@ final class BetweenTickPackets {
         }
         if (packet instanceof InventoryTransactionPacket116 transaction) {
             return supportsItemAction(transaction);
+        }
+        if (packet instanceof PlayerAuthInputPacket116220) {
+            // 目标现代协议完整移动沿原解码、事件、验证和handler执行，不再重复按载荷设阶段门禁。
+            return true;
         }
         if (!(packet instanceof IPlayerAuthInputPacket input)) {
             return false;

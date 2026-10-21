@@ -6,6 +6,11 @@ import cn.nukkit.block.BlockID;
 import cn.nukkit.event.block.BlockBreakEvent;
 import cn.nukkit.event.player.PlayerInteractEvent;
 import cn.nukkit.inventory.PlayerInventory;
+import cn.nukkit.inventory.ItemUseHand;
+import cn.nukkit.inventory.transaction.data.UseItemData;
+import cn.nukkit.math.BlockVector3;
+import cn.nukkit.math.Vector3f;
+import org.itxtech.synapseapi.multiprotocol.protocol116.protocol.InventoryTransactionPacket116;
 import cn.nukkit.item.Item;
 import cn.nukkit.item.ItemPickaxeIron;
 import cn.nukkit.level.Level;
@@ -45,6 +50,10 @@ class BlockActionAdmissionTest {
     @Test void rejectedMovementCannotStartBlockActions() { check("move-reject", true); }
     @Test void farStartDoesNotReadWorldOrBreak() { check("far", true); }
     @Test void disabledModeKeepsOriginalNativeOrder() { check("reverse", false); }
+
+    @Test void embeddedBreakUsesOriginalTargetAndWorldOnce() { check("embedded-break", true); }
+    @Test void embeddedBreakWithoutTargetCannotBreak() { check("embedded-no-target", true); }
+    @Test void disabledEmbeddedBreakKeepsOriginalTargetAndWorld() { check("embedded-break", false); }
 
     private void check(String variant, boolean enabled) {
         ProbePlayer player = mock(ProbePlayer.class, CALLS_REAL_METHODS);
@@ -97,8 +106,21 @@ class BlockActionAdmissionTest {
         PlayerBlockAction[] actions=variant.equals("reverse")?new PlayerBlockAction[]{finish,start}:new PlayerBlockAction[]{start,finish};
         PlayerAuthInputPacket116220 packet=mock(PlayerAuthInputPacket116220.class);
         when(packet.pid()).thenReturn(ProtocolInfo.PLAYER_AUTH_INPUT_PACKET);
+        if (variant.startsWith("embedded-")) {
+            actions = variant.equals("embedded-no-target") ? new PlayerBlockAction[0] : new PlayerBlockAction[]{start};
+            UseItemData data = new UseItemData();
+            data.actionType = InventoryTransactionPacket116.USE_ITEM_ACTION_BREAK_BLOCK;
+            data.blockPos = new BlockVector3(1, 0, 0);
+            data.face = BlockFace.UP;
+            data.clickPos = new Vector3f();
+            data.itemInHand = item;
+            when(packet.getUseItemData()).thenReturn(data);
+            doReturn(false).when(player).isJavaClient();
+            doReturn(ItemUseHand.MAIN_HAND).when(player).setItemInteractionHand(any());
+        }
         when(packet.getBlockActions()).thenReturn(actions);
         BitSet flags=new BitSet();flags.set(PlayerAuthInputFlags.PERFORM_BLOCK_ACTIONS);
+        if (variant.startsWith("embedded-")) flags.set(PlayerAuthInputFlags.PERFORM_ITEM_INTERACTION);
         when(packet.getInputFlags()).thenReturn(flags);when(packet.hasFlag(anyInt())).thenCallRealMethod();
         long before=System.currentTimeMillis();
         if(enabled){
@@ -111,9 +133,9 @@ class BlockActionAdmissionTest {
             dispatcher.offer(new ServerInputDispatcher.Session(UUID.randomUUID()),context->order.add("follower"),1,true);
             assertEquals(2,dispatcher.drain(true,42,Long.MAX_VALUE));assertEquals(List.of("block-actions","follower"),order);
         }else player.handleDataPacket(packet);
-        int breaks=List.of("predict","reverse","stop").contains(variant)?1:0;
+        int breaks=List.of("predict","reverse","stop","embedded-break").contains(variant)?1:0;
         verify(level,times(breaks)).useBreakOn(any(Vector3.class),any(),eq(item),eq(player),eq(true));
-        if(List.of("cancel","epoch","move-reject","far").contains(variant))assertNull(player.breakingBlock);
+        if(List.of("cancel","epoch","move-reject","far","embedded-no-target").contains(variant))assertNull(player.breakingBlock);
         else assertTrue(player.lastBreak>=before&&player.lastBreak<=System.currentTimeMillis());
         if(variant.equals("continue"))assertSame(target,player.breakingBlock);
         if(variant.equals("abort"))assertNull(player.breakingBlock);
