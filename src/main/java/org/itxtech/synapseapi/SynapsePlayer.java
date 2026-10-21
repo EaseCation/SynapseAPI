@@ -1644,7 +1644,7 @@ public class SynapsePlayer extends Player {
     }
 
     /**
-     * 消费时读取真实服务端状态，判定顺序与原短路表达式一致。
+     * 纯移动仅判定执行阶段，原handler继续负责权限、验证与最终提交。
      */
     final boolean canProcessMovementBetweenTicks() {
         return movementBlockReason() == InputBlockReason.NONE;
@@ -1656,10 +1656,7 @@ public class SynapsePlayer extends Player {
             if (!this.spawned) return InputBlockReason.NOT_SPAWNED;
             if (!this.isOnline()) return InputBlockReason.OFFLINE;
         }
-        if (!this.isServerAuthoritativeMovementEnabled()) return InputBlockReason.MOVEMENT_AUTHORITY_DISABLED;
-        if (!this.supportsPacketSequences()) return InputBlockReason.PACKET_SEQUENCE_UNSUPPORTED;
-        if (this.server.getPlayerInputProcessor() == null) return InputBlockReason.INPUT_PROCESSOR_MISSING;
-        // 持续使用的纯移动不依赖物品类型；原Nya与世界tick负责验证和使用结算。
+        // 能力缺失仍沿原handler拒绝或回退，周期业务不因补充输入额外执行。
         return InputBlockReason.NONE;
     }
 

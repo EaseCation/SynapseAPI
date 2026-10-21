@@ -20,22 +20,18 @@ class MovementAttributionTest {
     private record Gate(InputBlockReason reason, Consumer<ItemActionAdmissionTest.TestPlayer> setup) { }
 
     @Test
-    void individualGatesAndFirstFailureMatchTheOriginalShortCircuitOrder() {
+    void capabilityConditionsRemainOnUnmigratedEmbeddedActionsOnly() {
         List<Gate> gates = List.of(
                 new Gate(InputBlockReason.MOVEMENT_AUTHORITY_DISABLED, p -> doReturn(false).when(p).isServerAuthoritativeMovementEnabled()),
                 new Gate(InputBlockReason.PACKET_SEQUENCE_UNSUPPORTED, p -> doReturn(false).when(p).supportsPacketSequences()),
                 new Gate(InputBlockReason.INPUT_PROCESSOR_MISSING, p -> when(p.testServer().getPlayerInputProcessor()).thenReturn(null)));
-        for (int first = 0; first < gates.size(); first++) {
-            for (int second = first; second < gates.size(); second++) {
-                ItemActionAdmissionTest.TestPlayer player = ItemActionAdmissionTest.player();
-                inventory(player, new ItemBow());
-                gates.get(second).setup.accept(player);
-                gates.get(first).setup.accept(player);
-                assertEquals(gates.get(first).reason, player.movementBlockReason());
-                assertFalse(player.canProcessMovementBetweenTicks());
-                verify(player, never()).onUpdate(anyInt());
-                verify(player, never()).setUsingItem(anyBoolean());
-            }
+        for (Gate gate : gates) {
+            ItemActionAdmissionTest.TestPlayer player = ItemActionAdmissionTest.player();
+            PlayerAuthInputPacket116220 input = mock(PlayerAuthInputPacket116220.class);
+            gate.setup.accept(player);
+            assertEquals(InputBlockReason.NONE, BetweenTickPackets.movementBlockReason(player, input));
+            when(input.getUseItemData()).thenReturn(new UseItemData());
+            assertEquals(gate.reason, BetweenTickPackets.movementBlockReason(player, input));
         }
     }
 
@@ -84,14 +80,4 @@ class MovementAttributionTest {
         }
     }
 
-    @Test
-    void diagnosticDoesNotReadPastFirstFailure() {
-        ItemActionAdmissionTest.TestPlayer player = ItemActionAdmissionTest.player();
-        doReturn(false).when(player).isServerAuthoritativeMovementEnabled();
-        clearInvocations(player);
-        assertEquals(InputBlockReason.MOVEMENT_AUTHORITY_DISABLED, player.movementBlockReason());
-        verify(player, never()).supportsPacketSequences();
-        verify(player, never()).isUsingItem();
-        verify(player, never()).getAdventureSettings();
-    }
 }
