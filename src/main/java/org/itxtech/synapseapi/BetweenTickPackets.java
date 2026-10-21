@@ -46,6 +46,7 @@ final class BetweenTickPackets {
             | (1L << PlayerAuthInputFlags.PADDLE_LEFT)
             | (1L << PlayerAuthInputFlags.PADDLE_RIGHT);
     private static final long CONTEXT_FLAGS = (1L << PlayerAuthInputFlags.ACK_ENTITY_DATA)
+            | (1L << PlayerAuthInputFlags.START_USING_ITEM)
             | (1L << PlayerAuthInputFlags.BLOCK_BREAKING_DELAY_ENABLED)
             | (1L << PlayerAuthInputFlags.HORIZONTAL_COLLISION)
             | (1L << PlayerAuthInputFlags.VERTICAL_COLLISION)
@@ -179,7 +180,6 @@ final class BetweenTickPackets {
         if (input.getUseItemData() == null) {
             return InputBlockReason.NONE;
         }
-        if (player.isUsingItem()) return InputBlockReason.USING_WITH_EMBEDDED_ACTION;
         return player.itemActionBlockReason();
     }
 

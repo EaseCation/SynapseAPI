@@ -34,7 +34,7 @@ import static org.mockito.Mockito.*;
 
 class ItemActionAdmissionTest {
     @Test
-    void allSustainedItemsAllowPureMovementButKeepEmbeddedActionBarriers() {
+    void sustainedUseDoesNotBlockAlreadyAdmittedAirUse() {
         TestPlayer player = player();
         PlayerInventory inventory = mock(PlayerInventory.class);
         player.useInventory(inventory);
@@ -71,7 +71,7 @@ class ItemActionAdmissionTest {
         UseItemData use = new UseItemData();
         PlayerAuthInputPacket116220 embedded = mock(PlayerAuthInputPacket116220.class);
         when(embedded.getUseItemData()).thenReturn(use);
-        assertFalse(BetweenTickPackets.canRunBetweenTicks(player, embedded));
+        assertTrue(BetweenTickPackets.canRunBetweenTicks(player, embedded));
         movement.inputFlags.set(PlayerAuthInputFlags.MISSED_SWING);
         assertTrue(BetweenTickPackets.canRunBetweenTicks(player, movement));
     }
@@ -188,7 +188,7 @@ class ItemActionAdmissionTest {
         player.clearTeleport();
         assertTrue(BetweenTickPackets.canRunBetweenTicks(player, input));
         doReturn(true).when(player).isUsingItem();
-        assertFalse(BetweenTickPackets.canRunBetweenTicks(player, input));
+        assertTrue(BetweenTickPackets.canRunBetweenTicks(player, input));
     }
 
     @Test

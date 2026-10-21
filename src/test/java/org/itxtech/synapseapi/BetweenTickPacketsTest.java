@@ -197,7 +197,7 @@ class BetweenTickPacketsTest {
         for (int layout = 0; layout <= 2; layout++) {
             flags(input, layout, PlayerAuthInputFlags.UP, PlayerAuthInputFlags.START_SPRINTING,
                     PlayerAuthInputFlags.START_JUMPING, PlayerAuthInputFlags.HANDLED_TELEPORT, PlayerAuthInputFlags.MISSED_SWING,
-                    PlayerAuthInputFlags.ACK_ENTITY_DATA, PlayerAuthInputFlags.HORIZONTAL_COLLISION,
+                    PlayerAuthInputFlags.ACK_ENTITY_DATA, PlayerAuthInputFlags.START_USING_ITEM, PlayerAuthInputFlags.HORIZONTAL_COLLISION,
                     PlayerAuthInputFlags.SNEAK_PRESSED_RAW, PlayerAuthInputFlags.SNEAK_CURRENT_RAW);
             assertTrue(BetweenTickPackets.supports(packet));
         }
@@ -375,7 +375,6 @@ class BetweenTickPacketsTest {
         DataPacket packet = movement();
         IPlayerAuthInputPacket input = (IPlayerAuthInputPacket) packet;
         int[] barriers = {
-                PlayerAuthInputFlags.START_USING_ITEM,
                 PlayerAuthInputFlags.PERFORM_ITEM_INTERACTION, PlayerAuthInputFlags.PERFORM_BLOCK_ACTIONS,
                 PlayerAuthInputFlags.PERFORM_ITEM_STACK_REQUEST};
         for (int layout = 0; layout <= 2; layout++) {

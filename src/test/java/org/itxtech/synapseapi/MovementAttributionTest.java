@@ -50,7 +50,7 @@ class MovementAttributionTest {
         inventory(player, new ItemBow());
         assertEquals(InputBlockReason.NONE, BetweenTickPackets.movementBlockReason(player, input));
         when(input.getUseItemData()).thenReturn(new UseItemData());
-        assertEquals(InputBlockReason.USING_WITH_EMBEDDED_ACTION, BetweenTickPackets.movementBlockReason(player, input));
+        assertEquals(InputBlockReason.NONE, BetweenTickPackets.movementBlockReason(player, input));
         when(input.getUseItemData()).thenReturn(null);
         when(input.hasFlag(PlayerAuthInputFlags.MISSED_SWING)).thenReturn(true);
         assertEquals(InputBlockReason.NONE, BetweenTickPackets.movementBlockReason(player, input));
