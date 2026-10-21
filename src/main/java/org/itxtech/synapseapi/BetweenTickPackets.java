@@ -31,8 +31,10 @@ final class BetweenTickPackets {
     private static final long MOVEMENT_FLAGS = ((1L << PlayerAuthInputFlags.START_GLIDING) - 1)
             & ~((1L << PlayerAuthInputFlags.START_SWIMMING) | (1L << PlayerAuthInputFlags.STOP_SWIMMING))
             | (1L << PlayerAuthInputFlags.HANDLED_TELEPORT);
-    private static final long FLIGHT_FLAGS = (1L << PlayerAuthInputFlags.START_FLYING)
-            | (1L << PlayerAuthInputFlags.STOP_FLYING);
+    private static final long PURE_POSE_FLAGS = (1L << PlayerAuthInputFlags.START_FLYING)
+            | (1L << PlayerAuthInputFlags.STOP_FLYING)
+            | (1L << PlayerAuthInputFlags.START_SWIMMING)
+            | (1L << PlayerAuthInputFlags.STOP_SWIMMING);
     private static final long CONTEXT_FLAGS = (1L << PlayerAuthInputFlags.ACK_ENTITY_DATA)
             | (1L << PlayerAuthInputFlags.BLOCK_BREAKING_DELAY_ENABLED)
             | (1L << PlayerAuthInputFlags.HORIZONTAL_COLLISION)
@@ -125,8 +127,8 @@ final class BetweenTickPackets {
         long formatFlags = ((1L << shift) - 1) << PlayerAuthInputFlags.ACK_ENTITY_DATA;
         long allowed = MOVEMENT_FLAGS | (1L << PlayerAuthInputFlags.MISSED_SWING) | formatFlags | (CONTEXT_FLAGS << shift)
                 | (embeddedUse ? 1L << PlayerAuthInputFlags.PERFORM_ITEM_INTERACTION : 0)
-                // 飞行切换本次只迁移姿态输入；混合世界动作仍保留原阶段边界。
-                | (!embeddedUse && !input.hasFlag(PlayerAuthInputFlags.MISSED_SWING) ? FLIGHT_FLAGS : 0);
+                // 独立姿态切换沿原handler；混合世界动作仍保留尚未迁移的阶段边界。
+                | (!embeddedUse && !input.hasFlag(PlayerAuthInputFlags.MISSED_SWING) ? PURE_POSE_FLAGS : 0);
         long allowed2 = (CONTEXT_FLAGS2 << shift)
                 | (shift == 0 ? 0 : CONTEXT_FLAGS >>> (Long.SIZE - shift));
         BitSet flags = input.getInputFlags();

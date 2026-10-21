@@ -260,12 +260,13 @@ class BetweenTickPacketsTest {
     }
 
     @Test
-    void flightTransitionsAreEligibleButDoNotOpenMixedWorldActions() {
+    void poseTransitionsAreEligibleButDoNotOpenMixedWorldActions() {
         DataPacket packet = movement();
         IPlayerAuthInputPacket input = (IPlayerAuthInputPacket) packet;
         when(input.hasFlag(anyInt())).thenCallRealMethod();
         for (int layout = 0; layout <= 2; layout++) {
-            for (int flag : new int[]{PlayerAuthInputFlags.START_FLYING, PlayerAuthInputFlags.STOP_FLYING}) {
+            for (int flag : new int[]{PlayerAuthInputFlags.START_FLYING, PlayerAuthInputFlags.STOP_FLYING,
+                    PlayerAuthInputFlags.START_SWIMMING, PlayerAuthInputFlags.STOP_SWIMMING}) {
                 flags(input, layout, PlayerAuthInputFlags.UP, flag);
                 assertTrue(BetweenTickPackets.supports(packet));
                 flags(input, layout, flag, PlayerAuthInputFlags.MISSED_SWING);
@@ -295,10 +296,22 @@ class BetweenTickPacketsTest {
     }
 
     @Test
+    void swimmingMovementIsEligibleButEmbeddedActionsRemainSeparate() {
+        ItemActionAdmissionTest.TestPlayer player = ItemActionAdmissionTest.player();
+        doReturn(true).when(player).isSwimming();
+        DataPacket packet = movement();
+        assertTrue(BetweenTickPackets.canRunBetweenTicks(player, packet));
+        when(((IPlayerAuthInputPacket) packet).getUseItemData()).thenReturn(new UseItemData());
+        assertFalse(BetweenTickPackets.canRunBetweenTicks(player, packet));
+        assertEquals(InputBlockReason.SWIMMING, BetweenTickPackets.movementBlockReason(player, (IPlayerAuthInputPacket) packet));
+        verify(player, never()).onUpdate(anyInt());
+    }
+
+    @Test
     void unreviewedActionsAndVehicleHintsRemainWholePacketBarriers() {
         DataPacket packet = movement();
         IPlayerAuthInputPacket input = (IPlayerAuthInputPacket) packet;
-        int[] barriers = {PlayerAuthInputFlags.START_SWIMMING, PlayerAuthInputFlags.START_GLIDING,
+        int[] barriers = {PlayerAuthInputFlags.START_GLIDING,
                 PlayerAuthInputFlags.START_CRAWLING,
                 PlayerAuthInputFlags.START_USING_ITEM, PlayerAuthInputFlags.START_SPIN_ATTACK,
                 PlayerAuthInputFlags.IN_CLIENT_PREDICTED_IN_VEHICLE, PlayerAuthInputFlags.PADDLE_LEFT,
