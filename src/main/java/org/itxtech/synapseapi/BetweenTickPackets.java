@@ -31,8 +31,8 @@ import java.util.BitSet;
 
 /** 仅分类已审计的协议工作，不从客户端状态推导服务端物理或权限。 */
 final class BetweenTickPackets {
-    // 限制补充阶段的原处理器遍历量；大包保持完整，回到普通世界阶段处理。
-    static final int MAX_CHUNK_ENTRIES_BETWEEN_TICKS = 64;
+    // 缓存确认暂保留原有数量门禁；其确认/回复语义另行迁移。
+    static final int MAX_CACHE_ENTRIES_BETWEEN_TICKS = 64;
     private static final long MOVEMENT_FLAGS = ((1L << PlayerAuthInputFlags.START_GLIDING) - 1)
             & ~((1L << PlayerAuthInputFlags.START_SWIMMING) | (1L << PlayerAuthInputFlags.STOP_SWIMMING))
             | (1L << PlayerAuthInputFlags.HANDLED_TELEPORT);
@@ -82,13 +82,12 @@ final class BetweenTickPackets {
         }
         if (packet instanceof SubChunkRequestPacket11810 request) {
             // 只登记原子区块队列；构建和正常发送仍由 checkNetwork 的原节流驱动。
-            return request.positionOffsets != null
-                    && request.positionOffsets.length <= MAX_CHUNK_ENTRIES_BETWEEN_TICKS;
+            return request.positionOffsets != null;
         }
         if (packet instanceof ClientCacheBlobStatusPacket112 status) {
             // 确认记账保持输入原序；回复沿原出站队列异步编码，不重放或延后确认本身。
             return status.hitSet != null && status.missSet != null
-                    && status.hitSet.size() + status.missSet.size() <= MAX_CHUNK_ENTRIES_BETWEEN_TICKS;
+                    && status.hitSet.size() + status.missSet.size() <= MAX_CACHE_ENTRIES_BETWEEN_TICKS;
         }
         if (packet instanceof InteractPacket113 interact) {
             // 看向实体沿原事件与提示更新处理；开库存、下车等动作仍保持世界阶段屏障。

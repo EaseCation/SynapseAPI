@@ -26,7 +26,7 @@ import static org.mockito.Mockito.*;
 
 class ChunkRequestAdmissionTest {
     @Test
-    void smallTerrainPacketsAllowFollowingInputButLargeOnesRemainWholeBarriers() {
+    void subchunksAndSmallCacheConfirmationsPreserveWholePacketOrdering() {
         for (boolean blob : new boolean[]{false, true}) {
             for (int count : new int[]{0, 1, 64, 65}) {
                 DataPacket packet = blob ? status(count, 0) : subchunks(count);
@@ -40,7 +40,7 @@ class ChunkRequestAdmissionTest {
                     public void run(InboundContext context) { consumed.add("terrain"); }
                 }, 1, BetweenTickPackets.supports(packet));
                 dispatcher.offer(session, context -> consumed.add("input"), 1, true);
-                assertEquals(count <= 64 ? 2 : 0, dispatcher.drain(true, 7, Long.MAX_VALUE));
+                assertEquals(!blob || count <= 64 ? 2 : 0, dispatcher.drain(true, 7, Long.MAX_VALUE));
                 dispatcher.drainWorldTick(8);
                 assertEquals(List.of("terrain", "input"), consumed);
                 verify(player, never()).canProcessInputStateBetweenTicks();
