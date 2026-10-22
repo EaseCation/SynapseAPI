@@ -1,6 +1,7 @@
 package org.itxtech.synapseapi;
 
 import cn.nukkit.network.protocol.DataPacket;
+import cn.nukkit.network.protocol.PlayerInputPacket;
 import cn.nukkit.network.protocol.AnimatePacket;
 import cn.nukkit.network.protocol.EntityEventPacket;
 import cn.nukkit.network.protocol.MobEquipmentPacket;
@@ -13,6 +14,8 @@ import cn.nukkit.inventory.transaction.data.UseItemData;
 import cn.nukkit.inventory.transaction.data.UseItemOnEntityData;
 import org.itxtech.synapseapi.multiprotocol.common.PlayerAuthInputFlags;
 import org.itxtech.synapseapi.multiprotocol.protocol113.protocol.IPlayerAuthInputPacket;
+import org.itxtech.synapseapi.multiprotocol.protocol116100ne.protocol.MovePlayerPacket116100NE;
+import org.itxtech.synapseapi.multiprotocol.protocol15.protocol.MoveEntityAbsolutePacket15;
 import org.itxtech.synapseapi.multiprotocol.protocol113.protocol.InteractPacket113;
 import org.itxtech.synapseapi.multiprotocol.protocol121130.protocol.InteractPacket121130;
 import org.itxtech.synapseapi.multiprotocol.protocol19.protocol.NetworkStackLatencyPacket19;
@@ -71,7 +74,14 @@ final class BetweenTickPackets {
     private BetweenTickPackets() {
     }
 
+    private static boolean isLegacyMovement(DataPacket packet) {
+        return packet instanceof MovePlayerPacket116100NE || packet instanceof MoveEntityAbsolutePacket15
+                || packet instanceof PlayerInputPacket;
+    }
+
     static boolean supports(DataPacket packet) {
+        // 旧来源仍沿原忽略/拒绝或兼容handler；待处理位置的提交仍由原周期负责。
+        if (isLegacyMovement(packet)) return true;
         if (packet instanceof EntityEventPacket116100 event) {
             return event.event == EntityEventPacket.EATING_ITEM;
         }
@@ -178,6 +188,7 @@ final class BetweenTickPackets {
 
     /** 按工作职责读取当前状态；切槽和释放不能被同一玩家的持续使用状态锁住。 */
     static boolean canRunBetweenTicks(SynapsePlayer player, DataPacket packet) {
+        if (isLegacyMovement(packet)) return player.canProcessMovementBetweenTicks();
         if (packet instanceof NetworkStackLatencyPacket19 || packet instanceof ResourcePackChunkRequestPacket) {
             // 资源下载早于出生，只登记原请求；有效连接由外层校验，发送仍遵守 checkNetwork 节流。
             return true;
