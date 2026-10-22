@@ -202,7 +202,7 @@ final class BetweenTickPackets {
         if (packet instanceof IPlayerAuthInputPacket input) {
             return movementBlockReason(player, input);
         }
-        if (isIndependentMovementInput(packet)) return player.movementBlockReason();
+        if (isIndependentMovementInput(packet) || packet instanceof NEPyRpcPacket16) return player.movementBlockReason();
         // 悬停沿原生命周期拒绝与目标提示处理，不能借此放行开库存或下车。
         if (packet instanceof InteractPacket113 interact && interact.action == InteractPacket113.ACTION_MOUSEOVER
                 || packet instanceof InteractPacket121130 modern && modern.action == InteractPacket121130.ACTION_MOUSEOVER) {

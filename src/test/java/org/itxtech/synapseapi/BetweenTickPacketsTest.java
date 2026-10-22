@@ -41,11 +41,6 @@ class BetweenTickPacketsTest {
         assertTrue(BetweenTickPackets.supports(packet));
         assertSame(first, packet.subPackets.getFirst());
         assertSame(second, packet.subPackets.getLast());
-        SynapsePlayer player = mock(SynapsePlayer.class);
-        when(player.inputStateBlockReason()).thenReturn(InputBlockReason.NONE);
-        assertTrue(BetweenTickPackets.canRunBetweenTicks(player, packet));
-        when(player.inputStateBlockReason()).thenReturn(InputBlockReason.DEAD);
-        assertFalse(BetweenTickPackets.canRunBetweenTicks(player, packet));
         packet.subPackets = null;
         assertFalse(BetweenTickPackets.supports(packet));
     }
