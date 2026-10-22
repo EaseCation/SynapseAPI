@@ -54,16 +54,6 @@ class BlockUseEdgeAdmissionTest {
         check(false, false, false, false);
     }
 
-    @Test
-    void unrelatedPlayerActionsDoNotBorrowUseEdgeAdmission() {
-        for (int action : new int[]{PlayerActionPacket119.ACTION_RESPAWN,
-                PlayerActionPacket119.ACTION_DIMENSION_CHANGE_ACK, PlayerActionPacket119.ACTION_START_BREAK}) {
-            PlayerActionPacket119 packet = new PlayerActionPacket119();
-            packet.action = action;
-            assertFalse(BetweenTickPackets.supports(packet));
-        }
-    }
-
     private void check(boolean start, boolean javaClient, boolean cancelled, boolean enabled) {
         BlockPlacementInventoryResyncTest.TestPlayer player = mock(BlockPlacementInventoryResyncTest.TestPlayer.class, CALLS_REAL_METHODS);
         Server server = mock(Server.class);

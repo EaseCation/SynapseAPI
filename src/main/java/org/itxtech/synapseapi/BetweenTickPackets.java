@@ -80,7 +80,8 @@ final class BetweenTickPackets {
     private static boolean isIndependentMovementInput(DataPacket packet) {
         return packet instanceof MovePlayerPacket116100NE || packet instanceof MoveEntityAbsolutePacket15
                 || packet instanceof PlayerInputPacket || packet instanceof RequestAbilityPacket119
-                || packet instanceof RiderJumpPacket || packet instanceof AdventureSettingsPacket;
+                || packet instanceof RiderJumpPacket || packet instanceof AdventureSettingsPacket
+                || packet instanceof PlayerActionPacket119;
     }
 
     static boolean supports(DataPacket packet) {
@@ -132,11 +133,6 @@ final class BetweenTickPackets {
         }
         if (packet instanceof AnimatePacket121130 animation) {
             return animation.action == AnimatePacket.Action.SWING_ARM && Float.isFinite(animation.data);
-        }
-        if (packet instanceof PlayerActionPacket119 action) {
-            // 方块使用起止沿原事件和服务端计时处理，不阻塞同序使用及后继移动。
-            return action.action == PlayerActionPacket119.ACTION_ITEM_USE_ON_START
-                    || action.action == PlayerActionPacket119.ACTION_ITEM_USE_ON_STOP;
         }
         if (packet instanceof InventoryTransactionPacket116 transaction) {
             return supportsItemAction(transaction);
