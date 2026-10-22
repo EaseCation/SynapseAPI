@@ -1,6 +1,14 @@
 package org.itxtech.synapseapi;
 
 import cn.nukkit.Server;
+import cn.nukkit.network.Compressor;
+import cn.nukkit.network.protocol.DataPacket;
+import cn.nukkit.utils.BinaryStream;
+import cn.nukkit.math.Vector3f;
+import org.itxtech.synapseapi.multiprotocol.AbstractProtocol;
+import org.itxtech.synapseapi.multiprotocol.protocol121130.protocol.InteractPacket121130;
+import org.junit.jupiter.api.BeforeAll;
+import org.mockito.MockedStatic;
 import cn.nukkit.entity.Entity;
 import cn.nukkit.entity.EntityInteractable;
 import cn.nukkit.entity.data.EntityData;
@@ -27,6 +35,92 @@ import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
 class MouseOverAdmissionTest {
+    @BeforeAll
+    static void initializeProtocol() {
+        Server server = mock(Server.class);
+        when(server.getCompressor()).thenReturn(Compressor.SNAPPY);
+        try (MockedStatic<Server> global = mockStatic(Server.class)) {
+            global.when(Server::getInstance).thenReturn(server);
+            AbstractProtocol.PROTOCOL_121_130.getProtocolStart();
+        }
+    }
+
+    @Test
+    void modernMouseOverKeepsOtherActionsAsBarriers() {
+        for (int action = InteractPacket121130.ACTION_NONE; action <= InteractPacket121130.ACTION_OPEN_INVENTORY; action++) {
+            assertEquals(action == InteractPacket121130.ACTION_MOUSEOVER, BetweenTickPackets.supports(modernPacket(action, 0)));
+        }
+    }
+
+    @Test
+    void modernSelectAndClearRunWholeBeforeFollowingInput() {
+        Fixture fixture = new Fixture(true, true);
+        ServerInputDispatcher dispatcher = new ServerInputDispatcher(Thread.currentThread(), 8, 1024, 8, 1024, error -> fail(error));
+        ServerInputDispatcher.Session session = new ServerInputDispatcher.Session(UUID.randomUUID());
+        InteractPacket121130 select = modernPacket(InteractPacket121130.ACTION_MOUSEOVER, 1);
+        InteractPacket121130 clear = modernPacket(InteractPacket121130.ACTION_MOUSEOVER, 0);
+        assertTrue(BetweenTickPackets.supports(select));
+        assertTrue(BetweenTickPackets.canRunBetweenTicks(fixture.player, select));
+        dispatcher.offer(session, context -> { assertTrue(context.betweenTicks()); fixture.handle(select); }, 1, true);
+        dispatcher.offer(session, context -> { assertSame(fixture.target, fixture.player.looked()); fixture.handle(clear); }, 1, true);
+        dispatcher.offer(session, context -> { assertNull(fixture.player.looked()); fixture.events.add("follower"); }, 1, true);
+        assertEquals(3, dispatcher.drain(true, 1, Long.MAX_VALUE));
+        assertEquals(List.of("receive", "mouseover", "receive", "follower"), fixture.events);
+        assertEquals("Hand prompt", fixture.player.button);
+        verify(fixture.processor, times(2)).validateReceivedPacket(eq(fixture.player), any(), anyBoolean());
+    }
+
+    @Test
+    void modernCancellationAndRetirementKeepOriginalRejection() {
+        for (boolean retire : new boolean[]{false, true}) {
+            Fixture fixture = new Fixture(true, true);
+            fixture.cancel = !retire;
+            fixture.retire = retire;
+            fixture.handle(modernPacket(InteractPacket121130.ACTION_MOUSEOVER, 1));
+            assertNull(fixture.player.looked());
+            assertEquals("Initial", fixture.player.button);
+            assertEquals(List.of("receive"), fixture.events);
+            verify(fixture.processor, times(retire ? 0 : 1)).validateReceivedPacket(eq(fixture.player), any(), eq(true));
+        }
+    }
+
+    @Test
+    void modernDisabledAndMissingTargetKeepOriginalHandler() {
+        Fixture fixture = new Fixture(false, true);
+        fixture.handle(modernPacket(InteractPacket121130.ACTION_MOUSEOVER, 1));
+        assertSame(fixture.target, fixture.player.looked());
+        fixture.handle(modernPacket(InteractPacket121130.ACTION_MOUSEOVER, 0));
+        assertNull(fixture.player.looked());
+        when(fixture.level.getEntity(1)).thenReturn(null);
+        fixture.handle(modernPacket(InteractPacket121130.ACTION_MOUSEOVER, 1));
+        assertEquals(List.of("receive", "mouseover", "receive", "receive"), fixture.events);
+        verifyNoInteractions(fixture.processor);
+    }
+
+    @Test
+    void modernDecoderPreservesOptionalPositionAndTarget() {
+        for (boolean position : new boolean[]{false, true}) {
+            BinaryStream wire = new BinaryStream();
+            wire.putByte((byte) InteractPacket121130.ACTION_MOUSEOVER);
+            wire.putEntityRuntimeId(7);
+            wire.putBoolean(position);
+            if (position) wire.putVector3f(new Vector3f(1, 2, 3));
+            InteractPacket121130 packet = new InteractPacket121130();
+            packet.setBuffer(wire.getBuffer(), 0);
+            packet.decode();
+            assertEquals(7, packet.target);
+            assertEquals(position, packet.position != null);
+            assertTrue(BetweenTickPackets.supports(packet));
+        }
+    }
+
+    private static InteractPacket121130 modernPacket(int action, long target) {
+        InteractPacket121130 packet = new InteractPacket121130();
+        packet.action = action;
+        packet.target = target;
+        return packet;
+    }
+
     @Test
     void onlyMouseOverIsEligibleAndOriginalReadinessStillApplies() {
         SynapsePlayer player = mock(SynapsePlayer.class);
@@ -119,10 +213,16 @@ class MouseOverAdmissionTest {
         boolean cancel;
         boolean retire;
         Fixture(boolean enabled) {
+            this(enabled, false);
+        }
+        Fixture(boolean enabled, boolean modern) {
             this.enabled = enabled;
             Server server = mock(Server.class);
             PlayerInventory inventory = mock(PlayerInventory.class);
-            player.configure(server, level, inventory);
+            player.configure(server, level, inventory, modern);
+            doReturn(true).when(player).isInitialized();
+            doReturn(true).when(player).isOnline();
+            doReturn(true).when(player).supportsPacketSequences();
             when(server.isPrimaryThread()).thenReturn(true);
             when(server.getPluginManager()).thenReturn(plugins);
             when(server.getPlayerInputProcessor()).thenReturn(processor);
@@ -148,16 +248,17 @@ class MouseOverAdmissionTest {
                 return null;
             }).when(plugins).callEvent(any());
         }
-        void handle(InteractPacket113 packet) {
+        void handle(DataPacket packet) {
             if (enabled) player.handleInputDataPacket(packet, 0);
             else player.handleDataPacket(packet);
         }
     }
 
-    static class Probe extends SynapsePlayer113 {
+    static class Probe extends SynapsePlayer116100 {
         String button;
         Probe() { super(null, null, 0L, new InetSocketAddress("127.0.0.1", 19132)); }
-        void configure(Server server, Level level, PlayerInventory inventory) {
+        void configure(Server server, Level level, PlayerInventory inventory, boolean modern) {
+            this.protocol = (modern ? AbstractProtocol.PROTOCOL_121_130 : AbstractProtocol.PROTOCOL_121_20).getProtocolStart();
             this.server = server; this.level = level; this.inventory = inventory;
             this.isSynapseLogin = true; this.spawned = true; this.button = "Initial";
         }

@@ -14,6 +14,7 @@ import cn.nukkit.inventory.transaction.data.UseItemOnEntityData;
 import org.itxtech.synapseapi.multiprotocol.common.PlayerAuthInputFlags;
 import org.itxtech.synapseapi.multiprotocol.protocol113.protocol.IPlayerAuthInputPacket;
 import org.itxtech.synapseapi.multiprotocol.protocol113.protocol.InteractPacket113;
+import org.itxtech.synapseapi.multiprotocol.protocol121130.protocol.InteractPacket121130;
 import org.itxtech.synapseapi.multiprotocol.protocol19.protocol.NetworkStackLatencyPacket19;
 import org.itxtech.synapseapi.multiprotocol.protocol119.protocol.PlayerActionPacket119;
 import org.itxtech.synapseapi.multiprotocol.protocol116220.protocol.PlayerAuthInputPacket116220;
@@ -92,6 +93,9 @@ final class BetweenTickPackets {
         if (packet instanceof InteractPacket113 interact) {
             // 看向实体沿原事件与提示更新处理；开库存、下车等动作仍保持世界阶段屏障。
             return interact.action == InteractPacket113.ACTION_MOUSEOVER;
+        }
+        if (packet instanceof InteractPacket121130 interact) {
+            return interact.action == InteractPacket121130.ACTION_MOUSEOVER;
         }
         if (packet instanceof NEPyRpcPacket16 rpc) {
             // JE 的输入扩展先于普通交互包；解码限额及每个回调后的会话复检沿用原实现。
