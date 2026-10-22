@@ -190,6 +190,11 @@ final class BetweenTickPackets {
     /** 按工作职责读取当前状态；切槽和释放不能被同一玩家的持续使用状态锁住。 */
     static boolean canRunBetweenTicks(SynapsePlayer player, DataPacket packet) {
         if (isIndependentMovementInput(packet)) return player.canProcessMovementBetweenTicks();
+        // 悬停沿原生命周期拒绝与目标提示处理，不能借此放行开库存或下车。
+        if (packet instanceof InteractPacket113 interact && interact.action == InteractPacket113.ACTION_MOUSEOVER
+                || packet instanceof InteractPacket121130 modern && modern.action == InteractPacket121130.ACTION_MOUSEOVER) {
+            return player.canProcessMovementBetweenTicks();
+        }
         if (packet instanceof NetworkStackLatencyPacket19 || packet instanceof ResourcePackChunkRequestPacket) {
             // 资源下载早于出生，只登记原请求；有效连接由外层校验，发送仍遵守 checkNetwork 节流。
             return true;
