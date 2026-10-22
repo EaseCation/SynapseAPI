@@ -1,6 +1,15 @@
 package org.itxtech.synapseapi;
 
 import cn.nukkit.Server;
+import cn.nukkit.AdventureSettings;
+import cn.nukkit.network.input.InboundContext;
+import cn.nukkit.network.input.ServerInputDispatcher;
+import cn.nukkit.network.input.ServerInputTask;
+import cn.nukkit.network.input.PlayerInputProcessor;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.UUID;
+import static org.junit.jupiter.api.Assertions.*;
 import cn.nukkit.block.Block;
 import cn.nukkit.entity.Entity;
 import cn.nukkit.entity.knockback.KnockbackProfile;
@@ -49,6 +58,18 @@ class AttackItemSourceTest {
     @Test void normalAttackConsumesOriginalWeapon() { checkBoth("normal", true); }
     @Test void disabledModeKeepsLegacyWriteback() { checkBoth("late-slot", false); }
     @Test void disconnectedAttackerCannotWriteInventoryAfterDamage() { checkBoth("late-disconnect", true); }
+
+    @Test void poseAttackAndFollowerUseOneFifoWithoutWorldUpdate() {
+        for (String pose : List.of("swim", "glide", "crawl", "fly", "spin")) {
+            checkBoth("pose-" + pose, true);
+        }
+    }
+
+    @Test void disabledPoseAttackKeepsOriginalHandlerBehavior() {
+        for (String pose : List.of("swim", "glide", "crawl", "fly", "spin")) {
+            checkBoth("pose-" + pose, false);
+        }
+    }
 
     private void checkBoth(String scenario, boolean enabled) {
         check(false, scenario, enabled);
@@ -121,7 +142,57 @@ class AttackItemSourceTest {
             transaction.actions = new NetworkInventoryAction[0];
             packet = transaction;
         }
-        player.handleDataPacket(packet);
+        if (scenario.startsWith("pose-")) {
+            doReturn(true).when(player).isAcceptingInputPackets();
+            doReturn(true).when(player).supportsPacketSequences();
+            doReturn(true).when(player).isServerAuthoritativeMovementEnabled();
+            when(server.getPlayerInputProcessor()).thenReturn(mock(PlayerInputProcessor.class));
+            AdventureSettings settings = mock(AdventureSettings.class);
+            doReturn(settings).when(player).getAdventureSettings();
+            switch (scenario.substring(5)) {
+                case "swim" -> doReturn(true).when(player).isSwimming();
+                case "glide" -> doReturn(true).when(player).isGliding();
+                case "crawl" -> doReturn(true).when(player).isCrawling();
+                case "fly" -> when(settings.get(AdventureSettings.Type.FLYING)).thenReturn(true);
+                case "spin" -> doReturn(true).when(player).getDataFlag(Entity.DATA_FLAG_SPIN_ATTACK);
+                default -> fail("Unknown pose");
+            }
+            if (enabled && !modern) {
+                assertTrue(BetweenTickPackets.supports(packet));
+                List<String> order = new ArrayList<>();
+                ServerInputDispatcher dispatcher = new ServerInputDispatcher(Thread.currentThread(),
+                        16, 4096, 16, 4096, error -> fail(error));
+                ServerInputDispatcher.Session session = new ServerInputDispatcher.Session(UUID.randomUUID());
+                try {
+                    dispatcher.offer(session, new ServerInputTask() {
+                        @Override public boolean canRunBetweenTicks() {
+                            return BetweenTickPackets.canRunBetweenTicks(player, packet);
+                        }
+                        @Override public void run(InboundContext context) {
+                            assertTrue(context.betweenTicks());
+                            player.handleDataPacket(packet);
+                            order.add("attack");
+                        }
+                    }, 1, true);
+                    dispatcher.offer(session, new ServerInputTask() {
+                        @Override public void run(InboundContext context) { order.add("follower"); }
+                        @Override public boolean canRunBetweenTicks() { return true; }
+                    }, 1, true);
+                    assertEquals(2, dispatcher.drain(true, 40, Long.MAX_VALUE));
+                    assertEquals(List.of("attack", "follower"), order);
+                    assertEquals(0, dispatcher.snapshot().queuedTasks());
+                    verify(player, never()).onUpdate(anyInt());
+                } finally {
+                    dispatcher.close();
+                }
+            } else {
+                // 12630不是本批目标布局，也尚未静态准入；这里只保留其原handler对照。
+                if (modern) assertFalse(BetweenTickPackets.supports(packet));
+                player.handleDataPacket(packet);
+            }
+        } else {
+            player.handleDataPacket(packet);
+        }
         verify(plugins).callEvent(any(ItemAttackDamageEvent.class));
         if (!enabled) {
             verify(inventory, never()).captureHeldItem();

@@ -225,6 +225,12 @@ final class BetweenTickPackets {
             return InputBlockReason.NONE;
         }
         if (packet instanceof InventoryTransactionPacket116 transaction) {
+            // 独立攻击沿原次数/距离/来源与取消校验，不以物品姿态门禁阻塞后继移动。
+            if (transaction.transactionType == InventoryTransactionPacket116.TYPE_USE_ITEM_ON_ENTITY
+                    && transaction.transactionData instanceof UseItemOnEntityData attack
+                    && attack.actionType == InventoryTransactionPacket116.USE_ITEM_ON_ENTITY_ACTION_ATTACK) {
+                return player.movementBlockReason();
+            }
             return transaction.transactionType == InventoryTransactionPacket116.TYPE_MISMATCH
                     ? player.movementBlockReason() : player.itemActionBlockReason();
         }
