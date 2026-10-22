@@ -35,13 +35,14 @@ class InputStateAttributionTest {
     void remainingStatePacketsKeepEachOriginalGate() {
         InventoryTransactionPacket116 mismatch = new InventoryTransactionPacket116();
         mismatch.transactionType = InventoryTransactionPacket116.TYPE_MISMATCH;
-        List<DataPacket> packets = List.of(new AnimatePacket(), mismatch);
+        List<DataPacket> packets = List.of(new AnimatePacket());
         for (DataPacket packet : packets) {
             assertGate(ItemActionAdmissionTest.player(), packet, InputBlockReason.NONE);
             for (Gate gate : stateGates()) {
                 ItemActionAdmissionTest.TestPlayer player = ItemActionAdmissionTest.player();
                 gate.setup.accept(player);
                 assertGate(player, packet, gate.reason);
+                assertGate(player, mismatch, InputBlockReason.NONE);
             }
         }
     }

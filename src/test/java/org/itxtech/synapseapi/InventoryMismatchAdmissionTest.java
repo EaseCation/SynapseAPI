@@ -10,6 +10,9 @@ import cn.nukkit.network.protocol.types.NetworkInventoryAction;
 import cn.nukkit.utils.MainLogger;
 import org.itxtech.synapseapi.multiprotocol.protocol116.protocol.InventoryTransactionPacket116;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.BeforeAll;
+import cn.nukkit.event.server.DataPacketReceiveEvent;
+import cn.nukkit.network.input.InputValidationResult;
 
 import java.net.InetSocketAddress;
 import java.util.ArrayList;
@@ -20,6 +23,49 @@ import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
 class InventoryMismatchAdmissionTest {
+    @BeforeAll static void initialize() { LegacyMovementAdmissionTest.protocols(); }
+
+    @Test void deadPendingTransactionsKeepOriginalCloseAndSyncOrder() {
+        for (Pending pending : Pending.values()) {
+            check(pending, true, false, false);
+            check(pending, false, false, false);
+        }
+    }
+
+    @Test void modernLifecycleSyncUsesOriginalEventAndValidation() {
+        for (String state : List.of("dead", "unspawned", "offline", "no-sequence", "no-processor")) {
+            try (PlayerActionAdmissionTest.Fixture f = new PlayerActionAdmissionTest.Fixture(true, true)) {
+                if (state.equals("dead")) f.player.makeDead();
+                if (state.equals("unspawned")) f.player.spawned = false;
+                if (state.equals("offline")) doReturn(false).when(f.player).isOnline();
+                if (state.equals("no-sequence")) doReturn(false).when(f.player).supportsPacketSequences();
+                if (state.equals("no-processor")) when(f.server.getPlayerInputProcessor()).thenReturn(null);
+                doNothing().when(f.player).sendAllInventories();
+                InventoryTransactionPacket116 packet = request();
+                f.deliver(packet);
+                verify(f.plugins).callEvent(any(DataPacketReceiveEvent.class));
+                verify(f.player).sendAllInventories();
+                verify(f.processor, times(state.equals("no-processor") ? 0 : 1)).validateReceivedPacket(f.player, packet, false);
+                verify(f.player, never()).onUpdate(anyInt());
+            }
+        }
+    }
+
+    @Test void modernCancellationRejectionAndEntryGuardsPreventSync() {
+        for (String state : List.of("cancel", "validation", "uninitialized", "retired")) {
+            try (PlayerActionAdmissionTest.Fixture f = new PlayerActionAdmissionTest.Fixture(true, true)) {
+                f.player.makeDead();
+                if (state.equals("cancel")) f.cancel = true;
+                if (state.equals("validation")) when(f.processor.validateReceivedPacket(any(), any(), anyBoolean())).thenReturn(InputValidationResult.REJECTED);
+                if (state.equals("uninitialized")) doReturn(false).when(f.player).isInitialized();
+                if (state.equals("retired")) doReturn(false).when(f.player).isAcceptingInputPackets();
+                f.deliver(request());
+                verify(f.player, never()).sendAllInventories();
+                if (state.equals("uninitialized") || state.equals("retired")) verifyNoInteractions(f.plugins, f.processor);
+            }
+        }
+    }
+
     @Test
     void emptySyncAndFollowerRunInOriginalOrder() {
         check(Pending.NONE, true, false);
@@ -92,6 +138,10 @@ class InventoryMismatchAdmissionTest {
     }
 
     private void check(Pending pending, boolean enabled, boolean cancelled) {
+        check(pending, enabled, cancelled, true);
+    }
+
+    private void check(Pending pending, boolean enabled, boolean cancelled, boolean alive) {
         ProbePlayer player = mock(ProbePlayer.class, CALLS_REAL_METHODS);
         Server server = mock(Server.class);
         player.configure(server, pending);
@@ -101,7 +151,7 @@ class InventoryMismatchAdmissionTest {
         doReturn(false).when(player).isJavaClient();
         doReturn(false).when(player).isSpectator();
         doReturn(true).when(player).isOnline();
-        doReturn(true).when(player).isAlive();
+        doReturn(alive).when(player).isAlive();
         doReturn(true).when(player).isAcceptingInputPackets();
         doReturn(true).when(player).supportsPacketSequences();
         // 原同步不读取物理姿态，也不要求已有多包事务先结束。

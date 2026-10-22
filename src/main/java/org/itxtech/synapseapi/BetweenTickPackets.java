@@ -219,7 +219,7 @@ final class BetweenTickPackets {
         }
         if (packet instanceof InventoryTransactionPacket116 transaction) {
             return transaction.transactionType == InventoryTransactionPacket116.TYPE_MISMATCH
-                    ? player.inputStateBlockReason() : player.itemActionBlockReason();
+                    ? player.movementBlockReason() : player.itemActionBlockReason();
         }
         return player.inputStateBlockReason();
     }
