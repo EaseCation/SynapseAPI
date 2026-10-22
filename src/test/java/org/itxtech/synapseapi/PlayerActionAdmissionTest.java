@@ -175,10 +175,16 @@ class PlayerActionAdmissionTest {
         }
         void deliver(int action) {
             PlayerActionPacket119 p = new PlayerActionPacket119();p.action = action;p.x = 1;p.z = 1;
+            deliver(p);
+        }
+        void deliver(DataPacket p) {
+            deliver(p, player.getMovementEpoch());
+        }
+        void deliver(DataPacket p, long epoch) {
             if (!enabled) {player.handleDataPacket(p);return;}
             assertTrue(BetweenTickPackets.supports(p));ServerInputDispatcher d = new ServerInputDispatcher(Thread.currentThread(),16,1024,16,1024,error -> fail(error));when(server.getInputDispatcher()).thenReturn(d);
             ServerInputDispatcher.Session session = new ServerInputDispatcher.Session(UUID.randomUUID());List<String> order = new ArrayList<>();
-            d.offer(session,new ServerInputTask(){public boolean canRunBetweenTicks(){return BetweenTickPackets.canRunBetweenTicks(player,p);}public void run(InboundContext c){assertTrue(c.betweenTicks());player.handleInputDataPacket(p,player.getMovementEpoch());order.add("action");}},1,true);
+            d.offer(session,new ServerInputTask(){public boolean canRunBetweenTicks(){return BetweenTickPackets.canRunBetweenTicks(player,p);}public void run(InboundContext c){assertTrue(c.betweenTicks());player.handleInputDataPacket(p,epoch);order.add("action");}},1,true);
             d.offer(session,c -> order.add("follower"),1,true);assertEquals(2,d.drain(true,1,Long.MAX_VALUE));assertEquals(List.of("action","follower"),order);assertEquals(0,d.snapshot().queuedTasks());
         }
         public void close() {global.close();}

@@ -16,6 +16,7 @@ import cn.nukkit.inventory.transaction.data.UseItemData;
 import cn.nukkit.inventory.transaction.data.UseItemOnEntityData;
 import org.itxtech.synapseapi.multiprotocol.common.PlayerAuthInputFlags;
 import org.itxtech.synapseapi.multiprotocol.protocol113.protocol.IPlayerAuthInputPacket;
+import org.itxtech.synapseapi.multiprotocol.protocol113.protocol.RespawnPacket113;
 import org.itxtech.synapseapi.multiprotocol.protocol116100ne.protocol.MovePlayerPacket116100NE;
 import org.itxtech.synapseapi.multiprotocol.protocol15.protocol.MoveEntityAbsolutePacket15;
 import org.itxtech.synapseapi.multiprotocol.protocol113.protocol.InteractPacket113;
@@ -81,7 +82,7 @@ final class BetweenTickPackets {
         return packet instanceof MovePlayerPacket116100NE || packet instanceof MoveEntityAbsolutePacket15
                 || packet instanceof PlayerInputPacket || packet instanceof RequestAbilityPacket119
                 || packet instanceof RiderJumpPacket || packet instanceof AdventureSettingsPacket
-                || packet instanceof PlayerActionPacket119;
+                || packet instanceof PlayerActionPacket119 || packet instanceof RespawnPacket113;
     }
 
     static boolean supports(DataPacket packet) {
