@@ -24,6 +24,7 @@ import org.itxtech.synapseapi.multiprotocol.protocol121130.protocol.InteractPack
 import org.itxtech.synapseapi.multiprotocol.protocol19.protocol.NetworkStackLatencyPacket19;
 import org.itxtech.synapseapi.multiprotocol.protocol119.protocol.PlayerActionPacket119;
 import org.itxtech.synapseapi.multiprotocol.protocol119.protocol.RequestAbilityPacket119;
+import org.itxtech.synapseapi.multiprotocol.protocol12070.protocol.SetEntityMotionPacket12070;
 import org.itxtech.synapseapi.multiprotocol.protocol12160.protocol.ClientCameraAimAssistPacket12160;
 import org.itxtech.synapseapi.multiprotocol.protocol12160.protocol.ClientMovementPredictionSyncPacket12160;
 import org.itxtech.synapseapi.multiprotocol.protocol12170.protocol.ClientMovementPredictionSyncPacket12170;
@@ -90,7 +91,7 @@ final class BetweenTickPackets {
                 || packet instanceof ClientCameraAimAssistPacket12160
                 || packet instanceof ClientMovementPredictionSyncPacket12160
                 || packet instanceof ClientMovementPredictionSyncPacket12170
-                || packet instanceof ClientMovementPredictionSyncPacket12620;
+                || packet instanceof ClientMovementPredictionSyncPacket12620 || packet instanceof SetEntityMotionPacket12070;
     }
 
     static boolean supports(DataPacket packet) {
