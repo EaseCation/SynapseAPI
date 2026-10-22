@@ -3,6 +3,7 @@ package org.itxtech.synapseapi;
 import cn.nukkit.entity.Entity;
 import cn.nukkit.network.protocol.DataPacket;
 import cn.nukkit.network.protocol.MobEquipmentPacket;
+import cn.nukkit.network.protocol.AnimatePacket;
 import cn.nukkit.network.protocol.PlayerHotbarPacket;
 import cn.nukkit.network.protocol.ResourcePackChunkRequestPacket;
 import org.itxtech.synapseapi.multiprotocol.protocol116.protocol.InventoryTransactionPacket116;
@@ -34,7 +35,7 @@ class InputStateAttributionTest {
     void remainingStatePacketsKeepEachOriginalGate() {
         InventoryTransactionPacket116 mismatch = new InventoryTransactionPacket116();
         mismatch.transactionType = InventoryTransactionPacket116.TYPE_MISMATCH;
-        List<DataPacket> packets = List.of(new MobEquipmentPacket(), new PlayerHotbarPacket(), mismatch);
+        List<DataPacket> packets = List.of(new AnimatePacket(), mismatch);
         for (DataPacket packet : packets) {
             assertGate(ItemActionAdmissionTest.player(), packet, InputBlockReason.NONE);
             for (Gate gate : stateGates()) {
@@ -51,7 +52,9 @@ class InputStateAttributionTest {
         for (int start = 0; start < gates.size(); start++) {
             ItemActionAdmissionTest.TestPlayer player = ItemActionAdmissionTest.player();
             for (int i = start; i < gates.size(); i++) gates.get(i).setup.accept(player);
-            assertGate(player, new MobEquipmentPacket(), gates.get(start).reason);
+            assertGate(player, new AnimatePacket(), gates.get(start).reason);
+            assertGate(player, new MobEquipmentPacket(), InputBlockReason.NONE);
+            assertGate(player, new PlayerHotbarPacket(), InputBlockReason.NONE);
             assertGate(player, new NEPyRpcPacket16(), InputBlockReason.NONE);
             assertGate(player, new PlayerAuthInputPacket116220(), InputBlockReason.NONE);
             assertGate(player, new ResourcePackChunkRequestPacket(), InputBlockReason.NONE);

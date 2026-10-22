@@ -50,8 +50,8 @@ class BetweenTickPacketsTest {
         when(player.inputStateBlockReason()).thenReturn(InputBlockReason.NONE);
         when(player.itemActionBlockReason()).thenReturn(InputBlockReason.NONE);
         when(player.movementBlockReason()).thenReturn(InputBlockReason.GLIDING);
-        MobEquipmentPacket equipment = new MobEquipmentPacket();
-        assertTrue(BetweenTickPackets.canRunBetweenTicks(player, equipment));
+        AnimatePacket animation = new AnimatePacket();
+        assertTrue(BetweenTickPackets.canRunBetweenTicks(player, animation));
         assertTrue(BetweenTickPackets.canRunBetweenTicks(player, release()));
         assertFalse(BetweenTickPackets.canRunBetweenTicks(player, movement()));
     }

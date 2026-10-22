@@ -6,9 +6,7 @@ import cn.nukkit.network.Compressor;
 import cn.nukkit.network.input.ServerInputDispatcher;
 import io.netty.channel.Channel;
 import org.itxtech.synapseapi.multiprotocol.PacketRegister;
-import cn.nukkit.network.protocol.MobEquipmentPacket;
-import cn.nukkit.network.protocol.types.ContainerIds;
-import cn.nukkit.item.Item;
+import cn.nukkit.network.protocol.AnimatePacket;
 import org.itxtech.synapseapi.network.SynapseInterface;
 import org.itxtech.synapseapi.network.protocol.spp.PlayerLoginPacket;
 import org.itxtech.synapseapi.network.protocol.spp.RedirectPacket;
@@ -50,9 +48,8 @@ class RedirectAttributionTest {
         AtomicInteger evaluations = new AtomicInteger();
         UUID actor = UUID.randomUUID();
         UUID sessionId = UUID.randomUUID();
-        MobEquipmentPacket equipment = new MobEquipmentPacket();
-        equipment.windowId = ContainerIds.INVENTORY;
-        equipment.item = mock(Item.class);
+        AnimatePacket animation = new AnimatePacket();
+        animation.action = AnimatePacket.Action.SWING_ARM;
         RedirectPacket redirect = new RedirectPacket();
         redirect.sessionId = sessionId;
         redirect.protocol = 975;
@@ -75,7 +72,7 @@ class RedirectAttributionTest {
                      })) {
             servers.when(Server::getInstance).thenReturn(server);
             globals.when(SynapseAPI::getInstance).thenReturn(api);
-            packets.when(() -> PacketRegister.getFullPacket(redirect.mcpeBuffer, 975)).thenReturn(equipment);
+            packets.when(() -> PacketRegister.getFullPacket(redirect.mcpeBuffer, 975)).thenReturn(animation);
             SynapseEntry entry = new SynapseEntry(api, "127.0.0.1", 10325, false, "0123456789abcdef", "Attribution contract");
             PlayerLoginPacket login = new PlayerLoginPacket();
             login.protocol = 975;
@@ -95,7 +92,7 @@ class RedirectAttributionTest {
             decision.set(InputBlockReason.OFFLINE);
             ServerInputDispatcher.BarrierReport report = dispatcher.drainBarrierReport();
             assertEquals(1, report.types().size());
-            assertEquals("MobEquipmentPacket", report.types().getFirst().type());
+            assertEquals("AnimatePacket", report.types().getFirst().type());
             assertEquals("DEAD", report.types().getFirst().reason());
             assertEquals("DEAD", report.activeReason());
             assertEquals(1, evaluations.get());
@@ -109,7 +106,7 @@ class RedirectAttributionTest {
             primary.set(true);
             assertEquals(1, dispatcher.drain(true, 3, Long.MAX_VALUE));
             assertEquals(3, evaluations.get());
-            verify(players.constructed().getFirst()).handleInputDataPacket(equipment, 0L);
+            verify(players.constructed().getFirst()).handleInputDataPacket(animation, 0L);
             assertEquals(0, dispatcher.snapshot().queuedTasks());
         }
     }
