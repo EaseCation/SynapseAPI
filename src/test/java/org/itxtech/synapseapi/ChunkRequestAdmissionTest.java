@@ -43,7 +43,7 @@ class ChunkRequestAdmissionTest {
                 assertEquals(!blob || count <= 64 ? 2 : 0, dispatcher.drain(true, 7, Long.MAX_VALUE));
                 dispatcher.drainWorldTick(8);
                 assertEquals(List.of("terrain", "input"), consumed);
-                verify(player, never()).canProcessInputStateBetweenTicks();
+                verify(player, never()).inputStateBlockReason();
             }
         }
         assertFalse(BetweenTickPackets.supports(status(33, 32)));

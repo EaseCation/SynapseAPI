@@ -1665,7 +1665,7 @@ public class SynapsePlayer extends Player {
         return inputStateBlockReason() == InputBlockReason.NONE;
     }
 
-    private InputBlockReason inputStateBlockReason() {
+    final InputBlockReason inputStateBlockReason() {
         if (!this.spawned) return InputBlockReason.NOT_SPAWNED;
         if (!this.isOnline()) return InputBlockReason.OFFLINE;
         if (!this.isAlive()) return InputBlockReason.DEAD;

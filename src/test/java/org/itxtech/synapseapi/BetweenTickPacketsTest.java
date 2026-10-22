@@ -42,9 +42,9 @@ class BetweenTickPacketsTest {
         assertSame(first, packet.subPackets.getFirst());
         assertSame(second, packet.subPackets.getLast());
         SynapsePlayer player = mock(SynapsePlayer.class);
-        when(player.canProcessInputStateBetweenTicks()).thenReturn(true);
+        when(player.inputStateBlockReason()).thenReturn(InputBlockReason.NONE);
         assertTrue(BetweenTickPackets.canRunBetweenTicks(player, packet));
-        when(player.canProcessInputStateBetweenTicks()).thenReturn(false);
+        when(player.inputStateBlockReason()).thenReturn(InputBlockReason.DEAD);
         assertFalse(BetweenTickPackets.canRunBetweenTicks(player, packet));
         packet.subPackets = null;
         assertFalse(BetweenTickPackets.supports(packet));
@@ -52,8 +52,8 @@ class BetweenTickPacketsTest {
     @Test
     void stateAndReleaseCanProgressWhileMovementWaitsForPosture() {
         SynapsePlayer player = mock(SynapsePlayer.class);
-        when(player.canProcessInputStateBetweenTicks()).thenReturn(true);
-        when(player.canProcessItemActionBetweenTicks()).thenReturn(true);
+        when(player.inputStateBlockReason()).thenReturn(InputBlockReason.NONE);
+        when(player.itemActionBlockReason()).thenReturn(InputBlockReason.NONE);
         when(player.movementBlockReason()).thenReturn(InputBlockReason.GLIDING);
         MobEquipmentPacket equipment = new MobEquipmentPacket();
         assertTrue(BetweenTickPackets.canRunBetweenTicks(player, equipment));
@@ -65,9 +65,9 @@ class BetweenTickPacketsTest {
     void aLifecycleChangeBeforeConsumptionKeepsItemActionsBehindTheHead() {
         SynapsePlayer player = mock(SynapsePlayer.class);
         InventoryTransactionPacket116 packet = release();
-        when(player.canProcessItemActionBetweenTicks()).thenReturn(true);
+        when(player.itemActionBlockReason()).thenReturn(InputBlockReason.NONE);
         assertTrue(BetweenTickPackets.canRunBetweenTicks(player, packet));
-        when(player.canProcessItemActionBetweenTicks()).thenReturn(false);
+        when(player.itemActionBlockReason()).thenReturn(InputBlockReason.TELEPORT_PENDING);
         assertFalse(BetweenTickPackets.canRunBetweenTicks(player, packet));
         assertTrue(BetweenTickPackets.canRunBetweenTicks(player, new NetworkStackLatencyPacket19()));
     }

@@ -582,11 +582,8 @@ public class SynapseEntry {
 
                 @Override
                 public boolean canRunBetweenTicks() {
-                    if (packet instanceof IPlayerAuthInputPacket input) {
-                        blockReason = BetweenTickPackets.movementBlockReason(player, input);
-                        return blockReason == InputBlockReason.NONE;
-                    }
-                    return BetweenTickPackets.canRunBetweenTicks(player, packet);
+                    blockReason = BetweenTickPackets.blockReason(player, packet);
+                    return blockReason == InputBlockReason.NONE;
                 }
 
                 @Override
