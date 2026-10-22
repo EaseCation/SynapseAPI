@@ -2,6 +2,8 @@ package org.itxtech.synapseapi;
 
 import cn.nukkit.network.protocol.DataPacket;
 import cn.nukkit.network.protocol.PlayerInputPacket;
+import cn.nukkit.network.protocol.RiderJumpPacket;
+import cn.nukkit.network.protocol.AdventureSettingsPacket;
 import cn.nukkit.network.protocol.AnimatePacket;
 import cn.nukkit.network.protocol.EntityEventPacket;
 import cn.nukkit.network.protocol.MobEquipmentPacket;
@@ -20,6 +22,7 @@ import org.itxtech.synapseapi.multiprotocol.protocol113.protocol.InteractPacket1
 import org.itxtech.synapseapi.multiprotocol.protocol121130.protocol.InteractPacket121130;
 import org.itxtech.synapseapi.multiprotocol.protocol19.protocol.NetworkStackLatencyPacket19;
 import org.itxtech.synapseapi.multiprotocol.protocol119.protocol.PlayerActionPacket119;
+import org.itxtech.synapseapi.multiprotocol.protocol119.protocol.RequestAbilityPacket119;
 import org.itxtech.synapseapi.multiprotocol.protocol116220.protocol.PlayerAuthInputPacket116220;
 import org.itxtech.synapseapi.multiprotocol.protocol14.protocol.PlayerHotbarPacket14;
 import org.itxtech.synapseapi.multiprotocol.protocol116.protocol.InventoryTransactionPacket116;
@@ -74,14 +77,15 @@ final class BetweenTickPackets {
     private BetweenTickPackets() {
     }
 
-    private static boolean isLegacyMovement(DataPacket packet) {
+    private static boolean isIndependentMovementInput(DataPacket packet) {
         return packet instanceof MovePlayerPacket116100NE || packet instanceof MoveEntityAbsolutePacket15
-                || packet instanceof PlayerInputPacket;
+                || packet instanceof PlayerInputPacket || packet instanceof RequestAbilityPacket119
+                || packet instanceof RiderJumpPacket || packet instanceof AdventureSettingsPacket;
     }
 
     static boolean supports(DataPacket packet) {
-        // 旧来源仍沿原忽略/拒绝或兼容handler；待处理位置的提交仍由原周期负责。
-        if (isLegacyMovement(packet)) return true;
+        // 独立移动与状态请求仍沿原权限/事件/忽略或兼容handler；位置和实体周期不额外推进。
+        if (isIndependentMovementInput(packet)) return true;
         if (packet instanceof EntityEventPacket116100 event) {
             return event.event == EntityEventPacket.EATING_ITEM;
         }
@@ -188,7 +192,7 @@ final class BetweenTickPackets {
 
     /** 按工作职责读取当前状态；切槽和释放不能被同一玩家的持续使用状态锁住。 */
     static boolean canRunBetweenTicks(SynapsePlayer player, DataPacket packet) {
-        if (isLegacyMovement(packet)) return player.canProcessMovementBetweenTicks();
+        if (isIndependentMovementInput(packet)) return player.canProcessMovementBetweenTicks();
         if (packet instanceof NetworkStackLatencyPacket19 || packet instanceof ResourcePackChunkRequestPacket) {
             // 资源下载早于出生，只登记原请求；有效连接由外层校验，发送仍遵守 checkNetwork 节流。
             return true;

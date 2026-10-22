@@ -229,7 +229,7 @@ class LegacyMovementAdmissionTest {
         PlayerInputPacket p = new PlayerInputPacket();p.motionX = 2;p.motionY = -2;p.jumping = true;return p;
     }
 
-    private static class Fixture {
+    static class Fixture {
         final Server server = mock(Server.class);
         final PluginManager plugins = mock(PluginManager.class);
         final PlayerInputProcessor processor = mock(PlayerInputProcessor.class);
