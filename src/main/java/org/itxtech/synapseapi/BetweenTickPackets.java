@@ -25,6 +25,9 @@ import org.itxtech.synapseapi.multiprotocol.protocol19.protocol.NetworkStackLate
 import org.itxtech.synapseapi.multiprotocol.protocol119.protocol.PlayerActionPacket119;
 import org.itxtech.synapseapi.multiprotocol.protocol119.protocol.RequestAbilityPacket119;
 import org.itxtech.synapseapi.multiprotocol.protocol12160.protocol.ClientCameraAimAssistPacket12160;
+import org.itxtech.synapseapi.multiprotocol.protocol12160.protocol.ClientMovementPredictionSyncPacket12160;
+import org.itxtech.synapseapi.multiprotocol.protocol12170.protocol.ClientMovementPredictionSyncPacket12170;
+import org.itxtech.synapseapi.multiprotocol.protocol12620.protocol.ClientMovementPredictionSyncPacket12620;
 import org.itxtech.synapseapi.multiprotocol.protocol116220.protocol.PlayerAuthInputPacket116220;
 import org.itxtech.synapseapi.multiprotocol.protocol14.protocol.PlayerHotbarPacket14;
 import org.itxtech.synapseapi.multiprotocol.protocol116.protocol.InventoryTransactionPacket116;
@@ -84,7 +87,10 @@ final class BetweenTickPackets {
                 || packet instanceof PlayerInputPacket || packet instanceof RequestAbilityPacket119
                 || packet instanceof RiderJumpPacket || packet instanceof AdventureSettingsPacket
                 || packet instanceof PlayerActionPacket119 || packet instanceof RespawnPacket113
-                || packet instanceof ClientCameraAimAssistPacket12160;
+                || packet instanceof ClientCameraAimAssistPacket12160
+                || packet instanceof ClientMovementPredictionSyncPacket12160
+                || packet instanceof ClientMovementPredictionSyncPacket12170
+                || packet instanceof ClientMovementPredictionSyncPacket12620;
     }
 
     static boolean supports(DataPacket packet) {
