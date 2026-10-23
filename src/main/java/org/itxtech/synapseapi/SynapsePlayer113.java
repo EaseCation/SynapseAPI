@@ -129,9 +129,11 @@ public class SynapsePlayer113 extends SynapsePlayer112 {
 				ResourcePackClientResponsePacket16 responsePacket = (ResourcePackClientResponsePacket16) packet;
 				switch (responsePacket.responseStatus) {
 					case ResourcePackClientResponsePacket.STATUS_REFUSED:
+                        observeConnection("resource_pack_stage", Map.of("stage", "refused"));
 						this.close("", "disconnectionScreen.noReason");
 						break;
 					case ResourcePackClientResponsePacket.STATUS_SEND_PACKS:
+                        observeConnection("resource_pack_stage", Map.of("stage", "download_requested"));
 						for (ResourcePackClientResponsePacket16.Entry entry : responsePacket.packEntries) {
 							ResourcePack resourcePack = this.resourcePacks.getOrDefault(entry.uuid, this.behaviourPacks.get(entry.uuid));
 							if (resourcePack == null) {
@@ -155,6 +157,7 @@ public class SynapsePlayer113 extends SynapsePlayer112 {
 						}
 						break;
 					case ResourcePackClientResponsePacket.STATUS_HAVE_ALL_PACKS:
+                        observeConnection("resource_pack_stage", Map.of("stage", "have_all"));
 						ResourcePackStackPacket113 stackPacket = new ResourcePackStackPacket113();
 						stackPacket.mustAccept = this.forceResources;
 						stackPacket.resourcePackStack = this.resourcePacks.values().toArray(new ResourcePack[0]);
@@ -162,6 +165,7 @@ public class SynapsePlayer113 extends SynapsePlayer112 {
 						this.dataPacket(stackPacket);
 						break;
 					case ResourcePackClientResponsePacket.STATUS_COMPLETED:
+                        observeConnection("resource_pack_stage", Map.of("stage", "completed"));
 						if (this.preLoginEventTask.isFinished()) {
 							this.completeLoginSequence();
 						} else {
