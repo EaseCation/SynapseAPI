@@ -231,7 +231,9 @@ final class BetweenTickPackets {
                     && attack.actionType == InventoryTransactionPacket116.USE_ITEM_ON_ENTITY_ACTION_ATTACK) {
                 return player.movementBlockReason();
             }
+            // 释放沿原手别、使用时长和待事务处理，不以姿态门禁延后整条FIFO。
             return transaction.transactionType == InventoryTransactionPacket116.TYPE_MISMATCH
+                    || transaction.transactionType == InventoryTransactionPacket116.TYPE_RELEASE_ITEM
                     ? player.movementBlockReason() : player.itemActionBlockReason();
         }
         return player.inputStateBlockReason();

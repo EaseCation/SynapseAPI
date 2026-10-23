@@ -69,15 +69,15 @@ class InputStateAttributionTest {
                 new Gate(InputBlockReason.TELEPORT_PENDING, ItemActionAdmissionTest.TestPlayer::awaitTeleport),
                 new Gate(InputBlockReason.RIDING, p -> p.ride(mock(Entity.class))),
                 new Gate(InputBlockReason.GLIDING, p -> doReturn(true).when(p).isGliding()));
-        InventoryTransactionPacket116 release = new InventoryTransactionPacket116();
-        release.transactionType = InventoryTransactionPacket116.TYPE_RELEASE_ITEM;
+        InventoryTransactionPacket116 use = new InventoryTransactionPacket116();
+        use.transactionType = InventoryTransactionPacket116.TYPE_USE_ITEM;
         for (Gate gate : gates) {
             ItemActionAdmissionTest.TestPlayer player = ItemActionAdmissionTest.player();
             gate.setup.accept(player);
-            assertGate(player, release, gate.reason);
+            assertGate(player, use, gate.reason);
             assertGate(player, new NEPyRpcPacket16(), InputBlockReason.NONE);
             doReturn(false).when(player).isAlive();
-            assertGate(player, release, InputBlockReason.DEAD);
+            assertGate(player, use, InputBlockReason.DEAD);
         }
     }
 
