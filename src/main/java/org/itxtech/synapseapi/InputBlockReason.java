@@ -1,0 +1,28 @@
+package org.itxtech.synapseapi;
+
+/**
+ * 原准入表达式中首次失败的条件；仅诊断，不决定物理、检测或后续业务结果。
+ */
+enum InputBlockReason {
+    NONE,
+    UNCLASSIFIED,
+    NOT_SPAWNED,
+    OFFLINE,
+    DEAD,
+    RIDING,
+    MOVEMENT_AUTHORITY_DISABLED,
+    PACKET_SEQUENCE_UNSUPPORTED,
+    INPUT_PROCESSOR_MISSING,
+    SLEEPING,
+    SWIMMING,
+    GLIDING,
+    CRAWLING,
+    FLYING,
+    SPIN_ATTACK,
+    USING_WITH_EMBEDDED_ACTION,
+    INPUT_NOT_ACCEPTING,
+    TELEPORT_PENDING,
+    CRAFTING_PENDING,
+    ENCHANTING_PENDING,
+    REPAIR_PENDING
+}

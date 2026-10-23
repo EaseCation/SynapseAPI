@@ -2,6 +2,14 @@ package org.itxtech.synapseapi;
 
 import cn.nukkit.AdventureSettings;
 import cn.nukkit.Server;
+import cn.nukkit.network.input.ServerInputDispatcher;
+import cn.nukkit.network.input.ServerInputTask;
+import cn.nukkit.network.input.InboundContext;
+import cn.nukkit.network.input.PlayerInputProcessor;
+import java.util.BitSet;
+import java.util.UUID;
+import java.util.ArrayList;
+import java.util.List;
 import cn.nukkit.event.player.PlayerToggleFlightEvent;
 import cn.nukkit.network.protocol.ProtocolInfo;
 import cn.nukkit.plugin.PluginManager;
@@ -12,7 +20,7 @@ import org.junit.jupiter.api.Test;
 
 import java.net.InetSocketAddress;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
 class AuthInputFlightAuthorityTest {
@@ -39,6 +47,14 @@ class AuthInputFlightAuthorityTest {
         player.configure(server);
         when(server.getPluginManager()).thenReturn(plugins);
         when(server.getAllowFlight()).thenReturn(true);
+        when(server.getPlayerInputProcessor()).thenReturn(mock(PlayerInputProcessor.class));
+        doReturn(true).when(player).supportsPacketSequences();
+        doReturn(false).when(player).isSleeping();
+        doReturn(false).when(player).isSwimming();
+        doReturn(false).when(player).isGliding();
+        doReturn(false).when(player).isCrawling();
+        doReturn(false).when(player).isUsingItem();
+        doReturn(false).when(player).getDataFlag(anyInt());
         doReturn(enabled).when(player).isMainThreadInputEnabled();
         doReturn(true).when(player).isServerAuthoritativeMovementEnabled();
         doReturn(true).when(player).isOnline();
@@ -70,7 +86,32 @@ class AuthInputFlightAuthorityTest {
         PlayerAuthInputPacket116220 packet = mock(PlayerAuthInputPacket116220.class);
         when(packet.pid()).thenReturn(ProtocolInfo.PLAYER_AUTH_INPUT_PACKET);
         when(packet.hasFlag(start ? PlayerAuthInputFlags.START_FLYING : PlayerAuthInputFlags.STOP_FLYING)).thenReturn(true);
-        player.handleDataPacket(packet);
+        BitSet flags = new BitSet();
+        flags.set(start ? PlayerAuthInputFlags.START_FLYING : PlayerAuthInputFlags.STOP_FLYING);
+        when(packet.getInputFlags()).thenReturn(flags);
+        if (enabled) {
+            ServerInputDispatcher dispatcher = new ServerInputDispatcher(Thread.currentThread(),
+                    16, 1024, 16, 1024, error -> fail(error));
+            ServerInputDispatcher.Session session = new ServerInputDispatcher.Session(UUID.randomUUID());
+            List<String> order = new ArrayList<>();
+            assertTrue(BetweenTickPackets.supports(packet));
+            dispatcher.offer(session, new ServerInputTask() {
+                @Override public boolean canRunBetweenTicks() { return BetweenTickPackets.canRunBetweenTicks(player, packet); }
+                @Override public void run(InboundContext context) {
+                    assertTrue(context.betweenTicks());
+                    order.add("flight");
+                    player.handleDataPacket(packet);
+                }
+            }, 1, true);
+            dispatcher.offer(session, context -> order.add("follower"), 1, true);
+            assertEquals(2, dispatcher.drain(true, 42, Long.MAX_VALUE));
+            assertEquals(List.of("flight", "follower"), order);
+            assertEquals(0, dispatcher.snapshot().queuedTasks());
+        } else {
+            player.handleDataPacket(packet);
+        }
+        verify(player, times(1)).callPacketReceiveEvent(packet);
+        verify(player, never()).onUpdate(anyInt());
         assertEquals(expectedFlying, settings.get(AdventureSettings.Type.FLYING));
         if (enabled && start && (!allowed || variant.equals("initial-spectator"))) {
             verify(plugins, never()).callEvent(any(PlayerToggleFlightEvent.class));
@@ -82,7 +123,7 @@ class AuthInputFlightAuthorityTest {
 
     static class ProbePlayer extends SynapsePlayer116 {
         ProbePlayer() { super(null, null, 1L, new InetSocketAddress("127.0.0.1", 19132)); }
-        void configure(Server server) { this.server = server; this.isSynapseLogin = true; }
+        void configure(Server server) { this.server = server; this.isSynapseLogin = true; this.spawned = true; }
         @Override protected float getBaseOffset() { return 0; }
     }
 }

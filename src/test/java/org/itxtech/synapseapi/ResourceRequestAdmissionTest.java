@@ -44,7 +44,7 @@ class ResourceRequestAdmissionTest {
         offer(new NetworkStackLatencyPacket19());
         assertEquals(2, dispatcher.drain(true, 7, Long.MAX_VALUE));
         assertSame(request, consumed.getFirst());
-        verify(player, never()).canProcessInputStateBetweenTicks();
+        verify(player, never()).inputStateBlockReason();
     }
 
     @Test

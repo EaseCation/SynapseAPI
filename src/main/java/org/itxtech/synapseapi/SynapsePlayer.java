@@ -17,7 +17,6 @@ import cn.nukkit.inventory.ItemUseHand;
 import cn.nukkit.inventory.InventorySlotReference;
 import cn.nukkit.network.protocol.types.ContainerIds;
 import cn.nukkit.item.Item;
-import cn.nukkit.item.ItemBow;
 import cn.nukkit.item.Items;
 import cn.nukkit.item.ItemMap;
 import cn.nukkit.level.*;
@@ -1644,35 +1643,59 @@ public class SynapsePlayer extends Player {
         this.dataPacket(packet);
     }
 
-    /** 消费时读取真实服务端状态，尚未完成验证的持续使用与特殊姿态仍等待原阶段。 */
+    /**
+     * 纯移动仅判定执行阶段，原handler继续负责权限、验证与最终提交。
+     */
     final boolean canProcessMovementBetweenTicks() {
-        return this.spawned && this.isOnline() && this.isAlive() && this.riding == null
-                && this.isServerAuthoritativeMovementEnabled() && this.supportsPacketSequences()
-                && this.server.getPlayerInputProcessor() != null
-                && !this.isSleeping()
-                // 仅开放原生基岩主手普通弓；食物、弩、定制物品和 Java 使用仍保留原屏障。
-                && (!this.isUsingItem() || !this.isJavaClient() && !this.isUsingOffhandItem()
-                && this.inventory != null && this.inventory.getItemInHand().getClass() == ItemBow.class)
-                && !this.isSwimming()
-                && !this.isGliding() && !this.isCrawling()
-                && !this.getAdventureSettings().get(Type.FLYING)
-                && !this.getDataFlag(DATA_FLAG_SPIN_ATTACK);
+        return movementBlockReason() == InputBlockReason.NONE;
+    }
+
+    final InputBlockReason movementBlockReason() {
+        // 现代入口已有初始化前置拒绝；目标以外的旧入口保留原就绪门禁。
+        if (!(this instanceof SynapsePlayer116100)) {
+            if (!this.spawned) return InputBlockReason.NOT_SPAWNED;
+            if (!this.isOnline()) return InputBlockReason.OFFLINE;
+        }
+        // 能力缺失仍沿原handler拒绝或回退，周期业务不因补充输入额外执行。
+        return InputBlockReason.NONE;
     }
 
     /** 只修改输入状态的任务沿用原 handler，不要求玩家已经结束使用物品。 */
     final boolean canProcessInputStateBetweenTicks() {
-        return this.spawned && this.isOnline() && this.isAlive() && this.isAcceptingInputPackets()
-                && this.supportsPacketSequences() && this.server.getPlayerInputProcessor() != null;
+        return inputStateBlockReason() == InputBlockReason.NONE;
+    }
+
+    final InputBlockReason inputStateBlockReason() {
+        if (!this.spawned) return InputBlockReason.NOT_SPAWNED;
+        if (!this.isOnline()) return InputBlockReason.OFFLINE;
+        if (!this.isAlive()) return InputBlockReason.DEAD;
+        if (!this.isAcceptingInputPackets()) return InputBlockReason.INPUT_NOT_ACCEPTING;
+        if (!this.supportsPacketSequences()) return InputBlockReason.PACKET_SEQUENCE_UNSUPPORTED;
+        if (this.server.getPlayerInputProcessor() == null) return InputBlockReason.INPUT_PROCESSOR_MISSING;
+        return InputBlockReason.NONE;
     }
 
     /** 世界动作只使用已就绪的当前位置；传送和未完成的库存多包事务继续等待。 */
     final boolean canProcessItemActionBetweenTicks() {
-        return this.canProcessInputStateBetweenTicks() && this.teleportPosition == null
-                && this.isServerAuthoritativeMovementEnabled() && this.riding == null
-                && !this.isSleeping() && !this.isSwimming() && !this.isGliding() && !this.isCrawling()
-                && !this.getAdventureSettings().get(Type.FLYING) && !this.getDataFlag(DATA_FLAG_SPIN_ATTACK)
-                && this.craftingTransaction == null && this.enchantTransaction == null
-                && this.repairItemTransaction == null;
+        return itemActionBlockReason() == InputBlockReason.NONE;
+    }
+
+    final InputBlockReason itemActionBlockReason() {
+        InputBlockReason reason = this.inputStateBlockReason();
+        if (reason != InputBlockReason.NONE) return reason;
+        if (this.teleportPosition != null) return InputBlockReason.TELEPORT_PENDING;
+        if (!this.isServerAuthoritativeMovementEnabled()) return InputBlockReason.MOVEMENT_AUTHORITY_DISABLED;
+        if (this.riding != null) return InputBlockReason.RIDING;
+        if (this.isSleeping()) return InputBlockReason.SLEEPING;
+        if (this.isSwimming()) return InputBlockReason.SWIMMING;
+        if (this.isGliding()) return InputBlockReason.GLIDING;
+        if (this.isCrawling()) return InputBlockReason.CRAWLING;
+        if (this.getAdventureSettings().get(Type.FLYING)) return InputBlockReason.FLYING;
+        if (this.getDataFlag(DATA_FLAG_SPIN_ATTACK)) return InputBlockReason.SPIN_ATTACK;
+        if (this.craftingTransaction != null) return InputBlockReason.CRAFTING_PENDING;
+        if (this.enchantTransaction != null) return InputBlockReason.ENCHANTING_PENDING;
+        if (this.repairItemTransaction != null) return InputBlockReason.REPAIR_PENDING;
+        return InputBlockReason.NONE;
     }
 
     @Override
