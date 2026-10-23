@@ -45,21 +45,21 @@ class BetweenTickPacketsTest {
         assertFalse(BetweenTickPackets.supports(packet));
     }
     @Test
-    void stateAndUseKeepTheirSeparateStageContract() {
+    void stateAndBlockUseKeepTheirSeparateStageContract() {
         SynapsePlayer player = mock(SynapsePlayer.class);
         when(player.inputStateBlockReason()).thenReturn(InputBlockReason.NONE);
         when(player.itemActionBlockReason()).thenReturn(InputBlockReason.NONE);
         when(player.movementBlockReason()).thenReturn(InputBlockReason.GLIDING);
         AnimatePacket animation = new AnimatePacket();
         assertTrue(BetweenTickPackets.canRunBetweenTicks(player, animation));
-        assertTrue(BetweenTickPackets.canRunBetweenTicks(player, airUse()));
+        assertTrue(BetweenTickPackets.canRunBetweenTicks(player, blockUse()));
         assertFalse(BetweenTickPackets.canRunBetweenTicks(player, movement()));
     }
 
     @Test
     void aLifecycleChangeBeforeConsumptionKeepsItemActionsBehindTheHead() {
         SynapsePlayer player = mock(SynapsePlayer.class);
-        InventoryTransactionPacket116 packet = airUse();
+        InventoryTransactionPacket116 packet = blockUse();
         when(player.itemActionBlockReason()).thenReturn(InputBlockReason.NONE);
         assertTrue(BetweenTickPackets.canRunBetweenTicks(player, packet));
         when(player.itemActionBlockReason()).thenReturn(InputBlockReason.TELEPORT_PENDING);
@@ -160,13 +160,13 @@ class BetweenTickPacketsTest {
         assertTrue(BetweenTickPackets.supports(packet));
     }
 
-    private static InventoryTransactionPacket116 airUse() {
+    private static InventoryTransactionPacket116 blockUse() {
         InventoryTransactionPacket116 packet = new InventoryTransactionPacket116();
         packet.actions = new NetworkInventoryAction[0];
         packet.transactionType = InventoryTransactionPacket116.TYPE_USE_ITEM;
         UseItemData use = new UseItemData();
         use.itemInHand = mock(Item.class);
-        use.actionType = InventoryTransactionPacket116.USE_ITEM_ACTION_CLICK_AIR;
+        use.actionType = InventoryTransactionPacket116.USE_ITEM_ACTION_CLICK_BLOCK;
         packet.transactionData = use;
         return packet;
     }

@@ -132,11 +132,23 @@ class PlayerActionAdmissionTest {
             f.deliver(PlayerActionPacket119.ACTION_STOP_SPIN_ATTACK);assertFalse(f.player.getDataFlag(Entity.DATA_FLAG_SPIN_ATTACK));assertEquals(0, f.player.damageNearbyMobsTick);verify(f.player, never()).onUpdate(anyInt());
         }
     }
-    @Test void legacyBreakStartDuplicateAndAbortKeepStateAndRateGuard() {
+    @Test void legacyBreakStartDuplicateAndAbortKeepStateAndRateGuard() throws InterruptedException {
         try (Fixture f = new Fixture(true, false)) {
             doReturn(false).when(f.player).isServerAuthoritativeBlockBreakingEnabled();doReturn(true).when(f.player).isCreative();
-            f.deliver(PlayerActionPacket119.ACTION_START_BREAK);assertNotNull(f.player.breaking());long first = f.player.lastBreak;
-            f.deliver(PlayerActionPacket119.ACTION_START_BREAK);assertEquals(first, f.player.lastBreak);
+            f.deliver(PlayerActionPacket119.ACTION_START_BREAK);assertNotNull(f.player.breaking());
+            // 真实处理耗时可超过原10ms期限；核对每次实际重启间隔，同时必须观察到重复抑制。
+            int suppressed = 0;
+            for (int i = 0; i < 16; i++) {
+                long before = f.player.lastBreak;
+                f.deliver(PlayerActionPacket119.ACTION_START_BREAK);
+                if (f.player.lastBreak == before) suppressed++;
+                else assertTrue(f.player.lastBreak - before >= 10, "Repeated break bypassed the original interval");
+            }
+            assertTrue(suppressed > 0, "Fixture did not observe a suppressed duplicate");
+            long beforeDeadline = f.player.lastBreak;
+            Thread.sleep(15);
+            f.deliver(PlayerActionPacket119.ACTION_START_BREAK);
+            assertTrue(f.player.lastBreak - beforeDeadline >= 10, "Elapsed break was not allowed to restart");
             f.deliver(PlayerActionPacket119.ACTION_ABORT_BREAK);assertNull(f.player.breaking());verify(f.player, never()).onUpdate(anyInt());
         }
     }
