@@ -25,6 +25,13 @@ import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
 class RedirectAttributionTest {
+    private static MockedStatic<Server> preparedServer(Server server) {
+        // 独立运行此用例时，协议枚举同样需要已绑定的服务器。
+        MockedStatic<Server> scope = mockStatic(Server.class);
+        scope.when(Server::getInstance).thenReturn(server);
+        return scope;
+    }
+
     @Test
     void actualRedirectRecordsFirstDecisionWithoutDiagnosticRecheck() {
         Server server = mock(Server.class, RETURNS_DEEP_STUBS);
@@ -55,7 +62,7 @@ class RedirectAttributionTest {
         redirect.protocol = 975;
         redirect.mcpeBuffer = new byte[]{1};
         redirect.receivedNanos = 123L;
-        try (MockedStatic<Server> servers = mockStatic(Server.class);
+        try (MockedStatic<Server> servers = preparedServer(server);
              MockedStatic<SynapseAPI> globals = mockStatic(SynapseAPI.class);
              MockedStatic<PacketRegister> packets = mockStatic(PacketRegister.class);
              MockedConstruction<SynapseInterface> interfaces = mockConstruction(SynapseInterface.class,
