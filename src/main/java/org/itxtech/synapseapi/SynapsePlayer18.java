@@ -1,5 +1,7 @@
 package org.itxtech.synapseapi;
 
+import java.util.Map;
+
 import cn.nukkit.Player;
 import cn.nukkit.level.Position;
 import cn.nukkit.math.Vector3f;
@@ -37,9 +39,11 @@ public class SynapsePlayer18 extends SynapsePlayer17 {
 				ResourcePackClientResponsePacket16 responsePacket = (ResourcePackClientResponsePacket16) packet;
 				switch (responsePacket.responseStatus) {
 					case ResourcePackClientResponsePacket.STATUS_REFUSED:
+                        observeConnection("resource_pack_stage", Map.of("stage", "refused"));
 						this.close("", "disconnectionScreen.noReason");
 						break;
 					case ResourcePackClientResponsePacket.STATUS_SEND_PACKS:
+                        observeConnection("resource_pack_stage", Map.of("stage", "download_requested"));
 						for (ResourcePackClientResponsePacket16.Entry entry : responsePacket.packEntries) {
 							ResourcePack resourcePack = this.resourcePacks.getOrDefault(entry.uuid, this.behaviourPacks.get(entry.uuid));
 							if (resourcePack == null) {
@@ -62,6 +66,7 @@ public class SynapsePlayer18 extends SynapsePlayer17 {
 						}
 						break;
 					case ResourcePackClientResponsePacket.STATUS_HAVE_ALL_PACKS:
+                        observeConnection("resource_pack_stage", Map.of("stage", "have_all"));
 						ResourcePackStackPacket18 stackPacket = new ResourcePackStackPacket18();
 						stackPacket.mustAccept = this.forceResources;
 						stackPacket.resourcePackStack = this.resourcePacks.values().toArray(new ResourcePack[0]);
@@ -69,6 +74,7 @@ public class SynapsePlayer18 extends SynapsePlayer17 {
 						this.dataPacket(stackPacket);
 						break;
 					case ResourcePackClientResponsePacket.STATUS_COMPLETED:
+                        observeConnection("resource_pack_stage", Map.of("stage", "completed"));
 						if (this.preLoginEventTask.isFinished()) {
 							this.completeLoginSequence();
 						} else {

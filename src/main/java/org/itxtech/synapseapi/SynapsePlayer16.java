@@ -1,5 +1,7 @@
 package org.itxtech.synapseapi;
 
+import java.util.Map;
+
 import cn.nukkit.Player;
 import cn.nukkit.PlayerFood;
 import cn.nukkit.entity.Entity;
@@ -115,9 +117,11 @@ public class SynapsePlayer16 extends SynapsePlayer14 {
 				ResourcePackClientResponsePacket16 responsePacket = (ResourcePackClientResponsePacket16) packet;
 				switch (responsePacket.responseStatus) {
 					case ResourcePackClientResponsePacket.STATUS_REFUSED:
+                        observeConnection("resource_pack_stage", Map.of("stage", "refused"));
 						this.close("", "disconnectionScreen.noReason");
 						break;
 					case ResourcePackClientResponsePacket.STATUS_SEND_PACKS:
+                        observeConnection("resource_pack_stage", Map.of("stage", "download_requested"));
 						for (ResourcePackClientResponsePacket16.Entry entry : responsePacket.packEntries) {
 							ResourcePack resourcePack = this.server.getResourcePackManager().getPackById(entry.uuid);
 							if (resourcePack == null) {
@@ -140,12 +144,14 @@ public class SynapsePlayer16 extends SynapsePlayer14 {
 						}
 						break;
 					case ResourcePackClientResponsePacket.STATUS_HAVE_ALL_PACKS:
+                        observeConnection("resource_pack_stage", Map.of("stage", "have_all"));
 						ResourcePackStackPacket16 stackPacket = new ResourcePackStackPacket16();
 						stackPacket.mustAccept = this.forceResources;
 						stackPacket.resourcePackStack = this.server.getResourcePackManager().getResourceStack();
 						this.dataPacket(stackPacket);
 						break;
 					case ResourcePackClientResponsePacket.STATUS_COMPLETED:
+                        observeConnection("resource_pack_stage", Map.of("stage", "completed"));
 						if (this.preLoginEventTask.isFinished()) {
 							this.completeLoginSequence();
 						} else {
@@ -208,6 +214,7 @@ public class SynapsePlayer16 extends SynapsePlayer14 {
 					break;
 				}
 				this.locallyInitialized = true;
+                observeConnection("client_ready_observed", Map.of("evidence", "set_local_player_initialized"));
 				break;
 			case ProtocolInfo.NETWORK_STACK_LATENCY_PACKET:
 				if (!callPacketReceiveEvent(packet)) {
@@ -324,6 +331,7 @@ public class SynapsePlayer16 extends SynapsePlayer14 {
 		);
 
 		this.server.getPluginManager().callEvent(playerJoinEvent);
+		observeConnection("world_initialized", Map.of("evidence", "server_spawn_completed"));
 
 		if (!playerJoinEvent.getJoinMessage().toString().trim().isEmpty()) {
 			this.server.broadcastMessage(playerJoinEvent.getJoinMessage());
