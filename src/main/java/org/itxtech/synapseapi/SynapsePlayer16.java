@@ -331,6 +331,7 @@ public class SynapsePlayer16 extends SynapsePlayer14 {
 		);
 
 		this.server.getPluginManager().callEvent(playerJoinEvent);
+		observeConnection("world_initialized", Map.of("evidence", "server_spawn_completed"));
 
 		if (!playerJoinEvent.getJoinMessage().toString().trim().isEmpty()) {
 			this.server.broadcastMessage(playerJoinEvent.getJoinMessage());
