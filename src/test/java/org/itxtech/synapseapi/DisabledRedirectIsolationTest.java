@@ -55,6 +55,8 @@ class DisabledRedirectIsolationTest {
         when(api.getServer()).thenReturn(server);
         when(api.getLogger()).thenReturn(mock(PluginLogger.class));
         when(api.isMainThreadInput()).thenReturn(synapseEnabled);
+        // 即使独立显示候选配置为开，任一总开关关闭仍完全隔离新路径。
+        when(api.isObserverRawBroadcast()).thenReturn(true);
         when(server.getOnlinePlayerList()).thenReturn(new Player[0]);
         doReturn(Compressor.SNAPPY).when(server).getCompressor();
         ServerInputDispatcher dispatcher = new ServerInputDispatcher(Thread.currentThread(), 64, 4096, 64, 4096, error -> fail(error));

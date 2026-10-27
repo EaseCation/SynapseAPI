@@ -151,6 +151,8 @@ public class SynapsePlayer extends Player {
     int violationIncomingThread;
 
     long lastAuthInputPacketTick = -1;
+    private boolean observerRawBroadcastEnabled;
+    private final ObserverMovementPublication observerMovement = new ObserverMovementPublication();
     float lastAuthInputY;
     float lastAuthInputYaw;
     float lastAuthInputPitch;
@@ -469,6 +471,7 @@ public class SynapsePlayer extends Player {
     /** 网络创建的玩家保留原 TCP 对象；内部无网络夹具沿用已有绑定入口。 */
     final void bindInputSession(@Nullable ServerInputDispatcher.Session session, @Nullable Channel channel) {
         this.inputSession = session;
+        this.observerRawBroadcastEnabled = session != null && this.synapseEntry != null && this.synapseEntry.isObserverRawBroadcastEnabled();
         this.inputChannel = session == null ? null : channel;
     }
 
@@ -1446,6 +1449,9 @@ public class SynapsePlayer extends Player {
         try {
             this.handleDataPacket(packet);
         } finally {
+            if (packet instanceof IPlayerAuthInputPacket && this.isObserverRawBroadcastEnabled()) {
+                this.reconcileObserverMovement();
+            }
             this.handlingInputPacket = previousHandling;
             this.inputMovementEpoch = previousEpoch;
             this.inputValidation = previousValidation;
@@ -1962,6 +1968,7 @@ public class SynapsePlayer extends Player {
         }
         this.completeInputMovement(tickDiff);
         this.finishInputMovementTick();
+        if (this.isObserverRawBroadcastEnabled()) this.reconcileObserverMovement();
     }
 
     /** 依赖位置的内嵌动作只读取本帧已完成提交的状态。 */
@@ -1992,6 +1999,63 @@ public class SynapsePlayer extends Player {
             this.addMovement(commit.x(), commit.y(), commit.z(), commit.yaw(), commit.pitch(), commit.yaw());
         }
         return commit;
+    }
+
+    /**
+     * 业务伪装等不使用玩家实体显示的路径可保留原发布方式。
+     */
+    protected boolean isObserverRawBroadcastEnabled() {
+        return this.observerRawBroadcastEnabled;
+    }
+
+    final void broadcastObserverInput(IPlayerAuthInputPacket input, long epoch) {
+        if (!this.isObserverRawBroadcastEnabled() || !this.isServerAuthoritativeMovementEnabled()) return;
+        observerMovement.publish(input.getTick(), epoch, input.getX(), input.getY(), input.getZ(),
+                input.getYaw(), input.getPitch(), () -> this.isOnline() && this.isAlive()
+                        && this.isAcceptingInputPackets() && this.getMovementEpoch() == epoch
+                        && this.teleportPosition == null && this.forceMovement == null && !this.isSleeping()
+                        && Float.isFinite(input.getHeadYaw())
+                        && Math.abs(input.getX() - this.x) <= 6
+                        && Math.abs(input.getZ() - this.z) <= 6
+                        && Math.abs(input.getY() - this.y) <= (this.isGliding() ? 20 : 6), () -> {
+            MovePlayerPacket packet = new MovePlayerPacket();
+            packet.eid = this.getId();
+            packet.x = input.getX();
+            packet.y = input.getY();
+            packet.z = input.getZ();
+            packet.yaw = input.getYaw();
+            packet.headYaw = input.getHeadYaw();
+            packet.pitch = input.getPitch();
+            packet.mode = MovePlayerPacket.MODE_NORMAL;
+            packet.onGround = this.onGround;
+            Entity vehicle = this.riding;
+            if (vehicle != null) packet.ridingEid = vehicle.getId();
+            packet.setChannel(DataPacket.CHANNEL_PLAYER_MOVING);
+            for (Player viewer : new ArrayList<>(this.getViewers().values())) {
+                if (this.getMovementEpoch() != epoch || !this.isAcceptingInputPackets()) break;
+                if (viewer.isOnline() && viewer.getLevel() == this.level
+                        && this.getViewers().get(viewer.getLoaderId()) == viewer && viewer.canSee(this)) {
+                    viewer.dataPacket(packet);
+                }
+            }
+        });
+    }
+
+    private void reconcileObserverMovement() {
+        if (!this.isOnline() || !this.isAcceptingInputPackets()) return;
+        observerMovement.reconcile(this.lastAuthInputPacketTick, this.getMovementEpoch(),
+                (float) this.x, (float) (this.y + this.getBaseOffset()), (float) this.z,
+                (float) this.yaw, (float) this.pitch, () -> super.addMovement(
+                        this.x, this.y, this.z, this.yaw, this.pitch, this.yaw));
+    }
+
+    @Override
+    public void addMovement(double x, double y, double z, double yaw, double pitch, double headYaw) {
+        if (this.isObserverRawBroadcastEnabled() && observerMovement.hasPublication()) {
+            this.reconcileObserverMovement();
+        } else {
+            super.addMovement(x, y, z, yaw, pitch, headYaw);
+        }
     }
 
     public void setUniqueId(UUID uuid) {
@@ -2262,7 +2326,11 @@ public class SynapsePlayer extends Player {
             this.lastYaw = this.yaw;
             this.lastPitch = this.pitch;
 
-            this.sendPosition(new Vector3(x, y, z), yaw, pitch, MovePlayerPacket.MODE_NORMAL, this.getViewers().values().toArray(new Player[0]));
+            if (this.isObserverRawBroadcastEnabled() && observerMovement.hasPublication()) {
+                this.reconcileObserverMovement();
+            } else {
+                this.sendPosition(new Vector3(x, y, z), yaw, pitch, MovePlayerPacket.MODE_NORMAL, this.getViewers().values().toArray(new Player[0]));
+            }
         }
 
         if (diffMotion > 0.0025 || (diffMotion > 0.0001 && this.getMotion().lengthSquared() <= 0.0001)) { //0.05 ** 2
