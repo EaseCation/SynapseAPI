@@ -544,6 +544,10 @@ public class SynapseEntry {
         }
     }
 
+    final boolean isObserverRawBroadcastEnabled() {
+        return inputDispatcher != null && synapse.isObserverRawBroadcast();
+    }
+
     private void publishRedirect(SynapsePlayer player, DataPacket packet, long movementEpoch, long receivedNanos) {
         RedirectPacketEntry entry = new RedirectPacketEntry(player, packet, movementEpoch);
         if (inputDispatcher == null) {
@@ -594,6 +598,10 @@ public class SynapseEntry {
                     }
                 }
             }, betweenTicks, receivedNanos);
+            // 完整输入先入原 FIFO；显示回调出错或变慢不能阻止这一帧进入主线程。
+            if (packet instanceof IPlayerAuthInputPacket input && synapse.isObserverRawBroadcast()) {
+                player.broadcastObserverInput(input, movementEpoch);
+            }
         }
     }
 
