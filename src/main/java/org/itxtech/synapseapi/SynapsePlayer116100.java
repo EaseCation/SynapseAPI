@@ -1520,9 +1520,11 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
                 ResourcePackClientResponsePacket16 responsePacket = (ResourcePackClientResponsePacket16) packet;
                 switch (responsePacket.responseStatus) {
                     case ResourcePackClientResponsePacket.STATUS_REFUSED:
+                        observeConnection("resource_pack_stage", Map.of("stage", "refused"));
                         this.close("", "disconnectionScreen.noReason");
                         break;
                     case ResourcePackClientResponsePacket.STATUS_SEND_PACKS:
+                        observeConnection("resource_pack_stage", Map.of("stage", "download_requested"));
                         for (ResourcePackClientResponsePacket16.Entry entry : responsePacket.packEntries) {
                             ResourcePack resourcePack = this.resourcePacks.getOrDefault(entry.uuid, this.behaviourPacks.get(entry.uuid));
                             if (resourcePack == null) {
@@ -1545,6 +1547,7 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
                         }
                         break;
                     case ResourcePackClientResponsePacket.STATUS_HAVE_ALL_PACKS:
+                        observeConnection("resource_pack_stage", Map.of("stage", "have_all"));
                         if (this.getProtocol() >= AbstractProtocol.PROTOCOL_121_130.getProtocolStart()) {
                             ResourcePackStackPacket121130 stackPacket = new ResourcePackStackPacket121130();
                             stackPacket.mustAccept = this.forceResources;
@@ -1636,6 +1639,7 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
 
                         break;
                     case ResourcePackClientResponsePacket.STATUS_COMPLETED:
+                        observeConnection("resource_pack_stage", Map.of("stage", "completed"));
                         if (this.preLoginEventTask.isFinished()) {
                             this.completeLoginSequence();
                         } else {

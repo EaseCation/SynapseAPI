@@ -291,6 +291,20 @@ public class SynapsePlayer extends Player {
         }
         this.isFirstTimeLogin = packet.isFirstTime;
         this.cachedExtra = packet.extra;
+        if (packet.extra != null) {
+            if (packet.extra.has("ec_connection_id") && packet.extra.get("ec_connection_id").isJsonPrimitive()) {
+                String observationConnection = packet.extra.get("ec_connection_id").getAsString();
+                if (observationConnection.length() <= 160) setObservationConnectionId(observationConnection);
+            }
+            if (packet.extra.has("ec_observation") && packet.extra.get("ec_observation").isJsonObject()) {
+                JsonObject observation = packet.extra.getAsJsonObject("ec_observation");
+                if (observation.has("transfer_id") && observation.get("transfer_id").isJsonPrimitive()) {
+                    String observationTransfer = observation.get("transfer_id").getAsString();
+                    if (observationTransfer.length() <= 160) setObservationTransferId(observationTransfer);
+                }
+            }
+        }
+        observeConnection("backend_admitted", Map.of("mode", this.isFirstTimeLogin ? "client_native" : "proxy_internal"));
         // 从上一个服务器传递过来的dummyDimension，用于发送子区块的时候使用
         if (this.cachedExtra != null && this.cachedExtra.has("dummyDimension")) {
             this.dummyDimension = this.cachedExtra.get("dummyDimension").getAsInt();
@@ -621,11 +635,13 @@ public class SynapsePlayer extends Player {
             this.behaviourPacks = resourcePackEvent.getBehaviourPacks();
             this.forceResources = resourcePackEvent.isMustAccept();
 
+            observeConnection("resource_pack_stage", Map.of("stage", "offered"));
             DataPacket infoPacket = generateResourcePackInfoPacket();
             this.dataPacket(infoPacket);
 
             this.sendNetworkSettings();
         } else {
+            observeConnection("resource_pack_stage", Map.of("stage", "reused", "evidence", "internal_transfer"));
             //跨服时，传输到目标服务器当前玩家安装上的材质
             if (this.cachedExtra.has("res_packs")) {
                 for (JsonElement data : this.cachedExtra.getAsJsonArray("res_packs")) {
