@@ -4,6 +4,8 @@ enable: true
 autoCompress: true
 # 与 Nukkit network.input-dispatcher.enabled 同时开启才接入统一输入队列。
 main-thread-input: false
+# 仅双开低延迟输入时启用；只影响观察者显示，不参与验证和命中。
+observer-raw-broadcast: false
 
 entries:
   - server-ip: 127.0.0.1
