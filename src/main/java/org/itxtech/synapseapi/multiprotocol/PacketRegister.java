@@ -499,6 +499,7 @@ public class PacketRegister {
         registerPacket(AbstractProtocol.PROTOCOL_121_130, ProtocolInfo.COMMAND_OUTPUT_PACKET, CommandOutputPacket121130.class);
         registerPacket(AbstractProtocol.PROTOCOL_121_130, ProtocolInfo.MOB_EFFECT_PACKET, MobEffectPacket121130.class);
         registerPacket(AbstractProtocol.PROTOCOL_121_130, ProtocolInfo.SERVERBOUND_DATA_STORE_PACKET, ServerboundDataStorePacket121130.class);
+        registerPacket(AbstractProtocol.PROTOCOL_121_130, ProtocolInfo.CONTAINER_OPEN_PACKET, ContainerOpenPacket121130NE.class);
 
         registerPacket(AbstractProtocol.PROTOCOL_126, ProtocolInfo.START_GAME_PACKET, StartGamePacket126.class);
         registerPacket(AbstractProtocol.PROTOCOL_126, ProtocolInfo.TEXT_PACKET, TextPacket126.class);

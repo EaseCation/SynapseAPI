@@ -33,15 +33,13 @@ public class TextPacket126 extends Packet126 {
 
     public byte type;
     public String message = "";
-    public String[] parameters = new String[0];
+    public String[] parameters = new String[0]; // max: 4 || 12 (netease)
     public String primaryName = "";
 
     public String sendersXUID = "";
     public String platformIdString = "";
     @Nullable
     public String filteredMessage;
-
-    public String unknownNE = ""; // Biggest wtf
 
     @Override
     public int pid() {
@@ -62,6 +60,11 @@ public class TextPacket126 extends Packet126 {
                 this.type = (byte) this.getByte();
                 this.primaryName = this.getString();
                 this.message = this.getString();
+
+                if (neteaseMode) {
+                    this.parameters = this.getArray(new String[0], BinaryStream::getString);
+                }
+
                 break;
             case BODY_TYPE_MESSAGE_AND_PARAMS:
                 this.type = (byte) this.getByte();
@@ -73,12 +76,6 @@ public class TextPacket126 extends Packet126 {
         this.sendersXUID = this.getString();
         this.platformIdString = this.getString();
         this.filteredMessage = this.getOptional(BinaryStream::getString);
-
-        if (this.neteaseMode) {
-            if (this.type == TYPE_CHAT || this.type == TYPE_POPUP) {
-                this.unknownNE = this.getString();
-            }
-        }
     }
 
     @Override
@@ -121,6 +118,14 @@ public class TextPacket126 extends Packet126 {
                     }
                 }
                 this.putString(message);
+
+                if (neteaseMode) {
+                    this.putUnsignedVarInt(this.parameters.length);
+                    for (String parameter : this.parameters) {
+                        this.putString(parameter);
+                    }
+                }
+
                 break;
             }
             case TYPE_TRANSLATION:
@@ -140,12 +145,6 @@ public class TextPacket126 extends Packet126 {
         this.putString(this.sendersXUID);
         this.putString(this.platformIdString);
         this.putOptional(this.filteredMessage, BinaryStream::putString);
-
-        if (this.neteaseMode) {
-            if (this.type == TYPE_CHAT || this.type == TYPE_POPUP) {
-                this.putString(this.unknownNE);
-            }
-        }
     }
 
     @Override

@@ -126,7 +126,7 @@ public class BinaryStreamHelper11810 extends BinaryStreamHelper118 {
             }
             case ItemStackRequestPacket11810.ACTION_CRAFTING_GRINDSTONE: {
                 GrindstoneStackRequestAction action = new GrindstoneStackRequestAction();
-                action.recipeId = (int) stream.getUnsignedVarInt();
+                action.recipeId = stream.getVarInt();
                 action.repairCost = stream.getVarInt();
                 return action;
             }

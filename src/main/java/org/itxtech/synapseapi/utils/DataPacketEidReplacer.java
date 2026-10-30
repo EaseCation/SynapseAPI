@@ -28,6 +28,7 @@ import org.itxtech.synapseapi.multiprotocol.protocol12080.protocol.UpdatePlayerG
 import org.itxtech.synapseapi.multiprotocol.protocol121100.protocol.CameraInstructionPacket121100;
 import org.itxtech.synapseapi.multiprotocol.protocol121120.protocol.CameraInstructionPacket121120;
 import org.itxtech.synapseapi.multiprotocol.protocol121124.protocol.ContainerOpenPacket121124NE;
+import org.itxtech.synapseapi.multiprotocol.protocol121130.protocol.ContainerOpenPacket121130NE;
 import org.itxtech.synapseapi.multiprotocol.protocol121130.protocol.MobEffectPacket121130;
 import org.itxtech.synapseapi.multiprotocol.protocol12120.protocol.CameraInstructionPacket12120;
 import org.itxtech.synapseapi.multiprotocol.protocol12120.protocol.MobArmorEquipmentPacket12120;
@@ -263,6 +264,10 @@ public class DataPacketEidReplacer {
                 break;
             case ProtocolInfo.CONTAINER_OPEN_PACKET:
                 if (packet instanceof ContainerOpenPacket dp) {
+                    if (dp.entityId == from) {
+                        dp.entityId = to;
+                    }
+                } else if (packet instanceof ContainerOpenPacket121130NE dp) {
                     if (dp.entityId == from) {
                         dp.entityId = to;
                     }
