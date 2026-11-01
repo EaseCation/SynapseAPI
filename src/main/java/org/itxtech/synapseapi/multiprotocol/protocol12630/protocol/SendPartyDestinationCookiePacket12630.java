@@ -30,8 +30,8 @@ public class SendPartyDestinationCookiePacket12630 extends Packet12630 {
     @Override
     public void encode() {
         reset();
-        putString(cookie);
+        putString(cookie, 2048);
         putByte(intent);
-        putString(destinationName);
+        putString(destinationName, 64);
     }
 }

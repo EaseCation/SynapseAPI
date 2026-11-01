@@ -2,6 +2,7 @@ package org.itxtech.synapseapi.multiprotocol.protocol12630.protocol;
 
 import cn.nukkit.block.Block;
 import cn.nukkit.network.protocol.ProtocolInfo;
+import cn.nukkit.utils.BinaryStream;
 import cn.nukkit.utils.SequencedHashSet;
 import lombok.ToString;
 import org.itxtech.synapseapi.multiprotocol.AbstractProtocol;
@@ -275,10 +276,8 @@ public class BiomeDefinitionListPacket12630 extends Packet12630 {
 
             bs.putLInt(noiseGradientSurface.firstOctave);
 
-            bs.putUnsignedVarInt(noiseGradientSurface.amplitudes.size());
-            for (float value : noiseGradientSurface.amplitudes) {
-                bs.putLFloat(value);
-            }
+            if (noiseGradientSurface.amplitudes.isEmpty()) throw new IndexOutOfBoundsException("Amplitudes cannot be empty");
+            bs.putArray(noiseGradientSurface.amplitudes, BinaryStream::putLFloat, 100);
         });
     }
 }

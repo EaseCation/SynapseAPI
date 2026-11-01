@@ -37,37 +37,34 @@ public class SyncWorldClocksPacket12610 extends Packet12610 {
                     stream.putUnsignedVarLong(entry.id);
                     stream.putVarInt(entry.time);
                     stream.putBoolean(entry.paused);
-                });
+                }, 256);
             }
             case INITIALIZE_REGISTRY -> {
                 putArray(((InitializeRegistryAction) action).data, (stream, entry) -> {
                     stream.putUnsignedVarLong(entry.id);
-                    stream.putString(entry.name);
+                    stream.putString(entry.name, 128);
                     stream.putVarInt(entry.time);
                     stream.putBoolean(entry.paused);
-                    stream.putArray(entry.markers, SyncWorldClocksPacket12610::putTimeMarker);
-                });
+                    stream.putArray(entry.markers, SyncWorldClocksPacket12610::putTimeMarker, 256);
+                }, 256);
             }
             case ADD_TIME_MARKER -> {
                 AddTimeMarkerAction add = (AddTimeMarkerAction) action;
                 putUnsignedVarLong(add.id);
-                putArray(add.markers, SyncWorldClocksPacket12610::putTimeMarker);
+                putArray(add.markers, SyncWorldClocksPacket12610::putTimeMarker, 256);
             }
             case REMOVE_TIME_MARKER -> {
                 RemoveTimeMarkerAction remove = (RemoveTimeMarkerAction) action;
                 putUnsignedVarLong(remove.id);
 
-                putUnsignedVarInt(remove.markerIds.length);
-                for (long id : remove.markerIds) {
-                    putUnsignedVarLong(id);
-                }
+                putArray(remove.markerIds, BinaryStream::putUnsignedVarLong, 256);
             }
         }
     }
 
     private static void putTimeMarker(BinaryStream stream, TimeMarker marker) {
         stream.putUnsignedVarLong(marker.id);
-        stream.putString(marker.name);
+        stream.putString(marker.name, 128);
         stream.putVarInt(marker.time);
         stream.putOptional(marker.period, BinaryStream::putLInt);
     }

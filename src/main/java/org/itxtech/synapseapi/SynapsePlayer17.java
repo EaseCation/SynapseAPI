@@ -81,6 +81,7 @@ public class SynapsePlayer17 extends SynapsePlayer16 {
 		startGamePacket.worldName = this.getServer().getNetwork().getName();
 		startGamePacket.generator = 1; // 0 old, 1 infinite, 2 flat
 		startGamePacket.gameRules = getSupportedRules();
+		startGamePacket.isTexturePacksRequired = server.getForceResources();
 		startGamePacket.enchantmentSeed = ThreadLocalRandom.current().nextInt();
 		return startGamePacket;
 	}

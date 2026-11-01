@@ -1,6 +1,7 @@
 package org.itxtech.synapseapi.multiprotocol.protocol126.protocol;
 
 import cn.nukkit.network.protocol.ProtocolInfo;
+import cn.nukkit.utils.BinaryStream;
 import it.unimi.dsi.fastutil.objects.ObjectIntPair;
 import lombok.ToString;
 import org.itxtech.synapseapi.multiprotocol.common.block.VoxelShape;
@@ -57,30 +58,26 @@ public class VoxelShapesPacket126 extends Packet126 {
         reset();
 
         putArray(shapes, (stream, shape) -> {
-            stream.putByte(shape.xSize);
-            stream.putByte(shape.ySize);
-            stream.putByte(shape.zSize);
-            stream.putByteArray(shape.storage);
+            stream.putByte(shape.xSize, 127, 0);
+            stream.putByte(shape.ySize, 127, 0);
+            stream.putByte(shape.zSize, 127, 0);
+            stream.putByteArray(shape.storage, 256048);
 
-            stream.putUnsignedVarInt(shape.xCoordinates.length);
-            for (float value : shape.xCoordinates) {
-                stream.putLFloat(value);
-            }
-
-            stream.putUnsignedVarInt(shape.yCoordinates.length);
-            for (float value : shape.yCoordinates) {
-                stream.putLFloat(value);
-            }
-
-            stream.putUnsignedVarInt(shape.zCoordinates.length);
-            for (float value : shape.zCoordinates) {
-                stream.putLFloat(value);
-            }
+            putCoordinates(stream, shape.xCoordinates);
+            putCoordinates(stream, shape.yCoordinates);
+            putCoordinates(stream, shape.zCoordinates);
         });
 
         putArray(nameMap, (stream, entry) -> {
             stream.putString(entry.left());
             stream.putLShort(entry.rightInt());
         });
+    }
+
+    private static void putCoordinates(BinaryStream stream, float[] coordinates) {
+        if (coordinates.length == 0) {
+            throw new IllegalArgumentException("Coordinates cannot be empty");
+        }
+        stream.putArray(coordinates, BinaryStream::putLFloat, 128);
     }
 }

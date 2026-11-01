@@ -33,31 +33,30 @@ public class ClientboundAttributeLayerSyncPacket12630 extends Packet12630 {
         switch (type) {
             case UPDATE_ATTRIBUTE_LAYERS -> {
                 putArray(((UpdateAttributeLayersAction) action).layers, (stream, layer) -> {
-                    stream.putString(layer.name);
-                    stream.putOptional(layer.noiseName, BinaryStream::putString);
+                    stream.putString(layer.name, 128);
+                    stream.putOptional(layer.noiseName, (bs, noiseName) -> bs.putString(noiseName, 128));
                     stream.putVarInt(layer.dimension);
                     putAttributeLayerSettings(stream, layer.settings);
-                    stream.putArray(layer.attributes, ClientboundAttributeLayerSyncPacket12630::putEnvironmentAttribute);
-                });
+                    stream.putArray(layer.attributes, ClientboundAttributeLayerSyncPacket12630::putEnvironmentAttribute, 1024);
+                }, 512);
             }
             case UPDATE_ATTRIBUTE_LAYER_SETTINGS -> {
                 UpdateAttributeLayerSettingsAction update = (UpdateAttributeLayerSettingsAction) action;
-                putString(update.name);
+                putString(update.name, 128);
                 putVarInt(update.dimension);
                 putAttributeLayerSettings(this, update.settings);
             }
             case UPDATE_ENVIRONMENT_ATTRIBUTES -> {
                 UpdateEnvironmentAttributesAction update = (UpdateEnvironmentAttributesAction) action;
-                putString(update.name);
+                putString(update.name, 128);
                 putVarInt(update.dimension);
-                putArray(update.attributes, ClientboundAttributeLayerSyncPacket12630::putEnvironmentAttribute);
+                putArray(update.attributes, ClientboundAttributeLayerSyncPacket12630::putEnvironmentAttribute, 1024);
             }
             case REMOVE_ENVIRONMENT_ATTRIBUTES -> {
                 RemoveEnvironmentAttributesAction remove = (RemoveEnvironmentAttributesAction) action;
-                putString(remove.name);
+                putString(remove.name, 128);
                 putVarInt(remove.dimension);
-                putArray(remove.attributes, BinaryStream::putString);
-
+                putArray(remove.attributes, (stream, attribute) -> stream.putString(attribute, 128), 1024);
             }
         }
     }
@@ -78,7 +77,7 @@ public class ClientboundAttributeLayerSyncPacket12630 extends Packet12630 {
     }
 
     private static void putEnvironmentAttribute(BinaryStream stream, EnvironmentAttribute attribute) {
-        stream.putString(attribute.name);
+        stream.putString(attribute.name, 128);
         stream.putOptional(attribute.fromAttribute, ClientboundAttributeLayerSyncPacket12630::putAttributeValue);
         putAttributeValue(stream, attribute.attribute);
         stream.putOptional(attribute.toAttribute, ClientboundAttributeLayerSyncPacket12630::putAttributeValue);

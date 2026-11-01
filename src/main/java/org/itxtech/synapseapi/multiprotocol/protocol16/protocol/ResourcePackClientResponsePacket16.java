@@ -24,7 +24,7 @@ public class ResourcePackClientResponsePacket16 extends Packet16 {
         this.packEntries = this.getArray(BinaryStream::getLShort, new Entry[0], stream -> {
             String[] entry = this.getString().split("_", 3);
             return new Entry(entry[0], entry[1]);
-        });
+        }, Character.MAX_VALUE);
     }
 
     @Override

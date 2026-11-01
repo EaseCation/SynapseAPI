@@ -3,6 +3,7 @@ package org.itxtech.synapseapi.multiprotocol.protocol11810.protocol;
 import cn.nukkit.math.BlockVector3;
 import cn.nukkit.network.protocol.DataPacket;
 import cn.nukkit.network.protocol.ProtocolInfo;
+import cn.nukkit.utils.BinaryStream;
 import lombok.ToString;
 import org.itxtech.synapseapi.multiprotocol.protocol118.protocol.SubChunkRequestPacket118;
 
@@ -35,18 +36,11 @@ public class SubChunkRequestPacket11810 extends Packet11810 {
         this.subChunkX = this.getVarInt();
         this.subChunkY = this.getVarInt();
         this.subChunkZ = this.getVarInt();
-        this.positionOffsets = this.getArray(stream -> {
-            int count = stream.getLInt();
-            if (count > MAX_SUB_CHUNKS) {
-                throw new IndexOutOfBoundsException("too many array requests");
-            }
-            return count;
-        }, new BlockVector3[0], stream -> new BlockVector3(stream.getSignedByte(), stream.getSignedByte(), stream.getSignedByte()));
+        this.positionOffsets = this.getArray(BinaryStream::getLInt, new BlockVector3[0], stream -> new BlockVector3(stream.getSignedByte(), stream.getSignedByte(), stream.getSignedByte()), MAX_SUB_CHUNKS);
     }
 
     @Override
     public void encode() {
-
     }
 
     @Override

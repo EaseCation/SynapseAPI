@@ -42,7 +42,7 @@ public class ClientboundDebugRendererPacket121130 extends Packet121130 {
                 putString("adddebugmarkercube");
                 putBoolean(true);
 
-                putString(text);
+                putString(text, 4096);
                 putVector3f(x, y, z);
                 putLInt(color);
                 putLLong(durationMillis);

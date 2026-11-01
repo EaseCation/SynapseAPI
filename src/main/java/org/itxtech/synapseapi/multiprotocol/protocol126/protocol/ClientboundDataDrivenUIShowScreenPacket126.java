@@ -27,6 +27,6 @@ public class ClientboundDataDrivenUIShowScreenPacket126 extends Packet126 {
     @Override
     public void encode() {
         reset();
-        putString(screenId);
+        putString(screenId, 500);
     }
 }

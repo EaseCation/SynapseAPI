@@ -154,6 +154,7 @@ public class SynapsePlayer116 extends SynapsePlayer113 {
 		startGamePacket.worldName = this.getServer().getNetwork().getName();
 		startGamePacket.generator = 1; // 0 old, 1 infinite, 2 flat
 		startGamePacket.gameRules = getSupportedRules();
+		startGamePacket.isTexturePacksRequired = server.getForceResources();
 		startGamePacket.isInventoryServerAuthoritative = SERVER_AUTHORITATIVE_INVENTORY;
 		startGamePacket.isMovementServerAuthoritative = this.isNetEaseClient();
 		startGamePacket.currentTick = 0;//this.server.getTick();

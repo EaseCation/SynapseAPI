@@ -20,18 +20,9 @@ public class ServerboundDataStorePacket121130 extends Packet121130 {
 
     @Override
     public void decode() {
-        String name = getString();
-        if (name.length() > 1000) {
-            throw new IndexOutOfBoundsException("string too long");
-        }
-        String property = getString();
-        if (property.length() > 1000) {
-            throw new IndexOutOfBoundsException("string too long");
-        }
-        String path = getString();
-        if (path.length() > 1000) {
-            throw new IndexOutOfBoundsException("string too long");
-        }
+        String name = getString(1000, true);
+        String property = getString(1000, true);
+        String path = getString(1000);
 
         double doubleData = 0;
         boolean boolData = false;
@@ -40,16 +31,12 @@ public class ServerboundDataStorePacket121130 extends Packet121130 {
         switch (dataType) {
             case DataStoreUpdate.TYPE_DOUBLE -> doubleData = getLDouble();
             case DataStoreUpdate.TYPE_BOOL -> boolData = getBoolean();
-            case DataStoreUpdate.TYPE_STRING -> {
-                stringData = getString();
-                if (stringData.length() > 5000) {
-                    throw new IndexOutOfBoundsException("string too long");
-                }
-            }
+            case DataStoreUpdate.TYPE_STRING -> stringData = getString(5000);
             default -> throw new IllegalArgumentException("invalid data type: " + dataType);
         }
 
         int updateCount = getLInt();
+        if (updateCount == -1) throw new IllegalArgumentException("invalid update count");
 
         update = switch (dataType) {
             case DataStoreUpdate.TYPE_DOUBLE -> DataStoreUpdate.create(name, property, path, doubleData, updateCount);

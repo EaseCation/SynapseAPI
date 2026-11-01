@@ -28,7 +28,7 @@ public class StructureTemplateDataRequestPacket112 extends Packet112 {
 
     @Override
     public void decode() {
-        name = getString();
+        name = getString(256);
         BlockVector3 pos = getBlockVector3();
         x = pos.getX();
         y = pos.getY();

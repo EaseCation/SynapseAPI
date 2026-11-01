@@ -44,6 +44,6 @@ public class LocatorBarPacket12620 extends Packet12620 {
             stream.putOptional(waypoint.entityUniqueId, BinaryStream::putEntityUniqueId);
 
             stream.putByte(waypoint.action);
-        });
+        }, 40000);
     }
 }

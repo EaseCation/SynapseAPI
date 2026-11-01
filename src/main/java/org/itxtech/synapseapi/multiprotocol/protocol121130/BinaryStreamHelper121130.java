@@ -23,10 +23,10 @@ public class BinaryStreamHelper121130 extends BinaryStreamHelper121124 {
         stream.putUnsignedVarInt(commands.size());
 
         commands.forEach((name, cmdData) -> {
-            CommandData data = cmdData.versions.get(0);
+            CommandData data = cmdData.versions.getFirst();
 
-            stream.putString(name);
-            stream.putString(data.description);
+            stream.putString(name, 1000);
+            stream.putString(data.description, 1000);
             int flags = 0;
             for (CommandFlag flag : data.flags) {
                 flags |= 1 << flag.ordinal();
@@ -36,18 +36,16 @@ public class BinaryStreamHelper121130 extends BinaryStreamHelper121124 {
 
             stream.putLInt(data.aliases == null ? -1 : enums.indexOf(data.aliases));
 
-            stream.putUnsignedVarInt(data.chainedSubCommandData.size());
-            for (ChainedSubCommandData chainedSubCommand : data.chainedSubCommandData.values()) {
-                stream.putLInt(chainedSubCommands.indexOf(chainedSubCommand));
-            }
+            stream.putArray(data.chainedSubCommandData.values(), (bs, chainedSubCommand) -> {
+                bs.putLInt(chainedSubCommands.indexOf(chainedSubCommand));
+            }, 250);
 
-            stream.putUnsignedVarInt(data.overloads.size());
-            for (CommandOverload overload : data.overloads.values()) {
-                stream.putBoolean(overload.chaining);
+            stream.putArray(data.overloads.values(), (bs, overload) -> {
+                bs.putBoolean(overload.chaining);
 
-                stream.putUnsignedVarInt(overload.input.parameters.length);
+                bs.putUnsignedVarInt(overload.input.parameters.length);
                 for (CommandParameter parameter : overload.input.parameters) {
-                    stream.putString(parameter.name);
+                    bs.putString(parameter.name);
 
                     int type = 0;
                     if (parameter.postFix != null) {
@@ -69,15 +67,15 @@ public class BinaryStreamHelper121130 extends BinaryStreamHelper121124 {
                         }
                     }
 
-                    stream.putLInt(type);
-                    stream.putBoolean(parameter.optional);
+                    bs.putLInt(type);
+                    bs.putBoolean(parameter.optional);
                     int options = 0;
                     for (CommandParamOption option : parameter.options) {
                         options |= 1 << option.ordinal();
                     }
-                    stream.putByte((byte) options);
+                    bs.putByte((byte) options);
                 }
-            }
+            }, 250);
         });
     }
 }

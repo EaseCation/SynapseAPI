@@ -1,5 +1,6 @@
 package org.itxtech.synapseapi.multiprotocol.protocol121100.protocol;
 
+import cn.nukkit.math.Mth;
 import cn.nukkit.network.protocol.ProtocolInfo;
 import lombok.ToString;
 
@@ -47,9 +48,11 @@ public class CameraAimAssistPacket120100 extends Packet121100 {
         reset();
         putString(presetId);
 
-        putVector2f(pitch, yaw);
+        if (!Float.isFinite(pitch) || !Float.isFinite(yaw)) throw new IllegalArgumentException("view angle is invalid");
+        putVector2f(Mth.clamp(pitch, 10, 90), Mth.clamp(yaw, 10, 90));
 
-        putLFloat(distance);
+        if (!Float.isFinite(distance)) throw new IllegalArgumentException("distance is invalid");
+        putLFloat(Mth.clamp(distance, 1, 16));
 
         putByte(mode);
         putByte(action);

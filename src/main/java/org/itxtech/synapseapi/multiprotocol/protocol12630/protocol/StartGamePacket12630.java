@@ -263,8 +263,8 @@ public class StartGamePacket12630 extends Packet12630 {
             });
         });
         this.putString(this.serverIdentifier);
-        this.putString(this.worldIdentifier);
         this.putString(this.scenarioIdentifier);
+        this.putString(this.worldIdentifier);
         this.putString(this.ownerIdentifier);
     }
 }

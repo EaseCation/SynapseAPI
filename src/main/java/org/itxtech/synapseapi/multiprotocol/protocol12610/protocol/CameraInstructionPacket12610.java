@@ -92,7 +92,7 @@ public class CameraInstructionPacket12610 extends Packet12610 {
                 stream.putEnum(rotationKeyFrame.easing != null ? rotationKeyFrame.easing : EasingType.LINEAR, EasingType::getName);
             }
 
-            stream.putString(spline.name);
+            stream.putString(spline.name, 1024);
             stream.putBoolean(!spline.name.isEmpty()); // loadFromBehaviorPack(CameraSplinePacket)
         });
 

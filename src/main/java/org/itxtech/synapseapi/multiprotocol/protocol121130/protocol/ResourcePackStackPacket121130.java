@@ -29,12 +29,11 @@ public class ResourcePackStackPacket121130 extends Packet121130 {
         this.reset();
         this.putBoolean(this.mustAccept);
 
-        this.putUnsignedVarInt(this.resourcePackStack.length);
-        for (ResourcePack entry : this.resourcePackStack) {
-            this.putString(entry.getPackId());
-            this.putString(entry.getPackVersion());
-            this.putString("");
-        }
+        this.putArray(this.resourcePackStack, (stream, entry) -> {
+            stream.putString(entry.getPackId());
+            stream.putString(entry.getPackVersion());
+            stream.putString("");
+        }, 65535);
 
         this.putString("*");//this.putString(this.helper.getGameVersion());
         this.putLInt(experiments.experiments.length);

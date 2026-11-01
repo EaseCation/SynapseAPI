@@ -75,7 +75,7 @@ public class StartGamePacket126 extends Packet126 {
     public int xblBroadcastIntent = GAME_PUBLISH_SETTING_PUBLIC;
     public int platformBroadcastIntent = GAME_PUBLISH_SETTING_PUBLIC;
     public boolean commandsEnabled;
-    public boolean isTexturePacksRequired = false;
+    public boolean isTexturePacksRequired = true;
     public GameRules gameRules;
     public Experiments experiments = Experiments.NONE;
     public boolean bonusChest = false;
@@ -246,8 +246,8 @@ public class StartGamePacket126 extends Packet126 {
             });
         });
         this.putString(this.serverIdentifier);
-        this.putString(this.worldIdentifier);
         this.putString(this.scenarioIdentifier);
+        this.putString(this.worldIdentifier);
         this.putString(this.ownerIdentifier);
     }
 }

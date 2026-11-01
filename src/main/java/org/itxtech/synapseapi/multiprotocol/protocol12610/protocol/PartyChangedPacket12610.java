@@ -19,7 +19,7 @@ public class PartyChangedPacket12610 extends Packet12610 {
 
     @Override
     public void decode() {
-        partyId = getString();
+        partyId = getString(49);
     }
 
     @Override

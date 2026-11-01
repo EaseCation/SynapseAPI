@@ -37,8 +37,8 @@ public class AddVolumeEntityPacket11830 extends Packet11830 {
         reset();
         putUnsignedVarInt(netId);
         put(components);
-        putString(identifier);
-        putString(instanceName);
+        putString(identifier, true);
+        putString(instanceName, true);
         putBlockVector3(minX, minY, minZ);
         putBlockVector3(maxX, maxY, maxZ);
         putVarInt(dimension);

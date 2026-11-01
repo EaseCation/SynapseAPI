@@ -320,11 +320,11 @@ public class GraphicsOverrideParameterPacket12630 extends Packet12630 {
         putArray(keyframes, (stream, keyframe) -> {
             stream.putLFloat(keyframe.leftFloat());
             stream.putVector3f(keyframe.right());
-        });
+        }, 255);
         putOptional(floatValue, BinaryStream::putLFloat);
         putOptional(vecValue, BinaryStream::putVector3f);
-        putString(biome);
-        putOptional(playerIdentifier, BinaryStream::putString);
+        putString(biome, 255);
+        putOptional(playerIdentifier, (stream, player) -> stream.putString(player, 255));
         putByte(type);
         putBoolean(reset);
     }

@@ -250,6 +250,7 @@ public class SynapsePlayer19 extends SynapsePlayer18 {
 		startGamePacket.worldName = this.getServer().getNetwork().getName();
 		startGamePacket.generator = 1; // 0 old, 1 infinite, 2 flat
 		startGamePacket.gameRules = getSupportedRules();
+		startGamePacket.isTexturePacksRequired = server.getForceResources();
 		startGamePacket.blockPalette = AdvancedGlobalBlockPalette.getCompiledTable(AbstractProtocol.fromRealProtocol(this.protocol), this.isNetEaseClient());
 		startGamePacket.enchantmentSeed = ThreadLocalRandom.current().nextInt();
 		return startGamePacket;

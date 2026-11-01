@@ -27,60 +27,59 @@ public class PrimitiveShapesPacket12630 extends Packet12630 {
     @Override
     public void encode() {
         reset();
-        putUnsignedVarInt(entries.length);
-        for (Entry entry : entries) {
-            putUnsignedVarLong(entry.id);
-            putOptional(entry.type, (stream, type) -> stream.putByte(type.ordinal()));
-            putOptional(entry.location, BinaryStream::putVector3f);
-            putOptional(entry.scale, BinaryStream::putLFloat);
-            putOptional(entry.rotation, BinaryStream::putVector3f);
-            putOptional(entry.totalTimeLeft, BinaryStream::putLFloat);
-            putOptional(entry.maximumRenderDistance, BinaryStream::putLFloat);
-            putOptional(entry.color, BinaryStream::putLInt);
-            putOptional(entry.dimension, BinaryStream::putVarInt);
-            putOptional(entry.attachedEntityRuntimeId, BinaryStream::putEntityRuntimeId);
+        putArray(entries, (stream, entry) -> {
+            stream.putUnsignedVarLong(entry.id);
+            stream.putOptional(entry.type, (bs, type) -> bs.putByte(type.ordinal()));
+            stream.putOptional(entry.location, BinaryStream::putVector3f);
+            stream.putOptional(entry.scale, BinaryStream::putLFloat);
+            stream.putOptional(entry.rotation, BinaryStream::putVector3f);
+            stream.putOptional(entry.totalTimeLeft, BinaryStream::putLFloat);
+            stream.putOptional(entry.maximumRenderDistance, BinaryStream::putLFloat);
+            stream.putOptional(entry.color, BinaryStream::putLInt);
+            stream.putOptional(entry.dimension, BinaryStream::putVarInt);
+            stream.putOptional(entry.attachedEntityRuntimeId, BinaryStream::putEntityRuntimeId);
 
-            putUnsignedVarInt(Type.getPayloadType(entry.type, helper.getProtocol().ordinal()));
+            stream.putUnsignedVarInt(Type.getPayloadType(entry.type, helper.getProtocol().ordinal()));
             switch (entry.type) {
                 case ARROW -> {
-                    putOptional(entry.lineEndLocation, BinaryStream::putVector3f);
-                    putOptional(entry.arrowHeadLength, BinaryStream::putLFloat);
-                    putOptional(entry.arrowHeadRadius, BinaryStream::putLFloat);
-                    putOptional(entry.numSegments, BinaryStream::putByte);
+                    stream.putOptional(entry.lineEndLocation, BinaryStream::putVector3f);
+                    stream.putOptional(entry.arrowHeadLength, BinaryStream::putLFloat);
+                    stream.putOptional(entry.arrowHeadRadius, BinaryStream::putLFloat);
+                    stream.putOptional(entry.numSegments, BinaryStream::putByte);
                 }
                 case TEXT -> {
-                    putString(entry.text);
-                    putBoolean(entry.textRotation);
-                    putOptional(entry.backgroundColor, BinaryStream::putLInt);
-                    putBoolean(entry.depthTest);
-                    putBoolean(entry.showBackface);
-                    putBoolean(entry.showTextBackface);
+                    stream.putString(entry.text);
+                    stream.putBoolean(entry.textRotation);
+                    stream.putOptional(entry.backgroundColor, BinaryStream::putLInt);
+                    stream.putBoolean(entry.depthTest);
+                    stream.putBoolean(entry.showBackface);
+                    stream.putBoolean(entry.showTextBackface);
                 }
-                case BOX -> putVector3f(entry.boxBound);
-                case LINE -> putVector3f(entry.lineEndLocation);
-                case SPHERE, CIRCLE -> putByte(entry.numSegments);
+                case BOX -> stream.putVector3f(entry.boxBound);
+                case LINE -> stream.putVector3f(entry.lineEndLocation);
+                case SPHERE, CIRCLE -> stream.putByte(entry.numSegments);
                 case CYLINDER -> {
-                    putVector2f(entry.radii);
-                    putVector2f(entry.radii2);
-                    putLFloat(entry.height);
-                    putByte(entry.numSegments);
+                    stream.putVector2f(entry.radii);
+                    stream.putVector2f(entry.radii2);
+                    stream.putLFloat(entry.height);
+                    stream.putByte(entry.numSegments);
                 }
                 case PYRAMID -> {
-                    putLFloat(entry.width);
-                    putOptional(entry.depth, BinaryStream::putLFloat);
-                    putLFloat(entry.height);
+                    stream.putLFloat(entry.width);
+                    stream.putOptional(entry.depth, BinaryStream::putLFloat);
+                    stream.putLFloat(entry.height);
                 }
                 case ELLIPSOID -> {
-                    putVector3f(entry.radii3);
-                    putByte(entry.numSegments);
+                    stream.putVector3f(entry.radii3);
+                    stream.putByte(entry.numSegments);
                 }
                 case CONE -> {
-                    putVector2f(entry.radii);
-                    putLFloat(entry.height);
-                    putByte(entry.numSegments);
+                    stream.putVector2f(entry.radii);
+                    stream.putLFloat(entry.height);
+                    stream.putByte(entry.numSegments);
                 }
                 case null, default -> {}
             }
-        }
+        }, 1048576);
     }
 }

@@ -10,12 +10,6 @@ import org.itxtech.synapseapi.multiprotocol.protocol118.protocol.SubChunkRequest
 public class SubChunkRequestPacket12630 extends Packet12630 {
     public static final int NETWORK_ID = ProtocolInfo.SUB_CHUNK_REQUEST_PACKET;
 
-    // A limit of how many sub chunks can client request within a single packet
-    // It seems that client does not have any cap on how many sub chunks it can request,
-    // and in some edge cases it requests all sub chunks within the view distance
-    // The limit set here is based on maximum view distance vanilla client supports (96 chunks)
-    private static final int MAX_SUB_CHUNKS = 96 * 96 * 64; // 96 chunks * 64 sub chunks (1024 blocks, -512 to 512) per chunk
-
     public int dimension;
     public int subChunkX;
     public int subChunkY;
@@ -30,13 +24,7 @@ public class SubChunkRequestPacket12630 extends Packet12630 {
     @Override
     public void decode() {
         this.dimension = this.getVarInt();
-        this.positionOffsets = this.getArray(stream -> {
-            int count = (int) stream.getUnsignedVarInt();
-            if (count > MAX_SUB_CHUNKS) {
-                throw new IndexOutOfBoundsException("too many array requests");
-            }
-            return count;
-        }, new BlockVector3[0], stream -> new BlockVector3(stream.getSignedByte(), stream.getSignedByte(), stream.getSignedByte()));
+        this.positionOffsets = this.getArray(new BlockVector3[0], stream -> new BlockVector3(stream.getSignedByte(), stream.getSignedByte(), stream.getSignedByte()), 8192);
         this.subChunkX = this.getLInt();
         this.subChunkY = this.getLInt();
         this.subChunkZ = this.getLInt();
@@ -44,7 +32,6 @@ public class SubChunkRequestPacket12630 extends Packet12630 {
 
     @Override
     public void encode() {
-
     }
 
     @Override

@@ -27,40 +27,39 @@ public class PrimitiveShapesPacket12620 extends Packet12620 {
     @Override
     public void encode() {
         reset();
-        putUnsignedVarInt(entries.length);
-        for (Entry entry : entries) {
-            putUnsignedVarLong(entry.id);
-            putOptional(entry.type, (stream, type) -> stream.putByte(type.ordinal()));
-            putOptional(entry.location, BinaryStream::putVector3f);
-            putOptional(entry.scale, BinaryStream::putLFloat);
-            putOptional(entry.rotation, BinaryStream::putVector3f);
-            putOptional(entry.totalTimeLeft, BinaryStream::putLFloat);
-            putOptional(entry.maximumRenderDistance, BinaryStream::putLFloat);
-            putOptional(entry.color, BinaryStream::putLInt);
-            putOptional(entry.dimension, BinaryStream::putVarInt);
-            putOptional(entry.attachedEntityRuntimeId, BinaryStream::putEntityRuntimeId);
+        putArray(entries, (stream, entry) -> {
+            stream.putUnsignedVarLong(entry.id);
+            stream.putOptional(entry.type, (bs, type) -> bs.putByte(type.ordinal()));
+            stream.putOptional(entry.location, BinaryStream::putVector3f);
+            stream.putOptional(entry.scale, BinaryStream::putLFloat);
+            stream.putOptional(entry.rotation, BinaryStream::putVector3f);
+            stream.putOptional(entry.totalTimeLeft, BinaryStream::putLFloat);
+            stream.putOptional(entry.maximumRenderDistance, BinaryStream::putLFloat);
+            stream.putOptional(entry.color, BinaryStream::putLInt);
+            stream.putOptional(entry.dimension, BinaryStream::putVarInt);
+            stream.putOptional(entry.attachedEntityRuntimeId, BinaryStream::putEntityRuntimeId);
 
-            putUnsignedVarInt(Type.getPayloadType(entry.type, helper.getProtocol().ordinal()));
+            stream.putUnsignedVarInt(Type.getPayloadType(entry.type, helper.getProtocol().ordinal()));
             switch (entry.type) {
                 case ARROW -> {
-                    putOptional(entry.lineEndLocation, BinaryStream::putVector3f);
-                    putOptional(entry.arrowHeadLength, BinaryStream::putLFloat);
-                    putOptional(entry.arrowHeadRadius, BinaryStream::putLFloat);
-                    putOptional(entry.numSegments, BinaryStream::putByte);
+                    stream.putOptional(entry.lineEndLocation, BinaryStream::putVector3f);
+                    stream.putOptional(entry.arrowHeadLength, BinaryStream::putLFloat);
+                    stream.putOptional(entry.arrowHeadRadius, BinaryStream::putLFloat);
+                    stream.putOptional(entry.numSegments, BinaryStream::putByte);
                 }
                 case TEXT -> {
-                    putString(entry.text);
-                    putBoolean(entry.textRotation);
-                    putOptional(entry.backgroundColor, BinaryStream::putLInt);
-                    putBoolean(entry.depthTest);
-                    putBoolean(entry.showBackface);
-                    putBoolean(entry.showTextBackface);
+                    stream.putString(entry.text);
+                    stream.putBoolean(entry.textRotation);
+                    stream.putOptional(entry.backgroundColor, BinaryStream::putLInt);
+                    stream.putBoolean(entry.depthTest);
+                    stream.putBoolean(entry.showBackface);
+                    stream.putBoolean(entry.showTextBackface);
                 }
-                case BOX -> putVector3f(entry.boxBound);
-                case LINE -> putVector3f(entry.lineEndLocation);
-                case SPHERE, CIRCLE -> putByte(entry.numSegments);
+                case BOX -> stream.putVector3f(entry.boxBound);
+                case LINE -> stream.putVector3f(entry.lineEndLocation);
+                case SPHERE, CIRCLE -> stream.putByte(entry.numSegments);
                 case null, default -> {}
             }
-        }
+        }, 1048576);
     }
 }

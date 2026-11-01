@@ -30,6 +30,9 @@ public class TextPacket121130 extends Packet121130 {
     public static final byte BODY_TYPE_AUTHOR_AND_MESSAGE = 1;
     public static final byte BODY_TYPE_MESSAGE_AND_PARAMS = 2;
 
+    private static final int MAX_PARAMETER = 4;
+    private static final int MAX_PARAMETER_NETEASE = 12;
+
     public boolean isLocalized;
 
     public byte type;
@@ -56,24 +59,24 @@ public class TextPacket121130 extends Packet121130 {
             case BODY_TYPE_MESSAGE_ONLY:
                 this.skip(BODY_MAGIC_MESSAGE_ONLY.length);
                 this.type = (byte) this.getByte();
-                this.message = this.getString();
+                this.message = this.getString(true);
                 break;
             case BODY_TYPE_AUTHOR_AND_MESSAGE:
                 this.skip(BODY_MAGIC_AUTHOR_AND_MESSAGE.length);
                 this.type = (byte) this.getByte();
                 this.primaryName = this.getString();
-                this.message = this.getString();
+                this.message = this.getString(true);
 
                 if (neteaseMode) {
-                    this.parameters = this.getArray(new String[0], BinaryStream::getString);
+                    this.parameters = this.getArray(new String[0], BinaryStream::getString, MAX_PARAMETER_NETEASE);
                 }
 
                 break;
             case BODY_TYPE_MESSAGE_AND_PARAMS:
                 this.skip(BODY_MAGIC_MESSAGE_AND_PARAMS.length);
                 this.type = (byte) this.getByte();
-                this.message = this.getString();
-                this.parameters = this.getArray(new String[0], BinaryStream::getString);
+                this.message = this.getString(true);
+                this.parameters = this.getArray(new String[0], BinaryStream::getString, neteaseMode ? MAX_PARAMETER_NETEASE : MAX_PARAMETER);
                 break;
         }
 
@@ -87,6 +90,10 @@ public class TextPacket121130 extends Packet121130 {
         this.reset();
         this.putBoolean(this.isLocalized);
 
+        String message = this.message;
+        if (message.isEmpty()) {
+            message = " ";
+        }
         switch (this.type) {
             case TYPE_RAW:
             case TYPE_TIP:
@@ -97,14 +104,6 @@ public class TextPacket121130 extends Packet121130 {
                 this.putByte(BODY_TYPE_MESSAGE_ONLY);
                 this.put(BODY_MAGIC_MESSAGE_ONLY);
                 this.putByte(this.type);
-                String message = this.message;
-                if (neteaseMode) {
-                    // 中国版客户端bug的临时解决方案, 防止触发PacketViolationWarningPacket断开连接
-                    int nameLength = primaryName.length();
-                    if (nameLength + message.length() >= 512) {
-                        message = message.substring(0, 511 - nameLength);
-                    }
-                }
                 this.putString(message);
                 break;
             }
@@ -115,21 +114,10 @@ public class TextPacket121130 extends Packet121130 {
                 this.put(BODY_MAGIC_AUTHOR_AND_MESSAGE);
                 this.putByte(this.type);
                 this.putString(this.primaryName);
-                String message = this.message;
-                if (neteaseMode) {
-                    // 中国版客户端bug的临时解决方案, 防止触发PacketViolationWarningPacket断开连接
-                    int nameLength = primaryName.length();
-                    if (nameLength + message.length() >= 512) {
-                        message = message.substring(0, 511 - nameLength);
-                    }
-                }
                 this.putString(message);
 
                 if (neteaseMode) {
-                    this.putUnsignedVarInt(this.parameters.length);
-                    for (String parameter : this.parameters) {
-                        this.putString(parameter);
-                    }
+                    this.putArray(this.parameters, BinaryStream::putString, MAX_PARAMETER_NETEASE);
                 }
 
                 break;
@@ -140,11 +128,8 @@ public class TextPacket121130 extends Packet121130 {
                 this.putByte(BODY_TYPE_MESSAGE_AND_PARAMS);
                 this.put(BODY_MAGIC_MESSAGE_AND_PARAMS);
                 this.putByte(this.type);
-                this.putString(this.message);
-                this.putUnsignedVarInt(this.parameters.length);
-                for (String parameter : this.parameters) {
-                    this.putString(parameter);
-                }
+                this.putString(message);
+                this.putArray(this.parameters, BinaryStream::putString, neteaseMode ? MAX_PARAMETER_NETEASE : MAX_PARAMETER);
                 break;
             }
         }

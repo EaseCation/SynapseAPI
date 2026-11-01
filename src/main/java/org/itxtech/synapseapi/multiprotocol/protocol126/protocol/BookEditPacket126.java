@@ -36,8 +36,8 @@ public class BookEditPacket126 extends Packet126 {
             case REPLACE_PAGE:
             case ADD_PAGE:
                 this.pageNumber = this.getVarInt();
-                this.text = this.getString();
-                this.photoName = this.getString();
+                this.text = this.getString(768);
+                this.photoName = this.getString(768);
                 break;
             case DELETE_PAGE:
                 this.pageNumber = this.getVarInt();
@@ -47,9 +47,9 @@ public class BookEditPacket126 extends Packet126 {
                 this.secondaryPageNumber = this.getVarInt();
                 break;
             case SIGN_BOOK:
-                this.title = this.getString();
-                this.author = this.getString();
-                this.xuid = this.getString();
+                this.title = this.getString(768);
+                this.author = this.getString(768);
+                this.xuid = this.getString(768);
                 break;
         }
     }

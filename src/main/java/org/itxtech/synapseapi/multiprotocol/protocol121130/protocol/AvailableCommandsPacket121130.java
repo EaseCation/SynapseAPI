@@ -153,22 +153,20 @@ public class AvailableCommandsPacket121130 extends Packet121130 {
             }
         });
 
-        this.putUnsignedVarInt(chainedSubCommands.size());
-        chainedSubCommands.forEach((chainedSubCommand) -> {
-            this.putString(chainedSubCommand.name);
+        this.putArray(chainedSubCommands, (stream, chainedSubCommand) -> {
+            stream.putString(chainedSubCommand.name, 1000);
 
-            this.putUnsignedVarInt(chainedSubCommand.values.size());
-            chainedSubCommand.values.forEach(value -> {
-                this.putUnsignedVarInt(chainedSubCommandValues.indexOf(value.left()));
-                this.putUnsignedVarInt(value.rightInt());
-            });
-        });
+            stream.putArray(chainedSubCommand.values, (bs, value) -> {
+                bs.putUnsignedVarInt(chainedSubCommandValues.indexOf(value.left()));
+                bs.putUnsignedVarInt(value.rightInt());
+            }, 32);
+        }, 16);
 
         this.helper.putCommandData(this, this.commands, enums, postFixes, softEnums, chainedSubCommands);
 
         this.putUnsignedVarInt(softEnums.size());
         softEnums.forEach(cmdEnum -> {
-            this.putString(cmdEnum.getName());
+            this.putString(cmdEnum.getName(), 1000);
 
             Set<String> values = cmdEnum.getValues().keySet();
             this.putUnsignedVarInt(values.size());
@@ -180,10 +178,7 @@ public class AvailableCommandsPacket121130 extends Packet121130 {
             this.putLInt((int) (pair.leftLong() >> 32)); // enum value index
             this.putLInt((int) pair.leftLong()); // enum index
 
-            this.putUnsignedVarInt(pair.right().size());
-            for (CommandEnumConstraint constraint : pair.right()) {
-                this.putByte((byte) constraint.ordinal());
-            }
+            this.putArray(pair.right(), (stream, constraint) -> stream.putByte(constraint.ordinal()), 250);
         }
     }
 
