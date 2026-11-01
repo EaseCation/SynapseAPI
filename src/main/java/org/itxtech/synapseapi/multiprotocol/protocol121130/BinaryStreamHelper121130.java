@@ -4,6 +4,7 @@ import cn.nukkit.command.data.*;
 import cn.nukkit.utils.BinaryStream;
 import org.itxtech.synapseapi.multiprotocol.protocol121124.BinaryStreamHelper121124;
 import org.itxtech.synapseapi.multiprotocol.protocol121130.protocol.AvailableCommandsPacket121130;
+import org.itxtech.synapseapi.multiprotocol.utils.CommandPostfixFixer;
 
 import java.util.List;
 import java.util.Map;
@@ -49,11 +50,15 @@ public class BinaryStreamHelper121130 extends BinaryStreamHelper121124 {
 
                     int type = 0;
                     if (parameter.postFix != null) {
-                        int i = postFixes.indexOf(parameter.postFix);
-                        if (i < 0) {
-                            throw new IllegalStateException("Postfix '" + parameter.postFix + "' isn't in postfix array");
-                        }
-                        type = AvailableCommandsPacket121130.ARG_FLAG_POSTFIX | i;
+                        int i = postFixes.indexOf(CommandPostfixFixer.normalizePostfix(parameter.postFix));
+                        // The compatibility layout omits suffixes beyond the verified native mapping slots.
+                        // Advertise those parameters as strings instead of forming an invalid postfix symbol.
+                        // The server still receives the original input;
+                        // only client-side integer-suffix validation/completion is relaxed.
+                        // Resolve STRING through this helper;
+                        // legacy packet constants can differ from the active version's registered command parameter type IDs.
+                        type = i >= 0 ? AvailableCommandsPacket121130.ARG_FLAG_POSTFIX | i
+                                : AvailableCommandsPacket121130.ARG_FLAG_VALID | getCommandParameterTypeId(CommandParamType.STRING, AvailableCommandsPacket121130.ARG_TYPE_STRING);
                     } else {
                         type |= AvailableCommandsPacket121130.ARG_FLAG_VALID;
                         if (parameter.enumData != null) {

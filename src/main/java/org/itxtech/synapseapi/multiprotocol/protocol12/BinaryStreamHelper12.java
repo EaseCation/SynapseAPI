@@ -32,6 +32,11 @@ public class BinaryStreamHelper12 extends BinaryStreamHelper implements Advanced
     }
 
     @Override
+    public int getProtocolVersion() {
+        return protocol.getProtocolStart();
+    }
+
+    @Override
     public void putGameRules(BinaryStream stream, GameRules gameRules, boolean network) {
         if (gameRules == null) {
             stream.putUnsignedVarInt(0);

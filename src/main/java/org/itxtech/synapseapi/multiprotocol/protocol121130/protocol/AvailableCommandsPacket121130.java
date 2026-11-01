@@ -7,6 +7,7 @@ import cn.nukkit.network.protocol.ProtocolInfo;
 import cn.nukkit.utils.SequencedHashSet;
 import it.unimi.dsi.fastutil.longs.LongObjectPair;
 import lombok.ToString;
+import org.itxtech.synapseapi.multiprotocol.utils.CommandPostfixFixer;
 import org.itxtech.synapseapi.utils.ClassUtils;
 
 import java.util.*;
@@ -118,7 +119,7 @@ public class AvailableCommandsPacket121130 extends Packet121130 {
                     }
 
                     if (parameter.postFix != null) {
-                        postFixes.add(parameter.postFix);
+                        postFixes.add(CommandPostfixFixer.normalizePostfix(parameter.postFix));
                     }
                 }
             }
@@ -127,17 +128,24 @@ public class AvailableCommandsPacket121130 extends Packet121130 {
         enums.add(new CommandEnum("CommandName", commandNames));
         enumValues.addAll(commandNames);
 
+        // Align every advertised suffix with the client's verified native enum prefix.
+        // Keep the original enum table for constraint index translation;
+        // parameters and aliases use object identity in the reordered table.
+        CommandPostfixFixer.Layout layout = CommandPostfixFixer.prepare(enums, enumValues, postFixes, helper.getProtocolVersion());
+        List<CommandEnum> wireEnums = layout.enums();
+        List<String> wirePostfixes = layout.postfixes();
+
         this.putUnsignedVarInt(enumValues.size());
         enumValues.forEach(this::putString);
 
         this.putUnsignedVarInt(chainedSubCommandValues.size());
         chainedSubCommandValues.forEach(this::putString);
 
-        this.putUnsignedVarInt(postFixes.size());
-        postFixes.forEach(this::putString);
+        this.putUnsignedVarInt(wirePostfixes.size());
+        wirePostfixes.forEach(this::putString);
 
-        this.putUnsignedVarInt(enums.size());
-        enums.forEach((cmdEnum) -> {
+        this.putUnsignedVarInt(wireEnums.size());
+        wireEnums.forEach((cmdEnum) -> {
             putString(cmdEnum.getName());
 
             Set<String> values = cmdEnum.getValues().keySet();
@@ -162,7 +170,7 @@ public class AvailableCommandsPacket121130 extends Packet121130 {
             }, 32);
         }, 16);
 
-        this.helper.putCommandData(this, this.commands, enums, postFixes, softEnums, chainedSubCommands);
+        this.helper.putCommandData(this, this.commands, wireEnums, wirePostfixes, softEnums, chainedSubCommands);
 
         this.putUnsignedVarInt(softEnums.size());
         softEnums.forEach(cmdEnum -> {
@@ -176,7 +184,8 @@ public class AvailableCommandsPacket121130 extends Packet121130 {
         this.putUnsignedVarInt(enumConstraints.size());
         for (LongObjectPair<Set<CommandEnumConstraint>> pair : enumConstraints) {
             this.putLInt((int) (pair.leftLong() >> 32)); // enum value index
-            this.putLInt((int) pair.leftLong()); // enum index
+            // Enum values retain their original indices; only the hard-enum table was reordered.
+            this.putLInt(wireEnums.indexOf(enums.get((int) pair.leftLong())));
 
             this.putArray(pair.right(), (stream, constraint) -> stream.putByte(constraint.ordinal()), 250);
         }
