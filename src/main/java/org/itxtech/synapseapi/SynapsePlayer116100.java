@@ -7298,6 +7298,13 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
         this.setAttribute(attributes.toArray(new Attribute[0]));
     }
 
+    @Override
+    public boolean supportsCommandPostfixParameters() {
+        // PacketRegister selects AvailableCommandsPacket121130 starting at this protocol. Later
+        // protocols inherit that codec; older recipients keep the historical hidden XP overload.
+        return getAbstractProtocol().isNewerThanOrEqual(AbstractProtocol.PROTOCOL_121_130);
+    }
+
     private record ShapeInstance(Shape shape, int expirationTick) {
     }
 }
