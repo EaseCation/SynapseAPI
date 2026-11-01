@@ -39,6 +39,7 @@ import org.itxtech.synapseapi.multiprotocol.protocol121130.protocol.AnimatePacke
 import org.itxtech.synapseapi.multiprotocol.protocol16.protocol.NEPyRpcPacket16;
 import org.itxtech.synapseapi.multiprotocol.protocol112.protocol.ClientCacheBlobStatusPacket112;
 import org.itxtech.synapseapi.multiprotocol.protocol11810.protocol.SubChunkRequestPacket11810;
+import org.itxtech.synapseapi.multiprotocol.protocol11810.protocol.ScriptMessagePacket11810;
 
 import java.util.BitSet;
 
@@ -103,7 +104,8 @@ final class BetweenTickPackets {
         if (packet instanceof EntityEventPacket12620 event) {
             return event.event == EntityEventPacket.EATING_ITEM;
         }
-        if (packet instanceof NetworkStackLatencyPacket19 || packet instanceof ResourcePackChunkRequestPacket) {
+        if (packet instanceof NetworkStackLatencyPacket19 || packet instanceof ResourcePackChunkRequestPacket
+                || packet instanceof ScriptMessagePacket11810) {
             return true;
         }
         if (packet instanceof SubChunkRequestPacket11810 request) {
@@ -218,6 +220,10 @@ final class BetweenTickPackets {
         }
         if (packet instanceof NetworkStackLatencyPacket19 || packet instanceof ResourcePackChunkRequestPacket) {
             // 资源下载早于出生，只登记原请求；有效连接由外层校验，发送仍遵守 checkNetwork 节流。
+            return InputBlockReason.NONE;
+        }
+        if (packet instanceof ScriptMessagePacket11810) {
+            // JE 频道与相机请求沿原主线程事件/handler；连接归属由外层检查，不依赖物理输入就绪。
             return InputBlockReason.NONE;
         }
         if (packet instanceof SubChunkRequestPacket11810 || packet instanceof ClientCacheBlobStatusPacket112) {
