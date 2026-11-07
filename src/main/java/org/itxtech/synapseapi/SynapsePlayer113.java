@@ -356,7 +356,7 @@ public class SynapsePlayer113 extends SynapsePlayer112 {
 
 								this.setDataFlag(DATA_FLAG_ACTION, false);
 
-								if (this.canInteract(blockVector.add(0.5, 0.5, 0.5), this.isCreative() ? MAX_REACH_DISTANCE_CREATIVE : MAX_REACH_DISTANCE_SURVIVAL)) {
+								if (this.canInteractWithBlock(blockVector.add(0.5, 0.5, 0.5), this.isCreative() ? MAX_REACH_DISTANCE_CREATIVE : MAX_REACH_DISTANCE_SURVIVAL)) {
 									if (this.isCreative()) {
 										Item i = inventory.getItemInHand();
 										if (this.level.useItemOn(blockVector.asVector3(), i, face, clickPos.x, clickPos.y, clickPos.z, this) != null) {

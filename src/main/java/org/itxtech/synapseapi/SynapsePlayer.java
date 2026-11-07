@@ -106,6 +106,12 @@ import static org.itxtech.synapseapi.SynapseSharedConstants.NETWORK_STACK_LATENC
  */
 public class SynapsePlayer extends Player {
 
+    /** 方块使用的距离与朝向校验，与挖掘和实体交互分开。 */
+    protected boolean canInteractWithBlock(Vector3 pos, double maxDistance) {
+        return this.canInteract(pos, maxDistance);
+    }
+
+
     public static final int SYNAPSE_PLAYER_ENTITY_ID = 1;
 
     static final int INCOMING_PACKET_BATCH_PER_TICK = 2; // usually max 1 per tick, but transactions may arrive separately

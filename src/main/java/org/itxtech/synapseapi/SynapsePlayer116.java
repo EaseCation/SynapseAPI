@@ -461,7 +461,7 @@ public class SynapsePlayer116 extends SynapsePlayer113 {
 								boolean clientPredictedFailure = false;
 								boolean inventorySyncRequired = true;
 
-								if (itemSlotReady && this.canInteract(blockVector.add(0.5, 0.5, 0.5), this.isCreative() ? MAX_REACH_DISTANCE_CREATIVE : MAX_REACH_DISTANCE_SURVIVAL)) {
+								if (itemSlotReady && this.canInteractWithBlock(blockVector.add(0.5, 0.5, 0.5), this.isCreative() ? MAX_REACH_DISTANCE_CREATIVE : MAX_REACH_DISTANCE_SURVIVAL)) {
 									if (this.isCreative()) {
 										Vector3 blockPos;
 										Block clientBlock = useItemData.block;
@@ -1660,7 +1660,7 @@ public class SynapsePlayer116 extends SynapsePlayer113 {
                                 }
 								boolean inventorySyncRequired = true;
 
-								if (itemSlotReady && this.canInteract(blockVector.add(0.5, 0.5, 0.5), this.isCreative() ? MAX_REACH_DISTANCE_CREATIVE : MAX_REACH_DISTANCE_SURVIVAL)) {
+								if (itemSlotReady && this.canInteractWithBlock(blockVector.add(0.5, 0.5, 0.5), this.isCreative() ? MAX_REACH_DISTANCE_CREATIVE : MAX_REACH_DISTANCE_SURVIVAL)) {
 									if (this.isCreative()) {
 										Vector3 blockPos;
 										Block clientBlock = useItemData.block;
