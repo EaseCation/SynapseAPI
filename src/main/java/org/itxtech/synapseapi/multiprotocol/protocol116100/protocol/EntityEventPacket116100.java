@@ -107,7 +107,8 @@ public class EntityEventPacket116100 extends Packet116100 {
 
 		if (packet.event == EntityEventPacket.EATING_ITEM && packet.data != 0) {
 			int damage = packet.data & 0xffff;
-			this.data = AdvancedRuntimeItemPalette.getNetworkId(protocol, netease, AdvancedRuntimeItemPalette.getNetworkFullId(protocol, netease, Item.get(packet.data >> 16, damage))) << 16 | damage;
+			Item item = new Item(packet.data >> 16, damage); // keep invalid item info for debug logging
+			this.data = AdvancedRuntimeItemPalette.getNetworkId(protocol, netease, AdvancedRuntimeItemPalette.getNetworkFullId(protocol, netease, item)) << 16 | damage;
 		}
 
 		return this;
