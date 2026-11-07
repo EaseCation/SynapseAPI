@@ -1370,6 +1370,11 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
         return gamemode;
     }
 
+    /** 方块使用的距离与朝向校验，与挖掘和实体交互分开。 */
+    protected boolean canInteractWithBlock(Vector3 pos, double maxDistance) {
+        return this.canInteract(pos, maxDistance);
+    }
+
     @Override
     public void handleDataPacket(DataPacket packet) {
         if (!isInitialized() && !PacketUtil.canBeSentBeforeLogin(packet.pid())) {
@@ -3826,7 +3831,7 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
                                     boolean clientPredictedFailure = false;
                                     boolean inventorySyncRequired = true;
 
-                                    if (itemSlotReady && this.canInteract(blockVector.add(0.5, 0.5, 0.5), this.isCreative() ? MAX_REACH_DISTANCE_CREATIVE : MAX_REACH_DISTANCE_SURVIVAL)) {
+                                    if (itemSlotReady && this.canInteractWithBlock(blockVector.add(0.5, 0.5, 0.5), this.isCreative() ? MAX_REACH_DISTANCE_CREATIVE : MAX_REACH_DISTANCE_SURVIVAL)) {
                                         if (this.isCreative()) {
                                             Vector3 blockPos;
                                             Block clientBlock = useItemData.block;
