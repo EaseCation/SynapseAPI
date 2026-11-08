@@ -59,7 +59,6 @@ import cn.nukkit.network.protocol.AnimatePacket.Action;
 import cn.nukkit.network.protocol.types.*;
 import cn.nukkit.potion.Effect;
 import cn.nukkit.resourcepacks.ResourcePack;
-import cn.nukkit.scheduler.AsyncTask;
 import cn.nukkit.utils.DummyBossBar;
 import cn.nukkit.utils.LoginChainData;
 import cn.nukkit.utils.TextFormat;
@@ -80,6 +79,7 @@ import org.itxtech.synapseapi.filtertext.FilterTextService;
 import org.itxtech.synapseapi.inventory.PendingWindowCloseTracker;
 import org.itxtech.synapseapi.inventory.PendingWindowClose;
 import org.itxtech.synapseapi.inventory.PendingWindowOpen;
+import org.itxtech.synapseapi.locator.LocatorTracker;
 import org.itxtech.synapseapi.multiprotocol.AbstractProtocol;
 import org.itxtech.synapseapi.multiprotocol.common.Experiments;
 import org.itxtech.synapseapi.multiprotocol.common.Experiments.Experiment;
@@ -181,7 +181,6 @@ import org.itxtech.synapseapi.multiprotocol.protocol12170.protocol.LevelSoundEve
 import org.itxtech.synapseapi.multiprotocol.protocol12170.protocol.PlayerUpdateEntityOverridesPacket12170;
 import org.itxtech.synapseapi.multiprotocol.protocol12170.protocol.SetHudPacket12170;
 import org.itxtech.synapseapi.multiprotocol.protocol12180.protocol.ClientboundControlSchemeSetPacket12180;
-import org.itxtech.synapseapi.multiprotocol.protocol12180.protocol.PlayerLocationPacket12180;
 import org.itxtech.synapseapi.multiprotocol.protocol12190.protocol.CameraInstructionPacket12190;
 import org.itxtech.synapseapi.multiprotocol.protocol12190.protocol.ResourcePacksInfoPacket12190;
 import org.itxtech.synapseapi.multiprotocol.protocol12190.protocol.ServerScriptDebugDrawerPacket12190;
@@ -254,6 +253,8 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
     protected float aimAssistViewAngleY = 45;
     protected float aimAssistDistance = 5.7f;
     protected int aimAssistMode = CameraAimAssistPacket12050.MODE_ANGLE;
+
+    private final LocatorTracker locatorTracker = new LocatorTracker(this::dataPacket);
 
     private final Long2ObjectMap<ShapeInstance> shapes = new Long2ObjectOpenHashMap<>();
 
@@ -5502,6 +5503,9 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
             }
 
             removeExpiredShapes();
+            if (loggedIn) {
+                locatorTracker.retryRemovals(getProtocol());
+            }
         }
         return super.onUpdate(currentTick);
     }
@@ -6798,14 +6802,7 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
         if (!isLocatorBarEnabled()) {
             return;
         }
-
-        PlayerLocationPacket12180 packet = new PlayerLocationPacket12180();
-        packet.hide = false;
-        packet.entityUniqueId = entityUniqueId;
-        packet.x = x;
-        packet.y = y;
-        packet.z = z;
-        dataPacket(packet);
+        locatorTracker.update(getProtocol(), entityUniqueId, x, y, z, getDummyDimension());
     }
 
     @Override
@@ -6813,11 +6810,15 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
         if (!isLocatorBarEnabled()) {
             return;
         }
+        locatorTracker.hide(getProtocol(), entityUniqueId);
+    }
 
-        PlayerLocationPacket12180 packet = new PlayerLocationPacket12180();
-        packet.hide = true;
-        packet.entityUniqueId = entityUniqueId;
-        dataPacket(packet);
+    @Override
+    public void clearLocators() {
+        LocatorTracker locatorTracker = this.locatorTracker;
+        if (locatorTracker != null) {
+            locatorTracker.clear(getProtocol());
+        }
     }
 
     @Override

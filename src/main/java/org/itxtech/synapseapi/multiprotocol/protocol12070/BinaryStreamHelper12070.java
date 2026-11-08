@@ -72,11 +72,12 @@ public class BinaryStreamHelper12070 extends BinaryStreamHelper12060 {
         }
 
         List<Entry<GameRule, Value>> rules = gameRules.getGameRules().entrySet().stream()
-                .filter(entry -> entry.getKey().getProtocol() <= this.protocol.getProtocolStart())
+                .filter(entry -> entry.getKey().getProtocol() <= this.protocol.getProtocolStart()
+                        && this.protocol.getProtocolStart() < entry.getKey().getProtocolDeprecated())
                 .toList();
         stream.putUnsignedVarInt(rules.size());
         rules.forEach(entry -> {
-            stream.putString(protocol.getProtocolStart() < entry.getKey().getProtocolDeprecated() ? entry.getKey().getName() : entry.getKey().getBedrockName());
+            stream.putString(entry.getKey().getName());
             stream.putBoolean(false); // isEditable
             entry.getValue().write(stream, network);
         });
