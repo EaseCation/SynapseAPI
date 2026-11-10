@@ -28,14 +28,14 @@ public class ResourcePackStackPacket16 extends Packet16 {
         for (ResourcePack entry : this.behaviourPackStack) {
             this.putString(entry.getPackId());
             this.putString(entry.getPackVersion());
-            this.putString(""); //TODO: subpack name
+            this.putString(entry.getSubPackName());
         }
 
         this.putUnsignedVarInt(this.resourcePackStack.length);
         for (ResourcePack entry : this.resourcePackStack) {
             this.putString(entry.getPackId());
             this.putString(entry.getPackVersion());
-            this.putString(""); //TODO: subpack name
+            this.putString(entry.getSubPackName());
         }
 
     }

@@ -39,7 +39,7 @@ public class ResourcePacksInfoPacket116200 extends Packet116200 {
             this.putString(entry.getPackVersion());
             this.putLLong(entry.getPackSize());
             this.putString(entry.getEncryptionKey());
-            this.putString(""); // sub-pack name
+            this.putString(entry.getSubPackName());
             this.putString(!entry.getEncryptionKey().isEmpty() ? entry.getPackId() : ""); // content identity
             this.putBoolean(false); // scripting
             if (resource) {

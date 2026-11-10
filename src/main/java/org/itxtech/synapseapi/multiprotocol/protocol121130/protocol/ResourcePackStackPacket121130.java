@@ -32,7 +32,7 @@ public class ResourcePackStackPacket121130 extends Packet121130 {
         this.putArray(this.resourcePackStack, (stream, entry) -> {
             stream.putString(entry.getPackId());
             stream.putString(entry.getPackVersion());
-            stream.putString("");
+            stream.putString(entry.getSubPackName());
         }, 65535);
 
         this.putString("*");//this.putString(this.helper.getGameVersion());

@@ -39,7 +39,6 @@ import cn.nukkit.network.protocol.*;
 import cn.nukkit.resourcepacks.ResourcePack;
 import cn.nukkit.scheduler.AsyncTask;
 import cn.nukkit.utils.*;
-import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonPrimitive;
@@ -84,6 +83,7 @@ import org.itxtech.synapseapi.network.SynLibInterface;
 import org.itxtech.synapseapi.network.protocol.mod.ServerSubPacketHandler;
 import org.itxtech.synapseapi.network.protocol.spp.PlayerLoginPacket;
 import org.itxtech.synapseapi.network.protocol.spp.PlayerLogoutPacket;
+import org.itxtech.synapseapi.pack.PackTransferState;
 import org.itxtech.synapseapi.utils.BlobTrack;
 import org.itxtech.synapseapi.utils.ClientData;
 import org.itxtech.synapseapi.utils.ClientData.Entry;
@@ -637,8 +637,8 @@ public class SynapsePlayer extends Player {
         if (this.isFirstTimeLogin) {
             PlayerRequestResourcePackEvent resourcePackEvent = new PlayerRequestResourcePackEvent(this, this.server.getResourcePackManager().getResourcePacksMap(), this.server.getResourcePackManager().getBehaviorPacksMap(), this.server.getForceResources());
             this.server.getPluginManager().callEvent(resourcePackEvent);
-            this.resourcePacks = resourcePackEvent.getResourcePacks();
-            this.behaviourPacks = resourcePackEvent.getBehaviourPacks();
+            this.resourcePacks = new LinkedHashMap<>(resourcePackEvent.getResourcePacks());
+            this.behaviourPacks = new LinkedHashMap<>(resourcePackEvent.getBehaviourPacks());
             this.forceResources = resourcePackEvent.isMustAccept();
 
             observeConnection("resource_pack_stage", Map.of("stage", "offered"));
@@ -648,17 +648,7 @@ public class SynapsePlayer extends Player {
             this.sendNetworkSettings();
         } else {
             observeConnection("resource_pack_stage", Map.of("stage", "reused", "evidence", "internal_transfer"));
-            //跨服时，传输到目标服务器当前玩家安装上的材质
-            if (this.cachedExtra.has("res_packs")) {
-                for (JsonElement data : this.cachedExtra.getAsJsonArray("res_packs")) {
-                    this.resourcePacks.put(data.getAsString(), this.server.getResourcePackManager().getPackById(data.getAsString()));
-                }
-            }
-            if (this.cachedExtra.has("beh_packs")) {
-                for (JsonElement data : this.cachedExtra.getAsJsonArray("beh_packs")) {
-                    this.resourcePacks.put(data.getAsString(), this.server.getResourcePackManager().getPackById(data.getAsString()));
-                }
-            }
+            PackTransferState.restore(this.cachedExtra, this.resourcePacks, this.behaviourPacks, this.server.getResourcePackManager()::getPackById);
 
             this.completeLoginSequence();
         }
@@ -1100,13 +1090,7 @@ public class SynapsePlayer extends Player {
             pk.extra.addProperty("xuid", getLoginChainData().getXUID());
             pk.extra.addProperty("netease", isNetEaseClient());
             pk.extra.addProperty("blob_cache", getClientCacheTrack() != null);
-            //跨服时，传输到目标服务器当前玩家安装上的材质
-            JsonArray resPacks = new JsonArray();
-            getResourcePacks().keySet().forEach(resPacks::add);
-            pk.extra.add("res_packs", resPacks);
-            JsonArray behPacks = new JsonArray();
-            getResourcePacks().keySet().forEach(behPacks::add);
-            pk.extra.add("beh_packs", behPacks);
+            PackTransferState.write(pk.extra, getResourcePacks(), getBehaviourPacks(), this.cachedExtra);
             pk.extra.addProperty("viewDistance", viewDistance);
             pk.extra.addProperty("viewDistanceMax", getClientMaxViewDistance());
             pk.extra.addProperty("DataVersion", DATA_VERSION);
