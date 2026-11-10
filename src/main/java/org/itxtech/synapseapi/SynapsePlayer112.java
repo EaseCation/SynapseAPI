@@ -1,8 +1,6 @@
 package org.itxtech.synapseapi;
 
 import cn.nukkit.Player;
-import cn.nukkit.blockentity.BlockEntity;
-import cn.nukkit.blockentity.BlockEntitySpawnable;
 import cn.nukkit.entity.Entity;
 import cn.nukkit.level.Level;
 import cn.nukkit.level.Position;
@@ -158,13 +156,7 @@ public class SynapsePlayer112 extends SynapsePlayer19 {
 
 			this.sendQueuedChunk = false;
 
-			for (BlockEntity blockEntity : this.level.getChunkBlockEntities(x, z).values()) {
-				if (!(blockEntity instanceof BlockEntitySpawnable)) {
-					continue;
-				}
-				((BlockEntitySpawnable) blockEntity).spawnTo(this);
-				if (chunkContext != null && !chunkContext.isCurrent(this)) return;
-			}
+			if (!this.spawnChunkBlockEntities(x, z, chunkContext)) return;
 
 			if (this.spawned) {
 				for (Entity entity : this.level.getChunkEntities(x, z).values()) {
@@ -249,13 +241,7 @@ public class SynapsePlayer112 extends SynapsePlayer19 {
 		this.dataPacket(pk);
 		if (chunkContext != null && !chunkContext.isCurrent(this)) return;
 
-		for (BlockEntity blockEntity : this.level.getChunkBlockEntities(x, z).values()) {
-			if (!(blockEntity instanceof BlockEntitySpawnable)) {
-				continue;
-			}
-			((BlockEntitySpawnable) blockEntity).spawnTo(this);
-			if (chunkContext != null && !chunkContext.isCurrent(this)) return;
-		}
+		if (!this.spawnChunkBlockEntities(x, z, chunkContext)) return;
 
 		if (this.spawned) {
 			for (Entity entity : this.level.getChunkEntities(x, z).values()) {

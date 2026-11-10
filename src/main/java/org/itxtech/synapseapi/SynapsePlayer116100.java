@@ -4903,13 +4903,8 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
             if (chunkContext != null && !chunkContext.isCurrent(this)) return;
         }
 
-        for (BlockEntity blockEntity : this.level.getChunkBlockEntities(x, z).values()) {
-            if (!(blockEntity instanceof BlockEntitySpawnable)) {
-                continue;
-            }
-            ((BlockEntitySpawnable) blockEntity).spawnTo(this);
-            if (chunkContext != null && !chunkContext.isCurrent(this)) return;
-        }
+        // 子区块请求模式下区块列不含方块数据，方块实体在子区块响应后补发，规则见 Player#spawnChunkBlockEntities
+        if (!this.isSubChunkRequestAvailable() && !this.spawnChunkBlockEntities(x, z, chunkContext)) return;
 
         //TODO: move to sub chunk response?
         if (this.spawned) {
@@ -5018,13 +5013,8 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
         this.dataPacket(pk);
         if (chunkContext != null && !chunkContext.isCurrent(this)) return;
 
-        for (BlockEntity blockEntity : this.level.getChunkBlockEntities(x, z).values()) {
-            if (!(blockEntity instanceof BlockEntitySpawnable)) {
-                continue;
-            }
-            ((BlockEntitySpawnable) blockEntity).spawnTo(this);
-            if (chunkContext != null && !chunkContext.isCurrent(this)) return;
-        }
+        // 子区块请求模式下区块列不含方块数据，方块实体在子区块响应后补发，规则见 Player#spawnChunkBlockEntities
+        if (!this.isSubChunkRequestAvailable() && !this.spawnChunkBlockEntities(x, z, chunkContext)) return;
 
         //TODO: move to sub chunk response?
         if (this.spawned) {
@@ -5062,6 +5052,8 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
         int chunkYIndexOffset = level.getHeightRange().getChunkYIndexOffset();
         boolean centerChunk = !this.isNeedLevelChangeLoadScreen() && CENTER_CHUNK_WITHOUT_CACHE && this.getChunkX() == x && this.getChunkZ() == z;
         byte[][] payloads = payload.get(blockVersion);
+        // 响应后始终独立同步方块实体；循环会清空请求集合，先保留本次响应的子区块范围
+        IntSet sentSubChunks = new IntOpenHashSet(requests);
 
         IntIterator iter = requests.iterator();
         while (iter.hasNext()) {
@@ -5130,6 +5122,10 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
             if (chunkContext != null && !chunkContext.isCurrent(this)) return;
             iter.remove();
         }
+
+        if (!sentSubChunks.isEmpty()) {
+            this.spawnSubChunkBlockEntities(x, z, sentSubChunks, chunkContext);
+        }
     }
 
     @Override
@@ -5160,6 +5156,8 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
         boolean centerChunk = !this.isNeedLevelChangeLoadScreen() && CENTER_CHUNK_WITHOUT_CACHE && this.getChunkX() == x && this.getChunkZ() == z;
         BatchPacket[] packets = packetCache.getSubChunkPackets(blockVersion);
         SubChunkPacket[] packetsUncompressed = packetCache.getSubChunkPacketsUncompressed(blockVersion);
+        // 响应后始终独立同步方块实体；循环会清空请求集合，先保留本次响应的子区块范围
+        IntSet sentSubChunks = new IntOpenHashSet(requests);
 
         IntIterator iter = requests.iterator();
         while (iter.hasNext()) {
@@ -5260,6 +5258,10 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
             }
 
             iter.remove();
+        }
+
+        if (!sentSubChunks.isEmpty()) {
+            this.spawnSubChunkBlockEntities(x, z, sentSubChunks, chunkContext);
         }
     }
 
