@@ -1,5 +1,5 @@
 [versions]
-nukkit = "cad5792a8415e9173e3da053be36f6afa88cc519"
+nukkit = "fd98e4597f2d56993355e05f1f117df3bc1b80bb"
 
 [libraries]
 nukkit = { module = "com.github.EaseCation:Nukkit", version.ref = "nukkit" }
