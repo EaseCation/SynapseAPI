@@ -13,6 +13,7 @@ import cn.nukkit.plugin.PluginLogger;
 import cn.nukkit.scheduler.ServerScheduler;
 import org.itxtech.synapseapi.multiprotocol.PacketRegister;
 import org.itxtech.synapseapi.multiprotocol.protocol11810.protocol.ScriptMessagePacket11810;
+import org.itxtech.synapseapi.multiprotocol.protocol121130.protocol.TextPacket121130;
 import org.itxtech.synapseapi.multiprotocol.protocol116.protocol.InventoryTransactionPacket116;
 import org.itxtech.synapseapi.multiprotocol.protocol116220.protocol.PlayerAuthInputPacket116220;
 import org.itxtech.synapseapi.multiprotocol.protocol119.protocol.PlayerActionPacket119;
@@ -70,7 +71,7 @@ class DisabledRedirectIsolationTest {
         UUID sessionId = UUID.randomUUID();
         PlayerAuthInputPacket116220 input = new PlayerAuthInputPacket116220();
         List<DataPacket> decoded = List.of(input, new MobEquipmentPacket(), new InventoryTransactionPacket116(),
-                new PlayerActionPacket119(), new AnimatePacket(), new NEPyRpcPacket16(), new SetEntityMotionPacket12070(), new ScriptMessagePacket11810());
+                new PlayerActionPacket119(), new AnimatePacket(), new NEPyRpcPacket16(), new SetEntityMotionPacket12070(), new ScriptMessagePacket11810(), new TextPacket121130());
         List<Object> consumed = new ArrayList<>();
         try (MockedStatic<Server> servers = preparedServer(server);
              MockedStatic<SynapseAPI> globals = mockStatic(SynapseAPI.class);

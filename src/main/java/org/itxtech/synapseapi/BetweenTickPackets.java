@@ -40,6 +40,11 @@ import org.itxtech.synapseapi.multiprotocol.protocol16.protocol.NEPyRpcPacket16;
 import org.itxtech.synapseapi.multiprotocol.protocol112.protocol.ClientCacheBlobStatusPacket112;
 import org.itxtech.synapseapi.multiprotocol.protocol11810.protocol.SubChunkRequestPacket11810;
 import org.itxtech.synapseapi.multiprotocol.protocol11810.protocol.ScriptMessagePacket11810;
+import org.itxtech.synapseapi.multiprotocol.protocol116100.protocol.TextPacket116100;
+import org.itxtech.synapseapi.multiprotocol.protocol116100ne.protocol.TextPacket116100NE;
+import org.itxtech.synapseapi.multiprotocol.protocol121.protocol.TextPacket121;
+import org.itxtech.synapseapi.multiprotocol.protocol121130.protocol.TextPacket121130;
+import org.itxtech.synapseapi.multiprotocol.protocol126.protocol.TextPacket126;
 
 import java.util.BitSet;
 
@@ -95,6 +100,15 @@ final class BetweenTickPackets {
                 || packet instanceof ClientMovementPredictionSyncPacket12620 || packet instanceof SetEntityMotionPacket12070;
     }
 
+    /**
+     * 仅限经 SynapsePlayer116100 原 handler 投递滤词队列的文本；聊天事件仍由世界周期的滤词出口执行。
+     * 原版 TextPacket 由 Nukkit 同步执行聊天，保持队头屏障。
+     */
+    private static boolean isFilteredText(DataPacket packet) {
+        return packet instanceof TextPacket126 || packet instanceof TextPacket121130 || packet instanceof TextPacket121
+                || packet instanceof TextPacket116100 || packet instanceof TextPacket116100NE;
+    }
+
     static boolean supports(DataPacket packet) {
         // 独立移动与状态请求仍沿原权限/事件/忽略或兼容handler；位置和实体周期不额外推进。
         if (isIndependentMovementInput(packet)) return true;
@@ -105,7 +119,7 @@ final class BetweenTickPackets {
             return event.event == EntityEventPacket.EATING_ITEM;
         }
         if (packet instanceof NetworkStackLatencyPacket19 || packet instanceof ResourcePackChunkRequestPacket
-                || packet instanceof ScriptMessagePacket11810) {
+                || packet instanceof ScriptMessagePacket11810 || isFilteredText(packet)) {
             return true;
         }
         if (packet instanceof SubChunkRequestPacket11810 request) {
@@ -224,6 +238,10 @@ final class BetweenTickPackets {
         }
         if (packet instanceof ScriptMessagePacket11810) {
             // JE 频道与相机请求沿原主线程事件/handler；连接归属由外层检查，不依赖物理输入就绪。
+            return InputBlockReason.NONE;
+        }
+        if (isFilteredText(packet)) {
+            // 原handler只触发收包事件并投递滤词；出生、存活与接入资格由原handler及聊天出口复检。
             return InputBlockReason.NONE;
         }
         if (packet instanceof SubChunkRequestPacket11810 || packet instanceof ClientCacheBlobStatusPacket112) {
