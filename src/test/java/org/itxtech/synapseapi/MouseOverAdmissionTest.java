@@ -48,9 +48,9 @@ class MouseOverAdmissionTest {
     }
 
     @Test
-    void modernMouseOverKeepsOtherActionsAsBarriers() {
+    void modernInteractOnlyKeepsVehicleExitAsBarrier() {
         for (int action = InteractPacket121130.ACTION_NONE; action <= InteractPacket121130.ACTION_OPEN_INVENTORY; action++) {
-            assertEquals(action == InteractPacket121130.ACTION_MOUSEOVER, BetweenTickPackets.supports(modernPacket(action, 0)));
+            assertEquals(action != InteractPacket121130.ACTION_VEHICLE_EXIT, BetweenTickPackets.supports(modernPacket(action, 0)));
         }
     }
 
@@ -123,10 +123,10 @@ class MouseOverAdmissionTest {
     }
 
     @Test
-    void onlyMouseOverIsStaticallyEligible() {
+    void legacyInteractOnlyKeepsVehicleExitAsBarrier() {
         for (int action = InteractPacket113.ACTION_NONE; action <= InteractPacket113.ACTION_OPEN_INVENTORY; action++) {
             InteractPacket113 packet = packet(action, 1);
-            assertEquals(action == InteractPacket113.ACTION_MOUSEOVER, BetweenTickPackets.supports(packet));
+            assertEquals(action != InteractPacket113.ACTION_VEHICLE_EXIT, BetweenTickPackets.supports(packet));
         }
     }
 
@@ -273,16 +273,9 @@ class MouseOverAdmissionTest {
     }
 
     @Test
-    void nonHoverActionsRemainStaticBarriers() {
-        for (boolean modern : new boolean[]{false, true}) {
-            Fixture fixture = new Fixture(true, modern);
-            doReturn(false).when(fixture.player).isAlive();
-            for (int action = InteractPacket113.ACTION_NONE; action <= InteractPacket113.ACTION_OPEN_INVENTORY; action++) {
-                if (action == InteractPacket113.ACTION_MOUSEOVER) continue;
-                DataPacket packet = modern ? modernPacket(action, 0) : packet(action, 0);
-                assertFalse(BetweenTickPackets.supports(packet));
-            }
-        }
+    void vehicleExitRemainsStaticBarrier() {
+        assertFalse(BetweenTickPackets.supports(modernPacket(InteractPacket121130.ACTION_VEHICLE_EXIT, 0)));
+        assertFalse(BetweenTickPackets.supports(packet(InteractPacket113.ACTION_VEHICLE_EXIT, 0)));
     }
 
     private static DataPacket hover(boolean modern, long target) {

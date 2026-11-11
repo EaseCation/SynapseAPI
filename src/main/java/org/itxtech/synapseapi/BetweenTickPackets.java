@@ -7,9 +7,9 @@ import cn.nukkit.network.protocol.AdventureSettingsPacket;
 import cn.nukkit.network.protocol.AnimatePacket;
 import cn.nukkit.network.protocol.EntityEventPacket;
 import cn.nukkit.network.protocol.MobEquipmentPacket;
-import cn.nukkit.network.protocol.PlayerHotbarPacket;
-import cn.nukkit.network.protocol.ResourcePackChunkRequestPacket;
+import cn.nukkit.network.protocol.ProtocolInfo;
 import cn.nukkit.network.protocol.types.ContainerIds;
+import cn.nukkit.network.protocol.ResourcePackChunkRequestPacket;
 import cn.nukkit.network.protocol.types.NetworkInventoryAction;
 import cn.nukkit.inventory.transaction.data.ReleaseItemData;
 import cn.nukkit.inventory.transaction.data.UseItemData;
@@ -30,7 +30,6 @@ import org.itxtech.synapseapi.multiprotocol.protocol12160.protocol.ClientMovemen
 import org.itxtech.synapseapi.multiprotocol.protocol12170.protocol.ClientMovementPredictionSyncPacket12170;
 import org.itxtech.synapseapi.multiprotocol.protocol12620.protocol.ClientMovementPredictionSyncPacket12620;
 import org.itxtech.synapseapi.multiprotocol.protocol116220.protocol.PlayerAuthInputPacket116220;
-import org.itxtech.synapseapi.multiprotocol.protocol14.protocol.PlayerHotbarPacket14;
 import org.itxtech.synapseapi.multiprotocol.protocol116.protocol.InventoryTransactionPacket116;
 import org.itxtech.synapseapi.multiprotocol.protocol116100.protocol.EntityEventPacket116100;
 import org.itxtech.synapseapi.multiprotocol.protocol12620.protocol.EntityEventPacket12620;
@@ -45,16 +44,32 @@ import org.itxtech.synapseapi.multiprotocol.protocol116100ne.protocol.TextPacket
 import org.itxtech.synapseapi.multiprotocol.protocol121.protocol.TextPacket121;
 import org.itxtech.synapseapi.multiprotocol.protocol121130.protocol.TextPacket121130;
 import org.itxtech.synapseapi.multiprotocol.protocol126.protocol.TextPacket126;
-import org.itxtech.synapseapi.multiprotocol.protocol121.protocol.ContainerClosePacket121;
-import org.itxtech.synapseapi.multiprotocol.protocol116100.protocol.ContainerClosePacket116100;
 import org.itxtech.synapseapi.multiprotocol.protocol16.protocol.ResourcePackClientResponsePacket16;
 
 import java.util.BitSet;
 
 /** 仅分类已审计的协议工作，不从客户端状态推导服务端物理或权限。 */
 final class BetweenTickPackets {
-    // 缓存确认暂保留原有数量门禁；其确认/回复语义另行迁移。
-    static final int MAX_CACHE_ENTRIES_BETWEEN_TICKS = 64;
+    /**
+     * 整包放行的包编号：原 handler 只触发收包事件后忽略、记日志、登记请求或回复本人，
+     * 不依赖世界周期内的状态推进（全包准入 M2/M3）；按编号判定以覆盖各协议版本的同名包类。
+     */
+    private static final BitSet ADMITTED_PACKET_IDS = packetIds(
+            // M2：关窗、快捷栏、选取方块/实体、书本编辑、服务端库存请求（无处理分支）、网易熔炉经验
+            ProtocolInfo.CONTAINER_CLOSE_PACKET, ProtocolInfo.PLAYER_HOTBAR_PACKET,
+            ProtocolInfo.BLOCK_PICK_REQUEST_PACKET, ProtocolInfo.ACTOR_PICK_REQUEST_PACKET,
+            ProtocolInfo.BOOK_EDIT_PACKET, ProtocolInfo.ITEM_STACK_REQUEST_PACKET,
+            ProtocolInfo.PACKET_WITHDRAW_FURNACE_XP,
+            // M3：加载界面、诊断、客户端选项、表情列表、定位数据库、权限请求、铁砧损坏、握手、
+            // 网易 JSON 与皮肤同步、违规告警、本地初始化、Boss 栏查询、皮肤、缓存状态、视距请求
+            ProtocolInfo.SERVERBOUND_LOADING_SCREEN_PACKET, ProtocolInfo.SERVERBOUND_DIAGNOSTICS_PACKET,
+            ProtocolInfo.UPDATE_CLIENT_OPTIONS_PACKET, ProtocolInfo.EMOTE_LIST_PACKET,
+            ProtocolInfo.POSITION_TRACKING_DB_CLIENT_REQUEST_PACKET, ProtocolInfo.REQUEST_PERMISSIONS_PACKET,
+            ProtocolInfo.ANVIL_DAMAGE_PACKET, ProtocolInfo.CLIENT_TO_SERVER_HANDSHAKE_PACKET,
+            ProtocolInfo.PACKET_NETEASE_JSON, ProtocolInfo.PACKET_SYNC_SKIN,
+            ProtocolInfo.PACKET_VIOLATION_WARNING_PACKET, ProtocolInfo.SET_LOCAL_PLAYER_AS_INITIALIZED_PACKET,
+            ProtocolInfo.BOSS_EVENT_PACKET, ProtocolInfo.PLAYER_SKIN_PACKET,
+            ProtocolInfo.CLIENT_CACHE_STATUS_PACKET, ProtocolInfo.REQUEST_CHUNK_RADIUS_PACKET);
     private static final long MOVEMENT_FLAGS = ((1L << PlayerAuthInputFlags.START_GLIDING) - 1)
             & ~((1L << PlayerAuthInputFlags.START_SWIMMING) | (1L << PlayerAuthInputFlags.STOP_SWIMMING))
             | (1L << PlayerAuthInputFlags.HANDLED_TELEPORT);
@@ -96,13 +111,6 @@ final class BetweenTickPackets {
             "NONE", "INTERACT", "DAMAGE", "VEHICLE_EXIT", "MOUSEOVER", "OPEN_NPC", "OPEN_INVENTORY");
     private static final String[] RESOURCE_PACK_RESPONSE = labels("ResourcePackClientResponsePacket16",
             "NONE", "REFUSED", "SEND_PACKS", "HAVE_ALL_PACKS", "COMPLETED");
-    private static final String[] CONTAINER_CLOSE_116100 = labels("ContainerClosePacket116100",
-            "INVENTORY", "WINDOW", "FIXED");
-    private static final String[] CONTAINER_CLOSE_121 = labels("ContainerClosePacket121",
-            "INVENTORY", "WINDOW", "FIXED");
-    private static final String[] MOB_EQUIPMENT = labels("MobEquipmentPacket", "INVENTORY", "OFFHAND");
-    private static final String[] PLAYER_HOTBAR = labels("PlayerHotbarPacket", "INVENTORY", "OFFHAND");
-    private static final String[] PLAYER_HOTBAR_14 = labels("PlayerHotbarPacket14", "INVENTORY", "OFFHAND");
     private static final String[] TRANSACTION_PART = labels("InventoryTransactionPacket116",
             "CRAFT_PART", "ENCHANT_PART", "REPAIR_PART");
     private static final String[] TRANSACTION_NORMAL = labels("InventoryTransactionPacket116",
@@ -119,16 +127,12 @@ final class BetweenTickPackets {
     private static final int NORMAL_CREATIVE = 1;
     private static final int NORMAL_DROP = 2;
     private static final int NORMAL_SPECIAL = 3;
-    private static final int WINDOW_INVENTORY = 0;
-    private static final int WINDOW_OPENED = 1;
-    private static final int WINDOW_FIXED = 2;
-    private static final int WINDOW_OFFHAND = 1;
 
     private BetweenTickPackets() {
     }
 
     /**
-     * 屏障诊断的类型标签；只对放行与否依赖包内字段的包细分子类型，未知取值归 OTHER。
+     * 屏障诊断的类型标签；只对仍可能成为屏障且放行与否依赖包内字段的包细分子类型，未知取值归 OTHER。
      * 只读包字段，不访问玩家；调用位于 dispatcher 锁内。
      */
     static String diagnosticType(DataPacket packet) {
@@ -140,21 +144,6 @@ final class BetweenTickPackets {
         }
         if (packet instanceof InteractPacket113 interact) {
             return pick(INTERACT_113, interact.action);
-        }
-        if (packet instanceof ContainerClosePacket121 close) {
-            return pick(CONTAINER_CLOSE_121, closeWindow(close.windowId));
-        }
-        if (packet instanceof ContainerClosePacket116100 close) {
-            return pick(CONTAINER_CLOSE_116100, closeWindow(close.windowId));
-        }
-        if (packet instanceof MobEquipmentPacket equipment) {
-            return pick(MOB_EQUIPMENT, equipmentWindow(equipment.windowId));
-        }
-        if (packet instanceof PlayerHotbarPacket hotbar) {
-            return pick(PLAYER_HOTBAR, equipmentWindow(hotbar.windowId));
-        }
-        if (packet instanceof PlayerHotbarPacket14 hotbar) {
-            return pick(PLAYER_HOTBAR_14, equipmentWindow(hotbar.windowId));
         }
         if (packet instanceof ResourcePackClientResponsePacket16 response) {
             return pick(RESOURCE_PACK_RESPONSE, response.responseStatus);
@@ -202,19 +191,6 @@ final class BetweenTickPackets {
         return special ? NORMAL_SPECIAL : creative ? NORMAL_CREATIVE : NORMAL_CONTAINER;
     }
 
-    private static int closeWindow(int windowId) {
-        if (windowId == ContainerIds.INVENTORY) return WINDOW_INVENTORY;
-        if (windowId >= ContainerIds.FIRST && windowId <= ContainerIds.LAST) return WINDOW_OPENED;
-        if (windowId >= ContainerIds.OFFHAND && windowId <= ContainerIds.NETEASE_UI) return WINDOW_FIXED;
-        return -1;
-    }
-
-    private static int equipmentWindow(int windowId) {
-        if (windowId == ContainerIds.INVENTORY) return WINDOW_INVENTORY;
-        if (windowId == ContainerIds.OFFHAND) return WINDOW_OFFHAND;
-        return -1;
-    }
-
     private static String[] labels(String type, String... names) {
         String[] labels = new String[names.length + 1];
         for (int i = 0; i < names.length; i++) {
@@ -254,6 +230,7 @@ final class BetweenTickPackets {
     static boolean supports(DataPacket packet) {
         // 独立移动与状态请求仍沿原权限/事件/忽略或兼容handler；位置和实体周期不额外推进。
         if (isIndependentMovementInput(packet)) return true;
+        if (ADMITTED_PACKET_IDS.get(packet.pid())) return true;
         if (packet instanceof EntityEventPacket116100 event) {
             return event.event == EntityEventPacket.EATING_ITEM;
         }
@@ -269,29 +246,28 @@ final class BetweenTickPackets {
             return request.positionOffsets != null;
         }
         if (packet instanceof ClientCacheBlobStatusPacket112 status) {
-            // 确认记账保持输入原序；回复沿原出站队列异步编码，不重放或延后确认本身。
-            return status.hitSet != null && status.missSet != null
-                    && status.hitSet.size() + status.missSet.size() <= MAX_CACHE_ENTRIES_BETWEEN_TICKS;
+            // 确认记账保持输入原序；回复沿原出站队列异步编码。解码上限 4095 条时记账约 0.3ms，不再限量。
+            return status.hitSet != null && status.missSet != null;
         }
         if (packet instanceof InteractPacket113 interact) {
-            // 看向实体沿原事件与提示更新处理；开库存、下车等动作仍保持世界阶段屏障。
-            return interact.action == InteractPacket113.ACTION_MOUSEOVER;
+            // 悬停、开背包/坐骑/实体库存、交互与 NPC 沿原事件与 handler；下车改骑乘与 Nya 载具交接，留待 M7。
+            return interact.action != InteractPacket113.ACTION_VEHICLE_EXIT;
         }
         if (packet instanceof InteractPacket121130 interact) {
-            return interact.action == InteractPacket121130.ACTION_MOUSEOVER;
+            return interact.action != InteractPacket121130.ACTION_VEHICLE_EXIT;
         }
         if (packet instanceof NEPyRpcPacket16 rpc) {
             // JE 的输入扩展先于普通交互包；解码限额及每个回调后的会话复检沿用原实现。
             return rpc.subPackets != null;
         }
         if (packet instanceof MobEquipmentPacket equipment) {
-            return equipment.windowId == ContainerIds.INVENTORY && equipment.item != null;
+            // 非背包窗口只记录或回发内容；物品缺失时保留屏障。
+            return equipment.item != null;
         }
-        if (packet instanceof PlayerHotbarPacket hotbar) {
-            return hotbar.windowId == ContainerIds.INVENTORY;
-        }
-        if (packet instanceof PlayerHotbarPacket14 hotbar) {
-            return hotbar.windowId == ContainerIds.INVENTORY;
+        if (packet instanceof ResourcePackClientResponsePacket16 response) {
+            // 下载请求与已有全部包只回复本人；拒绝会关闭连接、完成会进入登录收尾，留待 M8。
+            return response.responseStatus == ResourcePackClientResponsePacket16.STATUS_SEND_PACKS
+                    || response.responseStatus == ResourcePackClientResponsePacket16.STATUS_HAVE_ALL_PACKS;
         }
         if (packet instanceof AnimatePacket animation) {
             return animation.action == AnimatePacket.Action.SWING_ARM;
@@ -359,6 +335,13 @@ final class BetweenTickPackets {
                 || packet.actions == null) {
             return false;
         }
+        if (packet.transactionType == InventoryTransactionPacket116.TYPE_MISMATCH) {
+            // 原 handler 只把动作转换为对象后丢弃并回发全部库存，与动作来自哪个窗口无关。
+            for (NetworkInventoryAction action : packet.actions) {
+                if (action == null) return false;
+            }
+            return true;
+        }
         // 旧版槽位同步元数据不参与原处理器的库存结算，其编号也不是窗口编号。
         // 保留完整元数据，准入只依据下方真正的库存动作；不能用同步声明替代动作校验。
         // 完整消费原包，普通容器、合成与创造动作仍保留为队头屏障。
@@ -366,8 +349,6 @@ final class BetweenTickPackets {
             return false;
         }
         return switch (packet.transactionType) {
-            // 空同步仍完整经过原事件和待事务处理，不单独摘出库存回复。
-            case InventoryTransactionPacket116.TYPE_MISMATCH -> packet.actions.length == 0;
             case InventoryTransactionPacket116.TYPE_USE_ITEM_ON_ENTITY ->
                     packet.transactionData instanceof UseItemOnEntityData data
                             && data.actionType == InventoryTransactionPacket116.USE_ITEM_ON_ENTITY_ACTION_ATTACK
@@ -384,6 +365,14 @@ final class BetweenTickPackets {
                             && data.itemInHand != null;
             default -> false;
         };
+    }
+
+    private static BitSet packetIds(int... ids) {
+        BitSet set = new BitSet();
+        for (int id : ids) {
+            set.set(id);
+        }
+        return set;
     }
 
     private static boolean supportsInventoryActions(NetworkInventoryAction[] actions) {

@@ -11,10 +11,8 @@ import cn.nukkit.network.protocol.types.ContainerIds;
 import cn.nukkit.network.protocol.types.NetworkInventoryAction;
 import org.itxtech.synapseapi.multiprotocol.protocol113.protocol.InteractPacket113;
 import org.itxtech.synapseapi.multiprotocol.protocol116.protocol.InventoryTransactionPacket116;
-import org.itxtech.synapseapi.multiprotocol.protocol116100.protocol.ContainerClosePacket116100;
 import org.itxtech.synapseapi.multiprotocol.protocol121.protocol.ContainerClosePacket121;
 import org.itxtech.synapseapi.multiprotocol.protocol121130.protocol.InteractPacket121130;
-import org.itxtech.synapseapi.multiprotocol.protocol14.protocol.PlayerHotbarPacket14;
 import org.itxtech.synapseapi.multiprotocol.protocol16.protocol.ResourcePackClientResponsePacket16;
 import org.junit.jupiter.api.Test;
 
@@ -53,35 +51,14 @@ class DiagnosticTypeLabelTest {
     }
 
     @Test
-    void containerCloseWindowCategories() {
-        int[][] cases = {{ContainerIds.INVENTORY, 0}, {ContainerIds.FIRST, 1}, {ContainerIds.LAST, 1},
-                {ContainerIds.OFFHAND, 2}, {ContainerIds.NETEASE_UI, 2}, {ContainerIds.NONE, 3}, {110, 3}};
-        String[] names = {"INVENTORY", "WINDOW", "FIXED", "OTHER"};
-        for (int[] c : cases) {
-            ContainerClosePacket121 modern = new ContainerClosePacket121();
-            modern.windowId = c[0];
-            assertEquals("ContainerClosePacket121/" + names[c[1]], BetweenTickPackets.diagnosticType(modern));
-            ContainerClosePacket116100 legacy = new ContainerClosePacket116100();
-            legacy.windowId = c[0];
-            assertEquals("ContainerClosePacket116100/" + names[c[1]], BetweenTickPackets.diagnosticType(legacy));
-        }
-    }
-
-    @Test
-    void equipmentAndHotbarWindowCategories() {
-        int[] windows = {ContainerIds.INVENTORY, ContainerIds.OFFHAND, ContainerIds.ARMOR};
-        String[] names = {"INVENTORY", "OFFHAND", "OTHER"};
-        for (int i = 0; i < windows.length; i++) {
-            MobEquipmentPacket equipment = new MobEquipmentPacket();
-            equipment.windowId = windows[i];
-            assertEquals("MobEquipmentPacket/" + names[i], BetweenTickPackets.diagnosticType(equipment));
-            PlayerHotbarPacket hotbar = new PlayerHotbarPacket();
-            hotbar.windowId = windows[i];
-            assertEquals("PlayerHotbarPacket/" + names[i], BetweenTickPackets.diagnosticType(hotbar));
-            PlayerHotbarPacket14 legacy = new PlayerHotbarPacket14();
-            legacy.windowId = windows[i];
-            assertEquals("PlayerHotbarPacket14/" + names[i], BetweenTickPackets.diagnosticType(legacy));
-        }
+    void alwaysAdmittedPacketsKeepClassName() {
+        ContainerClosePacket121 close = new ContainerClosePacket121();
+        close.windowId = ContainerIds.OFFHAND;
+        assertEquals("ContainerClosePacket121", BetweenTickPackets.diagnosticType(close));
+        MobEquipmentPacket equipment = new MobEquipmentPacket();
+        equipment.windowId = ContainerIds.ARMOR;
+        assertEquals("MobEquipmentPacket", BetweenTickPackets.diagnosticType(equipment));
+        assertEquals("PlayerHotbarPacket", BetweenTickPackets.diagnosticType(new PlayerHotbarPacket()));
     }
 
     @Test

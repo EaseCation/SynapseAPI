@@ -109,10 +109,14 @@ class InventoryMismatchAdmissionTest {
     }
 
     @Test
-    void nonemptyOrSpecialTransactionPayloadDoesNotBorrowEmptySyncAdmission() {
+    void mismatchWithActionsIsAdmittedButPartsAndNormalRemainBarriers() {
         InventoryTransactionPacket116 packet = request();
         assertTrue(BetweenTickPackets.supports(packet));
+        // M2：原 handler 只回发全部库存，带任意窗口动作的同步同样放行；空动作元素仍为屏障。
         packet.actions = new NetworkInventoryAction[]{new NetworkInventoryAction()};
+        packet.actions[0].windowId = 7;
+        assertTrue(BetweenTickPackets.supports(packet));
+        packet.actions = new NetworkInventoryAction[]{null};
         assertFalse(BetweenTickPackets.supports(packet));
         packet.actions = null;
         assertFalse(BetweenTickPackets.supports(packet));
