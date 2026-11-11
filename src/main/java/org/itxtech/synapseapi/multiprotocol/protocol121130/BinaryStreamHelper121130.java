@@ -4,6 +4,7 @@ import cn.nukkit.command.data.*;
 import cn.nukkit.utils.BinaryStream;
 import org.itxtech.synapseapi.multiprotocol.protocol121124.BinaryStreamHelper121124;
 import org.itxtech.synapseapi.multiprotocol.protocol121130.protocol.AvailableCommandsPacket121130;
+import org.itxtech.synapseapi.multiprotocol.utils.CommandPostfixFixer;
 
 import java.util.List;
 import java.util.Map;
@@ -23,10 +24,10 @@ public class BinaryStreamHelper121130 extends BinaryStreamHelper121124 {
         stream.putUnsignedVarInt(commands.size());
 
         commands.forEach((name, cmdData) -> {
-            CommandData data = cmdData.versions.get(0);
+            CommandData data = cmdData.versions.getFirst();
 
-            stream.putString(name);
-            stream.putString(data.description);
+            stream.putString(name, 1000);
+            stream.putString(data.description, 1000);
             int flags = 0;
             for (CommandFlag flag : data.flags) {
                 flags |= 1 << flag.ordinal();
@@ -36,26 +37,28 @@ public class BinaryStreamHelper121130 extends BinaryStreamHelper121124 {
 
             stream.putLInt(data.aliases == null ? -1 : enums.indexOf(data.aliases));
 
-            stream.putUnsignedVarInt(data.chainedSubCommandData.size());
-            for (ChainedSubCommandData chainedSubCommand : data.chainedSubCommandData.values()) {
-                stream.putLInt(chainedSubCommands.indexOf(chainedSubCommand));
-            }
+            stream.putArray(data.chainedSubCommandData.values(), (bs, chainedSubCommand) -> {
+                bs.putLInt(chainedSubCommands.indexOf(chainedSubCommand));
+            }, 250);
 
-            stream.putUnsignedVarInt(data.overloads.size());
-            for (CommandOverload overload : data.overloads.values()) {
-                stream.putBoolean(overload.chaining);
+            stream.putArray(data.overloads.values(), (bs, overload) -> {
+                bs.putBoolean(overload.chaining);
 
-                stream.putUnsignedVarInt(overload.input.parameters.length);
+                bs.putUnsignedVarInt(overload.input.parameters.length);
                 for (CommandParameter parameter : overload.input.parameters) {
-                    stream.putString(parameter.name);
+                    bs.putString(parameter.name);
 
                     int type = 0;
                     if (parameter.postFix != null) {
-                        int i = postFixes.indexOf(parameter.postFix);
-                        if (i < 0) {
-                            throw new IllegalStateException("Postfix '" + parameter.postFix + "' isn't in postfix array");
-                        }
-                        type = AvailableCommandsPacket121130.ARG_FLAG_POSTFIX | i;
+                        int i = postFixes.indexOf(CommandPostfixFixer.normalizePostfix(parameter.postFix));
+                        // The compatibility layout omits suffixes beyond the verified native mapping slots.
+                        // Advertise those parameters as strings instead of forming an invalid postfix symbol.
+                        // The server still receives the original input;
+                        // only client-side integer-suffix validation/completion is relaxed.
+                        // Resolve STRING through this helper;
+                        // legacy packet constants can differ from the active version's registered command parameter type IDs.
+                        type = i >= 0 ? AvailableCommandsPacket121130.ARG_FLAG_POSTFIX | i
+                                : AvailableCommandsPacket121130.ARG_FLAG_VALID | getCommandParameterTypeId(CommandParamType.STRING, AvailableCommandsPacket121130.ARG_TYPE_STRING);
                     } else {
                         type |= AvailableCommandsPacket121130.ARG_FLAG_VALID;
                         if (parameter.enumData != null) {
@@ -69,15 +72,15 @@ public class BinaryStreamHelper121130 extends BinaryStreamHelper121124 {
                         }
                     }
 
-                    stream.putLInt(type);
-                    stream.putBoolean(parameter.optional);
+                    bs.putLInt(type);
+                    bs.putBoolean(parameter.optional);
                     int options = 0;
                     for (CommandParamOption option : parameter.options) {
                         options |= 1 << option.ordinal();
                     }
-                    stream.putByte((byte) options);
+                    bs.putByte((byte) options);
                 }
-            }
+            }, 250);
         });
     }
 }

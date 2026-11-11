@@ -33,7 +33,8 @@ class ItemUseSlotTest {
         doReturn(true).when(player).isInputSessionActive();
         snowballs = new Item(ItemID.SNOWBALL, 0, 8);
         when(inventory.getHotbarSize()).thenReturn(9);
-        when(inventory.getItem(1)).thenAnswer(call -> snowballs.clone());
+        when(inventory.getItem(1)).thenAnswer(call -> snowballs.isNull()
+                ? new Item(ItemID.AIR, 0, 0) : snowballs.clone());
         doAnswer(call -> {
             doReturn(1).when(inventory).getHeldItemIndex();
             return true;
@@ -41,23 +42,26 @@ class ItemUseSlotTest {
     }
 
     @Test
-    void useBeforeEquipmentSelectsServerOwnedSlotAndRejectsAConsumedReplay() {
+    void useBeforeEquipmentSelectsServerOwnedSlotDespiteStaleClaimedCount() {
         assertTrue(player.prepareItemUseSlot(1, snowballs.clone(), ItemUseHand.MAIN_HAND));
         Item replay = snowballs.clone();
         snowballs.setCount(7);
-        assertFalse(player.prepareItemUseSlot(1, replay, ItemUseHand.MAIN_HAND));
-        verify(inventory, times(1)).equipItem(1);
-        verify(inventory).sendContents(player);
-        verify(player).dataPacket(isA(PlayerHotbarPacket.class));
+        assertTrue(player.prepareItemUseSlot(1, replay, ItemUseHand.MAIN_HAND));
+        assertEquals(7, snowballs.getCount());
+        snowballs.setCount(9);
+        assertTrue(player.prepareItemUseSlot(1, replay, ItemUseHand.MAIN_HAND));
+        assertEquals(9, snowballs.getCount());
+        verify(inventory, times(3)).equipItem(1);
+        verify(inventory, never()).sendContents(player);
+        verify(player, never()).dataPacket(isA(PlayerHotbarPacket.class));
         verify(inventory, never()).setItemInHand(any());
     }
 
     @Test
-    void invalidSlotItemOrCountCannotSelectOrCreateInventory() {
+    void invalidSlotOrItemCannotSelectOrCreateInventory() {
         assertFalse(player.prepareItemUseSlot(-1, snowballs, ItemUseHand.MAIN_HAND));
         assertFalse(player.prepareItemUseSlot(9, snowballs, ItemUseHand.MAIN_HAND));
         assertFalse(player.prepareItemUseSlot(1, new Item(ItemID.ENDER_PEARL, 0, 8), ItemUseHand.MAIN_HAND));
-        assertFalse(player.prepareItemUseSlot(1, new Item(ItemID.SNOWBALL, 0, 64), ItemUseHand.MAIN_HAND));
         assertFalse(player.prepareItemUseSlot(1, null, ItemUseHand.MAIN_HAND));
         verify(inventory, never()).equipItem(anyInt());
         verify(inventory, never()).setItemInHand(any());

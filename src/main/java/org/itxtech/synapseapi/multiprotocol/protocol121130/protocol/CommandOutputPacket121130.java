@@ -38,7 +38,7 @@ public class CommandOutputPacket121130 extends Packet121130 {
 
         this.putEnum(originData.type, origin -> origin.getNameOrDefault(Origin.PLAYER));
         this.putUUID(originData.uuid);
-        this.putString(originData.requestId);
+        this.putString(originData.requestId, 39);
         this.putLLong(originData.playerEntityUniqueId);
 
         this.putEnum(this.outputType, CommandOutputType::getName);

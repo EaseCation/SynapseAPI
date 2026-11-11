@@ -30,10 +30,9 @@ public class PlayerArmorDamagePacket121111 extends Packet121111 {
     public void encode() {
         reset();
 
-        putUnsignedVarInt(entries.length);
-        for (IntIntPair entry : entries) {
-            putVarInt(entry.leftInt());
-            putLShort(entry.rightInt());
-        }
+        putArray(entries, (stream, entry) -> {
+            stream.putVarInt(entry.leftInt());
+            stream.putLShort(entry.rightInt());
+        }, 5);
     }
 }

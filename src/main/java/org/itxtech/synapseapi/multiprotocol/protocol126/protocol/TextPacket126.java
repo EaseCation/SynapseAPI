@@ -29,19 +29,24 @@ public class TextPacket126 extends Packet126 {
     public static final byte BODY_TYPE_AUTHOR_AND_MESSAGE = 1;
     public static final byte BODY_TYPE_MESSAGE_AND_PARAMS = 2;
 
+    private static final int MAX_MESSAGE_LENGTH = 65536;
+    private static final int MAX_AUTHOR_LENGTH = 256;
+    private static final int MAX_PARAMETER = 4;
+    private static final int MAX_PARAMETER_NETEASE = 12;
+    private static final int MAX_XUID_LENGTH = 64;
+    private static final int MAX_PLATFORM_ID_LENGTH = 256;
+
     public boolean isLocalized;
 
     public byte type;
     public String message = "";
-    public String[] parameters = new String[0];
+    public String[] parameters = new String[0]; // max: 4 || 12 (netease)
     public String primaryName = "";
 
     public String sendersXUID = "";
     public String platformIdString = "";
     @Nullable
     public String filteredMessage;
-
-    public String unknownNE = ""; // Biggest wtf
 
     @Override
     public int pid() {
@@ -56,29 +61,28 @@ public class TextPacket126 extends Packet126 {
         switch (bodyType) {
             case BODY_TYPE_MESSAGE_ONLY:
                 this.type = (byte) this.getByte();
-                this.message = this.getString();
+                this.message = this.getString(MAX_MESSAGE_LENGTH, true);
                 break;
             case BODY_TYPE_AUTHOR_AND_MESSAGE:
                 this.type = (byte) this.getByte();
-                this.primaryName = this.getString();
-                this.message = this.getString();
+                this.primaryName = this.getString(MAX_AUTHOR_LENGTH);
+                this.message = this.getString(MAX_MESSAGE_LENGTH, true);
+
+                if (neteaseMode) {
+                    this.parameters = this.getArray(new String[0], BinaryStream::getString, MAX_PARAMETER_NETEASE);
+                }
+
                 break;
             case BODY_TYPE_MESSAGE_AND_PARAMS:
                 this.type = (byte) this.getByte();
-                this.message = this.getString();
-                this.parameters = this.getArray(new String[0], BinaryStream::getString);
+                this.message = this.getString(MAX_MESSAGE_LENGTH, true);
+                this.parameters = this.getArray(new String[0], BinaryStream::getString, neteaseMode ? MAX_PARAMETER_NETEASE : MAX_PARAMETER);
                 break;
         }
 
-        this.sendersXUID = this.getString();
-        this.platformIdString = this.getString();
-        this.filteredMessage = this.getOptional(BinaryStream::getString);
-
-        if (this.neteaseMode) {
-            if (this.type == TYPE_CHAT || this.type == TYPE_POPUP) {
-                this.unknownNE = this.getString();
-            }
-        }
+        this.sendersXUID = this.getString(MAX_XUID_LENGTH);
+        this.platformIdString = this.getString(MAX_PLATFORM_ID_LENGTH);
+        this.filteredMessage = this.getOptional(stream -> stream.getString(MAX_MESSAGE_LENGTH));
     }
 
     @Override
@@ -86,6 +90,10 @@ public class TextPacket126 extends Packet126 {
         this.reset();
         this.putBoolean(this.isLocalized);
 
+        String message = this.message;
+        if (message.isEmpty()) {
+            message = " ";
+        }
         switch (this.type) {
             case TYPE_RAW:
             case TYPE_TIP:
@@ -95,15 +103,7 @@ public class TextPacket126 extends Packet126 {
             case TYPE_OBJECT_ANNOUNCEMENT: {
                 this.putByte(BODY_TYPE_MESSAGE_ONLY);
                 this.putByte(this.type);
-                String message = this.message;
-                if (neteaseMode) {
-                    // 中国版客户端bug的临时解决方案, 防止触发PacketViolationWarningPacket断开连接
-                    int nameLength = primaryName.length();
-                    if (nameLength + message.length() >= 512) {
-                        message = message.substring(0, 511 - nameLength);
-                    }
-                }
-                this.putString(message);
+                this.putString(message, MAX_MESSAGE_LENGTH);
                 break;
             }
             case TYPE_CHAT:
@@ -111,16 +111,13 @@ public class TextPacket126 extends Packet126 {
             case TYPE_ANNOUNCEMENT: {
                 this.putByte(BODY_TYPE_AUTHOR_AND_MESSAGE);
                 this.putByte(this.type);
-                this.putString(this.primaryName);
-                String message = this.message;
+                this.putString(this.primaryName, MAX_AUTHOR_LENGTH);
+                this.putString(message, MAX_MESSAGE_LENGTH);
+
                 if (neteaseMode) {
-                    // 中国版客户端bug的临时解决方案, 防止触发PacketViolationWarningPacket断开连接
-                    int nameLength = primaryName.length();
-                    if (nameLength + message.length() >= 512) {
-                        message = message.substring(0, 511 - nameLength);
-                    }
+                    this.putArray(this.parameters, BinaryStream::putString, MAX_PARAMETER_NETEASE);
                 }
-                this.putString(message);
+
                 break;
             }
             case TYPE_TRANSLATION:
@@ -128,24 +125,15 @@ public class TextPacket126 extends Packet126 {
             case TYPE_JUKEBOX_POPUP: {
                 this.putByte(BODY_TYPE_MESSAGE_AND_PARAMS);
                 this.putByte(this.type);
-                this.putString(this.message);
-                this.putUnsignedVarInt(this.parameters.length);
-                for (String parameter : this.parameters) {
-                    this.putString(parameter);
-                }
+                this.putString(message, MAX_MESSAGE_LENGTH);
+                this.putArray(this.parameters, BinaryStream::putString, neteaseMode ? MAX_PARAMETER_NETEASE : MAX_PARAMETER);
                 break;
             }
         }
 
-        this.putString(this.sendersXUID);
-        this.putString(this.platformIdString);
-        this.putOptional(this.filteredMessage, BinaryStream::putString);
-
-        if (this.neteaseMode) {
-            if (this.type == TYPE_CHAT || this.type == TYPE_POPUP) {
-                this.putString(this.unknownNE);
-            }
-        }
+        this.putString(this.sendersXUID, MAX_XUID_LENGTH);
+        this.putString(this.platformIdString, MAX_PLATFORM_ID_LENGTH);
+        this.putOptional(this.filteredMessage, (stream, msg) -> stream.putString(msg, MAX_MESSAGE_LENGTH));
     }
 
     @Override

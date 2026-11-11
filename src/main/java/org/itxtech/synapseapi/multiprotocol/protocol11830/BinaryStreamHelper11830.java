@@ -64,7 +64,7 @@ public class BinaryStreamHelper11830 extends BinaryStreamHelper11810 {
     @Override
     public StructureSettings getStructureSettings(BinaryStream stream) {
         StructureSettings settings = new StructureSettings();
-        settings.paletteName = stream.getString();
+        settings.paletteName = stream.getString(256);
         settings.ignoreEntities = stream.getBoolean();
         settings.ignoreBlocks = stream.getBoolean();
         settings.allowNonTickingChunks = stream.getBoolean();

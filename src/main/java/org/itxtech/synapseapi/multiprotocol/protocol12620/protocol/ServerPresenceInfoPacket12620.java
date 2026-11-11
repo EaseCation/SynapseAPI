@@ -29,8 +29,8 @@ public class ServerPresenceInfoPacket12620 extends Packet12620 {
     public void encode() {
         reset();
         putOptional(config, (stream, config) -> {
-            putString(config.experienceName != null ? config.experienceName : " ");
-            putString(config.worldName != null ? config.worldName : " ");
+            putString(config.experienceName != null ? config.experienceName : " ", 40);
+            putString(config.worldName != null ? config.worldName : " ", 40);
         });
     }
 }

@@ -47,7 +47,6 @@ import org.itxtech.synapseapi.multiprotocol.protocol11810.protocol.PlayerStartIt
 import org.itxtech.synapseapi.multiprotocol.protocol11810.protocol.ScriptMessagePacket11810;
 import org.itxtech.synapseapi.multiprotocol.protocol11810.protocol.SubChunkRequestPacket11810;
 import org.itxtech.synapseapi.multiprotocol.protocol11830.protocol.AddPlayerPacket11830;
-import org.itxtech.synapseapi.multiprotocol.protocol11830.protocol.DimensionDataPacket11830;
 import org.itxtech.synapseapi.multiprotocol.protocol11830.protocol.SpawnParticleEffectPacket11830;
 import org.itxtech.synapseapi.multiprotocol.protocol11830.protocol.StartGamePacket11830;
 import org.itxtech.synapseapi.multiprotocol.protocol11830ne.protocol.ClientboundMapItemDataPacket11830NE;
@@ -350,7 +349,6 @@ public class PacketRegister {
         registerPacket(AbstractProtocol.PROTOCOL_118_30, ProtocolInfo.START_GAME_PACKET, StartGamePacket11830.class);
         registerPacket(AbstractProtocol.PROTOCOL_118_30, ProtocolInfo.ADD_PLAYER_PACKET, AddPlayerPacket11830.class);
         registerPacket(AbstractProtocol.PROTOCOL_118_30, ProtocolInfo.SPAWN_PARTICLE_EFFECT_PACKET, SpawnParticleEffectPacket11830.class);
-        registerPacket(AbstractProtocol.PROTOCOL_118_30, ProtocolInfo.DIMENSION_DATA_PACKET, DimensionDataPacket11830.class);
 
         registerPacket(AbstractProtocol.PROTOCOL_118_30_NE, ProtocolInfo.START_GAME_PACKET, StartGamePacket11830NE.class);
         registerPacket(AbstractProtocol.PROTOCOL_118_30_NE, ProtocolInfo.CLIENTBOUND_MAP_ITEM_DATA_PACKET, ClientboundMapItemDataPacket11830NE.class);
@@ -435,8 +433,6 @@ public class PacketRegister {
         registerPacket(AbstractProtocol.PROTOCOL_121, ProtocolInfo.TEXT_PACKET, TextPacket121.class);
         registerPacket(AbstractProtocol.PROTOCOL_121, ProtocolInfo.CONTAINER_CLOSE_PACKET, ContainerClosePacket121.class);
 
-        //registerPacket(AbstractProtocol.PROTOCOL_121_2, ProtocolInfo.ADD_PLAYER_PACKET, AddPlayerPacket1212NE1.class); // fixed in r21u0n1b2
-
         registerPacket(AbstractProtocol.PROTOCOL_121_20, ProtocolInfo.DISCONNECT_PACKET, DisconnectPacket12120.class);
         registerPacket(AbstractProtocol.PROTOCOL_121_20, ProtocolInfo.MOB_ARMOR_EQUIPMENT_PACKET, MobArmorEquipmentPacket12120.class);
         registerPacket(AbstractProtocol.PROTOCOL_121_20, ProtocolInfo.SET_ACTOR_LINK_PACKET, SetEntityLinkPacket12120.class);
@@ -499,6 +495,7 @@ public class PacketRegister {
         registerPacket(AbstractProtocol.PROTOCOL_121_130, ProtocolInfo.COMMAND_OUTPUT_PACKET, CommandOutputPacket121130.class);
         registerPacket(AbstractProtocol.PROTOCOL_121_130, ProtocolInfo.MOB_EFFECT_PACKET, MobEffectPacket121130.class);
         registerPacket(AbstractProtocol.PROTOCOL_121_130, ProtocolInfo.SERVERBOUND_DATA_STORE_PACKET, ServerboundDataStorePacket121130.class);
+        registerPacket(AbstractProtocol.PROTOCOL_121_130, ProtocolInfo.CONTAINER_OPEN_PACKET, ContainerOpenPacket121130NE.class);
 
         registerPacket(AbstractProtocol.PROTOCOL_126, ProtocolInfo.START_GAME_PACKET, StartGamePacket126.class);
         registerPacket(AbstractProtocol.PROTOCOL_126, ProtocolInfo.TEXT_PACKET, TextPacket126.class);

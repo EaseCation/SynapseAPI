@@ -28,7 +28,6 @@ import org.itxtech.synapseapi.multiprotocol.utils.LevelSoundEventUtil;
 
 import java.net.InetSocketAddress;
 import java.util.concurrent.ThreadLocalRandom;
-import javax.annotation.Nullable;
 
 import static org.itxtech.synapseapi.SynapseSharedConstants.*;
 
@@ -37,13 +36,11 @@ public class SynapsePlayer19 extends SynapsePlayer18 {
 
 	private int waitingPongTicks = PONG_TIMEOUT_TICKS;
 	private int pongTimeoutCount;
-	@Nullable
-	private final PendingPing inputPing;
-	private int inputPingTick = Integer.MIN_VALUE;
+	private final PendingPing pendingPing = new PendingPing();
+	private int pingTick = Integer.MIN_VALUE;
 
 	public SynapsePlayer19(SourceInterface interfaz, SynapseEntry synapseEntry, Long clientID, InetSocketAddress socketAddress) {
 		super(interfaz, synapseEntry, clientID, socketAddress);
-		this.inputPing = this.isMainThreadInputEnabled() ? new PendingPing() : null;
 		// this.levelChangeLoadScreen = true;
 	}
 
@@ -113,18 +110,13 @@ public class SynapsePlayer19 extends SynapsePlayer18 {
 
 				if (NETWORK_STACK_LATENCY_TELEMETRY) {
 					long now = System.nanoTime();
-					long latency = inputPing == null ? now - pingNs
-							: inputPing.acknowledge(networkStackLatencyPacket.timestamp, now);
-					if (latency < 0 || inputPing == null && latency < 10_000_000) {
-						// 新模式拒绝不匹配的请求；旧模式保留原有 10ms 启发规则。
+					long latency = pendingPing.acknowledge(networkStackLatencyPacket.timestamp, now);
+					if (latency < 0) {
+						// 只接受当前请求的首次回包，避免迟到或重复回包启动额外的往返链。
 						break;
 					}
 					latencyNs = latency;
-					if (inputPing == null) {
-						ping();
-					} else {
-						pongTimeoutCount = 0;
-					}
+					pongTimeoutCount = 0;
 				}
 
 				if (pingNeedUpdate) {
@@ -250,6 +242,7 @@ public class SynapsePlayer19 extends SynapsePlayer18 {
 		startGamePacket.worldName = this.getServer().getNetwork().getName();
 		startGamePacket.generator = 1; // 0 old, 1 infinite, 2 flat
 		startGamePacket.gameRules = getSupportedRules();
+		startGamePacket.isTexturePacksRequired = server.getForceResources();
 		startGamePacket.blockPalette = AdvancedGlobalBlockPalette.getCompiledTable(AbstractProtocol.fromRealProtocol(this.protocol), this.isNetEaseClient());
 		startGamePacket.enchantmentSeed = ThreadLocalRandom.current().nextInt();
 		return startGamePacket;
@@ -302,19 +295,14 @@ public class SynapsePlayer19 extends SynapsePlayer18 {
 	@Override
 	public void ping() {
 		long time = System.nanoTime();
-		if (inputPing != null) {
-			int tick = this.server.getTick();
-			if (inputPingTick == tick || !inputPing.begin(time)) {
-				return;
-			}
-			inputPingTick = tick;
+		int tick = this.server.getTick();
+		if (pingTick == tick || !pendingPing.begin(time)) {
+			return;
 		}
+		pingTick = tick;
 		pingNs = time;
 
 		waitingPongTicks = PONG_TIMEOUT_TICKS;
-		if (inputPing == null) {
-			pongTimeoutCount = 0;
-		}
 
 		NetworkStackLatencyPacket19 packet = new NetworkStackLatencyPacket19();
 		packet.isFromServer = true;
@@ -326,21 +314,19 @@ public class SynapsePlayer19 extends SynapsePlayer18 {
 	public boolean onUpdate(int currentTick) {
 		int tickDiff = currentTick - this.lastUpdate;
 		if (tickDiff > 0) {
-			// 快速回包不在等待间隙递归发送新请求，采样频率仍由真实玩家 tick 约束。
-			if (inputPing != null && pingNs != 0 && !inputPing.isPending()) {
+			// 新旧模式均在玩家 tick 中发送下一次请求，回包处理本身不继续发送。
+			if (pingNs != 0 && !pendingPing.isPending()) {
 				ping();
 			}
-			if (pingNs != 0 && (inputPing == null || inputPing.isPending())) {
+			if (pingNs != 0 && pendingPing.isPending()) {
 				if (waitingPongTicks > 0) {
 					waitingPongTicks--;
 				} else if (++pongTimeoutCount > PONG_TIMEOUT_DISCONNECT_THRESHOLD) {
 					onPacketViolation(PacketViolationReason.VIOLATION_OVER_THRESHOLD, "timeout");
 					pongTimeoutCount = 0;
 				} else {
-					// retry
-					if (inputPing != null) {
-						inputPing.expire();
-					}
+					// 重试先使旧请求失效，迟到回包不能确认替代请求。
+					pendingPing.expire();
 					ping();
 				}
 			}

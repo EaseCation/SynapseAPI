@@ -34,14 +34,14 @@ public class ResourcePackStackPacket12080 extends Packet12080 {
         for (ResourcePack entry : this.behaviourPackStack) {
             this.putString(entry.getPackId());
             this.putString(entry.getPackVersion());
-            this.putString("");
+            this.putString(entry.getSubPackName());
         }
 
         this.putUnsignedVarInt(this.resourcePackStack.length);
         for (ResourcePack entry : this.resourcePackStack) {
             this.putString(entry.getPackId());
             this.putString(entry.getPackVersion());
-            this.putString("");
+            this.putString(entry.getSubPackName());
         }
 
         this.putString("*");//this.putString(this.helper.getGameVersion());

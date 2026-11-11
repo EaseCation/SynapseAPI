@@ -29,7 +29,7 @@ public class ServerboundPackSettingChangePacket121111 extends Packet121111 {
     @Override
     public void decode() {
         packId = getUUID();
-        settingName = getString();
+        settingName = getString(128);
 
         valueType = (int) getUnsignedVarInt();
         switch (valueType) {

@@ -20,7 +20,7 @@ public class PartyDestinationCookieResponsePacket12630 extends Packet12630 {
 
     @Override
     public void decode() {
-        cookie = getString();
+        cookie = getString(2048);
         accepted = getBoolean();
     }
 

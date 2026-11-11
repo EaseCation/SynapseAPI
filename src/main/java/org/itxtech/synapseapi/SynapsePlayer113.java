@@ -97,6 +97,7 @@ public class SynapsePlayer113 extends SynapsePlayer112 {
 		startGamePacket.worldName = this.getServer().getNetwork().getName();
 		startGamePacket.generator = 1; // 0 old, 1 infinite, 2 flat
 		startGamePacket.gameRules = getSupportedRules();
+		startGamePacket.isTexturePacksRequired = server.getForceResources();
 		startGamePacket.enchantmentSeed = ThreadLocalRandom.current().nextInt();
 		return startGamePacket;
 	}
@@ -129,9 +130,11 @@ public class SynapsePlayer113 extends SynapsePlayer112 {
 				ResourcePackClientResponsePacket16 responsePacket = (ResourcePackClientResponsePacket16) packet;
 				switch (responsePacket.responseStatus) {
 					case ResourcePackClientResponsePacket.STATUS_REFUSED:
+                        observeConnection("resource_pack_stage", Map.of("stage", "refused"));
 						this.close("", "disconnectionScreen.noReason");
 						break;
 					case ResourcePackClientResponsePacket.STATUS_SEND_PACKS:
+                        observeConnection("resource_pack_stage", Map.of("stage", "download_requested"));
 						for (ResourcePackClientResponsePacket16.Entry entry : responsePacket.packEntries) {
 							ResourcePack resourcePack = this.resourcePacks.getOrDefault(entry.uuid, this.behaviourPacks.get(entry.uuid));
 							if (resourcePack == null) {
@@ -155,6 +158,7 @@ public class SynapsePlayer113 extends SynapsePlayer112 {
 						}
 						break;
 					case ResourcePackClientResponsePacket.STATUS_HAVE_ALL_PACKS:
+                        observeConnection("resource_pack_stage", Map.of("stage", "have_all"));
 						ResourcePackStackPacket113 stackPacket = new ResourcePackStackPacket113();
 						stackPacket.mustAccept = this.forceResources;
 						stackPacket.resourcePackStack = this.resourcePacks.values().toArray(new ResourcePack[0]);
@@ -162,6 +166,7 @@ public class SynapsePlayer113 extends SynapsePlayer112 {
 						this.dataPacket(stackPacket);
 						break;
 					case ResourcePackClientResponsePacket.STATUS_COMPLETED:
+                        observeConnection("resource_pack_stage", Map.of("stage", "completed"));
 						if (this.preLoginEventTask.isFinished()) {
 							this.completeLoginSequence();
 						} else {
@@ -351,7 +356,7 @@ public class SynapsePlayer113 extends SynapsePlayer112 {
 
 								this.setDataFlag(DATA_FLAG_ACTION, false);
 
-								if (this.canInteract(blockVector.add(0.5, 0.5, 0.5), this.isCreative() ? MAX_REACH_DISTANCE_CREATIVE : MAX_REACH_DISTANCE_SURVIVAL)) {
+								if (this.canInteractWithBlock(blockVector.add(0.5, 0.5, 0.5), this.isCreative() ? MAX_REACH_DISTANCE_CREATIVE : MAX_REACH_DISTANCE_SURVIVAL)) {
 									if (this.isCreative()) {
 										Item i = inventory.getItemInHand();
 										if (this.level.useItemOn(blockVector.asVector3(), i, face, clickPos.x, clickPos.y, clickPos.z, this) != null) {

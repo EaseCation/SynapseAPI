@@ -3,9 +3,8 @@ package org.itxtech.synapseapi.multiprotocol.protocol12620.protocol;
 import cn.nukkit.network.protocol.ProtocolInfo;
 import cn.nukkit.utils.BinaryStream;
 import lombok.ToString;
-import org.itxtech.synapseapi.multiprotocol.protocol12610.protocol.LocatorBarPacket12610.Waypoint;
-
-import java.awt.*;
+import org.itxtech.synapseapi.locator.Waypoint;
+import org.itxtech.synapseapi.locator.Waypoint.UpdateFlag;
 
 /**
  * Syncs LocatorBar changes on the server with the client.
@@ -31,7 +30,11 @@ public class LocatorBarPacket12620 extends Packet12620 {
         putArray(waypoints, (stream, waypoint) -> {
             stream.putUUID(waypoint.groupHandle);
 
-            stream.putLInt(waypoint.updateFlag);
+            int flags = 0;
+            for (UpdateFlag flag : waypoint.updateFlag) {
+                flags |= 1 << flag.ordinal();
+            }
+            stream.putLInt(flags);
             stream.putOptional(waypoint.visible, BinaryStream::putBoolean);
             stream.putOptional(waypoint.dimensionLocation, (bs, location) -> {
                 bs.putVector3f(location.x, location.y, location.z);
@@ -44,6 +47,6 @@ public class LocatorBarPacket12620 extends Packet12620 {
             stream.putOptional(waypoint.entityUniqueId, BinaryStream::putEntityUniqueId);
 
             stream.putByte(waypoint.action);
-        });
+        }, 40000);
     }
 }

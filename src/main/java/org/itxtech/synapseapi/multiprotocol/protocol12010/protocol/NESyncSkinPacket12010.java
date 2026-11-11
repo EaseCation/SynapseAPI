@@ -43,6 +43,7 @@ public class NESyncSkinPacket12010 extends Packet12010 {
 	public void encode() {
 		reset();
 		putUnsignedVarInt(entries.length);
+		assert entries.length == 1;
 		for (Entry entry : entries) {
 			putBoolean(entry.confirmed);
 			putUUID(entry.uuid);

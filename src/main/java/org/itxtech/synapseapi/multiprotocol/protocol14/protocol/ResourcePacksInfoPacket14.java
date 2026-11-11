@@ -29,7 +29,7 @@ public class ResourcePacksInfoPacket14 extends Packet14 {
             this.putString(entry.getPackVersion());
             this.putLLong(entry.getPackSize());
             this.putString(""); //content key
-            this.putString(""); //sub pack name
+            this.putString(entry.getSubPackName());
         }
 
         this.putLShort(this.resourcePackEntries.length);
@@ -38,7 +38,7 @@ public class ResourcePacksInfoPacket14 extends Packet14 {
             this.putString(entry.getPackVersion());
             this.putLLong(entry.getPackSize());
             this.putString(""); //content key
-            this.putString(""); //sub pack name
+            this.putString(entry.getSubPackName());
         }
     }
 

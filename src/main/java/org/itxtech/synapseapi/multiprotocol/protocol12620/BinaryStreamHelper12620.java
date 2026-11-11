@@ -82,7 +82,9 @@ public class BinaryStreamHelper12620 extends BinaryStreamHelper12610 {
     public Item getItemStack(BinaryStream stream) {
         int id = stream.getLSignedShort();
         int count = stream.getLShort();
+        if (count < 0) throw new IllegalArgumentException("count is negative");
         int damage = (int) stream.getUnsignedVarInt();
+        if (damage < 0 || damage > 32767) throw new IllegalArgumentException("Item auxiliary value (meta) must be between 0 and 32767");
         boolean hasStackId = stream.getBoolean();
         int stackIdType;
         int stackId;
@@ -258,6 +260,7 @@ public class BinaryStreamHelper12620 extends BinaryStreamHelper12610 {
         stream.putLShort(item.getCount());
 
         boolean useLegacyData = !isBlock && !isDurable && !AdvancedRuntimeItemPalette.hasData(this.protocol, stream.neteaseMode, networkFullId);
+        if (useLegacyData && (meta < 0 || meta > 32767)) throw new IllegalArgumentException("Item auxiliary value (meta) must be between 0 and 32767");
         stream.putUnsignedVarInt(useLegacyData ? meta : 0);
 
         boolean hasStackId = true;

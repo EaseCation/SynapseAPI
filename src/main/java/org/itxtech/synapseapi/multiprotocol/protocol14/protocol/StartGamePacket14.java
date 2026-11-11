@@ -43,7 +43,7 @@ public class StartGamePacket14 extends Packet14 {
 	public boolean broadcastToLAN = true;
 	public boolean broadcastToXboxLive = true;
 	public boolean commandsEnabled;
-	public boolean isTexturePacksRequired = false;
+	public boolean isTexturePacksRequired = true;
 	public GameRules gameRules = null;
 	public boolean bonusChest = false;
 	public boolean startWithMapEnabled = false; // added by 1.4

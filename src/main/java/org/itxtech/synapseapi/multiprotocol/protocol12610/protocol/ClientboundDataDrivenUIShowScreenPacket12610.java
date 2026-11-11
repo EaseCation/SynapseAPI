@@ -33,7 +33,7 @@ public class ClientboundDataDrivenUIShowScreenPacket12610 extends Packet12610 {
     @Override
     public void encode() {
         reset();
-        putString(screenId);
+        putString(screenId, 500);
         putLInt(formId);
         putOptional(dataInstanceId, BinaryStream::putLInt);
     }

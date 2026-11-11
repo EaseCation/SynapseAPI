@@ -38,34 +38,36 @@ public class ClientboundDataStorePacket121130 extends Packet121130 {
             switch (type) {
                 case UPDATE -> {
                     DataStoreUpdate update = (DataStoreUpdate) action;
-                    stream.putString(update.name);
-                    stream.putString(update.property);
-                    stream.putString(update.path);
+                    stream.putString(update.name, 1000, true);
+                    stream.putString(update.property, 1000, true);
+                    stream.putString(update.path, 1000);
 
                     int dataType = update.dataType;
                     stream.putUnsignedVarInt(dataType);
                     switch (dataType) {
                         case DataStoreUpdate.TYPE_DOUBLE -> stream.putLDouble(update.doubleData);
                         case DataStoreUpdate.TYPE_BOOL -> stream.putBoolean(update.boolData);
-                        case DataStoreUpdate.TYPE_STRING -> stream.putString(update.stringData);
+                        case DataStoreUpdate.TYPE_STRING -> stream.putString(update.stringData, 5000);
                         default -> throw new IllegalArgumentException("invalid data type: " + dataType);
                     }
 
+                    if (update.propertyUpdateCount == -1) throw new IllegalArgumentException("invalid property update count");
                     stream.putLInt(update.propertyUpdateCount);
                 }
                 case CHANGE -> {
                     DataStoreChange change = (DataStoreChange) action;
-                    stream.putString(change.name);
-                    stream.putString(change.property);
+                    stream.putString(change.name, 1000, true);
+                    stream.putString(change.property, 1000, true);
+                    if (change.propertyUpdateCount == -1) throw new IllegalArgumentException("invalid property change count");
                     stream.putLInt(change.propertyUpdateCount);
                     putDynamicValue(stream, change.dynamicValue);
                 }
                 case REMOVAL -> {
                     DataStoreRemoval removal = (DataStoreRemoval) action;
-                    stream.putString(removal.name);
+                    stream.putString(removal.name, 1000, true);
                 }
             }
-        });
+        }, 500);
     }
 
     private static void putDynamicValue(BinaryStream stream, @Nullable Object value) {

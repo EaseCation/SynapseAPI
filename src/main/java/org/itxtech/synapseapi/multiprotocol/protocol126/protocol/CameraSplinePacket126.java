@@ -1,5 +1,6 @@
 package org.itxtech.synapseapi.multiprotocol.protocol126.protocol;
 
+import cn.nukkit.math.Mth;
 import cn.nukkit.network.protocol.ProtocolInfo;
 import cn.nukkit.utils.BinaryStream;
 import lombok.ToString;
@@ -30,20 +31,24 @@ public class CameraSplinePacket126 extends Packet126 {
         reset();
         putArray(splines, (stream, definition) -> {
             stream.putString(definition.name);
-            stream.putLFloat(definition.totalTime);
+            if (!Float.isFinite(definition.totalTime)) throw new IllegalArgumentException("total time is invalid");
+            stream.putLFloat(Math.max(definition.totalTime, 0));
             stream.putEnum(definition.type, SplineType::getName);
 
             stream.putArray(definition.controlPoints, BinaryStream::putVector3f);
 
             stream.putArray(definition.progressKeyFrames, (bs, progress) -> {
-                bs.putLFloat(progress.progress);
-                bs.putLFloat(progress.time);
+                if (!Float.isFinite(progress.progress)) throw new IllegalArgumentException("progress is invalid");
+                bs.putLFloat(Mth.clamp(progress.progress, 0, 1));
+                if (!Float.isFinite(progress.time)) throw new IllegalArgumentException("time is invalid");
+                bs.putLFloat(Math.max(progress.time, 0));
                 bs.putOptionalEnum(progress.easing, EasingType::getName);
             });
 
             stream.putArray(definition.rotationKeyFrames, (bs, rotation) -> {
                 bs.putVector3f(rotation.rotationX, rotation.rotationY, rotation.rotationZ);
-                bs.putLFloat(rotation.time);
+                if (!Float.isFinite(rotation.time)) throw new IllegalArgumentException("time is invalid");
+                bs.putLFloat(Math.max(rotation.time, 0));
                 bs.putOptionalEnum(rotation.easing, EasingType::getName);
             });
         });

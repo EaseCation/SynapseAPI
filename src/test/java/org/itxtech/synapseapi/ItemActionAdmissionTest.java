@@ -1,9 +1,16 @@
 package org.itxtech.synapseapi;
 
 import cn.nukkit.AdventureSettings;
+import cn.nukkit.entity.Entity;
+import cn.nukkit.inventory.transaction.CraftingTransaction;
+import cn.nukkit.inventory.transaction.EnchantTransaction;
+import cn.nukkit.inventory.transaction.RepairItemTransaction;
 import cn.nukkit.inventory.transaction.data.UseItemData;
 import cn.nukkit.Server;
 import cn.nukkit.inventory.PlayerInventory;
+import cn.nukkit.item.ItemBow;
+import cn.nukkit.item.ItemBread;
+import cn.nukkit.item.ItemCrossbow;
 import cn.nukkit.math.Vector3;
 import cn.nukkit.network.SourceInterface;
 import cn.nukkit.network.input.PlayerInputProcessor;
@@ -27,11 +34,54 @@ import static org.mockito.Mockito.*;
 
 class ItemActionAdmissionTest {
     @Test
-    void sustainedUseDoesNotBlockItsOwnSlotAndReleaseDependencies() {
+    void sustainedUseDoesNotBlockAlreadyAdmittedAirUse() {
+        TestPlayer player = player();
+        PlayerInventory inventory = mock(PlayerInventory.class);
+        player.useInventory(inventory);
+        doReturn(true).when(player).isUsingItem();
+        when(inventory.getItemInHand()).thenReturn(new ItemBow());
+        assertTrue(player.canProcessMovementBetweenTicks());
+        doReturn(true).when(player).isJavaClient();
+        assertTrue(player.canProcessMovementBetweenTicks());
+        doReturn(false).when(player).isJavaClient();
+        doReturn(true).when(player).isUsingOffhandItem();
+        assertTrue(player.canProcessMovementBetweenTicks());
+        doReturn(false).when(player).isUsingOffhandItem();
+        when(inventory.getItemInHand()).thenReturn(new ItemBread());
+        assertTrue(player.canProcessMovementBetweenTicks());
+        when(inventory.getItemInHand()).thenReturn(new ItemCrossbow());
+        assertTrue(player.canProcessMovementBetweenTicks());
+        when(inventory.getItemInHand()).thenReturn(new ItemBow() { });
+        assertTrue(player.canProcessMovementBetweenTicks());
+        when(inventory.getItemInHand()).thenReturn(new ItemBow());
+
+        ServerInputDispatcher dispatcher = new ServerInputDispatcher(Thread.currentThread(),
+                16, 1024, 16, 1024, exception -> fail(exception));
+        ServerInputDispatcher.Session session = new ServerInputDispatcher.Session(UUID.randomUUID());
+        List<String> order = new ArrayList<>();
+        PlayerAuthInputPacket116220 movement = new PlayerAuthInputPacket116220();
+        movement.inputFlags = new BitSet();
+        dispatcher.offer(session, task(player, movement, () -> order.add("bow-movement")), 1, true);
+        dispatcher.offer(session, task(player, new InventoryTransactionPacket116(), () -> order.add("release")), 1, true);
+        assertEquals(2, dispatcher.drain(true, 40, Long.MAX_VALUE));
+        assertEquals(List.of("bow-movement", "release"), order);
+        verify(player, never()).onUpdate(anyInt());
+        verify(player, never()).setUsingItem(anyBoolean());
+
+        UseItemData use = new UseItemData();
+        PlayerAuthInputPacket116220 embedded = mock(PlayerAuthInputPacket116220.class);
+        when(embedded.getUseItemData()).thenReturn(use);
+        assertTrue(BetweenTickPackets.canRunBetweenTicks(player, embedded));
+        movement.inputFlags.set(PlayerAuthInputFlags.MISSED_SWING);
+        assertTrue(BetweenTickPackets.canRunBetweenTicks(player, movement));
+    }
+
+    @Test
+    void sustainedUseDoesNotBlockMovementSlotOrRelease() {
         TestPlayer player = player();
         doReturn(true).when(player).isUsingItem();
 
-        assertFalse(player.canProcessMovementBetweenTicks());
+        assertTrue(player.canProcessMovementBetweenTicks());
         assertTrue(player.canProcessInputStateBetweenTicks());
         assertTrue(player.canProcessItemActionBetweenTicks());
     }
@@ -67,22 +117,24 @@ class ItemActionAdmissionTest {
     }
 
     @Test
-    void sustainedUseCannotCarryReleasePastAnUnmigratedMovementBoundary() {
+    void sleepingMovementDoesNotReleaseTheStillGuardedItemAction() {
         TestPlayer player = player();
         doReturn(true).when(player).isUsingItem();
-        doReturn(true).when(player).isGliding();
+        doReturn(true).when(player).isSleeping();
         ServerInputDispatcher dispatcher = new ServerInputDispatcher(Thread.currentThread(),
                 16, 1024, 16, 1024, exception -> fail(exception));
         ServerInputDispatcher.Session session = new ServerInputDispatcher.Session(UUID.randomUUID());
         List<String> order = new ArrayList<>();
-        dispatcher.offer(session, task(player, new PlayerAuthInputPacket116220(),
+        PlayerAuthInputPacket116220 movement = new PlayerAuthInputPacket116220();
+        movement.inputFlags = new BitSet();
+        dispatcher.offer(session, task(player, movement,
                 () -> order.add("movement")), 1, true);
         dispatcher.offer(session, task(player, new InventoryTransactionPacket116(),
                 () -> order.add("release")), 1, true);
 
         dispatcher.drain(true, 40, Long.MAX_VALUE);
-        assertTrue(order.isEmpty());
-        assertEquals(2, dispatcher.snapshot().queuedTasks());
+        assertEquals(List.of("movement"), order);
+        assertEquals(1, dispatcher.snapshot().queuedTasks());
 
         dispatcher.drain(false, 41, Long.MAX_VALUE);
         assertEquals(List.of("movement", "release"), order);
@@ -107,7 +159,7 @@ class ItemActionAdmissionTest {
     }
 
     @Test
-    void missedSwingSoundNeedsCurrentWorldActionEligibility() {
+    void missedSwingPresentationDoesNotRequireItemActionEligibility() {
         TestPlayer player = player();
         PlayerAuthInputPacket116220 input = mock(PlayerAuthInputPacket116220.class);
         doReturn(true).when(input).hasFlag(PlayerAuthInputFlags.MISSED_SWING);
@@ -116,27 +168,28 @@ class ItemActionAdmissionTest {
         doReturn(true).when(player).isServerAuthoritativeSoundEnabled();
         assertTrue(BetweenTickPackets.canRunBetweenTicks(player, input));
         player.awaitTeleport();
-        assertFalse(BetweenTickPackets.canRunBetweenTicks(player, input));
+        assertTrue(BetweenTickPackets.canRunBetweenTicks(player, input));
         doReturn(false).when(player).isServerAuthoritativeSoundEnabled();
         assertTrue(BetweenTickPackets.canRunBetweenTicks(player, input));
         player.clearTeleport();
         doReturn(true).when(player).isUsingItem();
-        assertFalse(BetweenTickPackets.canRunBetweenTicks(player, input));
+        assertTrue(BetweenTickPackets.canRunBetweenTicks(player, input));
     }
 
     @Test
-    void embeddedWorldActionNeedsBothMovementAndItemLifecycleEligibility() {
+    void embeddedUseReachesOriginalCommitRejectionWithoutStageBarrier() {
         TestPlayer player = player();
         PlayerAuthInputPacket116220 input = mock(PlayerAuthInputPacket116220.class);
         doReturn(null).when(input).getUseItemData();
         player.awaitTeleport();
         assertTrue(BetweenTickPackets.canRunBetweenTicks(player, input));
         doReturn(new UseItemData()).when(input).getUseItemData();
-        assertFalse(BetweenTickPackets.canRunBetweenTicks(player, input));
+        assertTrue(BetweenTickPackets.canRunBetweenTicks(player, input));
+        assertFalse(player.canProcessItemActionBetweenTicks());
         player.clearTeleport();
         assertTrue(BetweenTickPackets.canRunBetweenTicks(player, input));
         doReturn(true).when(player).isUsingItem();
-        assertFalse(BetweenTickPackets.canRunBetweenTicks(player, input));
+        assertTrue(BetweenTickPackets.canRunBetweenTicks(player, input));
     }
 
     @Test
@@ -160,7 +213,7 @@ class ItemActionAdmissionTest {
         assertFalse(player.canProcessItemActionBetweenTicks());
     }
 
-    private static TestPlayer player() {
+    static TestPlayer player() {
         TestPlayer player = mock(TestPlayer.class, CALLS_REAL_METHODS);
         Server server = mock(Server.class);
         when(server.getPlayerInputProcessor()).thenReturn(mock(PlayerInputProcessor.class));
@@ -171,6 +224,8 @@ class ItemActionAdmissionTest {
         doReturn(true).when(player).supportsPacketSequences();
         doReturn(true).when(player).isServerAuthoritativeMovementEnabled();
         doReturn(false).when(player).isUsingItem();
+        doReturn(false).when(player).isUsingOffhandItem();
+        doReturn(false).when(player).isJavaClient();
         doReturn(false).when(player).isSleeping();
         doReturn(false).when(player).isSwimming();
         doReturn(false).when(player).isGliding();
@@ -189,6 +244,14 @@ class ItemActionAdmissionTest {
             this.server = server;
             this.spawned = true;
         }
+
+        void spawned(boolean value) { this.spawned = value; }
+        void ride(Entity value) { this.riding = value; }
+        Server testServer() { return this.server; }
+        void pendingCraft(CraftingTransaction value) { this.craftingTransaction = value; }
+        void pendingEnchant(EnchantTransaction value) { this.enchantTransaction = value; }
+        void pendingRepair(RepairItemTransaction value) { this.repairItemTransaction = value; }
+        void useInventory(PlayerInventory inventory) { this.inventory = inventory; }
 
         void awaitTeleport() {
             this.teleportPosition = new Vector3();

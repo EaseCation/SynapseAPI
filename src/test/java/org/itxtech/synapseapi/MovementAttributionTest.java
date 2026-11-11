@@ -1,0 +1,85 @@
+package org.itxtech.synapseapi;
+
+import cn.nukkit.inventory.PlayerInventory;
+import cn.nukkit.inventory.transaction.CraftingTransaction;
+import cn.nukkit.inventory.transaction.EnchantTransaction;
+import cn.nukkit.inventory.transaction.RepairItemTransaction;
+import cn.nukkit.inventory.transaction.data.UseItemData;
+import cn.nukkit.item.Item;
+import cn.nukkit.item.ItemBow;
+import cn.nukkit.item.ItemCrossbow;
+import org.itxtech.synapseapi.multiprotocol.common.PlayerAuthInputFlags;
+import org.itxtech.synapseapi.multiprotocol.protocol116220.protocol.PlayerAuthInputPacket116220;
+import org.junit.jupiter.api.Test;
+import java.util.List;
+import java.util.function.Consumer;
+import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.Mockito.*;
+
+class MovementAttributionTest {
+    private record Gate(InputBlockReason reason, Consumer<ItemActionAdmissionTest.TestPlayer> setup) { }
+
+    @Test
+    void capabilityConditionsRemainOnIndependentActionsOnly() {
+        List<Gate> gates = List.of(
+                new Gate(InputBlockReason.MOVEMENT_AUTHORITY_DISABLED, p -> doReturn(false).when(p).isServerAuthoritativeMovementEnabled()),
+                new Gate(InputBlockReason.PACKET_SEQUENCE_UNSUPPORTED, p -> doReturn(false).when(p).supportsPacketSequences()),
+                new Gate(InputBlockReason.INPUT_PROCESSOR_MISSING, p -> when(p.testServer().getPlayerInputProcessor()).thenReturn(null)));
+        for (Gate gate : gates) {
+            ItemActionAdmissionTest.TestPlayer player = ItemActionAdmissionTest.player();
+            PlayerAuthInputPacket116220 input = mock(PlayerAuthInputPacket116220.class);
+            gate.setup.accept(player);
+            assertEquals(InputBlockReason.NONE, BetweenTickPackets.movementBlockReason(player, input));
+            when(input.getUseItemData()).thenReturn(new UseItemData());
+            assertEquals(InputBlockReason.NONE, BetweenTickPackets.movementBlockReason(player, input));
+            assertEquals(gate.reason, player.itemActionBlockReason());
+        }
+    }
+
+    private static void inventory(ItemActionAdmissionTest.TestPlayer p, Item item) {
+        PlayerInventory inventory = mock(PlayerInventory.class);
+        when(inventory.getItemInHand()).thenReturn(item);
+        p.useInventory(inventory);
+    }
+
+    @Test
+    void sustainedUseIsNotAnEligibilityGateButEmbeddedActionsStillAre() {
+        ItemActionAdmissionTest.TestPlayer player = ItemActionAdmissionTest.player();
+        PlayerAuthInputPacket116220 input = mock(PlayerAuthInputPacket116220.class);
+        assertEquals(InputBlockReason.NONE, BetweenTickPackets.movementBlockReason(player, input));
+        doReturn(true).when(player).isUsingItem();
+        inventory(player, new ItemBow());
+        assertEquals(InputBlockReason.NONE, BetweenTickPackets.movementBlockReason(player, input));
+        when(input.getUseItemData()).thenReturn(new UseItemData());
+        assertEquals(InputBlockReason.NONE, BetweenTickPackets.movementBlockReason(player, input));
+        when(input.getUseItemData()).thenReturn(null);
+        when(input.hasFlag(PlayerAuthInputFlags.MISSED_SWING)).thenReturn(true);
+        assertEquals(InputBlockReason.NONE, BetweenTickPackets.movementBlockReason(player, input));
+        when(input.hasFlag(PlayerAuthInputFlags.MISSED_SWING)).thenReturn(false);
+        inventory(player, new ItemCrossbow());
+        assertEquals(InputBlockReason.NONE, BetweenTickPackets.movementBlockReason(player, input));
+        inventory(player, new ItemBow() { });
+        assertEquals(InputBlockReason.NONE, BetweenTickPackets.movementBlockReason(player, input));
+    }
+
+    @Test
+    void embeddedUseDoesNotBorrowIndependentTransactionState() {
+        List<Gate> gates = List.of(
+                new Gate(InputBlockReason.INPUT_NOT_ACCEPTING, p -> doReturn(false).when(p).isAcceptingInputPackets()),
+                new Gate(InputBlockReason.TELEPORT_PENDING, ItemActionAdmissionTest.TestPlayer::awaitTeleport),
+                new Gate(InputBlockReason.CRAFTING_PENDING, p -> p.pendingCraft(mock(CraftingTransaction.class))),
+                new Gate(InputBlockReason.ENCHANTING_PENDING, p -> p.pendingEnchant(mock(EnchantTransaction.class))),
+                new Gate(InputBlockReason.REPAIR_PENDING, p -> p.pendingRepair(mock(RepairItemTransaction.class))));
+        for (Gate gate : gates) {
+            ItemActionAdmissionTest.TestPlayer player = ItemActionAdmissionTest.player();
+            PlayerAuthInputPacket116220 input = mock(PlayerAuthInputPacket116220.class);
+            gate.setup.accept(player);
+            assertEquals(InputBlockReason.NONE, BetweenTickPackets.movementBlockReason(player, input));
+            when(input.getUseItemData()).thenReturn(new UseItemData());
+            assertEquals(InputBlockReason.NONE, BetweenTickPackets.movementBlockReason(player, input));
+            assertEquals(gate.reason, player.itemActionBlockReason());
+            assertTrue(BetweenTickPackets.canRunBetweenTicks(player, input));
+        }
+    }
+
+}

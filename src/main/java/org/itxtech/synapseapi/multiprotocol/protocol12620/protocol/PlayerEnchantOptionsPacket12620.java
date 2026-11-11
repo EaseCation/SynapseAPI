@@ -1,6 +1,7 @@
 package org.itxtech.synapseapi.multiprotocol.protocol12620.protocol;
 
 import cn.nukkit.network.protocol.ProtocolInfo;
+import cn.nukkit.utils.BinaryStream;
 import lombok.ToString;
 import org.itxtech.synapseapi.multiprotocol.protocol116.protocol.PlayerEnchantOptionsPacket116.Enchant;
 import org.itxtech.synapseapi.multiprotocol.protocol116.protocol.PlayerEnchantOptionsPacket116.EnchantOption;
@@ -26,32 +27,31 @@ public class PlayerEnchantOptionsPacket12620 extends Packet12620 {
     public void encode() {
         reset();
 
-        putUnsignedVarInt(options.length);
-        for (EnchantOption option : options) {
-            putByte(option.cost);
+        putArray(options, (stream, option) -> {
+            stream.putByte(option.cost);
 
-            putLInt(option.slotFlags);
-            putEnchantList(option.equipActivatedEnchantments);
-            putEnchantList(option.heldActivatedEnchantments);
-            putEnchantList(option.selfActivatedEnchantments);
+            stream.putLInt(option.slotFlags);
+            putEnchantList(stream, option.equipActivatedEnchantments);
+            putEnchantList(stream, option.heldActivatedEnchantments);
+            putEnchantList(stream, option.selfActivatedEnchantments);
 
             if (neteaseMode) {
-                putEnchantList(Enchant.EMPTY_ENCHANTS); // neteaseEnchantments
+                putEnchantList(stream, Enchant.EMPTY_ENCHANTS); // neteaseEnchantments
             }
 
-            putString(option.name);
-            putUnsignedVarInt(option.optionId);
-        }
+            stream.putString(option.name, 256, true);
+            stream.putUnsignedVarInt(option.optionId);
+        }, 3);
     }
 
-    private void putEnchantList(Enchant... enchants) {
-        putUnsignedVarInt(enchants.length);
+    private static void putEnchantList(BinaryStream stream, Enchant... enchants) {
+        stream.putUnsignedVarInt(enchants.length);
         for (Enchant enchant : enchants) {
-            putByte(enchant.id);
-            putByte(enchant.level);
+            stream.putByte(enchant.id);
+            stream.putByte(enchant.level);
 
-            if (neteaseMode) {
-                putString(""); // modEnchantIdentifier
+            if (stream.neteaseMode) {
+                stream.putString(""); // modEnchantIdentifier
             }
         }
     }

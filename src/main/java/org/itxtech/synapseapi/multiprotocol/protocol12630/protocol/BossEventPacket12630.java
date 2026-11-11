@@ -57,8 +57,8 @@ public class BossEventPacket12630 extends Packet12630 {
         this.bossEid = this.getEntityUniqueId();
         this.playerEid = this.getEntityUniqueId();
         this.type = this.getByte();
-        this.title = this.getString();
-        this.filteredTitle = this.getString();
+        this.title = this.getString(256);
+        this.filteredTitle = this.getString(256);
         this.healthPercent = this.getLFloat();
         this.color = BossBarColor.getValues()[this.getByte()];
         this.overlay = this.getByte();
@@ -70,8 +70,8 @@ public class BossEventPacket12630 extends Packet12630 {
         this.putEntityUniqueId(this.bossEid);
         this.putEntityUniqueId(this.playerEid);
         this.putByte(this.type);
-        this.putString(this.title);
-        this.putString(this.filteredTitle);
+        this.putString(this.title, 256);
+        this.putString(this.filteredTitle, 256);
         this.putLFloat(this.healthPercent);
         this.putByte(this.color.ordinal());
         this.putByte(this.overlay);

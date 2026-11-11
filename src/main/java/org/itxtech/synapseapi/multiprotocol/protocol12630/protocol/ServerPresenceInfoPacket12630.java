@@ -1,7 +1,6 @@
 package org.itxtech.synapseapi.multiprotocol.protocol12630.protocol;
 
 import cn.nukkit.network.protocol.ProtocolInfo;
-import cn.nukkit.utils.BinaryStream;
 import lombok.ToString;
 import org.itxtech.synapseapi.multiprotocol.common.PresenceConfig;
 
@@ -30,9 +29,9 @@ public class ServerPresenceInfoPacket12630 extends Packet12630 {
     public void encode() {
         reset();
         putOptional(config, (stream, config) -> {
-            putOptional(config.experienceName, BinaryStream::putString);
-            putOptional(config.worldName, BinaryStream::putString);
-            putString(config.richPresenceId);
+            putOptional(config.experienceName, (bs, experienceName) -> bs.putString(experienceName, 40, true));
+            putOptional(config.worldName, (bs, worldName) -> bs.putString(worldName, 40, true));
+            putString(config.richPresenceId, 40);
         });
     }
 }

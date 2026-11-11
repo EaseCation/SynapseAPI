@@ -155,6 +155,7 @@ public class SynapsePlayer116 extends SynapsePlayer113 {
 		startGamePacket.worldName = this.getServer().getNetwork().getName();
 		startGamePacket.generator = 1; // 0 old, 1 infinite, 2 flat
 		startGamePacket.gameRules = getSupportedRules();
+		startGamePacket.isTexturePacksRequired = server.getForceResources();
 		startGamePacket.isInventoryServerAuthoritative = SERVER_AUTHORITATIVE_INVENTORY;
 		startGamePacket.isMovementServerAuthoritative = this.isNetEaseClient();
 		startGamePacket.currentTick = 0;//this.server.getTick();
@@ -463,8 +464,9 @@ public class SynapsePlayer116 extends SynapsePlayer113 {
 								// 从useItemData中设置玩家坐标，用于最精准的碰撞箱判断
 								//this.newPosition = useItemData.playerPos.subtract(0, this.getBaseOffset(), 0);
 								boolean clientPredictedFailure = false;
+								boolean inventorySyncRequired = true;
 
-								if (itemSlotReady && this.canInteract(blockVector.add(0.5, 0.5, 0.5), this.isCreative() ? MAX_REACH_DISTANCE_CREATIVE : MAX_REACH_DISTANCE_SURVIVAL)) {
+								if (itemSlotReady && this.canInteractWithBlock(blockVector.add(0.5, 0.5, 0.5), this.isCreative() ? MAX_REACH_DISTANCE_CREATIVE : MAX_REACH_DISTANCE_SURVIVAL)) {
 									if (this.isCreative()) {
 										Vector3 blockPos;
 										Block clientBlock = useItemData.block;
@@ -476,7 +478,9 @@ public class SynapsePlayer116 extends SynapsePlayer113 {
 										}
 										Boolean clientPrediction = AbstractProtocol.PROTOCOL_121_20.isOlderThanOrEqual(protocol) ? useItemData.clientInteractPrediction : null;
 										clientPrediction = normalizeUseItemClientPrediction(clientPrediction);
-										if (this.useItemOnBlock(blockPos, i, face, clickPos.x, clickPos.y, clickPos.z, clientPrediction, unhandledUse) != null) {
+										BlockItemUseResult useResult = this.useItemOnBlockWithSync(blockPos, i, face, clickPos.x, clickPos.y, clickPos.z, clientPrediction, useItemData.itemInHand, unhandledUse);
+										inventorySyncRequired = useResult.inventorySyncRequired();
+										if (useResult.item() != null) {
 											break packetswitch;
 										}
 									} else if (i.equals(useItemData.itemInHand)) {
@@ -492,9 +496,17 @@ public class SynapsePlayer116 extends SynapsePlayer113 {
 										Boolean clientPrediction = AbstractProtocol.PROTOCOL_121_20.isOlderThanOrEqual(protocol) ? useItemData.clientInteractPrediction : null;
 										clientPrediction = normalizeUseItemClientPrediction(clientPrediction);
 										clientPredictedFailure = clientPrediction != null && !clientPrediction;
-										if ((i = this.useItemOnBlock(blockPos, i, face, clickPos.x, clickPos.y, clickPos.z, clientPrediction, unhandledUse)) != null) {
+										Player predictedConsumer = this.predictedBlockConsumer(oldItem, useItemData.itemInHand, clientPrediction);
+										InventorySlotReference predictedSource = predictedConsumer != null && !this.isMainThreadInputEnabled()
+												? inventory.captureHeldItem() : null;
+										BlockItemUseResult useResult = this.useItemOnBlockWithSync(blockPos, i, face, clickPos.x, clickPos.y, clickPos.z, clientPrediction, useItemData.itemInHand, unhandledUse);
+										inventorySyncRequired = useResult.inventorySyncRequired();
+										if ((i = useResult.item()) != null) {
 											if (!this.isMainThreadInputEnabled() && unhandledUse == null && (!i.equals(oldItem) || i.getCount() != oldItem.getCount())) {
-												inventory.setItemInHand(i);
+												if (predictedSource != null && (!predictedSource.isCurrent() || !predictedSource.isSelectedBy(inventory))) {
+													predictedConsumer = null;
+												}
+												inventory.setItemInHand(i, predictedConsumer);
 												inventory.sendHeldItem(this.getViewers().values());
 											}
 											break packetswitch;
@@ -502,8 +514,8 @@ public class SynapsePlayer116 extends SynapsePlayer113 {
 									}
 								}
 
-								// 请求数量不代表客户端预测后的库存，放置失败时始终回发权威手持。
-								inventory.sendHeldItem(this);
+								// 双方都未消耗且原槽未变化时，不回发相同库存干扰后续预测。
+								if (inventorySyncRequired) inventory.sendHeldItem(this);
 
 								if (clientPredictedFailure) {
 									break packetswitch;
@@ -1589,8 +1601,9 @@ public class SynapsePlayer116 extends SynapsePlayer113 {
                                 if (itemSlotReady && !i.is(Item.BRUSH)) {
                                     this.setDataFlag(DATA_FLAG_ACTION, false);
                                 }
+								boolean inventorySyncRequired = true;
 
-								if (itemSlotReady && this.canInteract(blockVector.add(0.5, 0.5, 0.5), this.isCreative() ? MAX_REACH_DISTANCE_CREATIVE : MAX_REACH_DISTANCE_SURVIVAL)) {
+								if (itemSlotReady && this.canInteractWithBlock(blockVector.add(0.5, 0.5, 0.5), this.isCreative() ? MAX_REACH_DISTANCE_CREATIVE : MAX_REACH_DISTANCE_SURVIVAL)) {
 									if (this.isCreative()) {
 										Vector3 blockPos;
 										Block clientBlock = useItemData.block;
@@ -1602,7 +1615,9 @@ public class SynapsePlayer116 extends SynapsePlayer113 {
 										}
 										Boolean clientPrediction = AbstractProtocol.PROTOCOL_121_20.isOlderThanOrEqual(protocol) ? useItemData.clientInteractPrediction : null;
 										clientPrediction = normalizeUseItemClientPrediction(clientPrediction);
-										if (this.useItemOnBlock(blockPos, i, face, clickPos.x, clickPos.y, clickPos.z, clientPrediction) != null) {
+										BlockItemUseResult useResult = this.useItemOnBlockWithSync(blockPos, i, face, clickPos.x, clickPos.y, clickPos.z, clientPrediction, useItemData.itemInHand, null);
+										inventorySyncRequired = useResult.inventorySyncRequired();
+										if (useResult.item() != null) {
 											break;
 										}
 									} else if (i.equals(useItemData.itemInHand)) {
@@ -1617,10 +1632,18 @@ public class SynapsePlayer116 extends SynapsePlayer113 {
 										}
 										Boolean clientPrediction = AbstractProtocol.PROTOCOL_121_20.isOlderThanOrEqual(protocol) ? useItemData.clientInteractPrediction : null;
 										clientPrediction = normalizeUseItemClientPrediction(clientPrediction);
-										if ((i = this.useItemOnBlock(blockPos, i, face, clickPos.x, clickPos.y, clickPos.z, clientPrediction)) != null) {
+										Player predictedConsumer = this.predictedBlockConsumer(oldItem, useItemData.itemInHand, clientPrediction);
+										InventorySlotReference predictedSource = predictedConsumer != null && !this.isMainThreadInputEnabled()
+												? inventory.captureHeldItem() : null;
+										BlockItemUseResult useResult = this.useItemOnBlockWithSync(blockPos, i, face, clickPos.x, clickPos.y, clickPos.z, clientPrediction, useItemData.itemInHand, null);
+										inventorySyncRequired = useResult.inventorySyncRequired();
+										if ((i = useResult.item()) != null) {
 											if (i.getId() != 10000) {  // Hack
 												if (!this.isMainThreadInputEnabled() && (!i.equals(oldItem) || i.getCount() != oldItem.getCount())) {
-													inventory.setItemInHand(i);
+													if (predictedSource != null && (!predictedSource.isCurrent() || !predictedSource.isSelectedBy(inventory))) {
+														predictedConsumer = null;
+													}
+													inventory.setItemInHand(i, predictedConsumer);
 													inventory.sendHeldItem(this.getViewers().values());
 												}
 												break;
@@ -1629,7 +1652,7 @@ public class SynapsePlayer116 extends SynapsePlayer113 {
 									}
 								}
 
-								inventory.sendHeldItem(this);
+								if (inventorySyncRequired) inventory.sendHeldItem(this);
 
 								if (blockVector.distanceSquared(this) > 10000) {
 									break;

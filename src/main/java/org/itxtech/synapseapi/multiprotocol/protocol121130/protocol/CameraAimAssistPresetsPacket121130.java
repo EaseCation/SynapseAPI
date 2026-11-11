@@ -1,5 +1,6 @@
 package org.itxtech.synapseapi.multiprotocol.protocol121130.protocol;
 
+import cn.nukkit.math.Mth;
 import cn.nukkit.network.protocol.ProtocolInfo;
 import cn.nukkit.utils.BinaryStream;
 import lombok.ToString;
@@ -114,23 +115,23 @@ public class CameraAimAssistPresetsPacket121130 extends Packet121130 {
             putUnsignedVarInt(category.entityPriorities.length);
             for (Priority priority : category.entityPriorities) {
                 putString(priority.identifier);
-                putLInt(priority.priority);
+                putPriority(this, priority.priority);
             }
 
             putUnsignedVarInt(category.blockPriorities.length);
             for (Priority priority : category.blockPriorities) {
                 putString(priority.identifier);
-                putLInt(priority.priority);
+                putPriority(this, priority.priority);
             }
 
             putUnsignedVarInt(category.blockTagPriorities.length);
             for (Priority priority : category.blockTagPriorities) {
                 putString(priority.identifier);
-                putLInt(priority.priority);
+                putPriority(this, priority.priority);
             }
 
-            putOptional(category.defaultEntityPriority, BinaryStream::putLInt);
-            putOptional(category.defaultBlockPriority, BinaryStream::putLInt);
+            putOptional(category.defaultEntityPriority, CameraAimAssistPresetsPacket121130::putPriority);
+            putOptional(category.defaultBlockPriority, CameraAimAssistPresetsPacket121130::putPriority);
         }
 
         putUnsignedVarInt(presets.length);
@@ -168,5 +169,9 @@ public class CameraAimAssistPresetsPacket121130 extends Packet121130 {
         }
 
         putByte(operation);
+    }
+
+    private static void putPriority(BinaryStream stream, int priority) {
+        stream.putLInt(Mth.clamp(priority, 0, 100));
     }
 }

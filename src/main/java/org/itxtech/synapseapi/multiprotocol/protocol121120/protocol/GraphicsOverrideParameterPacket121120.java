@@ -91,12 +91,11 @@ public class GraphicsOverrideParameterPacket121120 extends Packet121120 {
     public void encode() {
         reset();
 
-        putUnsignedVarInt(keyframes.length);
-        for (FloatObjectPair<Vector3f> keyframe : keyframes) {
-            putLFloat(keyframe.leftFloat());
-            putVector3f(keyframe.right());
-        }
-        putString(biome);
+        putArray(keyframes, (stream, keyframe) -> {
+            stream.putLFloat(keyframe.leftFloat());
+            stream.putVector3f(keyframe.right());
+        }, 255);
+        putString(biome, 255);
         putByte(type);
         putBoolean(reset);
     }

@@ -34,7 +34,7 @@ public class SetScorePacket17 extends Packet17 {
 
     public void putScorePacketInfos(List<ScorePacketInfo> info) {
         this.putUnsignedVarInt(info.size());
-        for(ScorePacketInfo entry : info) {
+        for (ScorePacketInfo entry : info) {
             this.putVarLong(entry.scoreboardId);
             this.putString(entry.objectiveName);
             this.putLInt(entry.score);
@@ -51,29 +51,5 @@ public class SetScorePacket17 extends Packet17 {
                 }
             }
         }
-    }
-
-    public List<ScorePacketInfo> getScorePacketInfos() {
-        List<ScorePacketInfo> info = new ArrayList<>();
-        int length = (int) this.getUnsignedVarInt();
-        for(int i = 0; i < length; i++) {
-            ScorePacketInfo entry = new ScorePacketInfo();
-            entry.scoreboardId = this.getVarLong();
-            entry.objectiveName = this.getString();
-            entry.score = this.getLInt();
-            if(this.type == 0) {
-                entry.addType = (byte) this.getByte();
-                switch(entry.addType) {
-                    case 1:
-                    case 2:
-                        entry.entityId = this.getEntityUniqueId();
-                        break;
-                    case 3:
-                        entry.fakePlayer = this.getString();
-                }
-            }
-            info.add(entry);
-        }
-        return info;
     }
 }

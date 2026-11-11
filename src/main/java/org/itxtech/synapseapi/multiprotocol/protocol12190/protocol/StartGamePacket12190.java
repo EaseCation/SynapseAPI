@@ -73,7 +73,7 @@ public class StartGamePacket12190 extends Packet12190 {
     public int xblBroadcastIntent = GAME_PUBLISH_SETTING_PUBLIC;
     public int platformBroadcastIntent = GAME_PUBLISH_SETTING_PUBLIC;
     public boolean commandsEnabled;
-    public boolean isTexturePacksRequired = false;
+    public boolean isTexturePacksRequired = true;
     public GameRules gameRules;
     public Experiments experiments = Experiments.NONE;
     public boolean bonusChest = false;

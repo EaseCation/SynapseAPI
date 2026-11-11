@@ -153,7 +153,7 @@ public class AddEntityPacket11940 extends Packet11940 {
     public float yaw;
     public float pitch;
     public float headYaw;
-    public float bodyYaw = Float.MIN_VALUE;
+    public float bodyYaw = Float.NaN;
     public EntityMetadata metadata = new EntityMetadata();
     public Int2IntMap intProperties = new Int2IntOpenHashMap();
     public Int2FloatMap floatProperties = new Int2FloatOpenHashMap();
@@ -178,7 +178,7 @@ public class AddEntityPacket11940 extends Packet11940 {
         this.putLFloat(this.pitch);
         this.putLFloat(this.yaw);
         this.putLFloat(this.headYaw);
-        this.putLFloat(this.bodyYaw == Float.MIN_VALUE ? this.yaw : this.bodyYaw);
+        this.putLFloat(Float.isNaN(this.bodyYaw) ? this.yaw : this.bodyYaw);
         this.putAttributeList(this.attributes);
         this.putEntityMetadata(this.metadata);
         this.putUnsignedVarInt(this.intProperties.size());

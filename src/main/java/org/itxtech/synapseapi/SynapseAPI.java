@@ -55,6 +55,7 @@ public class SynapseAPI extends PluginBase implements Listener {
     private JavaCustomPayloadMessenger javaCustomPayloadMessenger;
     private boolean networkBroadcastPlayerMove;
     private boolean mainThreadInput;
+    private boolean observerRawBroadcast;
     private int blobCacheChunkSendPreTick;
 
     public static SynapseAPI getInstance() {
@@ -68,6 +69,17 @@ public class SynapseAPI extends PluginBase implements Listener {
     /** 新输入模式以有效提交发布替代 raw 广播；任一端关闭时保留旧路径。 */
     public boolean isNetworkBroadcastPlayerMove() {
         return networkBroadcastPlayerMove && (!mainThreadInput || getServer().getInputDispatcher() == null);
+    }
+
+    /**
+     * 新候选只用于双开后的观察者显示，关闭模式仍走原广播选择。
+     */
+    public boolean isObserverRawBroadcast() {
+        return observerRawBroadcast && mainThreadInput && getServer().getInputDispatcher() != null;
+    }
+
+    public static long getObserverPublicationFailures() {
+        return ObserverMovementPublication.failures.get();
     }
 
     public boolean isMainThreadInput() {
@@ -92,6 +104,7 @@ public class SynapseAPI extends PluginBase implements Listener {
         this.messenger = new StandardMessenger();
         this.javaCustomPayloadMessenger = new StandardJavaCustomPayloadMessenger();
         this.mainThreadInput = this.getConfig().getBoolean("main-thread-input", false);
+        this.observerRawBroadcast = this.getConfig().getBoolean("observer-raw-broadcast", false);
         loadEntries();
 
         this.getServer().getPluginManager().registerEvents(this, this);

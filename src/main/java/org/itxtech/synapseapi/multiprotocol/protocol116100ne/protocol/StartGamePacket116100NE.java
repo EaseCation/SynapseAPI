@@ -61,7 +61,7 @@ public class StartGamePacket116100NE extends Packet116100NE {
     public int xblBroadcastIntent = GAME_PUBLISH_SETTING_PUBLIC;
     public int platformBroadcastIntent = GAME_PUBLISH_SETTING_PUBLIC;
     public boolean commandsEnabled;
-    public boolean isTexturePacksRequired = false;
+    public boolean isTexturePacksRequired = true;
     public GameRules gameRules;
     public boolean bonusChest = false;
     public boolean hasStartWithMapEnabled = false;

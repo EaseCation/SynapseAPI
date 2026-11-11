@@ -256,8 +256,8 @@ public class StartGamePacket12620 extends Packet12620 {
             });
         });
         this.putString(this.serverIdentifier);
-        this.putString(this.worldIdentifier);
         this.putString(this.scenarioIdentifier);
+        this.putString(this.worldIdentifier);
         this.putString(this.ownerIdentifier);
     }
 }

@@ -17,6 +17,8 @@ public class CommandRequestPacket121130 extends Packet121130 {
     public boolean internal;
     public CommandVersion version;
 
+    public boolean unlimit;
+
     @Override
     public int pid() {
         return NETWORK_ID;
@@ -24,15 +26,20 @@ public class CommandRequestPacket121130 extends Packet121130 {
 
     @Override
     public void decode() {
-        this.command = this.getString();
+        this.command = this.getString(1000);
 
         Origin type = this.getEnum(Origin::byName);
         UUID uuid = this.getUUID();
-        String requestId = this.getString();
+        String requestId = this.getString(39);
         long playerEntityUniqueId = this.getLLong();
         this.data = new CommandOriginData(type, uuid, requestId, playerEntityUniqueId);
 
         this.internal = this.getBoolean();
+
+        if (neteaseMode) {
+            this.unlimit = this.getBoolean();
+        }
+
         this.version = this.getEnum(CommandVersion::byName);
     }
 

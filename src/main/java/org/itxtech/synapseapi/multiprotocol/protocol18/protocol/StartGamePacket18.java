@@ -47,7 +47,7 @@ public class StartGamePacket18 extends Packet18 {
 	public boolean broadcastToLAN = true;
 	public boolean broadcastToXboxLive = true;
 	public boolean commandsEnabled;
-	public boolean isTexturePacksRequired = false;
+	public boolean isTexturePacksRequired = true;
 	public GameRules gameRules;
 	public boolean bonusChest = false;
 	public boolean hasStartWithMapEnabled = false;
