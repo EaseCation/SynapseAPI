@@ -79,7 +79,10 @@ class BetweenTickPacketsTest {
         packet.isCraftingPart = true;
         assertFalse(BetweenTickPackets.supports(packet));
         packet.isCraftingPart = false;
+        // M4：非分片的普通事务整包放行；分片仍为屏障。
         packet.transactionType = InventoryTransactionPacket116.TYPE_NORMAL;
+        assertTrue(BetweenTickPackets.supports(packet));
+        packet.isCraftingPart = true;
         assertFalse(BetweenTickPackets.supports(packet));
     }
 
@@ -125,7 +128,12 @@ class BetweenTickPacketsTest {
         packet.transactionType = InventoryTransactionPacket116.TYPE_USE_ITEM_ON_ENTITY;
         packet.transactionData = entity;
         assertTrue(BetweenTickPackets.supports(packet));
+        // M5：实体交互与物品交互同样放行。
         entity.actionType = InventoryTransactionPacket116.USE_ITEM_ON_ENTITY_ACTION_INTERACT;
+        assertTrue(BetweenTickPackets.supports(packet));
+        entity.actionType = InventoryTransactionPacket116.USE_ITEM_ON_ENTITY_ACTION_ITEM_INTERACT;
+        assertTrue(BetweenTickPackets.supports(packet));
+        entity.actionType = 7;
         assertFalse(BetweenTickPackets.supports(packet));
         UseItemData use = new UseItemData();
         use.itemInHand = mock(Item.class);
