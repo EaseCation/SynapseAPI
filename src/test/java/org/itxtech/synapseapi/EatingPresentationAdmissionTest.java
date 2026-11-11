@@ -46,14 +46,11 @@ class EatingPresentationAdmissionTest {
     @Test void disabledModeKeepsOriginalBroadcast() { check(false, "normal", false); }
     @Test void disabledModernModeKeepsOriginalBroadcast() { check(true, "normal", false); }
 
-    @Test void onlyEatingSubtypeIsEligibleAndReadinessStillApplies() {
+    @Test void onlyEatingSubtypeIsEligible() {
         for (boolean modern : new boolean[]{false, true}) {
             for (int subtype : new int[]{EntityEventPacket.EATING_ITEM, EntityEventPacket.ENCHANT, EntityEventPacket.HURT_ANIMATION}) {
                 assertEquals(subtype == EntityEventPacket.EATING_ITEM, BetweenTickPackets.supports(packet(modern, subtype, 8, 1)));
             }
-            ItemActionAdmissionTest.TestPlayer player = ItemActionAdmissionTest.player();
-            player.spawned(false);
-            assertFalse(BetweenTickPackets.canRunBetweenTicks(player, packet(modern, EntityEventPacket.EATING_ITEM, 8, 1)));
         }
     }
 
@@ -91,7 +88,6 @@ class EatingPresentationAdmissionTest {
             if (enabled && !variant.equals("dead")) {
                 ServerInputDispatcher dispatcher = new ServerInputDispatcher(Thread.currentThread(), 16, 1024, 16, 1024, error -> fail(error));
                 dispatcher.offer(new ServerInputDispatcher.Session(UUID.randomUUID()), new ServerInputTask() {
-                    @Override public boolean canRunBetweenTicks() { return BetweenTickPackets.canRunBetweenTicks(player, packet); }
                     @Override public void run(InboundContext context) { assertTrue(context.betweenTicks()); player.handleDataPacket(packet); }
                 }, 1, true);
                 dispatcher.offer(new ServerInputDispatcher.Session(UUID.randomUUID()), context -> order.add("follower"), 1, true);

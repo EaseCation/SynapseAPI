@@ -96,7 +96,6 @@ class AuthInputFlightAuthorityTest {
             List<String> order = new ArrayList<>();
             assertTrue(BetweenTickPackets.supports(packet));
             dispatcher.offer(session, new ServerInputTask() {
-                @Override public boolean canRunBetweenTicks() { return BetweenTickPackets.canRunBetweenTicks(player, packet); }
                 @Override public void run(InboundContext context) {
                     assertTrue(context.betweenTicks());
                     order.add("flight");

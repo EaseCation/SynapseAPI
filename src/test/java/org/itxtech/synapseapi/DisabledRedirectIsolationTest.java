@@ -24,6 +24,11 @@ import org.itxtech.synapseapi.network.protocol.spp.ConnectionStatusPacket;
 import org.itxtech.synapseapi.network.protocol.spp.PlayerLoginPacket;
 import org.itxtech.synapseapi.network.protocol.spp.PlayerLogoutPacket;
 import org.itxtech.synapseapi.network.protocol.spp.RedirectPacket;
+import org.itxtech.synapseapi.multiprotocol.protocol121.protocol.ContainerClosePacket121;
+import org.itxtech.synapseapi.multiprotocol.protocol121130.protocol.InteractPacket121130;
+import org.itxtech.synapseapi.multiprotocol.protocol112.protocol.ClientCacheBlobStatusPacket112;
+import org.itxtech.synapseapi.multiprotocol.protocol16.protocol.ResourcePackClientResponsePacket16;
+import org.itxtech.synapseapi.multiprotocol.protocol12120.protocol.ServerboundLoadingScreenPacket12120;
 import org.junit.jupiter.api.Test;
 import org.mockito.MockedConstruction;
 import org.mockito.MockedStatic;
@@ -71,7 +76,9 @@ class DisabledRedirectIsolationTest {
         UUID sessionId = UUID.randomUUID();
         PlayerAuthInputPacket116220 input = new PlayerAuthInputPacket116220();
         List<DataPacket> decoded = List.of(input, new MobEquipmentPacket(), new InventoryTransactionPacket116(),
-                new PlayerActionPacket119(), new AnimatePacket(), new NEPyRpcPacket16(), new SetEntityMotionPacket12070(), new ScriptMessagePacket11810(), new TextPacket121130());
+                new PlayerActionPacket119(), new AnimatePacket(), new NEPyRpcPacket16(), new SetEntityMotionPacket12070(), new ScriptMessagePacket11810(), new TextPacket121130(),
+                new ContainerClosePacket121(), new InteractPacket121130(), new ClientCacheBlobStatusPacket112(),
+                new ResourcePackClientResponsePacket16(), new ServerboundLoadingScreenPacket12120());
         List<Object> consumed = new ArrayList<>();
         try (MockedStatic<Server> servers = preparedServer(server);
              MockedStatic<SynapseAPI> globals = mockStatic(SynapseAPI.class);
@@ -144,9 +151,6 @@ class DisabledRedirectIsolationTest {
             assertEquals(expected, consumed);
             assertEquals(100, player.lastAuthInputPacketTick);
             verify(player, never()).handleInputDataPacket(any(), anyLong());
-            verify(player, never()).movementBlockReason();
-            verify(player, never()).inputStateBlockReason();
-            verify(player, never()).itemActionBlockReason();
             admission.verifyNoInteractions();
             assertEquals(0, dispatcher.snapshot().executedTasks());
         } finally {

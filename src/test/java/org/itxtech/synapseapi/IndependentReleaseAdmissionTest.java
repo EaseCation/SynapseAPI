@@ -138,7 +138,6 @@ class IndependentReleaseAdmissionTest {
                 when(server.getInputDispatcher()).thenReturn(dispatcher);
                 ServerInputDispatcher.Session session = new ServerInputDispatcher.Session(UUID.randomUUID());
                 dispatcher.offer(session, new ServerInputTask() {
-                    @Override public boolean canRunBetweenTicks() { return BetweenTickPackets.canRunBetweenTicks(player, packet); }
                     @Override public void run(InboundContext context) { assertTrue(context.betweenTicks());player.handleInputDataPacket(packet, player.getMovementEpoch()); }
                 }, 1, true);
                 dispatcher.offer(session, context -> order.add("follower"), 1, true);

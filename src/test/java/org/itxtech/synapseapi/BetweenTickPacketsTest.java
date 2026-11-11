@@ -45,29 +45,6 @@ class BetweenTickPacketsTest {
         assertFalse(BetweenTickPackets.supports(packet));
     }
     @Test
-    void stateAndBlockUseKeepTheirSeparateStageContract() {
-        SynapsePlayer player = mock(SynapsePlayer.class);
-        when(player.inputStateBlockReason()).thenReturn(InputBlockReason.NONE);
-        when(player.itemActionBlockReason()).thenReturn(InputBlockReason.NONE);
-        when(player.movementBlockReason()).thenReturn(InputBlockReason.GLIDING);
-        AnimatePacket animation = new AnimatePacket();
-        assertTrue(BetweenTickPackets.canRunBetweenTicks(player, animation));
-        assertTrue(BetweenTickPackets.canRunBetweenTicks(player, blockUse()));
-        assertFalse(BetweenTickPackets.canRunBetweenTicks(player, movement()));
-    }
-
-    @Test
-    void aLifecycleChangeBeforeConsumptionKeepsItemActionsBehindTheHead() {
-        SynapsePlayer player = mock(SynapsePlayer.class);
-        InventoryTransactionPacket116 packet = blockUse();
-        when(player.itemActionBlockReason()).thenReturn(InputBlockReason.NONE);
-        assertTrue(BetweenTickPackets.canRunBetweenTicks(player, packet));
-        when(player.itemActionBlockReason()).thenReturn(InputBlockReason.TELEPORT_PENDING);
-        assertFalse(BetweenTickPackets.canRunBetweenTicks(player, packet));
-        assertTrue(BetweenTickPackets.canRunBetweenTicks(player, new NetworkStackLatencyPacket19()));
-    }
-
-    @Test
     void onlyReviewedSwingBranchesAreAdmittedAcrossAnimationLayouts() {
         AnimatePacket121120 old = new AnimatePacket121120();
         AnimatePacket121130 current = new AnimatePacket121130();
@@ -297,54 +274,6 @@ class BetweenTickPacketsTest {
     }
 
     @Test
-    void flyingMovementAndEmbeddedUseDoNotNeedAWorldTick() {
-        ItemActionAdmissionTest.TestPlayer player = ItemActionAdmissionTest.player();
-        when(player.getAdventureSettings().get(AdventureSettings.Type.FLYING)).thenReturn(true);
-        DataPacket packet = movement();
-        assertTrue(BetweenTickPackets.canRunBetweenTicks(player, packet));
-        when(((IPlayerAuthInputPacket) packet).getUseItemData()).thenReturn(new UseItemData());
-        assertTrue(BetweenTickPackets.canRunBetweenTicks(player, packet));
-        assertEquals(InputBlockReason.NONE, BetweenTickPackets.movementBlockReason(player, (IPlayerAuthInputPacket) packet));
-        verify(player, never()).onUpdate(anyInt());
-    }
-
-    @Test
-    void swimmingMovementAndEmbeddedUseShareStageEligibility() {
-        ItemActionAdmissionTest.TestPlayer player = ItemActionAdmissionTest.player();
-        doReturn(true).when(player).isSwimming();
-        DataPacket packet = movement();
-        assertTrue(BetweenTickPackets.canRunBetweenTicks(player, packet));
-        when(((IPlayerAuthInputPacket) packet).getUseItemData()).thenReturn(new UseItemData());
-        assertTrue(BetweenTickPackets.canRunBetweenTicks(player, packet));
-        assertEquals(InputBlockReason.NONE, BetweenTickPackets.movementBlockReason(player, (IPlayerAuthInputPacket) packet));
-        verify(player, never()).onUpdate(anyInt());
-    }
-
-    @Test
-    void crawlingMovementAndEmbeddedUseShareStageEligibility() {
-        ItemActionAdmissionTest.TestPlayer player = ItemActionAdmissionTest.player();
-        doReturn(true).when(player).isCrawling();
-        DataPacket packet = movement();
-        assertTrue(BetweenTickPackets.canRunBetweenTicks(player, packet));
-        when(((IPlayerAuthInputPacket) packet).getUseItemData()).thenReturn(new UseItemData());
-        assertTrue(BetweenTickPackets.canRunBetweenTicks(player, packet));
-        assertEquals(InputBlockReason.NONE, BetweenTickPackets.movementBlockReason(player, (IPlayerAuthInputPacket) packet));
-        verify(player, never()).onUpdate(anyInt());
-    }
-
-    @Test
-    void glidingMovementAndEmbeddedUseShareStageEligibility() {
-        ItemActionAdmissionTest.TestPlayer player = ItemActionAdmissionTest.player();
-        doReturn(true).when(player).isGliding();
-        DataPacket packet = movement();
-        assertTrue(BetweenTickPackets.canRunBetweenTicks(player, packet));
-        when(((IPlayerAuthInputPacket) packet).getUseItemData()).thenReturn(new UseItemData());
-        assertTrue(BetweenTickPackets.canRunBetweenTicks(player, packet));
-        assertEquals(InputBlockReason.NONE, BetweenTickPackets.movementBlockReason(player, (IPlayerAuthInputPacket) packet));
-        verify(player, never()).onUpdate(anyInt());
-    }
-
-    @Test
     void simultaneousSpinEdgesRemainOneEligiblePacketAcrossLayouts() {
         DataPacket packet = movement();
         IPlayerAuthInputPacket input = (IPlayerAuthInputPacket) packet;
@@ -352,30 +281,6 @@ class BetweenTickPacketsTest {
             flags(input, layout, PlayerAuthInputFlags.START_SPIN_ATTACK, PlayerAuthInputFlags.STOP_SPIN_ATTACK);
             assertTrue(BetweenTickPackets.supports(packet));
         }
-    }
-
-    @Test
-    void spinMovementAndEmbeddedUseShareStageEligibility() {
-        ItemActionAdmissionTest.TestPlayer player = ItemActionAdmissionTest.player();
-        doReturn(true).when(player).getDataFlag(Entity.DATA_FLAG_SPIN_ATTACK);
-        DataPacket packet = movement();
-        assertTrue(BetweenTickPackets.canRunBetweenTicks(player, packet));
-        when(((IPlayerAuthInputPacket) packet).getUseItemData()).thenReturn(new UseItemData());
-        assertTrue(BetweenTickPackets.canRunBetweenTicks(player, packet));
-        assertEquals(InputBlockReason.NONE, BetweenTickPackets.movementBlockReason(player, (IPlayerAuthInputPacket) packet));
-        verify(player, never()).onUpdate(anyInt());
-    }
-
-    @Test
-    void deadInputWithEmbeddedUseCanReachOriginalRejection() {
-        ItemActionAdmissionTest.TestPlayer player = ItemActionAdmissionTest.player();
-        doReturn(false).when(player).isAlive();
-        DataPacket packet = movement();
-        assertTrue(BetweenTickPackets.canRunBetweenTicks(player, packet));
-        when(((IPlayerAuthInputPacket) packet).getUseItemData()).thenReturn(new UseItemData());
-        assertTrue(BetweenTickPackets.canRunBetweenTicks(player, packet));
-        assertEquals(InputBlockReason.NONE, BetweenTickPackets.movementBlockReason(player, (IPlayerAuthInputPacket) packet));
-        verify(player, never()).onUpdate(anyInt());
     }
 
     @Test

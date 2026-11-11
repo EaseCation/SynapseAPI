@@ -149,16 +149,16 @@ class EquipmentAdmissionTest {
         }
     }
 
-    @Test void nonInventoryAndNullEquipmentRemainStaticBarriers() {
+    @Test void nonInventoryWindowsAreAdmittedButNullEquipmentRemainsBarrier() {
         MobEquipmentPacket equipment = equipment(1, ItemID.STONE);
         equipment.windowId = ContainerIds.OFFHAND;
-        assertFalse(BetweenTickPackets.supports(equipment));
+        assertTrue(BetweenTickPackets.supports(equipment));
         equipment.windowId = ContainerIds.INVENTORY;
         equipment.item = null;
         assertFalse(BetweenTickPackets.supports(equipment));
         PlayerHotbarPacket hotbar = hotbar(1);
         hotbar.windowId = ContainerIds.OFFHAND;
-        assertFalse(BetweenTickPackets.supports(hotbar));
+        assertTrue(BetweenTickPackets.supports(hotbar));
     }
 
     @Test void registeredTargetDecodersPreserveEquipmentAndHotbarPayloads() {

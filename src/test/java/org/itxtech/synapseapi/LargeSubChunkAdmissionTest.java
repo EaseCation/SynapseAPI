@@ -165,7 +165,6 @@ class LargeSubChunkAdmissionTest {
             player.bindInputSession(session);
             List<String> order = new ArrayList<>();
             dispatcher.offer(session, new ServerInputTask() {
-                @Override public boolean canRunBetweenTicks() { return BetweenTickPackets.canRunBetweenTicks(player, packet); }
                 @Override public void run(InboundContext context) {
                     assertTrue(context.betweenTicks());
                     player.handleInputDataPacket(packet, 0);

@@ -401,10 +401,6 @@ class BlockPlacementInventoryResyncTest {
                         16, 1024, 16, 1024, error -> fail(error));
                 List<String> order = new ArrayList<>();
                 dispatcher.offer(new ServerInputDispatcher.Session(UUID.randomUUID()), new ServerInputTask() {
-                    @Override
-                    public boolean canRunBetweenTicks() {
-                        return BetweenTickPackets.canRunBetweenTicks(player, packet);
-                    }
 
                     @Override
                     public void run(InboundContext context) {

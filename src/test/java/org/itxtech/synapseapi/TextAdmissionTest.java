@@ -66,17 +66,6 @@ class TextAdmissionTest {
     }
 
     @Test
-    void textDoesNotDependOnPhysicalInputReadiness() {
-        Fixture fixture = new Fixture(true, true);
-        doReturn(InputBlockReason.NOT_SPAWNED).when(fixture.player).inputStateBlockReason();
-        doReturn(InputBlockReason.NOT_SPAWNED).when(fixture.player).movementBlockReason();
-        assertTrue(BetweenTickPackets.canRunBetweenTicks(fixture.player, chat(true, "hi")));
-        assertTrue(BetweenTickPackets.canRunBetweenTicks(fixture.player, chat(false, "hi")));
-        verify(fixture.player, never()).inputStateBlockReason();
-        verify(fixture.player, never()).movementBlockReason();
-    }
-
-    @Test
     void chatOnlyQueuesFilterInBothModesWithoutSynchronousChat() {
         for (boolean enabled : new boolean[]{false, true}) {
             for (boolean modern : new boolean[]{false, true}) {
@@ -252,10 +241,6 @@ class TextAdmissionTest {
         void offer(ServerInputDispatcher dispatcher, ServerInputDispatcher.Session session, DataPacket packet,
                    boolean supported, List<Boolean> phases) {
             assertEquals(ServerInputDispatcher.OfferResult.ACCEPTED, dispatcher.offer(session, new ServerInputTask() {
-                @Override
-                public boolean canRunBetweenTicks() {
-                    return BetweenTickPackets.canRunBetweenTicks(player, packet);
-                }
 
                 @Override
                 public void run(InboundContext context) {

@@ -210,9 +210,6 @@ class AttackItemSourceTest {
                 ServerInputDispatcher.Session session = new ServerInputDispatcher.Session(UUID.randomUUID());
                 try {
                     dispatcher.offer(session, new ServerInputTask() {
-                        @Override public boolean canRunBetweenTicks() {
-                            return BetweenTickPackets.canRunBetweenTicks(player, packet);
-                        }
                         @Override public void run(InboundContext context) {
                             assertTrue(context.betweenTicks());
                             player.handleDataPacket(packet);

@@ -26,9 +26,9 @@ import static org.mockito.Mockito.*;
 
 class ChunkRequestAdmissionTest {
     @Test
-    void subchunksAndSmallCacheConfirmationsPreserveWholePacketOrdering() {
+    void subchunksAndCacheConfirmationsOfAnySizePreserveWholePacketOrdering() {
         for (boolean blob : new boolean[]{false, true}) {
-            for (int count : new int[]{0, 1, 64, 65}) {
+            for (int count : new int[]{0, 1, 64, 65, 4095}) {
                 DataPacket packet = blob ? status(count, 0) : subchunks(count);
                 SynapsePlayer player = mock(SynapsePlayer.class);
                 ServerInputDispatcher dispatcher = new ServerInputDispatcher(Thread.currentThread(), 8, 1024, 8, 1024,
@@ -36,17 +36,15 @@ class ChunkRequestAdmissionTest {
                 ServerInputDispatcher.Session session = new ServerInputDispatcher.Session(UUID.randomUUID());
                 List<String> consumed = new ArrayList<>();
                 dispatcher.offer(session, new ServerInputTask() {
-                    public boolean canRunBetweenTicks() { return BetweenTickPackets.canRunBetweenTicks(player, packet); }
                     public void run(InboundContext context) { consumed.add("terrain"); }
                 }, 1, BetweenTickPackets.supports(packet));
                 dispatcher.offer(session, context -> consumed.add("input"), 1, true);
-                assertEquals(!blob || count <= 64 ? 2 : 0, dispatcher.drain(true, 7, Long.MAX_VALUE));
+                assertEquals(2, dispatcher.drain(true, 7, Long.MAX_VALUE));
                 dispatcher.drainWorldTick(8);
                 assertEquals(List.of("terrain", "input"), consumed);
-                verify(player, never()).inputStateBlockReason();
             }
         }
-        assertFalse(BetweenTickPackets.supports(status(33, 32)));
+        assertTrue(BetweenTickPackets.supports(status(33, 32)));
         assertFalse(BetweenTickPackets.supports(new ClientCacheBlobStatusPacket112()));
         assertFalse(BetweenTickPackets.supports(new SubChunkRequestPacket11810()));
     }

@@ -25,10 +25,6 @@ class ResourceRequestAdmissionTest {
 
     private void offer(DataPacket packet) {
         assertEquals(ServerInputDispatcher.OfferResult.ACCEPTED, dispatcher.offer(session, new ServerInputTask() {
-            @Override
-            public boolean canRunBetweenTicks() {
-                return BetweenTickPackets.canRunBetweenTicks(player, packet);
-            }
 
             @Override
             public void run(InboundContext context) {
@@ -44,7 +40,6 @@ class ResourceRequestAdmissionTest {
         offer(new NetworkStackLatencyPacket19());
         assertEquals(2, dispatcher.drain(true, 7, Long.MAX_VALUE));
         assertSame(request, consumed.getFirst());
-        verify(player, never()).inputStateBlockReason();
     }
 
     @Test

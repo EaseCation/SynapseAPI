@@ -111,7 +111,6 @@ class MissedSwingContinuationTest {
                 List<String> order = new ArrayList<>();
                 assertTrue(BetweenTickPackets.supports(packet));
                 dispatcher.offer(new ServerInputDispatcher.Session(UUID.randomUUID()), new ServerInputTask() {
-                    @Override public boolean canRunBetweenTicks() { return BetweenTickPackets.canRunBetweenTicks(player, packet); }
                     @Override public void run(InboundContext context) {
                         assertTrue(context.betweenTicks());
                         player.handleDataPacket(packet);

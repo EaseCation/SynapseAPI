@@ -76,7 +76,6 @@ class BlockUseEdgeAdmissionTest {
         packet.action = start ? PlayerActionPacket119.ACTION_ITEM_USE_ON_START : PlayerActionPacket119.ACTION_ITEM_USE_ON_STOP;
         if (enabled) {
             assertTrue(BetweenTickPackets.supports(packet));
-            assertTrue(BetweenTickPackets.canRunBetweenTicks(player, packet));
             ServerInputDispatcher dispatcher = new ServerInputDispatcher(Thread.currentThread(), 16, 1024, 16, 1024, error -> fail(error));
             ServerInputDispatcher.Session session = new ServerInputDispatcher.Session(UUID.randomUUID());
             dispatcher.offer(session, context -> {
