@@ -265,7 +265,7 @@ final class BetweenTickPackets {
             return equipment.item != null;
         }
         if (packet instanceof ResourcePackClientResponsePacket16 response) {
-            // 下载请求与已有全部包只回复本人；拒绝会关闭连接、完成会进入登录收尾，留待 M8。
+            // 下载请求与已有全部包回复本人（未知包 UUID 时关闭连接，与世界阶段执行等价）；拒绝关闭连接、完成进入登录收尾，留待 M8。
             return response.responseStatus == ResourcePackClientResponsePacket16.STATUS_SEND_PACKS
                     || response.responseStatus == ResourcePackClientResponsePacket16.STATUS_HAVE_ALL_PACKS;
         }

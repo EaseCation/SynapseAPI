@@ -36,7 +36,7 @@ import static org.mockito.Mockito.*;
 
 /**
  * 全包准入 M2/M3：关窗、开背包等低风险容器包与无副作用/加入类包按包编号整包放行。
- * 分类按各目标协议实际注册的类核对（860 旧类、898 主力、975 JE、1001 新类）；
+ * 分类按各目标协议实际注册的类核对（860 旧类、898 主力、975 JE、1001 按编号放行的同名新类；1001 的事务与缓存确认新类留待 M9）；
  * 队列语义（突发、前序屏障、同玩家顺序）与包类型无关，在此用代表包验证。
  */
 class ContainerAndJoinAdmissionTest {
@@ -106,7 +106,7 @@ class ContainerAndJoinAdmissionTest {
                             BetweenTickPackets.supports(status), "resource pack status " + value);
                 }
                 DataPacket interact = PacketRegister.getPacket(ProtocolInfo.INTERACT_PACKET, protocol);
-                // 860 及 JE 走旧类，898 起为新类；两者都只保留下车为屏障。
+                // 898 及以上（含 JE 975）为新类，860 为旧类；两者都只保留下车为屏障。
                 if (protocol >= AbstractProtocol.PROTOCOL_121_130.getProtocolStart()) {
                     InteractPacket121130 modern = assertInstanceOf(InteractPacket121130.class, interact);
                     modern.action = InteractPacket121130.ACTION_OPEN_INVENTORY;
