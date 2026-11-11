@@ -45,6 +45,9 @@ import org.itxtech.synapseapi.multiprotocol.protocol116100ne.protocol.TextPacket
 import org.itxtech.synapseapi.multiprotocol.protocol121.protocol.TextPacket121;
 import org.itxtech.synapseapi.multiprotocol.protocol121130.protocol.TextPacket121130;
 import org.itxtech.synapseapi.multiprotocol.protocol126.protocol.TextPacket126;
+import org.itxtech.synapseapi.multiprotocol.protocol121.protocol.ContainerClosePacket121;
+import org.itxtech.synapseapi.multiprotocol.protocol116100.protocol.ContainerClosePacket116100;
+import org.itxtech.synapseapi.multiprotocol.protocol16.protocol.ResourcePackClientResponsePacket16;
 
 import java.util.BitSet;
 
@@ -86,7 +89,146 @@ final class BetweenTickPackets {
             | (1L << PlayerAuthInputFlags.SNEAK_PRESSED_RAW);
     private static final long CONTEXT_FLAGS2 = 1L << (PlayerAuthInputFlags.SNEAK_CURRENT_RAW - Long.SIZE);
 
+    // 诊断子类型标签：类初始化时一次生成，调用时只查表，不拼接字符串。
+    private static final String[] INTERACT_113 = labels("InteractPacket113",
+            "NONE", "INTERACT", "DAMAGE", "VEHICLE_EXIT", "MOUSEOVER", "OPEN_NPC", "OPEN_INVENTORY");
+    private static final String[] INTERACT_121130 = labels("InteractPacket121130",
+            "NONE", "INTERACT", "DAMAGE", "VEHICLE_EXIT", "MOUSEOVER", "OPEN_NPC", "OPEN_INVENTORY");
+    private static final String[] RESOURCE_PACK_RESPONSE = labels("ResourcePackClientResponsePacket16",
+            "NONE", "REFUSED", "SEND_PACKS", "HAVE_ALL_PACKS", "COMPLETED");
+    private static final String[] CONTAINER_CLOSE_116100 = labels("ContainerClosePacket116100",
+            "INVENTORY", "WINDOW", "FIXED");
+    private static final String[] CONTAINER_CLOSE_121 = labels("ContainerClosePacket121",
+            "INVENTORY", "WINDOW", "FIXED");
+    private static final String[] MOB_EQUIPMENT = labels("MobEquipmentPacket", "INVENTORY", "OFFHAND");
+    private static final String[] PLAYER_HOTBAR = labels("PlayerHotbarPacket", "INVENTORY", "OFFHAND");
+    private static final String[] PLAYER_HOTBAR_14 = labels("PlayerHotbarPacket14", "INVENTORY", "OFFHAND");
+    private static final String[] TRANSACTION_PART = labels("InventoryTransactionPacket116",
+            "CRAFT_PART", "ENCHANT_PART", "REPAIR_PART");
+    private static final String[] TRANSACTION_NORMAL = labels("InventoryTransactionPacket116",
+            "NORMAL_CONTAINER", "NORMAL_CREATIVE", "NORMAL_DROP", "NORMAL_SPECIAL");
+    private static final String[] TRANSACTION_MISMATCH = labels("InventoryTransactionPacket116",
+            "MISMATCH", "MISMATCH_ACTIONS");
+    private static final String[] TRANSACTION_USE = labels("InventoryTransactionPacket116",
+            "USE_CLICK_BLOCK", "USE_CLICK_AIR", "USE_BREAK_BLOCK", "USE_AS_ATTACK");
+    private static final String[] TRANSACTION_ENTITY = labels("InventoryTransactionPacket116",
+            "ENTITY_INTERACT", "ENTITY_ATTACK", "ENTITY_ITEM_INTERACT");
+    private static final String[] TRANSACTION_RELEASE = labels("InventoryTransactionPacket116",
+            "RELEASE", "CONSUME");
+    private static final int NORMAL_CONTAINER = 0;
+    private static final int NORMAL_CREATIVE = 1;
+    private static final int NORMAL_DROP = 2;
+    private static final int NORMAL_SPECIAL = 3;
+    private static final int WINDOW_INVENTORY = 0;
+    private static final int WINDOW_OPENED = 1;
+    private static final int WINDOW_FIXED = 2;
+    private static final int WINDOW_OFFHAND = 1;
+
     private BetweenTickPackets() {
+    }
+
+    /**
+     * 屏障诊断的类型标签；只对放行与否依赖包内字段的包细分子类型，未知取值归 OTHER。
+     * 只读包字段，不访问玩家；调用位于 dispatcher 锁内。
+     */
+    static String diagnosticType(DataPacket packet) {
+        if (packet instanceof InventoryTransactionPacket116 transaction) {
+            return transactionType(transaction);
+        }
+        if (packet instanceof InteractPacket121130 interact) {
+            return pick(INTERACT_121130, interact.action);
+        }
+        if (packet instanceof InteractPacket113 interact) {
+            return pick(INTERACT_113, interact.action);
+        }
+        if (packet instanceof ContainerClosePacket121 close) {
+            return pick(CONTAINER_CLOSE_121, closeWindow(close.windowId));
+        }
+        if (packet instanceof ContainerClosePacket116100 close) {
+            return pick(CONTAINER_CLOSE_116100, closeWindow(close.windowId));
+        }
+        if (packet instanceof MobEquipmentPacket equipment) {
+            return pick(MOB_EQUIPMENT, equipmentWindow(equipment.windowId));
+        }
+        if (packet instanceof PlayerHotbarPacket hotbar) {
+            return pick(PLAYER_HOTBAR, equipmentWindow(hotbar.windowId));
+        }
+        if (packet instanceof PlayerHotbarPacket14 hotbar) {
+            return pick(PLAYER_HOTBAR_14, equipmentWindow(hotbar.windowId));
+        }
+        if (packet instanceof ResourcePackClientResponsePacket16 response) {
+            return pick(RESOURCE_PACK_RESPONSE, response.responseStatus);
+        }
+        return packet.getClass().getSimpleName();
+    }
+
+    private static String transactionType(InventoryTransactionPacket116 packet) {
+        if (packet.isCraftingPart) return TRANSACTION_PART[0];
+        if (packet.isEnchantingPart) return TRANSACTION_PART[1];
+        if (packet.isRepairItemPart) return TRANSACTION_PART[2];
+        return switch (packet.transactionType) {
+            case InventoryTransactionPacket116.TYPE_NORMAL -> pick(TRANSACTION_NORMAL, normalSource(packet.actions));
+            case InventoryTransactionPacket116.TYPE_MISMATCH ->
+                    pick(TRANSACTION_MISMATCH, packet.actions == null || packet.actions.length == 0 ? 0 : 1);
+            case InventoryTransactionPacket116.TYPE_USE_ITEM -> pick(TRANSACTION_USE,
+                    packet.transactionData instanceof UseItemData data ? data.actionType : -1);
+            case InventoryTransactionPacket116.TYPE_USE_ITEM_ON_ENTITY -> pick(TRANSACTION_ENTITY,
+                    packet.transactionData instanceof UseItemOnEntityData data ? data.actionType : -1);
+            case InventoryTransactionPacket116.TYPE_RELEASE_ITEM -> pick(TRANSACTION_RELEASE,
+                    packet.transactionData instanceof ReleaseItemData data ? data.actionType : -1);
+            default -> TRANSACTION_NORMAL[TRANSACTION_NORMAL.length - 1];
+        };
+    }
+
+    /**
+     * 丢弃优先；合成格、关窗溢出等虚拟来源归 SPECIAL；只有容器与创造栏时归 CREATIVE。
+     */
+    private static int normalSource(NetworkInventoryAction[] actions) {
+        if (actions == null) return -1;
+        boolean creative = false;
+        boolean special = false;
+        for (NetworkInventoryAction action : actions) {
+            if (action == null) return -1;
+            switch (action.sourceType) {
+                case NetworkInventoryAction.SOURCE_WORLD -> {
+                    return NORMAL_DROP;
+                }
+                case NetworkInventoryAction.SOURCE_CREATIVE -> creative = true;
+                case NetworkInventoryAction.SOURCE_CONTAINER -> {
+                }
+                default -> special = true;
+            }
+        }
+        return special ? NORMAL_SPECIAL : creative ? NORMAL_CREATIVE : NORMAL_CONTAINER;
+    }
+
+    private static int closeWindow(int windowId) {
+        if (windowId == ContainerIds.INVENTORY) return WINDOW_INVENTORY;
+        if (windowId >= ContainerIds.FIRST && windowId <= ContainerIds.LAST) return WINDOW_OPENED;
+        if (windowId >= ContainerIds.OFFHAND && windowId <= ContainerIds.NETEASE_UI) return WINDOW_FIXED;
+        return -1;
+    }
+
+    private static int equipmentWindow(int windowId) {
+        if (windowId == ContainerIds.INVENTORY) return WINDOW_INVENTORY;
+        if (windowId == ContainerIds.OFFHAND) return WINDOW_OFFHAND;
+        return -1;
+    }
+
+    private static String[] labels(String type, String... names) {
+        String[] labels = new String[names.length + 1];
+        for (int i = 0; i < names.length; i++) {
+            labels[i] = type + '/' + names[i];
+        }
+        labels[names.length] = type + "/OTHER";
+        return labels;
+    }
+
+    /**
+     * 越界取值落到最后一项 OTHER。
+     */
+    private static String pick(String[] labels, int index) {
+        return index >= 0 && index < labels.length - 1 ? labels[index] : labels[labels.length - 1];
     }
 
     private static boolean isIndependentMovementInput(DataPacket packet) {

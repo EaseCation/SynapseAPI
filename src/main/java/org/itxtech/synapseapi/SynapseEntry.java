@@ -575,7 +575,7 @@ public class SynapseEntry {
 
                 @Override
                 public String diagnosticType() {
-                    return packet.getClass().getSimpleName();
+                    return BetweenTickPackets.diagnosticType(packet);
                 }
 
                 @Override
