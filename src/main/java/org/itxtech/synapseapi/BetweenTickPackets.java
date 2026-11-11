@@ -354,67 +354,6 @@ final class BetweenTickPackets {
         return true;
     }
 
-    /** 按工作职责读取当前状态；切槽和释放不能被同一玩家的持续使用状态锁住。 */
-    static boolean canRunBetweenTicks(SynapsePlayer player, DataPacket packet) {
-        return blockReason(player, packet) == InputBlockReason.NONE;
-    }
-
-    /**
-     * 原准入与诊断共用一次判定，返回首次失败原因，不额外读取玩家状态。
-     */
-    static InputBlockReason blockReason(SynapsePlayer player, DataPacket packet) {
-        // 保留原Entry对高频移动的直接判断，不扫描其他工作类型。
-        if (packet instanceof IPlayerAuthInputPacket input) {
-            return movementBlockReason(player, input);
-        }
-        if (isIndependentMovementInput(packet) || packet instanceof NEPyRpcPacket16) return player.movementBlockReason();
-        if (packet instanceof MobEquipmentPacket || packet instanceof PlayerHotbarPacket) return player.movementBlockReason();
-        // 悬停沿原生命周期拒绝与目标提示处理，不能借此放行开库存或下车。
-        if (packet instanceof InteractPacket113 interact && interact.action == InteractPacket113.ACTION_MOUSEOVER
-                || packet instanceof InteractPacket121130 modern && modern.action == InteractPacket121130.ACTION_MOUSEOVER) {
-            return player.movementBlockReason();
-        }
-        if (packet instanceof NetworkStackLatencyPacket19 || packet instanceof ResourcePackChunkRequestPacket) {
-            // 资源下载早于出生，只登记原请求；有效连接由外层校验，发送仍遵守 checkNetwork 节流。
-            return InputBlockReason.NONE;
-        }
-        if (packet instanceof ScriptMessagePacket11810) {
-            // JE 频道与相机请求沿原主线程事件/handler；连接归属由外层检查，不依赖物理输入就绪。
-            return InputBlockReason.NONE;
-        }
-        if (isFilteredText(packet)) {
-            // 原handler只触发收包事件并投递滤词；出生、存活与接入资格由原handler及聊天出口复检。
-            return InputBlockReason.NONE;
-        }
-        if (packet instanceof SubChunkRequestPacket11810 || packet instanceof ClientCacheBlobStatusPacket112) {
-            // 地形下载和缓存确认早于出生；连接归属由原任务检查，不能依赖物理输入就绪。
-            return InputBlockReason.NONE;
-        }
-        if (packet instanceof InventoryTransactionPacket116 transaction) {
-            // 独立攻击沿原次数/距离/来源与取消校验，不以物品姿态门禁阻塞后继移动。
-            if (transaction.transactionType == InventoryTransactionPacket116.TYPE_USE_ITEM_ON_ENTITY
-                    && transaction.transactionData instanceof UseItemOnEntityData attack
-                    && attack.actionType == InventoryTransactionPacket116.USE_ITEM_ON_ENTITY_ACTION_ATTACK) {
-                return player.movementBlockReason();
-            }
-            // 释放与对空使用沿原来源、时长及待事务处理，不以姿态门禁延后整条FIFO。
-            return transaction.transactionType == InventoryTransactionPacket116.TYPE_MISMATCH
-                    || transaction.transactionType == InventoryTransactionPacket116.TYPE_RELEASE_ITEM
-                    || transaction.transactionType == InventoryTransactionPacket116.TYPE_USE_ITEM
-                    && transaction.transactionData instanceof UseItemData use
-                    && use.actionType == InventoryTransactionPacket116.USE_ITEM_ACTION_CLICK_AIR
-                    ? player.movementBlockReason() : player.itemActionBlockReason();
-        }
-        return player.inputStateBlockReason();
-    }
-
-    /**
-     * 一次消费判定交出首次失败原因；不在诊断阶段重新读取玩家状态。
-     */
-    static InputBlockReason movementBlockReason(SynapsePlayer player, IPlayerAuthInputPacket input) {
-        return player.movementBlockReason();
-    }
-
     private static boolean supportsItemAction(InventoryTransactionPacket116 packet) {
         if (packet.isCraftingPart || packet.isEnchantingPart || packet.isRepairItemPart
                 || packet.actions == null) {

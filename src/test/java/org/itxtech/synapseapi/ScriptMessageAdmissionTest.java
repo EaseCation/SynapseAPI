@@ -33,8 +33,6 @@ class ScriptMessageAdmissionTest {
             if (baseline) assertEquals(2, fixture.dispatcher.drainWorldTick(8));
             assertEquals(List.of("receive", "channel", "generic", "latency"), fixture.order);
             assertEquals(List.of(!baseline, !baseline), fixture.phases);
-            verify(fixture.player, never()).inputStateBlockReason();
-            verify(fixture.player, never()).movementBlockReason();
         }
     }
 
@@ -140,8 +138,6 @@ class ScriptMessageAdmissionTest {
             doReturn(true).when(player).isJavaClient();
             doReturn(mode).when(player).isMainThreadInputEnabled();
             doReturn(true).when(player).isAcceptingInputPackets();
-            // 频道注册与相机握手不以物理输入就绪为前提。
-            doReturn(InputBlockReason.NOT_SPAWNED).when(player).inputStateBlockReason();
             doAnswer(call -> { order.add("receive"); return !cancel; }).when(player).callPacketReceiveEvent(any());
             when(api.getJavaCustomPayloadMessenger()).thenReturn(messenger);
             doAnswer(call -> { order.add("channel"); return null; }).when(messenger).dispatchIncomingMessage(any(), any(), any());
@@ -157,8 +153,6 @@ class ScriptMessageAdmissionTest {
 
         void offer(DataPacket packet, boolean supported) {
             assertEquals(ServerInputDispatcher.OfferResult.ACCEPTED, dispatcher.offer(session, new ServerInputTask() {
-                @Override
-                public boolean canRunBetweenTicks() { return BetweenTickPackets.canRunBetweenTicks(player, packet); }
 
                 @Override
                 public void run(InboundContext context) {

@@ -127,7 +127,6 @@ class BlockActionAdmissionTest {
             ServerInputDispatcher dispatcher=new ServerInputDispatcher(Thread.currentThread(),16,1024,16,1024,error->fail(error));
             assertTrue(BetweenTickPackets.supports(packet));List<String> order=new ArrayList<>();
             dispatcher.offer(new ServerInputDispatcher.Session(UUID.randomUUID()),new ServerInputTask(){
-                @Override public boolean canRunBetweenTicks(){return BetweenTickPackets.canRunBetweenTicks(player,packet);}
                 @Override public void run(InboundContext context){assertTrue(context.betweenTicks());player.handleDataPacket(packet);order.add("block-actions");}
             },1,true);
             dispatcher.offer(new ServerInputDispatcher.Session(UUID.randomUUID()),context->order.add("follower"),1,true);

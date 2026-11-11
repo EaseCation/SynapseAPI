@@ -144,9 +144,6 @@ class DisabledRedirectIsolationTest {
             assertEquals(expected, consumed);
             assertEquals(100, player.lastAuthInputPacketTick);
             verify(player, never()).handleInputDataPacket(any(), anyLong());
-            verify(player, never()).movementBlockReason();
-            verify(player, never()).inputStateBlockReason();
-            verify(player, never()).itemActionBlockReason();
             admission.verifyNoInteractions();
             assertEquals(0, dispatcher.snapshot().executedTasks());
         } finally {

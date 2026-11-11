@@ -7,6 +7,7 @@ import cn.nukkit.network.input.ServerInputDispatcher;
 import io.netty.channel.Channel;
 import org.itxtech.synapseapi.multiprotocol.PacketRegister;
 import cn.nukkit.network.protocol.AnimatePacket;
+import org.itxtech.synapseapi.multiprotocol.protocol121130.protocol.InteractPacket121130;
 import org.itxtech.synapseapi.network.SynapseInterface;
 import org.itxtech.synapseapi.network.protocol.spp.PlayerLoginPacket;
 import org.itxtech.synapseapi.network.protocol.spp.RedirectPacket;
@@ -18,7 +19,6 @@ import org.mockito.MockedStatic;
 
 import java.util.UUID;
 import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -32,8 +32,12 @@ class RedirectAttributionTest {
         return scope;
     }
 
+    /**
+     * 实际 Redirect 任务只按静态分类决定阶段：玩家处于未出生/死亡等原动态门禁状态时，
+     * 已放行包仍在补充阶段执行，且准入不读取玩家状态；静态屏障上报子类型标签与 STATIC。
+     */
     @Test
-    void actualRedirectRecordsFirstDecisionWithoutDiagnosticRecheck() {
+    void actualRedirectUsesStaticAdmissionOnlyAndReportsSubtypeLabel() {
         Server server = mock(Server.class, RETURNS_DEEP_STUBS);
         SynapseAPI api = mock(SynapseAPI.class);
         when(api.getServer()).thenReturn(server);
@@ -51,17 +55,14 @@ class RedirectAttributionTest {
         when(client.getSession()).thenReturn(transport);
         when(transport.getChannel()).thenReturn(channel);
         AtomicReference<ServerInputDispatcher.Session> binding = new AtomicReference<>();
-        AtomicReference<InputBlockReason> decision = new AtomicReference<>(InputBlockReason.DEAD);
-        AtomicInteger evaluations = new AtomicInteger();
         UUID actor = UUID.randomUUID();
         UUID sessionId = UUID.randomUUID();
         AnimatePacket animation = new AnimatePacket();
         animation.action = AnimatePacket.Action.SWING_ARM;
-        RedirectPacket redirect = new RedirectPacket();
-        redirect.sessionId = sessionId;
-        redirect.protocol = 975;
-        redirect.mcpeBuffer = new byte[]{1};
-        redirect.receivedNanos = 123L;
+        InteractPacket121130 exit = new InteractPacket121130();
+        exit.action = InteractPacket121130.ACTION_VEHICLE_EXIT;
+        RedirectPacket swing = redirect(sessionId, new byte[]{1});
+        RedirectPacket vehicle = redirect(sessionId, new byte[]{2});
         try (MockedStatic<Server> servers = preparedServer(server);
              MockedStatic<SynapseAPI> globals = mockStatic(SynapseAPI.class);
              MockedStatic<PacketRegister> packets = mockStatic(PacketRegister.class);
@@ -70,16 +71,17 @@ class RedirectAttributionTest {
              MockedConstruction<SynapseEntry.AsyncTicker> tickers = mockConstruction(SynapseEntry.AsyncTicker.class);
              MockedConstruction<SynapsePlayer116100> players = mockConstruction(SynapsePlayer116100.class,
                      (player, context) -> {
+                         // 其余状态保持 mock 默认值：未出生、isAlive=false，相当于原 NOT_SPAWNED/DEAD 门禁。
                          when(player.getUniqueId()).thenReturn(actor);
                          when(player.getSessionId()).thenReturn(sessionId);
                          when(player.isAcceptingInputPackets()).thenReturn(true);
                          when(player.getInputSession()).thenAnswer(call -> binding.get());
                          doAnswer(call -> { binding.set(call.getArgument(0)); return null; }).when(player).bindInputSession(any(), any());
-                         when(player.inputStateBlockReason()).thenAnswer(call -> { evaluations.incrementAndGet(); return decision.get(); });
                      })) {
             servers.when(Server::getInstance).thenReturn(server);
             globals.when(SynapseAPI::getInstance).thenReturn(api);
-            packets.when(() -> PacketRegister.getFullPacket(redirect.mcpeBuffer, 975)).thenReturn(animation);
+            packets.when(() -> PacketRegister.getFullPacket(swing.mcpeBuffer, 975)).thenReturn(animation);
+            packets.when(() -> PacketRegister.getFullPacket(vehicle.mcpeBuffer, 975)).thenReturn(exit);
             SynapseEntry entry = new SynapseEntry(api, "127.0.0.1", 10325, false, "0123456789abcdef", "Attribution contract");
             PlayerLoginPacket login = new PlayerLoginPacket();
             login.protocol = 975;
@@ -90,31 +92,42 @@ class RedirectAttributionTest {
             login.port = 19132;
             entry.handleDataPacket(login);
             assertEquals(1, dispatcher.drainWorldTick(1));
+            SynapsePlayer116100 player = players.constructed().getFirst();
+            clearInvocations(player);
+
             primary.set(false);
-            entry.handleDataPacket(redirect);
+            entry.handleDataPacket(swing);
             assertEquals(1, dispatcher.snapshot().queuedTasks());
+            primary.set(true);
+            assertEquals(1, dispatcher.drain(true, 2, Long.MAX_VALUE));
+            verify(player).handleInputDataPacket(animation, 0L);
+            verify(player, never()).isAlive();
+            verify(player, never()).isSleeping();
+            verify(player, never()).isSwimming();
+            verify(player, never()).getAdventureSettings();
+            assertEquals(0, dispatcher.snapshot().betweenTickBarriers());
+
+            primary.set(false);
+            entry.handleDataPacket(vehicle);
+            primary.set(true);
             dispatcher.enableBarrierDiagnostics();
             assertEquals(0, dispatcher.drain(true, 2, Long.MAX_VALUE));
-            assertEquals(1, evaluations.get());
-            decision.set(InputBlockReason.OFFLINE);
             ServerInputDispatcher.BarrierReport report = dispatcher.drainBarrierReport();
             assertEquals(1, report.types().size());
-            assertEquals("AnimatePacket", report.types().getFirst().type());
-            assertEquals("DEAD", report.types().getFirst().reason());
-            assertEquals("DEAD", report.activeReason());
-            assertEquals(1, evaluations.get());
-            dispatcher.drainBarrierReport();
-            assertEquals(1, evaluations.get());
-            assertEquals(0, dispatcher.drain(true, 2, Long.MAX_VALUE));
-            assertEquals(2, evaluations.get());
-            assertEquals("DEAD", dispatcher.drainBarrierReport().activeReason());
-            assertEquals(2, evaluations.get());
-            decision.set(InputBlockReason.NONE);
-            primary.set(true);
-            assertEquals(1, dispatcher.drain(true, 3, Long.MAX_VALUE));
-            assertEquals(3, evaluations.get());
-            verify(players.constructed().getFirst()).handleInputDataPacket(animation, 0L);
+            assertEquals("InteractPacket121130/VEHICLE_EXIT", report.types().getFirst().type());
+            assertEquals("STATIC", report.types().getFirst().reason());
+            assertEquals(1, dispatcher.drainWorldTick(3));
+            verify(player).handleInputDataPacket(exit, 0L);
             assertEquals(0, dispatcher.snapshot().queuedTasks());
         }
+    }
+
+    private static RedirectPacket redirect(UUID sessionId, byte[] buffer) {
+        RedirectPacket redirect = new RedirectPacket();
+        redirect.sessionId = sessionId;
+        redirect.protocol = 975;
+        redirect.mcpeBuffer = buffer;
+        redirect.receivedNanos = 123L;
+        return redirect;
     }
 }

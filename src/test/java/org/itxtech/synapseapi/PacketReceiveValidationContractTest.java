@@ -181,7 +181,6 @@ class PacketReceiveValidationContractTest {
         assertTrue(BetweenTickPackets.supports(fixture.packet));
         dispatcher.offer(session, new ServerInputTask() {
             @Override public boolean isValid() { return player.isAcceptingInputPackets(); }
-            @Override public boolean canRunBetweenTicks() { return BetweenTickPackets.canRunBetweenTicks(player, fixture.packet); }
             @Override public void run(InboundContext context) {
                 assertTrue(context.betweenTicks());
                 player.handleDataPacket(fixture.packet);
@@ -238,7 +237,6 @@ class PacketReceiveValidationContractTest {
         if (enabled) {
             ServerInputDispatcher dispatcher = new ServerInputDispatcher(Thread.currentThread(), 16, 1024, 16, 1024, error -> fail(error));
             dispatcher.offer(new ServerInputDispatcher.Session(UUID.randomUUID()), new ServerInputTask() {
-                @Override public boolean canRunBetweenTicks() { return BetweenTickPackets.canRunBetweenTicks(player, fixture.packet); }
                 @Override public void run(InboundContext context) {
                     assertTrue(context.betweenTicks());
                     player.handleDataPacket(fixture.packet);

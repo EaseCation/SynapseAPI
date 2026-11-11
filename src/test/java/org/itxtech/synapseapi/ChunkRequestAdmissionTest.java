@@ -36,14 +36,12 @@ class ChunkRequestAdmissionTest {
                 ServerInputDispatcher.Session session = new ServerInputDispatcher.Session(UUID.randomUUID());
                 List<String> consumed = new ArrayList<>();
                 dispatcher.offer(session, new ServerInputTask() {
-                    public boolean canRunBetweenTicks() { return BetweenTickPackets.canRunBetweenTicks(player, packet); }
                     public void run(InboundContext context) { consumed.add("terrain"); }
                 }, 1, BetweenTickPackets.supports(packet));
                 dispatcher.offer(session, context -> consumed.add("input"), 1, true);
                 assertEquals(!blob || count <= 64 ? 2 : 0, dispatcher.drain(true, 7, Long.MAX_VALUE));
                 dispatcher.drainWorldTick(8);
                 assertEquals(List.of("terrain", "input"), consumed);
-                verify(player, never()).inputStateBlockReason();
             }
         }
         assertFalse(BetweenTickPackets.supports(status(33, 32)));

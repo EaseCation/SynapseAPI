@@ -43,16 +43,6 @@ class ReadinessInputAdmissionTest {
         assertTrue(PacketUtil.canBeSentBeforeLogin(ProtocolInfo.LOGIN_PACKET));
     }
 
-    @Test
-    void olderNonTargetEntryKeepsOriginalReadinessBarrier() {
-        PacketReceiveValidationContractTest.ProbePlayer player = mock(PacketReceiveValidationContractTest.ProbePlayer.class, CALLS_REAL_METHODS);
-        player.configure(mock(Server.class));
-        assertEquals(InputBlockReason.NOT_SPAWNED, player.movementBlockReason());
-        player.spawned = true;
-        doReturn(false).when(player).isOnline();
-        assertEquals(InputBlockReason.OFFLINE, player.movementBlockReason());
-    }
-
     private void check(String variant, boolean enabled) {
         ProbePlayer player = mock(ProbePlayer.class, CALLS_REAL_METHODS);
         Server server = mock(Server.class);
@@ -95,7 +85,6 @@ class ReadinessInputAdmissionTest {
             ServerInputDispatcher dispatcher = new ServerInputDispatcher(Thread.currentThread(), 16, 1024, 16, 1024, error -> fail(error));
             assertTrue(BetweenTickPackets.supports(packet));
             dispatcher.offer(new ServerInputDispatcher.Session(UUID.randomUUID()), new ServerInputTask() {
-                @Override public boolean canRunBetweenTicks() { return BetweenTickPackets.canRunBetweenTicks(player, packet); }
                 @Override public void run(InboundContext context) {
                     assertTrue(context.betweenTicks());
                     player.handleDataPacket(packet);

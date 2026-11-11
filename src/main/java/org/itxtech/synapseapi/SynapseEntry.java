@@ -566,13 +566,6 @@ public class SynapseEntry {
             int bytes = packet.getCount();
             boolean betweenTicks = BetweenTickPackets.supports(packet);
             submitInput(session, bytes, new ServerInputTask() {
-                private InputBlockReason blockReason = InputBlockReason.UNCLASSIFIED;
-
-                @Override
-                public String diagnosticReason() {
-                    return blockReason.name();
-                }
-
                 @Override
                 public String diagnosticType() {
                     return BetweenTickPackets.diagnosticType(packet);
@@ -582,12 +575,6 @@ public class SynapseEntry {
                 public boolean isValid() {
                     return inputSessions.get(player.getSessionId()) == session
                             && players.get(player.getSessionId()) == player && player.isAcceptingInputPackets();
-                }
-
-                @Override
-                public boolean canRunBetweenTicks() {
-                    blockReason = BetweenTickPackets.blockReason(player, packet);
-                    return blockReason == InputBlockReason.NONE;
                 }
 
                 @Override

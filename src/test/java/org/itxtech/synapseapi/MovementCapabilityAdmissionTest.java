@@ -97,7 +97,6 @@ class MovementCapabilityAdmissionTest {
         when(packet.getYaw()).thenReturn(40f);
         ServerInputDispatcher dispatcher = new ServerInputDispatcher(Thread.currentThread(), 16, 1024, 16, 1024, error -> fail(error));
         dispatcher.offer(new ServerInputDispatcher.Session(UUID.randomUUID()), new ServerInputTask() {
-            @Override public boolean canRunBetweenTicks() { return BetweenTickPackets.canRunBetweenTicks(player, packet); }
             @Override public void run(InboundContext context) {
                 assertTrue(context.betweenTicks());
                 player.handleInputDataPacket(packet, player.getMovementEpoch());

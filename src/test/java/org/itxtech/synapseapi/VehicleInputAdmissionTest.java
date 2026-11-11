@@ -102,7 +102,6 @@ class VehicleInputAdmissionTest {
                 assertTrue(BetweenTickPackets.supports(packet));
                 for (int i = 0; i < frames; i++) {
                     dispatcher.offer(session, new ServerInputTask() {
-                        @Override public boolean canRunBetweenTicks() { return BetweenTickPackets.canRunBetweenTicks(player, packet); }
                         @Override public void run(InboundContext context) {
                             assertTrue(context.betweenTicks());
                             player.handleDataPacket(packet);

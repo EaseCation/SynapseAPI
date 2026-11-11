@@ -169,7 +169,6 @@ class IndependentAirUseAdmissionTest {
                 ServerInputDispatcher.Session session = new ServerInputDispatcher.Session(UUID.randomUUID());
                 assertTrue(BetweenTickPackets.supports(packet));
                 for (int i = 0; i < count; i++) dispatcher.offer(session, new ServerInputTask() {
-                    @Override public boolean canRunBetweenTicks() { return BetweenTickPackets.canRunBetweenTicks(player, packet); }
                     @Override public void run(InboundContext context) { assertTrue(context.betweenTicks()); player.handleInputDataPacket(packet, player.getMovementEpoch()); }
                 }, 1, true);
                 dispatcher.offer(new ServerInputDispatcher.Session(UUID.randomUUID()), context -> order.add("follower"), 1, true);

@@ -5,7 +5,6 @@ import cn.nukkit.entity.Entity;
 import cn.nukkit.inventory.transaction.CraftingTransaction;
 import cn.nukkit.inventory.transaction.EnchantTransaction;
 import cn.nukkit.inventory.transaction.RepairItemTransaction;
-import cn.nukkit.inventory.transaction.data.UseItemData;
 import cn.nukkit.Server;
 import cn.nukkit.inventory.PlayerInventory;
 import cn.nukkit.item.ItemBow;
@@ -20,7 +19,6 @@ import cn.nukkit.network.input.ServerInputTask;
 import cn.nukkit.network.protocol.DataPacket;
 import org.itxtech.synapseapi.multiprotocol.protocol116220.protocol.PlayerAuthInputPacket116220;
 import org.itxtech.synapseapi.multiprotocol.protocol116.protocol.InventoryTransactionPacket116;
-import org.itxtech.synapseapi.multiprotocol.common.PlayerAuthInputFlags;
 import org.junit.jupiter.api.Test;
 
 import java.net.InetSocketAddress;
@@ -40,19 +38,13 @@ class ItemActionAdmissionTest {
         player.useInventory(inventory);
         doReturn(true).when(player).isUsingItem();
         when(inventory.getItemInHand()).thenReturn(new ItemBow());
-        assertTrue(player.canProcessMovementBetweenTicks());
         doReturn(true).when(player).isJavaClient();
-        assertTrue(player.canProcessMovementBetweenTicks());
         doReturn(false).when(player).isJavaClient();
         doReturn(true).when(player).isUsingOffhandItem();
-        assertTrue(player.canProcessMovementBetweenTicks());
         doReturn(false).when(player).isUsingOffhandItem();
         when(inventory.getItemInHand()).thenReturn(new ItemBread());
-        assertTrue(player.canProcessMovementBetweenTicks());
         when(inventory.getItemInHand()).thenReturn(new ItemCrossbow());
-        assertTrue(player.canProcessMovementBetweenTicks());
         when(inventory.getItemInHand()).thenReturn(new ItemBow() { });
-        assertTrue(player.canProcessMovementBetweenTicks());
         when(inventory.getItemInHand()).thenReturn(new ItemBow());
 
         ServerInputDispatcher dispatcher = new ServerInputDispatcher(Thread.currentThread(),
@@ -67,23 +59,6 @@ class ItemActionAdmissionTest {
         assertEquals(List.of("bow-movement", "release"), order);
         verify(player, never()).onUpdate(anyInt());
         verify(player, never()).setUsingItem(anyBoolean());
-
-        UseItemData use = new UseItemData();
-        PlayerAuthInputPacket116220 embedded = mock(PlayerAuthInputPacket116220.class);
-        when(embedded.getUseItemData()).thenReturn(use);
-        assertTrue(BetweenTickPackets.canRunBetweenTicks(player, embedded));
-        movement.inputFlags.set(PlayerAuthInputFlags.MISSED_SWING);
-        assertTrue(BetweenTickPackets.canRunBetweenTicks(player, movement));
-    }
-
-    @Test
-    void sustainedUseDoesNotBlockMovementSlotOrRelease() {
-        TestPlayer player = player();
-        doReturn(true).when(player).isUsingItem();
-
-        assertTrue(player.canProcessMovementBetweenTicks());
-        assertTrue(player.canProcessInputStateBetweenTicks());
-        assertTrue(player.canProcessItemActionBetweenTicks());
     }
 
     @Test
@@ -116,101 +91,50 @@ class ItemActionAdmissionTest {
         verify(player, never()).setUsingItem(anyBoolean());
     }
 
+    /**
+     * 删除动态门禁后，睡眠、待确认传送、飞行、骑乘、待完成合成等状态不再把已静态放行的物品动作推迟到世界周期；
+     * 这些状态在下一世界 tick 开始前不会改变，handler 在补充阶段看到的状态与原世界阶段相同。
+     */
     @Test
-    void sleepingMovementDoesNotReleaseTheStillGuardedItemAction() {
-        TestPlayer player = player();
-        doReturn(true).when(player).isUsingItem();
-        doReturn(true).when(player).isSleeping();
-        ServerInputDispatcher dispatcher = new ServerInputDispatcher(Thread.currentThread(),
-                16, 1024, 16, 1024, exception -> fail(exception));
-        ServerInputDispatcher.Session session = new ServerInputDispatcher.Session(UUID.randomUUID());
-        List<String> order = new ArrayList<>();
-        PlayerAuthInputPacket116220 movement = new PlayerAuthInputPacket116220();
-        movement.inputFlags = new BitSet();
-        dispatcher.offer(session, task(player, movement,
-                () -> order.add("movement")), 1, true);
-        dispatcher.offer(session, task(player, new InventoryTransactionPacket116(),
-                () -> order.add("release")), 1, true);
+    void formerDynamicGateStatesNoLongerHoldAdmittedWork() {
+        List<java.util.function.Consumer<TestPlayer>> states = List.of(
+                p -> doReturn(true).when(p).isSleeping(),
+                p -> doReturn(true).when(p).isSwimming(),
+                p -> doReturn(true).when(p).isGliding(),
+                p -> doReturn(true).when(p).isCrawling(),
+                p -> doReturn(true).when(p).getDataFlag(anyInt()),
+                p -> doReturn(false).when(p).isServerAuthoritativeMovementEnabled(),
+                p -> doReturn(false).when(p).supportsPacketSequences(),
+                p -> doReturn(false).when(p).isAlive(),
+                p -> p.spawned(false),
+                p -> p.ride(mock(Entity.class)),
+                TestPlayer::awaitTeleport,
+                p -> p.pendingCraft(mock(CraftingTransaction.class)),
+                p -> p.pendingEnchant(mock(EnchantTransaction.class)),
+                p -> p.pendingRepair(mock(RepairItemTransaction.class)));
+        for (java.util.function.Consumer<TestPlayer> state : states) {
+            TestPlayer player = player();
+            doReturn(true).when(player).isUsingItem();
+            state.accept(player);
+            ServerInputDispatcher dispatcher = new ServerInputDispatcher(Thread.currentThread(),
+                    16, 1024, 16, 1024, exception -> fail(exception));
+            ServerInputDispatcher.Session session = new ServerInputDispatcher.Session(UUID.randomUUID());
+            List<String> order = new ArrayList<>();
+            PlayerAuthInputPacket116220 movement = new PlayerAuthInputPacket116220();
+            movement.inputFlags = new BitSet();
+            dispatcher.offer(session, task(player, movement, () -> order.add("movement")), 1, true);
+            dispatcher.offer(session, task(player, new InventoryTransactionPacket116(), () -> order.add("release")), 1, true);
 
-        dispatcher.drain(true, 40, Long.MAX_VALUE);
-        assertEquals(List.of("movement"), order);
-        assertEquals(1, dispatcher.snapshot().queuedTasks());
-
-        dispatcher.drain(false, 41, Long.MAX_VALUE);
-        assertEquals(List.of("movement", "release"), order);
+            assertEquals(2, dispatcher.drain(true, 40, Long.MAX_VALUE));
+            assertEquals(List.of("movement", "release"), order);
+            assertEquals(0, dispatcher.snapshot().betweenTickBarriers());
+        }
     }
 
     private static ServerInputTask task(TestPlayer player, DataPacket packet, Runnable action) {
         return new ServerInputTask() {
             @Override public void run(InboundContext context) { action.run(); }
-            @Override public boolean canRunBetweenTicks() {
-                return BetweenTickPackets.canRunBetweenTicks(player, packet);
-            }
         };
-    }
-
-    @Test
-    void pendingTeleportAllowsStateButKeepsWorldActionsBehindItsBoundary() {
-        TestPlayer player = player();
-        player.awaitTeleport();
-
-        assertTrue(player.canProcessInputStateBetweenTicks());
-        assertFalse(player.canProcessItemActionBetweenTicks());
-    }
-
-    @Test
-    void missedSwingPresentationDoesNotRequireItemActionEligibility() {
-        TestPlayer player = player();
-        PlayerAuthInputPacket116220 input = mock(PlayerAuthInputPacket116220.class);
-        doReturn(true).when(input).hasFlag(PlayerAuthInputFlags.MISSED_SWING);
-        doReturn(false).when(player).isServerAuthoritativeSoundEnabled();
-        assertTrue(BetweenTickPackets.canRunBetweenTicks(player, input));
-        doReturn(true).when(player).isServerAuthoritativeSoundEnabled();
-        assertTrue(BetweenTickPackets.canRunBetweenTicks(player, input));
-        player.awaitTeleport();
-        assertTrue(BetweenTickPackets.canRunBetweenTicks(player, input));
-        doReturn(false).when(player).isServerAuthoritativeSoundEnabled();
-        assertTrue(BetweenTickPackets.canRunBetweenTicks(player, input));
-        player.clearTeleport();
-        doReturn(true).when(player).isUsingItem();
-        assertTrue(BetweenTickPackets.canRunBetweenTicks(player, input));
-    }
-
-    @Test
-    void embeddedUseReachesOriginalCommitRejectionWithoutStageBarrier() {
-        TestPlayer player = player();
-        PlayerAuthInputPacket116220 input = mock(PlayerAuthInputPacket116220.class);
-        doReturn(null).when(input).getUseItemData();
-        player.awaitTeleport();
-        assertTrue(BetweenTickPackets.canRunBetweenTicks(player, input));
-        doReturn(new UseItemData()).when(input).getUseItemData();
-        assertTrue(BetweenTickPackets.canRunBetweenTicks(player, input));
-        assertFalse(player.canProcessItemActionBetweenTicks());
-        player.clearTeleport();
-        assertTrue(BetweenTickPackets.canRunBetweenTicks(player, input));
-        doReturn(true).when(player).isUsingItem();
-        assertTrue(BetweenTickPackets.canRunBetweenTicks(player, input));
-    }
-
-    @Test
-    void deathAndRetiredSessionCannotAcquireAnyNewActionEligibility() {
-        TestPlayer player = player();
-        doReturn(false).when(player).isAlive();
-        assertFalse(player.canProcessInputStateBetweenTicks());
-        assertFalse(player.canProcessItemActionBetweenTicks());
-        doReturn(true).when(player).isAlive();
-        doReturn(false).when(player).isAcceptingInputPackets();
-        assertFalse(player.canProcessInputStateBetweenTicks());
-        assertFalse(player.canProcessItemActionBetweenTicks());
-    }
-
-    @Test
-    void unmigratedMovementStateDoesNotPreventAnOrderedSlotChange() {
-        TestPlayer player = player();
-        doReturn(true).when(player).isGliding();
-
-        assertTrue(player.canProcessInputStateBetweenTicks());
-        assertFalse(player.canProcessItemActionBetweenTicks());
     }
 
     static TestPlayer player() {

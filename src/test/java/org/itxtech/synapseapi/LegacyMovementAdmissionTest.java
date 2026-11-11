@@ -264,7 +264,6 @@ class LegacyMovementAdmissionTest {
                 ServerInputDispatcher.Session session = new ServerInputDispatcher.Session(UUID.randomUUID());
                 List<String> order = new ArrayList<>();
                 d.offer(session, new ServerInputTask() {
-                    @Override public boolean canRunBetweenTicks() { return BetweenTickPackets.canRunBetweenTicks(player, packet); }
                     @Override public void run(InboundContext context) { assertTrue(context.betweenTicks());player.handleInputDataPacket(packet, player.getMovementEpoch());order.add("original"); }
                 }, 1, true);
                 d.offer(session, context -> order.add("follower"), 1, true);
