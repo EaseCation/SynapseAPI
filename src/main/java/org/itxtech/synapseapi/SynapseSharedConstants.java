@@ -16,7 +16,7 @@ public final class SynapseSharedConstants {
     /**
      * Enables new inventory system.
      */
-    public static final boolean SERVER_AUTHORITATIVE_INVENTORY = false;
+    public static final boolean SERVER_AUTHORITATIVE_INVENTORY = true;
     public static final boolean SERVER_AUTHORITATIVE_INVENTORY_DEBUG = false;
     /**
      * Enables Movement Anti-Cheat?
