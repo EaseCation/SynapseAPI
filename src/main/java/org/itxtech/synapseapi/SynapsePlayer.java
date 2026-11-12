@@ -202,6 +202,22 @@ public class SynapsePlayer extends Player {
         this.craftingTransaction = null;
     }
 
+    /**
+     * 收到客户端关窗包（包括按 ESC 关闭自身背包，窗口 0）时，作废未执行的多包合成。
+     * 合成分片总在关窗之前按序到达，关窗后不可能再续上；关闭自身背包不经过合成格重置，
+     * 放料被拒等原因留下的残留事务会让背包 2×2 合成一直失败。未执行的事务从未改动库存，
+     * 作废后只重发自身背包与 UI 库存（合成格、光标），纠正合成格不一致；
+     * 不重发其他窗口，避免干扰正在关闭的箱子、假箱子等由服务端管理的界面。
+     */
+    protected void abandonPendingCraftOnClientClose() {
+        if (this.craftingTransaction == null) {
+            return;
+        }
+        this.craftingTransaction = null;
+        this.getInventory().sendContents(this);
+        this.getUIInventory().sendContents(this);
+    }
+
     @Override
     public boolean isJavaClient() {
         return loginChainData != null

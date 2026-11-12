@@ -201,6 +201,7 @@ public class SynapsePlayer116 extends SynapsePlayer113 {
 				break;
 			case ProtocolInfo.CONTAINER_CLOSE_PACKET:
 				if (!callPacketReceiveEvent(packet)) break;
+				this.abandonPendingCraftOnClientClose();
 				ContainerClosePacket containerClosePacket = (ContainerClosePacket) packet;
 				if (this.handlePendingWindowClose(containerClosePacket.windowId)) {
 					break;
