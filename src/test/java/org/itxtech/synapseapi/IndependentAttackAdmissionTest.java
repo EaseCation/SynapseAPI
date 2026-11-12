@@ -56,16 +56,16 @@ class IndependentAttackAdmissionTest {
         }
     }
 
-    @Test void interactionIsAdmittedButComplexTransactionPartsAreNot() {
+    @Test void interactionAndTransactionPartsAreAdmitted() {
         try (EquipmentAdmissionTest.Fixture f = new EquipmentAdmissionTest.Fixture(true)) {
             InventoryTransactionPacket116 p = attack(f);
             assertTrue(BetweenTickPackets.supports(p));
             ((UseItemOnEntityData) p.transactionData).actionType = InventoryTransactionPacket116.USE_ITEM_ON_ENTITY_ACTION_INTERACT;
             assertTrue(BetweenTickPackets.supports(p));
             ((UseItemOnEntityData) p.transactionData).actionType = InventoryTransactionPacket116.USE_ITEM_ON_ENTITY_ACTION_ATTACK;
-            p.isCraftingPart = true;assertFalse(BetweenTickPackets.supports(p));
-            p.isCraftingPart = false;p.isEnchantingPart = true;assertFalse(BetweenTickPackets.supports(p));
-            p.isEnchantingPart = false;p.isRepairItemPart = true;assertFalse(BetweenTickPackets.supports(p));
+            p.isCraftingPart = true;assertTrue(BetweenTickPackets.supports(p));
+            p.isCraftingPart = false;p.isEnchantingPart = true;assertTrue(BetweenTickPackets.supports(p));
+            p.isEnchantingPart = false;p.isRepairItemPart = true;assertTrue(BetweenTickPackets.supports(p));
         }
     }
 

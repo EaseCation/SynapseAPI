@@ -48,9 +48,9 @@ class MouseOverAdmissionTest {
     }
 
     @Test
-    void modernInteractOnlyKeepsVehicleExitAsBarrier() {
+    void modernInteractIsAdmittedForEveryAction() {
         for (int action = InteractPacket121130.ACTION_NONE; action <= InteractPacket121130.ACTION_OPEN_INVENTORY; action++) {
-            assertEquals(action != InteractPacket121130.ACTION_VEHICLE_EXIT, BetweenTickPackets.supports(modernPacket(action, 0)));
+            assertTrue(BetweenTickPackets.supports(modernPacket(action, 0)));
         }
     }
 
@@ -123,10 +123,9 @@ class MouseOverAdmissionTest {
     }
 
     @Test
-    void legacyInteractOnlyKeepsVehicleExitAsBarrier() {
+    void legacyInteractIsAdmittedForEveryAction() {
         for (int action = InteractPacket113.ACTION_NONE; action <= InteractPacket113.ACTION_OPEN_INVENTORY; action++) {
-            InteractPacket113 packet = packet(action, 1);
-            assertEquals(action != InteractPacket113.ACTION_VEHICLE_EXIT, BetweenTickPackets.supports(packet));
+            assertTrue(BetweenTickPackets.supports(packet(action, 1)));
         }
     }
 
@@ -273,9 +272,10 @@ class MouseOverAdmissionTest {
     }
 
     @Test
-    void vehicleExitRemainsStaticBarrier() {
-        assertFalse(BetweenTickPackets.supports(modernPacket(InteractPacket121130.ACTION_VEHICLE_EXIT, 0)));
-        assertFalse(BetweenTickPackets.supports(packet(InteractPacket113.ACTION_VEHICLE_EXIT, 0)));
+    void vehicleExitIsAdmitted() {
+        // M7：下马结果只取决于载具位置，载具只在 Level 更新阶段移动。
+        assertTrue(BetweenTickPackets.supports(modernPacket(InteractPacket121130.ACTION_VEHICLE_EXIT, 0)));
+        assertTrue(BetweenTickPackets.supports(packet(InteractPacket113.ACTION_VEHICLE_EXIT, 0)));
     }
 
     private static DataPacket hover(boolean modern, long target) {

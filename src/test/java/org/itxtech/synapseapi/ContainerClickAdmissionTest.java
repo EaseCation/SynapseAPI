@@ -16,8 +16,8 @@ import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.mock;
 
 /**
- * 全包准入 M4/M5：普通事务（任意窗口容器动作、创造栏、丢弃、关窗溢出与信标）与实体交互整包放行；
- * 合成/附魔/修复分片及其他虚拟来源保留屏障。队列语义与包类型无关，用代表包验证突发与前序屏障。
+ * 全包准入 M4/M5/M7：普通事务（任意窗口容器动作、创造栏、丢弃、关窗溢出与信标、合成/附魔/修复分片与交易等虚拟来源）
+ * 与实体交互整包放行；动作缺失的事务保留屏障。队列语义与包类型无关，用代表包验证突发与前序屏障。
  */
 class ContainerClickAdmissionTest {
     @Test
@@ -32,25 +32,24 @@ class ContainerClickAdmissionTest {
     }
 
     @Test
-    void craftingTradingAndOtherVirtualSourcesRemainBarriers() {
+    void craftingTradingAndOtherVirtualSourcesAreAdmittedButMissingActionsAreNot() {
+        // M7：合成/附魔/修复分片与交易等虚拟来源放行；分片跨包累计按 FIFO 保序。
         for (int window : new int[]{NetworkInventoryAction.SOURCE_TYPE_CRAFTING_ADD_INGREDIENT,
                 NetworkInventoryAction.SOURCE_TYPE_CRAFTING_RESULT, NetworkInventoryAction.SOURCE_TYPE_ANVIL_INPUT,
                 NetworkInventoryAction.SOURCE_TYPE_ENCHANT_INPUT, NetworkInventoryAction.SOURCE_TYPE_TRADING_INPUT_1}) {
-            assertFalse(BetweenTickPackets.supports(normal(todo(window), container(ContainerIds.INVENTORY))), "todo " + window);
+            assertTrue(BetweenTickPackets.supports(normal(todo(window), container(ContainerIds.INVENTORY))), "todo " + window);
         }
-        assertFalse(BetweenTickPackets.supports(normal(action(NetworkInventoryAction.SOURCE_CRAFT_SLOT, 0), container(0))));
-        assertFalse(BetweenTickPackets.supports(normal(action(NetworkInventoryAction.SOURCE_GLOBAL, 0))));
-        assertFalse(BetweenTickPackets.supports(normal(container(0), null)));
+        assertTrue(BetweenTickPackets.supports(normal(action(NetworkInventoryAction.SOURCE_CRAFT_SLOT, 0), container(0))));
         InventoryTransactionPacket116 parts = normal(container(7), container(0));
         parts.isCraftingPart = true;
-        assertFalse(BetweenTickPackets.supports(parts));
+        assertTrue(BetweenTickPackets.supports(parts));
         parts.isCraftingPart = false;
         parts.isEnchantingPart = true;
-        assertFalse(BetweenTickPackets.supports(parts));
+        assertTrue(BetweenTickPackets.supports(parts));
         parts.isEnchantingPart = false;
         parts.isRepairItemPart = true;
-        assertFalse(BetweenTickPackets.supports(parts));
-        parts.isRepairItemPart = false;
+        assertTrue(BetweenTickPackets.supports(parts));
+        assertFalse(BetweenTickPackets.supports(normal(container(0), null)));
         parts.actions = null;
         assertFalse(BetweenTickPackets.supports(parts));
     }
@@ -70,7 +69,7 @@ class ContainerClickAdmissionTest {
     }
 
     @Test
-    void clickBurstDrainsBetweenTicksAndAnEarlierCraftingPartStillHoldsIt() {
+    void clickBurstDrainsBetweenTicksAndAnEarlierBarrierStillHoldsIt() {
         ServerInputDispatcher dispatcher = new ServerInputDispatcher(Thread.currentThread(), 64, 4096, 64, 4096,
                 error -> fail(error));
         ServerInputDispatcher.Session session = new ServerInputDispatcher.Session(UUID.randomUUID());
@@ -89,8 +88,8 @@ class ContainerClickAdmissionTest {
         assertEquals("follower19", order.getLast());
 
         order.clear();
-        InventoryTransactionPacket116 craft = normal(container(0));
-        craft.isCraftingPart = true;
+        // 动作缺失的事务仍为屏障，挡住后继点击。
+        InventoryTransactionPacket116 craft = normal(container(0), null);
         dispatcher.offer(session, context -> order.add("craft"), 1, BetweenTickPackets.supports(craft));
         dispatcher.offer(session, context -> order.add("click"), 1,
                 BetweenTickPackets.supports(normal(container(7), container(ContainerIds.INVENTORY))));
