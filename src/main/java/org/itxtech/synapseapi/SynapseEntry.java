@@ -511,6 +511,10 @@ public class SynapseEntry {
         }
     }
 
+    /**
+     * 登录与登出（全包准入 M8）放行：两处执行位置都在世界更新之外，调度器 tick 相同；
+     * 纯核心路径登录的同步读盘与实体注册总耗时不变，只换到 tick 间隙执行。
+     */
     private void submitInput(ServerInputDispatcher.Session session, int bytes, String type, Runnable action) {
         submitInput(session, bytes, new ServerInputTask() {
             @Override
@@ -522,7 +526,7 @@ public class SynapseEntry {
             public void run(InboundContext context) {
                 action.run();
             }
-        }, false);
+        }, true);
     }
 
     private void submitInput(ServerInputDispatcher.Session session, int bytes, ServerInputTask task, boolean betweenTicks) {
@@ -794,13 +798,28 @@ public class SynapseEntry {
                                 return "UndecodedLoginBatch";
                             }
 
+                            /**
+                             * 玩家未初始化时，子包除登录前白名单外全部丢弃，可在 tick 间隙执行（M8）；
+                             * 已初始化后子包内容任意且不经逐包分类，保留屏障。
+                             */
+                            @Override
+                            public boolean canRunBetweenTicks() {
+                                SynapsePlayer created = players.get(redirectPacket.sessionId);
+                                return created == null || created.isClosed() || !created.isInitialized();
+                            }
+
+                            @Override
+                            public String diagnosticReason() {
+                                return "INITIALIZED";
+                            }
+
                             @Override
                             public void run(InboundContext context) {
                                 if (inputSessions.get(redirectPacket.sessionId) == session) {
                                     handleDataPacket(redirectPacket);
                                 }
                             }
-                        }, false, redirectPacket.receivedNanos);
+                        }, true, redirectPacket.receivedNanos);
                     }
                     break;
                 }
