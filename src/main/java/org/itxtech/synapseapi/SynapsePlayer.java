@@ -191,6 +191,17 @@ public class SynapsePlayer extends Player {
         return false;
     }
 
+    /**
+     * 合成界面被重置（关窗、聊天、命令、重生、打开其他功能容器等）时，未执行的多包合成随之作废。
+     * 未执行的事务从未修改库存，材料已随合成格退回背包；若保留，之后放入合成格的普通事务与合成分片
+     * 都会并入这个残留事务，合成持续失败直到重新登录。
+     */
+    @Override
+    public void resetCraftingGridType() {
+        super.resetCraftingGridType();
+        this.craftingTransaction = null;
+    }
+
     @Override
     public boolean isJavaClient() {
         return loginChainData != null
