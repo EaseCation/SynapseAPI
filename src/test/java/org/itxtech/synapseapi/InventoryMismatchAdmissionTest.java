@@ -109,7 +109,7 @@ class InventoryMismatchAdmissionTest {
     }
 
     @Test
-    void mismatchWithActionsIsAdmittedButPartsAndNormalRemainBarriers() {
+    void mismatchWithActionsIsAdmittedButPartsRemainBarriers() {
         InventoryTransactionPacket116 packet = request();
         assertTrue(BetweenTickPackets.supports(packet));
         // M2：原 handler 只回发全部库存，带任意窗口动作的同步同样放行；空动作元素仍为屏障。
@@ -131,7 +131,7 @@ class InventoryMismatchAdmissionTest {
         assertFalse(BetweenTickPackets.supports(packet));
         packet.isRepairItemPart = false;
         packet.transactionType = InventoryTransactionPacket116.TYPE_NORMAL;
-        assertFalse(BetweenTickPackets.supports(packet));
+        assertTrue(BetweenTickPackets.supports(packet));
     }
 
     private static InventoryTransactionPacket116 request() {

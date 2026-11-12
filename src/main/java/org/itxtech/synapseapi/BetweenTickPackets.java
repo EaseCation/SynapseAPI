@@ -335,6 +335,9 @@ final class BetweenTickPackets {
                 || packet.actions == null) {
             return false;
         }
+        if (packet.transactionType == InventoryTransactionPacket116.TYPE_NORMAL) {
+            return supportsNormalActions(packet.actions);
+        }
         if (packet.transactionType == InventoryTransactionPacket116.TYPE_MISMATCH) {
             // 原 handler 只把动作转换为对象后丢弃并回发全部库存，与动作来自哪个窗口无关。
             for (NetworkInventoryAction action : packet.actions) {
@@ -349,9 +352,12 @@ final class BetweenTickPackets {
             return false;
         }
         return switch (packet.transactionType) {
+            // 攻击、交互（上马、拴绳、命名牌、盔甲架、NPC 等 onInteract）与物品交互：目标位置与状态只在 Level 更新阶段改变。
             case InventoryTransactionPacket116.TYPE_USE_ITEM_ON_ENTITY ->
                     packet.transactionData instanceof UseItemOnEntityData data
-                            && data.actionType == InventoryTransactionPacket116.USE_ITEM_ON_ENTITY_ACTION_ATTACK
+                            && (data.actionType == InventoryTransactionPacket116.USE_ITEM_ON_ENTITY_ACTION_ATTACK
+                            || data.actionType == InventoryTransactionPacket116.USE_ITEM_ON_ENTITY_ACTION_INTERACT
+                            || data.actionType == InventoryTransactionPacket116.USE_ITEM_ON_ENTITY_ACTION_ITEM_INTERACT)
                             && data.itemInHand != null;
             case InventoryTransactionPacket116.TYPE_USE_ITEM ->
                     packet.transactionData instanceof UseItemData data
@@ -373,6 +379,31 @@ final class BetweenTickPackets {
             set.set(id);
         }
         return set;
+    }
+
+    /**
+     * 普通事务（M4/M5）：任意窗口的容器动作、创造栏、丢弃，以及关窗溢出与信标两个虚拟窗口；
+     * 合成/附魔/修复分片在解码时标记，已由调用方排除。其余虚拟来源（合成格、交易等）保留屏障。
+     */
+    private static boolean supportsNormalActions(NetworkInventoryAction[] actions) {
+        for (NetworkInventoryAction action : actions) {
+            if (action == null) return false;
+            switch (action.sourceType) {
+                case NetworkInventoryAction.SOURCE_CONTAINER, NetworkInventoryAction.SOURCE_CREATIVE,
+                     NetworkInventoryAction.SOURCE_WORLD -> {
+                }
+                case NetworkInventoryAction.SOURCE_TODO -> {
+                    if (action.windowId != NetworkInventoryAction.SOURCE_TYPE_CONTAINER_DROP_CONTENTS
+                            && action.windowId != NetworkInventoryAction.SOURCE_TYPE_BEACON) {
+                        return false;
+                    }
+                }
+                default -> {
+                    return false;
+                }
+            }
+        }
+        return true;
     }
 
     private static boolean supportsInventoryActions(NetworkInventoryAction[] actions) {
