@@ -115,7 +115,7 @@ class RedirectAttributionTest {
             assertEquals(0, dispatcher.drain(true, 2, Long.MAX_VALUE));
             ServerInputDispatcher.BarrierReport report = dispatcher.drainBarrierReport();
             assertEquals(1, report.types().size());
-            assertEquals("ResourcePackClientResponsePacket16/COMPLETED", report.types().getFirst().type());
+            assertEquals("ResourcePackClientResponsePacket16", report.types().getFirst().type());
             assertEquals("STATIC", report.types().getFirst().reason());
             assertEquals(1, dispatcher.drainWorldTick(3));
             verify(player).handleInputDataPacket(exit, 0L);

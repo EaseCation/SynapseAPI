@@ -573,7 +573,7 @@ public class SynapseEntry {
             submitInput(session, bytes, new ServerInputTask() {
                 @Override
                 public String diagnosticType() {
-                    return BetweenTickPackets.diagnosticType(packet);
+                    return packet.getClass().getSimpleName();
                 }
 
                 @Override

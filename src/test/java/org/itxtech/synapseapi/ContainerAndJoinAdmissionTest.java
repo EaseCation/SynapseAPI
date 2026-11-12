@@ -112,13 +112,12 @@ class ContainerAndJoinAdmissionTest {
                     assertTrue(BetweenTickPackets.supports(packet), protocol + " " + packet.getClass().getSimpleName());
                 }
                 DataPacket equipment = PacketRegister.getPacket(ProtocolInfo.MOB_EQUIPMENT_PACKET, protocol);
-                assertFalse(BetweenTickPackets.supports(equipment), "missing item keeps the barrier");
+                assertTrue(BetweenTickPackets.supports(equipment), "missing item is admitted since M9");
                 DataPacket response = PacketRegister.getPacket(ProtocolInfo.RESOURCE_PACK_CLIENT_RESPONSE_PACKET, protocol);
                 ResourcePackClientResponsePacket16 status = assertInstanceOf(ResourcePackClientResponsePacket16.class, response);
                 for (byte value = 0; value <= ResourcePackClientResponsePacket16.STATUS_COMPLETED; value++) {
                     status.responseStatus = value;
-                    assertEquals(value == ResourcePackClientResponsePacket16.STATUS_SEND_PACKS
-                                    || value == ResourcePackClientResponsePacket16.STATUS_HAVE_ALL_PACKS,
+                    assertEquals(value != ResourcePackClientResponsePacket16.STATUS_COMPLETED,
                             BetweenTickPackets.supports(status), "resource pack status " + value);
                 }
                 DataPacket interact = PacketRegister.getPacket(ProtocolInfo.INTERACT_PACKET, protocol);

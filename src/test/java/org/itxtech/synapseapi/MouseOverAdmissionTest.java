@@ -1,5 +1,6 @@
 package org.itxtech.synapseapi;
 
+import org.itxtech.synapseapi.multiprotocol.protocol16.protocol.ResourcePackClientResponsePacket16;
 import cn.nukkit.Server;
 import cn.nukkit.network.Compressor;
 import cn.nukkit.network.protocol.DataPacket;
@@ -23,7 +24,6 @@ import cn.nukkit.network.input.InboundContext;
 import cn.nukkit.network.input.ServerInputTask;
 import cn.nukkit.network.input.PlayerInputProcessor;
 import cn.nukkit.network.input.ServerInputDispatcher;
-import cn.nukkit.network.protocol.TextPacket;
 import cn.nukkit.plugin.PluginManager;
 import org.itxtech.synapseapi.multiprotocol.protocol113.protocol.InteractPacket113;
 import org.junit.jupiter.api.Test;
@@ -135,7 +135,7 @@ class MouseOverAdmissionTest {
                 exception -> fail(exception));
         ServerInputDispatcher.Session session = new ServerInputDispatcher.Session(UUID.randomUUID());
         List<String> order = new ArrayList<>();
-        dispatcher.offer(session, context -> order.add("barrier"), 1, BetweenTickPackets.supports(new TextPacket()));
+        dispatcher.offer(session, context -> order.add("barrier"), 1, BetweenTickPackets.supports(completed()));
         dispatcher.offer(session, context -> order.add("mouseover"), 1,
                 BetweenTickPackets.supports(packet(InteractPacket113.ACTION_MOUSEOVER, 1)));
         dispatcher.offer(session, context -> order.add("following"), 1, true);
@@ -370,5 +370,14 @@ class MouseOverAdmissionTest {
         }
         @Override public void setButtonText(String text) { button = text; }
         Entity looked() { return lookAtEntity; }
+    }
+
+    /**
+     * M9 后唯一的静态屏障样本：资源包完成回复进入登录收尾。
+     */
+    private static ResourcePackClientResponsePacket16 completed() {
+        ResourcePackClientResponsePacket16 packet = new ResourcePackClientResponsePacket16();
+        packet.responseStatus = ResourcePackClientResponsePacket16.STATUS_COMPLETED;
+        return packet;
     }
 }

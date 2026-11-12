@@ -1,11 +1,11 @@
 package org.itxtech.synapseapi;
 
+import org.itxtech.synapseapi.multiprotocol.protocol16.protocol.ResourcePackClientResponsePacket16;
 import cn.nukkit.network.input.InboundContext;
 import cn.nukkit.network.input.ServerInputDispatcher;
 import cn.nukkit.network.input.ServerInputTask;
 import cn.nukkit.network.protocol.DataPacket;
 import cn.nukkit.network.protocol.ResourcePackChunkRequestPacket;
-import cn.nukkit.network.protocol.TextPacket;
 import org.itxtech.synapseapi.multiprotocol.protocol19.protocol.NetworkStackLatencyPacket19;
 import org.junit.jupiter.api.Test;
 
@@ -44,7 +44,7 @@ class ResourceRequestAdmissionTest {
 
     @Test
     void resourceRequestDoesNotBypassAnEarlierWorldTickBarrier() {
-        TextPacket barrier = new TextPacket();
+        ResourcePackClientResponsePacket16 barrier = completed();
         ResourcePackChunkRequestPacket request = new ResourcePackChunkRequestPacket();
         offer(barrier);
         offer(request);
@@ -65,5 +65,14 @@ class ResourceRequestAdmissionTest {
         assertTrue(consumed.isEmpty());
         assertEquals(List.of(true), marker);
         assertEquals(1, dispatcher.snapshot().discardedTasks());
+    }
+
+    /**
+     * M9 后唯一的静态屏障样本：资源包完成回复进入登录收尾。
+     */
+    private static ResourcePackClientResponsePacket16 completed() {
+        ResourcePackClientResponsePacket16 packet = new ResourcePackClientResponsePacket16();
+        packet.responseStatus = ResourcePackClientResponsePacket16.STATUS_COMPLETED;
+        return packet;
     }
 }

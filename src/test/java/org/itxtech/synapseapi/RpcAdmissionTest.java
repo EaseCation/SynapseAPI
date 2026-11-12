@@ -104,10 +104,11 @@ class RpcAdmissionTest {
     }
 
     @Test
-    void nullNormalizedListDoesNotGainStaticAdmission() {
+    void nullNormalizedListIsAdmitted() {
+        // M9：空子包列表两处处理结果相同（原计划 G2 的恒假判定随默认放行删除）。
         NEPyRpcPacket16 packet = new NEPyRpcPacket16();
         packet.subPackets = null;
-        assertFalse(BetweenTickPackets.supports(packet));
+        assertTrue(BetweenTickPackets.supports(packet));
     }
 
     private static NEPyRpcPacket16 pair() {

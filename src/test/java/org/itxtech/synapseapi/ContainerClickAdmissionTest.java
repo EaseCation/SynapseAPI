@@ -1,5 +1,6 @@
 package org.itxtech.synapseapi;
 
+import org.itxtech.synapseapi.multiprotocol.protocol16.protocol.ResourcePackClientResponsePacket16;
 import cn.nukkit.inventory.transaction.data.UseItemOnEntityData;
 import cn.nukkit.item.Item;
 import cn.nukkit.network.input.ServerInputDispatcher;
@@ -17,7 +18,7 @@ import static org.mockito.Mockito.mock;
 
 /**
  * 全包准入 M4/M5/M7：普通事务（任意窗口容器动作、创造栏、丢弃、关窗溢出与信标、合成/附魔/修复分片与交易等虚拟来源）
- * 与实体交互整包放行；动作缺失的事务保留屏障。队列语义与包类型无关，用代表包验证突发与前序屏障。
+ * 与实体交互整包放行（M9 起动作缺失同样放行）。队列语义与包类型无关，用代表包验证突发与前序屏障。
  */
 class ContainerClickAdmissionTest {
     @Test
@@ -32,7 +33,7 @@ class ContainerClickAdmissionTest {
     }
 
     @Test
-    void craftingTradingAndOtherVirtualSourcesAreAdmittedButMissingActionsAreNot() {
+    void craftingTradingVirtualSourcesAndIncompleteActionsAreAdmitted() {
         // M7：合成/附魔/修复分片与交易等虚拟来源放行；分片跨包累计按 FIFO 保序。
         for (int window : new int[]{NetworkInventoryAction.SOURCE_TYPE_CRAFTING_ADD_INGREDIENT,
                 NetworkInventoryAction.SOURCE_TYPE_CRAFTING_RESULT, NetworkInventoryAction.SOURCE_TYPE_ANVIL_INPUT,
@@ -49,22 +50,24 @@ class ContainerClickAdmissionTest {
         parts.isEnchantingPart = false;
         parts.isRepairItemPart = true;
         assertTrue(BetweenTickPackets.supports(parts));
-        assertFalse(BetweenTickPackets.supports(normal(container(0), null)));
+        // M9：动作缺失（只在残缺解码时出现）两处结果相同，同样放行。
+        assertTrue(BetweenTickPackets.supports(normal(container(0), null)));
         parts.actions = null;
-        assertFalse(BetweenTickPackets.supports(parts));
+        assertTrue(BetweenTickPackets.supports(parts));
     }
 
     @Test
-    void entityInteractionIsAdmittedOnlyWithInventoryOrOffhandActions() {
+    void entityInteractionIsAdmittedWithAnyActions() {
         for (int type : new int[]{InventoryTransactionPacket116.USE_ITEM_ON_ENTITY_ACTION_INTERACT,
                 InventoryTransactionPacket116.USE_ITEM_ON_ENTITY_ACTION_ITEM_INTERACT}) {
             InventoryTransactionPacket116 packet = entity(type);
             assertTrue(BetweenTickPackets.supports(packet));
+            // M9：非背包窗口动作与手持物缺失同样放行，处理结果与执行阶段无关。
             packet.actions = new NetworkInventoryAction[]{container(7)};
-            assertFalse(BetweenTickPackets.supports(packet));
+            assertTrue(BetweenTickPackets.supports(packet));
             packet.actions = new NetworkInventoryAction[0];
             ((UseItemOnEntityData) packet.transactionData).itemInHand = null;
-            assertFalse(BetweenTickPackets.supports(packet));
+            assertTrue(BetweenTickPackets.supports(packet));
         }
     }
 
@@ -88,9 +91,8 @@ class ContainerClickAdmissionTest {
         assertEquals("follower19", order.getLast());
 
         order.clear();
-        // 动作缺失的事务仍为屏障，挡住后继点击。
-        InventoryTransactionPacket116 craft = normal(container(0), null);
-        dispatcher.offer(session, context -> order.add("craft"), 1, BetweenTickPackets.supports(craft));
+        // 资源包完成回复仍为屏障，挡住后继点击。
+        dispatcher.offer(session, context -> order.add("craft"), 1, BetweenTickPackets.supports(completed()));
         dispatcher.offer(session, context -> order.add("click"), 1,
                 BetweenTickPackets.supports(normal(container(7), container(ContainerIds.INVENTORY))));
         assertEquals(0, dispatcher.drain(true, 8, Long.MAX_VALUE));
@@ -129,5 +131,14 @@ class ContainerClickAdmissionTest {
         action.sourceType = source;
         action.windowId = window;
         return action;
+    }
+
+    /**
+     * M9 后唯一的静态屏障样本：资源包完成回复进入登录收尾。
+     */
+    private static ResourcePackClientResponsePacket16 completed() {
+        ResourcePackClientResponsePacket16 packet = new ResourcePackClientResponsePacket16();
+        packet.responseStatus = ResourcePackClientResponsePacket16.STATUS_COMPLETED;
+        return packet;
     }
 }
