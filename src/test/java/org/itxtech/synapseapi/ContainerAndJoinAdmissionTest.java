@@ -10,11 +10,17 @@ import cn.nukkit.network.input.ServerInputDispatcher;
 import cn.nukkit.network.protocol.BlockPickRequestPacket;
 import cn.nukkit.network.protocol.BookEditPacket;
 import cn.nukkit.network.protocol.ClientToServerHandshakePacket;
+import cn.nukkit.network.protocol.CommandRequestPacket;
 import cn.nukkit.network.protocol.DataPacket;
+import cn.nukkit.network.protocol.MapInfoRequestPacket;
 import cn.nukkit.network.protocol.MobEquipmentPacket;
+import cn.nukkit.network.protocol.ModalFormResponsePacket;
+import cn.nukkit.network.protocol.NPCRequestPacket;
 import cn.nukkit.network.protocol.PlayerHotbarPacket;
 import cn.nukkit.network.protocol.ProtocolInfo;
 import cn.nukkit.network.protocol.ResourcePackClientResponsePacket;
+import cn.nukkit.network.protocol.ServerSettingsRequestPacket;
+import cn.nukkit.network.protocol.SetPlayerGameTypePacket;
 import org.itxtech.synapseapi.multiprotocol.AbstractProtocol;
 import org.itxtech.synapseapi.multiprotocol.PacketRegister;
 import org.itxtech.synapseapi.multiprotocol.protocol113.protocol.InteractPacket113;
@@ -35,7 +41,7 @@ import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.Mockito.*;
 
 /**
- * 全包准入 M2/M3：关窗、开背包等低风险容器包与无副作用/加入类包按包编号整包放行。
+ * 全包准入 M2/M3/M6：关窗、开背包等低风险容器包、无副作用/加入类包与表单/命令/NPC/地图类包按包编号整包放行。
  * 分类按各目标协议实际注册的类核对（860 旧类、898 主力、975 JE、1001 按编号放行的同名新类；1001 的事务与缓存确认新类留待 M9）；
  * 队列语义（突发、前序屏障、同玩家顺序）与包类型无关，在此用代表包验证。
  */
@@ -53,7 +59,11 @@ class ContainerAndJoinAdmissionTest {
             ProtocolInfo.PACKET_NETEASE_JSON, ProtocolInfo.PACKET_SYNC_SKIN,
             ProtocolInfo.PACKET_VIOLATION_WARNING_PACKET, ProtocolInfo.SET_LOCAL_PLAYER_AS_INITIALIZED_PACKET,
             ProtocolInfo.BOSS_EVENT_PACKET, ProtocolInfo.PLAYER_SKIN_PACKET,
-            ProtocolInfo.CLIENT_CACHE_STATUS_PACKET, ProtocolInfo.REQUEST_CHUNK_RADIUS_PACKET};
+            ProtocolInfo.CLIENT_CACHE_STATUS_PACKET, ProtocolInfo.REQUEST_CHUNK_RADIUS_PACKET,
+            ProtocolInfo.MODAL_FORM_RESPONSE_PACKET, ProtocolInfo.SERVER_SETTINGS_REQUEST_PACKET,
+            ProtocolInfo.NPC_REQUEST_PACKET, ProtocolInfo.COMMAND_REQUEST_PACKET,
+            ProtocolInfo.SETTINGS_COMMAND_PACKET, ProtocolInfo.SET_PLAYER_GAME_TYPE_PACKET,
+            ProtocolInfo.LECTERN_UPDATE_PACKET, ProtocolInfo.MAP_INFO_REQUEST_PACKET};
 
     @BeforeAll
     static void protocols() {
@@ -72,13 +82,19 @@ class ContainerAndJoinAdmissionTest {
     @Test
     void registeredClassesOfEveryTargetProtocolAreAdmitted() {
         // 未按协议注册的编号回落到 Nukkit 原版注册表；这里只提供本组需要的原版类。
-        Map<Integer, Supplier<DataPacket>> vanilla = Map.of(
-                ProtocolInfo.BLOCK_PICK_REQUEST_PACKET, BlockPickRequestPacket::new,
-                ProtocolInfo.BOOK_EDIT_PACKET, BookEditPacket::new,
-                ProtocolInfo.PLAYER_HOTBAR_PACKET, PlayerHotbarPacket::new,
-                ProtocolInfo.CLIENT_TO_SERVER_HANDSHAKE_PACKET, ClientToServerHandshakePacket::new,
-                ProtocolInfo.MOB_EQUIPMENT_PACKET, MobEquipmentPacket::new,
-                ProtocolInfo.RESOURCE_PACK_CLIENT_RESPONSE_PACKET, ResourcePackClientResponsePacket::new);
+        Map<Integer, Supplier<DataPacket>> vanilla = Map.ofEntries(
+                Map.entry(ProtocolInfo.BLOCK_PICK_REQUEST_PACKET, BlockPickRequestPacket::new),
+                Map.entry(ProtocolInfo.BOOK_EDIT_PACKET, BookEditPacket::new),
+                Map.entry(ProtocolInfo.PLAYER_HOTBAR_PACKET, PlayerHotbarPacket::new),
+                Map.entry(ProtocolInfo.CLIENT_TO_SERVER_HANDSHAKE_PACKET, ClientToServerHandshakePacket::new),
+                Map.entry(ProtocolInfo.MOB_EQUIPMENT_PACKET, MobEquipmentPacket::new),
+                Map.entry(ProtocolInfo.RESOURCE_PACK_CLIENT_RESPONSE_PACKET, ResourcePackClientResponsePacket::new),
+                Map.entry(ProtocolInfo.MODAL_FORM_RESPONSE_PACKET, ModalFormResponsePacket::new),
+                Map.entry(ProtocolInfo.SERVER_SETTINGS_REQUEST_PACKET, ServerSettingsRequestPacket::new),
+                Map.entry(ProtocolInfo.NPC_REQUEST_PACKET, NPCRequestPacket::new),
+                Map.entry(ProtocolInfo.COMMAND_REQUEST_PACKET, CommandRequestPacket::new),
+                Map.entry(ProtocolInfo.SET_PLAYER_GAME_TYPE_PACKET, SetPlayerGameTypePacket::new),
+                Map.entry(ProtocolInfo.MAP_INFO_REQUEST_PACKET, MapInfoRequestPacket::new));
         Server server = mock(Server.class);
         Network network = mock(Network.class);
         when(server.getNetwork()).thenReturn(network);

@@ -69,7 +69,13 @@ final class BetweenTickPackets {
             ProtocolInfo.PACKET_NETEASE_JSON, ProtocolInfo.PACKET_SYNC_SKIN,
             ProtocolInfo.PACKET_VIOLATION_WARNING_PACKET, ProtocolInfo.SET_LOCAL_PLAYER_AS_INITIALIZED_PACKET,
             ProtocolInfo.BOSS_EVENT_PACKET, ProtocolInfo.PLAYER_SKIN_PACKET,
-            ProtocolInfo.CLIENT_CACHE_STATUS_PACKET, ProtocolInfo.REQUEST_CHUNK_RADIUS_PACKET);
+            ProtocolInfo.CLIENT_CACHE_STATUS_PACKET, ProtocolInfo.REQUEST_CHUNK_RADIUS_PACKET,
+            // M6：表单回应与设置请求、NPC 对话、命令与设置命令、游戏模式请求、讲台翻页、地图请求；
+            // 回调只依赖墙钟冷却或调度器延迟任务，补充阶段与下一 tick 开头执行结果相同
+            ProtocolInfo.MODAL_FORM_RESPONSE_PACKET, ProtocolInfo.SERVER_SETTINGS_REQUEST_PACKET,
+            ProtocolInfo.NPC_REQUEST_PACKET, ProtocolInfo.COMMAND_REQUEST_PACKET,
+            ProtocolInfo.SETTINGS_COMMAND_PACKET, ProtocolInfo.SET_PLAYER_GAME_TYPE_PACKET,
+            ProtocolInfo.LECTERN_UPDATE_PACKET, ProtocolInfo.MAP_INFO_REQUEST_PACKET);
     private static final long MOVEMENT_FLAGS = ((1L << PlayerAuthInputFlags.START_GLIDING) - 1)
             & ~((1L << PlayerAuthInputFlags.START_SWIMMING) | (1L << PlayerAuthInputFlags.STOP_SWIMMING))
             | (1L << PlayerAuthInputFlags.HANDLED_TELEPORT);
