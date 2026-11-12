@@ -191,6 +191,33 @@ public class SynapsePlayer extends Player {
         return false;
     }
 
+    /**
+     * 合成界面被重置（关窗、聊天、命令、重生、打开其他功能容器等）时，未执行的多包合成随之作废。
+     * 未执行的事务从未修改库存，材料已随合成格退回背包；若保留，之后放入合成格的普通事务与合成分片
+     * 都会并入这个残留事务，合成持续失败直到重新登录。
+     */
+    @Override
+    public void resetCraftingGridType() {
+        super.resetCraftingGridType();
+        this.craftingTransaction = null;
+    }
+
+    /**
+     * 收到客户端关窗包（包括按 ESC 关闭自身背包，窗口 0）时，作废未执行的多包合成。
+     * 合成分片总在关窗之前按序到达，关窗后不可能再续上；关闭自身背包不经过合成格重置，
+     * 放料被拒等原因留下的残留事务会让背包 2×2 合成一直失败。未执行的事务从未改动库存，
+     * 作废后只重发自身背包与 UI 库存（合成格、光标），纠正合成格不一致；
+     * 不重发其他窗口，避免干扰正在关闭的箱子、假箱子等由服务端管理的界面。
+     */
+    protected void abandonPendingCraftOnClientClose() {
+        if (this.craftingTransaction == null) {
+            return;
+        }
+        this.craftingTransaction = null;
+        this.getInventory().sendContents(this);
+        this.getUIInventory().sendContents(this);
+    }
+
     @Override
     public boolean isJavaClient() {
         return loginChainData != null

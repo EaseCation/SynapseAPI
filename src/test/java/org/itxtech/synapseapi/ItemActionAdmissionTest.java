@@ -173,6 +173,7 @@ class ItemActionAdmissionTest {
         void ride(Entity value) { this.riding = value; }
         Server testServer() { return this.server; }
         void pendingCraft(CraftingTransaction value) { this.craftingTransaction = value; }
+        CraftingTransaction pendingCraft() { return this.craftingTransaction; }
         void pendingEnchant(EnchantTransaction value) { this.enchantTransaction = value; }
         void pendingRepair(RepairItemTransaction value) { this.repairItemTransaction = value; }
         void useInventory(PlayerInventory inventory) { this.inventory = inventory; }

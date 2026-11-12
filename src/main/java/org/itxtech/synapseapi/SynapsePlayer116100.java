@@ -1679,6 +1679,7 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
                     return;
                 }
                 if (!callPacketReceiveEvent(packet)) break;
+                this.abandonPendingCraftOnClientClose();
 
                 if (this.getProtocol() >= AbstractProtocol.PROTOCOL_121.getProtocolStart()) {
                     ContainerClosePacket121 containerClosePacket = (ContainerClosePacket121) packet;
