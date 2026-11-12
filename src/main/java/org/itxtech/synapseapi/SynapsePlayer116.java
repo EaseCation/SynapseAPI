@@ -1280,7 +1280,7 @@ public class SynapsePlayer116 extends SynapsePlayer113 {
 							yaw += 360;
 						}
 
-						this.setPendingMovement(newPos, yaw, pitch);
+						this.setPendingMovement(newPos, yaw, pitch, playerAuthInputPacket.getTick());
 						this.forceMovement = null;
 					}
 				}
