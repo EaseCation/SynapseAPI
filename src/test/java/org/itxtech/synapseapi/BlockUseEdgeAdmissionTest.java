@@ -39,8 +39,13 @@ class BlockUseEdgeAdmissionTest {
     }
 
     @Test
-    void javaStartDoesNotInventNativeUsingState() {
+    void javaStartPreservesTheAirUseState() {
         check(true, true, false, true);
+    }
+
+    @Test
+    void javaStopPreservesTheAirUseState() {
+        check(false, true, false, true);
     }
 
     @Test
@@ -88,8 +93,9 @@ class BlockUseEdgeAdmissionTest {
             player.handleDataPacket(packet);
             order.add("follower");
         }
-        assertEquals(cancelled ? List.of("event", "follower")
+        assertEquals(cancelled || javaClient ? List.of("event", "follower")
                 : List.of("event", "using:" + (start && !javaClient), "follower"), order);
+        if (javaClient) verify(player, never()).setUsingItem(anyBoolean());
         verify(player, never()).onUpdate(anyInt());
     }
 }

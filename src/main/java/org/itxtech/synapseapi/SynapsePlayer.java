@@ -1512,57 +1512,55 @@ public class SynapsePlayer extends Player {
     @Nullable
     protected final Item useItemOnBlock(Vector3 position, Item item, BlockFace face,
                                        float clickX, float clickY, float clickZ, @Nullable Boolean clientPrediction) {
-        return this.useItemOnBlock(position, item, face, clickX, clickY, clickZ, clientPrediction, null);
+        return this.useItemOnBlockWithSync(position, item, face, clickX, clickY, clickZ, clientPrediction, null, null).item();
     }
 
     /**
-     * 客户端快照只决定是否省略重复同步，不参与服务端库存授权及扣减。
-     */
-    @Nullable
-    protected final Item useItemOnBlock(Vector3 position, Item item, BlockFace face,
-                                       float clickX, float clickY, float clickZ, @Nullable Boolean clientPrediction,
-                                       @Nullable Item claimedItem) {
-        return this.useItemOnBlockWithSync(position, item, face, clickX, clickY, clickZ, clientPrediction, claimedItem).item();
-    }
-
-    /**
-     * 以同一次动作的结果控制内外两层库存纠正，不把未消耗误当作成功放置。
+     * 客户端快照只控制库存同步；仅 PASS 可沿用原槽及位置代际继续空气使用。
      */
     protected final BlockItemUseResult useItemOnBlockWithSync(Vector3 position, Item item, BlockFace face,
                                                              float clickX, float clickY, float clickZ,
-                                                             @Nullable Boolean clientPrediction, @Nullable Item claimedItem) {
+                                                             @Nullable Boolean clientPrediction, @Nullable Item claimedItem,
+                                                             @Nullable Runnable unhandledUse) {
         boolean inputMode = this.isMainThreadInputEnabled();
+        boolean guarded = inputMode || unhandledUse != null;
         boolean unchangedPrediction = Boolean.FALSE.equals(clientPrediction) && !this.isJavaClient()
                 && item.canBePlaced() && item.equalsExact(claimedItem);
-        if (!inputMode && !unchangedPrediction) {
+        if (!guarded && !unchangedPrediction) {
             Item result = this.level.useItemOn(position, item, face, clickX, clickY, clickZ, this, clientPrediction);
             return new BlockItemUseResult(result, true);
         }
         InventorySlotReference source = this.inventory.captureHeldItem();
         long epoch = this.getMovementEpoch();
         Level actionLevel = this.level;
-        if (inputMode && (!source.getSnapshot().equalsExact(item) || !this.canStartItemUse(source, epoch))) {
+        if (guarded && (!source.getSnapshot().equalsExact(item) || !this.canStartItemUse(source, epoch))) {
             this.resyncItemUse(source);
             return BlockItemUseResult.REJECTED;
         }
         Item before = item.clone();
         Player predictedConsumer = this.predictedBlockConsumer(before, claimedItem, clientPrediction);
-        Item result = inputMode
-                ? actionLevel.useItemOn(position, item, face, clickX, clickY, clickZ, this, clientPrediction,
+        ItemUseResult blockResult = guarded
+                ? actionLevel.useItemOnResult(position, item, face, clickX, clickY, clickZ, this, clientPrediction,
                         () -> this.level == actionLevel && this.canStartItemUse(source, epoch))
+                : null;
+        Item result = guarded ? blockResult.item()
                 : actionLevel.useItemOn(position, item, face, clickX, clickY, clickZ, this, clientPrediction);
         if (result == null) {
+            if (unhandledUse != null && blockResult.status() == ItemUseResult.Status.PASS
+                    && this.level == actionLevel && this.canStartItemUse(source, epoch)) {
+                unhandledUse.run();
+            }
             if (unchangedPrediction && this.level == actionLevel && source.getSnapshot().equalsExact(before)
                     && super.canContinueItemUse(epoch) && this.isCurrentInputPosition()
                     && (!inputMode || this.isAcceptingInputPackets())
                     && source.isSelectedBy(this.inventory) && source.isCurrent()) {
                 return BlockItemUseResult.UNCHANGED;
             }
-            if (inputMode) this.resyncItemUse(source);
+            if (guarded) this.resyncItemUse(source);
             return BlockItemUseResult.REJECTED;
         }
-        if (inputMode && this.isSurvivalLike() && !result.equalsExact(before)) {
-            if (!this.isOnline() || !this.isInputSessionActive()
+        if (guarded && this.isSurvivalLike() && !result.equalsExact(before)) {
+            if (!this.isOnline() || inputMode && !this.isInputSessionActive()
                     || !(predictedConsumer == null ? source.setItem(result) : source.setItem(result, predictedConsumer))) {
                 this.resyncItemUse(source);
             } else {
@@ -1592,8 +1590,7 @@ public class SynapsePlayer extends Player {
 
     @Override
     public boolean canContinueItemUse(long movementEpoch) {
-        return super.canContinueItemUse(movementEpoch)
-                && this.isAcceptingInputPackets() && this.isCurrentInputPosition();
+        return super.canContinueItemUse(movementEpoch) && this.canContinueInputState();
     }
 
     /** 交互事件之后，原物品和目标仍须属于本次动作。 */
@@ -1641,7 +1638,7 @@ public class SynapsePlayer extends Player {
     }
 
     protected final void resyncItemUse(@Nullable InventorySlotReference source) {
-        if (!this.isOnline() || !this.isInputSessionActive()) {
+        if (!this.isOnline() || this.isMainThreadInputEnabled() && !this.isInputSessionActive()) {
             return;
         }
         if (source == null) {

@@ -5,6 +5,7 @@ import cn.nukkit.inventory.InventorySlotReference;
 import cn.nukkit.inventory.PlayerInventory;
 import cn.nukkit.item.Item;
 import cn.nukkit.item.ItemID;
+import cn.nukkit.level.ItemUseResult;
 import cn.nukkit.level.Level;
 import cn.nukkit.math.BlockFace;
 import cn.nukkit.math.Vector3;
@@ -50,8 +51,8 @@ class BlockItemSourceTest {
             when(source.isSelectedBy(inventory)).thenReturn(false);
             Item remaining = item.clone();
             remaining.setCount(7);
-            return remaining;
-        }).when(level).useItemOn(eq(position), same(item), eq(BlockFace.UP), eq(0F), eq(0F), eq(0F), same(player), isNull(), any(BooleanSupplier.class));
+            return ItemUseResult.success(remaining);
+        }).when(level).useItemOnResult(eq(position), same(item), eq(BlockFace.UP), eq(0F), eq(0F), eq(0F), same(player), isNull(), any(BooleanSupplier.class));
         Item result = place();
         assertNotNull(result);
         assertEquals(7, result.getCount());
@@ -64,8 +65,8 @@ class BlockItemSourceTest {
         doAnswer(call -> {
             when(source.isSelectedBy(inventory)).thenReturn(false);
             assertFalse(((BooleanSupplier) call.getArgument(8)).getAsBoolean());
-            return null;
-        }).when(level).useItemOn(eq(position), same(item), eq(BlockFace.UP), eq(0F), eq(0F), eq(0F), same(player), isNull(), any(BooleanSupplier.class));
+            return ItemUseResult.FAIL;
+        }).when(level).useItemOnResult(eq(position), same(item), eq(BlockFace.UP), eq(0F), eq(0F), eq(0F), same(player), isNull(), any(BooleanSupplier.class));
         assertNull(place());
         verify(source, never()).setItem(any());
         verify(source).sendContents(player);
@@ -84,9 +85,9 @@ class BlockItemSourceTest {
         Item remaining = item.clone();
         remaining.setCount(7);
         when(source.setItem(any())).thenReturn(false);
-        doReturn(remaining).when(level).useItemOn(eq(position), same(item), eq(BlockFace.UP), eq(0F), eq(0F), eq(0F), same(player), isNull(), any(BooleanSupplier.class));
+        doReturn(ItemUseResult.success(remaining)).when(level).useItemOnResult(eq(position), same(item), eq(BlockFace.UP), eq(0F), eq(0F), eq(0F), same(player), isNull(), any(BooleanSupplier.class));
         assertSame(remaining, place());
-        verify(level, times(1)).useItemOn(eq(position), same(item), eq(BlockFace.UP), eq(0F), eq(0F), eq(0F), same(player), isNull(), any(BooleanSupplier.class));
+        verify(level, times(1)).useItemOnResult(eq(position), same(item), eq(BlockFace.UP), eq(0F), eq(0F), eq(0F), same(player), isNull(), any(BooleanSupplier.class));
         verify(source).sendContents(player);
         verify(inventory, never()).setItemInHand(any());
     }
