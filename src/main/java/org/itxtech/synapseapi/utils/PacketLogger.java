@@ -10,6 +10,8 @@ import org.itxtech.synapseapi.multiprotocol.protocol16.protocol.CompatibilityPac
 
 import java.util.Arrays;
 
+import static org.itxtech.synapseapi.SynapseSharedConstants.*;
+
 @Log4j2
 public final class PacketLogger {
     public static final boolean[] CLIENTBOUND_FILTER = new boolean[ProtocolInfo.COUNT];
@@ -58,6 +60,18 @@ public final class PacketLogger {
         CLIENTBOUND_FILTER[ProtocolInfo.CLIENT_CACHE_MISS_RESPONSE_PACKET] = !debugChunk;
         CLIENTBOUND_FILTER[ProtocolInfo.NETWORK_CHUNK_PUBLISHER_UPDATE_PACKET] = !debugChunk;
         CLIENTBOUND_FILTER[ProtocolInfo.NETWORK_STACK_LATENCY_PACKET] = true;
+
+        if (SERVER_AUTHORITATIVE_INVENTORY_DEBUG) {
+            CLIENTBOUND_FILTER[ProtocolInfo.MOVE_PLAYER_PACKET] = true;
+            CLIENTBOUND_FILTER[ProtocolInfo.MOVE_ACTOR_ABSOLUTE_PACKET] = true;
+            CLIENTBOUND_FILTER[ProtocolInfo.MOVE_ACTOR_DELTA_PACKET] = true;
+            CLIENTBOUND_FILTER[ProtocolInfo.AVAILABLE_COMMANDS_PACKET] = true;
+            CLIENTBOUND_FILTER[ProtocolInfo.SET_TIME_PACKET] = true;
+            CLIENTBOUND_FILTER[ProtocolInfo.UPDATE_ATTRIBUTES_PACKET] = true;
+            CLIENTBOUND_FILTER[ProtocolInfo.LEVEL_SOUND_EVENT_PACKET_V3] = true;
+            CLIENTBOUND_FILTER[ProtocolInfo.SET_ACTOR_DATA_PACKET] = true;
+            CLIENTBOUND_FILTER[ProtocolInfo.BLOCK_ACTOR_DATA_PACKET] = true;
+        }
 
         SERVERBOUND_FILTER[ProtocolInfo.MOVE_PLAYER_PACKET] = !debugPlayer;
         SERVERBOUND_FILTER[ProtocolInfo.PLAYER_AUTH_INPUT_PACKET] = !debugPlayer;

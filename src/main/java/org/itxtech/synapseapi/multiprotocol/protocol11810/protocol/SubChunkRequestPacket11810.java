@@ -36,7 +36,8 @@ public class SubChunkRequestPacket11810 extends Packet11810 {
         this.subChunkX = this.getVarInt();
         this.subChunkY = this.getVarInt();
         this.subChunkZ = this.getVarInt();
-        this.positionOffsets = this.getArray(BinaryStream::getLInt, new BlockVector3[0], stream -> new BlockVector3(stream.getSignedByte(), stream.getSignedByte(), stream.getSignedByte()), MAX_SUB_CHUNKS);
+        this.positionOffsets = this.getArray(BinaryStream::getLInt, new BlockVector3[0],
+                stream -> new BlockVector3(stream.getSignedByte(), stream.getSignedByte(), stream.getSignedByte()), MAX_SUB_CHUNKS);
     }
 
     @Override

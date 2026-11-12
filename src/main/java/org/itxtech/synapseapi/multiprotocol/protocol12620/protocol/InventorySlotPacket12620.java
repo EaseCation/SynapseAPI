@@ -57,6 +57,9 @@ public class InventorySlotPacket12620 extends Packet12620 {
     public DataPacket fromDefault(DataPacket pk) {
         InventorySlotPacket packet = (InventorySlotPacket) pk;
         this.inventoryId = packet.inventoryId;
+        this.containerSlotType = packet.containerSlotType;
+        this.dynamicContainerId = packet.dynamicContainerId;
+        this.storageItem = packet.storageItem;
         this.slot = packet.slot;
         this.item = packet.item;
         return this;

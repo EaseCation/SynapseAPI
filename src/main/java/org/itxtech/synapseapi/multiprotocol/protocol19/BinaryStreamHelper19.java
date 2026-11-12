@@ -45,7 +45,7 @@ public class BinaryStreamHelper19 extends BinaryStreamHelper18 {
         if (nbtLen < Short.MAX_VALUE) {
             nbt = stream.get(nbtLen);
         } else if (nbtLen == 65535) {
-            int nbtTagCount = (int) stream.getUnsignedVarInt();
+            int nbtTagCount = stream.getUnsignedVarInt(4096);
             int offset = stream.getOffset();
             FastByteArrayInputStream inputStream = new FastByteArrayInputStream(stream.get());
             for (int i = 0; i < nbtTagCount; i++) {
@@ -78,11 +78,8 @@ public class BinaryStreamHelper19 extends BinaryStreamHelper18 {
         }
 
         Set<String> canPlace;
-        int canPlaceCount = stream.getVarInt();
+        int canPlaceCount = stream.getVarInt(4096);
         if (canPlaceCount > 0) {
-            if (canPlaceCount > 4096) {
-                throw new IndexOutOfBoundsException("Too many CanPlaceOn blocks");
-            }
             canPlace = new ObjectOpenHashSet<>();
             for (int i = 0; i < canPlaceCount; i++) {
                 canPlace.add(stream.getString());
@@ -92,11 +89,8 @@ public class BinaryStreamHelper19 extends BinaryStreamHelper18 {
         }
 
         Set<String> canBreak;
-        int canBreakCount = stream.getVarInt();
+        int canBreakCount = stream.getVarInt(4096);
         if (canBreakCount > 0) {
-            if (canBreakCount > 4096) {
-                throw new IndexOutOfBoundsException("Too many CanDestroy blocks");
-            }
             canBreak = new ObjectOpenHashSet<>();
             for (int i = 0; i < canBreakCount; i++) {
                 canBreak.add(stream.getString());

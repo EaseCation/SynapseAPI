@@ -22,6 +22,8 @@ import java.util.EnumMap;
 import java.util.Map;
 import java.util.zip.Deflater;
 
+import static org.itxtech.synapseapi.SynapseSharedConstants.SERVER_AUTHORITATIVE_INVENTORY;
+
 /**
  * CraftingDataPacket + TrimDataPacket
  */
@@ -54,8 +56,10 @@ public final class CraftingPacketManager {
             }
         }
 
-        for (FurnaceRecipe recipe : Server.getInstance().getCraftingManager().getFurnaceRecipes().values()) {
-            pk.addFurnaceRecipe(recipe);
+        for (RecipeTag tag : RecipeTag.getValues()) {
+            for (FurnaceRecipe recipe : Server.getInstance().getCraftingManager().getFurnaceRecipes(tag).values()) {
+                pk.addFurnaceRecipe(recipe);
+            }
         }
 
         for (MultiRecipe recipe : Server.getInstance().getCraftingManager().getMultiRecipes().values()) {
@@ -78,18 +82,22 @@ public final class CraftingPacketManager {
             pk.addMaterialReducerRecipe(recipe);
         }
 
-        for (SmithingTransformRecipe recipe : Server.getInstance().getCraftingManager().getSmithingRecipes().values()) {
-            pk.addSmithingTransformRecipe(recipe);
+        for (RecipeTag tag : RecipeTag.getValues()) {
+            for (SmithingTransformRecipe recipe : Server.getInstance().getCraftingManager().getSmithingRecipes(tag)) {
+                pk.addSmithingTransformRecipe(recipe);
+            }
         }
 
-        for (SmithingTrimRecipe recipe : Server.getInstance().getCraftingManager().getSmithingTrimRecipes().values()) {
+        for (SmithingTrimRecipe recipe : Server.getInstance().getCraftingManager().getSmithingTrimRecipes()) {
             pk.addSmithingTrimRecipe(recipe);
         }
 
-        pk.tryEncode();
-        BatchPacket origin = pk.compress(Compressor.ZLIB, Deflater.BEST_COMPRESSION);
-        originPacket[0] = origin;
-        originPacket[1] = origin;
+        if (!SERVER_AUTHORITATIVE_INVENTORY) {
+            pk.tryEncode();
+            BatchPacket origin = pk.compress(Compressor.ZLIB, Deflater.BEST_COMPRESSION);
+            originPacket[0] = origin;
+            originPacket[1] = origin;
+        }
 
         for (AbstractProtocol protocol : AbstractProtocol.getValues()) {
             if (protocol.ordinal() < AbstractProtocol.FIRST_AVAILABLE_PROTOCOL.ordinal()) {
@@ -150,6 +158,16 @@ public final class CraftingPacketManager {
                 packets.put(protocol, new BatchPacket[]{(BatchPacket) pk0, (BatchPacket) pkNE});
             }
         }
+
+        if (SERVER_AUTHORITATIVE_INVENTORY) {
+            useServerAuthoritativeFallback();
+        }
+    }
+
+    private static void useServerAuthoritativeFallback() {
+        BatchPacket[] fallback = packets.get(AbstractProtocol.FIRST_AVAILABLE_PROTOCOL);
+        originPacket[0] = fallback[0];
+        originPacket[1] = fallback[1];
     }
 
     public static BatchPacket getCachedCraftingPacket(AbstractProtocol protocol, boolean netease) {

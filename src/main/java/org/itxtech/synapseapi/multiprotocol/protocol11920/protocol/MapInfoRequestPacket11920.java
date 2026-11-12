@@ -1,5 +1,6 @@
 package org.itxtech.synapseapi.multiprotocol.protocol11920.protocol;
 
+import cn.nukkit.utils.BinaryStream;
 import cn.nukkit.network.protocol.ProtocolInfo;
 import cn.nukkit.utils.BlockColor;
 import lombok.AllArgsConstructor;
@@ -26,11 +27,8 @@ public class MapInfoRequestPacket11920 extends Packet11920 {
     public void decode() {
         mapId = getEntityUniqueId();
 
-        int count = getLInt();
-        if (count > MAX_MAP_PIXELS) {
-            throw new IndexOutOfBoundsException("Too many pixels");
-        }
-        clientPixels = getArray(count, new PixelEntry[0], stream -> new PixelEntry(stream.getLInt(), stream.getLShort()));
+        clientPixels = getArray(BinaryStream::getLInt, new PixelEntry[0],
+                stream -> new PixelEntry(stream.getLInt(), stream.getLShort()), MAX_MAP_PIXELS);
     }
 
     @Override

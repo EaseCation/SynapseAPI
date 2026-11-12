@@ -29,11 +29,11 @@ public class ClientCacheBlobStatusPacket112 extends Packet112 {
 
     @Override
     public void decode() {
-        int missCount = (int) this.getUnsignedVarInt();
-        int hitCount = (int) this.getUnsignedVarInt();
+        int missCount = this.getUnsignedVarInt(0xfff);
+        int hitCount = this.getUnsignedVarInt(0xfff);
         int sum = missCount + hitCount;
 
-        if (missCount > 0xfff || hitCount > 0xfff || sum > 0xfff) {
+        if (sum > 0xfff) {
             throw new IndexOutOfBoundsException("Too many BlobIDs");
         }
         if (!isReadable(sum * 8)) {

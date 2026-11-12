@@ -1,5 +1,6 @@
 package org.itxtech.synapseapi.multiprotocol.protocol11830ne.protocol;
 
+import cn.nukkit.utils.BinaryStream;
 import cn.nukkit.network.protocol.ProtocolInfo;
 import cn.nukkit.utils.BlockColor;
 import lombok.AllArgsConstructor;
@@ -30,11 +31,8 @@ public class MapInfoRequestPacket11830NE extends Packet11830NE {
             return;
         }
 
-        int count = getLInt();
-        if (count > MAX_MAP_PIXELS) {
-            throw new IndexOutOfBoundsException("Too many pixels");
-        }
-        clientPixels = getArray(count, new PixelEntry[0], stream -> new PixelEntry(stream.getLInt(), stream.getLShort()));
+        clientPixels = getArray(BinaryStream::getLInt, new PixelEntry[0],
+                stream -> new PixelEntry(stream.getLInt(), stream.getLShort()), MAX_MAP_PIXELS);
     }
 
     @Override

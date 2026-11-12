@@ -211,26 +211,23 @@ public class InventoryTransactionPacket12630 extends Packet12630 implements Inve
 
     @Override
     public void decode() {
+        if (SERVER_AUTHORITATIVE_INVENTORY) {
+            this.actions = new NetworkInventoryAction[0];
+        }
+
         AbstractProtocol protocol = (AbstractProtocol) helper.getProtocol();
 
         this.legacyRequestId = this.getVarInt();
 
         if (this.getBoolean()) { // legacyRequestIdValid
-            int length = (int) this.getUnsignedVarInt();
-            if (length > 10) {
-                throw new IndexOutOfBoundsException("Too many slot sync requests in inventory transaction");
-            }
+            int length = this.getUnsignedVarInt(10);
             this.requestChangedSlots = new LegacySetItemSlotData[length];
             for (int i = 0; i < length; i++) {
                 LegacySetItemSlotData requestChangedSlot = new LegacySetItemSlotData();
 
                 requestChangedSlot.containerId = this.getByte();
 
-                int slotCount = (int) this.getUnsignedVarInt();
-                requestChangedSlot.changedSlotIndexes = this.get(slotCount);
-                if (requestChangedSlot.changedSlotIndexes.length != slotCount) {
-                    throw new ArrayIndexOutOfBoundsException("array length mismatch");
-                }
+                requestChangedSlot.changedSlotIndexes = this.getByteArray();
 
                 this.requestChangedSlots[i] = requestChangedSlot;
             }
@@ -242,13 +239,17 @@ public class InventoryTransactionPacket12630 extends Packet12630 implements Inve
         this.transactionType = (int) this.getUnsignedVarInt();
 
         if (this.getBoolean()) { // hasActions
-            int count = (int) this.getUnsignedVarInt();
-            if (count > (SERVER_AUTHORITATIVE_INVENTORY ? 50 : 100)) {
-                throw new IndexOutOfBoundsException("Too many actions in inventory transaction");
+            int count = this.getUnsignedVarInt(SERVER_AUTHORITATIVE_INVENTORY ? 50 : 100);
+            if (SERVER_AUTHORITATIVE_INVENTORY && transactionType == TYPE_NORMAL && count > 5) {
+                throw new IndexOutOfBoundsException("Too many actions in normal inventory transaction");
             }
             this.actions = new NetworkInventoryAction[count];
             for (int i = 0; i < this.actions.length; i++) {
-                this.actions[i] = new NetworkInventoryAction().readCereal(this, this);
+                if (SERVER_AUTHORITATIVE_INVENTORY) {
+                    this.actions[i] = new NetworkInventoryAction().readCerealNew(this);
+                } else {
+                    this.actions[i] = new NetworkInventoryAction().readCereal(this, this);
+                }
             }
         }
 

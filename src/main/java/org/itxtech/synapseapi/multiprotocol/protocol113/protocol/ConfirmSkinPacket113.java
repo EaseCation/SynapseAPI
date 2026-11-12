@@ -29,10 +29,16 @@ public class ConfirmSkinPacket113 extends Packet113 {
 		this.reset();
 		this.putUnsignedVarInt(this.uuids.size());
 		for (UUID uuid : this.uuids) {
-			this.putBoolean(true);
+			this.putBoolean(true); // isValid
 			this.putUUID(uuid);
-			this.putByteArray(new byte[0]);
+			this.putByteArray(new byte[0]); // skinBytes
 		}
+//		for (int i = 0; i < this.uuids.size(); i++) {
+//			this.putString(""); // uidStr
+//		}
+//		for (int i = 0; i < this.uuids.size(); i++) {
+//			this.putString(""); // geoStr
+//		}
 	}
 
 }

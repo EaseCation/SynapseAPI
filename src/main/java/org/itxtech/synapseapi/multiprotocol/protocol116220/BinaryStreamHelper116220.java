@@ -4,6 +4,7 @@ import cn.nukkit.block.Block;
 import cn.nukkit.item.Item;
 import cn.nukkit.item.ItemDurable;
 import cn.nukkit.item.ItemID;
+import cn.nukkit.item.Items;
 import cn.nukkit.nbt.NBTIO;
 import cn.nukkit.nbt.tag.CompoundTag;
 import cn.nukkit.nbt.tag.Tag;
@@ -47,8 +48,8 @@ public class BinaryStreamHelper116220 extends BinaryStreamHelper116210 {
 
     protected Item getSlot(BinaryStream stream, boolean instanceItem) {
         int id = stream.getVarInt();
-        if (id == 0) {
-            return Item.get(Item.AIR, 0, 0);
+        if (id == ItemID.AIR) {
+            return Items.air();
         }
 
         if (id < Short.MIN_VALUE || id >= Short.MAX_VALUE) {
@@ -68,8 +69,11 @@ public class BinaryStreamHelper116220 extends BinaryStreamHelper116210 {
             damage = AdvancedRuntimeItemPalette.getData(this.protocol, stream.neteaseMode, fullId);
         }
 
+        int itemStackId;
         if (!instanceItem && stream.getBoolean()) { // hasNetId
-            stream.getVarInt(); // netId
+            itemStackId = stream.getVarInt(); // netId
+        } else {
+            itemStackId = Integer.MIN_VALUE;
         }
 
         int blockRuntimeId = stream.getVarInt();
@@ -116,11 +120,8 @@ public class BinaryStreamHelper116220 extends BinaryStreamHelper116210 {
                 }
             }
 
-            int canPlaceCount = in.readInt();
+            int canPlaceCount = BinaryStream.checkLength(in.readInt(), 4096);
             if (canPlaceCount > 0) {
-                if (canPlaceCount > 4096) {
-                    throw new IndexOutOfBoundsException("Too many CanPlaceOn blocks");
-                }
                 canPlace = new ObjectOpenHashSet<>();
                 for (int i = 0; i < canPlaceCount; i++) {
                     canPlace.add(in.readUTF());
@@ -129,11 +130,8 @@ public class BinaryStreamHelper116220 extends BinaryStreamHelper116210 {
                 canPlace = null;
             }
 
-            int canBreakCount = in.readInt();
+            int canBreakCount = BinaryStream.checkLength(in.readInt(), 4096);
             if (canBreakCount > 0) {
-                if (canBreakCount > 4096) {
-                    throw new IndexOutOfBoundsException("Too many CanDestroy blocks");
-                }
                 canBreak = new ObjectOpenHashSet<>();
                 for (int i = 0; i < canBreakCount; i++) {
                     canBreak.add(in.readUTF());
@@ -167,6 +165,10 @@ public class BinaryStreamHelper116220 extends BinaryStreamHelper116210 {
 
         if (canBreak != null && !canBreak.isEmpty()) {
             item.setCanDestroyBlocks(canBreak);
+        }
+
+        if (SynapseSharedConstants.SERVER_AUTHORITATIVE_INVENTORY) {
+            item.setItemStackId(itemStackId);
         }
 
         return item;
@@ -206,7 +208,11 @@ public class BinaryStreamHelper116220 extends BinaryStreamHelper116210 {
 
         if (!instanceItem) {
             stream.putBoolean(true); // hasNetId
-            stream.putVarInt(1); // netId
+            if (SynapseSharedConstants.SERVER_AUTHORITATIVE_INVENTORY) {
+                putServerAuthoritativeItemStackId(stream, item);
+            } else {
+                stream.putVarInt(1); // netId
+            }
         }
 
         Block block = isBlock ? item.getBlockUnsafe() : null;
@@ -280,6 +286,11 @@ public class BinaryStreamHelper116220 extends BinaryStreamHelper116210 {
         } finally {
             userDataBuf.release();
         }
+    }
+
+    protected void putServerAuthoritativeItemStackId(BinaryStream stream, Item item) {
+        int itemStackId = item.getItemStackId();
+        stream.putVarInt(itemStackId == Integer.MIN_VALUE ? 1 : itemStackId);
     }
 
 }

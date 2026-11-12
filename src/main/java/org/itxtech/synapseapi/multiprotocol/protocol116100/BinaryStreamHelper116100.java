@@ -3,6 +3,8 @@ package org.itxtech.synapseapi.multiprotocol.protocol116100;
 import cn.nukkit.block.Block;
 import cn.nukkit.entity.data.Skin;
 import cn.nukkit.inventory.RecipeType;
+import cn.nukkit.inventory.recipe.descriptor.DefaultItemDescriptor;
+import cn.nukkit.inventory.recipe.RecipeIngredient;
 import cn.nukkit.item.Item;
 import cn.nukkit.item.ItemDurable;
 import cn.nukkit.item.ItemID;
@@ -10,6 +12,7 @@ import cn.nukkit.item.Items;
 import cn.nukkit.nbt.NBTIO;
 import cn.nukkit.nbt.tag.CompoundTag;
 import cn.nukkit.nbt.tag.Tag;
+import cn.nukkit.network.protocol.types.ItemDescriptorType;
 import cn.nukkit.utils.*;
 import it.unimi.dsi.fastutil.io.FastByteArrayInputStream;
 import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet;
@@ -60,7 +63,7 @@ public class BinaryStreamHelper116100 extends BinaryStreamHelper116100NE {
         if (nbtLen < Short.MAX_VALUE) {
             nbt = stream.get(nbtLen);
         } else if (nbtLen == 65535) {
-            int nbtTagCount = (int) stream.getUnsignedVarInt();
+            int nbtTagCount = stream.getUnsignedVarInt(4096);
             int offset = stream.getOffset();
             FastByteArrayInputStream inputStream = new FastByteArrayInputStream(stream.get());
             for (int i = 0; i < nbtTagCount; i++) {
@@ -93,11 +96,8 @@ public class BinaryStreamHelper116100 extends BinaryStreamHelper116100NE {
         }
 
         Set<String> canPlace;
-        int canPlaceCount = stream.getVarInt();
+        int canPlaceCount = stream.getVarInt(4096);
         if (canPlaceCount > 0) {
-            if (canPlaceCount > 4096) {
-                throw new IndexOutOfBoundsException("Too many CanPlaceOn blocks");
-            }
             canPlace = new ObjectOpenHashSet<>();
             for (int i = 0; i < canPlaceCount; i++) {
                 canPlace.add(stream.getString());
@@ -107,11 +107,8 @@ public class BinaryStreamHelper116100 extends BinaryStreamHelper116100NE {
         }
 
         Set<String> canBreak;
-        int canBreakCount = stream.getVarInt();
+        int canBreakCount = stream.getVarInt(4096);
         if (canBreakCount > 0) {
-            if (canBreakCount > 4096) {
-                throw new IndexOutOfBoundsException("Too many CanDestroy blocks");
-            }
             canBreak = new ObjectOpenHashSet<>();
             for (int i = 0; i < canBreakCount; i++) {
                 canBreak.add(stream.getString());
@@ -238,6 +235,38 @@ public class BinaryStreamHelper116100 extends BinaryStreamHelper116100NE {
         stream.putVarInt(ingredient.getCount());
     }
 
+
+    @Override
+    public void putRecipeIngredient(BinaryStream stream, RecipeIngredient ingredient) {
+        if (ingredient == null || ingredient.getDescriptor().getType() == ItemDescriptorType.NONE) {
+            stream.putVarInt(ItemID.AIR);
+            return;
+        }
+
+        if (!(ingredient.getDescriptor() instanceof DefaultItemDescriptor descriptor)) {
+            throw new UnsupportedOperationException("Unsupported recipe ingredient descriptor: " + ingredient.getDescriptor().getType());
+        }
+
+        Item item = descriptor.getItem();
+        if (item == null || item.getId() == ItemID.AIR) {
+            stream.putVarInt(ItemID.AIR);
+            return;
+        }
+
+        int networkFullId = AdvancedRuntimeItemPalette.getNetworkFullId(this.protocol, stream.neteaseMode, item);
+        int networkId = AdvancedRuntimeItemPalette.getNetworkId(this.protocol, stream.neteaseMode, networkFullId);
+        int damage = item.hasMeta() ? item.getDamage() : 0x7fff;
+        if (AdvancedRuntimeItemPalette.hasData(this.protocol, stream.neteaseMode, networkFullId)) {
+            damage = 0;
+        }
+
+        networkId = convertCustomBlockItemServerIdToClientId(networkId);
+
+        stream.putVarInt(networkId);
+        stream.putVarInt(damage);
+        stream.putVarInt(ingredient.getCount());
+    }
+
     @Override
     public void putFurnaceRecipeIngredient(BinaryStream stream, Item ingredient, RecipeType type) {
         int networkFullId = AdvancedRuntimeItemPalette.getNetworkFullId(this.protocol, stream.neteaseMode, ingredient);
@@ -327,7 +356,7 @@ public class BinaryStreamHelper116100 extends BinaryStreamHelper116100NE {
         skin.setSkinResourcePatch(stream.getString());
         skin.setSkinData(stream.getImage());
 
-        int animationCount = stream.getLInt();
+        int animationCount = stream.getLInt(4096);
         for (int i = 0; i < animationCount; i++) {
             SerializedImage image = stream.getImage();
             int type = stream.getLInt();
@@ -347,7 +376,7 @@ public class BinaryStreamHelper116100 extends BinaryStreamHelper116100NE {
         skin.setArmSize(stream.getString());
         skin.setSkinColor(stream.getString());
 
-        int piecesLength = stream.getLInt();
+        int piecesLength = stream.getLInt(4096);
         for (int i = 0; i < piecesLength; i++) {
             String pieceId = stream.getString();
             String pieceType = stream.getString();
@@ -357,11 +386,11 @@ public class BinaryStreamHelper116100 extends BinaryStreamHelper116100NE {
             skin.getPersonaPieces().add(new PersonaPiece(pieceId, pieceType, packId, isDefault, productId));
         }
 
-        int tintsLength = stream.getLInt();
+        int tintsLength = stream.getLInt(4096);
         for (int i = 0; i < tintsLength; i++) {
             String pieceType = stream.getString();
             List<String> colors = new ArrayList<>();
-            int colorsLength = stream.getLInt();
+            int colorsLength = stream.getLInt(4096);
             for (int i2 = 0; i2 < colorsLength; i2++) {
                 colors.add(stream.getString());
             }

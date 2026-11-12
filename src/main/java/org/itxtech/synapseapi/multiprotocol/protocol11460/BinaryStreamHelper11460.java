@@ -72,7 +72,7 @@ public class BinaryStreamHelper11460 extends BinaryStreamHelper114 {
         skin.setSkinResourcePatch(stream.getString());
         skin.setSkinData(stream.getImage());
 
-        int animationCount = stream.getLInt();
+        int animationCount = stream.getLInt(4096);
         for (int i = 0; i < animationCount; i++) {
             SerializedImage image = stream.getImage();
             int type = stream.getLInt();
@@ -91,7 +91,7 @@ public class BinaryStreamHelper11460 extends BinaryStreamHelper114 {
         skin.setArmSize(stream.getString());
         skin.setSkinColor(stream.getString());
 
-        int piecesLength = stream.getLInt();
+        int piecesLength = stream.getLInt(4096);
         for (int i = 0; i < piecesLength; i++) {
             String pieceId = stream.getString();
             String pieceType = stream.getString();
@@ -101,11 +101,11 @@ public class BinaryStreamHelper11460 extends BinaryStreamHelper114 {
             skin.getPersonaPieces().add(new PersonaPiece(pieceId, pieceType, packId, isDefault, productId));
         }
 
-        int tintsLength = stream.getLInt();
+        int tintsLength = stream.getLInt(4096);
         for (int i = 0; i < tintsLength; i++) {
             String pieceType = stream.getString();
             List<String> colors = new ArrayList<>();
-            int colorsLength = stream.getLInt();
+            int colorsLength = stream.getLInt(4096);
             for (int i2 = 0; i2 < colorsLength; i2++) {
                 colors.add(stream.getString());
             }

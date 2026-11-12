@@ -1,6 +1,7 @@
 package org.itxtech.synapseapi.multiprotocol.protocol11930;
 
 import cn.nukkit.inventory.recipe.*;
+import cn.nukkit.inventory.recipe.descriptor.*;
 import cn.nukkit.item.Item;
 import cn.nukkit.network.protocol.types.ItemDescriptorType;
 import cn.nukkit.network.protocol.types.ItemStackRequest;
@@ -28,7 +29,12 @@ public class BinaryStreamHelper11930 extends BinaryStreamHelper11921 {
                 descriptor = InvalidItemDescriptor.INSTANCE;
                 break;
             case 1:
-                int networkId = stream.getLShort();
+                int networkId = (short) stream.getLShort();
+
+                if (networkId == Item.AIR) {
+                    descriptor = InvalidItemDescriptor.INSTANCE;
+                    break;
+                }
 
                 networkId = convertCustomBlockItemClientIdToServerId(networkId);
 
@@ -40,7 +46,8 @@ public class BinaryStreamHelper11930 extends BinaryStreamHelper11921 {
                 if (hasData) {
                     damage = AdvancedRuntimeItemPalette.getData(this.protocol, stream.neteaseMode, legacyFullId);
                 } else if (damage == 0x7fff) {
-                    damage = -1;
+//                    damage = -1;
+                    damage = 0;
                 } else {
                     damage = 0;
                 }
@@ -76,6 +83,32 @@ public class BinaryStreamHelper11930 extends BinaryStreamHelper11921 {
     }
 
     @Override
+    public void putCraftingRecipeIngredient(BinaryStream stream, Item ingredient) { //TODO: ItemDescriptor
+        if (ingredient == null || ingredient.getId() == Item.AIR) {
+            stream.putByte((byte) ItemDescriptorType.NONE.ordinal());
+            stream.putVarInt(0);
+            return;
+        }
+
+        int networkFullId = AdvancedRuntimeItemPalette.getNetworkFullId(this.protocol, stream.neteaseMode, ingredient);
+        int networkId = AdvancedRuntimeItemPalette.getNetworkId(this.protocol, stream.neteaseMode, networkFullId);
+        int damage = ingredient.hasMeta() ? ingredient.getDamage() : 0x7fff;
+        if (AdvancedRuntimeItemPalette.hasData(this.protocol, stream.neteaseMode, networkFullId)) {
+            damage = 0;
+        }
+
+        networkId = convertCustomBlockItemServerIdToClientId(networkId);
+
+        stream.putByte((byte) ItemDescriptorType.INTERNAL.ordinal());
+
+        stream.putLShort(networkId);
+        stream.putLShort(damage);
+
+        stream.putVarInt(ingredient.getCount());
+    }
+
+
+    @Override
     public void putRecipeIngredient(BinaryStream stream, RecipeIngredient ingredient) {
         if (ingredient == null) {
             ingredient = RecipeIngredient.EMPTY;
@@ -109,9 +142,7 @@ public class BinaryStreamHelper11930 extends BinaryStreamHelper11921 {
 
                 stream.putLShort(networkId);
                 stream.putLShort(damage);
-
-                stream.putVarInt(ingredient.getCount());
-                return;
+                break;
             case MOLANG:
                 MolangItemDescriptor molangDescriptor = (MolangItemDescriptor) descriptor;
                 stream.putString(molangDescriptor.getExpression());
@@ -127,31 +158,6 @@ public class BinaryStreamHelper11930 extends BinaryStreamHelper11921 {
                 stream.putLShort(deferredDescriptor.getMeta());
                 break;
         }
-
-        stream.putVarInt(ingredient.getCount());
-    }
-
-    @Override
-    public void putCraftingRecipeIngredient(BinaryStream stream, Item ingredient) { //TODO: ItemDescriptor
-        if (ingredient == null || ingredient.getId() == Item.AIR) {
-            stream.putByte((byte) ItemDescriptorType.NONE.ordinal());
-            stream.putVarInt(0);
-            return;
-        }
-
-        int networkFullId = AdvancedRuntimeItemPalette.getNetworkFullId(this.protocol, stream.neteaseMode, ingredient);
-        int networkId = AdvancedRuntimeItemPalette.getNetworkId(this.protocol, stream.neteaseMode, networkFullId);
-        int damage = ingredient.hasMeta() ? ingredient.getDamage() : 0x7fff;
-        if (AdvancedRuntimeItemPalette.hasData(this.protocol, stream.neteaseMode, networkFullId)) {
-            damage = 0;
-        }
-
-        networkId = convertCustomBlockItemServerIdToClientId(networkId);
-
-        stream.putByte((byte) ItemDescriptorType.INTERNAL.ordinal());
-
-        stream.putLShort(networkId);
-        stream.putLShort(damage);
 
         stream.putVarInt(ingredient.getCount());
     }

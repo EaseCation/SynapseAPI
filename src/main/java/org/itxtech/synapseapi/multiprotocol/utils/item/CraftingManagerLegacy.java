@@ -1,7 +1,7 @@
 package org.itxtech.synapseapi.multiprotocol.utils.item;
 
 import cn.nukkit.inventory.*;
-import cn.nukkit.inventory.recipe.SpecialRecipes;
+import cn.nukkit.inventory.recipe.RecipeIngredient;
 import cn.nukkit.item.Item;
 import cn.nukkit.item.Items;
 import com.google.common.io.ByteStreams;
@@ -22,7 +22,9 @@ import java.util.Base64;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 import static org.itxtech.synapseapi.SynapseSharedConstants.*;
 
@@ -97,7 +99,7 @@ public class CraftingManagerLegacy extends CraftingManager {
                     Integer.toUnsignedString(RECIPE_COUNT, 36),
                     entry.get("priority").getAsInt(),
                     deserializeItem(output.get(0).getAsJsonObject()),
-                    ingredients,
+                    ingredients.stream().map(RecipeIngredient::new).collect(Collectors.toList()),
                     tag));
         } catch (UnsupportedOperationException e) {
             log.trace("Skip an unsupported shapeless recipe: {}", entry);
@@ -136,7 +138,9 @@ public class CraftingManagerLegacy extends CraftingManager {
                     entry.get("priority").getAsInt(),
                     firstResult,
                     shape.asList().stream().map(JsonElement::getAsString).toArray(String[]::new),
-                    ingredients,
+                    Map.ofEntries(ingredients.char2ObjectEntrySet().stream()
+                            .map(e -> Map.entry(e.getCharKey(), new RecipeIngredient(e.getValue())))
+                            .toArray(Entry[]::new)),
                     extraResults,
                     tag));
         } catch (UnsupportedOperationException e) {
@@ -167,11 +171,12 @@ public class CraftingManagerLegacy extends CraftingManager {
 
     protected void loadHardcoded(JsonElement element) {
         UUID uuid = UUID.fromString(element.getAsString());
-        if (SpecialRecipes.getRecipe(uuid) == null) {
-            log.trace("Skip an unimplemented multi recipe: {}", element);
+        MultiRecipe recipe = MultiRecipe.create(uuid);
+        if (!recipe.isSupported()) {
+            log.trace("Skip an unimplemented multi recipe: {}", uuid);
             return;
         }
-        registerRecipe(new MultiRecipe(uuid));
+        registerRecipe(recipe);
     }
 
     protected void loadPotionType(JsonElement element) {
@@ -212,9 +217,9 @@ public class CraftingManagerLegacy extends CraftingManager {
             registerRecipe(new SmithingTransformRecipe(
                     Integer.toUnsignedString(++RECIPE_COUNT, 36),
                     deserializeItem(entry.getAsJsonObject("output")),
-                    Items.air(), //deserializeItem(entry.getAsJsonObject("template")), //TODO: 1.20.0+
-                    deserializeItem(entry.getAsJsonObject("input")),
-                    deserializeItem(entry.getAsJsonObject("addition")),
+                    new RecipeIngredient(Items.air()), //deserializeItem(entry.getAsJsonObject("template")), //TODO: 1.20.0+
+                    new RecipeIngredient(deserializeItem(entry.getAsJsonObject("input"))),
+                    new RecipeIngredient(deserializeItem(entry.getAsJsonObject("addition"))),
                     tag));
         } catch (UnsupportedOperationException e) {
             log.trace("Skip an unsupported smithing recipe: {}", entry);
@@ -284,11 +289,11 @@ public class CraftingManagerLegacy extends CraftingManager {
 
     @FunctionalInterface
     protected interface Shapeless {
-        Recipe create(String vanillaRecipeId, String recipeId, int priority, Item result, Collection<Item> ingredients, RecipeTag tag);
+        Recipe create(String vanillaRecipeId, String recipeId, int priority, Item result, Collection<RecipeIngredient> ingredients, RecipeTag tag);
     }
 
     @FunctionalInterface
     protected interface Shaped {
-        Recipe create(String vanillaRecipeId, String recipeId, int priority, Item primaryResult, String[] shape, Map<Character, Item> ingredients, List<Item> extraResults, RecipeTag tag);
+        Recipe create(String vanillaRecipeId, String recipeId, int priority, Item primaryResult, String[] shape, Map<Character, RecipeIngredient> ingredients, List<Item> extraResults, RecipeTag tag);
     }
 }

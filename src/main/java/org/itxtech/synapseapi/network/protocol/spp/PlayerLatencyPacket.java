@@ -26,10 +26,9 @@ public class PlayerLatencyPacket extends SynapseDataPacket {
 
     @Override
     public void decode() {
-        int length = (int) getUnsignedVarInt();
-        this.pings = new  ObjectIntPair[length];
-        for (int i = 0; i < length; i++) {
-            this.pings[i] = ObjectIntPair.of(getUUID(), getVarInt());
-        }
+        long count = getUnsignedVarInt();
+        int maxCount = (getCount() - getOffset()) / (Long.BYTES * 2 + 1);
+        this.pings = getArray(checkLength(count, maxCount), new ObjectIntPair[0],
+                stream -> ObjectIntPair.of(stream.getUUID(), stream.getVarInt()), maxCount);
     }
 }

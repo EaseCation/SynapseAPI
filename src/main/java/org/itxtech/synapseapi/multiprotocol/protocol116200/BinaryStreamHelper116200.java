@@ -66,15 +66,7 @@ public class BinaryStreamHelper116200 extends BinaryStreamHelper116100 {
     public ItemStackRequest getItemStackRequest(BinaryStream stream) {
         ItemStackRequest request = super.getItemStackRequest(stream);
 
-        int size = (int) stream.getUnsignedVarInt();
-        if (size > 4096) {
-            throw new IndexOutOfBoundsException("too many array elements");
-        }
-        String[] filterStrings = new String[size];
-        for (int i = 0; i < size; i++) {
-            filterStrings[i] = stream.getString();
-        }
-        request.filterStrings = filterStrings;
+        request.filterStrings = stream.getArray(new String[0], BinaryStream::getString);
 
         return request;
     }
@@ -164,12 +156,7 @@ public class BinaryStreamHelper116200 extends BinaryStreamHelper116100 {
             }
             case ItemStackRequestPacket116200.ACTION_CRAFTING_RESULTS_DEPRECATED_ASK_TY_LAING: {
                 DeprecatedCraftingResultsStackRequestAction action = new DeprecatedCraftingResultsStackRequestAction();
-                int length = (int) stream.getUnsignedVarInt();
-                Item[] results = new Item[length];
-                for (int i = 0; i < length; i++) {
-                    results[i] = stream.getItemInstance();
-                }
-                action.results = results;
+                action.results = stream.getArray(new Item[0], BinaryStream::getItemInstance);
                 action.iterations = stream.getByte();
                 return action;
             }

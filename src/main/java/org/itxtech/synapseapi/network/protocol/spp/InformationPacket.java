@@ -35,16 +35,14 @@ public class InformationPacket extends SynapseDataPacket {
 
     @Override
     public void decode() {
-        int length = (int) getUnsignedVarInt();
-        this.clientList = new Pair[length];
-        for (int i = 0; i < length; i++) {
-            this.clientList[i] = Pair.of(getString(), new Entry(
-                    getString(),
-                    getShort(),
-                    getVarInt(),
-                    getVarInt(),
-                    getString()
-            ));
-        }
+        long count = getUnsignedVarInt();
+        int maxCount = (getCount() - getOffset()) / (1 + 1 + Short.BYTES + 1 + 1 + 1);
+        this.clientList = getArray(checkLength(count, maxCount), new Pair[0], stream -> Pair.of(stream.getString(), new Entry(
+                stream.getString(),
+                stream.getShort(),
+                stream.getVarInt(),
+                stream.getVarInt(),
+                stream.getString()
+        )), maxCount);
     }
 }

@@ -19,10 +19,7 @@ public class ClientCacheBlobStatusPacket12630 extends Packet12630 {
 
     @Override
     public void decode() {
-        int missCount = (int) this.getUnsignedVarInt();
-        if (missCount > 0xfff) {
-            throw new IndexOutOfBoundsException("Too many BlobIDs");
-        }
+        int missCount = this.getUnsignedVarInt(0xfff);
         if (!isReadable(missCount * 8)) {
             throw new ArrayIndexOutOfBoundsException("Insufficient data");
         }
@@ -30,10 +27,7 @@ public class ClientCacheBlobStatusPacket12630 extends Packet12630 {
             this.missSet.add(this.getLLong());
         }
 
-        int hitCount = (int) this.getUnsignedVarInt();
-        if (hitCount > 0xfff) {
-            throw new IndexOutOfBoundsException("Too many BlobIDs");
-        }
+        int hitCount = this.getUnsignedVarInt(0xfff);
         if (!isReadable(hitCount * 8)) {
             throw new ArrayIndexOutOfBoundsException("Insufficient data");
         }

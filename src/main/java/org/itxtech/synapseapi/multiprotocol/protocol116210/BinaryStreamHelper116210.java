@@ -80,7 +80,7 @@ public class BinaryStreamHelper116210 extends BinaryStreamHelper116200 {
         skin.setSkinResourcePatch(stream.getString());
         skin.setSkinData(stream.getImage());
 
-        int animationCount = stream.getLInt();
+        int animationCount = stream.getLInt(4096);
         for (int i = 0; i < animationCount; i++) {
             SerializedImage image = stream.getImage();
             int type = stream.getLInt();
@@ -100,7 +100,7 @@ public class BinaryStreamHelper116210 extends BinaryStreamHelper116200 {
         skin.setArmSize(stream.getString());
         skin.setSkinColor(stream.getString());
 
-        int piecesLength = stream.getLInt();
+        int piecesLength = stream.getLInt(4096);
         for (int i = 0; i < piecesLength; i++) {
             String pieceId = stream.getString();
             String pieceType = stream.getString();
@@ -110,11 +110,11 @@ public class BinaryStreamHelper116210 extends BinaryStreamHelper116200 {
             skin.getPersonaPieces().add(new PersonaPiece(pieceId, pieceType, packId, isDefault, productId));
         }
 
-        int tintsLength = stream.getLInt();
+        int tintsLength = stream.getLInt(4096);
         for (int i = 0; i < tintsLength; i++) {
             String pieceType = stream.getString();
             List<String> colors = new ArrayList<>();
-            int colorsLength = stream.getLInt();
+            int colorsLength = stream.getLInt(4096);
             for (int i2 = 0; i2 < colorsLength; i2++) {
                 colors.add(stream.getString());
             }
@@ -215,12 +215,7 @@ public class BinaryStreamHelper116210 extends BinaryStreamHelper116200 {
             }
             case ItemStackRequestPacket116210.ACTION_CRAFTING_RESULTS_DEPRECATED_ASK_TY_LAING: {
                 DeprecatedCraftingResultsStackRequestAction action = new DeprecatedCraftingResultsStackRequestAction();
-                int length = (int) stream.getUnsignedVarInt();
-                Item[] results = new Item[length];
-                for (int i = 0; i < length; i++) {
-                    results[i] = stream.getItemInstance();
-                }
-                action.results = results;
+                action.results = stream.getArray(new Item[0], BinaryStream::getItemInstance);
                 action.iterations = stream.getByte();
                 return action;
             }

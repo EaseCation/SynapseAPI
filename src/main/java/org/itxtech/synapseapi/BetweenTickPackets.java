@@ -11,6 +11,8 @@ import cn.nukkit.network.protocol.ProtocolInfo;
 import cn.nukkit.network.protocol.types.ContainerIds;
 import cn.nukkit.network.protocol.ResourcePackChunkRequestPacket;
 import cn.nukkit.network.protocol.types.NetworkInventoryAction;
+import cn.nukkit.network.protocol.types.ItemStackRequest;
+import cn.nukkit.network.protocol.types.ItemStackRequestAction;
 import cn.nukkit.inventory.transaction.data.ReleaseItemData;
 import cn.nukkit.inventory.transaction.data.UseItemData;
 import cn.nukkit.inventory.transaction.data.UseItemOnEntityData;
@@ -45,6 +47,14 @@ import org.itxtech.synapseapi.multiprotocol.protocol121.protocol.TextPacket121;
 import org.itxtech.synapseapi.multiprotocol.protocol121130.protocol.TextPacket121130;
 import org.itxtech.synapseapi.multiprotocol.protocol126.protocol.TextPacket126;
 import org.itxtech.synapseapi.multiprotocol.protocol16.protocol.ResourcePackClientResponsePacket16;
+import org.itxtech.synapseapi.inventory.ItemStackContainerIdTranslator;
+import org.itxtech.synapseapi.multiprotocol.AbstractProtocol;
+import org.itxtech.synapseapi.multiprotocol.common.inventory.request.ItemStackRequestSlotInfo;
+import org.itxtech.synapseapi.multiprotocol.common.inventory.request.action.DropStackRequestAction;
+import org.itxtech.synapseapi.multiprotocol.common.inventory.request.action.PlaceStackRequestAction;
+import org.itxtech.synapseapi.multiprotocol.common.inventory.request.action.SwapStackRequestAction;
+import org.itxtech.synapseapi.multiprotocol.common.inventory.request.action.TakeStackRequestAction;
+import org.itxtech.synapseapi.multiprotocol.protocol116.protocol.ItemStackRequestPacket116;
 
 import java.util.BitSet;
 
@@ -55,7 +65,7 @@ final class BetweenTickPackets {
      * 不依赖世界周期内的状态推进（全包准入 M2/M3）；按编号判定以覆盖各协议版本的同名包类。
      */
     private static final BitSet ADMITTED_PACKET_IDS = packetIds(
-            // M2：关窗、快捷栏、选取方块/实体、书本编辑、服务端库存请求（无处理分支）、网易熔炉经验
+            // M2：关窗、快捷栏、选取方块/实体、书本编辑、服务端库存请求（旧系统无处理分支；SAI另行分类）、网易熔炉经验
             ProtocolInfo.CONTAINER_CLOSE_PACKET, ProtocolInfo.PLAYER_HOTBAR_PACKET,
             ProtocolInfo.BLOCK_PICK_REQUEST_PACKET, ProtocolInfo.ACTOR_PICK_REQUEST_PACKET,
             ProtocolInfo.BOOK_EDIT_PACKET, ProtocolInfo.ITEM_STACK_REQUEST_PACKET,
@@ -233,6 +243,44 @@ final class BetweenTickPackets {
     private static boolean isFilteredText(DataPacket packet) {
         return packet instanceof TextPacket126 || packet instanceof TextPacket121130 || packet instanceof TextPacket121
                 || packet instanceof TextPacket116100 || packet instanceof TextPacket116100NE;
+    }
+
+    static boolean supports(DataPacket packet, boolean authoritativeInventory, AbstractProtocol protocol, boolean netease) {
+        if (authoritativeInventory) {
+            if (packet instanceof ItemStackRequestPacket116 requests) {
+                if (requests.requests == null) return false;
+                for (ItemStackRequest request : requests.requests) {
+                    if (!supportsInventoryRequest(request, protocol, netease)) return false;
+                }
+            } else if (packet instanceof IPlayerAuthInputPacket input && input.getItemStackRequest() != null
+                    && !supportsInventoryRequest(input.getItemStackRequest(), protocol, netease)) {
+                return false;
+            }
+        }
+        return supports(packet);
+    }
+
+    private static boolean supportsInventoryRequest(ItemStackRequest request, AbstractProtocol protocol, boolean netease) {
+        if (request == null || request.actions == null) return false;
+        for (ItemStackRequestAction action : request.actions) {
+            boolean ordinary = switch (action) {
+                case TakeStackRequestAction take -> ordinarySlot(take.source, protocol, netease)
+                        && ordinarySlot(take.destination, protocol, netease);
+                case PlaceStackRequestAction place -> ordinarySlot(place.source, protocol, netease)
+                        && ordinarySlot(place.destination, protocol, netease);
+                case SwapStackRequestAction swap -> ordinarySlot(swap.source, protocol, netease)
+                        && ordinarySlot(swap.destination, protocol, netease);
+                case DropStackRequestAction drop -> ordinarySlot(drop.source, protocol, netease);
+                case null, default -> false;
+            };
+            if (!ordinary) return false;
+        }
+        return true;
+    }
+
+    private static boolean ordinarySlot(ItemStackRequestSlotInfo slot, AbstractProtocol protocol, boolean netease) {
+        return slot != null && slot.dynamicContainerId == null
+                && ItemStackContainerIdTranslator.isOrdinaryStorageSlot(protocol, netease, slot.containerId);
     }
 
     static boolean supports(DataPacket packet) {

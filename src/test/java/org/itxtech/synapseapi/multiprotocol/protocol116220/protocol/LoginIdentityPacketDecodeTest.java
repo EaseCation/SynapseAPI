@@ -28,7 +28,7 @@ class LoginIdentityPacketDecodeTest {
     @Test
     void prematureNeteaseClassificationCorruptsTheSameUnmodifiedJavaFrame() {
         PlayerAuthInputPacket116220 packet = packet(true);
-        assertThrows(ArrayIndexOutOfBoundsException.class, packet::decode);
+        assertThrows(IndexOutOfBoundsException.class, packet::decode);
     }
 
     private PlayerAuthInputPacket116220 packet(boolean netease) {
