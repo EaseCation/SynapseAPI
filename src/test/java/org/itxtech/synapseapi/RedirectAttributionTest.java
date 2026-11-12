@@ -7,7 +7,7 @@ import cn.nukkit.network.input.ServerInputDispatcher;
 import io.netty.channel.Channel;
 import org.itxtech.synapseapi.multiprotocol.PacketRegister;
 import cn.nukkit.network.protocol.AnimatePacket;
-import org.itxtech.synapseapi.multiprotocol.protocol121130.protocol.InteractPacket121130;
+import org.itxtech.synapseapi.multiprotocol.protocol16.protocol.ResourcePackClientResponsePacket16;
 import org.itxtech.synapseapi.network.SynapseInterface;
 import org.itxtech.synapseapi.network.protocol.spp.PlayerLoginPacket;
 import org.itxtech.synapseapi.network.protocol.spp.RedirectPacket;
@@ -59,8 +59,9 @@ class RedirectAttributionTest {
         UUID sessionId = UUID.randomUUID();
         AnimatePacket animation = new AnimatePacket();
         animation.action = AnimatePacket.Action.SWING_ARM;
-        InteractPacket121130 exit = new InteractPacket121130();
-        exit.action = InteractPacket121130.ACTION_VEHICLE_EXIT;
+        // 资源包完成回复进入登录收尾，仍为静态屏障（M8）。
+        ResourcePackClientResponsePacket16 exit = new ResourcePackClientResponsePacket16();
+        exit.responseStatus = ResourcePackClientResponsePacket16.STATUS_COMPLETED;
         RedirectPacket swing = redirect(sessionId, new byte[]{1});
         RedirectPacket vehicle = redirect(sessionId, new byte[]{2});
         try (MockedStatic<Server> servers = preparedServer(server);
@@ -114,7 +115,7 @@ class RedirectAttributionTest {
             assertEquals(0, dispatcher.drain(true, 2, Long.MAX_VALUE));
             ServerInputDispatcher.BarrierReport report = dispatcher.drainBarrierReport();
             assertEquals(1, report.types().size());
-            assertEquals("InteractPacket121130/VEHICLE_EXIT", report.types().getFirst().type());
+            assertEquals("ResourcePackClientResponsePacket16/COMPLETED", report.types().getFirst().type());
             assertEquals("STATIC", report.types().getFirst().reason());
             assertEquals(1, dispatcher.drainWorldTick(3));
             verify(player).handleInputDataPacket(exit, 0L);

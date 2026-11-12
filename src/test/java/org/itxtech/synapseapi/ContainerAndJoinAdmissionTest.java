@@ -128,13 +128,13 @@ class ContainerAndJoinAdmissionTest {
                     modern.action = InteractPacket121130.ACTION_OPEN_INVENTORY;
                     assertTrue(BetweenTickPackets.supports(modern));
                     modern.action = InteractPacket121130.ACTION_VEHICLE_EXIT;
-                    assertFalse(BetweenTickPackets.supports(modern));
+                    assertTrue(BetweenTickPackets.supports(modern));
                 } else {
                     InteractPacket113 legacy = assertInstanceOf(InteractPacket113.class, interact);
                     legacy.action = InteractPacket113.ACTION_OPEN_INVENTORY;
                     assertTrue(BetweenTickPackets.supports(legacy));
                     legacy.action = InteractPacket113.ACTION_VEHICLE_EXIT;
-                    assertFalse(BetweenTickPackets.supports(legacy));
+                    assertTrue(BetweenTickPackets.supports(legacy));
                 }
             }
         }
@@ -170,15 +170,16 @@ class ContainerAndJoinAdmissionTest {
                 error -> fail(error));
         ServerInputDispatcher.Session session = new ServerInputDispatcher.Session(UUID.randomUUID());
         List<String> order = new ArrayList<>();
-        InteractPacket121130 exit = new InteractPacket121130();
-        exit.action = InteractPacket121130.ACTION_VEHICLE_EXIT;
+        // 资源包完成回复进入登录收尾，仍为屏障（M8）。
+        ResourcePackClientResponsePacket16 completed = new ResourcePackClientResponsePacket16();
+        completed.responseStatus = ResourcePackClientResponsePacket16.STATUS_COMPLETED;
         InteractPacket121130 open = new InteractPacket121130();
         open.action = InteractPacket121130.ACTION_OPEN_INVENTORY;
-        dispatcher.offer(session, context -> order.add("exit"), 1, BetweenTickPackets.supports(exit));
+        dispatcher.offer(session, context -> order.add("completed"), 1, BetweenTickPackets.supports(completed));
         dispatcher.offer(session, context -> order.add("open"), 1, BetweenTickPackets.supports(open));
         assertEquals(0, dispatcher.drain(true, 7, Long.MAX_VALUE));
         assertTrue(order.isEmpty());
         assertEquals(2, dispatcher.drainWorldTick(8));
-        assertEquals(List.of("exit", "open"), order);
+        assertEquals(List.of("completed", "open"), order);
     }
 }

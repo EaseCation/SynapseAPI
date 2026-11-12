@@ -62,7 +62,7 @@ class BetweenTickPacketsTest {
     }
 
     @Test
-    void inventoryAndCraftingWorkRemainWholePacketBarriers() {
+    void inventoryActionsAndCraftingPartsAreClassifiedAsWholePackets() {
         InventoryTransactionPacket116 packet = release();
         assertTrue(BetweenTickPackets.supports(packet));
         for (int source : new int[]{NetworkInventoryAction.SOURCE_WORLD,
@@ -76,14 +76,14 @@ class BetweenTickPacketsTest {
         packet.legacyRequestId = 1;
         assertTrue(BetweenTickPackets.supports(packet));
         packet.legacyRequestId = 0;
+        // M7：合成/附魔/修复分片整包放行；普通事务（M4）同样放行。
         packet.isCraftingPart = true;
-        assertFalse(BetweenTickPackets.supports(packet));
+        assertTrue(BetweenTickPackets.supports(packet));
         packet.isCraftingPart = false;
-        // M4：非分片的普通事务整包放行；分片仍为屏障。
         packet.transactionType = InventoryTransactionPacket116.TYPE_NORMAL;
         assertTrue(BetweenTickPackets.supports(packet));
         packet.isCraftingPart = true;
-        assertFalse(BetweenTickPackets.supports(packet));
+        assertTrue(BetweenTickPackets.supports(packet));
     }
 
     @Test

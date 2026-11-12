@@ -75,7 +75,9 @@ final class BetweenTickPackets {
             ProtocolInfo.MODAL_FORM_RESPONSE_PACKET, ProtocolInfo.SERVER_SETTINGS_REQUEST_PACKET,
             ProtocolInfo.NPC_REQUEST_PACKET, ProtocolInfo.COMMAND_REQUEST_PACKET,
             ProtocolInfo.SETTINGS_COMMAND_PACKET, ProtocolInfo.SET_PLAYER_GAME_TYPE_PACKET,
-            ProtocolInfo.LECTERN_UPDATE_PACKET, ProtocolInfo.MAP_INFO_REQUEST_PACKET);
+            ProtocolInfo.LECTERN_UPDATE_PACKET, ProtocolInfo.MAP_INFO_REQUEST_PACKET,
+            // M7：交互全部动作（含下车：下马结果只取决于载具位置，载具只在 Level 更新阶段移动）
+            ProtocolInfo.INTERACT_PACKET);
     private static final long MOVEMENT_FLAGS = ((1L << PlayerAuthInputFlags.START_GLIDING) - 1)
             & ~((1L << PlayerAuthInputFlags.START_SWIMMING) | (1L << PlayerAuthInputFlags.STOP_SWIMMING))
             | (1L << PlayerAuthInputFlags.HANDLED_TELEPORT);
@@ -255,13 +257,6 @@ final class BetweenTickPackets {
             // 确认记账保持输入原序；回复沿原出站队列异步编码。解码上限 4095 条时记账约 0.3ms，不再限量。
             return status.hitSet != null && status.missSet != null;
         }
-        if (packet instanceof InteractPacket113 interact) {
-            // 悬停、开背包/坐骑/实体库存、交互与 NPC 沿原事件与 handler；下车改骑乘与 Nya 载具交接，留待 M7。
-            return interact.action != InteractPacket113.ACTION_VEHICLE_EXIT;
-        }
-        if (packet instanceof InteractPacket121130 interact) {
-            return interact.action != InteractPacket121130.ACTION_VEHICLE_EXIT;
-        }
         if (packet instanceof NEPyRpcPacket16 rpc) {
             // JE 的输入扩展先于普通交互包；解码限额及每个回调后的会话复检沿用原实现。
             return rpc.subPackets != null;
@@ -337,15 +332,13 @@ final class BetweenTickPackets {
     }
 
     private static boolean supportsItemAction(InventoryTransactionPacket116 packet) {
-        if (packet.isCraftingPart || packet.isEnchantingPart || packet.isRepairItemPart
-                || packet.actions == null) {
+        if (packet.actions == null) {
             return false;
         }
-        if (packet.transactionType == InventoryTransactionPacket116.TYPE_NORMAL) {
-            return supportsNormalActions(packet.actions);
-        }
-        if (packet.transactionType == InventoryTransactionPacket116.TYPE_MISMATCH) {
-            // 原 handler 只把动作转换为对象后丢弃并回发全部库存，与动作来自哪个窗口无关。
+        if (packet.transactionType == InventoryTransactionPacket116.TYPE_NORMAL
+                || packet.transactionType == InventoryTransactionPacket116.TYPE_MISMATCH) {
+            // 普通事务（M4/M5/M7：容器、创造栏、丢弃、合成/附魔/修复分片与交易等虚拟来源）与不匹配回发：
+            // 分片跨包累计按 FIFO 保序，失败关窗走调度器延迟任务，两处执行位置的调度 tick 相同。
             for (NetworkInventoryAction action : packet.actions) {
                 if (action == null) return false;
             }
@@ -353,7 +346,6 @@ final class BetweenTickPackets {
         }
         // 旧版槽位同步元数据不参与原处理器的库存结算，其编号也不是窗口编号。
         // 保留完整元数据，准入只依据下方真正的库存动作；不能用同步声明替代动作校验。
-        // 完整消费原包，普通容器、合成与创造动作仍保留为队头屏障。
         if (!supportsInventoryActions(packet.actions)) {
             return false;
         }
@@ -368,7 +360,9 @@ final class BetweenTickPackets {
             case InventoryTransactionPacket116.TYPE_USE_ITEM ->
                     packet.transactionData instanceof UseItemData data
                             && (data.actionType == InventoryTransactionPacket116.USE_ITEM_ACTION_CLICK_AIR
-                            || data.actionType == InventoryTransactionPacket116.USE_ITEM_ACTION_CLICK_BLOCK)
+                            || data.actionType == InventoryTransactionPacket116.USE_ITEM_ACTION_CLICK_BLOCK
+                            // M7：挖方块完成；开始挖只来自已放行的 AuthInput，快挖墙钟判定与内嵌路径同口径
+                            || data.actionType == InventoryTransactionPacket116.USE_ITEM_ACTION_BREAK_BLOCK)
                             && data.itemInHand != null;
             case InventoryTransactionPacket116.TYPE_RELEASE_ITEM ->
                     packet.transactionData instanceof ReleaseItemData data
@@ -385,31 +379,6 @@ final class BetweenTickPackets {
             set.set(id);
         }
         return set;
-    }
-
-    /**
-     * 普通事务（M4/M5）：任意窗口的容器动作、创造栏、丢弃，以及关窗溢出与信标两个虚拟窗口；
-     * 合成/附魔/修复分片在解码时标记，已由调用方排除。其余虚拟来源（合成格、交易等）保留屏障。
-     */
-    private static boolean supportsNormalActions(NetworkInventoryAction[] actions) {
-        for (NetworkInventoryAction action : actions) {
-            if (action == null) return false;
-            switch (action.sourceType) {
-                case NetworkInventoryAction.SOURCE_CONTAINER, NetworkInventoryAction.SOURCE_CREATIVE,
-                     NetworkInventoryAction.SOURCE_WORLD -> {
-                }
-                case NetworkInventoryAction.SOURCE_TODO -> {
-                    if (action.windowId != NetworkInventoryAction.SOURCE_TYPE_CONTAINER_DROP_CONTENTS
-                            && action.windowId != NetworkInventoryAction.SOURCE_TYPE_BEACON) {
-                        return false;
-                    }
-                }
-                default -> {
-                    return false;
-                }
-            }
-        }
-        return true;
     }
 
     private static boolean supportsInventoryActions(NetworkInventoryAction[] actions) {
