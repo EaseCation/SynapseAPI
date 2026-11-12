@@ -151,12 +151,7 @@ public class BinaryStreamHelper12120 extends BinaryStreamHelper1212 {
             }
             case ItemStackRequestPacket11810.ACTION_CRAFTING_RESULTS_DEPRECATED_ASK_TY_LAING: {
                 DeprecatedCraftingResultsStackRequestAction action = new DeprecatedCraftingResultsStackRequestAction();
-                int length = (int) stream.getUnsignedVarInt();
-                Item[] results = new Item[length];
-                for (int i = 0; i < length; i++) {
-                    results[i] = stream.getItemInstance();
-                }
-                action.results = results;
+                action.results = stream.getArray(new Item[0], BinaryStream::getItemInstance);
                 action.iterations = stream.getByte();
                 return action;
             }

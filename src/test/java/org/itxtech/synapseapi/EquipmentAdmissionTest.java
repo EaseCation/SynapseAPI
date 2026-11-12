@@ -214,6 +214,7 @@ class EquipmentAdmissionTest {
         Fixture(boolean enabled) {
             super(enabled, true);
             player.configure(slots);
+            doReturn(false).when(player).isServerAuthoritativeInventoryEnabled();
             doReturn(true).when(player).supportsPacketSequences();
             doReturn(slots).when(player).getWindowById(ContainerIds.INVENTORY);
             doReturn(player).when(slots).getHolder();

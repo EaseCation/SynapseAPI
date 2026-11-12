@@ -22,27 +22,37 @@ import cn.nukkit.entity.item.EntityBoat;
 import cn.nukkit.entity.knockback.KnockbackProfile;
 import cn.nukkit.event.entity.EntityDamageByEntityEvent;
 import cn.nukkit.event.entity.EntityDamageEvent;
+import cn.nukkit.event.inventory.InventoryCloseEvent;
+import cn.nukkit.event.inventory.InventoryOpenEvent;
 import cn.nukkit.event.inventory.ItemAttackDamageEvent;
 import cn.nukkit.event.player.*;
-import cn.nukkit.inventory.Inventory;
+import cn.nukkit.inventory.*;
 import cn.nukkit.inventory.ItemUseHand;
 import cn.nukkit.inventory.transaction.CraftingTransaction;
 import cn.nukkit.inventory.transaction.EnchantTransaction;
 import cn.nukkit.inventory.transaction.InventoryTransaction;
 import cn.nukkit.inventory.transaction.RepairItemTransaction;
+import cn.nukkit.inventory.transaction.action.DropItemAction;
 import cn.nukkit.inventory.transaction.action.InventoryAction;
 import cn.nukkit.inventory.transaction.action.TakeResultAction;
 import cn.nukkit.inventory.transaction.data.ReleaseItemData;
+import cn.nukkit.inventory.transaction.data.TransactionData;
 import cn.nukkit.inventory.transaction.data.UseItemData;
 import cn.nukkit.inventory.transaction.data.UseItemOnEntityData;
 import cn.nukkit.item.Item;
 import cn.nukkit.item.Items;
+import cn.nukkit.item.NetworkItemHelper;
 import cn.nukkit.item.enchantment.Enchantment;
+import cn.nukkit.item.enchantment.EnchantmentOption;
 import cn.nukkit.lang.TranslationContainer;
+import cn.nukkit.lang.TextContainer;
 import cn.nukkit.level.GameRule;
+import cn.nukkit.level.Level;
 import cn.nukkit.level.Position;
 import cn.nukkit.level.particle.PunchBlockParticle;
 import cn.nukkit.math.*;
+import cn.nukkit.nbt.tag.CompoundTag;
+import cn.nukkit.nbt.tag.ListTag;
 import cn.nukkit.network.PacketViolationReason;
 import cn.nukkit.network.SourceInterface;
 import cn.nukkit.network.protocol.*;
@@ -50,14 +60,20 @@ import cn.nukkit.network.protocol.AnimatePacket.Action;
 import cn.nukkit.network.protocol.AnimatePacket.SwingSource;
 import cn.nukkit.network.protocol.types.ContainerIds;
 import cn.nukkit.network.protocol.types.ContainerType;
+import cn.nukkit.network.protocol.types.ItemStackRequest;
+import cn.nukkit.network.protocol.types.ItemStackResponse;
 import cn.nukkit.network.protocol.types.NetworkInventoryAction;
 import cn.nukkit.potion.Effect;
 import cn.nukkit.utils.ClientChainData;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
+import it.unimi.dsi.fastutil.objects.ObjectIntPair;
 import lombok.extern.log4j.Log4j2;
 import org.itxtech.synapseapi.event.player.SynapsePlayerInputModeChangeEvent;
+import org.itxtech.synapseapi.inventory.*;
 import org.itxtech.synapseapi.multiprotocol.AbstractProtocol;
 import org.itxtech.synapseapi.multiprotocol.common.PlayerAuthInputFlags;
+import org.itxtech.synapseapi.inventory.ItemStackContainerIdTranslator;
+import org.itxtech.synapseapi.multiprotocol.common.inventory.LegacySetItemSlotData;
 import org.itxtech.synapseapi.multiprotocol.protocol113.protocol.IPlayerAuthInputPacket;
 import org.itxtech.synapseapi.multiprotocol.protocol113.protocol.IPlayerAuthInputPacket.PlayerBlockAction;
 import org.itxtech.synapseapi.multiprotocol.protocol113.protocol.InteractPacket113;
@@ -65,6 +81,7 @@ import org.itxtech.synapseapi.multiprotocol.protocol116.protocol.*;
 import org.itxtech.synapseapi.multiprotocol.protocol116220.protocol.PlayerAuthInputPacket116220;
 import org.itxtech.synapseapi.multiprotocol.protocol14.protocol.PlayerActionPacket14;
 import org.itxtech.synapseapi.multiprotocol.utils.CreativeItemsPalette;
+import org.itxtech.synapseapi.network.protocol.spp.PlayerLoginPacket;
 
 import javax.annotation.Nullable;
 import java.net.InetSocketAddress;
@@ -78,6 +95,23 @@ import static org.itxtech.synapseapi.SynapseSharedConstants.*;
 public class SynapsePlayer116 extends SynapsePlayer113 {
 
 	protected boolean inventoryOpen;
+
+	protected boolean serverAuthoritativeInventory = SERVER_AUTHORITATIVE_INVENTORY;
+	protected final InventoryManager inventoryManager = new InventoryManager(this);
+	private boolean processingItemStackRequest;
+	private boolean executingInventoryTransaction;
+	private boolean closingAuthoritativeWindow;
+	private boolean preparingAuthoritativeDisconnect;
+	@Nullable
+	private Inventory notifiedAuthoritativeCloseWindow;
+	private boolean deferredWindowDeath;
+	private boolean deferredWindowSave;
+	private boolean deferredWindowSaveAsync;
+	@Nullable
+	private DeferredWindowClose deferredWindowClose;
+	private boolean detachedTemporaryInventories;
+	@Nullable
+	private TemporaryInventoryRecovery temporaryInventoryRecovery;
 
 	protected boolean serverAuthoritativeMovement = SERVER_AUTHORITATIVE_MOVEMENT;
 	protected long clientTickRaw;
@@ -118,11 +152,32 @@ public class SynapsePlayer116 extends SynapsePlayer113 {
 				: this.inputAttackAttempts.count(this.server.getTick());
 	}
 
+	/**
+	 * Returns an optional read-only display item without replacing the authoritative slot contents.
+	 */
+	@Nullable
+	public Item getInventorySlotDisplay(Inventory inventory, int slot) {
+		return null;
+	}
+
 	protected Boolean normalizeUseItemClientPrediction(Boolean clientPrediction) {
 		if (this.isJavaClient() && Boolean.TRUE.equals(clientPrediction)) {
 			return null;
 		}
 		return clientPrediction;
+	}
+
+	@Override
+	protected void initEntity() {
+		super.initEntity();
+
+		if (isServerAuthoritativeInventoryEnabled()) {
+			inventoryManager.initialize();
+			if (namedTag.contains(TemporaryInventoryRecovery.NBT_KEY)) {
+				temporaryInventoryRecovery = new TemporaryInventoryRecovery(this,
+						namedTag.getList(TemporaryInventoryRecovery.NBT_KEY, CompoundTag.class));
+			}
+		}
 	}
 
 	@Override
@@ -155,7 +210,7 @@ public class SynapsePlayer116 extends SynapsePlayer113 {
 		startGamePacket.generator = 1; // 0 old, 1 infinite, 2 flat
 		startGamePacket.gameRules = getSupportedRules();
 		startGamePacket.isTexturePacksRequired = server.getForceResources();
-		startGamePacket.isInventoryServerAuthoritative = SERVER_AUTHORITATIVE_INVENTORY;
+		startGamePacket.isInventoryServerAuthoritative = isServerAuthoritativeInventoryEnabled();
 		startGamePacket.isMovementServerAuthoritative = this.isNetEaseClient();
 		startGamePacket.currentTick = 0;//this.server.getTick();
 		startGamePacket.enchantmentSeed = ThreadLocalRandom.current().nextInt();
@@ -178,6 +233,35 @@ public class SynapsePlayer116 extends SynapsePlayer113 {
 	}
 
 	@Override
+	public void handleLoginPacket(PlayerLoginPacket packet) {
+		super.handleLoginPacket(packet);
+		if (!this.isSynapseLogin) {
+			return;
+		}
+
+		if (isServerAuthoritativeInventoryEnabled() && cachedExtra != null) {
+			if (cachedExtra.has("dynamicContainer")) {
+				int nextContainerId = cachedExtra.get("dynamicContainer").getAsInt();
+				if (nextContainerId != 0) {
+					inventoryManager.getBundleRegistry().restoreContainerSequence(nextContainerId);
+				}
+			}
+			if (cachedExtra.has("itemStack")) {
+				int itemStackId = cachedExtra.get("itemStack").getAsInt();
+				if (itemStackId != 0) {
+					inventoryManager.setNextItemStackId(itemStackId + 50);
+				}
+			}
+			if (cachedExtra.has("dynamicRecipe")) {
+				int dynamicRecipeId = cachedExtra.get("dynamicRecipe").getAsInt();
+				if (dynamicRecipeId != 0) {
+					inventoryManager.setNextDynamicRecipeId(dynamicRecipeId + 50);
+				}
+			}
+		}
+	}
+
+	@Override
 	public void handleDataPacket(DataPacket packet) {
 		if (!this.isSynapseLogin) {
 			super.handleDataPacket(packet);
@@ -189,8 +273,14 @@ public class SynapsePlayer116 extends SynapsePlayer113 {
 				InteractPacket113 interactPacket = (InteractPacket113) packet;
 				if (interactPacket.action == InteractPacket113.ACTION_OPEN_INVENTORY
 						&& (interactPacket.target == getLocalEntityId() || isRiding() && interactPacket.target == riding.getId() && riding.getNetworkId() != EntityID.CHEST_BOAT && (!riding.getDataFlag(DATA_FLAG_TAMED) || riding.getNetworkId() == EntityID.SKELETON_HORSE))
-						&& !this.inventoryOpen && !isSpectator()) {
+						&& (isServerAuthoritativeInventoryEnabled() || !this.inventoryOpen) && !isSpectator()) {
 					if (!callPacketReceiveEvent(interactPacket.toDefault())) break;
+					if (isServerAuthoritativeInventoryEnabled()) {
+						if (inventoryManager != null) {
+							inventoryManager.onClientOpenMainInventory();
+						}
+						break;
+					}
 //					this.openInventory();
 					if (!this.deferPlayerInventoryOpen()) {
 						this.inventoryOpen = this.inventory.open(this);
@@ -203,6 +293,18 @@ public class SynapsePlayer116 extends SynapsePlayer113 {
 				if (!callPacketReceiveEvent(packet)) break;
 				this.abandonPendingCraftOnClientClose();
 				ContainerClosePacket containerClosePacket = (ContainerClosePacket) packet;
+
+				if (isServerAuthoritativeInventoryEnabled()) {
+					if (inventoryManager != null) {
+						inventoryManager.onClientRemoveWindow(containerClosePacket.windowId);
+					} else {
+						ContainerClosePacket pk = new ContainerClosePacket();
+						pk.windowId = containerClosePacket.windowId;
+						dataPacket(pk);
+					}
+					break;
+				}
+
 				if (this.handlePendingWindowClose(containerClosePacket.windowId)) {
 					break;
 				}
@@ -250,6 +352,13 @@ public class SynapsePlayer116 extends SynapsePlayer113 {
 				if (!callPacketReceiveEvent(packet)) break;
 				if (this.rejectSpectatorInventoryPart(transactionPacket)) {
 					return;
+				}
+
+				if (isServerAuthoritativeInventoryEnabled()) {
+					handleServerAuthoritativeInventoryTransaction(transactionPacket.transactionType,
+							transactionPacket.legacyRequestId, transactionPacket.actions, transactionPacket.transactionData,
+							transactionPacket.requestChangedSlots, transactionRoute);
+					break;
 				}
 
 				Item item;
@@ -547,6 +656,9 @@ public class SynapsePlayer116 extends SynapsePlayer113 {
 									break packetswitch;
 								}
 
+								if (isServerAuthoritativeInventoryEnabled()) {
+									removeCurrentWindow();
+								}
 								this.resetCraftingGridType();
 
 								i = this.getInventory().getItemInHand();
@@ -1291,6 +1403,10 @@ public class SynapsePlayer116 extends SynapsePlayer113 {
 					return;
 				}
 				PlayerBlockAction[] blockActions = playerAuthInputPacket.getBlockActions();
+				if (blockActions != null && blockActions.length != 0 && !this.prepareBlockActionsWhileUsingItem(blockActions)) {
+                    // 只跳过竞争的挖掘动作，同包移动、物品交互及库存请求仍继续处理。
+                    blockActions = null;
+                }
 				if (blockActions != null && blockActions.length != 0) {
                     if (isNetEaseClient() && blockActions.length > 1) {
                         // damn netease r21u0n1
@@ -1311,6 +1427,9 @@ public class SynapsePlayer116 extends SynapsePlayer113 {
 					for (PlayerBlockAction blockAction : blockActions) {
 						if (!this.canContinueInputState()) {
 							return;
+						}
+						if (!this.canProcessInventoryBlockAction(blockAction.action, true)) {
+							continue;
 						}
 						Vector3 pos = new Vector3(blockAction.x, blockAction.y, blockAction.z);
 						BlockFace face = null;
@@ -1409,6 +1528,9 @@ public class SynapsePlayer116 extends SynapsePlayer113 {
 								if (face == null) {
 									face = BlockFace.fromIndex(blockAction.data);
 								}
+								if (isServerAuthoritativeInventoryEnabled()) {
+									removeCurrentWindow();
+								}
 								this.resetCraftingGridType();
 
 								item = this.getInventory().getItemInHand();
@@ -1471,7 +1593,7 @@ public class SynapsePlayer116 extends SynapsePlayer113 {
 					return;
 				}
 				NetworkInventoryAction[] inventoryActions = playerAuthInputPacket.getInventoryActions();
-				if (inventoryActions != null && inventoryActions.length != 0) {
+				if (!isServerAuthoritativeInventoryEnabled() && inventoryActions != null && inventoryActions.length != 0) {
 					boolean resolve = true;
 
 					skipped = false;
@@ -1491,132 +1613,15 @@ public class SynapsePlayer116 extends SynapsePlayer113 {
 
 						actions.add(action);
 					}
-
-					if (resolve) {
-						// 正常情况只有UseItemTransaction的action, 不会触发crafting类事务
-						boolean slotChangeTransaction = true;
-/*
-						boolean incomplete = true;
-
-						if (playerAuthInputPacket.isCraftingPart()) {
-							try {
-								if (this.craftingTransaction == null) {
-									this.craftingTransaction = new CraftingTransaction(this, actions);
-								} else {
-									for (InventoryAction action : actions) {
-										this.craftingTransaction.addAction(action);
-									}
-								}
-
-								if (this.craftingTransaction.getPrimaryOutput() != null && this.craftingTransaction.canExecute()) {
-									//we get the actions for this in several packets, so we can't execute it until we get the result
-
-									this.craftingTransaction.execute();
-									this.craftingTransaction = null;
-									incomplete = false;
-								}
-
-								if ((craftingType >> 3) == 0 || craftingType == CRAFTING_STONECUTTER) {
-									incomplete = false;
-								}
-							} catch (Exception e) {
-								this.getServer().getLogger().logException(e);
-								this.craftingTransaction = null;
-								this.getUIInventory().sendContents(this);
-							}
-						} else if (playerAuthInputPacket.isEnchantingPart()) {
-							if (this.enchantTransaction == null) {
-								this.enchantTransaction = new EnchantTransaction(this, actions);
-							} else {
-								for (InventoryAction action : actions) {
-									this.enchantTransaction.addAction(action);
-								}
-							}
-
-							if (this.enchantTransaction.canExecute()) {
-								this.enchantTransaction.execute();
-								this.enchantTransaction = null;
-							}
-
-							incomplete = false;
-						} else if (playerAuthInputPacket.isRepairItemPart()) {
-							if (this.repairItemTransaction == null) {
-								this.repairItemTransaction = new RepairItemTransaction(this, actions);
-							} else {
-								for (InventoryAction action : actions) {
-									this.repairItemTransaction.addAction(action);
-								}
-							}
-
-							if (this.repairItemTransaction.canExecute()) {
-								this.repairItemTransaction.execute();
-								this.repairItemTransaction = null;
-								incomplete = false;
-							}
-
-							if ((this.craftingType >> 3) != 2) {
-								incomplete = false;
-							}
-						}
-
-						if (incomplete) {
-							if (this.craftingTransaction != null) {
-								if (CraftingTransaction.checkForCraftingPart(actions)) {
-									for (InventoryAction action : actions) {
-										craftingTransaction.addAction(action);
-									}
-
-									slotChangeTransaction = false;
-								}
-//					            else {
-//						            this.server.getLogger().debug("Got unexpected normal inventory action with incomplete crafting transaction (PlayerAuthInputPacket) from " + this.getName() + ", refusing to execute crafting");
-//						            this.removeAllWindows(false);
-//						            this.sendAllInventories();
-//						            this.craftingTransaction = null;
-//					            }
-							} else if (this.enchantTransaction != null) {
-								if (enchantTransaction.checkForEnchantPart(actions)) {
-									for (InventoryAction action : actions) {
-										enchantTransaction.addAction(action);
-									}
-
-									slotChangeTransaction = false;
-								} else {
-									this.server.getLogger().debug("Got unexpected normal inventory action with incomplete enchanting transaction (PlayerAuthInputPacket) from " + this.getName() + ", refusing to execute enchant " + playerAuthInputPacket);
-									this.removeAllWindows(false);
-									this.sendAllInventories();
-									this.enchantTransaction = null;
-								}
-							} else if (this.repairItemTransaction != null) {
-								if (RepairItemTransaction.checkForRepairItemPart(actions)) {
-									for (InventoryAction action : actions) {
-										this.repairItemTransaction.addAction(action);
-									}
-
-									slotChangeTransaction = false;
-								} else {
-									this.server.getLogger().debug("Got unexpected normal inventory action with incomplete repair item transaction (PlayerAuthInputPacket) from " + this.getName() + ", refusing to execute repair item " + playerAuthInputPacket);
-									this.removeAllWindows(false);
-									this.sendAllInventories();
-									this.repairItemTransaction = null;
-								}
-							}
-						}
-*/
-						if (slotChangeTransaction) {
-//							InventoryTransaction transaction = new InventoryTransaction(this, actions);
-//							if (!transaction.execute()) {
-//								this.server.getLogger().debug("Failed to execute inventory transaction (PlayerAuthInputPacket) from " + this.getName() + " with actions: " + Arrays.toString(inventoryActions));
-//							}
-						}
-					}
 				}
 
 				if (!this.canContinueInputState()) {
 					return;
 				}
 				UseItemData useItemData = playerAuthInputPacket.getUseItemData();
-				if (useItemData != null) {
+				if (isServerAuthoritativeInventoryEnabled()) {
+					handleServerAuthoritativeInputInventory(playerAuthInputPacket, inventoryActions, useItemData);
+				} else if (useItemData != null) {
 					Vector3f clickPos = useItemData.clickPos;
 					BlockVector3 blockVector = useItemData.blockPos;
 					BlockFace face = useItemData.face;
@@ -1845,6 +1850,15 @@ public class SynapsePlayer116 extends SynapsePlayer113 {
 					}
 				}
 
+				ItemStackRequest request = playerAuthInputPacket.getItemStackRequest();
+				if (isServerAuthoritativeInventoryEnabled() && request != null) {
+					ItemStackResponse response = handleItemStackRequest(request);
+
+					ItemStackResponsePacket116 responsePacket = new ItemStackResponsePacket116();
+					responsePacket.responses = new ItemStackResponse[]{response};
+					dataPacket(responsePacket);
+				}
+
 				if (predictedInVehicle) {
 					if (!inPredictedVehicle) {
 						break;
@@ -2060,6 +2074,62 @@ public class SynapsePlayer116 extends SynapsePlayer113 {
 				}
 				super.handleDataPacket(packet);
 				break;
+			case ProtocolInfo.ITEM_STACK_REQUEST_PACKET:
+				if (!isServerAuthoritativeInventoryEnabled()) {
+					super.handleDataPacket(packet);
+					break;
+				}
+				if (!callPacketReceiveEvent(packet)) break;
+				ItemStackRequestPacket116 itemStackRequestPacket = (ItemStackRequestPacket116) packet;
+				ItemStackRequest[] requests = itemStackRequestPacket.requests;
+
+				ItemStackResponse[] responses = new ItemStackResponse[requests.length];
+				for (int i = 0; i < requests.length; i++) {
+					responses[i] = handleItemStackRequest(requests[i]);
+				}
+
+				ItemStackResponsePacket116 response = new ItemStackResponsePacket116();
+				response.responses = responses;
+				dataPacket(response);
+				break;
+			case ProtocolInfo.MOB_EQUIPMENT_PACKET:
+				if (!isServerAuthoritativeInventoryEnabled()) {
+					super.handleDataPacket(packet);
+					break;
+				}
+				if (!callPacketReceiveEvent(packet) || !this.spawned || !this.isAlive()) break;
+				MobEquipmentPacket mobEquipmentPacket = (MobEquipmentPacket) packet;
+				switch (mobEquipmentPacket.windowId) {
+					case ContainerIds.OFFHAND:
+						break;
+					case ContainerIds.INVENTORY:
+						int slot = mobEquipmentPacket.hotbarSlot;
+						inventoryManager.onClientSelectHotbarSlot(slot);
+						if (!selectHotbarSlot(slot)) {
+							inventoryManager.syncSelectedHotbarSlot();
+						}
+						break;
+				}
+				break;
+			case ProtocolInfo.PLAYER_HOTBAR_PACKET:
+				if (!isServerAuthoritativeInventoryEnabled()) {
+					super.handleDataPacket(packet);
+					break;
+				}
+				if (!callPacketReceiveEvent(packet) || !this.spawned || !this.isAlive()) break;
+				PlayerHotbarPacket hotbarPacket = (PlayerHotbarPacket) packet;
+				switch (hotbarPacket.windowId) {
+					case ContainerIds.OFFHAND:
+						break;
+					case ContainerIds.INVENTORY:
+						int slot = hotbarPacket.selectedHotbarSlot;
+						inventoryManager.onClientSelectHotbarSlot(slot);
+						if (!selectHotbarSlot(slot)) {
+							inventoryManager.syncSelectedHotbarSlot();
+						}
+						break;
+				}
+				break;
 			default:
 				super.handleDataPacket(packet);
 				break;
@@ -2069,6 +2139,10 @@ public class SynapsePlayer116 extends SynapsePlayer113 {
 
 	@Override
 	public int addWindow(Inventory inventory, Integer forceId, boolean isPermanent, boolean alwaysOpen) {
+		if (isServerAuthoritativeInventoryEnabled()) {
+			return super.addWindow(inventory, forceId, isPermanent, alwaysOpen);
+		}
+
 		Integer index = this.windows.get(inventory);
 		if (index != null) {
 			return index;
@@ -2100,6 +2174,10 @@ public class SynapsePlayer116 extends SynapsePlayer113 {
 
 	@Override
 	public void removeWindow(Inventory inventory) {
+		if (isServerAuthoritativeInventoryEnabled()) {
+			super.removeWindow(inventory);
+			return;
+		}
 		if (!this.beginInventoryWindowRemoval(inventory)) {
 			return;
 		}
@@ -2144,6 +2222,15 @@ public class SynapsePlayer116 extends SynapsePlayer113 {
 	@Override
 	public void onInventoryOpen() {
 		this.openInventory();
+	}
+
+	@Override
+	public void sendAllInventories() {
+		if (isServerAuthoritativeInventoryEnabled()) {
+			inventoryManager.syncAll();
+			return;
+		}
+		super.sendAllInventories();
 	}
 
 	@Override
@@ -2199,6 +2286,11 @@ public class SynapsePlayer116 extends SynapsePlayer113 {
 	}
 
 	@Override
+	public boolean isServerAuthoritativeInventoryEnabled() {
+		return SERVER_AUTHORITATIVE_INVENTORY && serverAuthoritativeInventory;
+	}
+
+	@Override
 	public boolean onUpdate(int currentTick) {
 		int tickDiff = currentTick - this.lastUpdate;
 		if (tickDiff > 0) {
@@ -2220,6 +2312,10 @@ public class SynapsePlayer116 extends SynapsePlayer113 {
 			}
 			if ((currentTick & INPUT_TICK_DESYNC_FORGET_CD) == 0 && clientTickTooFastCount > 0) {
 				clientTickTooFastCount--;
+			}
+
+			if (isServerAuthoritativeInventoryEnabled()) {
+				inventoryManager.flushPendingUpdates();
 			}
 		}
 		return super.onUpdate(currentTick);
@@ -2275,5 +2371,1269 @@ public class SynapsePlayer116 extends SynapsePlayer113 {
 		}
 		emotedCurrentTick = true;
 		return true;
+	}
+
+	@Override
+	@Nullable
+	public InventoryListener getInventoryListener() {
+		return isServerAuthoritativeInventoryEnabled() ? inventoryManager : super.getInventoryListener();
+	}
+
+	public InventoryManager getInventoryManager() {
+		return inventoryManager;
+	}
+
+	protected ItemStackResponse handleItemStackRequest(ItemStackRequest request) {
+		if (!isServerAuthoritativeInventoryEnabled() || !this.spawned || !this.isAlive()
+				|| this.isSpectator() || !this.canContinueInputState() || processingItemStackRequest || executingInventoryTransaction) {
+			return rejectedItemStackResponse(request.requestId);
+		}
+		processingItemStackRequest = true;
+		inventoryManager.setCurrentItemStackRequestId(request.requestId);
+		try {
+			Inventory window = getCurrentWindow();
+			if (inventoryManager.isWindowOpen(window) && window.handleAuthoritativeItemStackRequest(this, request)) {
+				return rejectedItemStackResponse(request.requestId);
+			}
+			ItemStackRequestExecutor executor = new ItemStackRequestExecutor(this, request);
+			InventoryTransaction transaction = executor.generateInventoryTransaction();
+			executor.beginBundleCommit();
+			if (transaction != null && !executeInventoryTransaction(transaction, request.requestId)) {
+				return rejectedItemStackResponse(request.requestId);
+			}
+			return executor.buildItemStackResponse();
+		} catch (ItemStackRequestProcessException exception) {
+			log.debug("{}: ItemStackRequest #{} rejected: {}", getName(), request.requestId, exception.getMessage());
+			inventoryManager.requestSyncAll();
+			return rejectedItemStackResponse(request.requestId);
+		} catch (RuntimeException exception) {
+			log.error("{}: Failed to process ItemStackRequest #{}", getName(), request.requestId, exception);
+			inventoryManager.requestSyncAll();
+			return rejectedItemStackResponse(request.requestId);
+		} finally {
+			inventoryManager.syncMismatchedPredictedSlotChanges();
+			inventoryManager.removeCurrentItemStackRequestId();
+			inventoryManager.endBundleTransaction();
+			processingItemStackRequest = false;
+		}
+	}
+
+	private ItemStackResponse rejectedItemStackResponse(int requestId) {
+		ItemStackResponse response = new ItemStackResponse();
+		response.requestId = requestId;
+		response.result = ItemStackResponse.RESULT_ERROR;
+		return response;
+	}
+
+	protected boolean executeInventoryTransaction(InventoryTransaction transaction, int requestId) {
+		if (executingInventoryTransaction) {
+			return false;
+		}
+		executingInventoryTransaction = true;
+		try {
+			setUsingItem(false);
+			inventoryManager.setCurrentItemStackRequestId(requestId);
+			inventoryManager.addTransactionPredictedSlotChanges(transaction);
+			if (!transaction.execute()) {
+				inventoryManager.requestSyncAll();
+				return false;
+			}
+		} catch (Exception e) {
+			inventoryManager.requestSyncAll();
+            log.debug("{}: Invalid inventory transaction {}", getName(), requestId, e);
+			return false;
+		} finally {
+			inventoryManager.syncMismatchedPredictedSlotChanges();
+			inventoryManager.removeCurrentItemStackRequestId();
+			executingInventoryTransaction = false;
+		}
+		return true;
+	}
+
+	protected void handleServerAuthoritativeInventoryTransaction(int transactionType, int requestId,
+			NetworkInventoryAction[] actions, @Nullable TransactionData transactionData,
+			LegacySetItemSlotData[] requestChangedSlots, JavaItemUseRouting.Route route) {
+		if (!this.spawned || !this.isAlive() || !this.canContinueInputState()
+				|| executingInventoryTransaction || processingItemStackRequest) {
+			return;
+		}
+		inventoryManager.setCurrentItemStackRequestId(requestId);
+		try {
+			inventoryManager.addRawPredictedSlotChanges(actions);
+			switch (transactionType) {
+				case InventoryTransactionPacket.TYPE_NORMAL -> {
+					if (!isSpectator()) {
+						handleNormalTransaction(actions, requestId);
+					}
+				}
+				case InventoryTransactionPacket.TYPE_MISMATCH -> inventoryManager.requestSyncAll();
+				case InventoryTransactionPacket.TYPE_USE_ITEM -> handleUseItemTransaction((UseItemData) transactionData, route);
+				case InventoryTransactionPacket.TYPE_USE_ITEM_ON_ENTITY -> handleUseItemOnEntityTransaction((UseItemOnEntityData) transactionData, route);
+				case InventoryTransactionPacket.TYPE_RELEASE_ITEM -> handleReleaseItemTransaction((ReleaseItemData) transactionData, route);
+			}
+			inventoryManager.setCurrentItemStackRequestId(requestId);
+			syncRequestedInventorySlots(requestChangedSlots);
+		} catch (IllegalArgumentException exception) {
+			inventoryManager.requestSyncAll();
+			log.debug("{}: Invalid inventory prediction {}", getName(), requestId, exception);
+		} finally {
+			inventoryManager.syncMismatchedPredictedSlotChanges();
+			inventoryManager.removeCurrentItemStackRequestId();
+		}
+	}
+
+	protected void handleServerAuthoritativeInputInventory(IPlayerAuthInputPacket packet,
+			@Nullable NetworkInventoryAction[] actions, @Nullable UseItemData useItemData) {
+		if (useItemData == null || !this.canContinueInputState()
+				|| executingInventoryTransaction || processingItemStackRequest) {
+			return;
+		}
+		boolean javaClient = this.isJavaClient();
+		JavaItemUseRouting.Route route = JavaItemUseRouting.resolveEmbeddedUse(javaClient,
+				javaClient && this.supportsExplicitItemUseHand(), useItemData.hotbarSlot, useItemData.actionType);
+		if (route == JavaItemUseRouting.Route.REJECT) {
+			return;
+		}
+		inventoryManager.setCurrentItemStackRequestId(packet.getLegacyRequestId());
+		try {
+			if (actions != null) {
+				inventoryManager.addRawPredictedSlotChanges(actions);
+			}
+			handleUseItemTransaction(useItemData, route);
+			inventoryManager.setCurrentItemStackRequestId(packet.getLegacyRequestId());
+			LegacySetItemSlotData[] requestChangedSlots = packet.getRequestChangedSlots();
+			if (requestChangedSlots != null) {
+				syncRequestedInventorySlots(requestChangedSlots);
+			}
+		} catch (IllegalArgumentException exception) {
+			inventoryManager.requestSyncAll();
+			log.debug("{}: Invalid embedded inventory prediction", getName(), exception);
+		} finally {
+			inventoryManager.syncMismatchedPredictedSlotChanges();
+			inventoryManager.removeCurrentItemStackRequestId();
+		}
+	}
+
+	protected void syncRequestedInventorySlots(LegacySetItemSlotData[] requestChangedSlots) {
+		// requestChangedSlots asks the server to always send out the contents of the specified slots, even if they haven't changed.
+		// Handling these is necessary to ensure the client inventory stays in sync if the server rejects the transaction.
+		// The most common example of this is equipping armor by right-click, which doesn't send a legacy prediction action for the destination armor slot.
+		for (LegacySetItemSlotData containerInfo : requestChangedSlots) {
+			int windowId = ItemStackContainerIdTranslator.translate(getAbstractProtocol(), isNetEaseClient(),
+					containerInfo.containerId, inventoryManager.getCurrentWindowId());
+			for (byte netSlot : containerInfo.changedSlotIndexes) {
+				//TODO: HACK! The client sends an incorrect slot ID for the offhand as of 1.19.70 (though this doesn't really matter since the offhand has only 1 slot anyway)
+				int slot = windowId == ContainerIds.OFFHAND ? 0 : netSlot & 0xff;
+				ObjectIntPair<Inventory> inventoryAndSlot = inventoryManager.locateWindowAndSlot(windowId, slot);
+				if (inventoryAndSlot != null) { // trigger the normal slot sync logic
+					inventoryManager.onSlotChange(inventoryAndSlot.left(), inventoryAndSlot.rightInt());
+				}
+			}
+		}
+	}
+
+	protected boolean selectServerAuthoritativeHotbarSlot(int hotbarSlot, ItemUseHand hand) {
+		if (!this.spawned || !this.isAlive() || !this.canContinueInputState()) {
+			return false;
+		}
+		if (hand == ItemUseHand.OFF_HAND) {
+			return canUseServerAuthoritativeSlot(getOffhandInventory(), 0);
+		}
+		long movementEpoch = this.getMovementEpoch();
+		return selectHotbarSlot(hotbarSlot) && this.canContinueInputState()
+				&& this.getMovementEpoch() == movementEpoch && inventory.getHeldItemIndex() == hotbarSlot
+				&& canUseServerAuthoritativeSlot(inventory, hotbarSlot);
+	}
+
+	private boolean canUseServerAuthoritativeSlot(Inventory inventory, int slot) {
+		if (getInventorySlotDisplay(inventory, slot) == null) {
+			return true;
+		}
+		if (isUsingItem() && (inventory == this.inventory && slot == this.inventory.getHeldItemIndex() && !isUsingOffhandItem()
+				|| inventory == getOffhandInventory() && isUsingOffhandItem())) {
+			setUsingItem(false);
+		}
+		inventoryManager.onSlotChange(inventory, slot);
+		return false;
+	}
+
+	@Override
+	protected final boolean canProcessPlayerBlockAction(int action) {
+		return canProcessInventoryBlockAction(action, false);
+	}
+
+	private boolean canProcessInventoryBlockAction(int action, boolean embedded) {
+		if (!isServerAuthoritativeInventoryEnabled() || !this.spawned || !this.isAlive()) {
+			return true;
+		}
+		if (!embedded && (action == PlayerActionPacket.ACTION_BLOCK_PREDICT_DESTROY
+				|| action == PlayerActionPacket.ACTION_BLOCK_CONTINUE_DESTROY)) {
+			return true;
+		}
+		switch (action) {
+			case PlayerActionPacket.ACTION_START_BREAK,
+				 PlayerActionPacket.ACTION_STOP_BREAK,
+				 PlayerActionPacket.ACTION_CONTINUE_BREAK,
+				 PlayerActionPacket.ACTION_BLOCK_PREDICT_DESTROY,
+				 PlayerActionPacket.ACTION_BLOCK_CONTINUE_DESTROY,
+				 PlayerActionPacket.ACTION_ITEM_USE_ON_START -> {
+				if (!canUseServerAuthoritativeSlot(inventory, inventory.getHeldItemIndex())) {
+					cancelBlockBreakingWhileUsingItem();
+					return false;
+				}
+			}
+		}
+		return true;
+	}
+
+	protected void handleNormalTransaction(NetworkInventoryAction[] actions, int requestId) {
+		// When the ItemStackRequest system is used, this transaction type is used for dropping items by pressing Q.
+		// I don't know why they don't just use ItemStackRequest for that too, which already supports dropping items by
+		// clicking them outside an open inventory menu, but for now it is what it is.
+		// Fortunately, this means we can be much stricter about the validation criteria.
+
+		int actionCount = actions.length;
+		if (actionCount > 2) {
+			// Due to a bug in the game, this transaction type is still sent when a player edits a book.
+			// We don't need these transactions for editing books, since we have BookEditPacket, so we can just ignore them.
+			log.debug("Ignoring normal inventory transaction with {} actions (drop-item should have exactly 2 actions)", actionCount);
+			return;
+		}
+
+		int sourceSlot = Integer.MIN_VALUE;
+		Item clientItemStack = null;
+		int droppedCount = Integer.MIN_VALUE;
+
+		for (NetworkInventoryAction networkInventoryAction : actions) {
+			if (networkInventoryAction.sourceType == NetworkInventoryAction.SOURCE_WORLD && networkInventoryAction.inventorySlot == InventoryTransactionPacket116.ACTION_MAGIC_SLOT_DROP_ITEM) {
+				droppedCount = networkInventoryAction.newItem.getCount();
+				if (droppedCount <= 0) {
+					throw new IllegalArgumentException(getName() + " expected positive count for dropped item");
+				}
+			} else if (networkInventoryAction.sourceType == NetworkInventoryAction.SOURCE_CONTAINER && networkInventoryAction.windowId == ContainerIds.INVENTORY) {
+				// mobile players can drop an item from a non-selected hotbar slot
+				sourceSlot = networkInventoryAction.inventorySlot;
+				clientItemStack = networkInventoryAction.oldItem;
+			} else {
+				log.debug("{} missing information in drop item transaction, need source slot, client item stack and dropped count", getName());
+				return;
+			}
+		}
+		if (sourceSlot == Integer.MIN_VALUE || clientItemStack == null || droppedCount == Integer.MIN_VALUE) {
+			log.debug("{} missing information in drop item transaction, need source slot, client item stack and dropped count", getName());
+			return;
+		}
+
+		if (!inventory.slotExists(sourceSlot)) {
+			return; //TODO: size desync??
+		}
+		if (!canUseServerAuthoritativeSlot(inventory, sourceSlot)) {
+			return;
+		}
+
+		Item sourceSlotItem = inventory.getItem(sourceSlot);
+		if (sourceSlotItem.getCount() < droppedCount) {
+			return;
+		}
+
+		// Sadly we don't have itemstack IDs here, so we have to compare the basic item properties to ensure that we're
+		// dropping the item the client expects (inventory might be out of sync with the client).
+		if (!NetworkItemHelper.matches(sourceSlotItem, clientItemStack, false)) {
+			return;
+		}
+
+		Item droppedItem = sourceSlotItem.split(droppedCount);
+
+		TransactionBuilder builder = new TransactionBuilder();
+		builder.getInventory(inventory).setItem(sourceSlot, sourceSlotItem);
+		builder.addAction(new DropItemAction(Items.air(), droppedItem));
+
+		InventoryTransaction transaction = new InventoryTransaction(this, builder.generateActions());
+		executeInventoryTransaction(transaction, requestId);
+	}
+
+	private Item restoreAuthoritativeItemClaim(Item clientItem) {
+		Item serverItem = inventory.getItemInHand();
+		if (!NetworkItemHelper.matches(serverItem, clientItem, false)) {
+			return clientItem;
+		}
+		// 共享输入校验使用完整服务端物品，客户端只提供本次动作的数量快照。
+		serverItem.setCount(clientItem.getCount());
+		return serverItem;
+	}
+
+    private boolean prepareBlockActionsWhileUsingItem(PlayerBlockAction[] actions) {
+        if (isServerAuthoritativeInventoryEnabled() && this.spawned && this.isAlive()
+                && !canUseServerAuthoritativeSlot(inventory, inventory.getHeldItemIndex())) {
+            cancelBlockBreakingWhileUsingItem();
+            return false;
+        }
+        if (!isServerAuthoritativeInventoryEnabled() || isJavaClient() || !this.isUsingItem()) {
+            return true;
+        }
+        boolean advancesBreaking = false;
+        for (PlayerBlockAction action : actions) {
+            switch (action.action) {
+                case PlayerActionPacket.ACTION_START_BREAK,
+                     PlayerActionPacket.ACTION_CONTINUE_BREAK,
+                     PlayerActionPacket.ACTION_BLOCK_CONTINUE_DESTROY,
+                     PlayerActionPacket.ACTION_STOP_BREAK,
+                     PlayerActionPacket.ACTION_BLOCK_PREDICT_DESTROY -> advancesBreaking = true;
+            }
+        }
+        if (advancesBreaking && this.finishItemUseBeforeBlockBreaking()) {
+            return true;
+        }
+        this.cancelBlockBreakingWhileUsingItem();
+        return false;
+    }
+
+    private void cancelBlockBreakingWhileUsingItem() {
+        Block previous = this.breakingBlock;
+        this.breakingBlock = null;
+        this.breakingBlockFace = null;
+        if (previous != null) {
+            previous.level.addLevelEvent(previous, LevelEventPacket.EVENT_BLOCK_STOP_BREAK);
+        }
+    }
+
+	protected void handleUseItemTransaction(UseItemData useItemData, JavaItemUseRouting.Route transactionRoute) {
+		if (transactionRoute == JavaItemUseRouting.Route.REJECT
+				|| !selectServerAuthoritativeHotbarSlot(useItemData.hotbarSlot, transactionRoute.hand())) {
+			return;
+		}
+		boolean explicitItemUseHandAllowed = this.isJavaClient() && this.supportsExplicitItemUseHand();
+		Item item;
+		Vector3f clickPos = useItemData.clickPos;
+		BlockVector3 blockVector = useItemData.blockPos;
+		BlockFace face = useItemData.face;
+		int type = useItemData.actionType;
+		ItemUseHand interactionHand = transactionRoute.hand();
+		ItemUseHand previousHand = this.setItemInteractionHand(interactionHand);
+		Item claimedItem = restoreAuthoritativeItemClaim(useItemData.itemInHand);
+
+		try {
+			if (interactionHand == ItemUseHand.OFF_HAND
+					&& !JavaItemUseRouting.supportsUseItemAction(type)) {
+				this.inventory.sendHeldItem(this);
+				return;
+			}
+			if (face == null && type != InventoryTransactionPacket116.USE_ITEM_ACTION_CLICK_AIR) {
+				return;
+			}
+
+			switch (type) {
+			case InventoryTransactionPacket116.USE_ITEM_ACTION_CLICK_BLOCK:
+
+				// Remove if client bug is ever fixed
+				boolean spamBug = lastRightClickData != null && System.currentTimeMillis() - lastRightClickTime < 100 &&
+						lastRightClickData.face == face &&
+						lastRightClickData.playerPos.distanceSquared(useItemData.playerPos) < Mth.EPSILON &&
+						lastRightClickData.blockPos.equalsVec(blockVector) &&
+						lastRightClickData.clickPos.distanceSquared(clickPos) < Mth.EPSILON && // signature spam bug has 0 distance, but allow some error
+						Block.equals(lastRightClickData.block, useItemData.block) &&
+						lastRightClickData.clientInteractPrediction == useItemData.clientInteractPrediction &&
+						lastRightClickData.clientCooldownState == useItemData.clientCooldownState &&
+
+						lastRightClickData.hotbarSlot == useItemData.hotbarSlot;
+				if (spamBug) {
+					return;
+				}
+				lastRightClickData = useItemData;
+				lastRightClickTime = System.currentTimeMillis();
+
+				long itemSlotEpoch = this.getMovementEpoch();
+				boolean itemSlotReady = this.prepareItemUseSlot(useItemData.hotbarSlot, claimedItem, interactionHand);
+				if (!itemSlotReady && (!this.isOnline() || !this.isAlive() || !this.isInputSessionActive()
+						|| this.getMovementEpoch() != itemSlotEpoch || !this.isCurrentInputPosition())) {
+					return;
+				}
+				Item i = inventory.getItemInHand();
+				if (itemSlotReady && !i.is(Item.BRUSH)) {
+					this.setDataFlag(DATA_FLAG_ACTION, false);
+				}
+
+				boolean clientPredictedFailure = false;
+				boolean inventorySyncRequired = true;
+
+				if (itemSlotReady && this.canInteractWithBlock(blockVector.add(0.5, 0.5, 0.5), this.isCreative() ? MAX_REACH_DISTANCE_CREATIVE : MAX_REACH_DISTANCE_SURVIVAL)) {
+					if (this.isCreative()) {
+						Vector3 blockPos;
+						Block clientBlock = useItemData.block;
+						if (clientBlock != null) {
+							clientBlock.position(blockVector, level);
+							blockPos = clientBlock;
+						} else {
+							blockPos = blockVector.asVector3();
+						}
+						Boolean clientPrediction = AbstractProtocol.PROTOCOL_121_20.isOlderThanOrEqual(protocol) ? useItemData.clientInteractPrediction : null;
+						clientPrediction = normalizeUseItemClientPrediction(clientPrediction);
+						BlockItemUseResult useResult = this.useItemOnBlockWithSync(blockPos, i, face, clickPos.x, clickPos.y, clickPos.z, clientPrediction, claimedItem);
+						inventorySyncRequired = useResult.inventorySyncRequired();
+						if (useResult.item() != null) {
+							return;
+						}
+					} else if (i.equals(claimedItem)) {
+						Vector3 blockPos;
+						Block clientBlock = useItemData.block;
+						if (clientBlock != null) {
+							clientBlock.position(blockVector, level);
+							blockPos = clientBlock;
+						} else {
+							blockPos = blockVector.asVector3();
+						}
+						Boolean clientPrediction = AbstractProtocol.PROTOCOL_121_20.isOlderThanOrEqual(protocol) ? useItemData.clientInteractPrediction : null;
+						clientPrediction = normalizeUseItemClientPrediction(clientPrediction);
+						clientPredictedFailure = clientPrediction != null && !clientPrediction;
+						BlockItemUseResult useResult = this.useItemOnBlockWithSync(blockPos, i, face, clickPos.x, clickPos.y, clickPos.z, clientPrediction, claimedItem);
+						inventorySyncRequired = useResult.inventorySyncRequired();
+						if ((i = useResult.item()) != null) {
+							return;
+						}
+					}
+				}
+
+				if (inventorySyncRequired) inventory.sendHeldItem(this);
+
+				if (clientPredictedFailure) {
+					return;
+				}
+
+				if (blockVector.distanceSquared(this) > 10000) {
+					return;
+				}
+
+				Block target = level.getBlock(blockVector.asVector3());
+				Block block0 = target.getSide(face);
+
+				this.level.sendBlocks(new Player[]{this}, new Block[]{target, block0}, UpdateBlockPacket.FLAG_ALL_PRIORITY);
+				this.level.sendBlocks(new Player[]{this}, new Block[]{level.getExtraBlock(target), level.getExtraBlock(block0)}, UpdateBlockPacket.FLAG_ALL_PRIORITY, 1);
+
+				if (target instanceof BlockDoor) {
+					BlockDoor door = (BlockDoor) target;
+					Block part;
+
+					if (door.isTop()) {
+						part = target.down();
+
+						if (part.getId() == target.getId()) {
+							target = part;
+
+							this.level.sendBlocks(new Player[]{this}, new Block[]{target}, UpdateBlockPacket.FLAG_ALL_PRIORITY);
+						}
+					}
+				}
+				return;
+			case InventoryTransactionPacket116.USE_ITEM_ACTION_BREAK_BLOCK:
+				if (!this.spawned || !this.isAlive()) {
+					return;
+				}
+
+				if (isServerAuthoritativeInventoryEnabled() && !isJavaClient()
+						&& !this.finishItemUseBeforeBlockBreaking()) {
+					this.cancelBlockBreakingWhileUsingItem();
+				}
+
+				removeCurrentWindow();
+				this.resetCraftingGridType();
+
+				i = this.getInventory().getItemInHand();
+
+				Item oldItem = i.clone();
+
+				if (isBreakingBlock(blockVector)
+						&& this.canInteract(blockVector.add(0.5, 0.5, 0.5), this.isCreative() ? MAX_REACH_DISTANCE_CREATIVE : MAX_REACH_DISTANCE_SURVIVAL)
+						&& (i = this.level.useBreakOn(blockVector.asVector3(), face, i, this, true)) != null) {
+					this.breakingBlock = null;
+					this.breakingBlockFace = null;
+					if (this.isSurvival()) {
+						this.getFoodData().updateFoodExpLevel(0.005f);
+						if (!i.equals(oldItem) || i.getCount() != oldItem.getCount()) {
+							inventory.setItemInHand(i);
+							inventory.sendHeldItem(this.getViewers().values());
+						}
+					}
+					return;
+				}
+
+				inventory.sendContents(this);
+				inventory.sendHeldItem(this);
+
+				if (blockVector.distanceSquared(this) < 10000) {
+					target = this.level.getBlock(blockVector.asVector3());
+					this.level.sendBlocks(new Player[]{this}, new Block[]{target}, UpdateBlockPacket.FLAG_ALL_PRIORITY);
+					this.level.sendBlocks(new Player[]{this}, new Block[]{level.getExtraBlock(target)}, UpdateBlockPacket.FLAG_ALL_PRIORITY, 1);
+
+					BlockEntity blockEntity = this.level.getBlockEntityIfLoaded(blockVector);
+					if (blockEntity instanceof BlockEntitySpawnable) {
+						((BlockEntitySpawnable) blockEntity).spawnTo(this);
+					}
+				}
+
+				return;
+			case InventoryTransactionPacket116.USE_ITEM_ACTION_CLICK_AIR:
+			    if (!this.prepareItemUseSlot(useItemData.hotbarSlot, claimedItem, interactionHand)) {
+			        return;
+			    }
+				Vector3 directionVector = this.getDirectionVector();
+
+				if (this.isCreative()) {
+					item = this.inventory.getItemInHand();
+				} else if (!this.inventory.getItemInHand().equals(claimedItem)) {
+
+					return;
+				} else {
+					item = this.inventory.getItemInHand();
+				}
+
+				this.rebindStartedJavaItemUseHand(explicitItemUseHandAllowed, interactionHand);
+				InventorySlotReference itemSource = this.inventory.captureHeldItem();
+				long itemSourceEpoch = itemSource == null ? 0 : this.getMovementEpoch();
+				Item beforeUse = itemSource == null ? item.clone() : itemSource.getSnapshot();
+				PlayerInteractEvent interactEvent = new PlayerInteractEvent(this, item, directionVector, face, PlayerInteractEvent.Action.RIGHT_CLICK_AIR);
+				if (isSpectator()) {
+					interactEvent.setCancelled();
+				}
+				this.server.getPluginManager().callEvent(interactEvent);
+				if (interactEvent.isCancelled()
+				        || itemSource != null && !this.canStartItemUse(itemSource, itemSourceEpoch)) {
+				    if (itemSource == null) {
+				        this.inventory.sendHeldItem(this);
+				    } else {
+				        this.resyncItemUse(itemSource);
+				    }
+				    return;
+				}
+
+				boolean explicitShieldUse = JavaItemUseRouting.supportsExplicitShieldUse(
+						explicitItemUseHandAllowed, item.getId());
+				boolean itemAccepted = item.onClickAir(this, directionVector) || explicitShieldUse;
+				if (itemAccepted) {
+					if (this.isSurvivalLike() && !this.updateAuthoritativeItemUse(beforeUse, item, itemSource)) {
+						this.resyncItemUse(itemSource);
+						return;
+					}
+
+					if (itemSource != null && (!this.isOnline() || this.isMainThreadInputEnabled() && !this.isInputSessionActive()
+					        || this.getMovementEpoch() != itemSourceEpoch || !itemSource.isSelectedBy(this.inventory))) {
+					    return;
+					}
+
+					if (!this.isUsingItem()) {
+						this.setUsingItem(item.canRelease() || explicitShieldUse);
+						return;
+					}
+
+					// Used item
+					//int ticksUsed = this.server.getTick() - this.startAction;
+					int ticksUsed = (int) (System.currentTimeMillis() - this.startActionTimestamp) / 50;
+
+					this.completeItemUse(item, ticksUsed, explicitShieldUse);
+				}
+
+				return;
+			default:
+
+				break;
+			}
+		} finally {
+			this.setItemInteractionHand(previousHand);
+		}
+	}
+
+	protected void handleUseItemOnEntityTransaction(UseItemOnEntityData useItemOnEntityData, JavaItemUseRouting.Route transactionRoute) {
+		if (transactionRoute == JavaItemUseRouting.Route.REJECT
+				|| !selectServerAuthoritativeHotbarSlot(useItemOnEntityData.hotbarSlot, transactionRoute.hand())) {
+			return;
+		}
+		Item item;
+		int type = useItemOnEntityData.actionType;
+		ItemUseHand interactionHand = transactionRoute.hand();
+		ItemUseHand previousHand = this.setItemInteractionHand(interactionHand);
+
+		try {
+			if (interactionHand == ItemUseHand.OFF_HAND
+					&& !JavaItemUseRouting.supportsEntityAction(type)) {
+				this.inventory.sendHeldItem(this);
+				return;
+			}
+			Entity target = this.level.getEntity(useItemOnEntityData.entityRuntimeId);
+			if (target == null) {
+				item = this.inventory.getItemInHand();
+				PlayerInteractEvent interactEvent = new PlayerInteractEvent(this, item, this.getDirectionVector(), BlockFace.UP, PlayerInteractEvent.Action.CLICK_UNKNOWN_ENTITY).setUnkownEntityId(useItemOnEntityData.entityRuntimeId);
+				if (isSpectator()) {
+					interactEvent.setCancelled();
+				}
+				this.server.getPluginManager().callEvent(interactEvent);
+				return;
+			}
+
+			if (!NetworkItemHelper.matches(this.inventory.getItemInHand(), useItemOnEntityData.itemInHand, true)) {
+				this.inventory.sendHeldItem(this);
+			}
+
+			item = this.inventory.getItemInHand();
+
+			switch (type) {
+				case InventoryTransactionPacket116.USE_ITEM_ON_ENTITY_ACTION_INTERACT:
+					if (!this.canInteract(target, target.getBoundingBox(), isCreative() ? MAX_REACH_DISTANCE_CREATIVE_ENTITY_INTERACTION : this.level.getMaxEntityInteractionReachDistanceInSurvival())) {
+						break;
+					}
+
+					InventorySlotReference interactionSource = this.inventory.captureHeldItem();
+					long interactionEpoch = interactionSource == null ? 0 : this.getMovementEpoch();
+					long interactionTargetEpoch = interactionSource != null && target instanceof Player targetPlayer ? targetPlayer.getMovementEpoch() : 0;
+					PlayerInteractEntityEvent playerInteractEntityEvent = new PlayerInteractEntityEvent(this, target, item, useItemOnEntityData.clickPos);
+					if (this.isSpectator()) playerInteractEntityEvent.setCancelled();
+					getServer().getPluginManager().callEvent(playerInteractEntityEvent);
+
+					if (playerInteractEntityEvent.isCancelled()
+					        || interactionSource != null && !this.canStartEntityInteraction(interactionSource, interactionEpoch, target, interactionTargetEpoch)) {
+					    if (interactionSource != null) {
+					        this.resyncItemUse(interactionSource);
+					    }
+						break;
+					}
+					if (target.onInteract(this, item, useItemOnEntityData.clickPos) && this.isSurvival()) {
+					    if (interactionSource != null) {
+					        this.finishEntityInteractionItem(interactionSource, item, target);
+					        break;
+					    }
+						if (item.isTool()) {
+							if (item.useOn(target) && item.getDamage() > item.getMaxDurability()) {
+								item = Items.air();
+								level.addLevelSoundEvent(this, LevelSoundEventPacket.SOUND_BREAK);
+							}
+						} else {
+							if (item.count > 1) {
+								item.count--;
+							} else {
+								item = Items.air();
+							}
+						}
+
+						this.inventory.setItemInHand(item);
+					}
+					break;
+				case InventoryTransactionPacket116.USE_ITEM_ON_ENTITY_ACTION_ATTACK:
+
+					if (!this.claimAttackAttempt()) {
+						return;
+					}
+
+					if (!this.canInteract(target, target.getBoundingBox(), isCreative() ? MAX_REACH_DISTANCE_CREATIVE_ENTITY_INTERACTION : this.level.getMaxEntityInteractionReachDistanceInSurvival())) {
+						break;
+					}
+
+					InventorySlotReference attackSource = this.inventory.captureHeldItem();
+					long attackEpoch = attackSource == null ? 0 : this.getMovementEpoch();
+					long targetEpoch = attackSource != null && target instanceof Player targetPlayer ? targetPlayer.getMovementEpoch() : 0;
+					ItemAttackDamageEvent event = new ItemAttackDamageEvent(item);
+					this.server.getPluginManager().callEvent(event);
+					float itemDamage = event.getAttackDamage();
+
+					Enchantment[] enchantments = item.getId() != Item.ENCHANTED_BOOK ? item.getEnchantments() : Enchantment.EMPTY;
+
+					float damageBonus = 0;
+					for (Enchantment enchantment : enchantments) {
+						damageBonus += enchantment.getDamageBonus(this, target);
+					}
+					itemDamage += Mth.floor(damageBonus);
+
+					Map<EntityDamageEvent.DamageModifier, Float> damage = new EnumMap<>(EntityDamageEvent.DamageModifier.class);
+					damage.put(EntityDamageEvent.DamageModifier.BASE, itemDamage);
+
+					KnockbackProfile targetProfile = this.getKnockbackProfile();
+					float knockBackH = targetProfile.getBaseH();
+					float knockBackV = targetProfile.getBaseV();
+					int knockBackEnchantment = !item.is(Item.ENCHANTED_BOOK) ? item.getEnchantmentLevel(Enchantment.KNOCKBACK) : 0;
+
+					if (target instanceof Player) {
+						if ((((Player) target).getGamemode() & 0x01) > 0) {
+							break;
+						} else if (!this.server.getConfiguration().isPvp() || this.level.getDifficulty() == 0 || !level.getGameRules().getBoolean(GameRule.PVP)) {
+							break;
+						}
+					}
+
+					if (attackSource != null && (!this.canStartItemUse(attackSource, attackEpoch)
+					        || target.isClosed() || !target.isAlive() || target.getLevel() != this.level
+					        || this.level.getEntity(target.getId()) != target
+					        || target instanceof Player targetPlayer && targetPlayer.getMovementEpoch() != targetEpoch
+					        || !this.canInteract(target, target.getBoundingBox(), isCreative() ? MAX_REACH_DISTANCE_CREATIVE_ENTITY_INTERACTION : this.level.getMaxEntityInteractionReachDistanceInSurvival()))) {
+					    this.resyncItemUse(attackSource);
+					    break;
+					}
+
+					EntityDamageByEntityEvent entityDamageByEntityEvent = new EntityDamageByEntityEvent(this, target, EntityDamageEvent.DamageCause.ENTITY_ATTACK, damage, knockBackH, knockBackV, enchantments);
+					entityDamageByEntityEvent.getKnockbackProfile().setEnchantLevel(knockBackEnchantment);
+					if (this.isSpectator()) entityDamageByEntityEvent.setCancelled();
+					if (!target.attack(entityDamageByEntityEvent)) {
+						if (item.isTool() && this.isSurvival()) {
+							this.inventory.sendContents(this);
+						}
+						break;
+					}
+
+					for (Enchantment enchantment : enchantments) {
+						enchantment.doPostAttack(item, this, target, null);
+					}
+
+					if (item.isTool() && this.isSurvival()) {
+					    if (attackSource != null) {
+					        this.finishAttackItem(attackSource, item, target);
+					        return;
+					    }
+						if (item.useOn(target)) {
+							if (item.getDamage() > item.getMaxDurability()) {
+								this.inventory.setItemInHand(Items.air());
+								level.addLevelSoundEvent(this, LevelSoundEventPacket.SOUND_BREAK);
+							} else {
+								this.inventory.setItemInHand(item);
+							}
+						} else {
+							this.inventory.setItemInHand(item);
+						}
+					}
+					return;
+				default:
+					break;
+			}
+
+		} finally {
+			this.setItemInteractionHand(previousHand);
+		}
+	}
+
+	protected void handleReleaseItemTransaction(ReleaseItemData releaseItemData, JavaItemUseRouting.Route transactionRoute) {
+		if (transactionRoute == JavaItemUseRouting.Route.REJECT
+				|| !selectServerAuthoritativeHotbarSlot(releaseItemData.hotbarSlot, transactionRoute.hand())) {
+			return;
+		}
+		boolean explicitItemUseHandAllowed = this.isJavaClient() && this.supportsExplicitItemUseHand();
+		Item item;
+
+		if (this.isSpectator()) {
+			this.sendAllInventories();
+			return;
+		}
+		ItemUseHand interactionHand = transactionRoute.hand();
+		if (explicitItemUseHandAllowed
+				&& this.isUsingItem()
+				&& interactionHand != this.getUsingItemHand()) {
+			ItemUseHand previousHand = this.setItemInteractionHand(this.getUsingItemHand());
+			try {
+				this.inventory.sendHeldItem(this);
+			} finally {
+				this.setItemInteractionHand(previousHand);
+				this.setUsingItem(false);
+			}
+			return;
+		}
+		ItemUseHand previousHand = this.setItemInteractionHand(interactionHand);
+
+		try {
+			try {
+				int type = releaseItemData.actionType;
+				switch (type) {
+					case InventoryTransactionPacket116.RELEASE_ITEM_ACTION_RELEASE:
+						if (this.isUsingItem()) {
+							item = this.inventory.getItemInHand();
+							if (this.isUsingOffhandItem() && !this.isUsingSameItem(item)) {
+								this.inventory.sendHeldItem(this);
+								return;
+							}
+
+							//int ticksUsed = this.server.getTick() - this.startAction;
+							int ticksUsed = (int) (System.currentTimeMillis() - this.startActionTimestamp) / 50;
+
+							if (!item.onRelease(this, ticksUsed, releaseItemData.headRot)) {
+								this.inventory.sendContents(this);
+							}
+						} else {
+							this.inventory.sendContents(this);
+						}
+						return;
+					case InventoryTransactionPacket116.RELEASE_ITEM_ACTION_CONSUME:
+						log.debug("Unexpected release item action consume from {}", getName());
+						return;
+					default:
+						break;
+				}
+			} finally {
+				this.setUsingItem(false);
+			}
+		} finally {
+			this.setItemInteractionHand(previousHand);
+		}
+	}
+
+	@Override
+	public boolean setCurrentWindow(Inventory inventory) {
+		if (!isServerAuthoritativeInventoryEnabled()) {
+			return super.setCurrentWindow(inventory);
+		}
+		if (currentWindow == inventory) {
+			return true;
+		}
+		if (!this.spawned || closingAuthoritativeWindow || preparingAuthoritativeDisconnect) {
+			return false;
+		}
+
+		InventoryOpenEvent event = new InventoryOpenEvent(inventory, this);
+		event.call();
+		if (event.isCancelled()) {
+			return false;
+		}
+
+		if (!tryRemoveCurrentWindow()) {
+			return false;
+		}
+
+		if (inventoryManager == null) {
+			throw new IllegalStateException("Player cannot open inventories in this state");
+		}
+		log.debug("{} opening inventory {}@{}", getName(), inventory.getClass().getSimpleName(), System.identityHashCode(inventory));
+		currentWindow = inventory;
+		inventoryManager.onCurrentWindowChange(inventory);
+		if (currentWindow != inventory) {
+			return false;
+		}
+		inventory.onOpen(this);
+		return true;
+	}
+
+	public void onAuthoritativeInventoryOpened(Inventory inventory) {
+	}
+
+	public void onAuthoritativeInventoryCloseAcknowledged(Inventory inventory) {
+	}
+
+	protected void onAuthoritativeInventoryClosed(Inventory inventory, boolean wasOpen) {
+	}
+
+	@Override
+	public void removeCurrentWindow() {
+		if (!isServerAuthoritativeInventoryEnabled()) {
+			super.removeCurrentWindow();
+			return;
+		}
+		tryRemoveCurrentWindow();
+	}
+
+	@Override
+	public void removeAllWindows(boolean permanent) {
+		if (!isServerAuthoritativeInventoryEnabled()) {
+			super.removeAllWindows(permanent);
+			return;
+		}
+		if (tryRemoveCurrentWindow() && permanent) {
+			removePermanentInventories();
+		}
+	}
+
+	public boolean tryRemoveCurrentWindow() {
+		if (!isServerAuthoritativeInventoryEnabled()) {
+			super.removeCurrentWindow();
+			return true;
+		}
+		if (closingAuthoritativeWindow) {
+			return false;
+		}
+		closingAuthoritativeWindow = true;
+		try {
+			Inventory previous = currentWindow;
+			boolean wasOpen = inventoryManager.isWindowOpen(previous);
+			Level origin = this.level;
+			long movementEpoch = this.getMovementEpoch();
+			boolean wasAlive = this.isAlive();
+			notifyAuthoritativeWindowClose(previous);
+			if (currentWindow != previous || deferredWindowClose != null || deferredWindowDeath) {
+				return false;
+			}
+			if (!isConnected()) {
+				detachTemporaryInventories();
+			} else if (!this.isCurrentInputPosition() || this.level != origin || this.getMovementEpoch() != movementEpoch
+					|| this.isAlive() != wasAlive || !evacuateTemporaryInventories()) {
+				inventoryManager.requestSyncAll();
+				return false;
+			}
+			if (currentWindow != previous) {
+				return false;
+			}
+			if (previous != null) {
+				previous.onClose(this);
+			}
+			if (currentWindow != previous) {
+				return false;
+			}
+			inventoryManager.onCurrentWindowRemove();
+			currentWindow = null;
+			notifiedAuthoritativeCloseWindow = null;
+			if (previous != null) {
+				onAuthoritativeInventoryClosed(previous, wasOpen);
+			}
+			return true;
+		} finally {
+			closingAuthoritativeWindow = false;
+			finishAuthoritativeWindowLifecycle();
+		}
+	}
+
+	private void notifyAuthoritativeWindowClose(@Nullable Inventory inventory) {
+		if (inventory != null && notifiedAuthoritativeCloseWindow != inventory) {
+			notifiedAuthoritativeCloseWindow = inventory;
+			new InventoryCloseEvent(inventory, this).call();
+		}
+	}
+
+	@Override
+	public void kill() {
+		if (isServerAuthoritativeInventoryEnabled() && closingAuthoritativeWindow) {
+			deferredWindowDeath = true;
+			return;
+		}
+		super.kill();
+	}
+
+	@Override
+	public void close(TextContainer message, String reason, boolean notify) {
+		if (deferCloseDuringAuthoritativeDeath(message, reason, notify)) {
+			return;
+		}
+		if (isServerAuthoritativeInventoryEnabled() && closingAuthoritativeWindow) {
+			if (!preparingAuthoritativeDisconnect && isConnected() && !isClosed() && deferredWindowClose == null) {
+				deferredWindowClose = new DeferredWindowClose(message, reason, notify, captureDeferredCloseObservation());
+			}
+			return;
+		}
+		if (preparingAuthoritativeDisconnect) {
+			return;
+		}
+		if (isServerAuthoritativeInventoryEnabled() && isConnected() && !isClosed()) {
+			preparingAuthoritativeDisconnect = true;
+			try {
+				if (currentWindow != null) {
+					closingAuthoritativeWindow = true;
+					try {
+						notifyAuthoritativeWindowClose(currentWindow);
+					} finally {
+						closingAuthoritativeWindow = false;
+						finishAuthoritativeWindowLifecycle();
+					}
+				}
+				super.close(message, reason, notify);
+			} finally {
+				preparingAuthoritativeDisconnect = false;
+			}
+			return;
+		}
+		super.close(message, reason, notify);
+	}
+
+	private void finishAuthoritativeWindowLifecycle() {
+		boolean death = deferredWindowDeath;
+		boolean save = deferredWindowSave;
+		boolean async = deferredWindowSaveAsync;
+		DeferredWindowClose close = deferredWindowClose;
+		deferredWindowDeath = false;
+		deferredWindowSave = false;
+		deferredWindowSaveAsync = false;
+		deferredWindowClose = null;
+		try {
+			if (death && !isClosed()) {
+				kill();
+			}
+			if (save && !isClosed()) {
+				save(close == null && async);
+			}
+		} finally {
+			if (close != null) {
+				closeWithObservation(close.message(), close.reason(), close.notifyClient(), close.observation());
+			}
+		}
+	}
+
+	private record DeferredWindowClose(TextContainer message, String reason, boolean notifyClient,
+	                                   DeferredCloseObservation observation) {
+	}
+
+	@Override
+	protected void doCloseInventory() {
+		if (!isServerAuthoritativeInventoryEnabled()) {
+			super.doCloseInventory();
+			return;
+		}
+		evacuateTemporaryInventories();
+	}
+
+	protected List<Inventory> getTemporaryInventories() {
+		List<Inventory> inventories = new ArrayList<>(3);
+		if (craftingGrid != null) {
+			inventories.add(craftingGrid);
+		}
+		if (playerUIInventory != null) {
+			inventories.add(getCursorInventory());
+		}
+		if (currentWindow instanceof PlayerUIComponent && !inventories.contains(currentWindow)) {
+			inventories.add(currentWindow);
+		}
+		return inventories;
+	}
+
+	@Override
+	protected List<Inventory> getAuthoritativeDeathInventories() {
+		List<Inventory> inventories = super.getAuthoritativeDeathInventories();
+		if (temporaryInventoryRecovery != null) {
+			inventories.add(temporaryInventoryRecovery);
+		}
+		return inventories;
+	}
+
+	protected boolean evacuateTemporaryInventories() {
+		TransactionBuilder builder = new TransactionBuilder();
+		for (Inventory temporary : getTemporaryInventories()) {
+			Collection<Item> contents = temporary.getContents().values();
+			if (!contents.isEmpty()) {
+				Item[] drops = builder.getInventory(inventory).addItem(contents.toArray(new Item[0]));
+				for (Item drop : drops) {
+					builder.addAction(new DropItemAction(Items.air(), drop));
+				}
+				builder.getInventory(temporary).clearAll();
+			}
+		}
+		List<InventoryAction> actions = builder.generateActions();
+		if (actions.isEmpty()) {
+			return true;
+		}
+		boolean evacuated = new InventoryTransaction(this, actions) {
+			@Override
+			protected boolean callExecuteEvent() {
+				return super.callExecuteEvent() && validateAuthoritativeContext();
+			}
+
+			@Override
+			protected boolean validateAuthoritativeContext() {
+				return !deferredWindowDeath && deferredWindowClose == null && isCurrentInputPosition()
+						&& super.validateAuthoritativeContext();
+			}
+		}.execute();
+		if (!evacuated) {
+			log.debug("{}: Temporary inventory evacuation was rejected; items and window are retained", getName());
+		}
+		return evacuated;
+	}
+
+	private void detachTemporaryInventories() {
+		if (detachedTemporaryInventories) {
+			return;
+		}
+		List<Inventory> temporary = getTemporaryInventories();
+		ListTag<CompoundTag> saved = TemporaryInventoryRecovery.snapshot(temporary, temporaryInventoryRecovery);
+		temporaryInventoryRecovery = new TemporaryInventoryRecovery(this, saved);
+		// 断线时已保存的临时物品转交恢复区，不能再掉落或触发第二次物品转移。
+		for (Inventory inventory : temporary) {
+			if (inventory instanceof BaseInventory base) {
+				base.slots.clear();
+			}
+		}
+		detachedTemporaryInventories = true;
+	}
+
+	@Override
+	public void save(boolean async) {
+		if (deferSaveDuringAuthoritativeDeath(async)) {
+			return;
+		}
+		if (isServerAuthoritativeInventoryEnabled() && closingAuthoritativeWindow) {
+			deferredWindowSaveAsync = deferredWindowSave ? deferredWindowSaveAsync && async : async;
+			deferredWindowSave = true;
+			return;
+		}
+		if (isServerAuthoritativeInventoryEnabled() && !isConnected() && !isClosed() && currentWindow != null) {
+			tryRemoveCurrentWindow();
+		}
+		if (preparingAuthoritativeDisconnect) {
+			async = false;
+		}
+		if (isServerAuthoritativeInventoryEnabled() && namedTag != null) {
+			ListTag<CompoundTag> saved = TemporaryInventoryRecovery.snapshot(
+					detachedTemporaryInventories ? List.of() : getTemporaryInventories(), temporaryInventoryRecovery);
+			namedTag.putList(saved);
+		}
+		super.save(async);
+	}
+
+	@Override
+	public void clearPendingInventoryRecovery() {
+		if (!isServerAuthoritativeInventoryEnabled() || temporaryInventoryRecovery == null) {
+			return;
+		}
+		TemporaryInventoryRecovery recovery = temporaryInventoryRecovery;
+		boolean previouslyExecuting = executingInventoryTransaction;
+		executingInventoryTransaction = true;
+		try {
+			recovery.clearAll();
+			if (temporaryInventoryRecovery == recovery && recovery.isEmpty()) {
+				temporaryInventoryRecovery = null;
+			}
+		} finally {
+			executingInventoryTransaction = previouslyExecuting;
+		}
+	}
+
+	public void restoreTemporaryInventoryItems() {
+		if (isServerAuthoritativeInventoryEnabled() && temporaryInventoryRecovery != null
+				&& isConnected() && isAlive() && !processingItemStackRequest && !executingInventoryTransaction
+				&& !closingAuthoritativeWindow) {
+			executingInventoryTransaction = true;
+			try {
+				temporaryInventoryRecovery.restore();
+			} finally {
+				executingInventoryTransaction = false;
+			}
+		}
+	}
+
+	@Override
+	public void sendContainerData(Inventory inventory, int propertyId, int value) {
+		if (!isServerAuthoritativeInventoryEnabled()) {
+			super.sendContainerData(inventory, propertyId, value);
+			return;
+		}
+
+		if (inventoryManager == null) {
+			return;
+		}
+		inventoryManager.syncData(inventory, propertyId, value);
+	}
+
+	@Override
+	public void sendEnchantingTableOptions(List<EnchantmentOption> options) {
+		if (!isServerAuthoritativeInventoryEnabled()) {
+			super.sendEnchantingTableOptions(options);
+			return;
+		}
+
+		if (inventoryManager == null) {
+			return;
+		}
+		inventoryManager.syncEnchantingTableOptions(options.toArray(new EnchantmentOption[0]));
+	}
+
+	@Override
+	public void openBlockEditor(int x, int y, int z, int type) {
+		if (!isServerAuthoritativeInventoryEnabled()) {
+			super.openBlockEditor(x, y, z, type);
+			return;
+		}
+
+		if (inventoryManager.isCurrentBlockEditor(x, y, z, type) || !tryRemoveCurrentWindow()) {
+			return;
+		}
+		inventoryManager.openBlockEditor(x, y, z, type);
+	}
+
+	@Override
+	protected void addDefaultWindows() {
+		if (!isServerAuthoritativeInventoryEnabled()) {
+			super.addDefaultWindows();
+			return;
+		}
+
+		this.addPermanentInventory(this.inventory, ContainerIds.INVENTORY);
+		this.addPermanentInventory(this.armorInventory, ContainerIds.ARMOR);
+		this.addPermanentInventory(this.offhandInventory, ContainerIds.OFFHAND);
+
+		this.playerUIInventory = new PlayerUIInventory(this);
+		this.playerUIInventory.onOpen(this);
+		this.addPermanentInventory(this.playerUIInventory.getCursorInventory(), ContainerIds.UI);
+
+		this.craftingGrid = this.playerUIInventory.getCraftingGrid();
+		this.addPermanentInventory(this.craftingGrid, ContainerIds.NONE);
+	}
+
+	protected void addPermanentInventory(Inventory inventory, int id) {
+		inventory.onOpen(this);
+		permanentWindowList.add(inventory);
+	}
+
+	@Override
+	protected void removePermanentInventories() {
+		if (!isServerAuthoritativeInventoryEnabled()) {
+			super.removePermanentInventories();
+			return;
+		}
+
+		for (Inventory inventory : permanentWindowList) {
+			inventory.onClose(this);
+		}
+		permanentWindowList.clear();
+	}
+
+	@Override
+	protected void doFirstSpawn() {
+		super.doFirstSpawn();
+
+		if (isServerAuthoritativeInventoryEnabled()) {
+			restoreTemporaryInventoryItems();
+			inventoryManager.syncAll();
+			inventoryManager.syncSelectedHotbarSlot();
+		}
+	}
+
+	@Override
+	protected void respawn() {
+		super.respawn();
+
+		if (isServerAuthoritativeInventoryEnabled()) {
+			inventoryManager.syncAll();
+		}
+	}
+
+	protected boolean selectHotbarSlot(int hotbarSlot) {
+		if (!inventory.isHotbarSlot(hotbarSlot)) {
+			return false;
+		}
+		if (hotbarSlot == inventory.getHeldItemIndex()) {
+			return true;
+		}
+
+		Item item = inventory.getItem(hotbarSlot);
+		int previousSlot = inventory.getHeldItemIndex();
+		long movementEpoch = this.getMovementEpoch();
+		PlayerItemHeldEvent ev = new PlayerItemHeldEvent(this, item, hotbarSlot);
+		ev.call();
+		if (ev.isCancelled() || !this.canContinueInputState() || this.getMovementEpoch() != movementEpoch
+				|| inventory.getHeldItemIndex() != previousSlot) {
+			return false;
+		}
+
+		if (fishing != null) {
+			if (!item.equals(fishing.rod)) {
+				stopFishing(false);
+			}
+		}
+
+		inventory.setHeldItemIndex(hotbarSlot);
+		if (!this.isMainThreadInputEnabled() || this.getUsingItemHand() == ItemUseHand.MAIN_HAND) {
+			setUsingItem(false);
+		}
+		return true;
+	}
+
+	@Override
+	public int getNextItemStackId() {
+		return isServerAuthoritativeInventoryEnabled() ? inventoryManager.getNextItemStackId() : super.getNextItemStackId();
+	}
+
+	@Override
+	public int getNextDynamicRecipeId() {
+		return isServerAuthoritativeInventoryEnabled() ? inventoryManager.getNextDynamicRecipeId() : super.getNextDynamicRecipeId();
+	}
+
+	@Override
+	public int getNextDynamicContainerId() {
+		return isServerAuthoritativeInventoryEnabled() ? inventoryManager.getBundleRegistry().getNextContainerId() : super.getNextDynamicContainerId();
 	}
 }

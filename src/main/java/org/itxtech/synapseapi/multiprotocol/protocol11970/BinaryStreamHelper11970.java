@@ -3,9 +3,11 @@ package org.itxtech.synapseapi.multiprotocol.protocol11970;
 import cn.nukkit.block.Block;
 import cn.nukkit.inventory.RecipeType;
 import cn.nukkit.inventory.recipe.*;
+import cn.nukkit.inventory.recipe.descriptor.*;
 import cn.nukkit.item.Item;
 import cn.nukkit.item.ItemDurable;
 import cn.nukkit.item.ItemID;
+import cn.nukkit.item.Items;
 import cn.nukkit.nbt.NBTIO;
 import cn.nukkit.nbt.tag.CompoundTag;
 import cn.nukkit.nbt.tag.Tag;
@@ -40,8 +42,8 @@ public class BinaryStreamHelper11970 extends BinaryStreamHelper11963 {
     @Override
     protected Item getSlot(BinaryStream stream, boolean instanceItem) {
         int id = stream.getVarInt();
-        if (id == 0) {
-            return Item.get(Item.AIR, 0, 0);
+        if (id == ItemID.AIR) {
+            return Items.air();
         }
 
         if (id < Short.MIN_VALUE || id >= Short.MAX_VALUE) {
@@ -63,8 +65,11 @@ public class BinaryStreamHelper11970 extends BinaryStreamHelper11963 {
             damage = AdvancedRuntimeItemPalette.getData(this.protocol, stream.neteaseMode, fullId);
         }
 
+        int itemStackId;
         if (!instanceItem && stream.getBoolean()) { // hasNetId
-            stream.getVarInt(); // netId
+            itemStackId = stream.getVarInt(); // netId
+        } else {
+            itemStackId = Integer.MIN_VALUE;
         }
 
         int blockRuntimeId = stream.getVarInt();
@@ -111,11 +116,8 @@ public class BinaryStreamHelper11970 extends BinaryStreamHelper11963 {
                 }
             }
 
-            int canPlaceCount = in.readInt();
+            int canPlaceCount = BinaryStream.checkLength(in.readInt(), 4096);
             if (canPlaceCount > 0) {
-                if (canPlaceCount > 4096) {
-                    throw new IndexOutOfBoundsException("Too many CanPlaceOn blocks");
-                }
                 canPlace = new ObjectOpenHashSet<>();
                 for (int i = 0; i < canPlaceCount; i++) {
                     canPlace.add(in.readUTF());
@@ -124,11 +126,8 @@ public class BinaryStreamHelper11970 extends BinaryStreamHelper11963 {
                 canPlace = null;
             }
 
-            int canBreakCount = in.readInt();
+            int canBreakCount = BinaryStream.checkLength(in.readInt(), 4096);
             if (canBreakCount > 0) {
-                if (canBreakCount > 4096) {
-                    throw new IndexOutOfBoundsException("Too many CanDestroy blocks");
-                }
                 canBreak = new ObjectOpenHashSet<>();
                 for (int i = 0; i < canBreakCount; i++) {
                     canBreak.add(in.readUTF());
@@ -164,6 +163,10 @@ public class BinaryStreamHelper11970 extends BinaryStreamHelper11963 {
             item.setCanDestroyBlocks(canBreak);
         }
 
+        if (SynapseSharedConstants.SERVER_AUTHORITATIVE_INVENTORY) {
+            item.setItemStackId(itemStackId);
+        }
+
         return item;
     }
 
@@ -196,7 +199,11 @@ public class BinaryStreamHelper11970 extends BinaryStreamHelper11963 {
 
         if (!instanceItem) {
             stream.putBoolean(true); // hasNetId
-            stream.putVarInt(1); // netId
+            if (SynapseSharedConstants.SERVER_AUTHORITATIVE_INVENTORY) {
+                putServerAuthoritativeItemStackId(stream, item);
+            } else {
+                stream.putVarInt(1); // netId
+            }
         }
 
         Block block = isBlock ? item.getBlockUnsafe() : null;
@@ -281,7 +288,12 @@ public class BinaryStreamHelper11970 extends BinaryStreamHelper11963 {
                 descriptor = InvalidItemDescriptor.INSTANCE;
                 break;
             case 1:
-                int networkId = stream.getLShort();
+                int networkId = (short) stream.getLShort();
+
+                if (networkId == Item.AIR) {
+                    descriptor = InvalidItemDescriptor.INSTANCE;
+                    break;
+                }
 
                 networkId = convertCustomBlockItemClientIdToServerId(networkId);
 
@@ -295,7 +307,8 @@ public class BinaryStreamHelper11970 extends BinaryStreamHelper11963 {
                 if (hasData) {
                     damage = AdvancedRuntimeItemPalette.getData(this.protocol, stream.neteaseMode, legacyFullId);
                 } else if (damage == 0x7fff) {
-                    damage = -1;
+//                    damage = -1;
+                    damage = 0;
                 } else {
                     damage = 0;
                 }
@@ -336,6 +349,36 @@ public class BinaryStreamHelper11970 extends BinaryStreamHelper11963 {
     }
 
     @Override
+    public void putCraftingRecipeIngredient(BinaryStream stream, Item ingredient) { //TODO: ItemDescriptor
+        if (ingredient == null || ingredient.getId() == Item.AIR) {
+            stream.putByte((byte) ItemDescriptorType.NONE.ordinal());
+            stream.putVarInt(0);
+            return;
+        }
+
+        int networkFullId = AdvancedRuntimeItemPalette.getNetworkFullId(this.protocol, stream.neteaseMode, ingredient);
+        int networkId = AdvancedRuntimeItemPalette.getNetworkId(this.protocol, stream.neteaseMode, networkFullId);
+        int damage = ingredient.hasMeta() ? ingredient.getDamage() : 0x7fff;
+        if (AdvancedRuntimeItemPalette.hasData(this.protocol, stream.neteaseMode, networkFullId)) {
+            damage = 0;
+        }
+
+        if (ingredient.getId() > 0 && networkId < 0) { //TODO: flat upgrade mapping, e.g. "minecraft:wool"
+            networkId >>= 1;
+        } else {
+            networkId = convertCustomBlockItemServerIdToClientId(networkId);
+        }
+
+        stream.putByte((byte) ItemDescriptorType.INTERNAL.ordinal());
+
+        stream.putLShort(networkId);
+        stream.putLShort(damage);
+
+        stream.putVarInt(ingredient.getCount());
+    }
+
+
+    @Override
     public void putRecipeIngredient(BinaryStream stream, RecipeIngredient ingredient) {
         if (ingredient == null) {
             ingredient = RecipeIngredient.EMPTY;
@@ -373,9 +416,7 @@ public class BinaryStreamHelper11970 extends BinaryStreamHelper11963 {
 
                 stream.putLShort(networkId);
                 stream.putLShort(damage);
-
-                stream.putVarInt(ingredient.getCount());
-                return;
+                break;
             case MOLANG:
                 MolangItemDescriptor molangDescriptor = (MolangItemDescriptor) descriptor;
                 stream.putString(molangDescriptor.getExpression());
@@ -395,35 +436,6 @@ public class BinaryStreamHelper11970 extends BinaryStreamHelper11963 {
                 stream.putString(complexAliasDescriptor.getName());
                 break;
         }
-
-        stream.putVarInt(ingredient.getCount());
-    }
-
-    @Override
-    public void putCraftingRecipeIngredient(BinaryStream stream, Item ingredient) { //TODO: ItemDescriptor
-        if (ingredient == null || ingredient.getId() == Item.AIR) {
-            stream.putByte((byte) ItemDescriptorType.NONE.ordinal());
-            stream.putVarInt(0);
-            return;
-        }
-
-        int networkFullId = AdvancedRuntimeItemPalette.getNetworkFullId(this.protocol, stream.neteaseMode, ingredient);
-        int networkId = AdvancedRuntimeItemPalette.getNetworkId(this.protocol, stream.neteaseMode, networkFullId);
-        int damage = ingredient.hasMeta() ? ingredient.getDamage() : 0x7fff;
-        if (AdvancedRuntimeItemPalette.hasData(this.protocol, stream.neteaseMode, networkFullId)) {
-            damage = 0;
-        }
-
-        if (ingredient.getId() > 0 && networkId < 0) { //TODO: flat upgrade mapping, e.g. "minecraft:wool"
-            networkId >>= 1;
-        } else {
-            networkId = convertCustomBlockItemServerIdToClientId(networkId);
-        }
-
-        stream.putByte((byte) ItemDescriptorType.INTERNAL.ordinal());
-
-        stream.putLShort(networkId);
-        stream.putLShort(damage);
 
         stream.putVarInt(ingredient.getCount());
     }

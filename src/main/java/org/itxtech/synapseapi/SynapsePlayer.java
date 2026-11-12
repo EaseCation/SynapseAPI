@@ -53,6 +53,7 @@ import org.itxtech.synapseapi.event.player.SynapsePlayerJavaCustomPayloadEvent;
 import org.itxtech.synapseapi.event.player.SynapsePlayerPreChatEvent;
 import org.itxtech.synapseapi.event.player.SynapsePlayerTransferEvent;
 import org.itxtech.synapseapi.event.player.SynapsePlayerUnexpectedBehaviorEvent;
+import org.itxtech.synapseapi.inventory.JavaItemUseRouting;
 import org.itxtech.synapseapi.messaging.java.JavaCustomPayloadMessenger;
 import org.itxtech.synapseapi.multiprotocol.AbstractProtocol;
 import org.itxtech.synapseapi.multiprotocol.common.camera.CameraInstruction;
@@ -524,6 +525,9 @@ public class SynapsePlayer extends Player {
         return this.isInputSessionActive() && !this.inputTransferCommitted;
     }
 
+    public final boolean isInputTransferCommitted() {
+        return this.inputTransferCommitted;
+    }
 
     @Override
     protected void processLogin() {
@@ -1001,8 +1005,10 @@ public class SynapsePlayer extends Player {
                 return false;
             }
 
-            if (this.isMainThreadInputEnabled()) {
+            if (this.isMainThreadInputEnabled() || this.isServerAuthoritativeInventoryEnabled()) {
                 this.inputTransferCommitted = true;
+            }
+            if (this.isMainThreadInputEnabled()) {
                 this.clearPendingMovement();
             }
             this.clearSubChunkQueues();
@@ -1121,6 +1127,11 @@ public class SynapsePlayer extends Player {
             pk.extra.addProperty("viewDistance", viewDistance);
             pk.extra.addProperty("viewDistanceMax", getClientMaxViewDistance());
             pk.extra.addProperty("DataVersion", DATA_VERSION);
+            if (isServerAuthoritativeInventoryEnabled()) {
+                pk.extra.addProperty("itemStack", getNextItemStackId());
+                pk.extra.addProperty("dynamicRecipe", getNextDynamicRecipeId());
+                pk.extra.addProperty("dynamicContainer", getNextDynamicContainerId());
+            }
             pk.extra.addProperty("blocks_checksum", AdvancedGlobalBlockPalette.getBlockRegistryChecksum());
             pk.extra.addProperty("items_checksum", AdvancedRuntimeItemPalette.getItemRegistryChecksum());
             pk.extra.addProperty("biomes_checksum", BiomeDefinitions.getBiomeRegistryChecksum());
@@ -1483,8 +1494,11 @@ public class SynapsePlayer extends Player {
 
     /** 同一输入中的回调失效后，不能继续写姿态或执行其后动作。 */
     protected final boolean canContinueInputState() {
-        return !this.isMainThreadInputEnabled() || this.isOnline() && this.isAlive()
-                && this.isAcceptingInputPackets() && this.isCurrentInputPosition();
+        if (!this.isMainThreadInputEnabled() && !this.isServerAuthoritativeInventoryEnabled()) {
+            return true;
+        }
+        return this.isOnline() && this.isAlive() && this.isCurrentInputPosition()
+                && (!this.isMainThreadInputEnabled() || this.isAcceptingInputPackets());
     }
 
     /** 新模式以当前玩家许可授权飞行，全局旧浮空检测开关不授予能力。 */
@@ -1558,38 +1572,38 @@ public class SynapsePlayer extends Player {
     protected final BlockItemUseResult useItemOnBlockWithSync(Vector3 position, Item item, BlockFace face,
                                                              float clickX, float clickY, float clickZ,
                                                              @Nullable Boolean clientPrediction, @Nullable Item claimedItem) {
-        boolean inputMode = this.isMainThreadInputEnabled();
+        boolean guarded = this.isMainThreadInputEnabled() || this.isServerAuthoritativeInventoryEnabled();
         boolean unchangedPrediction = Boolean.FALSE.equals(clientPrediction) && !this.isJavaClient()
                 && item.canBePlaced() && item.equalsExact(claimedItem);
-        if (!inputMode && !unchangedPrediction) {
+        if (!guarded && !unchangedPrediction) {
             Item result = this.level.useItemOn(position, item, face, clickX, clickY, clickZ, this, clientPrediction);
             return new BlockItemUseResult(result, true);
         }
         InventorySlotReference source = this.inventory.captureHeldItem();
         long epoch = this.getMovementEpoch();
         Level actionLevel = this.level;
-        if (inputMode && (!source.getSnapshot().equalsExact(item) || !this.canStartItemUse(source, epoch))) {
+        if (guarded && (!source.getSnapshot().equalsExact(item) || !this.canStartItemUse(source, epoch))) {
             this.resyncItemUse(source);
             return BlockItemUseResult.REJECTED;
         }
         Item before = item.clone();
         Player predictedConsumer = this.predictedBlockConsumer(before, claimedItem, clientPrediction);
-        Item result = inputMode
+        Item result = guarded
                 ? actionLevel.useItemOn(position, item, face, clickX, clickY, clickZ, this, clientPrediction,
                         () -> this.level == actionLevel && this.canStartItemUse(source, epoch))
                 : actionLevel.useItemOn(position, item, face, clickX, clickY, clickZ, this, clientPrediction);
         if (result == null) {
             if (unchangedPrediction && this.level == actionLevel && source.getSnapshot().equalsExact(before)
                     && super.canContinueItemUse(epoch) && this.isCurrentInputPosition()
-                    && (!inputMode || this.isAcceptingInputPackets())
+                    && (!this.isMainThreadInputEnabled() || this.isAcceptingInputPackets())
                     && source.isSelectedBy(this.inventory) && source.isCurrent()) {
                 return BlockItemUseResult.UNCHANGED;
             }
-            if (inputMode) this.resyncItemUse(source);
+            if (guarded) this.resyncItemUse(source);
             return BlockItemUseResult.REJECTED;
         }
-        if (inputMode && this.isSurvivalLike() && !result.equalsExact(before)) {
-            if (!this.isOnline() || !this.isInputSessionActive()
+        if (guarded && this.isSurvivalLike() && !result.equalsExact(before)) {
+            if (!this.isOnline() || this.isMainThreadInputEnabled() && !this.isInputSessionActive()
                     || !(predictedConsumer == null ? source.setItem(result) : source.setItem(result, predictedConsumer))) {
                 this.resyncItemUse(source);
             } else {
@@ -1620,7 +1634,8 @@ public class SynapsePlayer extends Player {
     @Override
     public boolean canContinueItemUse(long movementEpoch) {
         return super.canContinueItemUse(movementEpoch)
-                && this.isAcceptingInputPackets() && this.isCurrentInputPosition();
+                && (!this.isMainThreadInputEnabled() || this.isAcceptingInputPackets())
+                && this.isCurrentInputPosition();
     }
 
     /** 交互事件之后，原物品和目标仍须属于本次动作。 */
@@ -1646,7 +1661,7 @@ public class SynapsePlayer extends Player {
                 item = Items.air();
             }
         }
-        if (!this.isOnline() || !this.isInputSessionActive() || !source.setItem(item)) {
+        if (!this.isOnline() || this.isMainThreadInputEnabled() && !this.isInputSessionActive() || !source.setItem(item)) {
             this.resyncItemUse(source);
             return;
         }
@@ -1658,7 +1673,7 @@ public class SynapsePlayer extends Player {
     /** 伤害已发生后只结算原武器；回调换槽不免除消耗，替换来源则不覆盖新物品。 */
     protected final void finishAttackItem(InventorySlotReference source, Item item, Entity target) {
         boolean broken = item.useOn(target) && item.getDamage() > item.getMaxDurability();
-        if (!this.isOnline() || !this.isInputSessionActive() || !source.setItem(broken ? Items.air() : item)) {
+        if (!this.isOnline() || this.isMainThreadInputEnabled() && !this.isInputSessionActive() || !source.setItem(broken ? Items.air() : item)) {
             this.resyncItemUse(source);
             return;
         }
@@ -1668,7 +1683,7 @@ public class SynapsePlayer extends Player {
     }
 
     protected final void resyncItemUse(@Nullable InventorySlotReference source) {
-        if (!this.isOnline() || !this.isInputSessionActive()) {
+        if (!this.isOnline() || this.isMainThreadInputEnabled() && !this.isInputSessionActive()) {
             return;
         }
         if (source == null) {
@@ -2373,6 +2388,18 @@ public class SynapsePlayer extends Player {
      * @param tick client tick count
      */
     protected void onClientTickUpdated(long tick) {
+    }
+
+    public int getNextItemStackId() {
+        return 0;
+    }
+
+    public int getNextDynamicRecipeId() {
+        return 0;
+    }
+
+    public int getNextDynamicContainerId() {
+        return 0;
     }
 
     public boolean isServerAuthoritativeBlockBreakingEnabled() {

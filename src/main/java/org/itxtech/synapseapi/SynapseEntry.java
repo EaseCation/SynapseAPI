@@ -564,7 +564,8 @@ public class SynapseEntry {
             handleRedirectOnMain(entry, inputPacketCounts);
         } else {
             int bytes = packet.getCount();
-            boolean betweenTicks = BetweenTickPackets.supports(packet);
+            boolean betweenTicks = BetweenTickPackets.supports(packet, player.isServerAuthoritativeInventoryEnabled(),
+                    player.getAbstractProtocol(), player.isNetEaseClient());
             submitInput(session, bytes, new ServerInputTask() {
                 @Override
                 public String diagnosticType() {

@@ -1,4 +1,4 @@
-package org.itxtech.synapseapi;
+package org.itxtech.synapseapi.inventory;
 
 import cn.nukkit.inventory.ItemUseHand;
 import cn.nukkit.inventory.transaction.data.ReleaseItemData;

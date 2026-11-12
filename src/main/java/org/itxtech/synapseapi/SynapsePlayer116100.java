@@ -76,6 +76,7 @@ import org.itxtech.synapseapi.camera.CameraManager;
 import org.itxtech.synapseapi.dialogue.NPCDialoguePlayerHandler;
 import org.itxtech.synapseapi.event.player.SynapsePlayerBroadcastLevelSoundEvent;
 import org.itxtech.synapseapi.filtertext.FilterTextService;
+import org.itxtech.synapseapi.inventory.JavaItemUseRouting;
 import org.itxtech.synapseapi.inventory.PendingWindowCloseTracker;
 import org.itxtech.synapseapi.inventory.PendingWindowClose;
 import org.itxtech.synapseapi.inventory.PendingWindowOpen;
@@ -317,7 +318,7 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
             startGamePacket.generator = 1; // 0 old, 1 infinite, 2 flat
             startGamePacket.gameRules = getSupportedRules();
             startGamePacket.isTexturePacksRequired = server.getForceResources();
-            startGamePacket.isInventoryServerAuthoritative = SERVER_AUTHORITATIVE_INVENTORY;
+            startGamePacket.isInventoryServerAuthoritative = isServerAuthoritativeInventoryEnabled();
             startGamePacket.isBlockBreakingServerAuthoritative = this.serverAuthoritativeBlockBreaking;
             startGamePacket.currentTick = 0;//this.server.getTick();
             startGamePacket.enchantmentSeed = ThreadLocalRandom.current().nextInt();
@@ -362,7 +363,7 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
             startGamePacket.generator = 1; // 0 old, 1 infinite, 2 flat
             startGamePacket.gameRules = getSupportedRules();
             startGamePacket.isTexturePacksRequired = server.getForceResources();
-            startGamePacket.isInventoryServerAuthoritative = SERVER_AUTHORITATIVE_INVENTORY;
+            startGamePacket.isInventoryServerAuthoritative = isServerAuthoritativeInventoryEnabled();
             startGamePacket.isBlockBreakingServerAuthoritative = this.serverAuthoritativeBlockBreaking;
             startGamePacket.currentTick = 0;//this.server.getTick();
             startGamePacket.enchantmentSeed = ThreadLocalRandom.current().nextInt();
@@ -408,7 +409,7 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
             startGamePacket.generator = 1; // 0 old, 1 infinite, 2 flat
             startGamePacket.gameRules = getSupportedRules();
             startGamePacket.isTexturePacksRequired = server.getForceResources();
-            startGamePacket.isInventoryServerAuthoritative = SERVER_AUTHORITATIVE_INVENTORY;
+            startGamePacket.isInventoryServerAuthoritative = isServerAuthoritativeInventoryEnabled();
             startGamePacket.isBlockBreakingServerAuthoritative = this.serverAuthoritativeBlockBreaking;
             startGamePacket.currentTick = 0;//this.server.getTick();
             startGamePacket.enchantmentSeed = ThreadLocalRandom.current().nextInt();
@@ -456,7 +457,7 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
             startGamePacket.generator = 1; // 0 old, 1 infinite, 2 flat
             startGamePacket.gameRules = getSupportedRules();
             startGamePacket.isTexturePacksRequired = server.getForceResources();
-            startGamePacket.isInventoryServerAuthoritative = SERVER_AUTHORITATIVE_INVENTORY;
+            startGamePacket.isInventoryServerAuthoritative = isServerAuthoritativeInventoryEnabled();
             startGamePacket.isBlockBreakingServerAuthoritative = this.serverAuthoritativeBlockBreaking;
             startGamePacket.currentTick = 0;//this.server.getTick();
             startGamePacket.enchantmentSeed = ThreadLocalRandom.current().nextInt();
@@ -500,7 +501,7 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
             startGamePacket.generator = 1; // 0 old, 1 infinite, 2 flat
             startGamePacket.gameRules = getSupportedRules();
             startGamePacket.isTexturePacksRequired = server.getForceResources();
-            startGamePacket.isInventoryServerAuthoritative = SERVER_AUTHORITATIVE_INVENTORY;
+            startGamePacket.isInventoryServerAuthoritative = isServerAuthoritativeInventoryEnabled();
             startGamePacket.isBlockBreakingServerAuthoritative = this.serverAuthoritativeBlockBreaking;
             startGamePacket.currentTick = 0;//this.server.getTick();
             startGamePacket.enchantmentSeed = ThreadLocalRandom.current().nextInt();
@@ -547,7 +548,7 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
             startGamePacket.generator = 1; // 0 old, 1 infinite, 2 flat
             startGamePacket.gameRules = getSupportedRules();
             startGamePacket.isTexturePacksRequired = server.getForceResources();
-            startGamePacket.isInventoryServerAuthoritative = SERVER_AUTHORITATIVE_INVENTORY;
+            startGamePacket.isInventoryServerAuthoritative = isServerAuthoritativeInventoryEnabled();
             startGamePacket.isBlockBreakingServerAuthoritative = this.serverAuthoritativeBlockBreaking;
             startGamePacket.currentTick = 0;//this.server.getTick();
             startGamePacket.enchantmentSeed = ThreadLocalRandom.current().nextInt();
@@ -592,7 +593,7 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
             startGamePacket.generator = 1; // 0 old, 1 infinite, 2 flat
             startGamePacket.gameRules = getSupportedRules();
             startGamePacket.isTexturePacksRequired = server.getForceResources();
-            startGamePacket.isInventoryServerAuthoritative = SERVER_AUTHORITATIVE_INVENTORY;
+            startGamePacket.isInventoryServerAuthoritative = isServerAuthoritativeInventoryEnabled();
             startGamePacket.movementType = serverAuthoritativeMovement ? StartGamePacket12160.MOVEMENT_SERVER_AUTHORITATIVE : StartGamePacket12160.MOVEMENT_CLIENT_AUTHORITATIVE;
             startGamePacket.isBlockBreakingServerAuthoritative = this.serverAuthoritativeBlockBreaking;
             startGamePacket.currentTick = 0;//this.server.getTick();
@@ -647,7 +648,7 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
             startGamePacket.generator = 1; // 0 old, 1 infinite, 2 flat
             startGamePacket.gameRules = getSupportedRules();
             startGamePacket.isTexturePacksRequired = server.getForceResources();
-            startGamePacket.isInventoryServerAuthoritative = SERVER_AUTHORITATIVE_INVENTORY;
+            startGamePacket.isInventoryServerAuthoritative = isServerAuthoritativeInventoryEnabled();
             startGamePacket.movementType = serverAuthoritativeMovement ? StartGamePacket121.MOVEMENT_SERVER_AUTHORITATIVE : StartGamePacket121.MOVEMENT_CLIENT_AUTHORITATIVE;
             startGamePacket.isBlockBreakingServerAuthoritative = this.serverAuthoritativeBlockBreaking;
             startGamePacket.currentTick = 0;//this.server.getTick();
@@ -702,7 +703,7 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
             startGamePacket.generator = 1; // 0 old, 1 infinite, 2 flat
             startGamePacket.gameRules = getSupportedRules();
             startGamePacket.isTexturePacksRequired = server.getForceResources();
-            startGamePacket.isInventoryServerAuthoritative = SERVER_AUTHORITATIVE_INVENTORY;
+            startGamePacket.isInventoryServerAuthoritative = isServerAuthoritativeInventoryEnabled();
             startGamePacket.movementType = serverAuthoritativeMovement ? StartGamePacket12080.MOVEMENT_SERVER_AUTHORITATIVE : StartGamePacket12080.MOVEMENT_CLIENT_AUTHORITATIVE;
             startGamePacket.isBlockBreakingServerAuthoritative = this.serverAuthoritativeBlockBreaking;
             startGamePacket.currentTick = 0;//this.server.getTick();
@@ -748,7 +749,7 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
             startGamePacket.generator = 1; // 0 old, 1 infinite, 2 flat
             startGamePacket.gameRules = getSupportedRules();
             startGamePacket.isTexturePacksRequired = server.getForceResources();
-            startGamePacket.isInventoryServerAuthoritative = SERVER_AUTHORITATIVE_INVENTORY;
+            startGamePacket.isInventoryServerAuthoritative = isServerAuthoritativeInventoryEnabled();
             startGamePacket.movementType = serverAuthoritativeMovement ? StartGamePacket12030.MOVEMENT_SERVER_AUTHORITATIVE : StartGamePacket12030.MOVEMENT_CLIENT_AUTHORITATIVE;
             startGamePacket.isBlockBreakingServerAuthoritative = this.serverAuthoritativeBlockBreaking;
             startGamePacket.currentTick = 0;//this.server.getTick();
@@ -797,7 +798,7 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
             startGamePacket.generator = 1; // 0 old, 1 infinite, 2 flat
             startGamePacket.gameRules = getSupportedRules();
             startGamePacket.isTexturePacksRequired = server.getForceResources();
-            startGamePacket.isInventoryServerAuthoritative = SERVER_AUTHORITATIVE_INVENTORY;
+            startGamePacket.isInventoryServerAuthoritative = isServerAuthoritativeInventoryEnabled();
             startGamePacket.movementType = serverAuthoritativeMovement ? StartGamePacket120.MOVEMENT_SERVER_AUTHORITATIVE : StartGamePacket120.MOVEMENT_CLIENT_AUTHORITATIVE;
             startGamePacket.isBlockBreakingServerAuthoritative = this.serverAuthoritativeBlockBreaking;
             startGamePacket.currentTick = 0;//this.server.getTick();
@@ -842,7 +843,7 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
             startGamePacket.generator = 1; // 0 old, 1 infinite, 2 flat
             startGamePacket.gameRules = getSupportedRules();
             startGamePacket.isTexturePacksRequired = server.getForceResources();
-            startGamePacket.isInventoryServerAuthoritative = SERVER_AUTHORITATIVE_INVENTORY;
+            startGamePacket.isInventoryServerAuthoritative = isServerAuthoritativeInventoryEnabled();
             startGamePacket.movementType = serverAuthoritativeMovement ? StartGamePacket11980.MOVEMENT_SERVER_AUTHORITATIVE : StartGamePacket11980.MOVEMENT_CLIENT_AUTHORITATIVE;
             startGamePacket.isBlockBreakingServerAuthoritative = this.serverAuthoritativeBlockBreaking;
             startGamePacket.currentTick = 0;//this.server.getTick();
@@ -885,7 +886,7 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
             startGamePacket.generator = 1; // 0 old, 1 infinite, 2 flat
             startGamePacket.gameRules = getSupportedRules();
             startGamePacket.isTexturePacksRequired = server.getForceResources();
-            startGamePacket.isInventoryServerAuthoritative = SERVER_AUTHORITATIVE_INVENTORY;
+            startGamePacket.isInventoryServerAuthoritative = isServerAuthoritativeInventoryEnabled();
             startGamePacket.movementType = serverAuthoritativeMovement ? StartGamePacket11960.MOVEMENT_SERVER_AUTHORITATIVE : StartGamePacket11960.MOVEMENT_CLIENT_AUTHORITATIVE;
             startGamePacket.isBlockBreakingServerAuthoritative = this.serverAuthoritativeBlockBreaking;
             startGamePacket.currentTick = 0;//this.server.getTick();
@@ -928,7 +929,7 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
             startGamePacket.generator = 1; // 0 old, 1 infinite, 2 flat
             startGamePacket.gameRules = getSupportedRules();
             startGamePacket.isTexturePacksRequired = server.getForceResources();
-            startGamePacket.isInventoryServerAuthoritative = SERVER_AUTHORITATIVE_INVENTORY;
+            startGamePacket.isInventoryServerAuthoritative = isServerAuthoritativeInventoryEnabled();
             startGamePacket.movementType = serverAuthoritativeMovement ? StartGamePacket11920.MOVEMENT_SERVER_AUTHORITATIVE : StartGamePacket11920.MOVEMENT_CLIENT_AUTHORITATIVE;
             startGamePacket.isBlockBreakingServerAuthoritative = this.serverAuthoritativeBlockBreaking;
             startGamePacket.currentTick = 0;//this.server.getTick();
@@ -971,7 +972,7 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
             startGamePacket.generator = 1; // 0 old, 1 infinite, 2 flat
             startGamePacket.gameRules = getSupportedRules();
             startGamePacket.isTexturePacksRequired = server.getForceResources();
-            startGamePacket.isInventoryServerAuthoritative = SERVER_AUTHORITATIVE_INVENTORY;
+            startGamePacket.isInventoryServerAuthoritative = isServerAuthoritativeInventoryEnabled();
             startGamePacket.movementType = serverAuthoritativeMovement ? StartGamePacket11910.MOVEMENT_SERVER_AUTHORITATIVE : StartGamePacket11910.MOVEMENT_CLIENT_AUTHORITATIVE;
             startGamePacket.isBlockBreakingServerAuthoritative = this.serverAuthoritativeBlockBreaking;
             startGamePacket.currentTick = 0;//this.server.getTick();
@@ -1014,7 +1015,7 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
             startGamePacket.generator = 1; // 0 old, 1 infinite, 2 flat
             startGamePacket.gameRules = getSupportedRules();
             startGamePacket.isTexturePacksRequired = server.getForceResources();
-            startGamePacket.isInventoryServerAuthoritative = SERVER_AUTHORITATIVE_INVENTORY;
+            startGamePacket.isInventoryServerAuthoritative = isServerAuthoritativeInventoryEnabled();
             startGamePacket.movementType = serverAuthoritativeMovement ? StartGamePacket119.MOVEMENT_SERVER_AUTHORITATIVE : StartGamePacket119.MOVEMENT_CLIENT_AUTHORITATIVE;
             startGamePacket.isBlockBreakingServerAuthoritative = this.serverAuthoritativeBlockBreaking;
             startGamePacket.currentTick = 0;//this.server.getTick();
@@ -1057,7 +1058,7 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
             startGamePacket.generator = 1; // 0 old, 1 infinite, 2 flat
             startGamePacket.gameRules = getSupportedRules();
             startGamePacket.isTexturePacksRequired = server.getForceResources();
-            startGamePacket.isInventoryServerAuthoritative = SERVER_AUTHORITATIVE_INVENTORY;
+            startGamePacket.isInventoryServerAuthoritative = isServerAuthoritativeInventoryEnabled();
             startGamePacket.movementType = serverAuthoritativeMovement ? StartGamePacket11830NE.MOVEMENT_SERVER_AUTHORITATIVE : StartGamePacket11830NE.MOVEMENT_CLIENT_AUTHORITATIVE;
             startGamePacket.isBlockBreakingServerAuthoritative = this.serverAuthoritativeBlockBreaking;
             startGamePacket.currentTick = 0;//this.server.getTick();
@@ -1099,7 +1100,7 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
             startGamePacket.generator = 1; // 0 old, 1 infinite, 2 flat
             startGamePacket.gameRules = getSupportedRules();
             startGamePacket.isTexturePacksRequired = server.getForceResources();
-            startGamePacket.isInventoryServerAuthoritative = SERVER_AUTHORITATIVE_INVENTORY;
+            startGamePacket.isInventoryServerAuthoritative = isServerAuthoritativeInventoryEnabled();
             startGamePacket.movementType = serverAuthoritativeMovement ? StartGamePacket11830.MOVEMENT_SERVER_AUTHORITATIVE : StartGamePacket11830.MOVEMENT_CLIENT_AUTHORITATIVE;
             startGamePacket.isBlockBreakingServerAuthoritative = this.serverAuthoritativeBlockBreaking;
             startGamePacket.currentTick = 0;//this.server.getTick();
@@ -1141,7 +1142,7 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
             startGamePacket.generator = 1; // 0 old, 1 infinite, 2 flat
             startGamePacket.gameRules = getSupportedRules();
             startGamePacket.isTexturePacksRequired = server.getForceResources();
-            startGamePacket.isInventoryServerAuthoritative = SERVER_AUTHORITATIVE_INVENTORY;
+            startGamePacket.isInventoryServerAuthoritative = isServerAuthoritativeInventoryEnabled();
             startGamePacket.movementType = serverAuthoritativeMovement ? StartGamePacket118.MOVEMENT_SERVER_AUTHORITATIVE : StartGamePacket118.MOVEMENT_CLIENT_AUTHORITATIVE;
             startGamePacket.isBlockBreakingServerAuthoritative = this.serverAuthoritativeBlockBreaking;
             startGamePacket.currentTick = 0;//this.server.getTick();
@@ -1183,7 +1184,7 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
             startGamePacket.generator = 1; // 0 old, 1 infinite, 2 flat
             startGamePacket.gameRules = getSupportedRules();
             startGamePacket.isTexturePacksRequired = server.getForceResources();
-            startGamePacket.isInventoryServerAuthoritative = SERVER_AUTHORITATIVE_INVENTORY;
+            startGamePacket.isInventoryServerAuthoritative = isServerAuthoritativeInventoryEnabled();
             startGamePacket.movementType = serverAuthoritativeMovement ? StartGamePacket11730.MOVEMENT_SERVER_AUTHORITATIVE : StartGamePacket11730.MOVEMENT_CLIENT_AUTHORITATIVE;
             startGamePacket.isBlockBreakingServerAuthoritative = this.serverAuthoritativeBlockBreaking;
             startGamePacket.currentTick = 0;//this.server.getTick();
@@ -1225,7 +1226,7 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
             startGamePacket.generator = 1; // 0 old, 1 infinite, 2 flat
             startGamePacket.gameRules = getSupportedRules();
             startGamePacket.isTexturePacksRequired = server.getForceResources();
-            startGamePacket.isInventoryServerAuthoritative = SERVER_AUTHORITATIVE_INVENTORY;
+            startGamePacket.isInventoryServerAuthoritative = isServerAuthoritativeInventoryEnabled();
             startGamePacket.movementType = serverAuthoritativeMovement ? StartGamePacket117.MOVEMENT_SERVER_AUTHORITATIVE : StartGamePacket117.MOVEMENT_CLIENT_AUTHORITATIVE;
             startGamePacket.isBlockBreakingServerAuthoritative = this.serverAuthoritativeBlockBreaking;
             startGamePacket.currentTick = 0;//this.server.getTick();
@@ -1266,7 +1267,7 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
             startGamePacket.generator = 1; // 0 old, 1 infinite, 2 flat
             startGamePacket.gameRules = getSupportedRules();
             startGamePacket.isTexturePacksRequired = server.getForceResources();
-            startGamePacket.isInventoryServerAuthoritative = SERVER_AUTHORITATIVE_INVENTORY;
+            startGamePacket.isInventoryServerAuthoritative = isServerAuthoritativeInventoryEnabled();
             startGamePacket.movementType = serverAuthoritativeMovement ? StartGamePacket116200.MOVEMENT_SERVER_AUTHORITATIVE : StartGamePacket116200.MOVEMENT_CLIENT_AUTHORITATIVE;
             // 启用后破坏方块时的物品栏事务就不会塞在PlayerAuthInputPacket了
             startGamePacket.isBlockBreakingServerAuthoritative = this.serverAuthoritativeBlockBreaking &&
@@ -1308,7 +1309,7 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
             startGamePacket.generator = 1; // 0 old, 1 infinite, 2 flat
             startGamePacket.gameRules = getSupportedRules();
             startGamePacket.isTexturePacksRequired = server.getForceResources();
-            startGamePacket.isInventoryServerAuthoritative = SERVER_AUTHORITATIVE_INVENTORY;
+            startGamePacket.isInventoryServerAuthoritative = isServerAuthoritativeInventoryEnabled();
             startGamePacket.isMovementServerAuthoritative = this.isNetEaseClient();
             startGamePacket.currentTick = 0;//this.server.getTick();
             startGamePacket.enchantmentSeed = ThreadLocalRandom.current().nextInt();
@@ -1342,7 +1343,7 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
         startGamePacket.generator = 1; // 0 old, 1 infinite, 2 flat
         startGamePacket.gameRules = getSupportedRules();
         startGamePacket.isTexturePacksRequired = server.getForceResources();
-        startGamePacket.isInventoryServerAuthoritative = SERVER_AUTHORITATIVE_INVENTORY;
+        startGamePacket.isInventoryServerAuthoritative = isServerAuthoritativeInventoryEnabled();
         startGamePacket.movementType = this.isNetEaseClient() ? StartGamePacket116100.MOVEMENT_SERVER_AUTHORITATIVE : StartGamePacket116100.MOVEMENT_CLIENT_AUTHORITATIVE;
         startGamePacket.currentTick = 0;//this.server.getTick();
         startGamePacket.enchantmentSeed = ThreadLocalRandom.current().nextInt();
@@ -1683,6 +1684,18 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
 
                 if (this.getProtocol() >= AbstractProtocol.PROTOCOL_121.getProtocolStart()) {
                     ContainerClosePacket121 containerClosePacket = (ContainerClosePacket121) packet;
+
+                    if (isServerAuthoritativeInventoryEnabled()) {
+                        if (inventoryManager != null) {
+                            inventoryManager.onClientRemoveWindow(containerClosePacket.windowId);
+                        } else {
+                            ContainerClosePacket pk = new ContainerClosePacket();
+                            pk.windowId = containerClosePacket.windowId;
+                            dataPacket(pk);
+                        }
+                        break;
+                    }
+
                     if (this.handlePendingWindowClose(containerClosePacket.windowId)) {
                         break;
                     }
@@ -1741,6 +1754,18 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
                 }
 
                 ContainerClosePacket116100 containerClosePacket = (ContainerClosePacket116100) packet;
+
+                if (isServerAuthoritativeInventoryEnabled()) {
+                    if (inventoryManager != null) {
+                        inventoryManager.onClientRemoveWindow(containerClosePacket.windowId);
+                    } else {
+                        ContainerClosePacket pk = new ContainerClosePacket();
+                        pk.windowId = containerClosePacket.windowId;
+                        dataPacket(pk);
+                    }
+                    break;
+                }
+
                 if (this.handlePendingWindowClose(containerClosePacket.windowId)) {
                     break;
                 }
@@ -1885,6 +1910,9 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
                         BlockVector3 blockPos = new BlockVector3(playerActionPacket.x, playerActionPacket.y, playerActionPacket.z);
                         BlockFace face = BlockFace.fromIndex(playerActionPacket.data);
 
+                        if (isServerAuthoritativeInventoryEnabled()) {
+                            removeCurrentWindow();
+                        }
                         resetCraftingGridType();
 
                         if (blockPos.distanceSquared(this) > 10000) {
@@ -1956,6 +1984,7 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
                 if (this.getProtocol() >= AbstractProtocol.PROTOCOL_119.getProtocolStart()) {
                     PlayerActionPacket119 playerActionPacket = (PlayerActionPacket119) packet;
                     if (!this.callPacketReceiveEvent(playerActionPacket.toDefault())) break;
+                    if (!this.canProcessPlayerBlockAction(playerActionPacket.action)) break;
 
                     if (!this.spawned || (!this.isAlive() && playerActionPacket.action != PlayerActionPacket119.ACTION_RESPAWN /*&& playerActionPacket.action != PlayerActionPacket119.ACTION_DIMENSION_CHANGE_REQUEST*/)) {
                         break;
@@ -2305,6 +2334,9 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
                             BlockVector3 blockPos = new BlockVector3(playerActionPacket.x, playerActionPacket.y, playerActionPacket.z);
                             face = BlockFace.fromIndex(playerActionPacket.data);
 
+                            if (isServerAuthoritativeInventoryEnabled()) {
+                                removeCurrentWindow();
+                            }
                             resetCraftingGridType();
 
                             if (blockPos.distanceSquared(this) > 10000) {
@@ -2486,6 +2518,7 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
 
                 PlayerActionPacket14 playerActionPacket = (PlayerActionPacket14) packet;
                 if (!this.callPacketReceiveEvent(((PlayerActionPacket14) packet).toDefault())) break;
+                if (!this.canProcessPlayerBlockAction(playerActionPacket.action)) break;
 
                 if (!this.spawned || (!this.isAlive() && playerActionPacket.action != PlayerActionPacket14.ACTION_RESPAWN)) {
                     break;
@@ -2879,6 +2912,9 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
                     break;
                 }
 
+                if (isServerAuthoritativeInventoryEnabled()) {
+                    removeCurrentWindow();
+                }
                 this.resetCraftingGridType();
                 this.craftingType = CRAFTING_SMALL;
 
@@ -3390,7 +3426,11 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
 
                 if (interactPacket.action == InteractPacket121130.ACTION_OPEN_INVENTORY
                         && (interactPacket.target == getLocalEntityId() || isRiding() && interactPacket.target == riding.getId() && riding.getNetworkId() != EntityID.CHEST_BOAT && (!riding.getDataFlag(DATA_FLAG_TAMED) || riding.getNetworkId() == EntityID.SKELETON_HORSE))
-                        && !this.inventoryOpen && !isSpectator()) {
+                        && (isServerAuthoritativeInventoryEnabled() || !this.inventoryOpen) && !isSpectator()) {
+                    if (isServerAuthoritativeInventoryEnabled()) {
+                        inventoryManager.onClientOpenMainInventory();
+                        break;
+                    }
 //					this.openInventory();
                     if (!this.deferPlayerInventoryOpen()) {
                         this.inventoryOpen = this.inventory.open(this);
@@ -3466,7 +3506,7 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
                     return;
                 }
 
-                if (isCreative()) {
+                if (isCreative() && !isServerAuthoritativeInventoryEnabled()) {
                     // handled in InventoryTransactionPacket
                     return;
                 }
@@ -3618,6 +3658,13 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
                 if (!callPacketReceiveEvent(packet)) break;
                 if (this.rejectSpectatorInventoryPart(transactionPacket)) {
                     return;
+                }
+
+                if (isServerAuthoritativeInventoryEnabled()) {
+                    handleServerAuthoritativeInventoryTransaction(transactionPacket.transactionType,
+                            transactionPacket.legacyRequestId, transactionPacket.actions, transactionPacket.transactionData,
+                            transactionPacket.requestChangedSlots, transactionRoute);
+                    break;
                 }
 
                 Item item;
@@ -4297,7 +4344,11 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
 
 	@Override
 	public int addWindow(Inventory inventory, Integer forceId, boolean isPermanent, boolean alwaysOpen) {
-		Integer index = this.windows.get(inventory);
+        if (isServerAuthoritativeInventoryEnabled()) {
+            return super.addWindow(inventory, forceId, isPermanent, alwaysOpen);
+        }
+
+        Integer index = this.windows.get(inventory);
 		if (index != null) {
 			return index;
 		}
@@ -4359,6 +4410,10 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
 
     @Override
     public void removeWindow(Inventory inventory) {
+        if (isServerAuthoritativeInventoryEnabled()) {
+            super.removeWindow(inventory);
+            return;
+        }
         if (!this.beginInventoryWindowRemoval(inventory)) {
             return;
         }
@@ -4366,6 +4421,10 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
     }
 
     protected void removeWindow(Inventory inventory, boolean isResponse) {
+        if (isServerAuthoritativeInventoryEnabled()) {
+            super.removeWindow(inventory);
+            return;
+        }
         PendingWindowOpen deferredOpen = this.pendingWindowOpen;
         if (deferredOpen != null && deferredOpen.inventory() == inventory) {
             this.cancelPendingWindowOpen();
@@ -4584,6 +4643,10 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
 
     @Override
     public void removeAllWindows(boolean permanent) {
+        if (isServerAuthoritativeInventoryEnabled()) {
+            super.removeAllWindows(permanent);
+            return;
+        }
         this.cancelPendingWindowOpen();
         this.pendingPlayerInventoryOpen = false;
         this.pendingWindowOpenAction = null;
@@ -6481,6 +6544,11 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
             return;
         }
 
+        if (isServerAuthoritativeInventoryEnabled()) {
+            super.openBlockEditor(x, y, z, type);
+            return;
+        }
+
         if (!this.deferWindowOpen(() -> this.openBlockEditorImmediately(x, y, z, type))) {
             this.openBlockEditorImmediately(x, y, z, type);
         }
@@ -6606,7 +6674,7 @@ public class SynapsePlayer116100 extends SynapsePlayer116 {
             return;
         }
 
-        if (SERVER_AUTHORITATIVE_INVENTORY) {
+        if (isServerAuthoritativeInventoryEnabled()) {
             return;
         }
 

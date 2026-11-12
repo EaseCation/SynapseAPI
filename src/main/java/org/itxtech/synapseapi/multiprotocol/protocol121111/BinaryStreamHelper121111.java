@@ -1,5 +1,7 @@
 package org.itxtech.synapseapi.multiprotocol.protocol121111;
 
+import cn.nukkit.inventory.recipe.descriptor.*;
+import cn.nukkit.item.NetworkItemHelper;
 import cn.nukkit.block.Block;
 import cn.nukkit.inventory.RecipeType;
 import cn.nukkit.inventory.recipe.*;
@@ -67,8 +69,9 @@ public class BinaryStreamHelper121111 extends BinaryStreamHelper121100 {
             id = Item.CHAIN;
         }
 
+        int itemStackId = Integer.MIN_VALUE;
         if (!instanceItem && stream.getBoolean()) { // hasNetId
-            stream.getVarInt(); // netId
+            itemStackId = stream.getVarInt(); // netId
         }
 
         int blockRuntimeId = stream.getVarInt();
@@ -119,11 +122,8 @@ public class BinaryStreamHelper121111 extends BinaryStreamHelper121100 {
                 }
             }
 
-            int canPlaceCount = in.readInt();
+            int canPlaceCount = BinaryStream.checkLength(in.readInt(), 4096);
             if (canPlaceCount > 0) {
-                if (canPlaceCount > 4096) {
-                    throw new IndexOutOfBoundsException("Too many CanPlaceOn blocks");
-                }
                 canPlace = new ObjectOpenHashSet<>();
                 for (int i = 0; i < canPlaceCount; i++) {
                     canPlace.add(in.readUTF());
@@ -132,11 +132,8 @@ public class BinaryStreamHelper121111 extends BinaryStreamHelper121100 {
                 canPlace = null;
             }
 
-            int canBreakCount = in.readInt();
+            int canBreakCount = BinaryStream.checkLength(in.readInt(), 4096);
             if (canBreakCount > 0) {
-                if (canBreakCount > 4096) {
-                    throw new IndexOutOfBoundsException("Too many CanDestroy blocks");
-                }
                 canBreak = new ObjectOpenHashSet<>();
                 for (int i = 0; i < canBreakCount; i++) {
                     canBreak.add(in.readUTF());
@@ -172,11 +169,19 @@ public class BinaryStreamHelper121111 extends BinaryStreamHelper121100 {
             item.setCanDestroyBlocks(canBreak);
         }
 
+        if (SynapseSharedConstants.SERVER_AUTHORITATIVE_INVENTORY) {
+            item.setItemStackId(itemStackId);
+        }
+
         return item;
     }
 
     @Override
     protected void putSlot(BinaryStream stream, Item item, boolean instanceItem) {
+        if (SynapseSharedConstants.SERVER_AUTHORITATIVE_INVENTORY) {
+            item = NetworkItemHelper.project(item);
+        }
+
         if (item == null || item.getId() == Item.AIR) {
             stream.putByte((byte) 0);
             return;
@@ -208,7 +213,11 @@ public class BinaryStreamHelper121111 extends BinaryStreamHelper121100 {
 
         if (!instanceItem) {
             stream.putBoolean(true); // hasNetId
-            stream.putVarInt(1); // netId
+            if (SynapseSharedConstants.SERVER_AUTHORITATIVE_INVENTORY) {
+                putServerAuthoritativeItemStackId(stream, item);
+            } else {
+                stream.putVarInt(1); // netId
+            }
         }
 
         Block block = isBlock ? item.getBlockUnsafe() : null;
@@ -293,7 +302,12 @@ public class BinaryStreamHelper121111 extends BinaryStreamHelper121100 {
                 descriptor = InvalidItemDescriptor.INSTANCE;
                 break;
             case 1:
-                int networkId = stream.getLShort();
+                int networkId = stream.getLSignedShort();
+
+                if (networkId == ItemID.AIR) {
+                    descriptor = InvalidItemDescriptor.INSTANCE;
+                    break;
+                }
 
                 int legacyFullId = AdvancedRuntimeItemPalette.getLegacyFullId(this.protocol, stream.neteaseMode, networkId);
                 int id = AdvancedRuntimeItemPalette.getId(this.protocol, stream.neteaseMode, legacyFullId);

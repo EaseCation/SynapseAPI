@@ -1,5 +1,6 @@
 package org.itxtech.synapseapi.network.protocol.spp;
 
+import cn.nukkit.utils.BinaryStream;
 import java.util.UUID;
 
 /**
@@ -33,11 +34,13 @@ public class BroadcastPacket extends SynapseDataPacket {
     @Override
     public void decode() {
         this.direct = this.getBoolean();
-        int len = (int) this.getUnsignedVarInt();
-        this.sessionIds = new UUID[len];
-        for (int i = 0; i < len; i++) {
-            this.sessionIds[i] = this.getUUID();
+        long count = this.getUnsignedVarInt();
+        int remaining = this.getCount() - this.getOffset();
+        if (remaining < 1) {
+            throw new IndexOutOfBoundsException("Missing broadcast payload length");
         }
-        this.payload = this.get((int) this.getUnsignedVarInt());
+        int maxCount = (remaining - 1) / (Long.BYTES * 2);
+        this.sessionIds = this.getArray(checkLength(count, maxCount), new UUID[0], BinaryStream::getUUID, maxCount);
+        this.payload = this.getByteArray();
     }
 }

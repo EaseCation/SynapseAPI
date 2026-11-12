@@ -36,6 +36,6 @@ public class RedirectPacket extends SynapseDataPacket {
         this.sessionId = this.getUUID();
         this.protocol = this.getInt();
         compressionAlgorithm = getSignedByte();
-        this.mcpeBuffer = this.get((int) this.getUnsignedVarInt());
+        this.mcpeBuffer = this.getByteArray();
     }
 }

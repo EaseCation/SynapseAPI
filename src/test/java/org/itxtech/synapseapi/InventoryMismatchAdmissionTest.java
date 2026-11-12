@@ -1,14 +1,26 @@
 package org.itxtech.synapseapi;
 
 import cn.nukkit.Server;
+import cn.nukkit.inventory.ArmorInventory;
+import cn.nukkit.inventory.CraftingGrid;
+import cn.nukkit.inventory.PlayerCursorInventory;
+import cn.nukkit.inventory.PlayerInventory;
+import cn.nukkit.inventory.PlayerOffhandInventory;
 import cn.nukkit.inventory.transaction.CraftingTransaction;
 import cn.nukkit.inventory.transaction.EnchantTransaction;
 import cn.nukkit.inventory.transaction.RepairItemTransaction;
 import cn.nukkit.network.input.PlayerInputProcessor;
 import cn.nukkit.network.input.ServerInputDispatcher;
+import cn.nukkit.item.Item;
+import cn.nukkit.item.ItemID;
+import cn.nukkit.network.protocol.DataPacket;
+import cn.nukkit.network.protocol.InventoryContentPacket;
+import cn.nukkit.network.protocol.types.ContainerIds;
 import cn.nukkit.network.protocol.types.NetworkInventoryAction;
 import cn.nukkit.utils.MainLogger;
 import org.itxtech.synapseapi.multiprotocol.protocol116.protocol.InventoryTransactionPacket116;
+import org.itxtech.synapseapi.inventory.JavaItemUseRouting;
+import org.itxtech.synapseapi.multiprotocol.common.inventory.LegacySetItemSlotData;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.BeforeAll;
 import cn.nukkit.event.server.DataPacketReceiveEvent;
@@ -32,9 +44,10 @@ class InventoryMismatchAdmissionTest {
         }
     }
 
-    @Test void modernLifecycleSyncUsesOriginalEventAndValidation() {
+    @Test void modernLegacyInventoryLifecycleSyncUsesOriginalEventAndValidation() {
         for (String state : List.of("dead", "unspawned", "offline", "no-sequence", "no-processor")) {
             try (PlayerActionAdmissionTest.Fixture f = new PlayerActionAdmissionTest.Fixture(true, true)) {
+                doReturn(false).when(f.player).isServerAuthoritativeInventoryEnabled();
                 if (state.equals("dead")) f.player.makeDead();
                 if (state.equals("unspawned")) f.player.spawned = false;
                 if (state.equals("offline")) doReturn(false).when(f.player).isOnline();
@@ -62,6 +75,37 @@ class InventoryMismatchAdmissionTest {
                 f.deliver(request());
                 verify(f.player, never()).sendAllInventories();
                 if (state.equals("uninitialized") || state.equals("retired")) verifyNoInteractions(f.plugins, f.processor);
+            }
+        }
+    }
+
+    @Test void authoritativeMismatchDefersValidSyncAndRejectsUnavailablePlayers() {
+        for (String state : List.of("alive", "dead", "unspawned", "offline", "retired", "closed")) {
+            try (PlayerActionAdmissionTest.Fixture fixture = new PlayerActionAdmissionTest.Fixture(true, true)) {
+                AuthoritativeMismatchProbe player = new AuthoritativeMismatchProbe(fixture.inventory);
+                when(fixture.inventory.getSize()).thenReturn(1);
+                when(fixture.inventory.getItem(0)).thenAnswer(call -> Item.get(ItemID.STONE));
+                player.inventoryManager.initialize();
+                player.prepareState(state);
+
+                player.handleServerAuthoritativeInventoryTransaction(InventoryTransactionPacket116.TYPE_MISMATCH,
+                        -7, new NetworkInventoryAction[0], null, new LegacySetItemSlotData[0],
+                        JavaItemUseRouting.Route.MAIN_HAND);
+
+                assertTrue(player.sent.isEmpty(), "Mismatch correction must remain deferred");
+                player.inventoryManager.flushPendingUpdates();
+                List<InventoryContentPacket> packets = player.sent.stream()
+                        .filter(InventoryContentPacket.class::isInstance)
+                        .map(InventoryContentPacket.class::cast)
+                        .filter(packet -> packet.inventoryId == ContainerIds.INVENTORY).toList();
+                if (state.equals("alive")) {
+                    assertEquals(2, packets.size());
+                    assertEquals(ItemID.STONE, packets.getLast().slots[0].getId());
+                    assertTrue(packets.getLast().slots[0].getItemStackId() > 0);
+                } else {
+                    assertTrue(player.sent.isEmpty(), state);
+                }
+                assertEquals(0, player.legacySyncs);
             }
         }
     }
@@ -232,5 +276,41 @@ class InventoryMismatchAdmissionTest {
             if (originalEnchant != null) verify(originalEnchant, never()).execute();
             if (originalRepair != null) verify(originalRepair, never()).execute();
         }
+    }
+
+    private static final class AuthoritativeMismatchProbe extends SynapsePlayer116 {
+        private final ArmorInventory armor = mock(ArmorInventory.class);
+        private final PlayerOffhandInventory offhand = mock(PlayerOffhandInventory.class);
+        private final PlayerCursorInventory cursor = mock(PlayerCursorInventory.class);
+        private final CraftingGrid crafting = mock(CraftingGrid.class);
+        private final List<DataPacket> sent = new ArrayList<>();
+        private boolean online = true;
+        private int legacySyncs;
+
+        private AuthoritativeMismatchProbe(PlayerInventory inventory) {
+            super(null, null, 1L, new InetSocketAddress("127.0.0.1", 19132));
+            this.inventory = inventory;
+            this.spawned = true;
+            this.health = 20;
+            bindInputSession(new ServerInputDispatcher.Session(UUID.randomUUID()));
+        }
+
+        private void prepareState(String state) {
+            if (state.equals("dead")) health = 0;
+            if (state.equals("unspawned")) spawned = false;
+            if (state.equals("offline")) online = false;
+            if (state.equals("retired")) bindInputSession(null);
+            if (state.equals("closed")) closed = true;
+        }
+
+        @Override public boolean isServerAuthoritativeInventoryEnabled() { return true; }
+        @Override public boolean isMainThreadInputEnabled() { return true; }
+        @Override public boolean isOnline() { return online; }
+        @Override public ArmorInventory getArmorInventory() { return armor; }
+        @Override public PlayerOffhandInventory getOffhandInventory() { return offhand; }
+        @Override public PlayerCursorInventory getCursorInventory() { return cursor; }
+        @Override public CraftingGrid getCraftingGrid() { return crafting; }
+        @Override public boolean dataPacket(DataPacket packet) { sent.add(packet); return true; }
+        @Override public void sendAllInventories() { legacySyncs++; }
     }
 }

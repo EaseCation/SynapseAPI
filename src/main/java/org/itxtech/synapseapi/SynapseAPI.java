@@ -30,6 +30,7 @@ import org.itxtech.synapseapi.multiprotocol.AbstractProtocol;
 import org.itxtech.synapseapi.multiprotocol.PacketRegister;
 import org.itxtech.synapseapi.multiprotocol.utils.*;
 import org.itxtech.synapseapi.multiprotocol.utils.item.CraftingManagerNew;
+import org.itxtech.synapseapi.multiprotocol.utils.item.CraftingManagerNewest;
 import org.itxtech.synapseapi.utils.ClientData;
 import org.itxtech.synapseapi.utils.NetTest;
 import org.itxtech.synapseapi.utils.SynapsePlayerViolationListener;
@@ -244,7 +245,8 @@ public class SynapseAPI extends PluginBase implements Listener {
         CameraManager.init();
         VoxelShapeManager.init();
 
-        getServer().setCraftingManager(new CraftingManagerNew());
+        getServer().setCraftingManager(SERVER_AUTHORITATIVE_INVENTORY ? new CraftingManagerNewest()
+                : new CraftingManagerNew());
         CraftingPacketManager.rebuildPacket();
 
         ChunkRequestTask.addPreloadVersion(StaticVersion.V1_21_111_NETEASE);

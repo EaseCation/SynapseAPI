@@ -14,6 +14,7 @@ dependencies {
     testImplementation(project(":nukkit"))
     testImplementation(libs.jupiter.engine)
     testImplementation(libs.mockito.core)
+    testCompileOnly(libs.javax.annotations)
 }
 
 group = "org.itxtech.synapse"

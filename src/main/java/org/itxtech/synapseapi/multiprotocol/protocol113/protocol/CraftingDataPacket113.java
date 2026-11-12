@@ -1,6 +1,7 @@
 package org.itxtech.synapseapi.multiprotocol.protocol113.protocol;
 
 import cn.nukkit.inventory.*;
+import cn.nukkit.inventory.recipe.RecipeIngredient;
 import cn.nukkit.item.Item;
 import cn.nukkit.network.protocol.DataPacket;
 import cn.nukkit.network.protocol.ProtocolInfo;
@@ -81,13 +82,18 @@ public class CraftingDataPacket113 extends Packet113 {
                 case SHAPELESS_CHEMISTRY:
                     ShapelessRecipe shapeless = (ShapelessRecipe) recipe;
                     this.putString(shapeless.getRecipeId());
-                    List<Item> ingredients = shapeless.getIngredientList();
+                    List<RecipeIngredient> ingredients = shapeless.getIngredientList();
                     this.putUnsignedVarInt(ingredients.size());
-                    for (Item ingredient : ingredients) {
-                        this.putCraftingRecipeIngredient(ingredient);
+                    for (RecipeIngredient ingredient : ingredients) {
+                        this.helper.putRecipeIngredient(this, ingredient);
                     }
-                    this.putUnsignedVarInt(1);
-                    this.putSlot(shapeless.getResult());
+                    List<Item> outputs = new ObjectArrayList<>();
+                    outputs.add(shapeless.getResult());
+                    outputs.addAll(shapeless.getExtraResults());
+                    this.putUnsignedVarInt(outputs.size());
+                    for (Item output : outputs) {
+                        this.putSlot(output);
+                    }
                     this.putUUID(shapeless.getId());
                     this.putString(shapeless.getTag().toString());
                     this.putVarInt(shapeless.getPriority());
@@ -98,13 +104,12 @@ public class CraftingDataPacket113 extends Packet113 {
                     this.putString(shaped.getRecipeId());
                     this.putVarInt(shaped.getWidth());
                     this.putVarInt(shaped.getHeight());
-
                     for (int z = 0; z < shaped.getHeight(); ++z) {
                         for (int x = 0; x < shaped.getWidth(); ++x) {
-                            this.putCraftingRecipeIngredient(shaped.getIngredient(x, z));
+                            this.helper.putRecipeIngredient(this, shaped.getIngredient(x, z));
                         }
                     }
-                    List<Item> outputs = new ObjectArrayList<>();
+                    outputs = new ObjectArrayList<>();
                     outputs.add(shaped.getResult());
                     outputs.addAll(shaped.getExtraResults());
                     this.putUnsignedVarInt(outputs.size());

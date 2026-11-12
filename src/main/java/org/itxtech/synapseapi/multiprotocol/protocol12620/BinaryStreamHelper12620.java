@@ -1,5 +1,6 @@
 package org.itxtech.synapseapi.multiprotocol.protocol12620;
 
+import cn.nukkit.item.NetworkItemHelper;
 import cn.nukkit.block.Block;
 import cn.nukkit.command.data.CommandParamType;
 import cn.nukkit.item.*;
@@ -87,7 +88,7 @@ public class BinaryStreamHelper12620 extends BinaryStreamHelper12610 {
         if (damage < 0 || damage > 32767) throw new IllegalArgumentException("Item auxiliary value (meta) must be between 0 and 32767");
         boolean hasStackId = stream.getBoolean();
         int stackIdType;
-        int stackId;
+        int stackId = Integer.MIN_VALUE;
         if (hasStackId) {
             stackIdType = (int) stream.getUnsignedVarInt();
             stackId = stream.getVarInt();
@@ -156,22 +157,16 @@ public class BinaryStreamHelper12620 extends BinaryStreamHelper12610 {
                     }
                 }
 
-                int canPlaceCount = in.readInt();
+                int canPlaceCount = BinaryStream.checkLength(in.readInt(), 4096);
                 if (canPlaceCount > 0) {
-                    if (canPlaceCount > 4096) {
-                        throw new IndexOutOfBoundsException("Too many CanPlaceOn blocks");
-                    }
                     canPlace = new ObjectOpenHashSet<>();
                     for (int i = 0; i < canPlaceCount; i++) {
                         canPlace.add(in.readUTF());
                     }
                 }
 
-                int canBreakCount = in.readInt();
+                int canBreakCount = BinaryStream.checkLength(in.readInt(), 4096);
                 if (canBreakCount > 0) {
-                    if (canBreakCount > 4096) {
-                        throw new IndexOutOfBoundsException("Too many CanDestroy blocks");
-                    }
                     canBreak = new ObjectOpenHashSet<>();
                     for (int i = 0; i < canBreakCount; i++) {
                         canBreak.add(in.readUTF());
@@ -206,6 +201,10 @@ public class BinaryStreamHelper12620 extends BinaryStreamHelper12610 {
             item.setCanDestroyBlocks(canBreak);
         }
 
+        if (SynapseSharedConstants.SERVER_AUTHORITATIVE_INVENTORY) {
+            item.setItemStackId(stackId);
+        }
+
         return item;
     }
 
@@ -229,6 +228,10 @@ public class BinaryStreamHelper12620 extends BinaryStreamHelper12610 {
 
     @Override
     public void putItemStack(BinaryStream stream, Item item) {
+        if (SynapseSharedConstants.SERVER_AUTHORITATIVE_INVENTORY) {
+            item = NetworkItemHelper.project(item);
+        }
+
         if (item.isNull()) {
             stream.put(SERIALIZED_EMPTY_ITEM_STACK);
             return;
@@ -267,7 +270,11 @@ public class BinaryStreamHelper12620 extends BinaryStreamHelper12610 {
         stream.putBoolean(hasStackId);
         if (hasStackId) {
             stream.putUnsignedVarInt(0); // stackIdType: 0 ItemStackNetId, 1 ItemStackRequestId, 2 ItemStackLegacyRequestId
-            stream.putVarInt(1); // stackId
+            if (SynapseSharedConstants.SERVER_AUTHORITATIVE_INVENTORY) {
+                putServerAuthoritativeItemStackId(stream, item);
+            } else {
+                stream.putVarInt(1); // stackId
+            }
         }
 
         Block block = isBlock ? item.getBlockUnsafe() : null;

@@ -55,7 +55,7 @@ public class PlayerLoginPacket extends SynapseDataPacket {
         this.address = this.getString();
         this.port = this.getShort() & 0xffff;
         this.isFirstTime = this.getBoolean();
-        this.cachedLoginPacket = this.get((int) this.getUnsignedVarInt());
+        this.cachedLoginPacket = this.getByteArray();
         this.extra = GSON.fromJson(this.getString(), JsonObject.class);
 
         tryDecodeLoginPacket();

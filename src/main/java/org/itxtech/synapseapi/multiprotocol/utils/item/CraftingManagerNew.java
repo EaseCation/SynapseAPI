@@ -1,6 +1,7 @@
 package org.itxtech.synapseapi.multiprotocol.utils.item;
 
 import cn.nukkit.inventory.*;
+import cn.nukkit.inventory.recipe.RecipeIngredient;
 import cn.nukkit.item.Item;
 import cn.nukkit.item.Items;
 import cn.nukkit.utils.JsonUtil;
@@ -23,6 +24,8 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.util.*;
+import java.util.Map.Entry;
+import java.util.stream.Collectors;
 
 import static cn.nukkit.GameVersion.*;
 import static org.itxtech.synapseapi.SynapseSharedConstants.*;
@@ -32,12 +35,20 @@ public class CraftingManagerNew extends CraftingManagerLegacy {
     private static final String DIRECTORY = "recipes12150/";
     private static final String TAGS_FILE = "item_tags_12150.json";
 
+    protected String getDirectory() {
+        return DIRECTORY;
+    }
+
+    protected String getTagsFile() {
+        return TAGS_FILE;
+    }
+
     @Override
     protected void initialize() {
         log.debug("Loading advanced crafting manager...");
 
         Map<String, List<String>> tagMap;
-        try (InputStream stream = SynapseAPI.class.getClassLoader().getResourceAsStream(TAGS_FILE)) {
+        try (InputStream stream = SynapseAPI.class.getClassLoader().getResourceAsStream(getTagsFile())) {
             tagMap = JsonUtil.TRUSTED_JSON_MAPPER.readValue(stream, new TypeReference<>() {
             });
         } catch (NullPointerException | IOException e) {
@@ -136,7 +147,7 @@ public class CraftingManagerNew extends CraftingManagerLegacy {
                         recipeId,
                         priority,
                         result,
-                        ingredients,
+                        ingredients.stream().map(RecipeIngredient::new).collect(Collectors.toList()),
                         tag));
             }
         } catch (UnsupportedOperationException e) {
@@ -185,7 +196,9 @@ public class CraftingManagerNew extends CraftingManagerLegacy {
                         entry.get("priority").getAsInt(),
                         firstResult,
                         shape.asList().stream().map(JsonElement::getAsString).toArray(String[]::new),
-                        materials,
+                        Map.ofEntries(materials.char2ObjectEntrySet().stream()
+                                .map(e -> Map.entry(e.getCharKey(), new RecipeIngredient(e.getValue())))
+                                .toArray(Entry[]::new)),
                         extraResults,
                         tag));
             }
@@ -253,9 +266,9 @@ public class CraftingManagerNew extends CraftingManagerLegacy {
             registerRecipe(new SmithingTransformRecipe(
                     Integer.toUnsignedString(++RECIPE_COUNT, 36),
                     deserializeItem(entry.getAsJsonObject("output")),
-                    deserializeItem(entry.getAsJsonObject("template")),
-                    deserializeItem(entry.getAsJsonObject("input")),
-                    deserializeItem(entry.getAsJsonObject("addition")),
+                    new RecipeIngredient(deserializeItem(entry.getAsJsonObject("template"))),
+                    new RecipeIngredient(deserializeItem(entry.getAsJsonObject("input"))),
+                    new RecipeIngredient(deserializeItem(entry.getAsJsonObject("addition"))),
                     tag));
         } catch (UnsupportedOperationException e) {
             log.trace("Skip an unsupported smithing recipe: {}", entry);
@@ -280,9 +293,9 @@ public class CraftingManagerNew extends CraftingManagerLegacy {
                     for (Item addition : additions) {
                         registerRecipe(new SmithingTrimRecipe(
                                 Integer.toUnsignedString(++RECIPE_COUNT, 36),
-                                template.clone(),
-                                input.clone(),
-                                addition.clone(),
+                                new RecipeIngredient(template.clone()),
+                                new RecipeIngredient(input.clone()),
+                                new RecipeIngredient(addition.clone()),
                                 tag));
                     }
                 }
@@ -316,7 +329,7 @@ public class CraftingManagerNew extends CraftingManagerLegacy {
     }
 
     private JsonArray loadRecipes(String fileName) {
-        try (InputStreamReader reader = new InputStreamReader(new ByteArrayInputStream(ByteStreams.toByteArray(SynapseAPI.class.getClassLoader().getResourceAsStream(DIRECTORY + fileName))))) {
+        try (InputStreamReader reader = new InputStreamReader(new ByteArrayInputStream(ByteStreams.toByteArray(SynapseAPI.class.getClassLoader().getResourceAsStream(getDirectory() + fileName))))) {
             return new Gson().fromJson(reader, JsonArray.class);
         } catch (NullPointerException | IOException e) {
             throw new AssertionError("Unable to load " + fileName, e);

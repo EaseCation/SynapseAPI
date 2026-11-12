@@ -21,6 +21,8 @@ import org.itxtech.synapseapi.multiprotocol.utils.AdvancedGlobalBlockPalette;
 import javax.annotation.Nullable;
 import java.util.BitSet;
 
+import static org.itxtech.synapseapi.SynapseSharedConstants.SERVER_AUTHORITATIVE_INVENTORY;
+
 @ToString
 public class PlayerAuthInputPacket116210 extends Packet116210 implements InventoryTransactionPacketInterface, IPlayerAuthInputPacket {
 
@@ -157,21 +159,14 @@ public class PlayerAuthInputPacket116210 extends Packet116210 implements Invento
         if (hasFlag(PlayerAuthInputFlags.PERFORM_ITEM_INTERACTION)) {
             this.legacyRequestId = this.getVarInt();
             if (this.legacyRequestId != 0) {
-                int length = (int) this.getUnsignedVarInt();
-                if (length > 10) {
-                    throw new IndexOutOfBoundsException("Too many slot sync requests in inventory transaction (PlayerAuthInputPacket)");
-                }
+                int length = this.getUnsignedVarInt(10);
                 this.requestChangedSlots = new LegacySetItemSlotData[length];
                 for (int i = 0; i < length; i++) {
                     LegacySetItemSlotData requestChangedSlot = new LegacySetItemSlotData();
 
                     requestChangedSlot.containerId = this.getByte();
 
-                    int slotCount = (int) this.getUnsignedVarInt();
-                    requestChangedSlot.changedSlotIndexes = this.get(slotCount);
-                    if (requestChangedSlot.changedSlotIndexes.length != slotCount) {
-                        throw new ArrayIndexOutOfBoundsException("array length mismatch");
-                    }
+                    requestChangedSlot.changedSlotIndexes = this.getByteArray();
 
                     this.requestChangedSlots[i] = requestChangedSlot;
                 }
@@ -179,13 +174,16 @@ public class PlayerAuthInputPacket116210 extends Packet116210 implements Invento
 
             this.hasNetworkIds = this.getBoolean();
 
-            int size = (int) this.getUnsignedVarInt();
-            if (size > 100) {
-                throw new IndexOutOfBoundsException("Too many actions in item use transaction (PlayerAuthInputPacket)");
-            }
+            int size = this.getUnsignedVarInt(100);
             this.inventoryActions = new NetworkInventoryAction[size];
             for (int i = 0; i < size; i++) {
-                this.inventoryActions[i] = new NetworkInventoryAction().read(this, this);
+                NetworkInventoryAction action = new NetworkInventoryAction();
+                if (SERVER_AUTHORITATIVE_INVENTORY) {
+                    action.readNew(this, this);
+                } else {
+                    action.read(this, this);
+                }
+                this.inventoryActions[i] = action;
             }
 
             UseItemData itemData = new UseItemData();
@@ -209,10 +207,7 @@ public class PlayerAuthInputPacket116210 extends Packet116210 implements Invento
         }
 
         if (hasFlag(PlayerAuthInputFlags.PERFORM_BLOCK_ACTIONS)) {
-            int size = this.getVarInt();
-            if (size > 100) {
-                throw new IndexOutOfBoundsException("Too many block actions in PlayerAuthInputPacket");
-            }
+            int size = this.getVarInt(100);
             this.blockActions = new PlayerBlockAction[size];
             for (int i = 0; i < size; i++) {
                 int actionType = this.getVarInt();

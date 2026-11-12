@@ -1,18 +1,17 @@
 package org.itxtech.synapseapi.multiprotocol.protocol116.protocol;
 
+import cn.nukkit.item.enchantment.Enchantment;
+import cn.nukkit.item.enchantment.EnchantmentOption;
 import cn.nukkit.network.protocol.ProtocolInfo;
-import lombok.Data;
-import lombok.RequiredArgsConstructor;
 import lombok.ToString;
-import lombok.Value;
 
 @ToString
 public class PlayerEnchantOptionsPacket116 extends Packet116 {
     public static final int NETWORK_ID = ProtocolInfo.PLAYER_ENCHANT_OPTIONS_PACKET;
 
-    public static final EnchantOption[] EMPTY_OPTIONS = new EnchantOption[0];
+    public static final EnchantmentOption[] EMPTY_OPTIONS = new EnchantmentOption[0];
 
-    public EnchantOption[] options = EMPTY_OPTIONS;
+    public EnchantmentOption[] options = EMPTY_OPTIONS;
 
     @Override
     public int pid() {
@@ -28,7 +27,7 @@ public class PlayerEnchantOptionsPacket116 extends Packet116 {
         reset();
 
         putUnsignedVarInt(options.length);
-        for (EnchantOption option : options) {
+        for (EnchantmentOption option : options) {
             putUnsignedVarInt(option.cost);
 
             putLInt(option.slotFlags);
@@ -37,7 +36,7 @@ public class PlayerEnchantOptionsPacket116 extends Packet116 {
             putEnchantList(option.selfActivatedEnchantments);
 
             if (neteaseMode) {
-                putEnchantList(Enchant.EMPTY_ENCHANTS); // neteaseEnchantments
+                putEnchantList(Enchantment.EMPTY); // neteaseEnchantments
             }
 
             putString(option.name);
@@ -45,43 +44,15 @@ public class PlayerEnchantOptionsPacket116 extends Packet116 {
         }
     }
 
-    private void putEnchantList(Enchant... enchants) {
+    private void putEnchantList(Enchantment... enchants) {
         putUnsignedVarInt(enchants.length);
-        for (Enchant enchant : enchants) {
-            putByte((byte) enchant.id);
-            putByte((byte) enchant.level);
+        for (Enchantment enchant : enchants) {
+            putByte(enchant.getId());
+            putByte(enchant.getLevel());
 
             if (neteaseMode) {
                 putString(""); // modEnchantIdentifier
             }
         }
-    }
-
-    @RequiredArgsConstructor
-    @Data
-    public static class EnchantOption {
-        public final int cost;
-        public final int slotFlags;
-        public final Enchant[] equipActivatedEnchantments;
-        public final Enchant[] heldActivatedEnchantments;
-        public final Enchant[] selfActivatedEnchantments;
-        public final String name;
-        public int optionId;
-
-        public EnchantOption(int cost, Enchant[] enchantments) {
-            this(cost, enchantments, "");
-        }
-
-        public EnchantOption(int cost, Enchant[] enchantments, String name) {
-            this(cost, 0, enchantments, Enchant.EMPTY_ENCHANTS, Enchant.EMPTY_ENCHANTS, name);
-        }
-    }
-
-    @Value
-    public static class Enchant {
-        public static final Enchant[] EMPTY_ENCHANTS = new Enchant[0];
-
-        public int id;
-        public int level;
     }
 }

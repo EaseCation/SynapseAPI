@@ -1,6 +1,7 @@
 package org.itxtech.synapseapi.multiprotocol.protocol116220.protocol;
 
 import cn.nukkit.inventory.*;
+import cn.nukkit.inventory.recipe.RecipeIngredient;
 import cn.nukkit.item.Item;
 import cn.nukkit.network.protocol.CraftingDataPacket;
 import cn.nukkit.network.protocol.DataPacket;
@@ -12,6 +13,8 @@ import org.itxtech.synapseapi.utils.ClassUtils;
 import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
+
+import static org.itxtech.synapseapi.SynapseSharedConstants.SERVER_AUTHORITATIVE_INVENTORY;
 
 /**
  * @author Nukkit Project Team
@@ -86,17 +89,22 @@ public class CraftingDataPacket116220 extends Packet116220 {
                 case SHAPELESS_CHEMISTRY:
                     ShapelessRecipe shapeless = (ShapelessRecipe) recipe;
                     this.putString(shapeless.getRecipeId());
-                    List<Item> ingredients = shapeless.getIngredientList();
+                    List<RecipeIngredient> ingredients = shapeless.getIngredientList();
                     this.putUnsignedVarInt(ingredients.size());
-                    for (Item ingredient : ingredients) {
-                        this.putCraftingRecipeIngredient(ingredient);
+                    for (RecipeIngredient ingredient : ingredients) {
+                        this.helper.putRecipeIngredient(this, ingredient);
                     }
-                    this.putUnsignedVarInt(1);
-                    this.putItemInstance(shapeless.getResult());
+                    List<Item> outputs = new ObjectArrayList<>();
+                    outputs.add(shapeless.getResult());
+                    outputs.addAll(shapeless.getExtraResults());
+                    this.putUnsignedVarInt(outputs.size());
+                    for (Item output : outputs) {
+                        this.putItemInstance(output);
+                    }
                     this.putUUID(shapeless.getId());
                     this.putString(shapeless.getTag().toString());
                     this.putVarInt(shapeless.getPriority());
-                    this.putUnsignedVarInt(recipeNetworkId++);
+                    this.putUnsignedVarInt(SERVER_AUTHORITATIVE_INVENTORY ? shapeless.getNetworkId() : recipeNetworkId++);
                     break;
                 case SHAPED:
                 case SHAPED_CHEMISTRY:
@@ -104,13 +112,12 @@ public class CraftingDataPacket116220 extends Packet116220 {
                     this.putString(shaped.getRecipeId());
                     this.putVarInt(shaped.getWidth());
                     this.putVarInt(shaped.getHeight());
-
                     for (int z = 0; z < shaped.getHeight(); ++z) {
                         for (int x = 0; x < shaped.getWidth(); ++x) {
-                            this.putCraftingRecipeIngredient(shaped.getIngredient(x, z));
+                            this.helper.putRecipeIngredient(this, shaped.getIngredient(x, z));
                         }
                     }
-                    List<Item> outputs = new ObjectArrayList<>();
+                    outputs = new ObjectArrayList<>();
                     outputs.add(shaped.getResult());
                     outputs.addAll(shaped.getExtraResults());
                     this.putUnsignedVarInt(outputs.size());
@@ -120,7 +127,7 @@ public class CraftingDataPacket116220 extends Packet116220 {
                     this.putUUID(shaped.getId());
                     this.putString(shaped.getTag().toString());
                     this.putVarInt(shaped.getPriority());
-                    this.putUnsignedVarInt(recipeNetworkId++);
+                    this.putUnsignedVarInt(SERVER_AUTHORITATIVE_INVENTORY ? shaped.getNetworkId() : recipeNetworkId++);
                     break;
                 case FURNACE:
                 case FURNACE_DATA:
@@ -130,8 +137,9 @@ public class CraftingDataPacket116220 extends Packet116220 {
                     this.putString(furnace.getTag().toString());
                     break;
                 case MULTI:
-                    this.putUUID(((MultiRecipe) recipe).getId());
-                    this.putUnsignedVarInt(recipeNetworkId++);
+                    MultiRecipe multi = (MultiRecipe) recipe;
+                    this.putUUID(multi.getId());
+                    this.putUnsignedVarInt(SERVER_AUTHORITATIVE_INVENTORY ? multi.getNetworkId() : recipeNetworkId++);
                     break;
                 /*case SMITHING_TRANSFORM: // actually shapeless recipe
                     SmithingTransformRecipe smithing = (SmithingTransformRecipe) recipe;
@@ -144,7 +152,7 @@ public class CraftingDataPacket116220 extends Packet116220 {
                     this.putUUID(smithing.getInternalId());
                     this.putString(smithing.getTag().toString());
                     this.putVarInt(2); // priority
-                    this.putUnsignedVarInt(recipeNetworkId++);
+                    this.putUnsignedVarInt(SERVER_AUTHORITATIVE_INVENTORY ? smithing.getNetworkId() : recipeNetworkId++);
                     break;*/
             }
         }

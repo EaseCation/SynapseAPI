@@ -94,10 +94,25 @@ class BlockItemSourceTest {
     @Test
     void disabledModeKeepsTheOriginalUnguardedLevelCall() {
         doReturn(false).when(player).isMainThreadInputEnabled();
+        doReturn(false).when(player).isServerAuthoritativeInventoryEnabled();
         place();
         verify(level).useItemOn(position, item, BlockFace.UP, 0, 0, 0, player, null);
         verify(inventory, never()).captureHeldItem();
         verifyNoInteractions(source);
+    }
+
+    @Test
+    void authoritativeInventoryGuardsTheOriginalSourceWithoutMainThreadInput() {
+        doReturn(false).when(player).isMainThreadInputEnabled();
+        doReturn(true).when(player).isServerAuthoritativeInventoryEnabled();
+        consumptionAfterWorldEffectUsesTheOriginalSourceEvenIfSelectionChanged();
+    }
+
+    @Test
+    void authoritativeInventoryRejectsAReplacedSourceBeforeWorldEffectsWithoutMainThreadInput() {
+        doReturn(false).when(player).isMainThreadInputEnabled();
+        doReturn(true).when(player).isServerAuthoritativeInventoryEnabled();
+        staleSourceBeforeTheActionNeverCallsTheWorld();
     }
 
     private Item place() {

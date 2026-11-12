@@ -239,5 +239,9 @@ public class StartGamePacket12160 extends Packet12160 {
         this.putBoolean(this.clientSideGenerationEnabled);
         this.putBoolean(this.blockNetworkIdsAreHashes);
         this.putBoolean(this.isSoundServerAuthoritative);
+
+//        if (netease) {
+//            this.putBoolean(false); //isSpigot
+//        }
     }
 }

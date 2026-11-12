@@ -68,6 +68,10 @@ public class SynapsePlayer113 extends SynapsePlayer112 {
 		// this.levelChangeLoadScreen = false;
 	}
 
+	protected boolean canProcessPlayerBlockAction(int action) {
+		return true;
+	}
+
 	@Override
 	protected DataPacket generateStartGamePacket(Position spawnPosition) {
 		StartGamePacket113 startGamePacket = new StartGamePacket113();
@@ -193,6 +197,7 @@ public class SynapsePlayer113 extends SynapsePlayer112 {
 			case ProtocolInfo.PLAYER_ACTION_PACKET:
 				PlayerActionPacket14 playerActionPacket = (PlayerActionPacket14) packet;
 				if (!this.callPacketReceiveEvent(((PlayerActionPacket14) packet).toDefault())) break;
+				if (!this.canProcessPlayerBlockAction(playerActionPacket.action)) break;
 
 				if (!this.spawned || (!this.isAlive() && playerActionPacket.action != PlayerActionPacket14.ACTION_RESPAWN /*&& playerActionPacket.action != PlayerActionPacket14.ACTION_DIMENSION_CHANGE_REQUEST*/)) {
 					break;
@@ -410,6 +415,9 @@ public class SynapsePlayer113 extends SynapsePlayer112 {
 									break packetswitch;
 								}
 
+								if (isServerAuthoritativeInventoryEnabled()) {
+								    removeCurrentWindow();
+								}
 								this.resetCraftingGridType();
 
 								Item i = this.getInventory().getItemInHand();
@@ -689,6 +697,9 @@ public class SynapsePlayer113 extends SynapsePlayer112 {
 					break;
 				}
 
+				if (isServerAuthoritativeInventoryEnabled()) {
+				    removeCurrentWindow();
+				}
 				this.resetCraftingGridType();
 				this.craftingType = CRAFTING_SMALL;
 
