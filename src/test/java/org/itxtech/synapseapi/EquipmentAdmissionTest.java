@@ -149,13 +149,13 @@ class EquipmentAdmissionTest {
         }
     }
 
-    @Test void nonInventoryWindowsAreAdmittedButNullEquipmentRemainsBarrier() {
+    @Test void nonInventoryWindowsAndNullEquipmentAreAdmitted() {
         MobEquipmentPacket equipment = equipment(1, ItemID.STONE);
         equipment.windowId = ContainerIds.OFFHAND;
         assertTrue(BetweenTickPackets.supports(equipment));
         equipment.windowId = ContainerIds.INVENTORY;
         equipment.item = null;
-        assertFalse(BetweenTickPackets.supports(equipment));
+        assertTrue(BetweenTickPackets.supports(equipment));
         PlayerHotbarPacket hotbar = hotbar(1);
         hotbar.windowId = ContainerIds.OFFHAND;
         assertTrue(BetweenTickPackets.supports(hotbar));

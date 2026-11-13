@@ -228,8 +228,8 @@ class AttackItemSourceTest {
                     dispatcher.close();
                 }
             } else {
-                // 12630不是本批目标布局，也尚未静态准入；这里只保留其原handler对照。
-                if (modern) assertFalse(BetweenTickPackets.supports(packet));
+                // 12630 在 M9 默认放行；这里只保留其原 handler 对照。
+                if (modern) assertTrue(BetweenTickPackets.supports(packet));
                 player.handleDataPacket(packet);
             }
         } else {

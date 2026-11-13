@@ -45,8 +45,9 @@ class ChunkRequestAdmissionTest {
             }
         }
         assertTrue(BetweenTickPackets.supports(status(33, 32)));
-        assertFalse(BetweenTickPackets.supports(new ClientCacheBlobStatusPacket112()));
-        assertFalse(BetweenTickPackets.supports(new SubChunkRequestPacket11810()));
+        // M9：残缺解码的空集合两处结果相同，同样放行。
+        assertTrue(BetweenTickPackets.supports(new ClientCacheBlobStatusPacket112()));
+        assertTrue(BetweenTickPackets.supports(new SubChunkRequestPacket11810()));
     }
 
     @Test
