@@ -8,6 +8,7 @@ import org.itxtech.synapseapi.inventory.ItemStackContainerIdTranslator;
 import org.itxtech.synapseapi.multiprotocol.AbstractProtocol;
 import org.itxtech.synapseapi.multiprotocol.common.inventory.request.ItemStackRequestSlotInfo;
 import org.itxtech.synapseapi.multiprotocol.common.inventory.request.action.DropStackRequestAction;
+import org.itxtech.synapseapi.multiprotocol.common.inventory.request.action.MineBlockStackRequestAction;
 import org.itxtech.synapseapi.multiprotocol.common.inventory.request.action.PlaceStackRequestAction;
 import org.itxtech.synapseapi.multiprotocol.common.inventory.request.action.SwapStackRequestAction;
 import org.itxtech.synapseapi.multiprotocol.common.inventory.request.action.TakeStackRequestAction;
@@ -54,6 +55,9 @@ final class BetweenTickPackets {
                 case SwapStackRequestAction swap -> ordinarySlot(swap.source, protocol, netease)
                         && ordinarySlot(swap.destination, protocol, netease);
                 case DropStackRequestAction drop -> ordinarySlot(drop.source, protocol, netease);
+                // 挖方块请求只登记客户端预测的工具耐久：不生成库存事务、不读 tick，实际耐久仍由同帧挖掘逻辑修改。
+                // 客户端随每次用耐久工具挖碎方块的 AuthInput 帧发送；若保留屏障，整帧移动连同其后全部玩家的输入都要等下一世界 tick。
+                case MineBlockStackRequestAction ignored -> true;
                 case null, default -> false;
             };
             if (!ordinary) return false;
