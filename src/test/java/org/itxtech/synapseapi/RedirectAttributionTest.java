@@ -59,7 +59,7 @@ class RedirectAttributionTest {
         UUID sessionId = UUID.randomUUID();
         AnimatePacket animation = new AnimatePacket();
         animation.action = AnimatePacket.Action.SWING_ARM;
-        // 资源包完成回复进入登录收尾，仍为静态屏障（M8）。
+        // 资源包完成回复进入登录收尾：M10 起经真实转发路径同样在补充阶段执行，不再产生屏障。
         ResourcePackClientResponsePacket16 exit = new ResourcePackClientResponsePacket16();
         exit.responseStatus = ResourcePackClientResponsePacket16.STATUS_COMPLETED;
         RedirectPacket swing = redirect(sessionId, new byte[]{1});
@@ -112,12 +112,10 @@ class RedirectAttributionTest {
             entry.handleDataPacket(vehicle);
             primary.set(true);
             dispatcher.enableBarrierDiagnostics();
-            assertEquals(0, dispatcher.drain(true, 2, Long.MAX_VALUE));
+            assertEquals(1, dispatcher.drain(true, 2, Long.MAX_VALUE));
             ServerInputDispatcher.BarrierReport report = dispatcher.drainBarrierReport();
-            assertEquals(1, report.types().size());
-            assertEquals("ResourcePackClientResponsePacket16", report.types().getFirst().type());
-            assertEquals("STATIC", report.types().getFirst().reason());
-            assertEquals(1, dispatcher.drainWorldTick(3));
+            assertTrue(report.types().isEmpty());
+            assertEquals(0, dispatcher.snapshot().betweenTickBarriers());
             verify(player).handleInputDataPacket(exit, 0L);
             assertEquals(0, dispatcher.snapshot().queuedTasks());
         }

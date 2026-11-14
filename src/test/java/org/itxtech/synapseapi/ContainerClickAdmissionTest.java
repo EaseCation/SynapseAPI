@@ -1,6 +1,5 @@
 package org.itxtech.synapseapi;
 
-import org.itxtech.synapseapi.multiprotocol.protocol16.protocol.ResourcePackClientResponsePacket16;
 import cn.nukkit.inventory.transaction.data.UseItemOnEntityData;
 import cn.nukkit.item.Item;
 import cn.nukkit.network.input.ServerInputDispatcher;
@@ -91,8 +90,8 @@ class ContainerClickAdmissionTest {
         assertEquals("follower19", order.getLast());
 
         order.clear();
-        // 资源包完成回复仍为屏障，挡住后继点击。
-        dispatcher.offer(session, context -> order.add("craft"), 1, BetweenTickPackets.supports(completed()));
+        // 仍保留的屏障（SAI 非普通库存请求、已初始化玩家的未解码批包）挡住后继点击。
+        dispatcher.offer(session, context -> order.add("craft"), 1, false);
         dispatcher.offer(session, context -> order.add("click"), 1,
                 BetweenTickPackets.supports(normal(container(7), container(ContainerIds.INVENTORY))));
         assertEquals(0, dispatcher.drain(true, 8, Long.MAX_VALUE));
@@ -133,12 +132,4 @@ class ContainerClickAdmissionTest {
         return action;
     }
 
-    /**
-     * M9 后唯一的静态屏障样本：资源包完成回复进入登录收尾。
-     */
-    private static ResourcePackClientResponsePacket16 completed() {
-        ResourcePackClientResponsePacket16 packet = new ResourcePackClientResponsePacket16();
-        packet.responseStatus = ResourcePackClientResponsePacket16.STATUS_COMPLETED;
-        return packet;
-    }
 }
