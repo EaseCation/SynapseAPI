@@ -1,6 +1,5 @@
 package org.itxtech.synapseapi;
 
-import org.itxtech.synapseapi.multiprotocol.protocol16.protocol.ResourcePackClientResponsePacket16;
 import cn.nukkit.network.input.InboundContext;
 import cn.nukkit.network.input.ServerInputDispatcher;
 import cn.nukkit.network.input.ServerInputTask;
@@ -24,13 +23,17 @@ class ResourceRequestAdmissionTest {
     private final List<DataPacket> consumed = new ArrayList<>();
 
     private void offer(DataPacket packet) {
+        offer(packet, BetweenTickPackets.supports(packet));
+    }
+
+    private void offer(DataPacket packet, boolean betweenTicks) {
         assertEquals(ServerInputDispatcher.OfferResult.ACCEPTED, dispatcher.offer(session, new ServerInputTask() {
 
             @Override
             public void run(InboundContext context) {
                 consumed.add(packet);
             }
-        }, 1, BetweenTickPackets.supports(packet)));
+        }, 1, betweenTicks));
     }
 
     @Test
@@ -44,9 +47,10 @@ class ResourceRequestAdmissionTest {
 
     @Test
     void resourceRequestDoesNotBypassAnEarlierWorldTickBarrier() {
-        ResourcePackClientResponsePacket16 barrier = completed();
+        // 屏障样本代表仍保留的屏障（如已初始化玩家的未解码批包），按包类型已没有静态屏障（M10）。
+        NetworkStackLatencyPacket19 barrier = new NetworkStackLatencyPacket19();
         ResourcePackChunkRequestPacket request = new ResourcePackChunkRequestPacket();
-        offer(barrier);
+        offer(barrier, false);
         offer(request);
         offer(new NetworkStackLatencyPacket19());
         assertEquals(0, dispatcher.drain(true, 7, Long.MAX_VALUE));
@@ -67,12 +71,4 @@ class ResourceRequestAdmissionTest {
         assertEquals(1, dispatcher.snapshot().discardedTasks());
     }
 
-    /**
-     * M9 后唯一的静态屏障样本：资源包完成回复进入登录收尾。
-     */
-    private static ResourcePackClientResponsePacket16 completed() {
-        ResourcePackClientResponsePacket16 packet = new ResourcePackClientResponsePacket16();
-        packet.responseStatus = ResourcePackClientResponsePacket16.STATUS_COMPLETED;
-        return packet;
-    }
 }

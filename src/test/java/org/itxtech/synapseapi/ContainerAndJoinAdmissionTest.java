@@ -117,8 +117,7 @@ class ContainerAndJoinAdmissionTest {
                 ResourcePackClientResponsePacket16 status = assertInstanceOf(ResourcePackClientResponsePacket16.class, response);
                 for (byte value = 0; value <= ResourcePackClientResponsePacket16.STATUS_COMPLETED; value++) {
                     status.responseStatus = value;
-                    assertEquals(value != ResourcePackClientResponsePacket16.STATUS_COMPLETED,
-                            BetweenTickPackets.supports(status), "resource pack status " + value);
+                    assertTrue(BetweenTickPackets.supports(status), "resource pack status " + value);
                 }
                 DataPacket interact = PacketRegister.getPacket(ProtocolInfo.INTERACT_PACKET, protocol);
                 // 898 及以上（含 JE 975）为新类，860 为旧类；两者都只保留下车为屏障。
@@ -169,16 +168,14 @@ class ContainerAndJoinAdmissionTest {
                 error -> fail(error));
         ServerInputDispatcher.Session session = new ServerInputDispatcher.Session(UUID.randomUUID());
         List<String> order = new ArrayList<>();
-        // 资源包完成回复进入登录收尾，仍为屏障（M8）。
-        ResourcePackClientResponsePacket16 completed = new ResourcePackClientResponsePacket16();
-        completed.responseStatus = ResourcePackClientResponsePacket16.STATUS_COMPLETED;
+        // 屏障样本代表仍保留的屏障（SAI 非普通库存请求、已初始化玩家的未解码批包），按包类型已没有静态屏障（M10）。
         InteractPacket121130 open = new InteractPacket121130();
         open.action = InteractPacket121130.ACTION_OPEN_INVENTORY;
-        dispatcher.offer(session, context -> order.add("completed"), 1, BetweenTickPackets.supports(completed));
+        dispatcher.offer(session, context -> order.add("barrier"), 1, false);
         dispatcher.offer(session, context -> order.add("open"), 1, BetweenTickPackets.supports(open));
         assertEquals(0, dispatcher.drain(true, 7, Long.MAX_VALUE));
         assertTrue(order.isEmpty());
         assertEquals(2, dispatcher.drainWorldTick(8));
-        assertEquals(List.of("completed", "open"), order);
+        assertEquals(List.of("barrier", "open"), order);
     }
 }

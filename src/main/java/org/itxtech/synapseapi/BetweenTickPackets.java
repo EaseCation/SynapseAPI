@@ -1,7 +1,6 @@
 package org.itxtech.synapseapi;
 
 import cn.nukkit.network.protocol.DataPacket;
-import cn.nukkit.network.protocol.ResourcePackClientResponsePacket;
 import cn.nukkit.network.protocol.types.ItemStackRequest;
 import cn.nukkit.network.protocol.types.ItemStackRequestAction;
 import org.itxtech.synapseapi.inventory.ItemStackContainerIdTranslator;
@@ -14,12 +13,12 @@ import org.itxtech.synapseapi.multiprotocol.common.inventory.request.action.Swap
 import org.itxtech.synapseapi.multiprotocol.common.inventory.request.action.TakeStackRequestAction;
 import org.itxtech.synapseapi.multiprotocol.protocol113.protocol.IPlayerAuthInputPacket;
 import org.itxtech.synapseapi.multiprotocol.protocol116.protocol.ItemStackRequestPacket116;
-import org.itxtech.synapseapi.multiprotocol.protocol16.protocol.ResourcePackClientResponsePacket16;
 
 /**
- * 输入任务能否在两个世界 tick 之间执行（全包准入 M9：默认放行 + 显式屏障）。
+ * 输入任务能否在两个世界 tick 之间执行（全包准入 M9 默认放行，M10 起没有按包类型的静态屏障）。
  * 补充阶段与下一 tick 开头的 drain 之间没有调度器、Level 或实体更新，调度器 tick 相同；
  * 可观察差异只有 getTick() 少 1、墙钟提前与回包更早。只把结果会因此改变的包列为屏障。
+ * 仍保留的屏障：服务端权威库存开启时的非普通库存请求（下方重载）、已初始化玩家的未解码登录批包（SynapseEntry 动态判定）。
  */
 final class BetweenTickPackets {
     private BetweenTickPackets() {
@@ -71,16 +70,10 @@ final class BetweenTickPackets {
     }
 
     /**
-     * 唯一屏障：资源包完成回复进入登录收尾（PlayerLoginEvent、房间加入与重连），
-     * 已有业务按 getTick() 差值计算（如重连镜头分段），提前执行会少算 1 tick。
+     * 资源包完成回复（登录收尾）自 M10 起放行：同步路径内读 tick 的只有重连镜头恢复，
+     * 补充阶段算出的已播放 tick 正对应其他观众当前所见，无需补偿。
      */
     static boolean supports(DataPacket packet) {
-        if (packet instanceof ResourcePackClientResponsePacket16 response) {
-            return response.responseStatus != ResourcePackClientResponsePacket16.STATUS_COMPLETED;
-        }
-        if (packet instanceof ResourcePackClientResponsePacket response) {
-            return response.responseStatus != ResourcePackClientResponsePacket.STATUS_COMPLETED;
-        }
         return true;
     }
 }
