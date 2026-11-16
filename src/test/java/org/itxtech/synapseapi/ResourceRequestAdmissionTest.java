@@ -5,7 +5,6 @@ import cn.nukkit.network.input.ServerInputDispatcher;
 import cn.nukkit.network.input.ServerInputTask;
 import cn.nukkit.network.protocol.DataPacket;
 import cn.nukkit.network.protocol.ResourcePackChunkRequestPacket;
-import cn.nukkit.network.protocol.TextPacket;
 import org.itxtech.synapseapi.multiprotocol.protocol19.protocol.NetworkStackLatencyPacket19;
 import org.junit.jupiter.api.Test;
 
@@ -24,13 +23,17 @@ class ResourceRequestAdmissionTest {
     private final List<DataPacket> consumed = new ArrayList<>();
 
     private void offer(DataPacket packet) {
+        offer(packet, BetweenTickPackets.supports(packet));
+    }
+
+    private void offer(DataPacket packet, boolean betweenTicks) {
         assertEquals(ServerInputDispatcher.OfferResult.ACCEPTED, dispatcher.offer(session, new ServerInputTask() {
 
             @Override
             public void run(InboundContext context) {
                 consumed.add(packet);
             }
-        }, 1, BetweenTickPackets.supports(packet)));
+        }, 1, betweenTicks));
     }
 
     @Test
@@ -44,9 +47,10 @@ class ResourceRequestAdmissionTest {
 
     @Test
     void resourceRequestDoesNotBypassAnEarlierWorldTickBarrier() {
-        TextPacket barrier = new TextPacket();
+        // 屏障样本代表仍保留的屏障（如已初始化玩家的未解码批包），按包类型已没有静态屏障（M10）。
+        NetworkStackLatencyPacket19 barrier = new NetworkStackLatencyPacket19();
         ResourcePackChunkRequestPacket request = new ResourcePackChunkRequestPacket();
-        offer(barrier);
+        offer(barrier, false);
         offer(request);
         offer(new NetworkStackLatencyPacket19());
         assertEquals(0, dispatcher.drain(true, 7, Long.MAX_VALUE));
@@ -66,4 +70,5 @@ class ResourceRequestAdmissionTest {
         assertEquals(List.of(true), marker);
         assertEquals(1, dispatcher.snapshot().discardedTasks());
     }
+
 }

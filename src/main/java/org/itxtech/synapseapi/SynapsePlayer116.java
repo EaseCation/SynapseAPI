@@ -1402,6 +1402,11 @@ public class SynapsePlayer116 extends SynapsePlayer113 {
 						&& !this.commitReceivedMovement()) {
 					return;
 				}
+				// 夹带的库存请求为本帧方块动作的结果登记预测（如挖方块的工具耐久），须先于方块动作处理；
+				// 响应在帧末按最终物品构建。中途因输入状态失效返回时玩家已在退出或转服，残留预测由后续同步处理。
+				ItemStackRequest embeddedItemStackRequest = isServerAuthoritativeInventoryEnabled() ? playerAuthInputPacket.getItemStackRequest() : null;
+				PendingItemStackResponse embeddedItemStackResponse = embeddedItemStackRequest == null ? null
+						: processItemStackRequest(embeddedItemStackRequest, true);
 				PlayerBlockAction[] blockActions = playerAuthInputPacket.getBlockActions();
 				if (blockActions != null && blockActions.length != 0 && !this.prepareBlockActionsWhileUsingItem(blockActions)) {
                     // 只跳过竞争的挖掘动作，同包移动、物品交互及库存请求仍继续处理。
@@ -1850,12 +1855,9 @@ public class SynapsePlayer116 extends SynapsePlayer113 {
 					}
 				}
 
-				ItemStackRequest request = playerAuthInputPacket.getItemStackRequest();
-				if (isServerAuthoritativeInventoryEnabled() && request != null) {
-					ItemStackResponse response = handleItemStackRequest(request);
-
+				if (embeddedItemStackResponse != null) {
 					ItemStackResponsePacket116 responsePacket = new ItemStackResponsePacket116();
-					responsePacket.responses = new ItemStackResponse[]{response};
+					responsePacket.responses = new ItemStackResponse[]{completeItemStackRequest(embeddedItemStackResponse)};
 					dataPacket(responsePacket);
 				}
 
@@ -2384,38 +2386,70 @@ public class SynapsePlayer116 extends SynapsePlayer113 {
 	}
 
 	protected ItemStackResponse handleItemStackRequest(ItemStackRequest request) {
+		return completeItemStackRequest(processItemStackRequest(request, false));
+	}
+
+	/**
+	 * 已处理的库存请求。仅含预测、未生成库存事务的 AuthInput 夹带请求保留执行器，
+	 * 由调用方在本帧方块动作之后核对预测并构建响应；其余请求已有最终响应。
+	 */
+	protected record PendingItemStackResponse(@Nullable ItemStackResponse response, @Nullable ItemStackRequestExecutor predictions) {
+	}
+
+	/**
+	 * @param deferPredictions 为 true 时，仅含预测的请求不立即核对预测：预测针对的是同帧随后执行的方块动作结果（与 PMMP 的处理顺序一致）
+	 */
+	protected PendingItemStackResponse processItemStackRequest(ItemStackRequest request, boolean deferPredictions) {
 		if (!isServerAuthoritativeInventoryEnabled() || !this.spawned || !this.isAlive()
 				|| this.isSpectator() || !this.canContinueInputState() || processingItemStackRequest || executingInventoryTransaction) {
-			return rejectedItemStackResponse(request.requestId);
+			return new PendingItemStackResponse(rejectedItemStackResponse(request.requestId), null);
 		}
 		processingItemStackRequest = true;
+		boolean deferred = false;
 		inventoryManager.setCurrentItemStackRequestId(request.requestId);
 		try {
 			Inventory window = getCurrentWindow();
 			if (inventoryManager.isWindowOpen(window) && window.handleAuthoritativeItemStackRequest(this, request)) {
-				return rejectedItemStackResponse(request.requestId);
+				return new PendingItemStackResponse(rejectedItemStackResponse(request.requestId), null);
 			}
 			ItemStackRequestExecutor executor = new ItemStackRequestExecutor(this, request);
 			InventoryTransaction transaction = executor.generateInventoryTransaction();
 			executor.beginBundleCommit();
-			if (transaction != null && !executeInventoryTransaction(transaction, request.requestId)) {
-				return rejectedItemStackResponse(request.requestId);
+			if (transaction == null && deferPredictions) {
+				deferred = true;
+				return new PendingItemStackResponse(null, executor);
 			}
-			return executor.buildItemStackResponse();
+			if (transaction != null && !executeInventoryTransaction(transaction, request.requestId)) {
+				return new PendingItemStackResponse(rejectedItemStackResponse(request.requestId), null);
+			}
+			return new PendingItemStackResponse(executor.buildItemStackResponse(), null);
 		} catch (ItemStackRequestProcessException exception) {
 			log.debug("{}: ItemStackRequest #{} rejected: {}", getName(), request.requestId, exception.getMessage());
 			inventoryManager.requestSyncAll();
-			return rejectedItemStackResponse(request.requestId);
+			return new PendingItemStackResponse(rejectedItemStackResponse(request.requestId), null);
 		} catch (RuntimeException exception) {
 			log.error("{}: Failed to process ItemStackRequest #{}", getName(), request.requestId, exception);
 			inventoryManager.requestSyncAll();
-			return rejectedItemStackResponse(request.requestId);
+			return new PendingItemStackResponse(rejectedItemStackResponse(request.requestId), null);
 		} finally {
-			inventoryManager.syncMismatchedPredictedSlotChanges();
+			if (!deferred) {
+				inventoryManager.syncMismatchedPredictedSlotChanges();
+			}
 			inventoryManager.removeCurrentItemStackRequestId();
 			inventoryManager.endBundleTransaction();
 			processingItemStackRequest = false;
 		}
+	}
+
+	/**
+	 * 延后的预测在此核对：同帧方块动作已兑现的预测已被消费，未兑现的转为纠正；响应按核对后的物品构建。
+	 */
+	protected ItemStackResponse completeItemStackRequest(PendingItemStackResponse pending) {
+		if (pending.predictions() == null) {
+			return pending.response();
+		}
+		inventoryManager.syncMismatchedPredictedSlotChanges();
+		return pending.predictions().buildItemStackResponse();
 	}
 
 	private ItemStackResponse rejectedItemStackResponse(int requestId) {

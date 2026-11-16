@@ -1,6 +1,12 @@
 [versions]
-nukkit = "3d59d6f7f1f122ca84a1a0ac96be48b1d7154a01"
+nukkit = "8866c66e8231b55b691beea370dd8fc6430c305c"
+
+[plugins]
+shadow = { id = "com.gradleup.shadow", version = "9.6.1" }
 
 [libraries]
+authlib-stub = { module = "com.github.EaseCation:authlib-stub", version = "master-SNAPSHOT" }
+javax-annotations = { module = "com.google.code.findbugs:jsr305", version = "3.0.2" }
+msgpack = { module = "org.msgpack:jackson-dataformat-msgpack", version = "0.9.12" }
 nukkit = { module = "com.github.EaseCation:Nukkit", version.ref = "nukkit" }
-lombok = { module = "org.projectlombok:lombok", version = "1.18.46" }
+lombok = { module = "org.projectlombok:lombok", version = "1.18.48" }

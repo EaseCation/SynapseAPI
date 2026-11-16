@@ -46,10 +46,11 @@ class EatingPresentationAdmissionTest {
     @Test void disabledModeKeepsOriginalBroadcast() { check(false, "normal", false); }
     @Test void disabledModernModeKeepsOriginalBroadcast() { check(true, "normal", false); }
 
-    @Test void onlyEatingSubtypeIsEligible() {
+    @Test void everyEntityEventSubtypeIsEligible() {
+        // M9：非进食子类型只重置合成格类型，后续合成按 FIFO 读到同一状态。
         for (boolean modern : new boolean[]{false, true}) {
             for (int subtype : new int[]{EntityEventPacket.EATING_ITEM, EntityEventPacket.ENCHANT, EntityEventPacket.HURT_ANIMATION}) {
-                assertEquals(subtype == EntityEventPacket.EATING_ITEM, BetweenTickPackets.supports(packet(modern, subtype, 8, 1)));
+                assertTrue(BetweenTickPackets.supports(packet(modern, subtype, 8, 1)));
             }
         }
     }
