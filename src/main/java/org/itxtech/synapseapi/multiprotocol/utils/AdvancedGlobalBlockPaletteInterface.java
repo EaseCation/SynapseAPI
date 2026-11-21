@@ -20,7 +20,7 @@ public interface AdvancedGlobalBlockPaletteInterface {
 //    int BLOCK_ID_MASK = BLOCK_ID_COUNT - 1;
     int BLOCK_META_COUNT = Mth.smallestEncompassingPowerOfTwo(5469); // wtf cobblestone_wall
     int BLOCK_META_MASK = BLOCK_META_COUNT - 1;
-    int BLOCK_META_BITS = Mth.log2PowerOfTwo(BLOCK_META_COUNT);
+    int BLOCK_META_BITS = Mth.bitLength(BLOCK_META_COUNT);
     int FULL_BLOCK_COUNT = Block.BLOCK_ID_COUNT << BLOCK_META_BITS;
     int FULL_BLOCK_MASK = FULL_BLOCK_COUNT - 1;
     int FULL_BLOCK_ID_MASK = Block.BLOCK_ID_MASK << BLOCK_META_BITS;

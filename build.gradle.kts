@@ -7,7 +7,7 @@ import org.gradle.api.publish.maven.MavenPublication
 plugins {
     `java-library`
     `maven-publish`
-    id("com.gradleup.shadow") version "9.2.2"
+    alias(libs.plugins.shadow)
 }
 
 group = "org.itxtech.synapse"
@@ -31,7 +31,7 @@ repositories {
 
 dependencies {
     // API 依赖（会被打包到 shadow jar）
-    api("org.msgpack:jackson-dataformat-msgpack:0.9.10") {
+    api(libs.msgpack) {
         exclude(group = "com.fasterxml.jackson.core", "jackson-databind")
     }
 
@@ -39,11 +39,11 @@ dependencies {
     compileOnly(libs.nukkit)
 
     // 从 JitPack 引用 authlib-stub（编译时存根，运行时由 AuthLibPackage 插件提供真实实现）
-    compileOnly("com.github.EaseCation:authlib-stub:master-SNAPSHOT")
+    compileOnly(libs.authlib.stub)
 
     // 注解处理和编译时依赖
     compileOnly(libs.lombok)
-    compileOnly("com.google.code.findbugs:jsr305:3.0.2")
+    compileOnly(libs.javax.annotations)
     annotationProcessor(libs.lombok)
 
     // 测试依赖

@@ -61,8 +61,8 @@ class TextAdmissionTest {
                 new TextPacket116100(), new TextPacket116100NE())) {
             assertTrue(BetweenTickPackets.supports(packet), packet.getClass().getSimpleName());
         }
-        // 原版 Nukkit 文本 handler 同步执行聊天，继续作为队头屏障。
-        assertFalse(BetweenTickPackets.supports(new TextPacket()));
+        // 原版 Nukkit 文本 handler 同步执行聊天（生产不可达），M9 与命令同类放行。
+        assertTrue(BetweenTickPackets.supports(new TextPacket()));
     }
 
     @Test
