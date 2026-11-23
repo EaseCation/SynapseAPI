@@ -481,7 +481,7 @@ public class SynapseEntry {
             PacketLogger.handleServerboundPacket(entry.player, packet);
         }
         if (inputDispatcher == null) {
-            entry.player.handleDataPacket(packet);
+            entry.player.handleDataPacketWithObserverRecovery(packet);
         } else {
             entry.player.handleInputDataPacket(packet, entry.movementEpoch);
         }
@@ -567,6 +567,8 @@ public class SynapseEntry {
             prepareInputCounts();
             handleRedirectOnMain(entry, inputPacketCounts);
         } else {
+            SynapsePlayer.RawObserverMovement observerSource = packet instanceof IPlayerAuthInputPacket
+                    && synapse.isObserverRawBroadcast() ? player.captureRawObserverMovement(movementEpoch) : null;
             int bytes = packet.getCount();
             boolean betweenTicks = BetweenTickPackets.supports(packet, player.isServerAuthoritativeInventoryEnabled(),
                     player.getAbstractProtocol(), player.isNetEaseClient());
@@ -591,8 +593,8 @@ public class SynapseEntry {
                 }
             }, betweenTicks, receivedNanos);
             // 完整输入先入原 FIFO；显示回调出错或变慢不能阻止这一帧进入主线程。
-            if (packet instanceof IPlayerAuthInputPacket input && synapse.isObserverRawBroadcast()) {
-                player.broadcastObserverInput(input, movementEpoch);
+            if (observerSource != null && packet instanceof IPlayerAuthInputPacket input) {
+                player.broadcastObserverInput(input, movementEpoch, observerSource);
             }
         }
     }
@@ -825,7 +827,7 @@ public class SynapseEntry {
                 }
                 if (player != null && !player.isClosed() && !player.isViolated()) {
                     // 同一原始批包共享接入代际，解包期间发生传送也不能给后半批旧输入换代。
-                    long movementEpoch = inputDispatcher == null ? 0 : player.getMovementEpoch();
+                    long movementEpoch = player.getMovementEpoch();
                     DataPacket pk0 = PacketRegister.getFullPacket(redirectPacket.mcpeBuffer, redirectPacket.protocol);
                     //Server.getInstance().getLogger().info("to server : " + pk0.getClass().getName());
                     if (pk0 != null) {
@@ -888,9 +890,13 @@ public class SynapseEntry {
                                         continue;
                                     }
 
+                                    boolean legacyBroadcast = synapse.isNetworkBroadcastPlayerMove() && player.isOnline();
+                                    SynapsePlayer.RawObserverMovement observerSource = legacyBroadcast
+                                            && subPacket instanceof IPlayerAuthInputPacket && player.isServerAuthoritativeMovementEnabled()
+                                            ? player.captureRawObserverMovement(movementEpoch) : null;
                                     publishRedirect(player, subPacket, movementEpoch, redirectPacket.receivedNanos);
 
-                                    if (SynapseAPI.getInstance().isNetworkBroadcastPlayerMove() && player.isOnline()) {
+                                    if (legacyBroadcast) {
                                         //玩家体验优化：直接不经过主线程广播玩家移动，插件过度干预可能会造成移动鬼畜问题
                                         boolean serverAuthoritativeMovement = player.isServerAuthoritativeMovementEnabled();
                                         if (!serverAuthoritativeMovement && subPacket instanceof MovePlayerPacket) {
@@ -955,7 +961,8 @@ public class SynapseEntry {
                                             player.lastAuthInputPacketTick = tick;
 
                                             // 判断是否和玩家自身在附近区块，过滤 TP 后客户端发来的旧坐标包
-                                            if (!isPositionNearPlayer(authInputPacket.getX(), authInputPacket.getY(), authInputPacket.getZ(), player)) {
+                                            if (observerSource == null || !observerSource.isCurrent()
+                                                    || !isPositionNearPlayer(authInputPacket.getX(), authInputPacket.getY(), authInputPacket.getZ(), player)) {
                                                 continue;
                                             }
                                             if (authInputPacket.getDeltaX() != 0 || authInputPacket.getDeltaZ() != 0 || authInputPacket.getY() != player.lastAuthInputY || authInputPacket.getYaw() != player.lastAuthInputYaw || authInputPacket.getPitch() != player.lastAuthInputPitch) {
@@ -985,7 +992,7 @@ public class SynapseEntry {
                                                 }
                                                 packet.setChannel(DataPacket.CHANNEL_PLAYER_MOVING);
                                                 for (Player viewer : new ObjectArrayList<>(player.getViewers().values())) {
-                                                    viewer.dataPacket(packet);
+                                                    observerSource.send(viewer, packet);
                                                 }
                                             }
                                         }

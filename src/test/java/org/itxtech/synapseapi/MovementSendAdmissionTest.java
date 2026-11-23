@@ -7,9 +7,12 @@ import cn.nukkit.data.ServerConfiguration;
 import cn.nukkit.entity.attribute.Attribute;
 import cn.nukkit.entity.Entity;
 import cn.nukkit.entity.data.EntityMetadata;
+import cn.nukkit.event.server.DataPacketReceiveEvent;
 import cn.nukkit.event.server.DataPacketSendEvent;
 import cn.nukkit.level.Level;
+import cn.nukkit.level.format.FullChunk;
 import cn.nukkit.item.Item;
+import cn.nukkit.math.Vector3;
 import cn.nukkit.network.Compressor;
 import cn.nukkit.network.SourceInterface;
 import cn.nukkit.network.input.ServerInputDispatcher;
@@ -26,7 +29,9 @@ import cn.nukkit.network.protocol.SetEntityMotionPacket;
 import cn.nukkit.network.protocol.TextPacket;
 import cn.nukkit.plugin.PluginManager;
 import org.itxtech.synapseapi.multiprotocol.AbstractProtocol;
+import org.itxtech.synapseapi.multiprotocol.protocol116220.protocol.PlayerAuthInputPacket116220;
 import org.itxtech.synapseapi.multiprotocol.protocol11920.protocol.NetworkChunkPublisherUpdatePacket11920;
+import org.itxtech.synapseapi.network.SynLibInterface;
 import org.itxtech.synapseapi.network.protocol.PacketSequence;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
@@ -37,6 +42,7 @@ import java.net.InetSocketAddress;
 import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.function.BooleanSupplier;
 import java.util.function.Consumer;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -384,15 +390,87 @@ class MovementSendAdmissionTest {
         verify(target, never()).getChunkEntities(anyInt(), anyInt());
     }
 
+    @Test
+    void correctionInvalidatesQueuedRawMovementEvenAfterBroadcastResumes() {
+        SynLibInterface transport = mock(SynLibInterface.class);
+        Fixture fixture = new Fixture(false, false, transport);
+        SynapsePlayer.RawObserverMovement old = fixture.actor.captureRawObserverMovement(fixture.actor.getMovementEpoch());
+        assertTrue(old.send(fixture.recipient, fixture.movement()));
+        ArgumentCaptor<BooleanSupplier> guard = ArgumentCaptor.forClass(BooleanSupplier.class);
+        verify(transport).putObserverMovement(eq(fixture.recipient), any(DataPacket.class), guard.capture());
+        assertTrue(guard.getValue().getAsBoolean());
+
+        fixture.actor.pauseRawObserverBroadcast();
+        assertNull(fixture.actor.captureRawObserverMovement(fixture.actor.getMovementEpoch()));
+        MovePlayerPacket correction = fixture.movement();
+        correction.mode = MovePlayerPacket.MODE_TELEPORT;
+        assertTrue(fixture.recipient.dataPacket(correction));
+        assertEquals(MovePlayerPacket.MODE_TELEPORT, ((MovePlayerPacket) fixture.sent(1).getFirst()).mode);
+        assertFalse(old.send(fixture.recipient, fixture.movement()));
+        assertFalse(guard.getValue().getAsBoolean());
+
+        fixture.actor.clearRawObserverBroadcastPause();
+        assertFalse(guard.getValue().getAsBoolean());
+        SynapsePlayer.RawObserverMovement resumed = fixture.actor.captureRawObserverMovement(fixture.actor.getMovementEpoch());
+        assertTrue(resumed.send(fixture.recipient, fixture.movement()));
+        verify(transport, times(2)).putObserverMovement(eq(fixture.recipient), any(DataPacket.class), any(BooleanSupplier.class));
+    }
+
+    @Test
+    void correctionInsideTheSendCallbackPreventsRawMovementFromReachingTheQueue() {
+        SynLibInterface transport = mock(SynLibInterface.class);
+        Fixture fixture = new Fixture(false, false, transport);
+        SynapsePlayer.RawObserverMovement source = fixture.actor.captureRawObserverMovement(fixture.actor.getMovementEpoch());
+        fixture.onMove(event -> fixture.actor.pauseRawObserverBroadcast());
+
+        assertFalse(source.send(fixture.recipient, fixture.movement()));
+        verifyNoInteractions(transport);
+    }
+
+    @Test
+    void onlyTheValidatedPendingMovementCanResumeObserverBroadcast() {
+        for (boolean mainThreadInput : new boolean[]{false, true}) {
+            Fixture fixture = new Fixture(mainThreadInput, mainThreadInput);
+            fixture.actor.prepareObserverRecovery(mainThreadInput);
+            fixture.actor.pauseRawObserverBroadcast();
+            fixture.actor.processMovement(1);
+            assertTrue(fixture.actor.isRawObserverBroadcastPaused());
+
+            PlayerAuthInputPacket116220 validated = new PlayerAuthInputPacket116220();
+            doAnswer(call -> {
+                DataPacketReceiveEvent event = call.getArgument(0);
+                if (event.getPacket() == validated) fixture.actor.acceptObserverRecoveryInput(validated);
+                return null;
+            }).when(fixture.plugins).callEvent(any(DataPacketReceiveEvent.class));
+            fixture.actor.handleDataPacketWithObserverRecovery(validated);
+            // 同一主线程周期里后来处理的输入覆盖了待提交位置。
+            fixture.actor.handleDataPacketWithObserverRecovery(new PlayerAuthInputPacket116220());
+            fixture.actor.processMovement(1);
+            assertTrue(fixture.actor.isRawObserverBroadcastPaused());
+            clearInvocations(fixture.transport);
+
+            fixture.actor.handleDataPacketWithObserverRecovery(validated);
+            fixture.onMove(event -> assertTrue(fixture.actor.isRawObserverBroadcastPaused()));
+            fixture.actor.processMovement(1);
+            assertFalse(fixture.actor.isRawObserverBroadcastPaused());
+            assertEquals(MovePlayerPacket.MODE_NORMAL, ((MovePlayerPacket) fixture.sent(1).getFirst()).mode);
+        }
+    }
+
     private static final class Fixture {
         private final Server server = mock(Server.class);
         private final PluginManager plugins = mock(PluginManager.class);
         private final Level level = mock(Level.class);
-        private final SourceInterface transport = mock(SourceInterface.class);
+        private final SourceInterface transport;
         private final ProbePlayer actor;
         private final ProbePlayer recipient;
 
         private Fixture(boolean actorEnabled, boolean recipientEnabled) {
+            this(actorEnabled, recipientEnabled, mock(SourceInterface.class));
+        }
+
+        private Fixture(boolean actorEnabled, boolean recipientEnabled, SourceInterface transport) {
+            this.transport = transport;
             when(server.getConfiguration()).thenReturn(mock(ServerConfiguration.class));
             when(server.getDefaultLevel()).thenReturn(level);
             when(server.getPluginManager()).thenReturn(plugins);
@@ -655,6 +733,24 @@ class MovementSendAdmissionTest {
             this.sessionId = UUID.randomUUID();
             this.setUniqueId(UUID.randomUUID());
             this.protocol = AbstractProtocol.PROTOCOL_121_20.getProtocolStart();
+        }
+
+        private void prepareObserverRecovery(boolean mainThreadInput) {
+            this.synapseEntry = mock(SynapseEntry.class);
+            when(this.synapseEntry.isMainThreadInputEnabled()).thenReturn(mainThreadInput);
+            this.bindInputSession(new ServerInputDispatcher.Session(this.getSessionId()));
+            this.spawned = true;
+            this.chunk = mock(FullChunk.class);
+            when(this.chunk.isGenerated()).thenReturn(true);
+            when(this.level.getBlock(anyInt(), anyInt(), anyInt())).thenReturn(Block.get(Block.AIR));
+        }
+
+        @Override
+        public void handleDataPacket(DataPacket packet) {
+            if (packet instanceof PlayerAuthInputPacket116220 && this.callPacketReceiveEvent(packet)) {
+                // 夹具只提供待提交位置。发送、校验归属和位置提交仍走生产入口。
+                this.setPendingMovement(new Vector3(this.x, this.y, this.z), 15, 0);
+            }
         }
 
         @Override public boolean isMainThreadInputEnabled() { return this.enabled; }

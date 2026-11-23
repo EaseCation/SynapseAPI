@@ -28,6 +28,7 @@ import org.itxtech.synapseapi.utils.PacketLogger;
 import java.io.IOException;
 import java.util.*;
 import java.util.concurrent.LinkedBlockingQueue;
+import java.util.function.BooleanSupplier;
 import javax.annotation.Nullable;
 
 import static cn.nukkit.SharedConstants.BREAKPOINT_DEBUGGING;
@@ -61,10 +62,14 @@ public class SynapseEntryPutPacketThread extends Thread {
     }
 
     public void addMainToThread(SynapsePlayer player, DataPacket packet) {
+        addMainToThread(player, packet, null);
+    }
+
+    public void addMainToThread(SynapsePlayer player, DataPacket packet, @Nullable BooleanSupplier observerMovementCurrent) {
         if (BREAKPOINT_DEBUGGING && player.getSynapseEntry().getSynapse().isRecordPacketStack()) {
             packet.stack = new Throwable();
         }
-        if (!enqueue(new ForwardEntry(player, packet))) {
+        if (!enqueue(new ForwardEntry(player, packet, observerMovementCurrent))) {
             PacketSequence.discard(packet);
             packet.stack = null;
         }
@@ -139,6 +144,9 @@ public class SynapseEntryPutPacketThread extends Thread {
                     try {
                         if (entry.player.isClosed() && entry.packet.pid() != ProtocolInfo.DISCONNECT_PACKET) {
                             PacketSequence.discard(entry.packet);
+                            continue;
+                        }
+                        if (!admitObserverMovement(entry.packet, entry.observerMovementCurrent)) {
                             continue;
                         }
                         if (entry.packet instanceof BatchPacket batch) {
@@ -384,7 +392,16 @@ public class SynapseEntryPutPacketThread extends Thread {
         BinaryStream packet();
     }
 
-    private record ForwardEntry(SynapsePlayer player, DataPacket packet) implements PacketEntry {
+    private record ForwardEntry(SynapsePlayer player, DataPacket packet,
+                                @Nullable BooleanSupplier observerMovementCurrent) implements PacketEntry {
+    }
+
+    private static boolean admitObserverMovement(DataPacket packet, @Nullable BooleanSupplier observerMovementCurrent) {
+        if (observerMovementCurrent == null || observerMovementCurrent.getAsBoolean()) {
+            return true;
+        }
+        PacketSequence.discard(packet);
+        return false;
     }
 
     private record TransferEntry(SynapsePlayer player, SynapseDataPacket packet) implements PacketEntry {
